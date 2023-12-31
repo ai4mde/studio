@@ -24,7 +24,8 @@
 
 > ☝️ This project is assumes you run a GNU/Linux system.
 > If you find yourself on Windows, please work from WSL2.
-> You should be fine on macOS.
+> You should be fine on macOS. If you're just running without
+> contributing, ignore the above.
 
 The easiest way to get started is through a container runtime and the docker compose
 file at the root. If these terms are unfamiliar to you, start with installing a container
