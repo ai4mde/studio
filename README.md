@@ -56,4 +56,35 @@ As soon as that's done, you can find the following services on your machine's ne
 
 ## Development Documentation
 
-TBD.
+Even though you can run the entire suite in docker, we recommend installing local
+dependencies for development. Especially using tools such as git hooks or using an
+integrated development environment is easier if you have the necessary binaries
+installed locally.
+
+You can install a supported python distribution locally with [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
+and use [pipx](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx) to use
+a virtual environment to install poetry. After you have `python >= 3.10` and `pipx`
+installed you can install poetry and setup the dependencies:
+
+```bash
+pipx install poetry
+cd model && poetry install
+cd ..
+
+cd docs && poetry install
+cd ..
+```
+
+For our JavaScript applications, we use `bun` as a runtime. You can easily install
+bun with the following one-liner:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+Then, install the dependencies in studio:
+
+```bash
+cd studio
+bun install
+```
