@@ -15,10 +15,38 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
-  whoami:
-    image: "traefik/whoami"
-    container_name: "simple-service"
+  postgres:
+    image: postgres
+    env_file: config/postgres.env
+    volumes:
+      - pgsql-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+  
+  studio-api:
+    depends_on: ['postgres']
+    build:
+      context: model
+    env_file: config/model.env
+    volumes:
+      - ./model/model:/usr/src/model:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`giraffe.owl.localhost`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"
+      - "traefik.http.routers.studio-api.entrypoints=web"
+      - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
+
+  studio:
+    build:
+      context: studio
+    env_file: config/studio.env
+    volumes:
+      - ./studio/src:/usr/src/app/src:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio.rule=Host(`ai4mde.localhost`)"
+      - "traefik.http.routers.studio.entrypoints=web"
+      - "traefik.http.services.studio.loadbalancer.server.port=5173"
+
+volumes:
+  pgsql-data:

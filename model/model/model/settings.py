@@ -1,22 +1,13 @@
 from pathlib import Path
+from os import environ
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vy(=dkn(&q11l1@-w(md705xuu$1*7de!e5j^7v$vna4zznti2'
-
-# SECURITY WARNING: don't run with debug turned on in production!
+SECRET_KEY = environ.get('SECRET_KEY', '16600cc09a28b8dd3b4b8e7cfb4e81ff7958a87ab81809386ba7dcff9d68547e')
 DEBUG = True
+ALLOWED_HOSTS = [environ.get('HOSTNAME', 'api.ai4mde.localhost'), 'localhost']
 
-ALLOWED_HOSTS = []
-
-# Application definition
 INSTALLED_APPS = [
+    'metadata',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,20 +46,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'model.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        'HOST': environ.get('POSTGRES_HOST', 'postgres'),
+        'PORT': environ.get('POSTGRES_PORT', '5432'),
+        'NAME': environ.get('POSTGRES_DB', 'ai4mdestudio'),
+        'USER': environ.get('POSTGRES_USER', 'ai4mdestudio'),
+        'PASSWORD': environ.get('POSTGRES_PASSWORD', 'ai4mdestudio'),
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -85,25 +72,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
 STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

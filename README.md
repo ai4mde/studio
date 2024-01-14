@@ -54,7 +54,7 @@ As soon as that's done, you can find the following services on your machine's ne
 - [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `./model`
 - [docs.ai4mde.localhost](http://docs.ai4mde.localhost) - Docs from `./docs`
 
-## Development Documentation
+## Development outside of containers
 
 Even though you can run the entire suite in docker, we recommend installing local
 dependencies for development. Especially using tools such as git hooks or using an
@@ -87,4 +87,19 @@ Then, install the dependencies in studio:
 ```bash
 cd studio
 bun install
+cd ..
+```
+
+Finally, you can run the studio using bun:
+
+```bash
+cd studio && STUDIO_HOST="http://localhost:8000" bun dev
+```
+
+And you can run the server using poetry (in another shell):
+
+```bash
+cd model
+poetry shell
+POSTGRES_HOST=localhost ./model/manage.py runserver
 ```
