@@ -7,6 +7,7 @@ DEBUG = True
 ALLOWED_HOSTS = [environ.get('HOSTNAME', 'api.ai4mde.localhost'), 'localhost']
 
 INSTALLED_APPS = [
+    'model',
     'metadata',
     'diagram',
     'django.contrib.admin',

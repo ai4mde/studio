@@ -20,7 +20,7 @@ def create_system(request, payload: CreateSystem):
     pass
 
 @systems.put('/{uuid:id}', response=ReadSystem)
-def update_system(request, payload: UpdateSystem):
+def update_system(request, id, payload: UpdateSystem):
     print(payload)
     pass
 
