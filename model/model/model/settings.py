@@ -8,6 +8,7 @@ ALLOWED_HOSTS = [environ.get('HOSTNAME', 'api.ai4mde.localhost'), 'localhost']
 
 INSTALLED_APPS = [
     'metadata',
+    'diagram',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
