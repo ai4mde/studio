@@ -10,11 +10,11 @@ export default defineConfig({
     exclude: ["@codemirror/state"],
   },
   plugins: [
+    tsconfigPaths(),
     svgr(),
     Pages({
       dirs: "src/routes",
     }),
     react(),
-    tsconfigPaths(),
   ],
 });

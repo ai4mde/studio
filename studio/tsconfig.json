@@ -18,7 +18,21 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path Aliases */
+    "baseUrl": "./src",
+    "paths": {
+      "$lib/*": ["lib/*"],
+      "$assets/*": ["assets/*"],
+      /* Feature Folders */
+      "$browser/*": ["lib/features/browser/*"],
+      "$diagram/*": ["lib/features/diagram/*"],
+      /* Shared / Global */
+      "$shared/*": ["lib/shared/*"],
+      "$hooks/*": ["lib/shared/hooks/*"],
+      "$state/*": ["lib/shared/state/*"],
+    }
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

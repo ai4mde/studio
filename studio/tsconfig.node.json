@@ -5,17 +5,6 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "paths": {
-      "$src": [
-        "./src/*"
-      ],
-      "$lib": [
-        "./src/lib/*"
-      ],
-      "$assets": [
-        "./src/assets/*"
-      ]
-    }
   },
   "include": ["vite.config.ts"]
 }
