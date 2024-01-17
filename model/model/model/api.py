@@ -23,3 +23,9 @@ def get_token(request, username: str, password: str, response: HttpResponse):
         )
         return {'token': token}
     return 403, {"message": "User not found."}
+
+@api.get('/auth/status', tags=['authentication'])
+def get_auth(request):
+    if user := request.auth:
+        return { 'id': user.id }
+    return { 'id': None }
