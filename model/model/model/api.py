@@ -24,6 +24,11 @@ def get_token(request, username: str, password: str, response: HttpResponse):
         return {'token': token}
     return 403, {"message": "User not found."}
 
+@api.post('/auth/logout', tags=['authentication'])
+def logout(request, response: HttpResponse):
+    response.delete_cookie('key')
+    return { 'message': 'Logged out.' }
+
 @api.get('/auth/status', tags=['authentication'])
 def get_auth(request):
     if user := request.auth:
