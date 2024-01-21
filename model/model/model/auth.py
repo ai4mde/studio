@@ -7,13 +7,14 @@ from ninja.security import APIKeyCookie, HttpBearer
 def create_token(username: str, password: str):
     user = authenticate(username=username, password=password)
     if user:
-        return encode({
+        return user, encode({
             "exp": datetime.now(tz=timezone.utc) + timedelta(days=1),
             "nbf": datetime.now(tz=timezone.utc),
             "iss": "urn:ai4mdestudio",
             "iat": datetime.now(tz=timezone.utc),
             "uid": user.id, 
         }, settings.SECRET_KEY)
+    return None, None
 
 def user_from_token(token: str):
     if token:

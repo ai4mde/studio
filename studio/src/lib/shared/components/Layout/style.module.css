@@ -1,0 +1,8 @@
+.main {
+    position: absolute;
+    top: 3rem;
+    bottom: 0;
+    right: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}

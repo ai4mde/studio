@@ -28,6 +28,7 @@
       /* Feature Folders */
       "$browser/*": ["lib/features/browser/*"],
       "$diagram/*": ["lib/features/diagram/*"],
+      "$chatbot/*": ["lib/features/chatbot/*"],
       /* Shared / Global */
       "$shared/*": ["lib/shared/*"],
       "$hooks/*": ["lib/shared/hooks/*"],

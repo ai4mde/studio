@@ -8,11 +8,22 @@ import {
   useRoutes,
 } from 'react-router-dom'
 import routes from '~react-pages'
+import { useAuthStore } from '$lib/features/auth/state/auth'
+import LoginScreen from '$lib/features/auth/components/LoginScreen'
 
 export const App: React.FC = () => {
+  const { isAuthenticated } = useAuthStore()
+  const _routes = useRoutes(routes)
+
+  if (!isAuthenticated) {
+    return (
+      <LoginScreen/>
+    )
+  }
+
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      {useRoutes(routes)}
+      {_routes}
     </Suspense>
   )
 }
