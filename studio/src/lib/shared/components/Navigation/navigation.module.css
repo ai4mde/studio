@@ -1,0 +1,33 @@
+.sidenav {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: fit-content;
+    @apply text-sm !bg-gray-50;
+
+    .bottom {
+        flex-basis: fit-content;
+        flex-grow: initial;
+        padding-bottom: 2em;
+    }
+
+    button {
+        @apply px-4 py-2 w-full flex gap-6 font-bold text-sm items-center;
+        height: auto;
+        width: 16rem;
+
+        svg {
+            margin-left: 1px;
+        }
+
+        span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        &:hover {
+            @apply bg-gray-100 text-black;
+        }
+    }
+}

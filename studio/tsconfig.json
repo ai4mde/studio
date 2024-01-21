@@ -2,10 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -13,28 +16,51 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-
     /* Path Aliases */
     "baseUrl": "./src",
     "paths": {
-      "$lib/*": ["lib/*"],
-      "$assets/*": ["assets/*"],
+      "$lib/*": [
+        "lib/*"
+      ],
+      "$assets/*": [
+        "assets/*"
+      ],
       /* Feature Folders */
-      "$browser/*": ["lib/features/browser/*"],
-      "$diagram/*": ["lib/features/diagram/*"],
-      "$chatbot/*": ["lib/features/chatbot/*"],
+      "$browser/*": [
+        "lib/features/browser/*"
+      ],
+      "$diagram/*": [
+        "lib/features/diagram/*"
+      ],
+      "$chatbot/*": [
+        "lib/features/chatbot/*"
+      ],
+      "$auth/*": [
+        "lib/features/auth/*"
+      ],
       /* Shared / Global */
-      "$shared/*": ["lib/shared/*"],
-      "$hooks/*": ["lib/shared/hooks/*"],
-      "$state/*": ["lib/shared/state/*"],
+      "$shared/*": [
+        "lib/shared/*"
+      ],
+      "$hooks/*": [
+        "lib/shared/hooks/*"
+      ],
+      "$state/*": [
+        "lib/shared/state/*"
+      ],
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }
