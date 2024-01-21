@@ -6,11 +6,18 @@ import React from "react";
 import { chatbotOpenAtom } from "$chatbot/atoms";
 // import Navigation from 'src/nextgen/layout/components/Navigation/Navigation'
 import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
-import style from "./layout.module.css";
+import { useAuthStore } from "$lib/features/auth/state/auth";
+import LoginScreen from "$lib/features/auth/components/LoginScreen";
+import style from "./style.module.css";
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [, setChatbot] = useAtom(chatbotOpenAtom);
   const [ref] = useAtom(navigationPortalAtom);
+  const { isAuthenticated } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <LoginScreen/>
+  }
 
   return (
     <>
@@ -72,7 +79,6 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
       >
         {children}
       </main>
-      {/* <ChatbotWindow /> */}
     </>
   );
 };
