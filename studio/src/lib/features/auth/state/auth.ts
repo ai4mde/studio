@@ -1,6 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 type AuthStore = {
     isAuthenticated: boolean;
@@ -15,6 +15,9 @@ type AuthStore = {
     logout: () => void;
 };
 
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken = true;
+
 export const authAxios = axios.create({
     baseURL: "http://api.ai4mde.localhost/api/",
     withCredentials: true,
@@ -27,7 +30,7 @@ export const useAuthStore = create(
     persist<AuthStore>(
         (set) => {
             // TODO: Add something that logs out when expired.
-            
+
             return {
                 isAuthenticated: false,
 
