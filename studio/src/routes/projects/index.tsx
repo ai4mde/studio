@@ -76,7 +76,7 @@ const ProjectsIndex: React.FC = () => {
                                 ))}
                             <button
                                 onClick={() => setCreate(true)}
-                                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center"
+                                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
                             >
                                 <Plus />
                             </button>

@@ -1,77 +1,15 @@
-import {
-    AppWindow,
-    ArrowLeft,
-    Blocks,
-    Component,
-    GitGraph,
-} from "lucide-react";
+import { TopNavigation } from "$lib/shared/components/TopNavigation";
+import { AppWindow, Blocks, Component, GitGraph } from "lucide-react";
 import React from "react";
-import { matchPath, useLocation, useParams } from "react-router";
+import { useParams } from "react-router";
 
 type Props = {
     children?: React.ReactNode;
 };
 
-const TopNavigation: React.FC = () => {
-    const { systemId } = useParams();
-    const { pathname } = useLocation();
-
-    const navigation = [
-        {
-            name: "Diagrams",
-            Icon: GitGraph,
-            href: `/systems/${systemId}`,
-            strict: true,
-        },
-        {
-            name: "Repository",
-            Icon: Blocks,
-            href: `/systems/${systemId}/repository`,
-        },
-        {
-            name: "Applications",
-            Icon: AppWindow,
-            href: `/systems/${systemId}/applications`,
-        },
-        {
-            name: "Components",
-            Icon: Component,
-            href: `/systems/${systemId}/components`,
-        },
-    ];
-
-    return (
-        <div className="w-full h-10 flex flex-row items-stretch font-semibold bg-gray-100 text-sm text-stone-700">
-            <a
-                className="flex flex-row items-center px-3 border-b border-transparent hover:text-stone-900 hover:bg-stone-200"
-                href="/projects"
-            >
-                <ArrowLeft size={18} />
-            </a>
-            {navigation.map(({ name, Icon, href, strict }) => (
-                <>
-                    <a
-                        className={[
-                            "flex flex-row gap-2 px-3 items-center border-b border-transparent hover:text-stone-900 hover:bg-stone-200",
-                            (strict
-                                ? pathname == href
-                                : matchPath(href, pathname)) &&
-                                "bg-stone-200 text-stone-900 !border-stone-900",
-                        ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        href={href}
-                    >
-                        <Icon size={14} />
-                        {name}
-                    </a>
-                </>
-            ))}
-        </div>
-    );
-};
-
 const SystemLayout: React.FC<Props> = ({ children }) => {
+    const { systemId } = useParams();
+
     return (
         <div
             className="w-full h-full grid grid-cols-12 items-center"
@@ -80,7 +18,32 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
             }}
         >
             <div className="col-span-12">
-                <TopNavigation />
+                <TopNavigation
+                    back="/projects"
+                    navigation={[
+                        {
+                            name: "Diagrams",
+                            Icon: GitGraph,
+                            href: `/systems/${systemId}`,
+                            strict: true,
+                        },
+                        {
+                            name: "Metadata",
+                            Icon: Blocks,
+                            href: `/systems/${systemId}/metadata`,
+                        },
+                        {
+                            name: "Applications",
+                            Icon: AppWindow,
+                            href: `/systems/${systemId}/applications`,
+                        },
+                        {
+                            name: "Components",
+                            Icon: Component,
+                            href: `/systems/${systemId}/components`,
+                        },
+                    ]}
+                />
             </div>
 
             <div className="col-span-12 h-full">{children}</div>
