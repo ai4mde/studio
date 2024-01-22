@@ -1,5 +1,5 @@
 import { useAuthStore } from "$lib/features/auth/state/auth";
-import { Box, LayoutDashboard, List, LogOut, User } from "lucide-react";
+import { Bot, Box, LayoutDashboard, List, LogOut, User } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
 
@@ -33,7 +33,22 @@ export const Navigation: React.FC = () => {
                     className={
                         linkClassName +
                         " " +
-                        (pathname.startsWith("/projects")
+                        (pathname.startsWith("/build")
+                            ? activeLink
+                            : inactiveLink)
+                    }
+                    href="/build/"
+                >
+                    <Bot size={20} />
+                    <span className="font-bold text-sm">Build</span>
+                </a>
+                <a
+                    className={
+                        linkClassName +
+                        " " +
+                        (pathname.startsWith("/projects") ||
+                        pathname.startsWith("/systems") ||
+                        pathname.startsWith("/diagram")
                             ? activeLink
                             : inactiveLink)
                     }

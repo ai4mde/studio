@@ -1,6 +1,6 @@
 import { Button, Tooltip } from "@mui/joy";
 import { useAtom } from "jotai";
-import { Bot, Package, Settings } from "lucide-react";
+import { MessageSquare, Package, Settings } from "lucide-react";
 import React from "react";
 // import ChatbotWindow from 'src/nextgen/chatbot/components/ChatbotWindow/ChatbotWindow'
 import { chatbotOpenAtom } from "$chatbot/atoms";
@@ -43,7 +43,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
                             variant="plain"
                             color="neutral"
                         >
-                            <Bot
+                            <MessageSquare
                                 style={{
                                     fill: "transparent",
                                     stroke: "black",

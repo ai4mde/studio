@@ -1,6 +1,8 @@
+from diagram.api import diagram_router
 from django.http import HttpResponse
-from ninja import NinjaAPI, Schema
 from metadata.api import metadata_router
+from ninja import NinjaAPI, Schema
+
 from model.auth import auth, create_token
 
 api = NinjaAPI(
@@ -11,6 +13,7 @@ api = NinjaAPI(
     csrf=False,  # TODO: Ensure this works with Axios frontend / XSRF Header
 )
 api.add_router("/metadata/", metadata_router)
+api.add_router("/diagram/", diagram_router)
 
 
 class GetTokenSchema(Schema):

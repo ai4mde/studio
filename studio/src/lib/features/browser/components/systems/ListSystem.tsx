@@ -1,5 +1,4 @@
 import { authAxios } from "$lib/features/auth/state/auth";
-import { CircularProgress } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react";
@@ -18,7 +17,7 @@ type Props = {
 };
 
 export const ListSystem: React.FC<Props> = ({ project }) => {
-    const systems = useQuery<SystemOut[]>({
+    const { data, isSuccess } = useQuery<SystemOut[]>({
         queryKey: ["systems", `${project}`],
         queryFn: async () => {
             return (
@@ -37,37 +36,25 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
     return (
         <>
             <CreateSystem project={project} />
-            <div className="flex flex-col">
-                <h1 className="text-lg">Systems</h1>
-                <div className="flex flex-row pt-1 gap-4">
-                    {systems.isLoading && (
-                        <CircularProgress className="animate-spin" />
-                    )}
-                    {systems.isSuccess &&
-                        systems.data.map((e) => (
-                            <a
-                                href={`/systems/${e.id}`}
-                                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fit"
-                            >
-                                <div className="flex flex-col mb-1 pb-2 border-b border-b-stone-400 w-64">
-                                    <h3 className="text-lg">{e.name}</h3>
-                                    <h4 className="text-sm text-ellipsis text-nowrap overflow-hidden">
-                                        {e.description}
-                                    </h4>
-                                </div>
-                                <span className="text-xs">
-                                    {e.id.split("-").slice(-1)}
-                                </span>
-                            </a>
-                        ))}
-                    <button
-                        onClick={() => setCreate(true)}
-                        className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fit"
+            {isSuccess &&
+                data.map((e) => (
+                    <a
+                        href={`/systems/${e.id}`}
+                        className="flex flex-col gap-2 p-4 w-48 text-ellipsis overflow-hidden rounded-md bg-stone-200 hover:bg-stone-300 h-fit"
                     >
-                        <Plus />
-                    </button>
-                </div>
-            </div>
+                        <h3 className="text-xl font-bold">{e.name}</h3>
+                        <h3 className="text-sm">{e.description}</h3>
+                        <span className="text-xs text-right pt-2 text-stone-500">
+                            {e.id.split("-").slice(-1)}
+                        </span>
+                    </a>
+                ))}
+            <button
+                onClick={() => setCreate(true)}
+                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
+            >
+                <Plus />
+            </button>
         </>
     );
 };
