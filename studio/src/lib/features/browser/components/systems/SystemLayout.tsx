@@ -1,5 +1,5 @@
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
-import { AppWindow, Blocks, Component, GitGraph } from "lucide-react";
+import { AppWindow, Blocks, Component, GitGraph, User } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -41,6 +41,11 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             name: "Components",
                             Icon: Component,
                             href: `/systems/${systemId}/components`,
+                        },
+                        {
+                            name: "Users",
+                            Icon: User,
+                            href: `/systems/${systemId}/users`,
                         },
                     ]}
                 />

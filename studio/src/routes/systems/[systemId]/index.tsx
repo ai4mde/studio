@@ -94,7 +94,7 @@ const SystemDiagrams: React.FC = () => {
                             <>
                                 <span className="flex flex-row gap-2 items-center">
                                     <Icon size={24} />
-                                    <h1 className="text-lg">{name}s</h1>
+                                    <h1 className="text-lg">{name}</h1>
                                 </span>
                                 <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2">
                                     {diagrams.map(({ id, name }) => (
