@@ -4,7 +4,7 @@ import ListSystem from "$lib/features/browser/components/systems/ListSystem";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { LinearProgress } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
-import { GalleryVertical } from "lucide-react";
+import { GalleryVertical, User } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -52,7 +52,13 @@ const ViewProject: React.FC = () => {
                             {
                                 name: "Systems",
                                 Icon: GalleryVertical,
-                                href: "/systems",
+                                href: `/projects/${projectId}`,
+                                strict: true,
+                            },
+                            {
+                                name: "Users",
+                                Icon: User,
+                                href: `/projects/${projectId}/users`,
                             },
                         ]}
                     />
