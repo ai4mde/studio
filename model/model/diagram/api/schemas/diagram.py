@@ -1,5 +1,15 @@
-from diagram.models import Diagram
+from enum import Enum
+
 from ninja import ModelSchema, Schema
+
+from diagram.models import Diagram
+
+
+class DiagramType(str, Enum):
+    classes = "classes"
+    usecase = "usecase"
+    activity = "activity"
+    component = "component"
 
 
 class ReadDiagram(ModelSchema):
@@ -10,7 +20,8 @@ class ReadDiagram(ModelSchema):
 
 class CreateDiagram(Schema):
     system: str
-    type: str = "classes"
+    type: DiagramType = "classes"
+    name: str = "Diagram"
 
 
 class UpdateDiagram(ModelSchema):

@@ -47,7 +47,6 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
             </div>
 
             <div className="col-span-12 h-full">{children}</div>
-
             <div className="col-span-12 flex flex-row p-3">AI4MDE</div>
         </div>
     );

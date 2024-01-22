@@ -27,6 +27,7 @@ type SystemOut = {
 
 type NewDiagram = {
     type: string;
+    name: string;
 };
 
 const SystemDiagrams: React.FC = () => {
@@ -45,7 +46,7 @@ const SystemDiagrams: React.FC = () => {
         mutationFn: async ({ type }) => {
             await authAxios.post(`/v1/diagram/`, {
                 system: systemId,
-                diagram: type,
+                type: type,
             });
             queryClient.refetchQueries({
                 queryKey: [`system`, `${systemId}`],
@@ -57,25 +58,25 @@ const SystemDiagrams: React.FC = () => {
     const uiDiagrams = [
         {
             type: "classes",
-            name: "Class Diagrams",
+            name: "Class Diagram",
             Icon: Network,
             diagrams: diagrams?.classes ?? [],
         },
         {
             type: "activity",
-            name: "Activity Diagrams",
+            name: "Activity Diagram",
             Icon: Workflow,
             diagrams: diagrams?.activity ?? [],
         },
         {
             type: "usecase",
-            name: "Usecase Diagrams",
+            name: "Usecase Diagram",
             Icon: User,
             diagrams: diagrams?.usecase ?? [],
         },
         {
             type: "component",
-            name: "Component Diagrams",
+            name: "Component Diagram",
             Icon: Component,
             diagrams: diagrams?.component ?? [],
         },
@@ -93,9 +94,9 @@ const SystemDiagrams: React.FC = () => {
                             <>
                                 <span className="flex flex-row gap-2 items-center">
                                     <Icon size={24} />
-                                    <h1 className="text-lg">{name}</h1>
+                                    <h1 className="text-lg">{name}s</h1>
                                 </span>
-                                <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2 ">
+                                <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2">
                                     {diagrams.map(({ id, name }) => (
                                         <a
                                             href={`/diagram/${id}`}
@@ -109,7 +110,10 @@ const SystemDiagrams: React.FC = () => {
                                     ))}
                                     <button
                                         onClick={() =>
-                                            newDiagram.mutate({ type: type })
+                                            newDiagram.mutate({
+                                                type: type,
+                                                name: name,
+                                            })
                                         }
                                         className="flex flex-col gap-2 p-4 rounded-md bg-stone-200 hover:bg-stone-300 h-full"
                                     >

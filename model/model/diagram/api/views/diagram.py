@@ -2,6 +2,7 @@ from typing import List
 
 from diagram.api.schemas import CreateDiagram, ReadDiagram, UpdateDiagram
 from diagram.models import Diagram
+from metadata.models import System
 from ninja import Router
 
 diagrams = Router()
@@ -19,11 +20,14 @@ def read_diagram(request, id):
 
 
 @diagrams.post("/", response=ReadDiagram)
-def create_diagram(request, project: CreateDiagram):
-    return Diagram.objects.create(
-        name=project.name,
-        description=project.description,
+def create_diagram(request, body: CreateDiagram):
+    system = System.objects.get(id=body.system)
+    diagram = Diagram.objects.create(
+        name=body.name,
+        system=system,
+        type=body.type,
     )
+    return diagram
 
 
 @diagrams.put("/{uuid:id}", response=ReadDiagram)

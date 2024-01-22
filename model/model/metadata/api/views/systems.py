@@ -1,9 +1,8 @@
 from typing import List, Optional
 
-from ninja import Router
-
 from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem
 from metadata.models import Project, System
+from ninja import Router
 
 systems = Router()
 
@@ -26,7 +25,7 @@ def read_system(request, id):
         "name": system.name,
         "description": system.description,
         "diagrams": {
-            "classes": system.diagram_set.filter(type="class"),
+            "classes": system.diagram_set.filter(type="classes"),
             "activity": system.diagram_set.filter(type="activity"),
             "usecase": system.diagram_set.filter(type="usecase"),
             "component": system.diagram_set.filter(type="component"),

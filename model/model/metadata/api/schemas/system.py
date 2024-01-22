@@ -1,11 +1,13 @@
 from typing import List
+from uuid import UUID
+
+from ninja import ModelSchema, Schema
 
 from metadata.models import System
-from ninja import ModelSchema, Schema
 
 
 class FlatDiagram(Schema):
-    id: str
+    id: UUID
     name: str
     description: str = None
 
