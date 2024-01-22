@@ -1,4 +1,10 @@
-import { AppWindow, Blocks, Component, GitGraph } from "lucide-react";
+import {
+    AppWindow,
+    ArrowLeft,
+    Blocks,
+    Component,
+    GitGraph,
+} from "lucide-react";
 import React from "react";
 import { matchPath, useLocation, useParams } from "react-router";
 
@@ -36,6 +42,12 @@ const TopNavigation: React.FC = () => {
 
     return (
         <div className="w-full h-10 flex flex-row items-stretch font-semibold bg-gray-100 text-sm text-stone-700">
+            <a
+                className="flex flex-row items-center px-3 border-b border-transparent hover:text-stone-900 hover:bg-stone-200"
+                href="/projects"
+            >
+                <ArrowLeft size={18} />
+            </a>
             {navigation.map(({ name, Icon, href, strict }) => (
                 <>
                     <a
