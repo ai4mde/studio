@@ -2,10 +2,10 @@ import { createProjectAtom } from "$browser/atoms";
 import { CreateProject } from "$browser/components/projects/CreateProject";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { Button, ButtonGroup, LinearProgress } from "@mui/joy";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react";
 import React from "react";
-import { useQuery } from "react-query";
 
 type ProjectOut = {
     id: string;

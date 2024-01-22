@@ -11,9 +11,9 @@ import {
     ModalClose,
     ModalDialog,
 } from "@mui/joy";
+import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import React from "react";
-import { useMutation } from "react-query";
 
 type ProjectInput = {
     name: string;

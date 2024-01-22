@@ -1,10 +1,11 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import { CircularProgress } from "@mui/joy";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react";
 import React from "react";
-import { useQuery } from "react-query";
 import { createSystemAtom } from "../../atoms";
+import CreateSystem from "./CreateSystem";
 
 type SystemOut = {
     id: string;
@@ -35,16 +36,17 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
 
     return (
         <>
+            <CreateSystem project={project} />
             <div className="flex flex-col">
                 <h1 className="text-lg">Systems</h1>
-                <div className="flex flex-row">
+                <div className="flex flex-row pt-1 gap-4">
                     {systems.isLoading && (
                         <CircularProgress className="animate-spin" />
                     )}
                     {systems.isSuccess &&
                         systems.data.map((e) => (
                             <a
-                                href={`/projects/${e.id}`}
+                                href={`/systems/${e.id}`}
                                 className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fit"
                             >
                                 <div className="flex flex-col mb-1 pb-2 border-b border-b-stone-400 w-64">

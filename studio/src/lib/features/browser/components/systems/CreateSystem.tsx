@@ -11,9 +11,9 @@ import {
     ModalClose,
     ModalDialog,
 } from "@mui/joy";
+import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import React from "react";
-import { useMutation } from "react-query";
 
 type SystemInput = {
     name: string;
@@ -73,8 +73,8 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
             <ModalDialog>
                 <div className="flex flex-row w-full justify-between pb-1">
                     <div className="flex flex-col">
-                        <h1 className="font-bold">Create Project</h1>
-                        <h3 className="text-sm">Start a new project</h3>
+                        <h1 className="font-bold">Create System</h1>
+                        <h3 className="text-sm">Start a new system</h3>
                     </div>
                     <ModalClose
                         sx={{
@@ -86,13 +86,13 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
                 </div>
                 <Divider />
                 <form
-                    id="create-project"
+                    id="create-system"
                     className="flex flex-col min-w-96 gap-2"
                     onSubmit={onSubmit}
                 >
                     <FormControl required>
                         <FormLabel>Name</FormLabel>
-                        <Input name="name" placeholder="Project" required />
+                        <Input name="name" placeholder="System" required />
                     </FormControl>
                     <FormControl>
                         <FormLabel>Description</FormLabel>
@@ -104,7 +104,7 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
                 </form>
                 <Divider />
                 <div className="flex flex-row pt-1">
-                    <Button form="create-project" type="submit">
+                    <Button form="create-system" type="submit">
                         Create
                     </Button>
                 </div>

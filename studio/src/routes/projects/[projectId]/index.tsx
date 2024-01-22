@@ -3,10 +3,10 @@ import { CreateProject } from "$browser/components/projects/CreateProject";
 import { authAxios } from "$lib/features/auth/state/auth";
 import ListSystem from "$lib/features/browser/components/systems/ListSystem";
 import { Button, ButtonGroup, LinearProgress } from "@mui/joy";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { ArrowLeft } from "lucide-react";
 import React from "react";
-import { useQuery } from "react-query";
 import { useParams } from "react-router";
 
 type ProjectOut = {

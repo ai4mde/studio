@@ -8,6 +8,7 @@ import LoginScreen from "$lib/features/auth/components/LoginScreen";
 import { useAuthStore } from "$lib/features/auth/state/auth";
 import { Navigation } from "$shared/components/Navigation/Navigation";
 import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import style from "./style.module.css";
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -21,6 +22,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
 
     return (
         <>
+            <ReactQueryDevtools />
             <header className="fixed flex flex-row w-full h-12 gap-2 border-solid border-b border-b-stone-300">
                 <a
                     href="/"
