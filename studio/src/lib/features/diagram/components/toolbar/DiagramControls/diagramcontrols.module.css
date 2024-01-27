@@ -1,0 +1,11 @@
+.diagramcontrols {
+    @apply text-sm w-full h-full p-0 flex flex-row gap-1;
+
+    .disabled {
+        @apply pointer-events-none;
+
+        * {
+            @apply !text-gray-400;
+        }
+    }
+}

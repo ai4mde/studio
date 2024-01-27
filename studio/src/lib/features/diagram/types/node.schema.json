@@ -1,0 +1,805 @@
+{
+    "$id": "https://schema.nguml.com/node.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "anyOf": [
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "class"
+                },
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": ["str", "int", "bool"]
+                            }
+                        }
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": ["str", "int", "bool"]
+                            },
+                            "body": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "abstract": {
+                    "type": "boolean"
+                },
+                "leaf": {
+                    "type": "boolean"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "class"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["diagram", "id", "name", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "enum"
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": ["str", "int", "bool"]
+                            },
+                            "body": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "literals": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "class"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["diagram", "id", "literals", "name", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "action"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "action"
+                },
+                "localPrecondition": {
+                    "type": "string"
+                },
+                "localPostcondition": {
+                    "type": "string"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "operation": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": ["str", "int", "bool"]
+                        },
+                        "body": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "description",
+                "diagram",
+                "id",
+                "name",
+                "operation",
+                "role",
+                "type"
+            ]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "decision"
+                },
+                "decisionInput": {
+                    "type": "string"
+                },
+                "decisionInputFlow": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "final"
+                },
+                "activity_scope": {
+                    "type": "string",
+                    "enum": ["flow", "activity"]
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "activity_scope",
+                "description",
+                "diagram",
+                "id",
+                "role",
+                "type"
+            ]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "fork"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "initial"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "join"
+                },
+                "joinSpec": {
+                    "type": "string"
+                },
+                "isCombineDuplicate": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "const": "merge"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "control"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "buffer"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "object"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "name", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "isOrdered": {
+                    "type": "boolean"
+                },
+                "isUnique": {
+                    "type": "boolean"
+                },
+                "lower": {
+                    "type": "number"
+                },
+                "upper": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "const": "*"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "pin"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "object"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "name", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "const": "class"
+                },
+                "attributes": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": ["str", "int", "bool"]
+                            }
+                        }
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": ["str", "int", "bool"]
+                            },
+                            "body": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "abstract": {
+                    "type": "boolean"
+                },
+                "leaf": {
+                    "type": "boolean"
+                },
+                "role": {
+                    "type": "string",
+                    "const": "object"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "activity"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["description", "diagram", "id", "name", "role", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "usecase"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "precondition",
+                        "postcondition",
+                        "trigger",
+                        "scenario"
+                    ]
+                },
+                "isReadOnly": {
+                    "type": "boolean"
+                },
+                "isSingleExecution": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["diagram", "id", "name", "type"]
+        },
+        {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "position": {
+                    "type": "object",
+                    "properties": {
+                        "x": {
+                            "type": "number",
+                            "default": 0
+                        },
+                        "y": {
+                            "type": "number",
+                            "default": 0
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "precondition",
+                        "postcondition",
+                        "trigger",
+                        "scenario"
+                    ]
+                },
+                "datatype": {
+                    "type": "string",
+                    "enum": ["str", "int", "bool"]
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "diagram": {
+                    "type": "string",
+                    "const": "usecase"
+                },
+                "isReadOnly": {
+                    "type": "boolean"
+                },
+                "isSingleExecution": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "diagramId": {
+                    "type": "string"
+                }
+            },
+            "required": ["diagram", "id", "name", "type"]
+        }
+    ],
+    "description": "Base node with references for all diagram nodes",
+    "definitions": {}
+}

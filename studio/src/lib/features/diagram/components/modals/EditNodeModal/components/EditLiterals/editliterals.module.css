@@ -1,0 +1,41 @@
+.attributes {
+    @apply flex flex-col gap-2 font-mono w-full;
+
+    .attribute {
+        @apply flex flex-row gap-1 text-xs items-stretch w-full;
+        @apply bg-slate-100;
+
+        &.new {
+            @apply bg-white;
+        }
+
+        &.dirty {
+            @apply bg-indigo-100 text-indigo-600;
+        }
+
+        input {
+            @apply bg-transparent p-1 focus:font-bold w-full;
+            @apply font-mono;
+        }
+
+        select {
+            @apply bg-transparent px-2 text-black font-mono;
+        }
+
+        .delete {
+            @apply bg-red-400 hover:bg-red-300 p-2 text-white;
+        }
+
+        .save {
+            @apply bg-indigo-400 hover:bg-indigo-300 p-2 text-white;
+        }
+
+        .add {
+            @apply bg-green-400 hover:bg-green-300  p-2 text-white;
+
+            &.disabled {
+                @apply !bg-gray-400 text-gray-800;
+            }
+        }
+    }
+}

@@ -1,0 +1,43 @@
+.pane {
+    @apply flex py-2 bg-gray-50 outline-1 outline outline-gray-200;
+    @apply shadow-md rounded-md;
+
+    animation: pop-in .1s ease-in-out;
+    position: fixed;
+    z-index: 10;
+
+    ul {
+        list-style: none;
+        @apply flex flex-col text-sm;
+
+        li {
+            @apply w-full;
+
+            button { 
+                @apply w-full flex flex-row py-1 px-4 gap-8 justify-between items-center;
+                user-select: none;
+
+                &:disabled {
+                    @apply bg-gray-50 text-gray-400 pointer-events-none;
+                }
+
+                &:hover {
+                    @apply bg-blue-600 text-gray-50;
+                }
+
+                &:active {
+                    @apply bg-blue-500 text-white;
+                }
+            }
+        }
+    }
+}
+
+@keyframes pop-in {
+    0% {
+        transform: scale(.98);
+    }
+    100% {
+        transform: none;
+    }
+}
