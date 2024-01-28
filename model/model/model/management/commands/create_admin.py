@@ -9,7 +9,9 @@ class Command(createsuperuser.Command):
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
-        parser.add_argument("--password", default=None, help="The password for the admin.")
+        parser.add_argument(
+            "--password", default=None, help="The password for the admin."
+        )
 
     def handle(self, *args, **options):
         password = options.get("password")
@@ -24,7 +26,9 @@ class Command(createsuperuser.Command):
             raise CommandError("--password is required")
 
         if password == "sequoias":
-            self.stdout.write(self.style.WARNING("Warning: You should change the default password."))
+            self.stdout.write(
+                self.style.WARNING("Warning: You should change the default password.")
+            )
 
         try:
             super().handle(*args, **options)
