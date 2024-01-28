@@ -13,14 +13,20 @@ class DiagramType(str, Enum):
 
 
 class ReadDiagram(ModelSchema):
+    project: str
+
     class Meta:
         model = Diagram
-        fields = ["id", "name", "description"]
+        fields = ["id", "name", "description", "type", "system"]
+
+    @staticmethod
+    def resolve_project(obj):
+        return str(obj.system.project.id)
 
 
 class CreateDiagram(Schema):
     system: str
-    type: DiagramType = "classes"
+    type: DiagramType = DiagramType.classes
     name: str = "Diagram"
 
 
