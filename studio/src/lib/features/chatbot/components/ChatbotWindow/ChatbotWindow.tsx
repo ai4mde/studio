@@ -1,12 +1,18 @@
-import React from "react";
-import { chatbotOpen } from "$chatbot/atoms";
+import { chatbotOpenAtom } from "$chatbot/atoms";
+import { Modal, ModalClose, ModalDialog } from "@mui/joy";
 import { useAtom } from "jotai";
+import React from "react";
 
 export const ChatbotWindow: React.FC = () => {
-    const [, setChatbotOpen] = useAtom(chatbotOpen)
-    const close = () => setChatbotOpen(false)
+    const [chatbotOpen, setChatbotOpen] = useAtom(chatbotOpenAtom);
+    const close = () => setChatbotOpen(false);
 
-    return <div className="inset-0">
-        <button onClick={close}>Close</button>
-    </div>
-}
+    return (
+        <Modal open={true} onClose={close} hideBackdrop>
+            <ModalDialog>
+                <ModalClose />
+                <div className="flex flex-col w-96 p-4"></div>
+            </ModalDialog>
+        </Modal>
+    );
+};

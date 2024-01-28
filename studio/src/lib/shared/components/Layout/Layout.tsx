@@ -1,14 +1,14 @@
-import { Button, Tooltip } from "@mui/joy";
-import { useAtom } from "jotai";
-import { MessageSquare, Package, Settings } from "lucide-react";
-import React from "react";
-// import ChatbotWindow from 'src/nextgen/chatbot/components/ChatbotWindow/ChatbotWindow'
 import { chatbotOpenAtom } from "$chatbot/atoms";
 import LoginScreen from "$lib/features/auth/components/LoginScreen";
 import { useAuthStore } from "$lib/features/auth/state/auth";
+import Modals from "$shared/components/Modals/Modals";
 import { Navigation } from "$shared/components/Navigation/Navigation";
 import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
+import { Button, Tooltip } from "@mui/joy";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useAtom } from "jotai";
+import { MessageSquare, Package, Settings } from "lucide-react";
+import React from "react";
 import style from "./style.module.css";
 
 export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -81,6 +81,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
             >
                 {children}
             </main>
+            <Modals />
         </>
     );
 };
