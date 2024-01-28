@@ -1,6 +1,6 @@
 from typing import List
 
-from diagram.api.schemas import CreateDiagram, ReadDiagram, UpdateDiagram
+from diagram.api.schemas import CreateDiagram, FullDiagram, ReadDiagram, UpdateDiagram
 from diagram.models import Diagram
 from metadata.models import System
 from ninja import Router
@@ -14,7 +14,7 @@ def list_diagrams(request):
     return qs
 
 
-@diagrams.get("/{uuid:id}", response=ReadDiagram)
+@diagrams.get("/{uuid:id}", response=FullDiagram)
 def read_diagram(request, id):
     return Diagram.objects.get(id=id)
 
