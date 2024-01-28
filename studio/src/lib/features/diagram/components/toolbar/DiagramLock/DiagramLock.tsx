@@ -1,5 +1,6 @@
 import { useDiagramStore } from "$diagram/stores";
-import { Lock, Tag, Unlock } from "lucide-react";
+import { Lock, Unlock } from "lucide-react";
+import { Chip } from "@mui/joy";
 import React, { useState } from "react";
 
 export const DiagramLock: React.FC = () => {
@@ -8,36 +9,38 @@ export const DiagramLock: React.FC = () => {
     const { lock, requestLock, releaseLock } = useDiagramStore();
 
     return (
-        <li className="h-full flex items-center">
+        <li className="flex h-full items-center">
             {locked ? (
-                <Tag className="h-fit" type="red">
-                    <span className="flex flex-row gap-1 items-center">
+                <Chip size="sm" color="danger" variant="outlined">
+                    <span className="flex flex-row items-center gap-1">
                         <Lock size={10} />
                         Diagram Locked (Read)
                     </span>
-                </Tag>
+                </Chip>
             ) : lock ? (
-                <Tag
-                    className="h-fit"
-                    type="blue"
+                <Chip
+                    size="sm"
+                    color="primary"
+                    variant="outlined"
                     onClick={() => releaseLock()}
                 >
-                    <span className="flex flex-row gap-1 items-center">
+                    <span className="flex flex-row items-center gap-1">
                         <Lock size={10} />
                         Diagram Locked (Edit)
                     </span>
-                </Tag>
+                </Chip>
             ) : (
-                <Tag
-                    className="h-fit"
-                    type="gray"
+                <Chip
+                    size="sm"
+                    color="neutral"
+                    variant="outlined"
                     onClick={() => requestLock()}
                 >
-                    <span className="flex flex-row gap-1 items-center">
+                    <span className="flex flex-row items-center gap-1">
                         <Unlock size={10} />
                         Lock to Edit
                     </span>
-                </Tag>
+                </Chip>
             )}
         </li>
     );

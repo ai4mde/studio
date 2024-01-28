@@ -5,7 +5,7 @@ export const useDiagram = (diagram: string) => {
     return useQuery<any, Error>({
         queryKey: ["diagram", diagram],
         queryFn: async () => {
-            return (await authAxios.get(`/api/model/diagram/${diagram}`)).data;
+            return (await authAxios.get(`/v1/diagram/${diagram}`)).data;
         },
     });
 };
