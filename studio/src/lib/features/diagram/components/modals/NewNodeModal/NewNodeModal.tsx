@@ -33,11 +33,14 @@ export const NewNodeModal: React.FC = () => {
         return () => document.removeEventListener("keydown", down);
     });
 
+    const nodeRef = React.useRef(null);
+
     return createPortal(
         <div className={style.modal}>
             <div className={style.wrapper}>
-                <Draggable>
+                <Draggable nodeRef={nodeRef}>
                     <form
+                        ref={nodeRef}
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
@@ -93,7 +96,7 @@ export const NewNodeModal: React.FC = () => {
                 </Draggable>
             </div>
         </div>,
-        document.body
+        document.body,
     );
 };
 

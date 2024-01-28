@@ -38,19 +38,22 @@ export const NewConnectionModal: React.FC = () => {
 
     const sourceNode = useMemo(
         () => nodes.find((e) => e.id === source),
-        [nodes]
+        [nodes],
     );
 
     const targetNode = useMemo(
         () => nodes.find((e) => e.id === target),
-        [nodes]
+        [nodes],
     );
+
+    const nodeRef = React.useRef(null);
 
     return createPortal(
         <div className={style.modal}>
             <div className={style.wrapper}>
-                <Draggable>
+                <Draggable nodeRef={nodeRef}>
                     <form
+                        ref={nodeRef}
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
@@ -76,7 +79,7 @@ export const NewConnectionModal: React.FC = () => {
                         </div>
                         <div className={style.body}>
                             <Alert className="w-full">
-                                <div className="flex flex-row w-full justify-between items-center">
+                                <div className="flex w-full flex-row items-center justify-between">
                                     <span>Connecting</span>
                                     <div className="scale-75">
                                         {sourceNode && (
@@ -126,7 +129,7 @@ export const NewConnectionModal: React.FC = () => {
                 </Draggable>
             </div>
         </div>,
-        document.body
+        document.body,
     );
 };
 

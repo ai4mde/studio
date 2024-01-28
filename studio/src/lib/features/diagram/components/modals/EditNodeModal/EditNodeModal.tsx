@@ -24,7 +24,7 @@ export const EditNodeModal: React.FC = () => {
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),
-        [modalState.node, nodes]
+        [modalState.node, nodes],
     );
 
     const queryClient = useQueryClient();
@@ -41,7 +41,7 @@ export const EditNodeModal: React.FC = () => {
                 `/model/diagram/${diagram}/node/${modalState.node}/`,
                 {
                     data: JSON.parse(raw),
-                }
+                },
             );
             queryClient.invalidateQueries({
                 queryKey: ["diagram"],
@@ -64,12 +64,18 @@ export const EditNodeModal: React.FC = () => {
         modalState?.node && deleteNode(diagram, modalState.node);
     };
 
+    const nodeRef = React.useRef(null);
+
     return node ? (
         createPortal(
             <div className={style.modal}>
                 <div className={style.wrapper}>
-                    <Draggable key={`edit-${node.id}`} handle=".handle">
-                        <div className={style.main}>
+                    <Draggable
+                        nodeRef={nodeRef}
+                        key={`edit-${node.id}`}
+                        handle=".handle"
+                    >
+                        <div ref={nodeRef} className={style.main}>
                             <div className={`${style.head} handle`}>
                                 <span className="p-2 px-3">
                                     Edit Node ({node.id})
@@ -131,7 +137,7 @@ export const EditNodeModal: React.FC = () => {
                                                                     schema: nodeSchema.data,
                                                                 },
                                                             ],
-                                                        }
+                                                        },
                                                     );
                                                 }}
                                                 height="16rem"
@@ -154,7 +160,7 @@ export const EditNodeModal: React.FC = () => {
                                                 JSON.stringify(
                                                     node?.data,
                                                     null,
-                                                    2
+                                                    2,
                                                 )
                                             )
                                         }
@@ -176,7 +182,7 @@ export const EditNodeModal: React.FC = () => {
                     </Draggable>
                 </div>
             </div>,
-            document.body
+            document.body,
         )
     ) : (
         <></>

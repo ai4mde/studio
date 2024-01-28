@@ -16,20 +16,20 @@ export const EditConnectionModal: React.FC = () => {
 
     const edge = useMemo(
         () => edges.find((e) => e.id == modalState.edge),
-        [modalState.edge, edges]
+        [modalState.edge, edges],
     );
 
     const [object, setObject] = useState<any>(edge?.data);
 
     const connectionTypes = useMemo(() => {
         return schema.definitions.Edge.anyOf.filter(
-            (e) => e.properties.diagram.const == type
+            (e) => e.properties.diagram.const == type,
         );
     }, [type]);
 
     const selectedType = useMemo(() => {
         return schema.definitions.Edge.anyOf.find(
-            (e) => e.properties.type && e.properties.type.const == object.type
+            (e) => e.properties.type && e.properties.type.const == object.type,
         );
     }, [object, object.type, type]);
 
@@ -46,12 +46,14 @@ export const EditConnectionModal: React.FC = () => {
         return () => document.removeEventListener("keydown", down);
     });
 
+    const nodeRef = React.useRef(null);
+
     return edge ? (
         createPortal(
             <div className={style.modal}>
                 <div className={style.wrapper}>
-                    <Draggable key={`edit-${edge.id}`}>
-                        <div className={style.main}>
+                    <Draggable nodeRef={nodeRef} key={`edit-${edge.id}`}>
+                        <div ref={nodeRef} className={style.main}>
                             <div className={style.head}>
                                 <span className="p-2 px-3">
                                     Edit Connection (
@@ -64,7 +66,7 @@ export const EditConnectionModal: React.FC = () => {
                                     <X size={20} />
                                 </button>
                             </div>
-                            <div className="overflow-y-scroll h-full bg-white">
+                            <div className="h-full overflow-y-scroll bg-white">
                                 <div className={style.body}>
                                     <FormControl size="sm">
                                         <FormLabel>Type</FormLabel>
@@ -95,15 +97,15 @@ export const EditConnectionModal: React.FC = () => {
                                                                     .type?.const
                                                             }
                                                         </Option>
-                                                    )
+                                                    ),
                                             )}
                                         </Select>
                                     </FormControl>
                                     {selectedType &&
                                         Object.keys(
-                                            selectedType.properties
+                                            selectedType.properties,
                                         ).includes("labels") && (
-                                            <div className="w-full flex flex-row gap-2 justify-between items-center">
+                                            <div className="flex w-full flex-row items-center justify-between gap-2">
                                                 <FormControl size="sm">
                                                     <FormLabel>
                                                         Label From
@@ -118,9 +120,9 @@ export const EditConnectionModal: React.FC = () => {
                                         )}
                                     {selectedType &&
                                         Object.keys(
-                                            selectedType.properties
+                                            selectedType.properties,
                                         ).includes("multiplicity") && (
-                                            <div className="w-full flex flex-row gap-2 justify-between items-center">
+                                            <div className="flex w-full flex-row items-center justify-between gap-2">
                                                 <FormControl size="sm">
                                                     <FormLabel>
                                                         Multiplicity From
@@ -148,7 +150,7 @@ export const EditConnectionModal: React.FC = () => {
                     </Draggable>
                 </div>
             </div>,
-            document.body
+            document.body,
         )
     ) : (
         <></>
