@@ -21,7 +21,14 @@ channels = "^4.0.0"
 [tool.poetry.group.dev.dependencies]
 black = "^23.12.1"
 ruff = "^0.1.13"
+django-stubs = {extras = ["compatible-mypy"], version = "^4.2.7"}
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "model.settings"
