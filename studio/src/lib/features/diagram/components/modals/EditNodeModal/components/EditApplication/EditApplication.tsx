@@ -1,7 +1,7 @@
 import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import React from "react";
-import { Save } from "react-feather";
+import { Save } from "lucide-react";
 import { Node } from "reactflow";
 import style from "./editapplication.module.css";
 
@@ -30,8 +30,8 @@ export const EditApplication: React.FC<Props> = ({ node }) => {
     };
 
     return (
-        <div className="flex flex-col gap-2 font-mono w-full">
-            <span className="text-xs font-mono py-1 w-full border-b border-solid border-gray-400">
+        <div className="flex w-full flex-col gap-2 font-mono">
+            <span className="w-full border-b border-solid border-gray-400 py-1 font-mono text-xs">
                 Application Settings
             </span>
             <form onSubmit={handleSubmit}>
