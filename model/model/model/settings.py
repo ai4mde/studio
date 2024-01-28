@@ -9,9 +9,11 @@ DEBUG = True
 ALLOWED_HOSTS = [environ.get("HOSTNAME", "api.ai4mde.localhost"), "localhost"]
 
 INSTALLED_APPS = [
+    "daphne",  # Use Daphne as ASGI server
     "model",
     "metadata",
     "diagram",
+    "prompt",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -51,6 +53,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "model.wsgi.application"
+ASGI_APPLICATION = "model.asgi.application"
 
 DATABASES = {
     "default": {
