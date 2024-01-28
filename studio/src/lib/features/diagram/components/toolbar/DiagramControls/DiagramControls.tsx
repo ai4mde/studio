@@ -12,7 +12,7 @@ const DiagramControls: React.FC = () => {
     return (
         <div className="w-full h-full items-center text-sm flex flex-row gap-2 px-2">
             <li className="h-full flex items-center">
-                <a href={`/projects/${data?.project}/systems/${data?.system}`}>
+                <a href={`/systems/${data?.system}`}>
                     <ArrowLeft size={14} />
                 </a>
             </li>
