@@ -1,3 +1,4 @@
+import { baseURL } from "$shared/globals";
 import axios from "axios";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -19,7 +20,7 @@ axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
 export const authAxios = axios.create({
-    baseURL: "http://api.ai4mde.localhost/api/",
+    baseURL: baseURL,
     withCredentials: true,
     xsrfCookieName: "csrftoken",
     xsrfHeaderName: "X-CSRFTOKEN",
@@ -80,6 +81,6 @@ export const useAuthStore = create(
         {
             name: "auth-storage",
             storage: createJSONStorage(() => localStorage), // TODO: Make this localStorage
-        }
-    )
+        },
+    ),
 );
