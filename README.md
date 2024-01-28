@@ -20,6 +20,18 @@
 
 <br/>
 
+Get up and running with the AI4MDE Studio and API in no time:
+
+```
+git clone https://github.com/ai4mde/studio.git
+cd studio
+docker-compose up -d
+```
+
+Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
+
+<br/>
+
 ## ⚡️ Quick start
 
 > ☝️ This project is assumes you run a GNU/Linux system.
