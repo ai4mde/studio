@@ -1,8 +1,11 @@
 from enum import Enum
+from typing import List
 
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram
+from .node import NodeSchema
+from .edge import EdgeSchema
 
 
 class DiagramType(str, Enum):
@@ -37,16 +40,16 @@ class UpdateDiagram(ModelSchema):
 
 
 class FullDiagram(ReadDiagram):
-    nodes: list = []
-    edges: list = []
+    nodes: List[NodeSchema]
+    edges: List[EdgeSchema]
 
     @staticmethod
     def resolve_nodes(obj):
-        return obj.nodes.all()
+        return obj.nodes.prefetch_related("cls").all()
 
     @staticmethod
     def resolve_edges(obj):
-        return obj.edges.all()
+        return obj.edges.prefetch_related("rel").all()
 
 
 __all__ = [

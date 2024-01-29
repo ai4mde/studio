@@ -5,6 +5,9 @@ from diagram.models import Diagram
 from metadata.models import System
 from ninja import Router
 
+from .node import node
+from .edge import edge
+
 diagrams = Router()
 
 
@@ -14,9 +17,9 @@ def list_diagrams(request):
     return qs
 
 
-@diagrams.get("/{uuid:id}", response=FullDiagram)
-def read_diagram(request, id):
-    return Diagram.objects.get(id=id)
+@diagrams.get("/{uuid:diagram_id}", response=FullDiagram)
+def read_diagram(request, diagram_id):
+    return Diagram.objects.get(id=diagram_id)
 
 
 @diagrams.post("/", response=ReadDiagram)
@@ -30,17 +33,19 @@ def create_diagram(request, body: CreateDiagram):
     return diagram
 
 
-@diagrams.put("/{uuid:id}", response=ReadDiagram)
-def update_diagram(request, id, payload: UpdateDiagram):
-    print(id)
+@diagrams.put("/{uuid:diagram_id}", response=ReadDiagram)
+def update_diagram(request, diagram_id, payload: UpdateDiagram):
+    print(diagram_id)
     print(payload)
     pass
 
 
-@diagrams.delete("/{uuid:id}")
-def delete_diagram(request, id):
-    print(id)
+@diagrams.delete("/{uuid:diagram_id}")
+def delete_diagram(request, diagram_id):
+    print(diagram_id)
     pass
 
+diagrams.add_router("/{uuid:diagram}/node", node)
+diagrams.add_router("/{uuid:diagram}/edge", edge)
 
 __all__ = ["diagrams"]

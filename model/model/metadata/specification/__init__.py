@@ -1,8 +1,13 @@
 from typing import Annotated, Union
+from ninja import ModelSchema
 from pydantic.fields import Field
+from pydantic.main import BaseModel
+from uuid import UUID
 from .activity import ActivityClassifier, ActivityRelation
 from .classes import ClassClassifier, ClassRelation
 from .usecase import UsecaseClassifier, UsecaseRelation
+
+import metadata.models as models
 
 Classifier = Annotated[
     Union[
@@ -13,6 +18,13 @@ Classifier = Annotated[
     Field(discriminator="type"),
 ]
 
+class ClassifierSchema(ModelSchema):
+    data: Classifier
+
+    class Meta:
+        model = models.Classifier
+        fields = ["id", "data"]
+
 Relation = Annotated[
     Union[
         ActivityRelation,
@@ -22,4 +34,12 @@ Relation = Annotated[
     Field(discriminator="type"),
 ]
 
-__all__ = ["Classifier", "Relation"]
+class RelationSchema(ModelSchema):
+    data: Relation
+
+    class Meta:
+        model = models.Relation
+        fields = ["id", "data"]
+
+
+__all__ = ["Classifier", "ClassifierSchema", "Relation", "RelationSchema",]

@@ -1,24 +1,29 @@
 from ninja import Router
+from django.http import HttpRequest
 
-from metadata.api.schemas import NewClassifierInput
+from metadata.api.schemas import MetaSchema
+import json
+
+from metadata.models import System
 
 meta = Router()
 
 
-@meta.get("/")
-def get_meta(request):
-    return ""
+@meta.get("/", response=MetaSchema)
+def get_meta(request: HttpRequest):
+    if not request.resolver_match:
+        return 500, "Resolver match not found"
 
+    system_id = request.resolver_match.kwargs.get('system_id')
+    system = System.objects.get(id=system_id)
 
-@meta.get("/classifiers/")
-def get_classifiers(request):
-    return ""
+    if not system:
+        return 404, "System not found"
 
-
-@meta.post("/classifiers/")
-def create_classifiers(request, data: NewClassifierInput):
-    return ""
-
+    return {
+        "classifiers": system.classifiers.all(),
+        "relations": system.relations.all(),
+    }
 
 __all__ = [
     "meta",

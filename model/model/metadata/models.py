@@ -18,7 +18,7 @@ class System(models.Model):
 
 class Classifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    system = models.ForeignKey(System, on_delete=models.CASCADE)
+    system = models.ForeignKey(System, on_delete=models.CASCADE, related_name="classifiers")
     data = models.JSONField()
 
 

@@ -13,9 +13,9 @@ def list_projects(request):
     return qs
 
 
-@projects.get("/{uuid:id}", response=ReadProject)
-def read_project(request, id):
-    return Project.objects.get(id=id)
+@projects.get("/{uuid:project_id}", response=ReadProject)
+def read_project(request, project_id):
+    return Project.objects.get(id=project_id)
 
 
 @projects.post("/", response=ReadProject)
@@ -26,16 +26,16 @@ def create_project(request, project: CreateProject):
     )
 
 
-@projects.put("/{uuid:id}", response=ReadProject)
-def update_project(request, id, payload: UpdateProject):
-    print(id)
+@projects.put("/{uuid:project_id}", response=ReadProject)
+def update_project(request, project_id, payload: UpdateProject):
+    print(project_id)
     print(payload)
     pass
 
 
-@projects.delete("/{uuid:id}")
-def delete_project(request, id):
-    print(id)
+@projects.delete("/{uuid:project_id}")
+def delete_project(request, project_id):
+    print(project_id)
     pass
 
 
