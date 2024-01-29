@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from ninja import ModelSchema, Schema
 
@@ -33,10 +33,9 @@ class CreateDiagram(Schema):
     name: str = "Diagram"
 
 
-class UpdateDiagram(ModelSchema):
-    class Meta:
-        model = Diagram
-        fields = ["id", "name", "description"]
+class UpdateDiagram(Schema):
+    name: Optional[str] = None
+    description: Optional[str] = None
 
 
 class FullDiagram(ReadDiagram):

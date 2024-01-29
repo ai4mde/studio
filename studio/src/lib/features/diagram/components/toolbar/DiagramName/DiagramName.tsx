@@ -16,23 +16,23 @@ const DiagramName: React.FC = () => {
     };
 
     const [name, setName] = useState(
-        data.name ?? defaultNames[type] ?? "Class Diagram"
+        data.name ?? defaultNames[type] ?? "Class Diagram",
     );
 
     const saveName = () => {
         authAxios
-            .patch(`/api/model/diagram/${diagram}/`, {
+            .patch(`/v1/diagram/${diagram}/`, {
                 name: name,
             })
             .then(() =>
                 queryClient.invalidateQueries({
                     queryKey: ["diagram", diagram],
-                })
+                }),
             );
     };
 
     return isSuccess ? (
-        <span className="flex flex-row items-center w-fit gap-2 mx-auto">
+        <span className="mx-auto flex w-fit flex-row items-center gap-2">
             <span>
                 <span className="text-stone-400">System /</span>
                 <span

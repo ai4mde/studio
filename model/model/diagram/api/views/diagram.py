@@ -33,14 +33,22 @@ def create_diagram(request, body: CreateDiagram):
     return diagram
 
 
-@diagrams.put("/{uuid:diagram_id}", response=ReadDiagram)
+@diagrams.patch("/{uuid:diagram_id}/", response=ReadDiagram)
 def update_diagram(request, diagram_id, payload: UpdateDiagram):
-    print(diagram_id)
-    print(payload)
-    pass
+    diagram = Diagram.objects.get(id=diagram_id)
+
+    if payload.name:
+        diagram.name = payload.name
+        diagram.save()
+
+    if payload.description:
+        diagram.description = payload.description
+        diagram.save()
+
+    return diagram
 
 
-@diagrams.delete("/{uuid:diagram_id}")
+@diagrams.delete("/{uuid:diagram_id}/")
 def delete_diagram(request, diagram_id):
     print(diagram_id)
     pass

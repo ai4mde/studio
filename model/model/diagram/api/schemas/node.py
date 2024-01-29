@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
@@ -32,11 +32,16 @@ class NodeSchema(ModelSchema):
     def resolve_cls_ptr(obj):
         return obj.cls.id
 
+class PatchNode(Schema):
+    cls: Optional[dict] = None
+    data: Optional[NodeData] = None
+
 class ListNodes(Schema):
     nodes: List[NodeSchema] = []
 
 __all__ = [
     "CreateNode",
+    "PatchNode",
     "NodeSchema",
     "ListNodes",
 ]

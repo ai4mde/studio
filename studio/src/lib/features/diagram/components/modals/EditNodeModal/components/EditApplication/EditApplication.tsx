@@ -23,7 +23,7 @@ export const EditApplication: React.FC<Props> = ({ node }) => {
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         partialUpdateNode(diagram, node.id, {
-            data: {
+            cls: {
                 // whatever json you want to push
             },
         });

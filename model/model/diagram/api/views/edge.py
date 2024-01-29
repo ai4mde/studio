@@ -31,7 +31,7 @@ def create_edge(request: HttpRequest, data: CreateEdge):
 
     return edge
 
-@edge.get('/{uuid:edge_id}', response=EdgeSchema)
+@edge.get('/{uuid:edge_id}/', response=EdgeSchema)
 def edge_node(request: HttpRequest, edge_id: str):
     diagram = utils.get_diagram(request)
 

@@ -22,7 +22,7 @@ export const onNodeContextMenu: NodeMouseHandler = (event, node) => {
 export const applyNodeChanges = (
     changes: NodeChange[],
     nds: Node[],
-    diagram: string
+    diagram: string,
 ) => {
     const _changes = changes.filter((chg) => {
         if (chg.type == "select") {

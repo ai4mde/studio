@@ -31,16 +31,18 @@ export const EditNodeModal: React.FC = () => {
     const nodeSchema = useQuery({
         queryKey: ["jsonschema", "node"],
         queryFn: async () => {
-            const res = await authAxios.get(`/model/specification/node/`);
+            const res = await authAxios.get(
+                `/v1/diagram/specification/node.schema.json`,
+            );
             return res.data;
         },
     });
     const updateNode = useMutation({
         mutationFn: async () => {
             await authAxios.patch(
-                `/model/diagram/${diagram}/node/${modalState.node}/`,
+                `/v1/diagram/${diagram}/node/${modalState.node}/`,
                 {
-                    data: JSON.parse(raw),
+                    cls: JSON.parse(raw).data,
                 },
             );
             queryClient.invalidateQueries({
@@ -49,7 +51,9 @@ export const EditNodeModal: React.FC = () => {
         },
     });
 
-    const [raw, setRaw] = useState(JSON.stringify(node?.data, null, 2));
+    const [raw, setRaw] = useState(
+        JSON.stringify({ data: node?.data ?? {} }, null, 2),
+    );
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -92,10 +96,10 @@ export const EditNodeModal: React.FC = () => {
                                     {node.data?.name && (
                                         <EditName node={node} />
                                     )}
-                                    {node.type == "classes" && (
+                                    {node.type == "class" && (
                                         <EditAttributes node={node} />
                                     )}
-                                    {node.type == "classes" && (
+                                    {node.type == "class" && (
                                         <EditMethods node={node} />
                                     )}
                                     {node.type == "enum" && (
@@ -158,7 +162,9 @@ export const EditNodeModal: React.FC = () => {
                                             !(
                                                 raw !=
                                                 JSON.stringify(
-                                                    node?.data,
+                                                    {
+                                                        data: node?.data ?? {},
+                                                    },
                                                     null,
                                                     2,
                                                 )

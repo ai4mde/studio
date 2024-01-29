@@ -24,7 +24,7 @@ export const EditName: React.FC<Props> = ({ node }) => {
     const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         partialUpdateNode(diagram, node.id, {
-            data: {
+            cls: {
                 name: name,
             },
         });

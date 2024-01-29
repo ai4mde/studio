@@ -7,6 +7,7 @@ from diagram.api.schemas.diagram import (
 
 from diagram.api.schemas.node import (
     CreateNode,
+    PatchNode,
     ListNodes,
     NodeSchema,
 )
@@ -23,6 +24,7 @@ __all__ = [
     "UpdateDiagram",
     "FullDiagram",
     "CreateNode",
+    "PatchNode",
     "ListNodes",
     "NodeSchema",
     "CreateEdge",

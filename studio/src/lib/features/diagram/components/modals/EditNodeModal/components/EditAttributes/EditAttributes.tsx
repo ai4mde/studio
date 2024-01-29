@@ -16,12 +16,12 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
     const { diagram } = useDiagramStore();
     const dirty = useMemo(
         () => !isEqualWith(attributes, node?.data?.attributes),
-        [attributes, node?.data?.attributes]
+        [attributes, node?.data?.attributes],
     );
 
     return (
         <div className={style.attributes}>
-            <span className="text-xs py-1 w-full border-b border-solid border-gray-400">
+            <span className="w-full border-b border-solid border-gray-400 py-1 text-xs">
                 Attributes
             </span>
 
@@ -43,7 +43,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                 />
             ))}
 
-            <div className="flex flex-row justify-stretch items-center gap-2">
+            <div className="flex flex-row items-center justify-stretch gap-2">
                 <Button
                     color="success"
                     className="w-full"
@@ -67,7 +67,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     size="sm"
                     onClick={() =>
                         partialUpdateNode(diagram, node.id, {
-                            data: {
+                            cls: {
                                 attributes: attributes,
                             },
                         })

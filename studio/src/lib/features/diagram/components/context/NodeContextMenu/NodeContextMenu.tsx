@@ -22,9 +22,7 @@ const NodeContextMenu: React.FC = () => {
 
     const onDelete = async () => {
         if (node) {
-            await authAxios.delete(
-                `/api/model/diagram/${diagram}/node/${node.id}/`,
-            );
+            await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
             await queryClient.refetchQueries({
                 queryKey: [`diagram`],
             });
