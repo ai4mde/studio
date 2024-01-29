@@ -2,6 +2,8 @@ from typing import List, Optional
 
 from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem
 from metadata.models import Project, System
+from .meta import meta
+
 from ninja import Router
 
 systems = Router()
@@ -54,5 +56,7 @@ def delete_system(request, id):
     print(id)
     pass
 
+
+systems.add_router("/{uuid:system_id}/meta", meta)
 
 __all__ = ["systems"]

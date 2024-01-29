@@ -23,6 +23,7 @@ class ReadDiagram(ModelSchema):
     def resolve_project(obj):
         return str(obj.system.project.id)
 
+
 class CreateDiagram(Schema):
     system: str
     type: DiagramType = DiagramType.classes
@@ -33,6 +34,7 @@ class UpdateDiagram(ModelSchema):
     class Meta:
         model = Diagram
         fields = ["id", "name", "description"]
+
 
 class FullDiagram(ReadDiagram):
     nodes: list = []

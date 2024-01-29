@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from pydantic.types import Literal
+from typing import Literal
 
 
 class ActivityRelation(BaseModel):
@@ -7,4 +7,3 @@ class ActivityRelation(BaseModel):
     guard: str = ""
     weight: str = ""
     type: Literal["activity"] = "activity"
-    diagram: Literal["activity"] = "activity"

@@ -8,6 +8,7 @@ class ChangesChatbot:
         print(f"ID: {self.id}, MSG: {message}", flush=True)
         return "EHLO!"
 
+
 __all__ = [
     "ChangesChatbot",
 ]

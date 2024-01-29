@@ -1,12 +1,9 @@
 import json
-from enum import Enum
-from importlib import import_module
 
 from channels.generic.websocket import WebsocketConsumer
-from channels.routing import URLRouter
-from django.urls import re_path
 
 from prompt.chatbots import ChangesChatbot
+
 
 class ChatConsumer(WebsocketConsumer):
     chatbots = {
@@ -15,8 +12,8 @@ class ChatConsumer(WebsocketConsumer):
     chatbot = None
 
     def connect(self):
-        url_arguments = self.scope.get('url_route', {}).get('kwargs')
-        selected = url_arguments.get('chatbot')
+        url_arguments = self.scope.get("url_route", {}).get("kwargs")
+        selected = url_arguments.get("chatbot")
         self.accept()
 
         if selected not in self.chatbots.keys():
@@ -29,9 +26,7 @@ class ChatConsumer(WebsocketConsumer):
             )
             self.close(code=400)
 
-        self.chatbot = self.chatbots[selected](
-            id=url_arguments['session']
-        )
+        self.chatbot = self.chatbots[selected](id=url_arguments["session"])
 
         self.send(text_data=json.dumps({"message": "Connected to chatbot"}))
 
@@ -44,7 +39,5 @@ class ChatConsumer(WebsocketConsumer):
         if not self.chatbot:
             return
 
-        if (text_data):
-            self.send(text_data=json.dumps({
-                "message": self.chatbot.prompt(text_data)
-            }))
+        if text_data:
+            self.send(text_data=json.dumps({"message": self.chatbot.prompt(text_data)}))

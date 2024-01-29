@@ -1,5 +1,6 @@
 from .project import ReadProject, UpdateProject, CreateProject
 from .system import ReadSystem, UpdateSystem, CreateSystem
+from .meta import NewClassifierInput
 
 __all__ = [
     "ReadProject",
@@ -8,4 +9,5 @@ __all__ = [
     "ReadSystem",
     "UpdateSystem",
     "CreateSystem",
+    "NewClassifierInput",
 ]

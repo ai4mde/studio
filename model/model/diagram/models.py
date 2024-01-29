@@ -9,7 +9,9 @@ class Diagram(models.Model):
     type = models.CharField()
     name = models.CharField()
     description = models.TextField(blank=True)
-    system = models.ForeignKey(System, on_delete=models.CASCADE, related_name="diagrams")
+    system = models.ForeignKey(
+        System, on_delete=models.CASCADE, related_name="diagrams"
+    )
 
 
 class Node(models.Model):

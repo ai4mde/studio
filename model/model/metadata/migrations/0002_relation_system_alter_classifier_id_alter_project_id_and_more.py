@@ -4,14 +4,17 @@ import django.db.models.deletion
 import uuid
 from django.db import migrations, models
 
+
 def set_relation_defaults(apps, schema_editor):
     Relations = apps.get_model("metadata", "Relation")
     for relation in Relations.objects.all():
         relation.system = relation.source.system
         relation.save()
 
+
 def reverse_func(*_, **__):
     pass
+
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -31,14 +34,14 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(set_relation_defaults, reverse_func),
         migrations.AlterField(
-                model_name="relation",
-                name="system",
-                field=models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name="relations",
-                    to="metadata.system",
-                ),
+            model_name="relation",
+            name="system",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="relations",
+                to="metadata.system",
             ),
+        ),
         migrations.AlterField(
             model_name="classifier",
             name="id",
