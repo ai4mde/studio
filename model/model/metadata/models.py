@@ -22,11 +22,11 @@ class Classifier(models.Model):
     type = models.CharField()
     data = models.JSONField()
 
-
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     data = models.JSONField()
     type = models.CharField()
+    system = models.ForeignKey(System, on_delete=models.CASCADE, related_name="relations")
     source = models.ForeignKey(
         Classifier, related_name="relations_to", on_delete=models.CASCADE
     )
