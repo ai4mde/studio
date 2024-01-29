@@ -39,25 +39,25 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     nodesFromAPI: (nds) =>
         set(() => ({
             nodes: nds.map((e) => ({
-                id: e.id,
-                type: e.type,
+                id: e?.id,
+                type: e?.cls?.type,
                 position: {
                     x: e.data?.position?.x ?? 0,
                     y: e.data?.position?.y ?? 0,
                 },
-                data: e.data,
+                data: e?.cls,
             })),
         })),
     edgesFromAPI: (eds) =>
         set(() => ({
             edges: eds.map((e) => ({
-                id: e.id,
+                id: e?.id,
                 type: "floating",
-                markerEnd: `${e.type}-end`,
-                markerStart: `${e.type}-start`,
-                source: e.data.from,
-                target: e.data.to,
-                data: e.data,
+                markerEnd: `${e?.rel?.type}-end`,
+                markerStart: `${e?.rel?.type}-start`,
+                source: e?.source?.id,
+                target: e?.target?.id,
+                data: e?.rel,
             })),
         })),
 }));
