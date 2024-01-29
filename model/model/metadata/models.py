@@ -19,14 +19,12 @@ class System(models.Model):
 class Classifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     system = models.ForeignKey(System, on_delete=models.CASCADE)
-    type = models.CharField()
     data = models.JSONField()
 
 
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     data = models.JSONField()
-    type = models.CharField()
     system = models.ForeignKey(
         System, on_delete=models.CASCADE, related_name="relations"
     )
