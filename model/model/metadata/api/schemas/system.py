@@ -20,7 +20,7 @@ class SystemDiagrams(Schema):
 
 
 class ReadSystem(ModelSchema):
-    diagrams: SystemDiagrams = None
+    diagrams_by_type: SystemDiagrams = None
 
     class Meta:
         model = System

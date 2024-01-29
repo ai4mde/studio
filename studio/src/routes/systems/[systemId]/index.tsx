@@ -17,7 +17,7 @@ type SystemOut = {
     id: string;
     name: string;
     description?: string;
-    diagrams?: {
+    diagrams_by_type?: {
         classes?: FlatDiagram[];
         usecase?: FlatDiagram[];
         activity?: FlatDiagram[];
@@ -54,53 +54,53 @@ const SystemDiagrams: React.FC = () => {
         },
     });
 
-    const { diagrams } = system.data ?? {};
+    const { diagrams_by_type } = system.data ?? {};
     const uiDiagrams = [
         {
             type: "classes",
             name: "Class Diagram",
             Icon: Network,
-            diagrams: diagrams?.classes ?? [],
+            diagrams: diagrams_by_type?.classes ?? [],
         },
         {
             type: "activity",
             name: "Activity Diagram",
             Icon: Workflow,
-            diagrams: diagrams?.activity ?? [],
+            diagrams: diagrams_by_type?.activity ?? [],
         },
         {
             type: "usecase",
             name: "Usecase Diagram",
             Icon: User,
-            diagrams: diagrams?.usecase ?? [],
+            diagrams: diagrams_by_type?.usecase ?? [],
         },
         {
             type: "component",
             name: "Component Diagram",
             Icon: Component,
-            diagrams: diagrams?.component ?? [],
+            diagrams: diagrams_by_type?.component ?? [],
         },
     ];
 
     return (
         <SystemLayout>
             {system.isLoading && (
-                <LinearProgress className="absolute top-0 left-0 right-0" />
+                <LinearProgress className="absolute left-0 right-0 top-0" />
             )}
             {system.isSuccess && (
                 <>
                     <div className="flex flex-col gap-3 p-3">
                         {uiDiagrams.map(({ name, Icon, diagrams, type }) => (
                             <>
-                                <span className="flex flex-row gap-2 items-center">
+                                <span className="flex flex-row items-center gap-2">
                                     <Icon size={24} />
                                     <h1 className="text-lg">{name}</h1>
                                 </span>
-                                <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2">
+                                <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
                                     {diagrams.map(({ id, name }) => (
                                         <a
                                             href={`/diagram/${id}`}
-                                            className="flex flex-col gap-2 p-4 rounded-md bg-stone-200 hover:bg-stone-300 h-fit"
+                                            className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                                         >
                                             <h3 className="text-lg">{name}</h3>
                                             <span className="text-xs">
@@ -115,7 +115,7 @@ const SystemDiagrams: React.FC = () => {
                                                 name: name,
                                             })
                                         }
-                                        className="flex flex-col gap-2 p-4 rounded-md bg-stone-200 hover:bg-stone-300 h-full"
+                                        className="flex h-full flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                                     >
                                         <Plus />
                                     </button>

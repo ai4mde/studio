@@ -20,11 +20,12 @@ def list_systems(request, project: Optional[str]):
 @systems.get("/{uuid:id}", response=ReadSystem)
 def read_system(request, id):
     system = System.objects.prefetch_related("diagrams").get(id=id)
+
     return {
         "id": system.id,
         "name": system.name,
         "description": system.description,
-        "diagrams": {
+        "diagrams_by_type": {
             "classes": system.diagrams.filter(type="classes"),
             "activity": system.diagrams.filter(type="activity"),
             "usecase": system.diagrams.filter(type="usecase"),
