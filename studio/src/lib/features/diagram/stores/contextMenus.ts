@@ -42,7 +42,7 @@ export const useSelectionContextMenu = create<SelectionContextMenuState>(
             })),
         close: () =>
             set(() => ({ active: false, nodes: undefined, edges: undefined })),
-    })
+    }),
 );
 
 export const useEdgeContextMenu = create<EdgeContextMenuState>((set) => ({

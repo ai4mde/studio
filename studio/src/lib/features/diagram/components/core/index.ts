@@ -1,5 +1,5 @@
-import Diagram from './Diagram/Diagram'
+import Diagram from "./Diagram/Diagram";
 
-export default { Diagram }
+export default { Diagram };
 
-export { Diagram }
+export { Diagram };

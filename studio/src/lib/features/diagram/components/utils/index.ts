@@ -1,5 +1,5 @@
-import { getEdgeParams } from './floatingEdge'
+import { getEdgeParams } from "./floatingEdge";
 
-export { getEdgeParams }
+export { getEdgeParams };
 
-export default { getEdgeParams }
+export default { getEdgeParams };

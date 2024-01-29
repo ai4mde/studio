@@ -1,7 +1,7 @@
-import React from 'react'
+import React from "react";
 
 export const Screens: React.FC = () => {
-    return <></>
-}
+    return <></>;
+};
 
-export default Screens
+export default Screens;

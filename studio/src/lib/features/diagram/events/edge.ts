@@ -11,7 +11,7 @@ export const applyEdgeChanges = (
     changes: EdgeChange[],
     eds: Edge[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _: string
+    _: string,
 ) => {
     return flowEdgeChanges(changes, eds);
 };

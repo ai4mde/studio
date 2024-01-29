@@ -1,6 +1,6 @@
-import React from 'react'
-import NodeWrapper from '../shared/NodeWrapper'
-import { NodeProps } from 'reactflow'
+import React from "react";
+import NodeWrapper from "../shared/NodeWrapper";
+import { NodeProps } from "reactflow";
 
 export const ActionNode: React.FC<NodeProps> = (node) => {
     return (
@@ -9,5 +9,5 @@ export const ActionNode: React.FC<NodeProps> = (node) => {
                 {node.data?.name}
             </div>
         </NodeWrapper>
-    )
-}
+    );
+};

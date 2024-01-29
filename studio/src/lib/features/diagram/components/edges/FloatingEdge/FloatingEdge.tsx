@@ -12,10 +12,10 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     data,
 }) => {
     const sourceNode = useStore(
-        useCallback((store) => store.nodeInternals.get(source), [source])
+        useCallback((store) => store.nodeInternals.get(source), [source]),
     );
     const targetNode = useStore(
-        useCallback((store) => store.nodeInternals.get(target), [target])
+        useCallback((store) => store.nodeInternals.get(target), [target]),
     );
 
     if (!sourceNode || !targetNode) {

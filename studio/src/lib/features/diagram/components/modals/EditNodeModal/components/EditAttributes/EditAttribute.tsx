@@ -1,14 +1,14 @@
-import { X } from 'lucide-react'
-import React from 'react'
-import style from './editattributes.module.css'
-import { Tooltip } from '@mui/joy'
+import { X } from "lucide-react";
+import React from "react";
+import style from "./editattributes.module.css";
+import { Tooltip } from "@mui/joy";
 
 const EditAttribute: React.FC<{
-    attribute: any
-    update: (v: any) => void
-    del: () => void
-    dirty?: boolean
-    create?: boolean
+    attribute: any;
+    update: (v: any) => void;
+    del: () => void;
+    dirty?: boolean;
+    create?: boolean;
 }> = ({ attribute, del, update, dirty, create }) => {
     return (
         <div
@@ -18,22 +18,22 @@ const EditAttribute: React.FC<{
                 dirty && style.dirty,
             ]
                 .filter(Boolean)
-                .join(' ')}
+                .join(" ")}
         >
             <Tooltip
                 size="sm"
                 placement="left"
                 title={`Make attribute ${
-                    attribute?.derived ? 'public' : 'derived'
+                    attribute?.derived ? "public" : "derived"
                 }`}
             >
                 <button
                     className="p-2"
                     onClick={() => {
-                        update({ ...attribute, derived: !attribute?.derived })
+                        update({ ...attribute, derived: !attribute?.derived });
                     }}
                 >
-                    {attribute?.derived ? '/' : '+'}
+                    {attribute?.derived ? "/" : "+"}
                 </button>
             </Tooltip>
             <input
@@ -54,7 +54,7 @@ const EditAttribute: React.FC<{
                 <X size={12} />
             </button>
         </div>
-    )
-}
+    );
+};
 
-export default EditAttribute
+export default EditAttribute;

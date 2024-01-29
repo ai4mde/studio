@@ -3,8 +3,8 @@ import {
     usePaneContextMenu,
     useSelectionContextMenu,
     useEdgeContextMenu,
-} from './contextMenus'
-import { useDiagramStore } from './diagramState'
+} from "./contextMenus";
+import { useDiagramStore } from "./diagramState";
 
 export {
     usePaneContextMenu,
@@ -12,7 +12,7 @@ export {
     useSelectionContextMenu,
     useEdgeContextMenu,
     useDiagramStore,
-}
+};
 
 export default {
     usePaneContextMenu,
@@ -20,4 +20,4 @@ export default {
     useSelectionContextMenu,
     useEdgeContextMenu,
     useDiagramStore,
-}
+};

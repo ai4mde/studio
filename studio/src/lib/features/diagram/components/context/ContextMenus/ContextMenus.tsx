@@ -24,7 +24,7 @@ const ContextMenus: React.FC = () => {
             {selectionContextMenu.active && <SelectionContextMenu />}
             {edgeContextMenu.active && <EdgeContextMenu />}
         </>,
-        document.body
+        document.body,
     );
 };
 

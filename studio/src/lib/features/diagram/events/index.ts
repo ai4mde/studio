@@ -1,9 +1,9 @@
-import { onNodeContextMenu, onNodeClick } from './node'
-import { onMove, onPaneClick, onPaneContextMenu } from './pane'
-import { onSelectionContextMenu } from './selection'
-import { closeAll } from './shared'
-import { onEdgeContextMenu } from './edge'
-import { startManualConnect } from './connect'
+import { onNodeContextMenu, onNodeClick } from "./node";
+import { onMove, onPaneClick, onPaneContextMenu } from "./pane";
+import { onSelectionContextMenu } from "./selection";
+import { closeAll } from "./shared";
+import { onEdgeContextMenu } from "./edge";
+import { startManualConnect } from "./connect";
 
 export {
     onNodeContextMenu,
@@ -15,7 +15,7 @@ export {
     closeAll,
     startManualConnect,
     onEdgeContextMenu,
-}
+};
 
 export default {
     onNodeContextMenu,
@@ -27,4 +27,4 @@ export default {
     closeAll,
     startManualConnect,
     onEdgeContextMenu,
-}
+};

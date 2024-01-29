@@ -1,7 +1,7 @@
-import { useDiagram } from './diagram'
+import { useDiagram } from "./diagram";
 
 export default {
     useDiagram,
-}
+};
 
-export { useDiagram }
+export { useDiagram };

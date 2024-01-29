@@ -1,10 +1,10 @@
-import { FormControl, FormLabel, Input, Option, Select } from '@mui/joy'
-import React from 'react'
+import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import React from "react";
 
 type Props = {
-    object: any
-    setObject: (o: any) => void
-}
+    object: any;
+    setObject: (o: any) => void;
+};
 
 export const NewUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
     return (
@@ -41,5 +41,5 @@ export const NewUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
                 />
             </FormControl>
         </>
-    )
-}
+    );
+};

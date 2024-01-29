@@ -73,7 +73,7 @@
         @apply flex items-center justify-between gap-3 py-2 px-4;
         @apply text-gray-500 select-none relative mt-1;
 
-        &[data-selected='true'] {
+        &[data-selected="true"] {
             @apply bg-gray-200;
 
             svg {
@@ -81,12 +81,12 @@
             }
 
             &:after {
-                content: '';
+                content: "";
                 @apply z-50 left-0 absolute w-1 h-full bg-gray-400;
             }
         }
 
-        &[data-disabled='true'] {
+        &[data-disabled="true"] {
             color: theme(colors.gray.300);
             cursor: not-allowed;
 

@@ -1,8 +1,8 @@
-import ContextMenu from './ContextMenu/ContextMenu'
-import ContextMenus from './ContextMenus/ContextMenus'
-import NodeContextMenu from './NodeContextMenu/NodeContextMenu'
-import PaneContextMenu from './PaneContextMenu/PaneContextMenu'
-import SelectionContextMenu from './SelectionContextMenu/SelectionContextMenu'
+import ContextMenu from "./ContextMenu/ContextMenu";
+import ContextMenus from "./ContextMenus/ContextMenus";
+import NodeContextMenu from "./NodeContextMenu/NodeContextMenu";
+import PaneContextMenu from "./PaneContextMenu/PaneContextMenu";
+import SelectionContextMenu from "./SelectionContextMenu/SelectionContextMenu";
 
 export {
     ContextMenu,
@@ -10,7 +10,7 @@ export {
     NodeContextMenu,
     PaneContextMenu,
     SelectionContextMenu,
-}
+};
 
 export default {
     ContextMenu,
@@ -18,4 +18,4 @@ export default {
     NodeContextMenu,
     PaneContextMenu,
     SelectionContextMenu,
-}
+};

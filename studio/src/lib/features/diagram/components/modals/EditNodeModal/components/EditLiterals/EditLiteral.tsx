@@ -1,13 +1,13 @@
-import { X } from 'lucide-react'
-import React from 'react'
-import style from './editliterals.module.css'
+import { X } from "lucide-react";
+import React from "react";
+import style from "./editliterals.module.css";
 
 const EditLiteral: React.FC<{
-    literal: any
-    update: (v: any) => void
-    del: () => void
-    dirty?: boolean
-    create?: boolean
+    literal: any;
+    update: (v: any) => void;
+    del: () => void;
+    dirty?: boolean;
+    create?: boolean;
 }> = ({ literal, del, update, dirty, create }) => {
     return (
         <div
@@ -17,7 +17,7 @@ const EditLiteral: React.FC<{
                 dirty && style.dirty,
             ]
                 .filter(Boolean)
-                .join(' ')}
+                .join(" ")}
         >
             <input
                 type="text"
@@ -28,7 +28,7 @@ const EditLiteral: React.FC<{
                 <X size={12} />
             </button>
         </div>
-    )
-}
+    );
+};
 
-export default EditLiteral
+export default EditLiteral;

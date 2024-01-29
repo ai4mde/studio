@@ -32,5 +32,5 @@ export const useEditConnectionModal = create<EditConnectionModalState>(
         edge: "",
         open: (edge) => set(() => ({ active: true, edge: edge })),
         close: () => set(() => ({ active: false, edge: "" })),
-    })
+    }),
 );

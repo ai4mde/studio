@@ -1,4 +1,4 @@
-import { ClassNode, EnumNode } from './class'
+import { ClassNode, EnumNode } from "./class";
 import {
     DecisionNode,
     FinalNode,
@@ -8,7 +8,7 @@ import {
     MergeNode,
     BufferNode,
     ActionNode,
-} from './activity'
+} from "./activity";
 import {
     ActorNode,
     PostconditionNode,
@@ -17,7 +17,7 @@ import {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-} from './usecase'
+} from "./usecase";
 
 export {
     ClassNode,
@@ -37,7 +37,7 @@ export {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-}
+};
 
 export default {
     ClassNode,
@@ -57,4 +57,4 @@ export default {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-}
+};

@@ -1,5 +1,5 @@
-import { CommandMenu } from './CommandMenu/CommandMenu'
+import { CommandMenu } from "./CommandMenu/CommandMenu";
 
-export { CommandMenu }
+export { CommandMenu };
 
-export default { CommandMenu }
+export default { CommandMenu };

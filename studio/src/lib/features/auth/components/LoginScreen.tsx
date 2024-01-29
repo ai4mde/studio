@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useAuthStore } from "../state/auth";
-import { Button, CircularProgress, FormControl, FormLabel, Input } from "@mui/joy";
+import {
+    Button,
+    CircularProgress,
+    FormControl,
+    FormLabel,
+    Input,
+} from "@mui/joy";
 
 const LoginScreen: React.FC = () => {
     const { login } = useAuthStore();
@@ -8,10 +14,10 @@ const LoginScreen: React.FC = () => {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
-        setLoading(true)
+        setLoading(true);
         const formData = new FormData(e.currentTarget);
-        login(`${formData.get("username")}`, `${formData.get("password")}`)
-        setLoading(false)
+        login(`${formData.get("username")}`, `${formData.get("password")}`);
+        setLoading(false);
     };
 
     return (
@@ -26,7 +32,7 @@ const LoginScreen: React.FC = () => {
                 >
                     {loading ? (
                         <>
-                          <CircularProgress className="animate-spin"/>
+                            <CircularProgress className="animate-spin" />
                         </>
                     ) : (
                         <>

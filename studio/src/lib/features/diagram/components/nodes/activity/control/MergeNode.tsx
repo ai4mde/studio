@@ -1,6 +1,6 @@
-import React from 'react'
-import { NodeProps } from 'reactflow'
-import NodeWrapper from '../../shared/NodeWrapper'
+import React from "react";
+import { NodeProps } from "reactflow";
+import NodeWrapper from "../../shared/NodeWrapper";
 
 export const MergeNode: React.FC<NodeProps> = (node) => {
     return (
@@ -9,5 +9,5 @@ export const MergeNode: React.FC<NodeProps> = (node) => {
                 <div className="h-14 w-14 aspect-square rotate-45 bg-white border border-solid border-black"></div>
             </div>
         </NodeWrapper>
-    )
-}
+    );
+};

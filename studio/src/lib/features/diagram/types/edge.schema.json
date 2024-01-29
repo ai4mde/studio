@@ -1,247 +1,275 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/Edge",
-  "definitions": {
-    "Edge": {
-      "anyOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "association"
-            },
-            "multiplicity": {
-              "type": "object",
-              "properties": {
-                "from": {
-                  "$ref": "#/definitions/Kernel.MultiplicityElement"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/Edge",
+    "definitions": {
+        "Edge": {
+            "anyOf": [
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "association"
+                        },
+                        "multiplicity": {
+                            "type": "object",
+                            "properties": {
+                                "from": {
+                                    "$ref": "#/definitions/Kernel.MultiplicityElement"
+                                },
+                                "to": {
+                                    "$ref": "#/definitions/Kernel.MultiplicityElement"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "from": {
+                                    "type": "string"
+                                },
+                                "to": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "diagram": {
+                            "type": "string",
+                            "const": "class"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "diagramId": {
+                            "type": "string"
+                        },
+                        "isDirected": {
+                            "type": "boolean",
+                            "const": true
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "diagram",
+                        "from",
+                        "id",
+                        "isDirected",
+                        "to",
+                        "type"
+                    ]
                 },
-                "to": {
-                  "$ref": "#/definitions/Kernel.MultiplicityElement"
-                }
-              },
-              "additionalProperties": false
-            },
-            "labels": {
-              "type": "object",
-              "properties": {
-                "from": {
-                  "type": "string"
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "composition"
+                        },
+                        "diagram": {
+                            "type": "string",
+                            "const": "class"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "diagramId": {
+                            "type": "string"
+                        },
+                        "isDirected": {
+                            "type": "boolean",
+                            "const": true
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "diagram",
+                        "from",
+                        "id",
+                        "isDirected",
+                        "to",
+                        "type"
+                    ]
                 },
-                "to": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "diagram": {
-              "type": "string",
-              "const": "class"
-            },
-            "id": {
-              "type": "string"
-            },
-            "diagramId": {
-              "type": "string"
-            },
-            "isDirected": {
-              "type": "boolean",
-              "const": true
-            },
-            "from": {
-              "type": "string"
-            },
-            "to": {
-              "type": "string"
-            }
-          },
-          "required": ["diagram", "from", "id", "isDirected", "to", "type"]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "composition"
-            },
-            "diagram": {
-              "type": "string",
-              "const": "class"
-            },
-            "id": {
-              "type": "string"
-            },
-            "diagramId": {
-              "type": "string"
-            },
-            "isDirected": {
-              "type": "boolean",
-              "const": true
-            },
-            "from": {
-              "type": "string"
-            },
-            "to": {
-              "type": "string"
-            }
-          },
-          "required": ["diagram", "from", "id", "isDirected", "to", "type"]
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "generalization"
-            },
-            "multiplicity": {
-              "type": "object",
-              "properties": {
-                "from": {
-                  "$ref": "#/definitions/Kernel.MultiplicityElement"
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "const": "generalization"
+                        },
+                        "multiplicity": {
+                            "type": "object",
+                            "properties": {
+                                "from": {
+                                    "$ref": "#/definitions/Kernel.MultiplicityElement"
+                                },
+                                "to": {
+                                    "$ref": "#/definitions/Kernel.MultiplicityElement"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "from": {
+                                    "type": "string"
+                                },
+                                "to": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false
+                        },
+                        "diagram": {
+                            "type": "string",
+                            "const": "class"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "diagramId": {
+                            "type": "string"
+                        },
+                        "isDirected": {
+                            "type": "boolean",
+                            "const": true
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "diagram",
+                        "from",
+                        "id",
+                        "isDirected",
+                        "to",
+                        "type"
+                    ]
                 },
-                "to": {
-                  "$ref": "#/definitions/Kernel.MultiplicityElement"
-                }
-              },
-              "additionalProperties": false
-            },
-            "labels": {
-              "type": "object",
-              "properties": {
-                "from": {
-                  "type": "string"
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "isDirected": {
+                            "type": "boolean",
+                            "const": true
+                        },
+                        "guard": {
+                            "type": "string"
+                        },
+                        "weight": {
+                            "type": "string"
+                        },
+                        "diagram": {
+                            "type": "string",
+                            "const": "activity"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "diagramId": {
+                            "type": "string"
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["diagram", "from", "id", "isDirected", "to"]
                 },
-                "to": {
-                  "type": "string"
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "enum": ["interaction", "extension", "inclusion"]
+                        },
+                        "diagram": {
+                            "type": "string",
+                            "const": "usecase"
+                        },
+                        "id": {
+                            "type": "string"
+                        },
+                        "diagramId": {
+                            "type": "string"
+                        },
+                        "isDirected": {
+                            "type": "boolean",
+                            "const": true
+                        },
+                        "from": {
+                            "type": "string"
+                        },
+                        "to": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "diagram",
+                        "from",
+                        "id",
+                        "isDirected",
+                        "to",
+                        "type"
+                    ]
                 }
-              },
-              "additionalProperties": false
-            },
-            "diagram": {
-              "type": "string",
-              "const": "class"
-            },
-            "id": {
-              "type": "string"
-            },
-            "diagramId": {
-              "type": "string"
-            },
-            "isDirected": {
-              "type": "boolean",
-              "const": true
-            },
-            "from": {
-              "type": "string"
-            },
-            "to": {
-              "type": "string"
-            }
-          },
-          "required": ["diagram", "from", "id", "isDirected", "to", "type"]
+            ],
+            "description": "Base edge with references for all diagram edges",
+            "$id": "https://schema.nguml.com/edge.schema.json"
         },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "isDirected": {
-              "type": "boolean",
-              "const": true
-            },
-            "guard": {
-              "type": "string"
-            },
-            "weight": {
-              "type": "string"
-            },
-            "diagram": {
-              "type": "string",
-              "const": "activity"
-            },
-            "id": {
-              "type": "string"
-            },
-            "diagramId": {
-              "type": "string"
-            },
-            "from": {
-              "type": "string"
-            },
-            "to": {
-              "type": "string"
-            }
-          },
-          "required": ["diagram", "from", "id", "isDirected", "to"]
+        "Kernel.MultiplicityElement": {
+            "$ref": "#/definitions/MultiplicityElement"
         },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "type": {
-              "type": "string",
-              "enum": ["interaction", "extension", "inclusion"]
+        "MultiplicityElement": {
+            "type": "object",
+            "properties": {
+                "isOrdered": {
+                    "type": "boolean"
+                },
+                "isUnique": {
+                    "type": "boolean"
+                },
+                "lower": {
+                    "type": "number"
+                },
+                "upper": {
+                    "anyOf": [
+                        {
+                            "type": "string",
+                            "const": "*"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
             },
-            "diagram": {
-              "type": "string",
-              "const": "usecase"
-            },
-            "id": {
-              "type": "string"
-            },
-            "diagramId": {
-              "type": "string"
-            },
-            "isDirected": {
-              "type": "boolean",
-              "const": true
-            },
-            "from": {
-              "type": "string"
-            },
-            "to": {
-              "type": "string"
-            }
-          },
-          "required": ["diagram", "from", "id", "isDirected", "to", "type"]
+            "additionalProperties": false,
+            "$id": "https://schema.nguml.com/kernel/multiplicityelement.schema.json"
         }
-      ],
-      "description": "Base edge with references for all diagram edges",
-      "$id": "https://schema.nguml.com/edge.schema.json"
-    },
-    "Kernel.MultiplicityElement": {
-      "$ref": "#/definitions/MultiplicityElement"
-    },
-    "MultiplicityElement": {
-      "type": "object",
-      "properties": {
-        "isOrdered": {
-          "type": "boolean"
-        },
-        "isUnique": {
-          "type": "boolean"
-        },
-        "lower": {
-          "type": "number"
-        },
-        "upper": {
-          "anyOf": [
-            {
-              "type": "string",
-              "const": "*"
-            },
-            {
-              "type": "number"
-            }
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "$id": "https://schema.nguml.com/kernel/multiplicityelement.schema.json"
     }
-  }
 }

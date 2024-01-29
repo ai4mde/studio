@@ -1,6 +1,6 @@
-import React from 'react'
-import { NodeProps } from 'reactflow'
-import NodeWrapper from '../../shared/NodeWrapper'
+import React from "react";
+import { NodeProps } from "reactflow";
+import NodeWrapper from "../../shared/NodeWrapper";
 
 const EnumNode: React.FC<NodeProps> = (node) => {
     return (
@@ -22,7 +22,7 @@ const EnumNode: React.FC<NodeProps> = (node) => {
                 </div>
             </div>
         </NodeWrapper>
-    )
-}
+    );
+};
 
-export default EnumNode
+export default EnumNode;

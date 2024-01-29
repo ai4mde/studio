@@ -1,6 +1,6 @@
-import React from 'react'
-import { NodeProps } from 'reactflow'
-import NodeWrapper from '../../shared/NodeWrapper'
+import React from "react";
+import { NodeProps } from "reactflow";
+import NodeWrapper from "../../shared/NodeWrapper";
 
 export const FinalNode: React.FC<NodeProps> = (node) => {
     return (
@@ -9,5 +9,5 @@ export const FinalNode: React.FC<NodeProps> = (node) => {
                 <div className="w-full h-full bg-black border-[.3rem] border-solid border-white rounded-full"></div>
             </div>
         </NodeWrapper>
-    )
-}
+    );
+};

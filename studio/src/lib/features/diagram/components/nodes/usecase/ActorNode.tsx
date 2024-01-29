@@ -1,6 +1,6 @@
-import { NodeProps } from 'reactflow'
-import NodeWrapper from '../shared/NodeWrapper'
-import React from 'react'
+import { NodeProps } from "reactflow";
+import NodeWrapper from "../shared/NodeWrapper";
+import React from "react";
 
 export const ActorNode: React.FC<NodeProps> = (node) => {
     return (
@@ -17,8 +17,8 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                         cy="10"
                         r="10"
                         style={{
-                            fill: 'none',
-                            stroke: 'black',
+                            fill: "none",
+                            stroke: "black",
                             strokeWidth: 2,
                         }}
                     />
@@ -28,7 +28,7 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                         x2="40"
                         y2="30"
                         style={{
-                            stroke: 'black',
+                            stroke: "black",
                             strokeWidth: 2,
                         }}
                     />
@@ -38,7 +38,7 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                         x2="20"
                         y2="50"
                         style={{
-                            stroke: 'black',
+                            stroke: "black",
                             strokeWidth: 2,
                         }}
                     />
@@ -48,7 +48,7 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                         x2="40"
                         y2="80"
                         style={{
-                            stroke: 'black',
+                            stroke: "black",
                             strokeWidth: 2,
                         }}
                     />
@@ -58,7 +58,7 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                         x2="0"
                         y2="80"
                         style={{
-                            stroke: 'black',
+                            stroke: "black",
                             strokeWidth: 2,
                         }}
                     />
@@ -66,5 +66,5 @@ export const ActorNode: React.FC<NodeProps> = (node) => {
                 <span>{node.data?.name}</span>
             </div>
         </NodeWrapper>
-    )
-}
+    );
+};

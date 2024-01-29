@@ -65,11 +65,11 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     // If our data changes, force-update the state of the nodes or edges
     useEffect(
         () => diagramStore.nodesFromAPI(data?.nodes ?? []),
-        [dataUpdatedAt]
+        [dataUpdatedAt],
     );
     useEffect(
         () => diagramStore.edgesFromAPI(data?.edges ?? []),
-        [dataUpdatedAt]
+        [dataUpdatedAt],
     );
 
     if (!isSuccess) {

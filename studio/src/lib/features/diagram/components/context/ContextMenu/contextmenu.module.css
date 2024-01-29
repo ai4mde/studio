@@ -2,7 +2,7 @@
     @apply flex py-2 bg-gray-50 outline-1 outline outline-gray-200;
     @apply shadow-md rounded-md;
 
-    animation: pop-in .1s ease-in-out;
+    animation: pop-in 0.1s ease-in-out;
     position: fixed;
     z-index: 10;
 
@@ -13,7 +13,7 @@
         li {
             @apply w-full;
 
-            button { 
+            button {
                 @apply w-full flex flex-row py-1 px-4 gap-8 justify-between items-center;
                 user-select: none;
 
@@ -35,7 +35,7 @@
 
 @keyframes pop-in {
     0% {
-        transform: scale(.98);
+        transform: scale(0.98);
     }
     100% {
         transform: none;

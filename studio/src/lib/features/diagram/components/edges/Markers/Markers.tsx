@@ -1,9 +1,9 @@
-import React from 'react'
+import React from "react";
 
 type WrapMarkerProps = {
-    id: string
-    children: React.ReactNode
-}
+    id: string;
+    children: React.ReactNode;
+};
 
 const WrapMarker: React.FC<WrapMarkerProps> = ({
     id,
@@ -21,13 +21,13 @@ const WrapMarker: React.FC<WrapMarkerProps> = ({
         >
             {children}
         </marker>
-    )
-}
+    );
+};
 
 const Markers: React.FC = () => {
     return (
         <>
-            <svg style={{ position: 'absolute', top: 0, left: 0 }}>
+            <svg style={{ position: "absolute", top: 0, left: 0 }}>
                 <defs>
                     <WrapMarker id="activity-end">
                         <svg width={16} height={16} viewBox="0 0 16 16">
@@ -92,7 +92,7 @@ const Markers: React.FC = () => {
                 </defs>
             </svg>
         </>
-    )
-}
+    );
+};
 
-export default Markers
+export default Markers;

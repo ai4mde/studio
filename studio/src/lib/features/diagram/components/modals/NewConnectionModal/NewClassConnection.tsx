@@ -1,10 +1,10 @@
-import React from 'react'
-import { FormControl, FormLabel, Select, Option, Input } from '@mui/joy'
+import React from "react";
+import { FormControl, FormLabel, Select, Option, Input } from "@mui/joy";
 
 type Props = {
-    object: any
-    setObject: (o: any) => void
-}
+    object: any;
+    setObject: (o: any) => void;
+};
 
 export const NewActivityConnection: React.FC<Props> = ({
     object,
@@ -34,8 +34,8 @@ export const NewActivityConnection: React.FC<Props> = ({
                     </Option>
                 </Select>
             </FormControl>
-            {(object.type == 'association' ||
-                object.type == 'generalization') && (
+            {(object.type == "association" ||
+                object.type == "generalization") && (
                 <>
                     <div className="w-full flex flex-row gap-2 justify-between items-center">
                         <FormControl size="sm">
@@ -60,7 +60,7 @@ export const NewActivityConnection: React.FC<Props> = ({
                 </>
             )}
         </>
-    )
-}
+    );
+};
 
-export default NewActivityConnection
+export default NewActivityConnection;

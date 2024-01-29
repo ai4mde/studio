@@ -5,7 +5,7 @@ import { closeAll } from "./shared";
 
 export const onMove = (
     _event: MouseEvent | TouchEvent,
-    _viewport: Viewport
+    _viewport: Viewport,
 ) => {
     closeAll();
 };

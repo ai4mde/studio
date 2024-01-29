@@ -1,5 +1,5 @@
-import Screens from './Screens/Screens'
+import Screens from "./Screens/Screens";
 
-export { Screens }
+export { Screens };
 
-export default { Screens }
+export default { Screens };

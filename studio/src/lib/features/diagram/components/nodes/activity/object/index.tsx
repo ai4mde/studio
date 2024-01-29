@@ -1,3 +1,3 @@
-import { BufferNode } from './BufferNode'
+import { BufferNode } from "./BufferNode";
 
-export { BufferNode }
+export { BufferNode };

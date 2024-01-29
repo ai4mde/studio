@@ -1,11 +1,11 @@
 import React from "react";
 
 type Props = {
-    small?: boolean
-}
+    small?: boolean;
+};
 
 export const Logo: React.FC<Props> = () => {
-    return <></>
-}
+    return <></>;
+};
 
-export default Logo 
+export default Logo;

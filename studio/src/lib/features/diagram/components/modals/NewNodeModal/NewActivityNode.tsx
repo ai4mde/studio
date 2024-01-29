@@ -1,10 +1,10 @@
-import React from 'react'
-import { FormControl, FormLabel, Select, Option, Input } from '@mui/joy'
+import React from "react";
+import { FormControl, FormLabel, Select, Option, Input } from "@mui/joy";
 
 type Props = {
-    object: any
-    setObject: (o: any) => void
-}
+    object: any;
+    setObject: (o: any) => void;
+};
 
 export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
     return (
@@ -32,12 +32,12 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                         setObject((o: any) => ({ ...o, type: e }))
                     }
                 >
-                    {object.role == 'action' && (
+                    {object.role == "action" && (
                         <>
                             <Option value="action">Action</Option>
                         </>
                     )}
-                    {object.role == 'control' && (
+                    {object.role == "control" && (
                         <>
                             <Option value="decision">Decision</Option>
                             <Option value="final">Final</Option>
@@ -47,7 +47,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                             <Option value="merge">Merge</Option>
                         </>
                     )}
-                    {object.role == 'object' && (
+                    {object.role == "object" && (
                         <>
                             <Option value="class">Class</Option>
                             <Option value="buffer">Buffer</Option>
@@ -56,7 +56,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     )}
                 </Select>
             </FormControl>
-            {object.type == 'action' && (
+            {object.type == "action" && (
                 <FormControl size="sm" className="w-full">
                     <FormLabel>Name</FormLabel>
                     <Input
@@ -67,10 +67,10 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                                 name: e.target.value,
                             }))
                         }
-                        placeholder={`Name of the ${object.type ?? 'node'}...`}
+                        placeholder={`Name of the ${object.type ?? "node"}...`}
                     />
                 </FormControl>
             )}
         </>
-    )
-}
+    );
+};

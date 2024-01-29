@@ -1,14 +1,21 @@
-import { FormControl, FormLabel, Select, Option, Input, Button } from '@mui/joy'
-import { Plus, X } from 'lucide-react'
-import React, { useState } from 'react'
+import {
+    FormControl,
+    FormLabel,
+    Select,
+    Option,
+    Input,
+    Button,
+} from "@mui/joy";
+import { Plus, X } from "lucide-react";
+import React, { useState } from "react";
 
 type Props = {
-    object: any
-    setObject: (o: any) => void
-}
+    object: any;
+    setObject: (o: any) => void;
+};
 
 export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
-    const [literal, setLiteral] = useState('')
+    const [literal, setLiteral] = useState("");
 
     return (
         <>
@@ -36,10 +43,10 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                             name: e.target.value,
                         }))
                     }
-                    placeholder={`Name of the ${object.type ?? 'node'}...`}
+                    placeholder={`Name of the ${object.type ?? "node"}...`}
                 />
             </FormControl>
-            {object.type == 'enum' && (
+            {object.type == "enum" && (
                 <>
                     <FormControl size="sm" className="w-full gap-1">
                         <FormLabel>Literals</FormLabel>
@@ -51,14 +58,14 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                                     color="danger"
                                     onClick={() => {
                                         setObject((o: any) => {
-                                            const literals = o.literals.slice()
-                                            literals.splice(i, 1)
+                                            const literals = o.literals.slice();
+                                            literals.splice(i, 1);
 
                                             return {
                                                 ...o,
                                                 literals: literals,
-                                            }
-                                        })
+                                            };
+                                        });
                                     }}
                                 >
                                     <X />
@@ -81,8 +88,8 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                                             ...(o.literals ?? []),
                                             literal,
                                         ],
-                                    }))
-                                    setLiteral('')
+                                    }));
+                                    setLiteral("");
                                 }}
                             >
                                 <Plus />
@@ -92,5 +99,5 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                 </>
             )}
         </>
-    )
-}
+    );
+};

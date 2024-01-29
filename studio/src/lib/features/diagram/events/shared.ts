@@ -3,11 +3,11 @@ import {
     useNodeContextMenu,
     usePaneContextMenu,
     useSelectionContextMenu,
-} from '../stores/contextMenus'
+} from "../stores/contextMenus";
 
 export const closeAll = () => {
-    usePaneContextMenu.getState().close()
-    useNodeContextMenu.getState().close()
-    useSelectionContextMenu.getState().close()
-    useEdgeContextMenu.getState().close()
-}
+    usePaneContextMenu.getState().close();
+    useNodeContextMenu.getState().close();
+    useSelectionContextMenu.getState().close();
+    useEdgeContextMenu.getState().close();
+};

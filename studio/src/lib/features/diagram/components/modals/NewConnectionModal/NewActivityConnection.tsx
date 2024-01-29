@@ -18,7 +18,7 @@ export const NewActivityConnection: React.FC<Props> = ({
                 type: "activity",
                 ...o,
             })),
-        []
+        [],
     );
 
     return (
