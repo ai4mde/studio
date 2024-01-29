@@ -8,7 +8,10 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=ai4mde_traefik"
       - "--entrypoints.web.address=:80"
+    networks:
+      - ai4mde_traefik
     ports:
       - "80:80"
       - "8080:8080"
@@ -22,12 +25,17 @@ services:
       - pgsql-data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-  
+    networks:
+      - postgres
+
   studio-api:
-    depends_on: ['postgres']
+    depends_on: ["postgres"]
     build:
       context: model
     env_file: config/model.env
+    networks:
+      - postgres
+      - ai4mde_traefik
     volumes:
       - ./model/model:/usr/src/model:ro
     labels:
@@ -42,6 +50,8 @@ services:
     env_file: config/studio.env
     volumes:
       - ./studio/src:/usr/src/app/src:ro
+    networks:
+      - ai4mde_traefik
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio.rule=Host(`ai4mde.localhost`)"
@@ -50,3 +60,8 @@ services:
 
 volumes:
   pgsql-data:
+
+networks:
+  ai4mde_traefik:
+    name: "ai4mde_traefik"
+  postgres:
