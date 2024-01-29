@@ -6,13 +6,14 @@ from pydantic import BaseModel
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateNode, ListNodes, PatchNode, NodeSchema
+from diagram.api.schemas import CreateNode, PatchNode, NodeSchema
 
 from metadata.specification import Classifier
 
 node = Router()
 
-@node.get('/', response=List[NodeSchema])
+
+@node.get("/", response=List[NodeSchema])
 def list_nodes(request):
     diagram = utils.get_diagram(request)
 
@@ -21,7 +22,8 @@ def list_nodes(request):
 
     return diagram.nodes.all()
 
-@node.post('/', response=NodeSchema)
+
+@node.post("/", response=NodeSchema)
 def create_node(request: HttpRequest, data: CreateNode):
     diagram = utils.get_diagram(request)
 
@@ -32,7 +34,8 @@ def create_node(request: HttpRequest, data: CreateNode):
 
     return node
 
-@node.get('/{uuid:node_id}/', response=NodeSchema)
+
+@node.get("/{uuid:node_id}/", response=NodeSchema)
 def read_node(request: HttpRequest, node_id: str):
     diagram = utils.get_diagram(request)
 
@@ -41,7 +44,8 @@ def read_node(request: HttpRequest, node_id: str):
 
     return diagram.nodes.get(id=node_id)
 
-@node.delete('/{uuid:node_id}/', response=bool)
+
+@node.delete("/{uuid:node_id}/", response=bool)
 def delete_node(request: HttpRequest, node_id: str):
     diagram = utils.get_diagram(request)
 
@@ -51,11 +55,12 @@ def delete_node(request: HttpRequest, node_id: str):
     diagram.nodes.filter(id=node_id).delete()
     return True
 
+
 class PatchModel(BaseModel):
     cls: Classifier
 
 
-@node.patch('/{uuid:node_id}/', response=NodeSchema)
+@node.patch("/{uuid:node_id}/", response=NodeSchema)
 def update_node(request: HttpRequest, node_id: str, data: PatchNode):
     diagram = utils.get_diagram(request)
 
@@ -64,16 +69,17 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 
     node = diagram.nodes.get(id=node_id)
 
-    if data.cls != None:
+    if data.cls is not None:
         new_cls = {**node.cls.data, **data.cls}
         PatchModel.model_validate({"cls": new_cls})
         node.cls.data = new_cls
         node.cls.save()
 
-    if data.data != None:
+    if data.data is not None:
         node.data = {**node.data, **data.data.model_dump()}
         node.save()
 
     return node
+
 
 __all__ = ["node"]

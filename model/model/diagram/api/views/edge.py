@@ -5,13 +5,13 @@ from ninja import Router
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateEdge, ListEdges, EdgeSchema
+from diagram.api.schemas import CreateEdge, EdgeSchema
 
-from metadata.specification import Classifier
 
 edge = Router()
 
-@edge.get('/', response=List[EdgeSchema])
+
+@edge.get("/", response=List[EdgeSchema])
 def list_edges(request):
     diagram = utils.get_diagram(request)
 
@@ -20,7 +20,8 @@ def list_edges(request):
 
     return diagram.edges.all()
 
-@edge.post('/', response=EdgeSchema)
+
+@edge.post("/", response=EdgeSchema)
 def create_edge(request: HttpRequest, data: CreateEdge):
     diagram = utils.get_diagram(request)
 
@@ -31,7 +32,8 @@ def create_edge(request: HttpRequest, data: CreateEdge):
 
     return edge
 
-@edge.get('/{uuid:edge_id}/', response=EdgeSchema)
+
+@edge.get("/{uuid:edge_id}/", response=EdgeSchema)
 def edge_node(request: HttpRequest, edge_id: str):
     diagram = utils.get_diagram(request)
 

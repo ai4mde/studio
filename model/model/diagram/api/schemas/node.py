@@ -5,15 +5,19 @@ from ninja import ModelSchema, Schema
 from diagram.models import Node
 from metadata.specification import Classifier
 
+
 class NodePosition(Schema):
     x: int = 0
     y: int = 0
 
+
 class NodeData(Schema):
     position: NodePosition
 
+
 class CreateNode(Schema):
     cls: Classifier
+
 
 class NodeSchema(ModelSchema):
     cls: Classifier
@@ -32,12 +36,15 @@ class NodeSchema(ModelSchema):
     def resolve_cls_ptr(obj):
         return obj.cls.id
 
+
 class PatchNode(Schema):
     cls: Optional[dict] = None
     data: Optional[NodeData] = None
 
+
 class ListNodes(Schema):
     nodes: List[NodeSchema] = []
+
 
 __all__ = [
     "CreateNode",

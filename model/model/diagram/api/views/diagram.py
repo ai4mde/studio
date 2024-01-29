@@ -53,6 +53,7 @@ def delete_diagram(request, diagram_id):
     print(diagram_id)
     pass
 
+
 diagrams.add_router("/{uuid:diagram}/node", node)
 diagrams.add_router("/{uuid:diagram}/edge", edge)
 

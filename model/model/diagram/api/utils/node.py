@@ -2,6 +2,7 @@ from diagram.models import Diagram, Node
 from metadata.models import Classifier
 import metadata.specification as spec
 
+
 def create_node(diagram: Diagram, data: spec.Classifier):
     classifier = Classifier.objects.create(
         system=diagram.system,
@@ -18,5 +19,6 @@ def create_node(diagram: Diagram, data: spec.Classifier):
         },
     )
     return node
+
 
 __all__ = ["create_node"]

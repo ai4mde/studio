@@ -16,12 +16,12 @@ if environ.get("DEBUG", "True").lower() == "false":
     ALLOWED_HOSTS = [environ.get("HOSTNAME", "api.ai4mde.localhost"), "localhost"]
 
 INSTALLED_APPS = [
-    "daphne",       # ext: Use Daphne as ASGI server
-    "model",        # The main app / project is the model application
-    "metadata",     # The metadata app is used to store metadata such as projects, systems, users and so on
-    "diagram",      # The diagram app is used to store diagram-specific data
-    "prompt",       # The prompt app is used for the chat / prompting functionalities
-    "prose",        # The prose app is used to store and build NLP pipelines
+    "daphne",  # ext: Use Daphne as ASGI server
+    "model",  # The main app / project is the model application
+    "metadata",  # The metadata app is used to store metadata such as projects, systems, users and so on
+    "diagram",  # The diagram app is used to store diagram-specific data
+    "prompt",  # The prompt app is used for the chat / prompting functionalities
+    "prose",  # The prose app is used to store and build NLP pipelines
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -66,7 +66,9 @@ ASGI_APPLICATION = "model.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "HOST": environ.get("POSTGRES_HOST", "postgres"), # Change this to localhost if can't use docker networking
+        "HOST": environ.get(
+            "POSTGRES_HOST", "postgres"
+        ),  # Change this to localhost if can't use docker networking
         "PORT": environ.get("POSTGRES_PORT", "5432"),
         "NAME": environ.get("POSTGRES_DB", "ai4mdestudio"),
         "USER": environ.get("POSTGRES_USER", "ai4mdestudio"),
@@ -94,16 +96,18 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" # TODO: Investigate if need to change this to UUIDField
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # TODO: Investigate if need to change this to UUIDField
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost",             # TODO: Setup some environment variables for this
-    "http://localhost:5173",        #
-    "http://ai4mde.localhost",      #
+    "http://localhost",  # TODO: Setup some environment variables for this
+    "http://localhost:5173",  #
+    "http://ai4mde.localhost",  #
     "http://api.ai4mde.localhost",  #
 ]
-CSRF_COOKIE_DOMAIN = ".ai4mde.localhost" # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
-CORS_ALLOW_ALL_ORIGINS = True            # TODO: Not in PROD!
-CORS_ALLOW_CREDENTIALS = True            # TODO: Investigate if necessary?
-CSRF_COOKIE_HTTPONLY = False             # TODO: Is this even used?
+CSRF_COOKIE_DOMAIN = ".ai4mde.localhost"  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
+CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
+CORS_ALLOW_CREDENTIALS = True  # TODO: Investigate if necessary?
+CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?
 
-PROSE_API_KEY = "sequoias" # TODO: Leverage the JWT to make connections to the Prose API
+PROSE_API_KEY = (
+    "sequoias"  # TODO: Leverage the JWT to make connections to the Prose API
+)

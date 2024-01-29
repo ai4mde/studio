@@ -5,11 +5,14 @@ from ninja import ModelSchema, Schema
 from diagram.models import Edge
 from metadata.specification import Relation
 
+
 class EdgeData(Schema):
     pass
 
+
 class CreateEdge(Schema):
     rel: Relation
+
 
 class EdgeSchema(ModelSchema):
     rel: Relation
@@ -28,8 +31,10 @@ class EdgeSchema(ModelSchema):
     def resolve_rel_ptr(obj):
         return obj.rel.id
 
+
 class ListEdges(Schema):
     nodes: List[EdgeSchema] = []
+
 
 __all__ = [
     "CreateEdge",
