@@ -96,7 +96,7 @@ export const NewConnectionModal: React.FC = () => {
                                     </div>
                                 </div>
                             </Alert>
-                            {type == "class" && (
+                            {type == "classes" && (
                                 <NewClassConnection
                                     object={object}
                                     setObject={setObject}

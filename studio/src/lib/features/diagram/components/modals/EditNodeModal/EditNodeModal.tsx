@@ -92,10 +92,10 @@ export const EditNodeModal: React.FC = () => {
                                     {node.data?.name && (
                                         <EditName node={node} />
                                     )}
-                                    {node.type == "class" && (
+                                    {node.type == "classes" && (
                                         <EditAttributes node={node} />
                                     )}
-                                    {node.type == "class" && (
+                                    {node.type == "classes" && (
                                         <EditMethods node={node} />
                                     )}
                                     {node.type == "enum" && (

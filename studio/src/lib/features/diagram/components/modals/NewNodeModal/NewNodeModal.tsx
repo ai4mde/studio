@@ -69,7 +69,7 @@ export const NewNodeModal: React.FC = () => {
                                     setObject={setObject}
                                 />
                             )}
-                            {type == "class" && (
+                            {type == "classes" && (
                                 <NewClassNode
                                     object={object}
                                     setObject={setObject}
