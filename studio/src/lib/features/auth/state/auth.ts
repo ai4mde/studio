@@ -2,6 +2,7 @@ import { baseURL } from "$shared/globals";
 import axios from "axios";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { decodeJwt } from "jose";
 
 type AuthStore = {
     isAuthenticated: boolean;
@@ -12,6 +13,7 @@ type AuthStore = {
         email: string;
         username: string;
     };
+    tokenData?: any;
     login: (username: string, password: string) => void;
     logout: () => void;
 };
@@ -53,6 +55,7 @@ export const useAuthStore = create(
                                 user: {
                                     ...data,
                                 },
+                                tokenData: decodeJwt(data.token),
                             }));
                         })
                         .catch(() => {
@@ -74,6 +77,7 @@ export const useAuthStore = create(
                         isAuthenticated: false,
                         expires: undefined,
                         user: undefined,
+                        tokenData: undefined,
                     }));
                 },
             };

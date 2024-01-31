@@ -1,3 +1,8 @@
-# from prompt.api.schemas.diagram import ...
+from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
 
-__all__ = []
+__all__ = [
+    "PipelineSchema",
+    "PipelineRequirementsSchema",
+    "PipelineModelSchema",
+    "PipelineResultsSchema",
+]

@@ -1,0 +1,34 @@
+export const models = [
+    {
+        title: "UML Classes",
+        version: "0.0.1",
+        author: "Tiantian Tang",
+        type: "metadata",
+        url: "http://tiantian-class.ai4mde-prose.localhost/run_nlp/",
+        disabled: false,
+    },
+    {
+        title: "UML Activities",
+        version: "0.0.1",
+        author: "Pepijn Griffiioen",
+        type: "metadata",
+        url: "http://griffioen-activity.ai4mde-prose.localhost/run_nlp/",
+        disabled: true,
+    },
+    {
+        title: "UML Usecase",
+        version: "0.0.1",
+        author: "Anna Roussou",
+        type: "metadata",
+        url: "http://roussou-usecase.ai4mde-prose.localhost/run_nlp/",
+        disabled: true,
+    },
+    {
+        title: "Bucketing",
+        type: "bucketing",
+        version: "0.0.1",
+        author: "Martijn Schouten",
+        url: "http://martijn-bucketing.ai4mde-prose.localhost/run_nlp/",
+        disabled: true,
+    },
+]; // TODO: Make mutable and find a way to dynamically populate this, maybe with a model registry?

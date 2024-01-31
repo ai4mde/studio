@@ -34,8 +34,8 @@ services:
       context: model
     env_file: config/model.env
     networks:
-      - postgres
       - ai4mde_traefik
+      - postgres
     volumes:
       - ./model/model:/usr/src/model:ro
     labels:
