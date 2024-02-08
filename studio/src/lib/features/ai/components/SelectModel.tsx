@@ -1,13 +1,5 @@
 import { authAxios } from "$auth/state/auth";
-import {
-    Button,
-    FormControl,
-    FormHelperText,
-    FormLabel,
-    Input,
-    Textarea,
-    Card,
-} from "@mui/joy";
+import { Button, Card } from "@mui/joy";
 import React, { useState } from "react";
 import { Pipeline } from "../types";
 import { useMutation } from "@tanstack/react-query";

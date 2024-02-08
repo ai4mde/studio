@@ -1,5 +1,5 @@
 import React from "react";
-import { FormControl, FormLabel, Select, Option, Input } from "@mui/joy";
+import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 
 type Props = {
     object: any;

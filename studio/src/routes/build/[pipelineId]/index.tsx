@@ -1,22 +1,13 @@
 import { authAxios } from "$auth/state/auth";
 import { AddToSystem } from "$lib/features/ai/components/AddToSystem";
-import { ListPipelines } from "$lib/features/ai/components/ListPipelines";
 import { RunModel } from "$lib/features/ai/components/RunModel";
 import { SelectModel } from "$lib/features/ai/components/SelectModel";
 import { Steps } from "$lib/features/ai/components/Steps";
 import { UploadRequirements } from "$lib/features/ai/components/UploadRequirements";
 import { usePipeline } from "$lib/features/ai/queries";
-import {
-    Button,
-    Divider,
-    IconButton,
-    LinearProgress,
-    Step,
-    StepIndicator,
-    Stepper,
-} from "@mui/joy";
+import { Button, IconButton, LinearProgress } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Check, Delete, Loader, Trash } from "lucide-react";
+import { ArrowLeft, Trash } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router";
 

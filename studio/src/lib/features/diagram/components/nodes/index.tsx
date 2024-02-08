@@ -1,13 +1,13 @@
 import { ClassNode, EnumNode } from "./class";
 import {
+    ActionNode,
+    BufferNode,
     DecisionNode,
     FinalNode,
     ForkNode,
     InitialNode,
     JoinNode,
     MergeNode,
-    BufferNode,
-    ActionNode,
 } from "./activity";
 import {
     ActorNode,

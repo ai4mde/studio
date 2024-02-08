@@ -1,8 +1,8 @@
 import {
+    useEdgeContextMenu,
     useNodeContextMenu,
     usePaneContextMenu,
     useSelectionContextMenu,
-    useEdgeContextMenu,
 } from "./contextMenus";
 import { useDiagramStore } from "./diagramState";
 

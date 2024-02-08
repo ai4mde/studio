@@ -1,4 +1,4 @@
-import { onNodeContextMenu, onNodeClick } from "./node";
+import { onNodeClick, onNodeContextMenu } from "./node";
 import { onMove, onPaneClick, onPaneContextMenu } from "./pane";
 import { onSelectionContextMenu } from "./selection";
 import { closeAll } from "./shared";

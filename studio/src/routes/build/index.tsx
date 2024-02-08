@@ -1,7 +1,5 @@
 import { ListPipelines } from "$lib/features/ai/components/ListPipelines";
 import { Steps } from "$lib/features/ai/components/Steps";
-import { Divider, Step, StepIndicator, Stepper } from "@mui/joy";
-import { Check, Loader } from "lucide-react";
 import React from "react";
 
 type Props = Record<string, never>;
