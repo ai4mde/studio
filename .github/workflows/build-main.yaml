@@ -1,5 +1,7 @@
 name: Build edge containers and push to registry
 
+permissions: write-all
+
 on:
   push:
     branches:
