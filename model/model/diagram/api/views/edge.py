@@ -6,6 +6,7 @@ from ninja import Router
 import diagram.api.utils as utils
 
 from diagram.api.schemas import CreateEdge, EdgeSchema
+from diagram.models import Node
 
 
 edge = Router()
@@ -24,11 +25,13 @@ def list_edges(request):
 @edge.post("/", response=EdgeSchema)
 def create_edge(request: HttpRequest, data: CreateEdge):
     diagram = utils.get_diagram(request)
+    source = Node.objects.get(id=data.source)
+    target = Node.objects.get(id=data.target)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    edge = utils.create_edge(diagram, data.rel)
+    edge = utils.create_edge(diagram, data.rel, source, target)
 
     return edge
 

@@ -30,8 +30,15 @@ export const deleteNode = async (diagram: string, node: string) => {
     });
 };
 
-export const addEdge = async (diagram: string, data: any) => {
+export const addEdge = async (
+    diagram: string,
+    data: any,
+    source: string,
+    target: string,
+) => {
     await authAxios.post(`/v1/diagram/${diagram}/edge/`, {
+        source: source,
+        target: target,
         rel: data,
     });
 

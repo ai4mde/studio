@@ -4,7 +4,7 @@ import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Alert, Button } from "@mui/joy";
-import { X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
@@ -15,17 +15,14 @@ import style from "./newconnectionmodal.module.css";
 
 export const NewConnectionModal: React.FC = () => {
     const { nodes, diagram, type } = useDiagramStore();
-    const { source, target, close } = useNewConnectionModal();
+    const { source, target, close, open } = useNewConnectionModal();
 
     // TODO: Figure out a way to do better form building
     // using the schema instead of pumping everything to
     // an any-typed object. Better yet, use the TypeScript
     // definition from ngUML.backend/model/specification
     // here. (ngUML.backend/issues/110)
-    const [object, setObject] = useState<any>({
-        from: source,
-        to: target,
-    });
+    const [object, setObject] = useState<any>({});
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
@@ -57,7 +54,7 @@ export const NewConnectionModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            addEdge(diagram, object);
+                            addEdge(diagram, object, source, target);
                             queryClient.refetchQueries({
                                 queryKey: ["diagram"],
                             });

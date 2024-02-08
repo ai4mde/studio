@@ -11,6 +11,8 @@ class EdgeData(Schema):
 
 
 class CreateEdge(Schema):
+    source: UUID
+    target: UUID
     rel: Relation
 
 
