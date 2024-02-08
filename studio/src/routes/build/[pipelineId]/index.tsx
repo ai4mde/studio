@@ -1,3 +1,4 @@
+import { authAxios } from "$auth/state/auth";
 import { AddToSystem } from "$lib/features/ai/components/AddToSystem";
 import { ListPipelines } from "$lib/features/ai/components/ListPipelines";
 import { RunModel } from "$lib/features/ai/components/RunModel";
@@ -6,6 +7,7 @@ import { Steps } from "$lib/features/ai/components/Steps";
 import { UploadRequirements } from "$lib/features/ai/components/UploadRequirements";
 import { usePipeline } from "$lib/features/ai/queries";
 import {
+    Button,
     Divider,
     IconButton,
     LinearProgress,
@@ -13,15 +15,23 @@ import {
     StepIndicator,
     Stepper,
 } from "@mui/joy";
-import { ArrowLeft, Check, Loader } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { ArrowLeft, Check, Delete, Loader, Trash } from "lucide-react";
 import React from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 type Props = Record<string, never>;
 
 export const PipelineIndex: React.FC<Props> = () => {
     const { pipelineId } = useParams();
     const { isSuccess, data } = usePipeline(pipelineId);
+    const navigate = useNavigate();
+    const deletePipeline = useMutation({
+        mutationFn: async () => {
+            await authAxios.delete(`/v1/prose/pipelines/${pipelineId}/`);
+            navigate("/build/");
+        },
+    });
 
     if (!pipelineId) {
         return <></>;
@@ -33,7 +43,7 @@ export const PipelineIndex: React.FC<Props> = () => {
 
     return (
         <div className="flex h-full w-full flex-col gap-4 p-4">
-            <div className="flex flex-row gap-2">
+            <div className="flex w-full flex-row gap-2">
                 <IconButton component="a" href="/build/">
                     <ArrowLeft size={16} />
                 </IconButton>
@@ -42,6 +52,17 @@ export const PipelineIndex: React.FC<Props> = () => {
                     <span className="text-lg">
                         Extract architectural metadata from requirements text
                     </span>
+                </div>
+                <div className="ml-auto flex items-center">
+                    <Button
+                        color="danger"
+                        className="ml-auto flex flex-row gap-2"
+                        size="sm"
+                        onClick={() => deletePipeline.mutate()}
+                    >
+                        <Trash size={16} />
+                        <span>Delete Pipeline</span>
+                    </Button>
                 </div>
             </div>
 

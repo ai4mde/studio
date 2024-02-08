@@ -40,18 +40,18 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
                 data.map((e) => (
                     <a
                         href={`/systems/${e.id}`}
-                        className="flex flex-col gap-2 p-4 w-48 text-ellipsis overflow-hidden rounded-md bg-stone-200 hover:bg-stone-300 h-fit"
+                        className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                     >
                         <h3 className="text-xl font-bold">{e.name}</h3>
                         <h3 className="text-sm">{e.description}</h3>
-                        <span className="text-xs text-right pt-2 text-stone-500">
+                        <span className="pt-2 text-right text-xs text-stone-500">
                             {e.id.split("-").slice(-1)}
                         </span>
                     </a>
                 ))}
             <button
                 onClick={() => setCreate(true)}
-                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
+                className="h-fill flex flex-col items-center justify-center gap-2 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
             >
                 <Plus />
             </button>

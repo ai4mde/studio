@@ -43,4 +43,10 @@ def set_pipeline_output(request, pipeline_id: str, data: PipelineResultsSchema):
     pipeline.save()
     return pipeline
 
+@pipelines.delete('/{uuid:pipeline_id}/')
+def delete_pipeline(request, pipeline_id: str):
+    pipeline = Pipeline.objects.get(id=pipeline_id)
+    pipeline.delete()
+    return {"status": "ok"}
+
 __all__ = ["pipelines"]
