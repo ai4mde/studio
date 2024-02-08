@@ -1,14 +1,5 @@
 import { authAxios } from "$auth/state/auth";
-import {
-    Button,
-    FormControl,
-    FormHelperText,
-    FormLabel,
-    Input,
-    Textarea,
-    Card,
-    CircularProgress,
-} from "@mui/joy";
+import { Button, Textarea, Card, CircularProgress } from "@mui/joy";
 import React from "react";
 import { Pipeline } from "../types";
 import { useMutation } from "@tanstack/react-query";
@@ -21,7 +12,7 @@ type Props = {
 };
 
 export const RunModel: React.FC<Props> = ({ pipeline }) => {
-    const { mutate, isPending, isError, isSuccess, data } = useMutation({
+    const { mutate, isPending, isError, isSuccess } = useMutation({
         mutationFn: async () => {
             const res = await axios.get(pipeline.url, {
                 params: {
@@ -29,12 +20,14 @@ export const RunModel: React.FC<Props> = ({ pipeline }) => {
                 },
                 withCredentials: false,
             });
-            return res.data;
+
+            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/result/`, {
+                output: res.data,
+            });
+
+            queryClient.invalidateQueries({ queryKey: ["pipelines"] });
         },
     });
-
-    const [classifiers, setClassifiers] = React.useState<any[]>([]);
-    const [relations, setRelations] = React.useState<any[]>([]);
 
     return (
         <div className="flex flex-col gap-4">
@@ -52,74 +45,18 @@ export const RunModel: React.FC<Props> = ({ pipeline }) => {
                     <span>{pipeline.url}</span>
                 </Card>
             </div>
-            <Button
-                onClick={() => mutate()}
-                disabled={isPending}
-                color={isSuccess ? "success" : isError ? "danger" : "primary"}
-            >
-                {isPending ? <CircularProgress /> : "Run"}
-            </Button>
-            {isSuccess ? (
-                <Card className="flex w-full flex-col gap-4 p-4">
-                    <span>Select Results</span>
-                    <div className="flex w-full flex-col">
-                        {data.classifiers.map((classifier: any) => (
-                            <div className="flex flex-row items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={classifiers.includes(
-                                        classifier.id,
-                                    )}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setClassifiers([
-                                                ...classifiers,
-                                                classifier.id,
-                                            ]);
-                                        } else {
-                                            setClassifiers(
-                                                classifiers.filter(
-                                                    (c) => c !== classifier.id,
-                                                ),
-                                            );
-                                        }
-                                    }}
-                                />
-                                <span>{classifier.data?.name}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex w-full flex-col">
-                        {data.relations.map((relation: any) => (
-                            <div className="flex flex-row items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={relations.includes(relation.id)}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            setRelations([
-                                                ...relations,
-                                                relation.id,
-                                            ]);
-                                        } else {
-                                            setRelations(
-                                                relations.filter(
-                                                    (c) => c !== relation.id,
-                                                ),
-                                            );
-                                        }
-                                    }}
-                                />
-                                <span>{relation.name}</span>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            ) : (
-                <Card className="w-full p-4 text-center">
-                    Run pipeline first
-                </Card>
-            )}
+            <div className="flex w-full flex-row gap-1">
+                <Button
+                    onClick={() => mutate()}
+                    fullWidth
+                    color={
+                        isSuccess ? "success" : isError ? "danger" : "primary"
+                    }
+                    disabled={isPending}
+                >
+                    {isPending ? <CircularProgress /> : "Run"}
+                </Button>
+            </div>
         </div>
     );
 };
