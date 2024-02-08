@@ -1,0 +1,49 @@
+name: Build edge containers and push to registry
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-studio:
+    runs-on: github-acr
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: studio
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/ai4mde/studio:latest
+
+  build-model:
+    runs-on: github-acr
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: model
+          platforms: linux/amd64
+          push: true
+          tags: ghcr.io/ai4mde/model:latest
