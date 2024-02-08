@@ -99,11 +99,14 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # TODO: Investigate if need to change this to UUIDField
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",  # TODO: Setup some environment variables for this
-    "http://localhost:5173",  #
-    "http://ai4mde.localhost",  #
-    "http://api.ai4mde.localhost",  #
+    "http://localhost:5173",
+    "http://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
+    "https://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
+    "http://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
+    "https://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
+
 ]
-CSRF_COOKIE_DOMAIN = ".ai4mde.localhost"  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
+CSRF_COOKIE_DOMAIN = '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
 CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
 CORS_ALLOW_CREDENTIALS = True  # TODO: Investigate if necessary?
 CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?
