@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-studio:
-    runs-on: github-acr
+    runs-on: github-arc
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
           tags: ghcr.io/ai4mde/studio:latest
 
   build-model:
-    runs-on: github-acr
+    runs-on: github-arc
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
