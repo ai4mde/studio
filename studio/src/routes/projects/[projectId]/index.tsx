@@ -28,19 +28,23 @@ const ViewProject: React.FC = () => {
 
     const { name, id } = project.data ?? {};
 
+    if (!projectId) {
+        return <> </>;
+    }
+
     if (project.isLoading) {
         return (
             <>
-                <LinearProgress className="absolute top-0 left-0 right-0" />
+                <LinearProgress className="absolute left-0 right-0 top-0" />
             </>
         );
     }
 
     return (
         <>
-            {projectId && <CreateSystem project={projectId} />}
+            <CreateSystem project={projectId} />
             <div
-                className="w-full h-full grid grid-cols-12 items-center"
+                className="grid h-full w-full grid-cols-12 items-center"
                 style={{
                     gridTemplateRows: "fit-content(4rem) 1fr fit-content(4rem)",
                 }}
@@ -64,19 +68,19 @@ const ViewProject: React.FC = () => {
                     />
                 </div>
 
-                <div className="col-span-12 border-t-stone-200 flex flex-row p-3 gap-3 flex-wrap h-full">
+                <div className="col-span-12 flex h-full flex-row flex-wrap gap-3 border-t-stone-200 p-3">
                     {project.isLoading && (
-                        <LinearProgress className="absolute top-0 left-0 right-0" />
+                        <LinearProgress className="absolute left-0 right-0 top-0" />
                     )}
 
-                    <div className="flex flex-col gap-3 w-full">
-                        <span className="flex flex-row gap-2 items-center">
+                    <div className="flex w-full flex-col gap-3">
+                        <span className="flex flex-row items-center gap-2">
                             <GalleryVertical size={24} />
                             <h1 className="text-lg">
                                 Systems - {name} ({id?.split("-").slice(-1)})
                             </h1>
                         </span>
-                        <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2 ">
+                        <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2 ">
                             {projectId && <ListSystem project={projectId} />}
                         </div>
                     </div>

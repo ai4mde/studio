@@ -4,7 +4,6 @@ import { useAtom } from "jotai";
 import { Plus } from "lucide-react";
 import React from "react";
 import { createSystemAtom } from "../../atoms";
-import CreateSystem from "./CreateSystem";
 
 type SystemOut = {
     id: string;
@@ -35,7 +34,6 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
 
     return (
         <>
-            <CreateSystem project={project} />
             {isSuccess &&
                 data.map((e) => (
                     <a

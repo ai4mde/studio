@@ -1,5 +1,6 @@
 import { createSystemAtom } from "$browser/atoms";
 import { authAxios } from "$lib/features/auth/state/auth";
+import { queryClient } from "$shared/hooks/queryClient";
 import {
     Button,
     CircularProgress,
@@ -34,7 +35,7 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
     const [open, setOpen] = useAtom(createSystemAtom);
     const close = () => setOpen(false);
 
-    const { mutate, isLoading } = useMutation<
+    const { mutateAsync, isPending } = useMutation<
         SystemOutput,
         unknown,
         SystemInput
@@ -52,15 +53,19 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
+
         const formData = new FormData(e.currentTarget);
 
-        mutate({
+        mutateAsync({
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
+        }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ["systems"] });
+            close();
         });
     };
 
-    if (isLoading) {
+    if (isPending) {
         <Modal open>
             <ModalDialog>
                 <CircularProgress className="animate-spin" />
@@ -71,7 +76,7 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
     return (
         <Modal open={open} onClose={() => close()}>
             <ModalDialog>
-                <div className="flex flex-row w-full justify-between pb-1">
+                <div className="flex w-full flex-row justify-between pb-1">
                     <div className="flex flex-col">
                         <h1 className="font-bold">Create System</h1>
                         <h3 className="text-sm">Start a new system</h3>
@@ -87,7 +92,7 @@ export const CreateSystem: React.FC<Props> = ({ project }) => {
                 <Divider />
                 <form
                     id="create-system"
-                    className="flex flex-col min-w-96 gap-2"
+                    className="flex min-w-96 flex-col gap-2"
                     onSubmit={onSubmit}
                 >
                     <FormControl required>
