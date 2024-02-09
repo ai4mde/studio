@@ -41,11 +41,23 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             <path
                 id={id}
                 className="react-flow__edge-path !stroke-black !stroke-2"
+                strokeDasharray={
+                    data?.type == "dependency" ? "10,10" : undefined
+                }
                 d={edgePath}
                 markerEnd={markerEnd}
                 markerStart={markerStart}
                 style={style}
             />
+            <text
+                style={{ userSelect: "none" }}
+                textAnchor="middle"
+                x={(sx + tx) / 2}
+                y={(sy + ty) / 2}
+                fontSize="12"
+            >
+                {data?.label ?? ""}
+            </text>
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="start"

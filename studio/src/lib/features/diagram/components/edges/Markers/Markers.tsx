@@ -89,6 +89,15 @@ const Markers: React.FC = () => {
                             />
                         </svg>
                     </WrapMarker>
+                    <WrapMarker id="dependency-end">
+                        <svg width={16} height={16} viewBox="0 0 16 16">
+                            <path //"M0,0 L0,6 L9,3 z"
+                                d="M 16, 8 L 8, 1 L 16, 8 L 8, 16 Z"
+                                stroke="black"
+                                fill="white"
+                            />
+                        </svg>
+                    </WrapMarker>
                 </defs>
             </svg>
         </>
