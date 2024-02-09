@@ -6,15 +6,16 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  optimizeDeps: {
-    exclude: ["@codemirror/state"],
-  },
-  plugins: [
-    tsconfigPaths(),
-    svgr(),
-    Pages({
-      dirs: "src/routes",
-    }),
-    react(),
-  ],
+    optimizeDeps: {
+        exclude: ["@codemirror/state"],
+    },
+    envPrefix: ["VITE_", "AI4MDE_"],
+    plugins: [
+        tsconfigPaths(),
+        svgr(),
+        Pages({
+            dirs: "src/routes",
+        }),
+        react(),
+    ],
 });
