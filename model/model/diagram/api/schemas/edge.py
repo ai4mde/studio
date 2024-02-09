@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
@@ -20,6 +20,9 @@ class EdgeSchema(ModelSchema):
     rel: Relation
     rel_ptr: UUID
     data: EdgeData
+    # TODO: Don't do this resolver magic, but return a NodeSchema here and use native depth = 1
+    source_ptr: Optional[UUID] = None
+    target_ptr: Optional[UUID] = None
 
     class Meta:
         model = Edge
@@ -32,6 +35,14 @@ class EdgeSchema(ModelSchema):
     @staticmethod
     def resolve_rel_ptr(obj):
         return obj.rel.id
+
+    @staticmethod
+    def resolve_source_ptr(obj):
+        return obj.source.id
+
+    @staticmethod
+    def resolve_target_ptr(obj):
+        return obj.target.id
 
 
 class ListEdges(Schema):

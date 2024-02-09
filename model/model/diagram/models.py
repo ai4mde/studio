@@ -26,3 +26,11 @@ class Edge(models.Model):
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="edges")
     rel = models.ForeignKey(Relation, on_delete=models.RESTRICT)
     data = models.JSONField()
+
+    @property
+    def source(self):
+        return self.diagram.nodes.filter(cls=self.rel.source).first()
+
+    @property
+    def target(self):
+        return self.diagram.nodes.filter(cls=self.rel.target).first()

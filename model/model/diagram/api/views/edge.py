@@ -7,6 +7,7 @@ import diagram.api.utils as utils
 
 from diagram.api.schemas import CreateEdge, EdgeSchema
 from diagram.models import Node
+from diagram.api.utils.edge import fetch_and_update_edges
 
 
 edge = Router()
@@ -19,7 +20,7 @@ def list_edges(request):
     if not diagram:
         return 404, "Diagram not found"
 
-    return diagram.edges.all()
+    return fetch_and_update_edges(diagram)
 
 
 @edge.post("/", response=EdgeSchema)
