@@ -30,7 +30,7 @@ export const CreateProject: React.FC = () => {
     const [open, setOpen] = useAtom(createProjectAtom);
     const close = () => setOpen(false);
 
-    const { mutate, isLoading } = useMutation<
+    const { mutate, isPending } = useMutation<
         ProjectOutput,
         unknown,
         ProjectInput
@@ -55,7 +55,7 @@ export const CreateProject: React.FC = () => {
         });
     };
 
-    if (isLoading) {
+    if (isPending) {
         <Modal open>
             <ModalDialog>
                 <CircularProgress className="animate-spin" />
@@ -66,7 +66,7 @@ export const CreateProject: React.FC = () => {
     return (
         <Modal open={open} onClose={() => close()}>
             <ModalDialog>
-                <div className="flex flex-row w-full justify-between pb-1">
+                <div className="flex w-full flex-row justify-between pb-1">
                     <div className="flex flex-col">
                         <h1 className="font-bold">Create Project</h1>
                         <h3 className="text-sm">Start a new project</h3>
@@ -82,7 +82,7 @@ export const CreateProject: React.FC = () => {
                 <Divider />
                 <form
                     id="create-project"
-                    className="flex flex-col min-w-96 gap-2"
+                    className="flex min-w-96 flex-col gap-2"
                     onSubmit={onSubmit}
                 >
                     <FormControl required>

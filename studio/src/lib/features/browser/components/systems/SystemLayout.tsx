@@ -1,3 +1,4 @@
+import { useSystem } from "$browser/queries";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { AppWindow, Blocks, Component, GitGraph, User } from "lucide-react";
 import React from "react";
@@ -9,17 +10,22 @@ type Props = {
 
 const SystemLayout: React.FC<Props> = ({ children }) => {
     const { systemId } = useParams();
+    const { data, isSuccess } = useSystem(systemId);
 
     return (
         <div
-            className="w-full h-full grid grid-cols-12 items-center"
+            className="grid h-full w-full grid-cols-12 items-center"
             style={{
                 gridTemplateRows: "fit-content(4rem) 1fr fit-content(4rem)",
             }}
         >
             <div className="col-span-12">
                 <TopNavigation
-                    back="/projects"
+                    back={
+                        data?.project
+                            ? `/projects/${data.project}`
+                            : "/projects/"
+                    }
                     navigation={[
                         {
                             name: "Diagrams",

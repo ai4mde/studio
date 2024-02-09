@@ -1,36 +1,16 @@
-import { authAxios } from "$lib/features/auth/state/auth";
-import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Plus } from "lucide-react";
 import React from "react";
 import { createSystemAtom } from "../../atoms";
-
-type SystemOut = {
-    id: string;
-    name: string;
-    description?: string;
-};
+import { useSystems } from "$browser/queries";
 
 type Props = {
     project: string;
 };
 
 export const ListSystem: React.FC<Props> = ({ project }) => {
-    const { data, isSuccess } = useQuery<SystemOut[]>({
-        queryKey: ["systems", `${project}`],
-        queryFn: async () => {
-            return (
-                await authAxios.get(`/v1/metadata/systems/`, {
-                    params: {
-                        project: project,
-                    },
-                })
-            ).data;
-        },
-        enabled: !!project,
-    });
-
     const [, setCreate] = useAtom(createSystemAtom);
+    const { data, isSuccess } = useSystems(project);
 
     return (
         <>
