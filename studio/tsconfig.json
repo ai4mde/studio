@@ -32,7 +32,8 @@
             "$state/*": ["lib/shared/state/*"],
             "$lib/*": ["lib/*"],
             "$assets/*": ["assets/*"]
-        }
+        },
+        "types": ["vitest/globals"]
     },
     "include": ["src"],
     "references": [
