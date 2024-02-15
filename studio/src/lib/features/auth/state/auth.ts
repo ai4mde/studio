@@ -32,8 +32,6 @@ export const authAxios = axios.create({
 export const useAuthStore = create(
     persist<AuthStore>(
         (set) => {
-            // TODO: Add something that logs out when expired.
-
             return {
                 isAuthenticated: false,
 

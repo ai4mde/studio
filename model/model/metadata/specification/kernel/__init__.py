@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Union, Literal
 
-DataType = Literal["str", "int", "bool"]
+DataType = Literal["str", "int", "bool", "datetime"]
 
 
 class Attribute(BaseModel):

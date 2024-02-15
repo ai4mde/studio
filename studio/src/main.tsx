@@ -10,8 +10,12 @@ import { BrowserRouter as Router, useRoutes } from "react-router-dom";
 
 import routes from "~react-pages";
 import "./index.css";
+import { useAuthEffect } from "$auth/hooks/authEffect";
 
 export const App: React.FC = () => {
+    // useAuthEffect is a custom hook that runs housekeeping tasks on the auth state
+    useAuthEffect(); // TODO: Find a better place to put this
+
     return (
         <>
             <Layout>
