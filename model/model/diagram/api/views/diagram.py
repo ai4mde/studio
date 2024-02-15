@@ -51,7 +51,7 @@ def update_diagram(request, diagram_id, payload: UpdateDiagram):
 @diagrams.delete("/{uuid:diagram_id}/")
 def delete_diagram(request, diagram_id):
     print(diagram_id)
-    pass
+    return None
 
 
 diagrams.add_router("/{uuid:diagram}/node", node)

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
@@ -7,7 +7,7 @@ from metadata.specification import Relation
 
 
 class EdgeData(Schema):
-    pass
+    style: Optional[str] = None
 
 
 class CreateEdge(Schema):
@@ -19,7 +19,7 @@ class CreateEdge(Schema):
 class EdgeSchema(ModelSchema):
     rel: Relation
     rel_ptr: UUID
-    data: EdgeData
+    data: Any
     # TODO: Don't do this resolver magic, but return a NodeSchema here and use native depth = 1
     source_ptr: Optional[UUID] = None
     target_ptr: Optional[UUID] = None

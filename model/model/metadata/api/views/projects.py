@@ -30,13 +30,12 @@ def create_project(request, project: CreateProject):
 def update_project(request, project_id, payload: UpdateProject):
     print(project_id)
     print(payload)
-    pass
+    return None
 
 
 @projects.delete("/{uuid:project_id}")
 def delete_project(request, project_id):
     print(project_id)
-    pass
-
+    return None
 
 __all__ = ["projects"]

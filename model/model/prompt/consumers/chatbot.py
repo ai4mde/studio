@@ -31,7 +31,7 @@ class ChatConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({"message": "Connected to chatbot"}))
 
     def disconnect(self, code):
-        pass
+        return None
 
     # this function receives messages on an opened websocket stream and calls chatbot_main to get teh appropriate engine
     # and sends that back through the socket

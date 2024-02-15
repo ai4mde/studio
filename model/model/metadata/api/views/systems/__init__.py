@@ -36,13 +36,13 @@ def create_system(request, system: CreateSystem):
 @systems.put("/{uuid:id}", response=ReadSystem)
 def update_system(request, id, payload: UpdateSystem):
     print(payload)
-    pass
+    return None
 
 
 @systems.delete("/{uuid:id}")
 def delete_system(request, id):
     print(id)
-    pass
+    return None
 
 
 systems.add_router("/{uuid:system_id}/meta", meta)
