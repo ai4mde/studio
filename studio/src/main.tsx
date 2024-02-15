@@ -7,10 +7,16 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import React, { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, useRoutes } from "react-router-dom";
+import * as Sentry from "@sentry/browser";
 
 import routes from "~react-pages";
 import "./index.css";
 import { useAuthEffect } from "$auth/hooks/authEffect";
+
+Sentry.init({
+    dsn: import.meta.env.AI4MDE_SENTRY_DSN,
+    enabled: !!import.meta.env.AI4MDE_SENTRY_DSN,
+});
 
 export const App: React.FC = () => {
     // useAuthEffect is a custom hook that runs housekeeping tasks on the auth state

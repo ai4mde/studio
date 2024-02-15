@@ -1,5 +1,15 @@
 from os import environ
 from pathlib import Path
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+if environ.get("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=environ.get("SENTRY_DSN"),
+        integrations=[DjangoIntegration()],
+        auto_session_tracking=False,
+        traces_sample_rate=0
+    )
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ.get(
