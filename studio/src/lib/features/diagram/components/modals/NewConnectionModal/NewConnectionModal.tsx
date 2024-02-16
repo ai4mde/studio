@@ -4,7 +4,7 @@ import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Alert, Button } from "@mui/joy";
-import { RefreshCw, X } from "lucide-react";
+import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
@@ -15,7 +15,7 @@ import style from "./newconnectionmodal.module.css";
 
 export const NewConnectionModal: React.FC = () => {
     const { nodes, diagram, type } = useDiagramStore();
-    const { source, target, close, open } = useNewConnectionModal();
+    const { source, target, close } = useNewConnectionModal();
 
     // TODO: Figure out a way to do better form building
     // using the schema instead of pumping everything to
@@ -54,7 +54,7 @@ export const NewConnectionModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            addEdge(diagram, object, source, target);
+                            diagram && source && object && target && addEdge(diagram, object, source, target);
                             queryClient.refetchQueries({
                                 queryKey: ["diagram"],
                             });

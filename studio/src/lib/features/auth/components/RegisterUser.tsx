@@ -15,7 +15,7 @@ export const RegisterUser: React.FC = () => {
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         setLoading(true);
-        const formData = new FormData(e.currentTarget);
+//         const formData = new FormData(e.currentTarget);
         setLoading(false);
     };
 
