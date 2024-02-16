@@ -10,7 +10,7 @@ type Props = {
 
 const SystemLayout: React.FC<Props> = ({ children }) => {
     const { systemId } = useParams();
-    const { data, isSuccess } = useSystem(systemId);
+    const { data } = useSystem(systemId);
 
     return (
         <div
