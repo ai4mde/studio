@@ -115,3 +115,5 @@ cd model
 poetry shell
 POSTGRES_HOST=localhost ./model/manage.py runserver
 ```
+
+![Alt](https://repobeats.axiom.co/api/embed/80709bf7ea933c8ce8605ee6e8136a5f9420dcd6.svg "Repobeats analytics image")
