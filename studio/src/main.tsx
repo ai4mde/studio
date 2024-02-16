@@ -15,7 +15,18 @@ import { useAuthEffect } from "$auth/hooks/authEffect";
 
 Sentry.init({
     dsn: import.meta.env.AI4MDE_SENTRY_DSN,
-    enabled: !!import.meta.env.AI4MDE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+  tracesSampleRate: 1.0,
+  tracePropagationTargets: ["localhost", /^https:\/\/ai4mde-api\.semax\.nguml\.com\/],
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  enabled: !!import.meta.env.AI4MDE_SENTRY_DSN,
 });
 
 export const App: React.FC = () => {
