@@ -1,5 +1,9 @@
-# Generator files used for AI4MDE
+# Generator
 
-`./generator projectname`
+Build the generator container manually:
 
-to generate project with projectname using metadata from `tests/runtime.json`.
+```bash
+cd contrib
+docker build -t generator .
+docker run --rm -it /bin/bash
+```
