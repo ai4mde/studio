@@ -1,3 +1,0 @@
-# This is currently needed for PyRight to detect the virtualenv
-[virtualenvs]
-in-project = true

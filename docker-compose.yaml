@@ -26,18 +26,17 @@ services:
     ports:
       - 5432:5432
     networks:
-      - postgres
+      - ai4mde_traefik
 
   studio-api:
     depends_on: ["postgres"]
     build:
-      context: model
-    env_file: config/model.env
+      context: api
+    env_file: config/api.env
     networks:
       - ai4mde_traefik
-      - postgres
     volumes:
-      - ./model/model:/usr/src/model:ro
+      - ./api/model:/usr/src/model:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"
