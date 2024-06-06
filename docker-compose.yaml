@@ -45,10 +45,10 @@ services:
 
   studio:
     build:
-      context: studio
-    env_file: config/studio.env
+      context: frontend
+    env_file: config/frontend.env
     volumes:
-      - ./studio/src:/usr/src/app/src:ro
+      - ./frontend/src:/usr/src/app/src:ro
     networks:
       - ai4mde_traefik
     labels:
