@@ -1,13 +1,13 @@
 <p align="center">
     <img
         src="https://avatars.githubusercontent.com/u/155311177"
-        alt="AI4MDE Studio"
+        alt="AI4MDE studio"
         width="64"
     />
 </p>
 
 <h1 align="center">
-  AI4MDE &middot; <b>Studio</b>
+  AI4MDE &middot; <b>studio</b>
 </h1>
 
 <div align="center">
@@ -20,11 +20,11 @@
 
 <br/>
 
-Get up and running with the AI4MDE Studio and API in no time:
+Get up and running with the AI4MDE studio and API in no time:
 
 ```
 git clone https://github.com/ai4mde/studio.git
-cd studio
+cd frontend
 docker-compose up -d
 ```
 
@@ -62,8 +62,8 @@ docker compose up
 This will start multiple services in the background and set everything up (for development).
 As soon as that's done, you can find the following services on your machine's network:
 
-- [ai4mde.localhost](http://ai4mde.localhost) - Studio, from `./studio`
-- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `./model`
+- [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `./frontend`
+- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `./api`
 - [docs.ai4mde.localhost](http://docs.ai4mde.localhost) - Docs from `./docs`
 
 ## Development outside of containers
@@ -80,7 +80,7 @@ installed you can install poetry and setup the dependencies:
 
 ```bash
 pipx install poetry
-cd model && poetry install
+cd api && poetry install
 cd ..
 
 cd docs && poetry install
@@ -94,24 +94,24 @@ bun with the following one-liner:
 curl -fsSL https://bun.sh/install | bash
 ```
 
-Then, install the dependencies in studio:
+Then, install the dependencies in frontend:
 
 ```bash
-cd studio
+cd frontend
 bun install
 cd ..
 ```
 
-Finally, you can run the studio using bun:
+Finally, you can run the frontend using bun:
 
 ```bash
-cd studio && STUDIO_HOST="http://localhost:8000" bun dev
+cd frontend && frontend_HOST="http://localhost:8000" bun dev
 ```
 
 And you can run the server using poetry (in another shell):
 
 ```bash
-cd model
+cd api
 poetry shell
 POSTGRES_HOST=localhost ./model/manage.py runserver
 ```
