@@ -1,0 +1,26 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.homerender, name="{{ app_name }}-homerender"),
+    path("log_out/", views.log_out, name="log_out"),
+    {% for page in pages -%}
+    path("render_{{ page | lower }}/", views.render_{{ page | lower }}, name="render_{{ page | lower }}"),
+    {% endfor -%}
+    {% for section_component in section_components -%}
+    {% if section_component.hasCreate -%}
+    path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_create/', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_create, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_create'),
+    path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_create_popup/', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_create_popup, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_create_popup'),
+    {% endif -%} 
+    {% if section_component.hasDelete -%}
+     path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_delete/<int:instance_id>/', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_delete, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_delete'),
+    {% endif -%}
+    {% if section_component.hasUpdate -%}
+    path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_update/<int:instance_id>/', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_update, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_update'),
+    path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_update_popup/<int:instance_id>/', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_update_popup, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_update_popup'),
+    {% endif -%}
+    {% for custom_method in section_component.custom_methods -%}
+    path('{{ section_component.page | lower }}_{{ section_component.name | lower }}_{{ custom_method.method_name }}/<int:instance_id>', views.{{ section_component.page | lower }}_{{ section_component.name | lower }}_{{ custom_method.method_name }}, name='{{ section_component.page | lower }}_{{ section_component.name | lower }}_{{ custom_method.method_name }}'),
+    {% endfor -%}
+    {% endfor %}
+]

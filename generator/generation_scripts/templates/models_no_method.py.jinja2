@@ -1,0 +1,69 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+{%- for model1 in models -%}
+{% if model1.name == "User" %}
+
+class {{ model1.name }}(AbstractUser):
+    {%- for user_type in user_types %}
+    is_{{ user_type }} = models.BooleanField(default=False)
+    {% endfor -%}
+{% endif -%}
+{% endfor -%}
+
+{% for model in models -%}
+    {% if model.name == "User" -%}
+    {% else -%}
+    {% if model.name in user_types %}
+
+class {{ model.name }}(User):
+    {%- else %}
+
+class {{ model.name }}(models.Model):
+    {%- endif %}
+    {% for attribute in model.attributes -%}
+    {%- if attribute.type == "bool" -%}
+    {{ attribute.name }} = models.BooleanField(default=False)
+    {% elif attribute.type == "int" -%}
+    {{ attribute.name }} = models.IntegerField(default=0, null=True)
+    {% elif attribute.name == "username" or attribute.name == "password" -%}
+    {%- else -%}
+    {{ attribute.name }} = models.CharField(max_length=255, default='', null=True)
+    {% endif -%}
+    {% endfor -%}
+
+    {% for association in model.associations -%}
+    {% for relation in models -%}
+    {% if association.id == relation.id -%}
+    {{ relation.name }} = models.ForeignKey("{{- relation.name-}}", on_delete=models.CASCADE, null=True)
+    {% endif -%}
+    {% endfor -%}
+    {% endfor -%}
+    {# __str__ will be assigned in the following order:
+        1. 'name' attribute if present
+        2. string attribute if 1 not present
+        3. id if 1 & 2 not present
+     #}
+    def __str__(self):
+        {% set ns = namespace(found=false) -%}
+        {% for attribute in model.attributes -%}
+        {% if attribute.name.lower() == "name" -%}
+        return self.name
+        {%- set ns.found = true -%}
+        {% endif -%}
+        {% endfor -%}
+        {% for attribute in model.attributes -%}
+        {% if ((ns.found == false) and (attribute.type == "str")) -%}
+        return self.{{ attribute.name }}
+        {%- set ns.found = true -%}
+        {% endif -%}
+        {% endfor -%}
+        {% if ns.found == false -%}
+        return str(self.id)
+        {%- endif %}
+    {%- for method in model.methods %}
+
+    #def {{ method.name }}():
+    #    {{ method.body| replace('\n','\n    #    ') -}}
+    {% endfor %}
+{% endif -%}
+{% endfor %}

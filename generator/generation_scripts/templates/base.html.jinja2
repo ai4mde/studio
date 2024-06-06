@@ -1,0 +1,46 @@
+{% raw %}{% load static %}{% endraw %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{{ appname | capitalize }}</title>
+            <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ appname }}/{{ appname }}-style-{{ type }}.css' {% raw %}%}{% endraw %}'>
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="logo">
+                <img src='{{ logo }}' alt="Logo">
+            </div>
+            <h1>{{ appname | capitalize }}</h1>
+        </div>
+            <div class="menu">
+                {% if appname.lower() != 'authentication' %}
+                <a href="{% raw %}{%{% endraw %} url '{{ appname }}-homerender' {% raw %}%}{% endraw %}">Home</a>
+                {% endif %}
+                {% for page in pages_from_app %}
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page }}' {% raw %}%}{% endraw %}">{{ page }}</a>
+                {% endfor %}
+                {# TODO: implement categories
+                {% for category in categories %}
+                    <a href="#">{{ category }}</a>
+                {% endfor %}
+                #}
+                
+                {% if has_auth_app and appname.lower() != 'authentication' %}
+                {% raw %}<form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="Logout">
+                </form>{% endraw %}
+                {% endif %}
+            </div>
+    
+    <div class="content">
+        {% raw %}
+        {% block content %}
+
+        {% endblock %}
+        {% endraw %}
+    </div>
+    </body>
+</html>
