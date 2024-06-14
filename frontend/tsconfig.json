@@ -26,6 +26,7 @@
             "$chatbot/*": ["lib/features/chatbot/*"],
             "$auth/*": ["lib/features/auth/*"],
             "$metadata/*": ["lib/features/metadata/*"],
+            "$interfaces/*": ["lib/features/interfaces/*"],
             /* Shared / Global */
             "$shared/*": ["lib/shared/*"],
             "$hooks/*": ["lib/shared/hooks/*"],

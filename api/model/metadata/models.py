@@ -16,6 +16,13 @@ class System(models.Model):
     description = models.TextField()
 
 
+class Interface(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    system = models.ForeignKey(System, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+
 class Classifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     system = models.ForeignKey(
