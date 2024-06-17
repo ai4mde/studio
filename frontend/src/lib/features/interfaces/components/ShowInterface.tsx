@@ -6,6 +6,7 @@ import {
 } from '@mui/joy'
 import React, { useEffect, useState } from 'react'
 import { useInterface } from "$browser/queries";
+import { Styling } from './Styling';
 
 type Props = {
     projectId: string
@@ -26,6 +27,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         <TabList>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
+                            <Tab>Pages</Tab>
                             <Tab>Section Components</Tab>
                             <Tab>Styling</Tab>
                         </TabList>
@@ -42,7 +44,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <p>Section Components</p>
                         </TabPanel>
                         <TabPanel value={4}>
-                            <p>Styling</p>
+                            <Styling app_comp={app_comp} />
                         </TabPanel>
                     </Tabs>
                 </>
