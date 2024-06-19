@@ -2,7 +2,7 @@ export const models = [
     {
         title: "UML Classes",
         version: "0.0.1",
-        author: "Tiantian Tang",
+        author: "",
         type: "metadata",
         url: "http://tiantian-class.ai4mde-prose.localhost/run_nlp/",
         disabled: false,
@@ -10,7 +10,7 @@ export const models = [
     {
         title: "UML Activities",
         version: "0.0.1",
-        author: "Pepijn Griffiioen",
+        author: "",
         type: "metadata",
         url: "http://griffioen-activity.ai4mde-prose.localhost/run_nlp/",
         disabled: true,
@@ -18,7 +18,7 @@ export const models = [
     {
         title: "UML Usecase",
         version: "0.0.1",
-        author: "Anna Roussou",
+        author: "",
         type: "metadata",
         url: "http://roussou-usecase.ai4mde-prose.localhost/run_nlp/",
         disabled: true,
@@ -27,7 +27,7 @@ export const models = [
         title: "Bucketing",
         type: "bucketing",
         version: "0.0.1",
-        author: "Martijn Schouten",
+        author: "",
         url: "http://martijn-bucketing.ai4mde-prose.localhost/run_nlp/",
         disabled: true,
     },

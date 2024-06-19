@@ -83,9 +83,9 @@ export const SelectModel: React.FC<Props> = ({ pipeline }) => {
                     })}
             </div>
             <div className="flex flex-col gap-0">
-                <span className="text-lg">Metadata Models</span>
+                <span className="text-lg">NLP Text Transformation</span>
                 <span className="text-sm">
-                    Classify requirements text into metadata
+                    Transform requirements text into metadata
                 </span>
             </div>
             <div className="flex flex-row flex-wrap gap-4 rounded-md bg-stone-50 p-4">
