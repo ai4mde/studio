@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import {
     Button,
     Divider,
@@ -8,6 +8,7 @@ import {
     Option,
 } from "@mui/joy"
 import { Plus } from "lucide-react";
+import useLocalStorage from './useLocalStorage'
 
 
 type Props = {
@@ -19,13 +20,13 @@ type Props = {
 
 export const Styling: React.FC<Props> = ({ app_comp }) => {
 
-    const [radius, setRadius] = useState(0);
-    const [backgroundColor, setBackgroundColor] = useState("#000000");
-    const [textColor, setTextColor] = useState("#FFFFFF");
-    const [accentColor, setAccentColor] = useState("#777777");
-    const [selectedStyle, setSelectedStyle] = useState('');
-    const [logoFile, setLogoFile] = useState(null);
-    const [logoDimensions, setLogoDimensions] = useState({ width: 0, height: 0 });
+    const [radius, setRadius] = useLocalStorage('radius', 0);
+    const [backgroundColor, setBackgroundColor] = useLocalStorage('backgroundColor', "#000000");
+    const [textColor, setTextColor] = useLocalStorage('textColor', "#FFFFFF");
+    const [accentColor, setAccentColor] = useLocalStorage('accentColor', "#777777");
+    const [selectedStyle, setSelectedStyle] = useLocalStorage('selectedStyle', '');
+    const [logoFile, setLogoFile] = useLocalStorage('logoFile', null);
+    const [logoDimensions, setLogoDimensions] = useLocalStorage('logoDimensions', { width: 0, height: 0 });
 
     const handleRadiusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(event.target.value, 10);
@@ -44,9 +45,9 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
     const handleAccentColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setAccentColor(event.target.value);
     }
-    const handleStyleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedStyle(event.target.value);
-    }
+    const handleStyleChange = (event, newValue) => {
+        setSelectedStyle(newValue);
+    };
 
     const handleLogoChange = (event) => {
         const file = event.target.files[0];
@@ -95,6 +96,7 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                     <h3 className="text-xl font-bold">Style</h3>
                     <Select
                         placeholder="Choose one…"
+                        value={selectedStyle}
                         onChange={handleStyleChange}
                     >
                         <Option value="basic">Basic</Option>
@@ -117,7 +119,7 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                             type="color" 
                             value={backgroundColor}
                             onChange={handleBackgroundColorChange}
-                            className="w-[50px] h-[50px] border border-gray-500 p-0"
+                            className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
                             style={{ backgroundColor: backgroundColor }}
                         />
                     </div>
@@ -137,7 +139,7 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                             type="color" 
                             value={textColor}
                             onChange={handleTextColorChange}
-                            className="w-[50px] h-[50px] border border-gray-500 p-0"
+                            className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
                             style={{ backgroundColor: textColor }}
                         />
                     </div>
@@ -157,7 +159,7 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                             type="color" 
                             value={accentColor}
                             onChange={handleAccentColorChange}
-                            className="w-[50px] h-[50px] border border-gray-500 p-0"
+                            className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
                             style={{ backgroundColor: accentColor }}
                         />
                     </div>
@@ -174,12 +176,6 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                         required 
                     />
                 </FormControl>
-                <Divider />
-                <div className="flex flex-row pt-1">
-                    <Button form="update-syling" type="submit">
-                        Submit
-                    </Button>
-                </div>
             </div>
         </>
     )
