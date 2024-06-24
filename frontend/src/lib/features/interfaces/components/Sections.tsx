@@ -7,20 +7,26 @@ import {
     Divider,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
+import { useSystemClasses } from "../queries";
+import { useParams } from "react-router";
 
 type Props = {
     projectId: string;
     systemId: string;
+    app_comp: string;
     interfaceId: string;
     componentId: string;
 };
 
 export const Sections: React.FC<Props> = ({ app_comp }) => {
+    const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('sections', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', {});
     const [pencelClick, setPencelClick] = useState(false);
+    const [classes, isSuccessClasses] = useSystemClasses(systemId);
+    const [selectedClasses, setSelectedClasses] = useLocalStorage('selectedClasses', {});
 
     useEffect(() => {
         const storedOperations = JSON.parse(localStorage.getItem('selectedOperations') || '{}');
@@ -76,6 +82,15 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         localStorage.setItem('selectedOperations', JSON.stringify(updatedOperations));
     };
 
+    const toggleClass = (sectionIndex: number, cls: string) => {
+        const updatedClasses = {
+            ...selectedClasses,
+            [sectionIndex]: cls,
+        };
+        setSelectedClasses(updatedClasses);
+        localStorage.setItem('selectedClasses', JSON.stringify(updatedClasses));
+    };
+
     return (
         <>
             {isSuccess && (
@@ -120,10 +135,22 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                             </FormControl>
                                         )}
                                     </div>
-                                    <FormControl className="space-y-1">
+                                    <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Primary Class</h3>
-                                    </FormControl>
-                                    <FormControl className="space-y-1">
+                                        <div className="flex gap-2">
+                                            {isSuccessClasses && (
+                                                classes.map((e) => (
+                                                    <Chip
+                                                        onClick={() => toggleClass(index, e.data.name)}
+                                                        color={selectedClasses[index] === e.data.name ? 'primary' : 'neutral'}
+                                                    >
+                                                        {e.data.name}
+                                                    </Chip>
+                                                )
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Operations</h3>
                                         <div className="flex gap-2">
                                             <Chip
@@ -145,7 +172,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                                 Delete
                                             </Chip>
                                         </div>
-                                    </FormControl>
+                                    </div>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Links</h3>
                                     </FormControl>

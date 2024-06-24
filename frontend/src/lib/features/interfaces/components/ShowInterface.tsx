@@ -16,10 +16,11 @@ import { Sections } from './Sections';
 type Props = {
     projectId: string
     systemId: string
+    app_comp: string
     interfaceId: string
 } 
 
-const ShowInterface: React.FC<Props> = ({ app_comp }) => {
+const ShowInterface: React.FC<Props> = ({ systemId, app_comp }) => {
 
     const { data, isSuccess } = useInterface(app_comp);
     const { mutate, isLoading, isError, error } = useDeleteInterface();
