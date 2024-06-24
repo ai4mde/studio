@@ -66,7 +66,30 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         newData.splice(index, 1);
         setData(newData);
         setEditIndex(-1);
+    
+        const updatedOperations = { ...selectedOperations };
+        delete updatedOperations[index];
+        for (let i = index + 1; i < newData.length + 1; i++) {
+            if (updatedOperations[i]) {
+                updatedOperations[i - 1] = updatedOperations[i];
+                delete updatedOperations[i];
+            }
+        }
+        setSelectedOperations(updatedOperations);
+        localStorage.setItem('selectedOperations', JSON.stringify(updatedOperations));
+    
+        const updatedClasses = { ...selectedClasses };
+        delete updatedClasses[index]
+        for (let i = index + 1; i < newData.length + 1; i++) {
+            if (updatedClasses[i]) {
+                updatedClasses[i - 1] = updatedClasses[i];
+                delete updatedClasses[i];
+            }
+        }
+        setSelectedClasses(updatedClasses);
+        localStorage.setItem('selectedClasses', JSON.stringify(updatedClasses));
     };
+    
 
     const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete') => {
         const sectionOperations = selectedOperations[sectionIndex] || {};
