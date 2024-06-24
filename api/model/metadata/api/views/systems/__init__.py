@@ -3,6 +3,7 @@ from typing import List, Optional
 from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem
 from metadata.models import Project, System
 from .meta import meta
+from .classifiers import classifiers, classes
 
 from ninja import Router
 
@@ -46,5 +47,7 @@ def delete_system(request, id):
 
 
 systems.add_router("/{uuid:system_id}/meta", meta)
+systems.add_router("/{uuid:system_id}/classifiers", classifiers)
+systems.add_router("/{uuid:system_id}/classes", classes)
 
 __all__ = ["systems"]
