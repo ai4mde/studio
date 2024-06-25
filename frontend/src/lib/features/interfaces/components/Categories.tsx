@@ -48,9 +48,9 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
 
     return (
         <>
-            {isSuccess && (
-                <div className="flex flex-wrap gap-4">
-                    {data.map((category, index) => (
+            <div className="flex flex-wrap gap-4">
+                {isSuccess && (
+                    data.map((category, index) => (
                         <div key={index} className="flex flex-col gap-2">
                             {editIndex === index ? (
                                 <div className="flex flex-col gap-2 space-y-3">
@@ -95,19 +95,19 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
                                 </div>
                             )}
                         </div>
-                    ))}
-                    <button
-                        onClick={() => {
-                            const newCategory = { name: `Category ${data.length + 1}` };
-                            setData([...data, newCategory]);
-                            setEditIndex(-1);
-                        }}
-                        className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
-                    >
-                        <Plus />
-                    </button>
-                </div>
-            )}
+                    ))
+                )}
+                <button
+                    onClick={() => {
+                        const newCategory = { name: `Category ${data.length + 1}` };
+                        setData([...data, newCategory]);
+                        setEditIndex(-1);
+                    }}
+                    className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
+                >
+                    <Plus />
+                </button>
+            </div>
         </>
     );
 };
