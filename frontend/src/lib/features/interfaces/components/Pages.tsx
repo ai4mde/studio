@@ -75,17 +75,18 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
         if (!selectedSections) {
             setSelectedSections([]);
         }
-        selectedSections.push(selectedItem);
-        setSelectedSections(selectedSections);
+        const updatedSections = [...selectedSections, selectedItem];
+        setSelectedSections(updatedSections);
         handleSave(pageIndex);
     };
 
     const handleSectionRemove = (selectedList, selectedItem, pageIndex: int) => {
         if (!selectedSections) {
             setSelectedSections([]);
+        } else {
+            const updatedSections = selectedSections.slice(0, -1);
+            setSelectedSections(updatedSections);
         }
-        selectedSections.pop(selectedItem);
-        setSelectedSections(selectedSections);
         handleSave(pageIndex);
     };
 
