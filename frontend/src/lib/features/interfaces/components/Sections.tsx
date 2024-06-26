@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash, Save, Ban, Pencil } from "lucide-react";
 import useLocalStorage from './useLocalStorage';
 import {
@@ -23,37 +23,50 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     const [data, setData, isSuccess] = useLocalStorage('sections', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
-    const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', {});
+    const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', []);
     const [pencelClick, setPencelClick] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
-    const [selectedClasses, setSelectedClasses] = useLocalStorage('selectedClasses', {});
-
-    useEffect(() => {
-        const storedOperations = JSON.parse(localStorage.getItem('selectedOperations') || '{}');
-        setSelectedOperations(storedOperations);
-    }, [setSelectedOperations]);
+    const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
 
     const handleEdit = (index: number) => {
+        // Close name editor when switching section component
+        if (pencelClick){
+            setPencelClick(false);
+        }
+
+        // Automatically use first class for new section component
+        if (!data[index].class && isSuccessClasses){
+            toggleClass(index, classes[0].data.name);
+        }
+
+        // Retrieve local storage vars from data
+        if (data[index].class) {
+            setSelectedClass(data[index].class);
+        }
+        if (data[index].operations) {
+            setSelectedOperations(data[index].operations);
+        } else {
+            setSelectedOperations([]);
+        }
         setEditIndex(index);
-        setNewName(data[index].name);
     };
 
-    const handlePencilClick = () => {
-        setPencelClick(true);
-    }
-
-    const handleSave = (index: number) => {
+    const handleNameChange = (index: number) => {
         const newData = [...data];
         newData[index].name = newName;
         setData(newData);
         setPencelClick(false);
     };
 
+    const handlePencilClick = () => {
+        setPencelClick(true);
+    }
+
     const handleNameCancel = () => {
         setPencelClick(false);
     };
 
-    const handleCancel = () => {
+    const handleMinus = () => {
         setEditIndex(-1);
     };
 
@@ -66,52 +79,26 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         newData.splice(index, 1);
         setData(newData);
         setEditIndex(-1);
-    
-        const updatedOperations = { ...selectedOperations };
-        delete updatedOperations[index];
-        for (let i = index + 1; i < newData.length + 1; i++) {
-            if (updatedOperations[i]) {
-                updatedOperations[i - 1] = updatedOperations[i];
-                delete updatedOperations[i];
-            }
-        }
-        setSelectedOperations(updatedOperations);
-        localStorage.setItem('selectedOperations', JSON.stringify(updatedOperations));
-    
-        const updatedClasses = { ...selectedClasses };
-        delete updatedClasses[index]
-        for (let i = index + 1; i < newData.length + 1; i++) {
-            if (updatedClasses[i]) {
-                updatedClasses[i - 1] = updatedClasses[i];
-                delete updatedClasses[i];
-            }
-        }
-        setSelectedClasses(updatedClasses);
-        localStorage.setItem('selectedClasses', JSON.stringify(updatedClasses));
     };
     
 
     const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete') => {
-        const sectionOperations = selectedOperations[sectionIndex] || {};
-        const updatedSectionOperations = {
+        const sectionOperations = selectedOperations || {};
+        const updatedOperations = {
             ...sectionOperations,
             [operation]: !sectionOperations[operation],
         };
-        const updatedOperations = {
-            ...selectedOperations,
-            [sectionIndex]: updatedSectionOperations,
-        };
         setSelectedOperations(updatedOperations);
-        localStorage.setItem('selectedOperations', JSON.stringify(updatedOperations));
+        const newData = [...data];
+        newData[sectionIndex].operations = updatedOperations;
+        setData(newData);
     };
 
     const toggleClass = (sectionIndex: number, cls: string) => {
-        const updatedClasses = {
-            ...selectedClasses,
-            [sectionIndex]: cls,
-        };
-        setSelectedClasses(updatedClasses);
-        localStorage.setItem('selectedClasses', JSON.stringify(updatedClasses));
+        setSelectedClass(cls as string);
+        const newData = [...data];
+        newData[sectionIndex].class = cls;
+        setData(newData);
     };
 
     return (
@@ -143,7 +130,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                                 />
                                                 <div className="flex flex-wrap gap-2 ml-auto">
                                                     <button
-                                                        onClick={() => handleSave(index)}
+                                                        onClick={() => handleNameChange(index)}
                                                         className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
                                                     >
                                                         <Save />
@@ -165,7 +152,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                                 classes.map((e) => (
                                                     <Chip
                                                         onClick={() => toggleClass(index, e.data.name)}
-                                                        color={selectedClasses[index] === e.data.name ? 'primary' : 'neutral'}
+                                                        color={selectedClass === e.data.name ? 'primary' : 'neutral'}
                                                     >
                                                         {e.data.name}
                                                     </Chip>
@@ -178,19 +165,19 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                         <div className="flex gap-2">
                                             <Chip
                                                 onClick={() => toggleOperation(index, 'create')}
-                                                color={selectedOperations[index]?.create ? 'primary' : 'neutral'}
+                                                color={selectedOperations.create ? 'primary' : 'neutral'}
                                             >
                                                 Create
                                             </Chip>
                                             <Chip
                                                 onClick={() => toggleOperation(index, 'update')}
-                                                color={selectedOperations[index]?.update ? 'primary' : 'neutral'}
+                                                color={selectedOperations.update ? 'primary' : 'neutral'}
                                             >
                                                 Update
                                             </Chip>
                                             <Chip
                                                 onClick={() => toggleOperation(index, 'delete')}
-                                                color={selectedOperations[index]?.delete ? 'primary' : 'neutral'}
+                                                color={selectedOperations.delete ? 'primary' : 'neutral'}
                                             >
                                                 Delete
                                             </Chip>
@@ -214,10 +201,10 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                             <Trash />
                                         </button>
                                         <button
-                                            onClick={handleCancel}
-                                            className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
+                                            onClick={handleMinus}
+                                            className="w-[60px] h-[40px] bg-stone-200 text-stone-900 px-2 py-1 rounded-md hover:bg-blue-600"
                                         >
-                                            <Ban />
+                                            Close
                                         </button>
                                     </div>
                                 </div>

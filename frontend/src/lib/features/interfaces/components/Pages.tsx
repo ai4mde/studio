@@ -37,15 +37,6 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
 
     const handleEdit = (index: number) => {
         setEditIndex(index);
-        setNewName(data[index].name);
-    };
-
-    const handleSave = (index: number) => {
-        const newData = [...data];
-        newData[index].name = newName;
-        newData[index].category = selectedCategory;
-        newData[index].sections = selectedSections;
-        setData(newData);
     };
 
     const handleMinus = () => {
@@ -71,23 +62,27 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
     };
 
     
-    const handleSectionSelect = (selectedList, selectedItem, pageIndex: sint) => {
+    const handleSectionSelect = (selectedList, selectedItem, pageIndex: number) => {
         if (!selectedSections) {
             setSelectedSections([]);
         }
         const updatedSections = [...selectedSections, selectedItem];
         setSelectedSections(updatedSections);
-        handleSave(pageIndex);
+        const newData = [...data];
+        newData[pageIndex].sections = updatedSections;
+        setData(newData);
     };
 
-    const handleSectionRemove = (selectedList, selectedItem, pageIndex: int) => {
+    const handleSectionRemove = (selectedList, selectedItem, pageIndex: number) => {
         if (!selectedSections) {
             setSelectedSections([]);
         } else {
             const updatedSections = selectedSections.slice(0, -1);
             setSelectedSections(updatedSections);
+            const newData = [...data];
+            newData[pageIndex].sections = updatedSections;
+            setData(newData);
         }
-        handleSave(pageIndex);
     };
 
     const handlePencilClick = () => {
