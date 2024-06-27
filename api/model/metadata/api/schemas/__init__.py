@@ -11,7 +11,7 @@ __all__ = [
     "UpdateSystem",
     "CreateSystem",
     "MetaSchema",
-    "MetaClassifiersSchema"
+    "MetaClassifiersSchema",
     "ReadInterface",
     "UpdateInterface",
     "CreateInterface",
