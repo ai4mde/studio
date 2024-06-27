@@ -1,7 +1,8 @@
 from typing import List, Optional
 
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
-from metadata.models import Project, System, Interface
+from metadata.models import System, Interface
+from django.http import HttpRequest
 
 from ninja import Router
 
@@ -32,16 +33,19 @@ def create_interface(request, interface: CreateInterface):
     )
 
 
-@interfaces.put("/{uuid:id}", response=ReadInterface)
+@interfaces.put("/{uuid:id}/", response=ReadInterface)
 def update_interface(request, id, payload: UpdateInterface):
     print(payload)
     return None
 
+@interfaces.delete("/{uuid:interface_id}", response=bool)
+def delete_interface(request, interface_id):
+    try:
+        Interface.objects.filter(id=interface_id).delete()
+    except Interface.DoesNotExist:
+        return False
+    return True
 
-@interfaces.delete("/{uuid:id}")
-def delete_interface(request, id):
-    print(id)
-    return None
 
 
 __all__ = ["interfaces"]

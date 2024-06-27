@@ -7,11 +7,12 @@ import {
 import { Save, Trash } from "lucide-react";
 import React from 'react'
 import { useInterface } from "$browser/queries";
-import { useDeleteInterface } from '$browser/mutations';
+import { deleteInterface } from '$browser/mutations';
 import { Styling } from './Styling';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
+import { useNavigate, useParams } from 'react-router-dom';
 
 type Props = {
     projectId: string
@@ -20,19 +21,21 @@ type Props = {
     interfaceId: string
 } 
 
-const ShowInterface: React.FC<Props> = ({ systemId, app_comp }) => {
+const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
     const { data, isSuccess } = useInterface(app_comp);
-    const { mutate, isLoading, isError, error } = useDeleteInterface();
+    const navigate = useNavigate();
+    const { systemId } = useParams();
 
     const handleDelete = async () => {
         try {
-          await mutate(app_comp);
-          console.log('Interface deleted');
+            await deleteInterface(app_comp);
         } catch (error) {
-          console.error('Error deleting interface:', error);
+            console.error('Error deleting interface:', error);
         }
-      };
+        navigate(`/systems/${systemId}/interfaces`);
+    };
+
 
     return (
         <>
@@ -55,12 +58,10 @@ const ShowInterface: React.FC<Props> = ({ systemId, app_comp }) => {
                                 className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
                             >
                                 <div>
-                                    <button onClick={handleDelete} disabled={isLoading} className="flex items-center gap-2">
+                                    <button onClick={handleDelete} className="flex items-center gap-2">
                                         <Trash />
                                         Delete Interface
                                     </button>
-                                    {isLoading && <p>Deleting...</p>}
-                                    {isError && <p>Error: {error?.message}</p>}
                                 </div>
                             </button>
                         </div>
