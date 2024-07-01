@@ -99,7 +99,7 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
                 )}
                 <button
                     onClick={() => {
-                        const newCategory = { name: `Category ${data.length + 1}` };
+                        const newCategory = { id: window.crypto.randomUUID(), name: `Category ${data.length + 1}` };
                         setData([...data, newCategory]);
                         setEditIndex(-1);
                     }}

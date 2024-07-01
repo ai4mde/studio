@@ -153,7 +153,7 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                                                     onChange={(event, newValue) => handleCategoryChange(event, newValue, index)}
                                                 >
                                                     {categories.map((e) => (
-                                                        <Option key={e.name} value={e.name}>{e.name}</Option>
+                                                        <Option key={e.id} value={e.id}>{e.name}</Option>
                                                     ))}
                                                 </Select>
                                             ) : (
@@ -207,7 +207,7 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                 )}
                 <button
                     onClick={() => {
-                        const newPage = { name: `Page ${data.length + 1}` };
+                        const newPage = { id: window.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null };
                         setData([...data, newPage]);
                     }}
                     className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"

@@ -34,20 +34,14 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
 
 
     const handleEdit = async (index: number) => {
-        console.log(classAttributes);
         // Close name editor when switching section component
         if (pencelClick) {
             setPencelClick(false);
         }
 
-        // Automatically use first class for new section component
-        if (!data[index].class && isSuccessClasses) {
-            toggleClass(index, classes[0].id);
-        }
-
         // Retrieve local storage vars from data
         if (data[index].class) {
-            const classId = data[index].class.id;
+            const classId = data[index].class;
             setSelectedClass(classId);
         }
 
@@ -111,7 +105,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     const toggleClass = async (sectionIndex: number, cls) => {
         setSelectedClass(cls.id);
         const newData = [...data];
-        newData[sectionIndex].class = cls;
+        newData[sectionIndex].class = cls.id;
         setSelectedAttributes([]);
         newData[sectionIndex].attributes = [];
         setData(newData);
@@ -140,7 +134,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                     {data.map((section, index) => (
                         <div key={index} className="flex flex-col gap-2">
                             {editIndex === index ? (
-                                <div className="flex flex-col gap-2 space-y-2">
+                                <div className="w-[240px] flex flex-col gap-2 space-y-2">
                                     <div>
                                         <h3 className="text-xl font-bold">Name</h3>
                                         {!pencelClick && (
@@ -268,7 +262,12 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { name: `Section Component ${data.length + 1}` };
+                            const newSection = { name: `Section Component ${data.length + 1}`, class: "", operations: {"create":false,"update":false,"delete":false}, attributes: [] };
+                            
+                            // Automatically use first class for new section component
+                            if (isSuccessClasses && classes[0].id) {
+                                newSection.class = classes[0].id;
+                            }
                             setData([...data, newSection]);
                         }}
                         className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
