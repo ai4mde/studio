@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash, Save, Ban, Pencil } from "lucide-react";
 import useLocalStorage from './useLocalStorage';
 import {
@@ -7,8 +7,9 @@ import {
     Divider,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
-import { useSystemClasses } from "../queries";
+import { useSystemClasses, useClassAttributes } from "../queries";
 import { useParams } from "react-router";
+import Multiselect from 'multiselect-react-dropdown';
 
 type Props = {
     projectId: string;
@@ -27,27 +28,41 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     const [pencelClick, setPencelClick] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
+    const [ classAttributes ] = useClassAttributes(systemId, selectedClass);
+    //const [attributes, setAttributes] = useState([]);
+    const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
 
-    const handleEdit = (index: number) => {
+
+    const handleEdit = async (index: number) => {
+        console.log(classAttributes);
         // Close name editor when switching section component
-        if (pencelClick){
+        if (pencelClick) {
             setPencelClick(false);
         }
 
         // Automatically use first class for new section component
-        if (!data[index].class && isSuccessClasses){
-            toggleClass(index, classes[0].data.name);
+        if (!data[index].class && isSuccessClasses) {
+            toggleClass(index, classes[0].id);
         }
 
         // Retrieve local storage vars from data
         if (data[index].class) {
-            setSelectedClass(data[index].class);
+            const classId = data[index].class.id;
+            setSelectedClass(classId);
         }
+
         if (data[index].operations) {
             setSelectedOperations(data[index].operations);
         } else {
             setSelectedOperations([]);
         }
+
+        if (data[index].attributes) {
+            setSelectedAttributes(data[index].attributes);
+        } else {
+            setSelectedAttributes([]);
+        }
+
         setEditIndex(index);
     };
 
@@ -80,7 +95,6 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         setData(newData);
         setEditIndex(-1);
     };
-    
 
     const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete') => {
         const sectionOperations = selectedOperations || {};
@@ -94,10 +108,28 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         setData(newData);
     };
 
-    const toggleClass = (sectionIndex: number, cls: string) => {
-        setSelectedClass(cls as string);
+    const toggleClass = async (sectionIndex: number, cls) => {
+        setSelectedClass(cls.id);
         const newData = [...data];
         newData[sectionIndex].class = cls;
+        setSelectedAttributes([]);
+        newData[sectionIndex].attributes = [];
+        setData(newData);
+    };
+
+    const handleAttributeSelect = (selectedList, selectedItem, sectionIndex: number) => {
+        const updatedAttributes = [...selectedAttributes, selectedItem];
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+    };
+
+    const handleAttributeRemove = (selectedList, selectedItem, sectionIndex: number) => {
+        const updatedAttributes = selectedAttributes.filter(attr => attr !== selectedItem);
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
         setData(newData);
     };
 
@@ -151,8 +183,9 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                             {isSuccessClasses && (
                                                 classes.map((e) => (
                                                     <Chip
-                                                        onClick={() => toggleClass(index, e.data.name)}
-                                                        color={selectedClass === e.data.name ? 'primary' : 'neutral'}
+                                                        key={e.id}
+                                                        onClick={() => toggleClass(index, e)}
+                                                        color={selectedClass === e.id ? 'primary' : 'neutral'}
                                                     >
                                                         {e.data.name}
                                                     </Chip>
@@ -182,6 +215,19 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                                 Delete
                                             </Chip>
                                         </div>
+                                    </div>
+                                    <div className='space-y-1'>
+                                        <h3 className="text-xl font-bold">Attributes</h3>
+                                        <Multiselect
+                                            options={classAttributes}
+                                            displayValue='name'
+                                            placeholder="Select attributes..."
+                                            showCheckbox={true}
+                                            style={{chips:{background:'rgb(231 229 228)',color:'rgb(61 56 70)'}}}
+                                            selectedValues={selectedAttributes}
+                                            onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
+                                            onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
+                                        />
                                     </div>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Links</h3>
