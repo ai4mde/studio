@@ -35,6 +35,14 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
         }
     }, [editIndex, data]);
 
+    useEffect(() => {
+        if (editIndex !== -1 && data[editIndex].category) {
+            setSelectedCategory(data[editIndex].category);
+        } else {
+            setSelectedCategory(null);
+        }
+    }, [editIndex, data]);
+
     const handleEdit = (index: number) => {
         setEditIndex(index);
     };

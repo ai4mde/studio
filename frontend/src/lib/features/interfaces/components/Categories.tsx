@@ -18,6 +18,7 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
     const [data, setData, isSuccess] = useLocalStorage('categories', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
+    const [, setPages, isSuccessPages] = useLocalStorage('pages', []);
 
     const handleEdit = (index: number) => {
         setEditIndex(index);
@@ -40,9 +41,19 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
     };
 
     const handleDelete = (index: number) => {
+        const categoryId = data[index].id;
         const newData = [...data];
         newData.splice(index, 1);
         setData(newData);
+
+        if (isSuccessPages) {
+            setPages(prevPages => 
+                prevPages.map(page => 
+                    page.category === categoryId ? { ...page, category: null } : page
+                )
+            );
+        }
+
         setEditIndex(-1);
     };
 
