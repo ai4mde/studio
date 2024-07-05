@@ -1,8 +1,17 @@
 from typing import List
+from uuid import uuid4
 
-from diagram.api.schemas import CreateDiagram, FullDiagram, ReadDiagram, UpdateDiagram
+from diagram.api.schemas import (
+    ImportDiagram,
+    CreateDiagram,
+    FullDiagram,
+    ReadDiagram,
+    UpdateDiagram,
+)
 from diagram.models import Diagram
+from diagram.api.utils import create_node, create_edge
 from metadata.models import System
+from django.db import transaction
 from ninja import Router
 
 from .node import node
@@ -30,6 +39,33 @@ def create_diagram(request, body: CreateDiagram):
         system=system,
         type=body.type,
     )
+    return diagram
+
+
+@diagrams.post("/import", response=FullDiagram)
+@transaction.atomic
+def import_diagram(request, body: ImportDiagram):
+    system = System.objects.get(id=body.system)
+    diagram = Diagram.objects.create(
+        name=body.name,
+        system=system,
+        type=body.type,
+    )
+
+    # We track all the UUIDs here as we generate new ones,
+    # to avoid collisions on import.
+    # TODO: See if there is a more elegant way to do this
+    nodes = dict()
+
+    for node_in in body.nodes:
+        n = create_node(diagram, node_in.cls)
+        nodes[node_in.id] = n
+
+    for edge_in in body.edges:
+        create_edge(diagram, edge_in.rel, nodes[edge_in.source], nodes[edge_in.target])
+
+    print("imported diagram")
+
     return diagram
 
 

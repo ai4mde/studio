@@ -16,6 +16,7 @@ class NodeData(Schema):
 
 
 class CreateNode(Schema):
+    id: Optional[UUID] = None
     cls: Classifier
 
 
