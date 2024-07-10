@@ -72,7 +72,9 @@ export const Navigation: React.FC = () => {
                 </a>
                 {isAuthenticated && (
                     <div className="flex flex-col mt-auto">
-                        <a
+                        {/* This button can be enabled when
+                            account functionality is added */}
+                        {/*<a
                             className={
                                 linkClassName +
                                 " " +
@@ -84,7 +86,7 @@ export const Navigation: React.FC = () => {
                         >
                             <User size={20} />
                             <span className="font-bold text-sm">Account</span>
-                        </a>
+                        </a>*/}
                         <button
                             className={linkClassName}
                             onClick={() => logout()}

@@ -53,7 +53,10 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
                         </Button>
                     </Tooltip>
 
-                    <Tooltip title="Settings" variant="solid">
+                    {/* This button can be enabled when
+                        settings functionality is added. */}
+
+                    {/*<Tooltip title="Settings" variant="solid">
                         <Button
                             type="link"
                             href="/settings"
@@ -70,6 +73,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => {
                             />
                         </Button>
                     </Tooltip>
+                    */}
                 </div>
             </header>
             <Navigation />
