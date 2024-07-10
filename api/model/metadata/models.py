@@ -21,6 +21,7 @@ class Interface(models.Model):
     system = models.ForeignKey(System, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    data = models.JSONField(default=dict)
 
 
 class Classifier(models.Model):

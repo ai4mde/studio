@@ -30,13 +30,21 @@ def create_interface(request, interface: CreateInterface):
         name=interface.name,
         description=interface.description,
         system=System.objects.get(pk=interface.system),
+        data=interface.data
     )
 
 
-@interfaces.put("/{uuid:id}/", response=ReadInterface)
-def update_interface(request, id, payload: UpdateInterface):
-    print(payload)
-    return None
+@interfaces.put("/{uuid:id}/", response=bool)
+def update_interface(request, id, interface: UpdateInterface):
+    try: 
+        Interface.objects.filter(id=id).update(name=interface.name,
+                                               description=interface.description,
+                                               system=interface.system, 
+                                               data=interface.data)
+    except Interface.DoesNotExist:
+        return False
+    return True
+
 
 @interfaces.delete("/{uuid:interface_id}", response=bool)
 def delete_interface(request, interface_id):

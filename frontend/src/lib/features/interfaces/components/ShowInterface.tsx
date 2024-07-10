@@ -3,9 +3,10 @@ import {
     Tab,
     TabList,
     TabPanel,
+    CircularProgress,
 } from '@mui/joy'
 import { Save, Trash } from "lucide-react";
-import React from 'react'
+import React, { useState } from 'react'
 import { useInterface } from "$browser/queries";
 import { deleteInterface } from '$browser/mutations';
 import { Styling } from './Styling';
@@ -13,6 +14,8 @@ import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { useNavigate, useParams } from 'react-router-dom';
+import { authAxios } from '$auth/state/auth';
+
 
 type Props = {
     projectId: string
@@ -26,6 +29,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const { data, isSuccess } = useInterface(app_comp);
     const navigate = useNavigate();
     const { systemId } = useParams();
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleDelete = async () => {
         try {
@@ -36,6 +40,35 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         navigate(`/systems/${systemId}/interfaces`);
     };
 
+    const handleSave = async () => {
+        const styling = JSON.parse(localStorage.getItem('styling')) || {};
+        const categories = JSON.parse(localStorage.getItem('categories')) || [];
+        const pages = JSON.parse(localStorage.getItem('pages')) || [];
+        const sections = JSON.parse(localStorage.getItem('sections')) || [];
+
+        console.log(styling);
+        setIsSaving(true);
+        try {
+            await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
+                id: app_comp,
+                name: data?.name,
+                description: data?.description,
+                system_id: systemId,
+                data: {
+                    "styling": styling,
+                    "categories": categories,
+                    "pages": pages,
+                    "sections": sections,
+                },
+            });
+        } catch (error) {
+            console.error('Error saving interface:', error);
+        } finally {
+            setTimeout(function(){
+                setIsSaving(false);
+            }, 200);
+        }
+    }
 
     return (
         <>
@@ -45,9 +78,11 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         <h3 className="text-xl font-bold">{data.name}</h3>
                         <div className="flex gap-4 ml-auto">
                             <button
-                                className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                onClick={handleSave}
+                                className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center justify-center"
+                                disabled={isSaving}
                             >
-                                <Save />
+                                {isSaving ? <CircularProgress /> : <Save />}
                             </button>
                             <button
                                 className="w-[140px] h-[40px] bg-gray-400 text-white px-2 py-1 rounded-md hover:bg-gray-500"
