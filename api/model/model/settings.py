@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,11 @@ CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?
 PROSE_API_KEY = (
     "sequoias"  # TODO: Leverage the JWT to make connections to the Prose API
 )
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        }
+    }
+}
