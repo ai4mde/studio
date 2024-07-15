@@ -27,6 +27,7 @@
             "$auth/*": ["lib/features/auth/*"],
             "$metadata/*": ["lib/features/metadata/*"],
             "$interfaces/*": ["lib/features/interfaces/*"],
+            "$prototypes/*": ["lib/features/prototypes/*"],
             /* Shared / Global */
             "$shared/*": ["lib/shared/*"],
             "$hooks/*": ["lib/shared/hooks/*"],

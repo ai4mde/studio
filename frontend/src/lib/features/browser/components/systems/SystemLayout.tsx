@@ -44,9 +44,9 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             href: `/systems/${systemId}/interfaces`,
                         },
                         {
-                            name: "Prototype",
+                            name: "Prototypes",
                             Icon: AppWindow,
-                            href: `/systems/${systemId}/prototype`,
+                            href: `/systems/${systemId}/prototypes`,
                         },
                         {
                             name: "Versions",
