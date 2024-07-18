@@ -33,6 +33,7 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype):
+    '''
     command = [
         "docker", "run", "-d", "-P", "your-docker-image" # TODO: docker image
     ]
@@ -44,19 +45,20 @@ def create_prototype(request, prototype: CreatePrototype):
     container_info = json.loads(run_docker_command(inspect_command))[0]
     host_port = container_info['NetworkSettings']['Ports']['80/tcp'][0]['HostPort']
     container_url = f"http://localhost:{host_port}"
+    '''
 
     return Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
         system=System.objects.get(pk=prototype.system),
         running=False,
-        container_id=container_id,
-        container_url=container_url,
-        container_port=host_port
+        #container_id=container_id,
+        #container_url=container_url,
+        #container_port=host_port
     )
 
 
-@prototypes.delete("/{uuid:prototype_id}/", response=bool)
+@prototypes.delete("/{uuid:prototype_id}", response=bool)
 def delete_prototype(request, prototype_id):
     try:
         Prototype.objects.filter(id=prototype_id).delete()

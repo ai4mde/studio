@@ -62,7 +62,7 @@ export const CreatePrototype: React.FC = () => {
             const { data } = await authAxios.post("v1/generator/prototypes/", {
                 name: name,
                 description: description,
-                system: systemId,
+                system_id: systemId,
                 running: running,
                 interfaces: interfaces,
             });
@@ -84,6 +84,7 @@ export const CreatePrototype: React.FC = () => {
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["protoypes"] });
             close();
+            window.location.reload();
         });
     };
 
@@ -133,7 +134,7 @@ export const CreatePrototype: React.FC = () => {
                         <Select
                             isMulti
                             name="interfaces"
-                            options={interfaces.map((e) => ({ label: e.name, value: e.name }))}
+                            options={interfaces.map((e) => ({ label: e.name, value: e.id }))}
                             value={selectedInterfaces}
                             onChange={setSelectedInterfaces}
                         />
