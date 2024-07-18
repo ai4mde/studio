@@ -67,7 +67,26 @@ def read_class(request: HttpRequest, classifier_id: str):
     }
 
 
+actors = Router()
+
+@actors.get("/", response=MetaClassifiersSchema)
+def read_classes(request: HttpRequest):
+    if not request.resolver_match:
+        return 500, "Resolver match not found"
+
+    system_id = request.resolver_match.kwargs.get("system_id")
+    system = System.objects.get(id=system_id)
+
+    if not system:
+        return 404, "System not found"
+
+    return {
+        "classifiers": system.classifiers.filter(data__type='actor'),
+    }
+
+
 __all__ = [
     "classifiers",
     "classes",
+    "actors",
 ]
