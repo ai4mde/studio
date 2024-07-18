@@ -41,3 +41,22 @@ export const useClassAttributes = (systemId: string, classId: string) => {
         queryResult.error,
     ];
 };
+
+export const useSystemActors = (systemId: string) => {
+    const queryResult = useQuery({
+        queryKey: ["system", "metadata", "actors", systemId],
+        queryFn: async () => {
+            const response = await authAxios.get(`/v1/metadata/systems/${systemId}/actors/`);
+            return response.data;
+        },
+    });
+
+    const actors = queryResult.data?.classifiers || [];
+
+    return [
+        actors,
+        queryResult.isSuccess,
+        queryResult.isLoading,
+        queryResult.error,
+    ];
+};

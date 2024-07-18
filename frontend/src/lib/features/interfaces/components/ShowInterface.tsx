@@ -4,9 +4,9 @@ import {
     TabList,
     TabPanel,
     CircularProgress,
-} from '@mui/joy'
-import { Save, Trash } from "lucide-react";
-import React, { useState } from 'react'
+} from '@mui/joy';
+import { Save, Trash, CircleUserRound } from "lucide-react";
+import React, { useState, useEffect } from 'react';
 import { useInterface } from "$browser/queries";
 import { deleteInterface } from '$browser/mutations';
 import { Styling } from './Styling';
@@ -15,21 +15,23 @@ import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { useNavigate, useParams } from 'react-router-dom';
 import { authAxios } from '$auth/state/auth';
+import { useActor } from "$lib/features/metadata/queries";
 
 
 type Props = {
-    projectId: string
-    systemId: string
-    app_comp: string
-    interfaceId: string
-} 
+    projectId: string;
+    systemId: string;
+    app_comp: string;
+    interfaceId: string;
+}; 
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
-
     const { data, isSuccess } = useInterface(app_comp);
     const navigate = useNavigate();
     const { systemId } = useParams();
     const [isSaving, setIsSaving] = useState(false);
+    //const actorId = data?.actor || '';
+    //const [actor, isSuccessActor] = useActor(systemId, actorId);
 
     const handleDelete = async () => {
         try {
@@ -46,7 +48,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         const pages = JSON.parse(localStorage.getItem('pages')) || [];
         const sections = JSON.parse(localStorage.getItem('sections')) || [];
 
-        console.log(styling);
         setIsSaving(true);
         try {
             await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
@@ -68,14 +69,20 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                 setIsSaving(false);
             }, 200);
         }
-    }
+    };
 
     return (
         <>
             {isSuccess && (
                 <>       
                     <div className="flex items-center justify-between w-full gap-4">
-                        <h3 className="text-xl font-bold">{data.name}</h3>
+                        <span>
+                            <h3 className="text-xl font-bold">{data.name}</h3>
+                            <span className='flex items-center gap-1'>
+                                <h4 className="text-l">{data.actor || 'Unknown'}</h4>
+                                <CircleUserRound size={20} />
+                            </span>
+                        </span>
                         <div className="flex gap-4 ml-auto">
                             <button
                                 onClick={handleSave}
@@ -128,7 +135,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                 </>
             )}
         </>
-    )
-}
+    );
+};
 
-export default ShowInterface
+export default ShowInterface;

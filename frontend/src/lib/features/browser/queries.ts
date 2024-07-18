@@ -39,6 +39,7 @@ export type InterfaceOut = {
     description?: string;
     project?: string;
     system?: string;
+    actor: string;
 };
 
 export const useInterfaces = ( systemId?: string) =>

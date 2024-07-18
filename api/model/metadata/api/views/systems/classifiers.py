@@ -25,6 +25,28 @@ def get_classifiers(request: HttpRequest):
     }
 
 
+@classifiers.get("/{classifier_id}/", response=ClassifierSchema)
+def read_classifier(request: HttpRequest, classifier_id: str):
+    if not request.resolver_match:
+        return 500, "Resolver match not found"
+
+    system_id = request.resolver_match.kwargs.get("system_id")
+    system = System.objects.get(id=system_id)
+
+    if not system:
+        return 404, "System not found"
+    
+    try:
+        classifier = system.classifiers.get(id=classifier_id)
+    except Classifier.DoesNotExist:
+        return 404, "Classifier not found"
+
+    return { 
+        "id": classifier.id,
+        "data": classifier.data,
+    }
+
+
 classes = Router()
 
 @classes.get("/", response=MetaClassifiersSchema)

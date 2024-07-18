@@ -14,17 +14,24 @@ import {
 } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import React from "react";
+import React, { useState } from "react";
+import Select from "react-select";
+import { useParams } from "react-router";
+import { useSystemActors } from "$lib/features/interfaces/queries";
+
+
 
 type InterfaceInput = {
     name: string;
     description?: string;
+    actor: string;
 };
 
 type InterfaceOutput = {
     id: string;
     name: string;
     description: string;
+    actor: string;
 };
 
 type Props = {
@@ -34,17 +41,21 @@ type Props = {
 export const CreateInterface: React.FC<Props> = ({ system }) => {
     const [open, setOpen] = useAtom(createInterfaceAtom);
     const close = () => setOpen(false);
+    const { systemId } = useParams();
+    const [actors, isSuccessActors] = useSystemActors(systemId);
+    const [selectedActor, setSelectedActor] = useState("");
 
     const { mutateAsync, isPending } = useMutation<
         InterfaceOutput,
         unknown,
         InterfaceInput
     >({
-        mutationFn: async ({ name, description }) => {
+        mutationFn: async ({ name, description, actor }) => {
             const { data } = await authAxios.post(`v1/metadata/interfaces/`, {
                 name: name,
                 description: description,
                 system_id: system,
+                actor_id: actor,
             });
 
             return data;
@@ -53,12 +64,12 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
-
         const formData = new FormData(e.currentTarget);
 
         mutateAsync({
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
+            actor: `${formData.get("actor")}`,
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["interfaces"] });
             close();
@@ -106,6 +117,16 @@ export const CreateInterface: React.FC<Props> = ({ system }) => {
                         <Input
                             name="description"
                             placeholder="A whole new world..."
+                        />
+                    </FormControl>
+                    <FormControl required>
+                        <FormLabel>Actor</FormLabel>
+                        <Select
+                            name="actor"
+                            options={actors.map((e) => ({ label: e.data.name, value: e.id }))}
+                            value={selectedActor}
+                            onChange={setSelectedActor}
+                            required
                         />
                     </FormControl>
                 </form>

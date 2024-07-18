@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
-from metadata.models import System, Interface
+from metadata.models import System, Interface, Classifier
 from django.http import HttpRequest
 
 from ninja import Router
@@ -30,6 +30,7 @@ def create_interface(request, interface: CreateInterface):
         name=interface.name,
         description=interface.description,
         system=System.objects.get(pk=interface.system),
+        actor=Classifier.objects.get(pk=interface.actor),
         data=interface.data
     )
 
