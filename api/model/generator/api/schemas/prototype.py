@@ -11,9 +11,7 @@ class ReadPrototype(ModelSchema):
             "description", 
             "system", 
             "running", 
-            "container_id", 
-            "container_url", 
-            "container_port"
+            "port",
         ]
 
 
@@ -25,9 +23,8 @@ class CreatePrototype(ModelSchema):
             "description", 
             "system", 
             "running", 
-            "container_id", 
-            "container_url", 
-            "container_port"
+            "port",
+            "metadata",
         ]
 
 
@@ -40,9 +37,7 @@ class UpdatePrototype(ModelSchema):
             "description", 
             "system", 
             "running", 
-            "container_id", 
-            "container_url", 
-            "container_port"
+            "port",
         ]
 
 

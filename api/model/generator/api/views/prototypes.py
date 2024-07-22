@@ -4,16 +4,8 @@ from generator.models import Prototype
 from metadata.models import System
 from ninja import Router
 import subprocess
-import json
 
 prototypes = Router()
-
-
-def run_docker_command(command: List[str]) -> str:
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise Exception(f"Command '{' '.join(command)}' failed with error: {result.stderr}")
-    return result.stdout
 
 
 @prototypes.get("/", response=List[ReadPrototype])
@@ -33,30 +25,19 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype):
-    '''
-    command = [
-        "docker", "run", "-d", "-P", "your-docker-image" # TODO: docker image
-    ]
-    container_id = run_docker_command(command).strip()
-
-    inspect_command = [
-        "docker", "inspect", container_id
-    ]
-    container_info = json.loads(run_docker_command(inspect_command))[0]
-    host_port = container_info['NetworkSettings']['Ports']['80/tcp'][0]['HostPort']
-    container_url = f"http://localhost:{host_port}"
-    '''
-
-    return Prototype.objects.create(
+    generator_path="/usr/src/model/generator/generation/generator.sh"
+    port=0
+    new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
         system=System.objects.get(pk=prototype.system),
-        running=False,
-        #container_id=container_id,
-        #container_url=container_url,
-        #container_port=host_port
+        running=True,
+        port=port,
+        metadata={} # TODO: maybe we do not want to push all metadata to the DB?
     )
+    subprocess.run([generator_path, prototype.name, prototype.metadata], check=True)
 
+    return new_prototype
 
 @prototypes.delete("/{uuid:prototype_id}", response=bool)
 def delete_prototype(request, prototype_id):

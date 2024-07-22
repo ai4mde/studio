@@ -27,7 +27,7 @@ type PrototypeInput = {
     description?: string;
     system: string;
     running?: boolean;
-    interfaces: string;
+    metadata: string;
 };
 
 type PrototypeOutput = {
@@ -36,8 +36,8 @@ type PrototypeOutput = {
     description: string;
     system: string;
     running: boolean;
-    interfaces: string;
 };
+
 
 export const CreatePrototype: React.FC = () => {
     const [open, setOpen] = useAtom(createPrototypeAtom);
@@ -48,7 +48,7 @@ export const CreatePrototype: React.FC = () => {
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
-            setSelectedInterfaces(interfaces.map((e) => ({ label: e.name, value: e.name })));
+            setSelectedInterfaces(interfaces.map((e) => ({ label: e.name, value: e})));
         }
     }, [interfaces, isSuccessInterfaces]);
 
@@ -58,13 +58,13 @@ export const CreatePrototype: React.FC = () => {
         unknown,
         PrototypeInput
     >({
-        mutationFn: async ({ name, description, running, interfaces }) => {
+        mutationFn: async ({ name, description, running }) => {
             const { data } = await authAxios.post("v1/generator/prototypes/", {
                 name: name,
                 description: description,
                 system_id: systemId,
                 running: running,
-                interfaces: interfaces,
+                metadata: JSON.stringify(selectedInterfaces),
             });
 
             return data;
@@ -80,7 +80,7 @@ export const CreatePrototype: React.FC = () => {
             description: `${formData.get("description")}`,
             system: systemId || "",
             running: Boolean(`${formData.get("running")}`),
-            interfaces: `${formData.get("interfaces")}`,
+            metadata: JSON.stringify(selectedInterfaces),
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["protoypes"] });
             close();
@@ -134,7 +134,7 @@ export const CreatePrototype: React.FC = () => {
                         <Select
                             isMulti
                             name="interfaces"
-                            options={interfaces.map((e) => ({ label: e.name, value: e.id }))}
+                            options={interfaces.map((e) => ({ label: e.name, value: e}))}
                             value={selectedInterfaces}
                             onChange={setSelectedInterfaces}
                         />
