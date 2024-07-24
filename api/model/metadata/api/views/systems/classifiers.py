@@ -92,7 +92,7 @@ def read_class(request: HttpRequest, classifier_id: str):
 actors = Router()
 
 @actors.get("/", response=MetaClassifiersSchema)
-def read_classes(request: HttpRequest):
+def read_actors(request: HttpRequest):
     if not request.resolver_match:
         return 500, "Resolver match not found"
 

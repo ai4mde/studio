@@ -7,6 +7,7 @@ from ninja import Router
 
 from .node import node
 from .edge import edge
+from .system import system
 
 diagrams = Router()
 
@@ -56,5 +57,6 @@ def delete_diagram(request, diagram_id):
 
 diagrams.add_router("/{uuid:diagram}/node", node)
 diagrams.add_router("/{uuid:diagram}/edge", edge)
+diagrams.add_router("/system/", system)
 
 __all__ = ["diagrams"]
