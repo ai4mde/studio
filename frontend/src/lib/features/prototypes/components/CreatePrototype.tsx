@@ -18,7 +18,7 @@ import { useAtom } from "jotai";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useParams } from "react-router";
-import { useSystemInterfaces } from "$lib/features/prototypes/queries";
+import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
 
 
 
@@ -27,7 +27,7 @@ type PrototypeInput = {
     description?: string;
     system: string;
     running?: boolean;
-    metadata: string;
+    metadata: Record<string, any>;
 };
 
 type PrototypeOutput = {
@@ -44,6 +44,7 @@ export const CreatePrototype: React.FC = () => {
     const close = () => setOpen(false);
     const { systemId } = useParams();
     const [interfaces, isSuccessInterfaces] = useSystemInterfaces(systemId);
+    const [diagrams, isSuccessDiagrams] = useSystemDiagrams(systemId);
     const [selectedInterfaces, setSelectedInterfaces] = useState([]);
 
     useEffect(() => {
@@ -59,12 +60,16 @@ export const CreatePrototype: React.FC = () => {
         PrototypeInput
     >({
         mutationFn: async ({ name, description, running }) => {
+            const metadata = {
+                "diagrams": diagrams,
+                "interfaces": selectedInterfaces,
+            };
             const { data } = await authAxios.post("v1/generator/prototypes/", {
                 name: name,
                 description: description,
                 system_id: systemId,
                 running: running,
-                metadata: JSON.stringify(selectedInterfaces),
+                metadata: metadata,
             });
 
             return data;
@@ -74,13 +79,16 @@ export const CreatePrototype: React.FC = () => {
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-
+        const metadata = {
+            "diagrams": diagrams,
+            "interfaces": selectedInterfaces,
+        };
         mutateAsync({
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
             system: systemId || "",
             running: Boolean(`${formData.get("running")}`),
-            metadata: JSON.stringify(selectedInterfaces),
+            metadata: metadata,
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["protoypes"] });
             close();
@@ -102,7 +110,7 @@ export const CreatePrototype: React.FC = () => {
                 <div className="flex w-full flex-row justify-between pb-1">
                     <div className="flex flex-col">
                         <h1 className="font-bold">Generate Protype</h1>
-                        <h3 className="text-sm">Generate a new project using current metadata</h3>
+                        <h3 className="text-sm">Generate a new prototype using current metadata</h3>
                     </div>
                     <ModalClose
                         sx={{
@@ -148,8 +156,12 @@ export const CreatePrototype: React.FC = () => {
                 </form>
                 <Divider />
                 <div className="flex flex-row pt-1">
-                    <Button form="create-project" type="submit">
-                        Create
+                    <Button form="create-project" type="submit" disabled={isPending}>
+                        {isPending ? 
+                        <div className="flex flex-row gap-2">
+                            <CircularProgress className="animate-spin" />
+                            <p>Generating</p>
+                        </div> : "Create"}
                     </Button>
                 </div>
             </ModalDialog>

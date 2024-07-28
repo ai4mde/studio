@@ -4,6 +4,7 @@ from generator.models import Prototype
 from metadata.models import System
 from ninja import Router
 import subprocess
+import json
 
 prototypes = Router()
 
@@ -25,7 +26,7 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype):
-    generator_path="/usr/src/model/generator/generation/generator.sh"
+    GENERATOR_PATH="/usr/src/model/generator/generation/generator.sh"
     port=0
     new_prototype = Prototype.objects.create(
         name=prototype.name,
@@ -35,15 +36,30 @@ def create_prototype(request, prototype: CreatePrototype):
         port=port,
         metadata={} # TODO: maybe we do not want to push all metadata to the DB?
     )
-    subprocess.run([generator_path, prototype.name, prototype.metadata], check=True)
+    subprocess.run([GENERATOR_PATH, prototype.name, json.dumps(prototype.metadata)], check=True)
 
     return new_prototype
 
 @prototypes.delete("/{uuid:prototype_id}", response=bool)
 def delete_prototype(request, prototype_id):
+    REMOVER_PATH="/usr/src/model/generator/generation/remover.sh"
     try:
-        Prototype.objects.filter(id=prototype_id).delete()
+        prot = Prototype.objects.filter(id=prototype_id).first()
+        subprocess.run([REMOVER_PATH, prot.name], check=True)
+        prot.delete()
     except Prototype.DoesNotExist:
+        return False
+    return True
+
+@prototypes.delete("/system/{uuid:system_id}", response=bool)
+def delete_system_prototypes(request, system_id):
+    REMOVER_PATH="/usr/src/model/generator/generation/remover.sh"
+    try:
+        prots = Prototype.objects.filter(system=System.objects.get(pk=system_id))
+        for prot in prots:
+            subprocess.run([REMOVER_PATH, prot.name], check=True)
+        prots.delete()
+    except:
         return False
     return True
 

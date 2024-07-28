@@ -46,3 +46,23 @@ export const useSystemPrototypes = (systemId: string) => {
         queryResult.error,
     ];
 };
+
+export const useSystemDiagrams = (systemId: string) => {
+    const queryResult = useQuery({
+        queryKey: ["diagram", "system", systemId],
+        queryFn: async () => {
+            const response = await authAxios.get(`/v1/diagram/system/${systemId}/`, {
+            });
+            return response.data;
+        },
+    });
+
+    const diagrams = queryResult.data || [];
+
+    return [
+        diagrams,
+        queryResult.isSuccess,
+        queryResult.isLoading,
+        queryResult.error,
+    ];
+};
