@@ -4,8 +4,8 @@ from typing import List, Optional
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram
-from .node import NodeSchema
-from .edge import EdgeSchema
+from .node import CreateNode, NodeSchema
+from .edge import CreateEdge, EdgeSchema
 
 
 class DiagramType(str, Enum):
@@ -51,8 +51,14 @@ class FullDiagram(ReadDiagram):
         return obj.edges.prefetch_related("rel").all()
 
 
+class ImportDiagram(CreateDiagram):
+    nodes: List[CreateNode]
+    edges: List[CreateEdge]
+
+
 __all__ = [
     "ReadDiagram",
+    "ImportDiagram",
     "CreateDiagram",
     "UpdateDiagram",
     "FullDiagram",

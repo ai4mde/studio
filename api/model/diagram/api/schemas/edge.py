@@ -15,6 +15,14 @@ class CreateEdge(Schema):
     target: UUID
     rel: Relation
 
+    @staticmethod
+    def resolve_source(obj):
+        return obj.get("source") or obj.get("source_ptr")
+
+    @staticmethod
+    def resolve_target(obj):
+        return obj.get("target") or obj.get("target_ptr")
+
 
 class EdgeSchema(ModelSchema):
     rel: Relation

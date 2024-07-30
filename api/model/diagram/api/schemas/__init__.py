@@ -1,4 +1,5 @@
 from diagram.api.schemas.diagram import (
+    ImportDiagram,
     CreateDiagram,
     ReadDiagram,
     UpdateDiagram,
@@ -19,6 +20,7 @@ from diagram.api.schemas.edge import (
 )
 
 __all__ = [
+    "ImportDiagram",
     "ReadDiagram",
     "CreateDiagram",
     "UpdateDiagram",
