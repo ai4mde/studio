@@ -8,6 +8,7 @@ import json
 import tempfile
 import os
 import uuid
+import requests
 
 prototypes = Router()
 
@@ -72,42 +73,62 @@ def create_prototype(request, prototype: CreatePrototype):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype):
-    GENERATOR_PATH="/usr/src/model/generator/generation/generator.sh"
-    port=0
+    GENERATION_URL = "http://studio-prototypes:8010/generate" # TODO: put this in env
+    data = {
+        'prototype_name': prototype.name,
+        'metadata': json.dumps(prototype.metadata)
+    }
+    response = requests.post(GENERATION_URL, json=data)
+
+    if response.status_code != 200:
+        raise Exception("Failed to generate prototype " + prototype.name)
+
     new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
         system=System.objects.get(pk=prototype.system),
         running=True,
-        port=port,
+        port=0, # TODO: port management
         metadata={} # TODO: maybe we do not want to push all metadata to the DB?
     )
-    subprocess.run([GENERATOR_PATH, prototype.name, json.dumps(prototype.metadata)], check=True)
-
     return new_prototype
 
 
 @prototypes.delete("/{uuid:prototype_id}", response=bool)
 def delete_prototype(request, prototype_id):
-    REMOVER_PATH="/usr/src/model/generator/generation/remover.sh"
-    try:
-        prot = Prototype.objects.filter(id=prototype_id).first()
-        subprocess.run([REMOVER_PATH, prot.name], check=True)
-        prot.delete()
-    except Prototype.DoesNotExist:
+    DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
+
+    prototype = Prototype.objects.filter(id=prototype_id).first()
+    if not prototype:
         return False
+
+    data = {
+        'prototype_name': prototype.name,
+    }
+
+    response = requests.delete(DELETION_URL, json=data)
+    if response.status_code != 200:
+        raise Exception("Failed to delete prototype " + prototype.name)
+    prototype.delete()
     return True
+
 
 @prototypes.delete("/system/{uuid:system_id}", response=bool)
 def delete_system_prototypes(request, system_id):
-    REMOVER_PATH="/usr/src/model/generator/generation/remover.sh"
-    try:
-        prots = Prototype.objects.filter(system=System.objects.get(pk=system_id))
-        for prot in prots:
-            subprocess.run([REMOVER_PATH, prot.name], check=True)
-        prots.delete()
-    except:
+    DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
+
+    prototypes = Prototype.objects.filter(system=System.objects.get(pk=system_id))
+    if not prototypes:
         return False
+    
+    for prototype in prototypes:
+        data = {
+            'prototype_name': prototype.name,
+        }
+        response = requests.delete(DELETION_URL, json=data)
+        if response.status_code != 200:
+            raise Exception("Failed to delete prototype " + prototype.name)
+        prototype.delete()
     return True
 
 

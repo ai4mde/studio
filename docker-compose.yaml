@@ -51,7 +51,7 @@ services:
     networks:
       - ai4mde_traefik
     volumes:
-      - ./prototypes/prototypes:/usr/src/prototypes:ro
+      - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-prototypes.rule=Host(`prototypes.ai4mde.localhost`)"

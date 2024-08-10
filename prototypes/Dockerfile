@@ -25,9 +25,7 @@ FROM python:3.12.1
 WORKDIR /usr/src/app
 
 COPY --from=venv /.venv /usr/src/.venv
-COPY prototypes /usr/src/prototypes
-COPY entrypoint.sh /entrypoint.sh
+COPY . /usr/src/prototypes
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "/usr/src/prototypes/manage.py", "runserver", "0.0.0.0:8010" ]
+CMD [ "python", "-u", "/usr/src/prototypes/backend/api.py" ]
