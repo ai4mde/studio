@@ -3,7 +3,7 @@ import os
 import jinja2
 import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
-from utils.model import AttributeType
+from utils.definitions.model import AttributeType
 
 
 # TODO: there could be added more logic here to only add relevant

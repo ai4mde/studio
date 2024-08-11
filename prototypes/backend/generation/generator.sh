@@ -33,6 +33,7 @@ create_new_django_app() {
         exit 1
     fi
     python -m django startapp "$app"
+    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA"
 }
 
 create_django_apps() {

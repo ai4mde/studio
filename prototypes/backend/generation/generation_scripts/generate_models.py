@@ -1,6 +1,6 @@
 from typing import List
 import sys
-from utils.model import Model, Attribute, AttributeType
+from utils.definitions.model import Model, Attribute, AttributeType
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization
