@@ -4,12 +4,14 @@ import jinja2
 import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
 from utils.definitions.model import AttributeType
+from utils.definitions.section_component import SectionComponent
 
 
 # TODO: there could be added more logic here to only add relevant
 #       globals based on the type of output file.
 def add_jinja_globals(template: Template) -> Template:
     template.globals['AttributeType'] = AttributeType
+    template.globals['SectionComponent'] = SectionComponent
     return template
 
 

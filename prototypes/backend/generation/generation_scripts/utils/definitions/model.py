@@ -10,6 +10,9 @@ class CustomMethod():
         self.name = name
         self.body = body
 
+    def __str__(self):
+        return self.name
+
 
 class AttributeType(Enum):
     INTEGER = 1
@@ -28,6 +31,9 @@ class Attribute():
         self.name = name
         self.type = type
 
+    def __str__(self):
+        return self.name
+
 
 class Model():
     def __init__(
@@ -39,3 +45,6 @@ class Model():
         self.name = name
         self.attributes = attributes
         self.custom_methods = custom_methods
+
+    def __str__(self):
+        return self.name

@@ -1,1 +1,77 @@
-TODO: implement Jinja2 file
+from django.shortcuts import render, redirect, get_object_or_404
+from shared_models.models import *
+
+{% for section_component in section_components -%}
+{% if section_component.has_create_operation %}
+
+def {{ section_component.name }}_create(request):
+    if request.method == 'POST':
+        new_object = {{ section_component.primary_model }}()
+        {% for attribute in section_component.attributes -%}
+        {% if attribute.type == AttributeType.BOOLEAN -%}
+        new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        {% elif attribute.type == AttributeType.STRING -%}
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else:
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else: 
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
+        new_object.{{ attribute }} = {{ attribute }}.objects.filter(pk=request.POST.get('instance_{{ attribute }}_id')).first()
+        {% endif -%}
+        {% endfor -%}
+        new_object.save()
+    return redirect(request.META['HTTP_REFERER'])
+
+def {{ section_component.name }}_create_popup(request):
+    context = {} # TODO: build context (object lists)
+    request.session['{{ section_component.name }}_create_popup'] = True
+    return redirect(request.META['HTTP_REFERER'])
+
+{% endif -%}
+
+{% if section_component.has_delete_operation %}
+def {{ section_component.name }}_delete(request, instance_id):
+    if request.method == 'POST':
+        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+        instance.delete()
+        return redirect(request.META['HTTP_REFERER'])
+{% endif -%}
+
+{% if section_component.has_update_operation %}
+def {{ section_component.name }}_update(request, instance_id):
+    if request.method == 'POST':
+        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+        {% for attribute in section_component.updatable_attributes -%}
+        {% if attribute.type == AttributeType.BOOLEAN -%}
+        instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        {% elif attribute.type == AttributeType.STRING -%}
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
+        instance.{{ attribute }} = get_object_or_404({{ attribute }}, pk=request.POST.get('instance_{{ attribute }}_id'))
+        {% endif -%}
+        {% endfor -%}
+        instance.save()
+        return redirect(request.META['HTTP_REFERER'])
+
+
+def {{ section_component.name }}_update_popup(request, instance_id):
+    context = {}
+    request.session['update_instance'] = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+    return redirect(request.META['HTTP_REFERER'])
+
+{% endif -%}
+{% endfor %}
+
+{% for page in pages %}
+def render_{{ page }}(request):
+    context = {} # TODO: build context (object lists)
+    return render(request, '{{ page }}.html', context)
+{% endfor %}

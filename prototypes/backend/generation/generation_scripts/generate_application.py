@@ -3,7 +3,7 @@ from utils.sanitization import project_name_sanitization, app_name_sanitization
 from utils.view_generation import generate_views
 from utils.url_generation import generate_urls
 from utils.template_generation import generate_templates
-from utils.loading_json_utils import retrieve_section_components, filter_section_components_by_application
+from utils.loading_json_utils import retrieve_section_components, filter_section_components_by_application, retrieve_pages, filter_pages_by_application
 
 
 def main():
@@ -17,7 +17,10 @@ def main():
     section_components = retrieve_section_components(metadata)
     section_components_in_app = filter_section_components_by_application(section_components=section_components, application=application_name)
     
-    if not generate_views(project_name, application_name, section_components_in_app):
+    pages = retrieve_pages(metadata)
+    pages_in_app = filter_pages_by_application(pages=pages, application=application_name)
+
+    if not generate_views(project_name, application_name, pages_in_app, section_components_in_app):
         raise Exception("Failed to generate views")
     
     '''
