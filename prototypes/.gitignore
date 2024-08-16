@@ -175,6 +175,6 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
-generated_projects/
+generated_prototypes/
 vscode/
 tests/runtime.json

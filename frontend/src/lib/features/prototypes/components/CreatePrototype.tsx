@@ -12,6 +12,7 @@ import {
     ModalClose,
     ModalDialog,
     Switch,
+    Typography
 } from "@mui/joy";
 import { useMutation } from "@tanstack/react-query";
 import { useAtom } from "jotai";
@@ -19,8 +20,6 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useParams } from "react-router";
 import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
-
-
 
 type PrototypeInput = {
     name: string;
@@ -38,7 +37,6 @@ type PrototypeOutput = {
     running: boolean;
 };
 
-
 export const CreatePrototype: React.FC = () => {
     const [open, setOpen] = useAtom(createPrototypeAtom);
     const close = () => setOpen(false);
@@ -46,13 +44,15 @@ export const CreatePrototype: React.FC = () => {
     const [interfaces, isSuccessInterfaces] = useSystemInterfaces(systemId);
     const [diagrams, isSuccessDiagrams] = useSystemDiagrams(systemId);
     const [selectedInterfaces, setSelectedInterfaces] = useState([]);
+    const [error, setError] = useState<string | null>(null);
+    const [generationError, setGenerationError] = useState<string | null>(null);
+
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
             setSelectedInterfaces(interfaces.map((e) => ({ label: e.name, value: e})));
         }
     }, [interfaces, isSuccessInterfaces]);
-
 
     const { mutateAsync, isPending } = useMutation<
         PrototypeOutput,
@@ -74,42 +74,60 @@ export const CreatePrototype: React.FC = () => {
 
             return data;
         },
+        onError: (error) => {
+            setGenerationError("An error occurred while creating the prototype!");
+        },
     });
 
     const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
         e.preventDefault();
+        setError(null);
+
         const formData = new FormData(e.currentTarget);
+        const name = `${formData.get("name")}`.trim();
+        const description = `${formData.get("description")}`;
+        const running = Boolean(`${formData.get("running")}`);
         const metadata = {
             "diagrams": diagrams,
             "interfaces": selectedInterfaces,
         };
+
+        const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+        if (!alphanumericRegex.test(name)) {
+            setError("Name may only contain alphanumeric characters!");
+            return;
+        }
+
         mutateAsync({
-            name: `${formData.get("name")}`,
-            description: `${formData.get("description")}`,
+            name,
+            description,
             system: systemId || "",
-            running: Boolean(`${formData.get("running")}`),
-            metadata: metadata,
+            running,
+            metadata,
         }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ["protoypes"] });
+            queryClient.invalidateQueries({ queryKey: ["prototypes"] });
             close();
             window.location.reload();
+        }).catch((err) => {
         });
     };
 
     if (isPending) {
-        <Modal open>
-            <ModalDialog>
-                <CircularProgress className="animate-spin" />
-            </ModalDialog>
-        </Modal>;
+        return (
+            <Modal open>
+                <ModalDialog>
+                    <CircularProgress className="animate-spin" />
+                </ModalDialog>
+            </Modal>
+        );
     }
 
     return (
-        <Modal open={open} onClose={() => close()}>
+        <Modal open={open} onClose={() => {close(); setGenerationError(null)}}>
             <ModalDialog>
                 <div className="flex w-full flex-row justify-between pb-1">
                     <div className="flex flex-col">
-                        <h1 className="font-bold">Generate Protype</h1>
+                        <h1 className="font-bold">Generate Prototype</h1>
                         <h3 className="text-sm">Generate a new prototype using current metadata</h3>
                     </div>
                     <ModalClose
@@ -129,6 +147,11 @@ export const CreatePrototype: React.FC = () => {
                     <FormControl required>
                         <FormLabel>Name</FormLabel>
                         <Input name="name" placeholder="Prototype" required />
+                        {error && (
+                            <Typography sx={{ margin: '2px' }}>
+                                <h1 className="text-sm text-red-400">{error}</h1>
+                            </Typography>
+                        )}
                     </FormControl>
                     <FormControl>
                         <FormLabel>Description</FormLabel>
@@ -164,6 +187,11 @@ export const CreatePrototype: React.FC = () => {
                         </div> : "Create"}
                     </Button>
                 </div>
+                {generationError && (
+                    <Typography sx={{ margin: '2px' }}>
+                        <h1 className="text-lg text-red-800">{generationError}</h1>
+                    </Typography>
+                )}
             </ModalDialog>
         </Modal>
     );
