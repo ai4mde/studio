@@ -144,4 +144,11 @@ def update_prototype(request, id, prototype: UpdatePrototype):
     return True
 
 
+@prototypes.get("/status/{str:prototype_name}")
+def get_prototype_status(request, prototype_name):
+    STATUS_URL = f"http://studio-prototypes:8010/status/{prototype_name}" # TODO: put this in env
+    response = requests.get(STATUS_URL)
+    return response.json()
+
+
 __all__ = ["prototypes"]

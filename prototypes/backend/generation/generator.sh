@@ -20,6 +20,11 @@ create_new_django_project() {
     python -m django startproject "$PROJECT_NAME"
 }
 
+update_django_project_settings() {
+    cd "${OUTDIR}/${PROJECT_NAME}/${PROJECT_NAME}"
+    echo "ALLOWED_HOSTS += ['*']" >> settings.py
+}
+
 create_shared_models_app() {
     cd "${OUTDIR}/${PROJECT_NAME}"
     python -m django startapp "shared_models"
@@ -49,6 +54,7 @@ create_django_apps() {
 generate_prototype() {
     create_outdir
     create_new_django_project
+    update_django_project_settings
     create_django_apps
 }
 

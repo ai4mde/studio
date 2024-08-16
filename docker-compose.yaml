@@ -51,7 +51,7 @@ services:
     networks:
       - ai4mde_traefik
     volumes:
-      - prototypes-data:/usr/src/prototypes
+      - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-prototypes.rule=Host(`prototypes.ai4mde.localhost`)"
@@ -74,7 +74,6 @@ services:
 
 volumes:
   pgsql-data:
-  prototypes-data:
   
 networks:
   ai4mde_traefik:
