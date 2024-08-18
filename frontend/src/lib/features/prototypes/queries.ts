@@ -66,23 +66,3 @@ export const useSystemDiagrams = (systemId: string) => {
         queryResult.error,
     ];
 };
-
-export const getPrototypeStatus = (prototypeName: string) => {
-    const queryResult = useQuery({
-        queryKey: ["prototype", "status", prototypeName],
-        queryFn: async () => {
-            const response = await authAxios.get(`/v1/generator/prototypes/status/${prototypeName}/`, {
-            });
-            return response.data;
-        },
-    });
-
-    const prototypeStatus = queryResult.data || [];
-
-    return [
-        prototypeStatus,
-        queryResult.isSuccess,
-        queryResult.isLoading,
-        queryResult.error,
-    ];
-};
