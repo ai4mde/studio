@@ -106,6 +106,10 @@ def remove_prototype():
     REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh"
     data = request.json
     prototype_name = data.get('prototype_name')
+    if prototype_name in running_prototypes:
+        pid, _ = running_prototypes[prototype_name]
+        os.kill(pid, signal.SIGTERM)
+        del running_prototypes[prototype_name]
     try:
         subprocess.run([REMOVER_PATH, prototype_name], check=True)
     except subprocess.CalledProcessError:
