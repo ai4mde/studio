@@ -151,4 +151,29 @@ def get_prototype_status(request, prototype_name):
     return response.json()
 
 
+@prototypes.post("/stop/{str:prototype_name}", response=bool)
+def stop_prototype(request, prototype_name):
+    STOP_URL = f"http://studio-prototypes:8010/stop/{prototype_name}" # TODO: put this in env
+    try:
+        response = requests.post(STOP_URL)
+    except:
+        return False
+    
+    if response.status_code == 200:
+        return True
+    return False
+
+
+@prototypes.post("/run/{str:prototype_name}", response=bool)
+def run_prototype(request, prototype_name):
+    RUN_URL = f"http://studio-prototypes:8010/run/{prototype_name}" # TODO: put this in env
+    try:
+        response = requests.post(RUN_URL)
+    except:
+        return False
+    
+    if response.status_code in [200, 307]:
+        return True
+    return False
+
 __all__ = ["prototypes"]
