@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from shared_models.models import *
 
-{% for section_component in section_components -%}
+{% for page in pages %}
+{% for section_component in page.section_components -%}
 {% if section_component.has_create_operation %}
 
-def {{ section_component.name }}_create(request):
+def {{ page.name }}_{{ section_component.name }}_create(request):
     if request.method == 'POST':
         new_object = {{ section_component.primary_model }}()
         {% for attribute in section_component.attributes -%}
@@ -28,7 +29,7 @@ def {{ section_component.name }}_create(request):
         new_object.save()
     return redirect(request.META['HTTP_REFERER'])
 
-def {{ section_component.name }}_create_popup(request):
+def {{ page.name }}_{{ section_component.name }}_create_popup(request):
     context = {} # TODO: build context (object lists)
     request.session['{{ section_component.name }}_create_popup'] = True
     return redirect(request.META['HTTP_REFERER'])
@@ -36,7 +37,7 @@ def {{ section_component.name }}_create_popup(request):
 {% endif -%}
 
 {% if section_component.has_delete_operation %}
-def {{ section_component.name }}_delete(request, instance_id):
+def {{ page.name }}_{{ section_component.name }}_delete(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
         instance.delete()
@@ -44,7 +45,7 @@ def {{ section_component.name }}_delete(request, instance_id):
 {% endif -%}
 
 {% if section_component.has_update_operation %}
-def {{ section_component.name }}_update(request, instance_id):
+def {{ page.name }}_{{ section_component.name }}_update(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
         {% for attribute in section_component.updatable_attributes -%}
@@ -62,12 +63,13 @@ def {{ section_component.name }}_update(request, instance_id):
         return redirect(request.META['HTTP_REFERER'])
 
 
-def {{ section_component.name }}_update_popup(request, instance_id):
+def {{ page.name }}_{{ section_component.name }}_update_popup(request, instance_id):
     context = {}
     request.session['update_instance'] = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
     return redirect(request.META['HTTP_REFERER'])
 
 {% endif -%}
+{% endfor %}
 {% endfor %}
 
 {% for page in pages %}

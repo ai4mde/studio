@@ -5,6 +5,7 @@ import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
 from utils.definitions.model import AttributeType
 from utils.definitions.section_component import SectionComponent
+from utils.definitions.application_component import ApplicationComponent
 
 
 # TODO: there could be added more logic here to only add relevant
@@ -12,6 +13,7 @@ from utils.definitions.section_component import SectionComponent
 def add_jinja_globals(template: Template) -> Template:
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent
+    template.globals['ApplicationComponent'] = ApplicationComponent
     return template
 
 

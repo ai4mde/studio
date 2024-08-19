@@ -10,6 +10,7 @@ class SectionComponent():
             id: str,
             name: str,
             application: str, # TODO: reference
+            page: str, # TODO: refrenec
             primary_model: Model, # TODO: reference
             parent_models: List[Model], # TODO: implement
             attributes: List[Attribute],
@@ -21,6 +22,7 @@ class SectionComponent():
         self.name = section_name_sanitization(name)
         self.id = id
         self.application = application
+        self.page = page
         self.primary_model = primary_model
         self.parent_models = parent_models
         self.attributes = attributes
