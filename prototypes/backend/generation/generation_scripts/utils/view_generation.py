@@ -22,4 +22,4 @@ def generate_views(application_component: ApplicationComponent) -> bool:
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
     
-    raise Exception("Failed to generate shared_models/models.py")
+    raise Exception("Failed to generate " + project_name + "/views.py")

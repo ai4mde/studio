@@ -19,11 +19,17 @@ def app_name_sanitization(proposed_name: str) -> str:
 
 
 def model_name_sanitization(proposed_name: str) -> str:
-    return general_name_sanitization(proposed_name)
+    name = general_name_sanitization(proposed_name)
+    if name[0].isdigit(): # model names may not start with a digit
+        name = "cls_" + name
+    return name
 
 
 def attribute_name_sanitization(proposed_name: str) -> str:
-    return general_name_sanitization(proposed_name)
+    name = general_name_sanitization(proposed_name)
+    if name[0].isdigit(): # attribute names may not start with a digit
+        name = "att_" + name
+    return name
 
 
 def page_name_sanitization(proposed_name: str) -> str:

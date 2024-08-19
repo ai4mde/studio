@@ -5,14 +5,20 @@ import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
 from utils.definitions.model import AttributeType
 from utils.definitions.section_component import SectionComponent
+from utils.definitions.page import Page
 from utils.definitions.application_component import ApplicationComponent
 
 
 # TODO: there could be added more logic here to only add relevant
 #       globals based on the type of output file.
 def add_jinja_globals(template: Template) -> Template:
+    '''This function adds Python class schemes to Jinja templates
+    which ensures that attributes of these objects can be read
+    inside the templates.'''
+    
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent
+    template.globals['Page'] = Page
     template.globals['ApplicationComponent'] = ApplicationComponent
     return template
 

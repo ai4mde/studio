@@ -42,6 +42,7 @@ def find_category_by_id(metadata: str, category_id: str) -> str | None:
     return None
 
 
+# TODO: redundant
 def filter_section_components_by_application(section_components: List[SectionComponent], application: str) -> List[SectionComponent]:
     out = []
     for section_component in section_components:
@@ -50,6 +51,7 @@ def filter_section_components_by_application(section_components: List[SectionCom
     return out
 
 
+# TODO: redundant
 def filter_pages_by_application(pages: List[Page], application: str) -> List[Page]:
     out = []
     for page in pages:

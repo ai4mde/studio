@@ -26,10 +26,13 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
         if association["source_ptr"] == node["id"]:
             foreign_model = retrieve_class_by_id(association["target_ptr"], diagram)
             out.append(foreign_model)
-            
+
+        '''
+        TODO: above lines might need to be replaced by these lines, depending on direction of ptrs
         if association["target_ptr"] == node["id"]:
             foreign_model = retrieve_class_by_id(association["source_ptr"], diagram)
             out.append(foreign_model)
+        '''
 
     return out
 

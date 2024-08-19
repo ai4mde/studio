@@ -21,6 +21,7 @@ class {{ model.name }}(User):
 
 class {{ model.name }}(models.Model):
     {%- endif %}
+    {% if model.attributes -%}
     {% for attribute in model.attributes -%}
     {%- if attribute.type == AttributeType.BOOLEAN -%}
     {{ attribute.name }} = models.BooleanField(default=False)
@@ -33,6 +34,9 @@ class {{ model.name }}(models.Model):
     {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE)
     {% endif -%}
     {% endfor -%}
+    {% else -%}
+    pass
+    {% endif -%}
 
     {%- for custom_method in model.custom_methods %}
 

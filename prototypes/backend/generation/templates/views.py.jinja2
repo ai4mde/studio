@@ -5,7 +5,7 @@ from shared_models.models import *
 {% for section_component in page.section_components -%}
 {% if section_component.has_create_operation %}
 
-def {{ page.name }}_{{ section_component.name }}_create(request):
+def {{ page }}_{{ section_component }}_create(request):
     if request.method == 'POST':
         new_object = {{ section_component.primary_model }}()
         {% for attribute in section_component.attributes -%}
@@ -27,25 +27,25 @@ def {{ page.name }}_{{ section_component.name }}_create(request):
         {% endif -%}
         {% endfor -%}
         new_object.save()
-    return redirect(request.META['HTTP_REFERER'])
+    return redirect('render_{{ page }}')
 
-def {{ page.name }}_{{ section_component.name }}_create_popup(request):
+def {{ page }}_{{ section_component }}_create_popup(request):
     context = {} # TODO: build context (object lists)
-    request.session['{{ section_component.name }}_create_popup'] = True
-    return redirect(request.META['HTTP_REFERER'])
+    request.session['{{ section_component }}_create_popup'] = True
+    return render(request, '{{ page }}.html', context)
 
 {% endif -%}
 
 {% if section_component.has_delete_operation %}
-def {{ page.name }}_{{ section_component.name }}_delete(request, instance_id):
+def {{ page }}_{{ section_component }}_delete(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
         instance.delete()
-        return redirect(request.META['HTTP_REFERER'])
+        return redirect('render_{{ page }}')
 {% endif -%}
 
 {% if section_component.has_update_operation %}
-def {{ page.name }}_{{ section_component.name }}_update(request, instance_id):
+def {{ page }}_{{ section_component }}_update(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
         {% for attribute in section_component.updatable_attributes -%}
@@ -60,13 +60,14 @@ def {{ page.name }}_{{ section_component.name }}_update(request, instance_id):
         {% endif -%}
         {% endfor -%}
         instance.save()
-        return redirect(request.META['HTTP_REFERER'])
+        return redirect('render_{{ page }}')
 
 
-def {{ page.name }}_{{ section_component.name }}_update_popup(request, instance_id):
-    context = {}
+def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
+    context = {} # TODO: build context (object lists)
     request.session['update_instance'] = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-    return redirect(request.META['HTTP_REFERER'])
+    return render(request, '{{ page }}.html', context)
+
 
 {% endif -%}
 {% endfor %}

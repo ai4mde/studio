@@ -16,3 +16,6 @@ class ApplicationComponent():
         self.project = project
         self.name = app_name_sanitization(name)
         self.pages = pages
+
+    def __str__(self):
+        return self.name
