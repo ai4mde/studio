@@ -1,6 +1,7 @@
 from utils.sanitization import app_name_sanitization
 from typing import List
 from utils.definitions.page import Page
+from utils.definitions.styling import Styling
 
 class ApplicationComponent():
     '''Definition of an Application Component. One application component
@@ -10,12 +11,14 @@ class ApplicationComponent():
         id: str,
         project: str,
         name: str,
-        pages: List[Page]
+        pages: List[Page],
+        styling: Styling
     ):
         self.id = id
         self.project = project
         self.name = app_name_sanitization(name)
         self.pages = pages
+        self.styling = styling
 
     def __str__(self):
         return self.name

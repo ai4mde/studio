@@ -3,6 +3,7 @@ from utils.sanitization import project_name_sanitization, app_name_sanitization
 from utils.view_generation import generate_views
 from utils.url_generation import generate_urls
 from utils.template_generation import generate_templates
+from utils.styling_generation import generate_styling
 from utils.loading_json_utils import get_application_component
 
 
@@ -23,10 +24,12 @@ def main():
     if not generate_urls(application_component):
         raise Exception("Failed to generate urls")
     
-    '''
-    if not generate_templates(project_name, application_name, metadata):
-        raise Exception("Failed to generate urls")
-    '''
+    
+    if not generate_templates(application_component):
+        raise Exception("Failed to generate templates")
+    
+    if not generate_styling(application_component):
+        raise Exception("Failed to generate styling")
 
     return True
 

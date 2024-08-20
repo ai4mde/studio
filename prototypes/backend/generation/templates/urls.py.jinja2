@@ -3,15 +3,15 @@ from . import views
 
 urlpatterns = [
     {% for page in pages -%}
-    path("render_{{ page }}/", views.render_{{ page }}, name="render_{{ page }}"),
+    path("render_{{ application_name }}_{{ page }}", views.render_{{ application_name }}_{{ page }}, name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
     path('{{ page }}_{{ section_component }}_create/', views.{{ page }}_{{ section_component }}_create, name='{{ page }}_{{ section_component }}_create'),
     path('{{ page }}_{{ section_component }}_create_popup/', views.{{ page }}_{{ section_component }}_create_popup, name='{{ page }}_{{ section_component }}_create_popup'),
     {% endif -%}
     {% if section_component.has_update_operation -%}
-    path('{{ page }}_{{ section_component }}_update/', views.{{ page }}_{{ section_component }}_update, name='{{ page }}_{{ section_component }}_update'),
-    path('{{ page }}_{{ section_component }}_update_popup/', views.{{ page }}_{{ section_component }}_update_popup, name='{{ page }}_{{ section_component }}_update_popup'),
+    path('{{ page }}_{{ section_component }}_update/<int:instance_id>/', views.{{ page }}_{{ section_component }}_update, name='{{ page }}_{{ section_component }}_update'),
+    path('{{ page }}_{{ section_component }}_update_popup/<int:instance_id>/', views.{{ page }}_{{ section_component }}_update_popup, name='{{ page }}_{{ section_component }}_update_popup'),
     {% endif -%}
     {% if section_component.has_delete_operation -%}
     path('{{ page }}_{{ section_component }}_delete/<int:instance_id>/', views.{{ page }}_{{ section_component }}_delete, name='{{ page }}_{{ section_component }}_delete'),

@@ -24,14 +24,14 @@ class {{ model.name }}(models.Model):
     {% if model.attributes -%}
     {% for attribute in model.attributes -%}
     {%- if attribute.type == AttributeType.BOOLEAN -%}
-    {{ attribute.name }} = models.BooleanField(default=False)
+    {{ attribute.name }} = models.BooleanField(default=False, blank=True)
     {% elif attribute.type == AttributeType.INTEGER -%}
-    {{ attribute.name }} = models.IntegerField(default=0, null=True)
+    {{ attribute.name }} = models.IntegerField(default=0, null=True, blank=True)
     {% elif attribute.name == "username" or attribute.name == "password" -%}
     {% elif attribute.type == AttributeType.STRING -%}
-    {{ attribute.name }} = models.CharField(max_length=255, default='', null=True)
+    {{ attribute.name }} = models.CharField(max_length=255, default='', null=True, blank=True)
     {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
-    {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE)
+    {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE, null=True, blank=True)
     {% endif -%}
     {% endfor -%}
     {% else -%}

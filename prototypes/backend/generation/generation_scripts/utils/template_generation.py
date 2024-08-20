@@ -1,4 +1,51 @@
-def generate_templates(project_name: str, 
-                   application_name: str, 
-                   metadata: str) -> bool:
-    pass
+from utils.definitions.application_component import ApplicationComponent
+from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
+from utils.file_generation import generate_output_file
+from os import makedirs
+
+
+def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/base.html.jinja2"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + app_name_sanitization(application_component.name) + "_base.html"
+    
+    logo = "" # TODO: retrieve from metadata
+    categories = [] # TODO: retrieve from metadata
+
+    data = {
+        "application_name": application_component.name,
+        "logo": logo,
+        "pages": application_component.pages,
+        "categories": categories
+    }
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        return True
+    return False
+    
+
+def generate_templates(application_component: ApplicationComponent) -> bool:
+    project_name = project_name_sanitization(application_component.project)
+    application_name = app_name_sanitization(application_component.name)
+    pages_in_app = application_component.pages
+
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/page.html.jinja2"
+    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/" + application_name + "/templates"
+    
+    try:
+        makedirs(OUTPUT_TEMPLATES_DIRECTORY, exist_ok=True)
+    except:
+        raise Exception("Failed to create templates directory for " + project_name + " application")
+    
+    if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+        raise Exception("Failed to generate base page")
+    
+    for page in pages_in_app:
+        OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"
+        data = {
+            "project_name": project_name,
+            "application_name": application_name,
+            "page": page,
+        }
+        if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+            raise Exception("Failed to generate template: " + page.name)
+            
+    return True

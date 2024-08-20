@@ -1,0 +1,38 @@
+{% raw %}{% load static %}{% endraw %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{{ application_name }}</title>
+            <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="logo">
+                <img src='{{ logo }}' alt="Logo">
+            </div>
+            <h1>{{ application_name | capitalize }}</h1>
+        </div>
+            <div class="menu">
+                {% for page in pages %}
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page }}</a>
+                {% endfor %}
+                {# TODO: implement categories
+                {% for category in categories %}
+                    <a href="#">{{ category }}</a>
+                {% endfor %}
+                #}
+
+                {# TODO: implement authentication functionality #}
+            </div>
+    
+    <div class="content">
+        {% raw %}
+        {% block content %}
+
+        {% endblock %}
+        {% endraw %}
+    </div>
+    </body>
+</html>

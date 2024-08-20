@@ -1,9 +1,11 @@
-from typing import List
-from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization
+from typing import List, Dict
+from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization, attribute_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
-from utils.definitions.section_component import SectionComponent
+from utils.definitions.section_component import SectionComponent, SectionAttribute
 from utils.definitions.page import Page
 from utils.definitions.category import Category
+from utils.definitions.model import AttributeType, Model
+from utils.definitions.styling import Styling, StyleType
 import json
 from uuid import uuid4
 
@@ -60,6 +62,34 @@ def filter_pages_by_application(pages: List[Page], application: str) -> List[Pag
     return out
 
 
+def retrieve_section_attributes(section: str) -> List[SectionAttribute]:
+    if not section:
+        return []
+    if "attributes" not in section:
+        return []
+    
+    out = []
+    for attribute in section["attributes"]:
+        attribute_type = None
+        if attribute["type"] == "str":
+            attribute_type  = AttributeType.STRING
+        elif attribute["type"] == "int":
+            attribute_type  = AttributeType.INTEGER
+        elif attribute["type"] == "bool":
+            attribute_type  = AttributeType.BOOLEAN
+
+        # TODO: retrieve foreign models (also TODO in frontend)
+
+        att = SectionAttribute(
+            name = attribute_name_sanitization(attribute["name"]),
+            type = attribute_type,
+            updatable = True # TODO: frontend management of updatable attributes
+        )
+        out.append(att)
+
+    return out
+
+
 def retrieve_section_components(application_name: str, page_name: str, metadata: str) -> List[SectionComponent]:
     '''Function that retrieves the section components corresponding to page_name from
     metadata and returns a list of SectionComponent objects.'''
@@ -87,8 +117,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         page = page_name,
                         primary_model = find_model_by_id(metadata, section["class"]), # TODO: there might be a quicker method than this
                         parent_models = [], # TODO
-                        attributes = [], # TODO
-                        updatable_attributes = [], # TODO
+                        attributes = retrieve_section_attributes(section),
                         has_create_operation = section["operations"]["create"],
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
@@ -132,13 +161,85 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
 
     return out
 
+
+def retrieve_models_on_pages(application_component: ApplicationComponent) -> Dict[Page, List[Model]]:
+    '''Function that returns all primary models & foreign/parent models on pages inside
+    application_component'''
+    out: Dict[Page, List[Model]] = {}
+
+    for page in application_component.pages:
+        if page not in out:
+            out[page] = []
+        for section_component in page.section_components:
+            out[page].append(section_component.primary_model)
+            for parent_model in section_component.parent_models:
+                out[page].append(parent_model)
+    return out
+
+
+def retrieve_styling(application_name: str, metadata: str)  -> Styling:
+    if metadata in ["", None]:
+        raise Exception("Failed to retrieve styling from metadata: metadata is empty")
+    
+    style_type = None
+    radius = None
+    background_color = None
+    accent_color = None
+    text_color = None
+    
+    try:
+        for application_component in json.loads(metadata)["interfaces"]:
+            if application_component["label"] != application_name:
+                continue
+            if "styling" not in application_component["value"]["data"]: # empty interface
+                return Styling() # return default object
+            
+            styling = application_component["value"]["data"]["styling"]
+            if "selectedStyle" not in styling:
+                style_type = StyleType.BASIC
+            elif styling["selectedStyle"] == "basic":
+                style_type = StyleType.BASIC
+            elif styling["selectedStyle"] == "abstract":
+                style_type = StyleType.ABSTRACT
+            elif styling["selectedStyle"] == "modern":
+                style_type = StyleType.MODERN
+
+            if "radius" not in styling:
+                radius = 10
+            else:
+                radius = styling["radius"]
+            if "backgroundColor" not in styling:
+                background_color = "#FFFFFF"
+            else:
+                background_color = styling["backgroundColor"]
+            if "accentColor" not in styling:
+                accent_color = "#777777"
+            else:
+                accent_color = styling["accentColor"]
+            if "textColor" not in styling:
+                text_color = "#000000"
+            else:
+                text_color = styling["textColor"]
+
+            return Styling(
+                style_type = style_type,
+                radius = radius,
+                text_color = text_color,
+                accent_color = accent_color,
+                background_color = background_color
+            )
+    except:
+        return Styling()
+
+
 def get_application_component(project_name: str, application_name: str, metadata: str) -> ApplicationComponent:
     '''Function that builds an ApplicationComponent object for application_name
     from metadata.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
-        project=project_name,
-        name=application_name,
-        pages=pages
+        project = project_name,
+        name = application_name,
+        pages = pages,
+        styling = retrieve_styling(application_name, metadata)
     )

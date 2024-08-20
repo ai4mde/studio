@@ -3,10 +3,11 @@ import os
 import jinja2
 import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
-from utils.definitions.model import AttributeType
+from utils.definitions.model import Attribute, AttributeType
 from utils.definitions.section_component import SectionComponent
 from utils.definitions.page import Page
 from utils.definitions.application_component import ApplicationComponent
+from utils.definitions.styling import Styling, StyleType
 
 
 # TODO: there could be added more logic here to only add relevant
@@ -16,6 +17,9 @@ def add_jinja_globals(template: Template) -> Template:
     which ensures that attributes of these objects can be read
     inside the templates.'''
     
+    template.globals['Styling'] = Styling
+    template.globals['StyleType'] = StyleType
+    template.globals['Attribute'] = Attribute
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent
     template.globals['Page'] = Page

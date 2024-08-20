@@ -37,7 +37,7 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     return out
 
 
-def retrieve_attributes(node: str) -> List[Attribute]:
+def retrieve_model_attributes(node: str) -> List[Attribute]:
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
 
@@ -73,7 +73,7 @@ def retrieve_models(metadata: str) -> List[Model]:
                 for node in diagram["nodes"]:
                     cls = Model(
                         name = model_name_sanitization(node["cls"]["name"]),
-                        attributes = retrieve_attributes(node) + retrieve_foreign_models(node, diagram),
+                        attributes = retrieve_model_attributes(node) + retrieve_foreign_models(node, diagram),
                         custom_methods = [] # TODO
                     )
                     out.append(cls)

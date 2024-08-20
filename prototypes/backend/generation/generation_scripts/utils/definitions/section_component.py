@@ -1,6 +1,22 @@
 from typing import List
-from utils.definitions.model import Model, Attribute
+from utils.definitions.model import Model, AttributeType
 from utils.sanitization import section_name_sanitization
+
+
+class SectionAttribute():
+    def __init__(
+            self,
+            name: str,
+            type: AttributeType,
+            updatable: bool
+    ):
+        self.name = name
+        self.type = type
+        self.updatable = updatable
+
+    def __str__(self):
+        return self.name
+
 
 class SectionComponent():
     """Definition of a Section Component. A Section Component is a component
@@ -13,8 +29,7 @@ class SectionComponent():
             page: str, # TODO: refrenec
             primary_model: Model, # TODO: reference
             parent_models: List[Model], # TODO: implement
-            attributes: List[Attribute],
-            updatable_attributes: List[Attribute], # TODO: implement
+            attributes: List[SectionAttribute],
             has_create_operation: bool = False,
             has_delete_operation: bool = False,
             has_update_operation: bool = False
@@ -26,7 +41,6 @@ class SectionComponent():
         self.primary_model = primary_model
         self.parent_models = parent_models
         self.attributes = attributes
-        self.updatable_attributes = updatable_attributes
         self.has_create_operation = has_create_operation
         self.has_delete_operation = has_delete_operation
         self.has_update_operation = has_update_operation

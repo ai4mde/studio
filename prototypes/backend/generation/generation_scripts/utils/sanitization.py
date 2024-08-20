@@ -33,6 +33,8 @@ def attribute_name_sanitization(proposed_name: str) -> str:
 
 
 def page_name_sanitization(proposed_name: str) -> str:
+    if proposed_name.lower() == "base":
+        proposed_name = uuid4()
     return general_name_sanitization(proposed_name)
 
 
