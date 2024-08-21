@@ -15,6 +15,7 @@
             <h1>{{ application_name | capitalize }}</h1>
         </div>
             <div class="menu">
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
                 {% for page in pages %}
                 <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page }}</a>
                 {% endfor %}
@@ -24,7 +25,12 @@
                 {% endfor %}
                 #}
 
-                {# TODO: implement authentication functionality #}
+                {% if authentication_present -%}
+                {% raw %}<form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="Logout">
+                </form>{% endraw %}
+                {% endif -%}
             </div>
     
     <div class="content">

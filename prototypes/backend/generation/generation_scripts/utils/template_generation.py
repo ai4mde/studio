@@ -5,17 +5,20 @@ from os import makedirs
 
 
 def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    application_name = app_name_sanitization(application_component.name)
+
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/base.html.jinja2"
-    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + app_name_sanitization(application_component.name) + "_base.html"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_base.html"
     
     logo = "" # TODO: retrieve from metadata
     categories = [] # TODO: retrieve from metadata
 
     data = {
-        "application_name": application_component.name,
+        "application_name": application_name,
         "logo": logo,
         "pages": application_component.pages,
-        "categories": categories
+        "categories": categories,
+        "authentication_present": application_component.authentication_present
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
