@@ -110,3 +110,11 @@ def render_{{ application_name }}_{{ page }}(request):
     {% endfor -%}
     return render(request, '{{ application_name }}_{{ page }}.html', context)
 {% endfor %}
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def homerender(request):
+    context = {}
+    context['user'] = request.user
+    return render(request, '{{ application_name }}_home.html', context)

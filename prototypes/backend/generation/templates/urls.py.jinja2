@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("", views.homerender, name="{{ application_name }}-homerender"),
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}", views.render_{{ application_name }}_{{ page }}, name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}

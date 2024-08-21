@@ -20,6 +20,22 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
     return False
+
+
+def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    application_name = app_name_sanitization(application_component.name)
+
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/home.html.jinja2"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_home.html"
+    
+    data = {
+        "application_name": application_name,
+        "authentication_present": application_component.authentication_present
+    }
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        return True
+    
+    return False
     
 
 def generate_templates(application_component: ApplicationComponent) -> bool:
@@ -37,6 +53,9 @@ def generate_templates(application_component: ApplicationComponent) -> bool:
     
     if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate base page")
+    
+    if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+        raise Exception("Failed to generate home page")
     
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"
