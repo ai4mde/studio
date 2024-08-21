@@ -1,6 +1,5 @@
-from utils.definitions.application_component import ApplicationComponent
-from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
 from utils.file_generation import generate_output_file
+from utils.loading_json_utils import get_apps
 from os import makedirs
 
 
@@ -32,10 +31,11 @@ def generate_auth_templates(project_name: str, metadata: str) -> bool:
     if not generate_auth_base_page(metadata, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate base page for authentication application")
     
-    user_types = ["Customer", "Manager", "BigBoss"] # TODO: retrieve from metadata
+    application_names = get_apps(metadata).split()
+
     data = {
         "project_name": project_name,
-        "user_types": user_types
+        "user_types": application_names
     }
     if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         raise Exception("Failed to generate authentication index template" )

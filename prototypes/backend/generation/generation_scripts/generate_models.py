@@ -4,6 +4,7 @@ from utils.definitions.model import Model, Attribute, AttributeType
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization
+from utils.loading_json_utils import get_apps
 
 
 def retrieve_class_by_id(node_id: str, diagram: str) -> Attribute:
@@ -88,12 +89,16 @@ def main():
         raise Exception("Invalid number of system arguments.")
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/models.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + project_name_sanitization(sys.argv[1]) + "/shared_models/models.py"
+
+    metadata = sys.argv[2]
+    application_names = get_apps(metadata).split()
+
     data = {
         "project_name": sys.argv[1],
         "app_name": "shared_models",
-        "models": retrieve_models(sys.argv[2]),
+        "models": retrieve_models(metadata),
         "authentication_present": sys.argv[3] == "True",
-        "user_types": ["Customer", "Manager", "BigBoss"], # TODO
+        "user_types": application_names
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

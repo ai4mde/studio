@@ -24,7 +24,7 @@ def login_user(request):
             request.session['user'] = username
             {% for user_type in user_types %}
             if user.is_{{ user_type }}:
-                return redirect('/{{ user_type }}')
+                return redirect('/{{ user_type }}/')
             {% endfor %}
             context['auth_mess'] = "Incorrect user type!"
             context['auth_mess_color'] = "red"

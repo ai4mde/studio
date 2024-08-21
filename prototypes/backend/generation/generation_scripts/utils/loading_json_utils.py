@@ -10,8 +10,8 @@ import json
 from uuid import uuid4
 
 
-def get_apps(metadata: str) -> List[str]:
-    '''Returns a list of all application component names'''
+def get_apps(metadata: str) -> str:
+    '''Returns a string with all application component names, and spaces inbetween'''
     apps = []
     
     try:

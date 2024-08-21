@@ -48,6 +48,7 @@ create_authentication_app() {
     python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA"
     cd "${OUTDIR}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['authentication']" >> settings.py
+    echo "LOGIN_URL = '/'" >> settings.py
     echo "urlpatterns += [path(\"\", include(\"authentication.urls\"))]" >> urls.py
 
 }
