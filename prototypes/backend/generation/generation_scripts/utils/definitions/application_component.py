@@ -12,13 +12,15 @@ class ApplicationComponent():
         project: str,
         name: str,
         pages: List[Page],
-        styling: Styling
+        styling: Styling,
+        authentication_present: bool = True,
     ):
         self.id = id
         self.project = project
         self.name = app_name_sanitization(name)
         self.pages = pages
         self.styling = styling
+        self.authentication_present = authentication_present # TODO: maybe put this in a global settings object
 
     def __str__(self):
         return self.name

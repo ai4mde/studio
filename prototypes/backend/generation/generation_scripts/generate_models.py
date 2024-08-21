@@ -84,7 +84,7 @@ def retrieve_models(metadata: str) -> List[Model]:
 
 
 def main():
-    if (len(sys.argv) != 3):
+    if (len(sys.argv) != 4):
         raise Exception("Invalid number of system arguments.")
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/models.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + project_name_sanitization(sys.argv[1]) + "/shared_models/models.py"
@@ -92,7 +92,8 @@ def main():
         "project_name": sys.argv[1],
         "app_name": "shared_models",
         "models": retrieve_models(sys.argv[2]),
-        "user_types": [], # TODO
+        "authentication_present": sys.argv[3] == "True",
+        "user_types": ["Customer", "Manager", "BigBoss"], # TODO
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

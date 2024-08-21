@@ -8,14 +8,15 @@ from utils.loading_json_utils import get_application_component
 
 
 def main():
-    if (len(sys.argv) != 4):
+    if (len(sys.argv) != 5):
         raise Exception("Invalid number of system arguments.")
     
     project_name = project_name_sanitization(sys.argv[1])
     application_name = app_name_sanitization(sys.argv[2])
     metadata = sys.argv[3]
+    authentication_present = sys.argv[4] == "True"
 
-    application_component = get_application_component(project_name, application_name, metadata)
+    application_component = get_application_component(project_name, application_name, metadata, authentication_present)
 
     if not generate_views(application_component):
         raise Exception("Failed to generate views")

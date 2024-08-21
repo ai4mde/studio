@@ -1,10 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import user_passes_test
 from shared_models.models import *
+
+{% if authentication_present -%}
+def login_check(user):
+    return user.is_authenticated and user.is_{{ application_name }} # TODO: actor name instead of app name
+{% endif -%}
 
 {% for page in pages %}
 {% for section_component in page.section_components -%}
 {% if section_component.has_create_operation %}
 
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def {{ page }}_{{ section_component }}_create(request):
     if request.method == 'POST':
         new_object = {{ section_component.primary_model }}()
@@ -29,6 +38,9 @@ def {{ page }}_{{ section_component }}_create(request):
         new_object.save()
     return redirect('render_{{ application_name }}_{{ page }}')
 
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def {{ page }}_{{ section_component }}_create_popup(request):
     context = {}
     {% for model in models_on_pages[page] -%}
@@ -40,6 +52,9 @@ def {{ page }}_{{ section_component }}_create_popup(request):
 {% endif -%}
 
 {% if section_component.has_delete_operation %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def {{ page }}_{{ section_component }}_delete(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
@@ -48,6 +63,9 @@ def {{ page }}_{{ section_component }}_delete(request, instance_id):
 {% endif -%}
 
 {% if section_component.has_update_operation %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def {{ page }}_{{ section_component }}_update(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
@@ -65,7 +83,9 @@ def {{ page }}_{{ section_component }}_update(request, instance_id):
         instance.save()
         return redirect('render_{{ application_name }}_{{ page }}')
 
-
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
     context = {}
     {% for model in models_on_pages[page] -%}
@@ -80,6 +100,9 @@ def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
 {% endfor %}
 
 {% for page in pages %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
 def render_{{ application_name }}_{{ page }}(request):
     context = {}
     {% for model in models_on_pages[page] -%}

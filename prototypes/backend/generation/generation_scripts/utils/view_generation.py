@@ -18,6 +18,7 @@ def generate_views(application_component: ApplicationComponent) -> bool:
         "application_name": application_name,
         "pages": pages_in_app,
         "models_on_pages": models_on_pages,
+        "authentication_present": application_component.authentication_present
     }
 
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

@@ -46,6 +46,7 @@ export const CreatePrototype: React.FC = () => {
     const [selectedInterfaces, setSelectedInterfaces] = useState([]);
     const [error, setError] = useState<string | null>(null);
     const [generationError, setGenerationError] = useState<string | null>(null);
+    const [useAuthentication, setUseAuthentication] = useState(true);
 
 
     useEffect(() => {
@@ -63,6 +64,7 @@ export const CreatePrototype: React.FC = () => {
             const metadata = {
                 "diagrams": diagrams,
                 "interfaces": selectedInterfaces,
+                "useAuthentication": useAuthentication,
             };
             const { data } = await authAxios.post("v1/generator/prototypes/", {
                 name: name,
@@ -90,6 +92,7 @@ export const CreatePrototype: React.FC = () => {
         const metadata = {
             "diagrams": diagrams,
             "interfaces": selectedInterfaces,
+            "useAuthentication": useAuthentication,
         };
 
         const alphanumericRegex = /^[a-zA-Z0-9]+$/;
@@ -172,7 +175,10 @@ export const CreatePrototype: React.FC = () => {
                     </FormControl>
                     <FormControl>
                         <span className="flex flex-row items-center gap-2">
-                            <Switch defaultChecked />
+                            <Switch 
+                                defaultChecked={useAuthentication} 
+                                onChange={(e) => setUseAuthentication(e.target.checked)} 
+                            />
                             <FormLabel sx={{ marginTop: '4px' }}>Use Authentication</FormLabel>
                         </span>
                     </FormControl>

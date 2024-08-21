@@ -11,7 +11,7 @@ from uuid import uuid4
 
 
 def get_apps(metadata: str) -> List[str]:
-    """Returns a list of all application component names"""
+    '''Returns a list of all application component names'''
     apps = []
     
     try:
@@ -21,6 +21,19 @@ def get_apps(metadata: str) -> List[str]:
     except:
         raise Exception("Failed to retrieve names of interfaces")
     return " ".join(apps)
+
+
+def authentication_is_present(metadata: str) -> bool:
+    '''Returns true if authentication is enabled in the metadata'''
+
+    if metadata in ["", None]:
+        raise Exception("Metadata is empty")
+    
+    metadata_json = json.loads(metadata)
+    if "useAuthentication" in metadata_json:
+        return metadata_json["useAuthentication"]
+    
+    return False
 
 
 def find_model_by_id(metadata: str, class_id: str) -> str | None:
@@ -232,7 +245,7 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
         return Styling()
 
 
-def get_application_component(project_name: str, application_name: str, metadata: str) -> ApplicationComponent:
+def get_application_component(project_name: str, application_name: str, metadata: str, authentication_present: bool) -> ApplicationComponent:
     '''Function that builds an ApplicationComponent object for application_name
     from metadata.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
@@ -241,5 +254,6 @@ def get_application_component(project_name: str, application_name: str, metadata
         project = project_name,
         name = application_name,
         pages = pages,
-        styling = retrieve_styling(application_name, metadata)
+        styling = retrieve_styling(application_name, metadata),
+        authentication_present = authentication_present
     )

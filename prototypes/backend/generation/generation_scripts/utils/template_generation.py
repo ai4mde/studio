@@ -33,7 +33,7 @@ def generate_templates(application_component: ApplicationComponent) -> bool:
     try:
         makedirs(OUTPUT_TEMPLATES_DIRECTORY, exist_ok=True)
     except:
-        raise Exception("Failed to create templates directory for " + project_name + " application")
+        raise Exception("Failed to create templates directory for " + application_name + " application")
     
     if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate base page")
