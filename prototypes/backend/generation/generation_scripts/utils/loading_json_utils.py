@@ -36,7 +36,7 @@ def authentication_is_present(metadata: str) -> bool:
     return False
 
 
-def find_model_by_id(metadata: str, class_id: str) -> str | None:
+def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     for diagram in json.loads(metadata)["diagrams"]:
         if diagram["type"] != "classes":
             continue
@@ -44,6 +44,45 @@ def find_model_by_id(metadata: str, class_id: str) -> str | None:
             if node["cls_ptr"] == class_id:
                 return model_name_sanitization(node["cls"]["name"])
     return None
+
+
+def find_model_by_id(metadata: str, class_id: str) -> str | None:
+    for diagram in json.loads(metadata)["diagrams"]:
+        if diagram["type"] != "classes":
+            continue
+        for node in diagram["nodes"]:
+            if node["id"] == class_id:
+                return model_name_sanitization(node["cls"]["name"])
+    return None
+
+
+def find_model_id_by_class_ptr(metadata: str, class_ptr: str) -> str:
+    for diagram in json.loads(metadata)["diagrams"]:
+        if diagram["type"] != "classes":
+            continue
+        for node in diagram["nodes"]:
+            if node["cls_ptr"] == class_ptr:
+                return node["id"]
+    return None
+
+
+def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> List[str]:
+    out = []
+    primary_class_id = find_model_id_by_class_ptr(metadata, primary_class_class_ptr)
+
+    for diagram in json.loads(metadata)["diagrams"]:
+        if diagram["type"] != "classes":
+            continue
+        if "edges" not in diagram:
+            return []
+        for edge in diagram["edges"]:
+            if edge["source_ptr"] == primary_class_id:
+                cls = model_name_sanitization(find_model_by_id(metadata, edge["target_ptr"]))
+                out.append(cls)
+            if edge["target_ptr"] == primary_class_id:
+                cls = model_name_sanitization(find_model_by_id(metadata, edge["source_ptr"]))
+                out.append(cls)
+    return out
 
 
 def find_category_by_id(metadata: str, category_id: str) -> str | None:
@@ -128,8 +167,8 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         name = section["name"],
                         application = application_name,
                         page = page_name,
-                        primary_model = find_model_by_id(metadata, section["class"]), # TODO: there might be a quicker method than this
-                        parent_models = [], # TODO
+                        primary_model = find_model_by_class_ptr(metadata, section["class"]), # TODO: there might be a quicker method than this
+                        parent_models = find_parent_models_by_id(metadata, section["class"]), # TODO: quicker method?
                         attributes = retrieve_section_attributes(section),
                         has_create_operation = section["operations"]["create"],
                         has_delete_operation = section["operations"]["delete"],

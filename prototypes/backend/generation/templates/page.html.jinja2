@@ -4,6 +4,8 @@
 <div>
     {%- for section_component in page.section_components %}
 
+    <h2>{{ section_component }}</h2>
+
     {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
     <table>
 
@@ -11,6 +13,9 @@
         <tr>
             {%- for attribute in section_component.attributes %}
             <th>{{ attribute }}</th>
+            {%- endfor %}
+            {%- for parent_model in section_component.parent_models %}
+            <th>{{ parent_model }}</th>
             {%- endfor %}
         </tr>
 
@@ -21,39 +26,41 @@
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
-                {% for attribute in section_component.attributes -%}
+                {% for attribute in section_component.attributes %}
                 {% if attribute.updatable %}
                 <td style="text-align:center;">
-                    {% if attribute.type == AttributeType.STRING -%}
+                    {% if attribute.type == AttributeType.STRING %}
                     <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
-                    {%- elif attribute.type == AttributeType.INTEGER -%}
+                    {%- elif attribute.type == AttributeType.INTEGER %}
                     <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
-                    {%- elif attribute.type == AttributeType.BOOLEAN -%}
+                    {%- elif attribute.type == AttributeType.BOOLEAN %}
                     <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
-
-                    {%- elif attribute.type == AttributeType.FOREIGN_MODEL -%}
-                    <select name="instance_{{ attribute }}_id">
-                        {% raw %}{%{% endraw %} for i in {{ attribute }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
-                        {% raw %}{% endfor %}{% endraw %}
-                    </select>
                     {%- endif %}
                 </td>
 
-                {%- else %}
-                {%- if attribute.type in [AttributeType.STRING, AttributeType.FOREIGN_MODEL] %}
+                {% else %}
+                {% if attribute.type == AttributeType.STRING %}
                 <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
                 
-                {%- elif attribute.type == AttributeType.INTEGER %}
+                {% elif attribute.type == AttributeType.INTEGER %}
                 <td style="text-align:right;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
-                {%- elif attribute.type == AttributeType.BOOLEAN %}
+                {% elif attribute.type == AttributeType.BOOLEAN %}
                 <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
                 
                 {% endif -%}
                 {% endif -%}
+                {% endfor %}
+                {% for parent_model in section_component.parent_models %}
+                <td style="text-align:center;">
+                    <select name="instance_{{ parent_model }}_id">
+                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
+                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                        {% raw %}{% endfor %}{% endraw %}
+                    </select>
+                </td>
                 {% endfor %}
                 <td>
                     <input type="submit" value="Save">
@@ -66,7 +73,7 @@
             
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
-            {% if attribute.type in [AttributeType.STRING, AttributeType.FOREIGN_MODEL] -%}
+            {% if attribute.type == AttributeType.STRING -%}
             <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {%- elif attribute.type == AttributeType.INTEGER %}
@@ -75,6 +82,9 @@
             {%- elif attribute.type == AttributeType.BOOLEAN %}
             <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
             {% endif -%}
+            {% endfor -%}
+            {% for parent_model in section_component.parent_models -%}
+            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
             {% endfor -%}
             {% raw %}{% endif %}{% endraw %}
 
@@ -134,13 +144,16 @@
                     <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
                     <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
-                    <select name="instance_{{ attribute }}_id">
-                        {% raw %}{%{% endraw %} for i in {{ attribute }}_list {% raw %}%}{% endraw %}
+                    {%- endif %}
+                </td>
+                {% endfor -%}
+                {% for parent_model in section_component.parent_models -%}
+                <td>
+                    <select name="instance_{{ parent_model }}_id">
+                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
-                    {%- endif %}
                 </td>
                 {% endfor -%}
                 <td>

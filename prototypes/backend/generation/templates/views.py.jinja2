@@ -31,9 +31,10 @@ def {{ page }}_{{ section_component }}_create(request):
             new_object.{{ attribute }} = None
         else: 
             new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
-        {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
-        new_object.{{ attribute }} = {{ attribute }}.objects.filter(pk=request.POST.get('instance_{{ attribute }}_id')).first()
         {% endif -%}
+        {% endfor -%}
+        {% for parent_model in section_component.parent_models -%}
+        new_object.{{ parent_model }} = request.POST.get('instance_{{ parent_model }}')
         {% endfor -%}
         new_object.save()
     return redirect('render_{{ application_name }}_{{ page }}')
@@ -76,9 +77,10 @@ def {{ page }}_{{ section_component }}_update(request, instance_id):
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
         {% elif attribute.type == AttributeType.INTEGER -%}
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
-        {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
-        instance.{{ attribute }} = get_object_or_404({{ attribute }}, pk=request.POST.get('instance_{{ attribute }}_id'))
         {% endif -%}
+        {% endfor -%}
+        {% for parent_model in section_component.parent_models -%}
+        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
         {% endfor -%}
         instance.save()
         return redirect('render_{{ application_name }}_{{ page }}')

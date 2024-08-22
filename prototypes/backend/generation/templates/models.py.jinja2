@@ -32,6 +32,11 @@ class {{ model.name }}(models.Model):
     pass
     {% endif -%}
 
+    {% if model.object_name_attribute %}
+    def __str__(self):
+        return self.{{ model.object_name_attribute }}
+    {% endif %}
+
     {%- for custom_method in model.custom_methods %}
 
     def {{ custom_method.name }}(self, request = None):

@@ -35,6 +35,21 @@ class Attribute():
         return self.name
 
 
+def define_object_name_attribute(attributes: List[Attribute]) -> Attribute:
+    '''Function that returns the primary 'name' attribute of a list of attributes.'''
+    if not attributes:
+        return None
+    
+    for attribute in attributes:
+        if attribute.name == "name":
+            return attribute
+        
+    for attribute in attributes:
+        if attribute.type == AttributeType.STRING:
+            return attribute
+    
+    return attributes[0]
+
 class Model():
     def __init__(
             self,
@@ -44,6 +59,7 @@ class Model():
     ):
         self.name = name
         self.attributes = attributes
+        self.object_name_attribute = define_object_name_attribute(attributes)
         self.custom_methods = custom_methods
 
     def __str__(self):

@@ -28,7 +28,7 @@ class SectionComponent():
             application: str, # TODO: reference
             page: str, # TODO: refrenec
             primary_model: Model, # TODO: reference
-            parent_models: List[Model], # TODO: implement
+            parent_models: List[str], # TODO: implement
             attributes: List[SectionAttribute],
             has_create_operation: bool = False,
             has_delete_operation: bool = False,
