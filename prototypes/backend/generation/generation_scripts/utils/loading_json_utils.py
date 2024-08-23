@@ -207,7 +207,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     category = find_category_by_id(metadata, page["category"]), # TODO: there might be a quicker method than this
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
                 )
-            out.append(pg)
+                out.append(pg)
     except:
         raise Exception("Failed to retrieve pages from metadata: parsing error")
 

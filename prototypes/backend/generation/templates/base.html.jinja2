@@ -26,10 +26,7 @@
                 #}
 
                 {% if authentication_present -%}
-                {% raw %}<form action="{% url 'logout' %}" method="post">
-                    {% csrf_token %}
-                    <input type="submit" value="Logout">
-                </form>{% endraw %}
+                {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}
                 {% endif -%}
             </div>
     
