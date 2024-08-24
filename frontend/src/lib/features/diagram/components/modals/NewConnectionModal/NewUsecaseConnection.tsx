@@ -6,7 +6,7 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const NewActivityConnection: React.FC<Props> = ({
+export const NewUsecaseConnection: React.FC<Props> = ({
     object,
     setObject,
 }) => {
@@ -53,4 +53,4 @@ export const NewActivityConnection: React.FC<Props> = ({
     );
 };
 
-export default NewActivityConnection;
+export default NewUsecaseConnection;
