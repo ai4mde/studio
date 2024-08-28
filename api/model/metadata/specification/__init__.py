@@ -36,11 +36,9 @@ Relation = Annotated[
 
 
 class RelationSchema(ModelSchema):
-    data: Relation
-
     class Meta:
         model = models.Relation
-        fields = ["id", "data"]
+        fields = ["id", "data", "source", "target"]
 
 
 __all__ = [
