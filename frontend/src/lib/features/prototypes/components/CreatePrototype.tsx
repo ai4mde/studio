@@ -1,13 +1,13 @@
-import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { queryClient } from "$shared/hooks/queryClient";
+import React, { useEffect, useState } from "react";
+import { useAtom } from "jotai";
+import { useMutation } from "@tanstack/react-query";
+import CryptoJS from 'crypto-js';
 import {
     Button,
     CircularProgress,
     Divider,
     FormControl,
     FormLabel,
-    getDialogContentUtilityClass,
     Input,
     Modal,
     ModalClose,
@@ -15,13 +15,12 @@ import {
     Switch,
     Typography
 } from "@mui/joy";
-import { useMutation } from "@tanstack/react-query";
-import { useAtom } from "jotai";
-import React, { useEffect, useState } from "react";
-import Select from "react-select";
 import { useParams } from "react-router";
+import Select from "react-select";
+import { queryClient } from "$shared/hooks/queryClient";
+import { authAxios } from "$lib/features/auth/state/auth";
+import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
 import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
-import CryptoJS from 'crypto-js';
 
 type PrototypeInput = {
     name: string;
@@ -29,6 +28,7 @@ type PrototypeInput = {
     system: string;
     running?: boolean;
     metadata: Record<string, any>;
+    database_hash?: string;
 };
 
 type PrototypeOutput = {
@@ -49,7 +49,9 @@ export const CreatePrototype: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const [useAuthentication, setUseAuthentication] = useState(true);
-
+    const [databaseHash, setDatabaseHash] = useState<string | null>(null);
+    const [databasePrototypes, setDatabasePrototypes] = useState([]);
+    const [selectedDatabasePrototype, setSelectedDatabasePrototype] = useState(null);
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
@@ -57,43 +59,74 @@ export const CreatePrototype: React.FC = () => {
         }
     }, [interfaces, isSuccessInterfaces]);
 
+    useEffect(() => {
+        const computeHash = async () => {
+            if (systemId && isSuccessInterfaces) {
+                const [classifiers, relations] = await Promise.all([
+                    authAxios.get(`v1/metadata/systems/${systemId}/classes/`),
+                    authAxios.get(`v1/metadata/systems/${systemId}/classifier-relations/`),
+                ]);
+
+                const interfaceNames = interfaces.map((e) => ({ name: e.name }));
+                const inputString = `${systemId}${JSON.stringify(classifiers.data)}${JSON.stringify(relations.data)}${JSON.stringify(interfaceNames)}`;
+                const hash = CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
+                setDatabaseHash(hash);
+            }
+        };
+
+        computeHash();
+    }, [systemId, interfaces, isSuccessInterfaces]);
+
+    useEffect(() => {
+        const fetchDatabasePrototypes = async () => {
+            if (databaseHash) {
+                try {
+                    const { data } = await authAxios.get(`v1/generator/prototypes/${databaseHash}`);
+                    setDatabasePrototypes(data.map((e) => ({ label: e.name, value: e })));
+                } catch (error) {
+                    console.error("Failed to fetch database prototypes:", error);
+                }
+            }
+        };
+
+        fetchDatabasePrototypes();
+    }, [databaseHash]);
+
     const { mutateAsync, isPending } = useMutation<
         PrototypeOutput,
         unknown,
         PrototypeInput
     >({
-        mutationFn: async ({ name, description }) => {
-            const metadata = {
-                "diagrams": diagrams,
-                "interfaces": selectedInterfaces,
-                "useAuthentication": useAuthentication,
-            };
-            const [classifiers, relations] = await Promise.all([
-                authAxios.get(`v1/metadata/systems/${systemId}/classes/`),
-                authAxios.get(`v1/metadata/systems/${systemId}/classifier-relations/`),
-            ]);
+        mutationFn: async (input) => {
+            const { name, description, system, metadata } = input;
+            if (selectedDatabasePrototype) {
+                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${selectedDatabasePrototype.label}`, {
+                    name,
+                    description,
+                    system_id: system,
+                    metadata,
+                    database_hash: databaseHash,
+                });
+                return data
+            }
+            else {
+                const { data } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
+                    name,
+                    description,
+                    system_id: system,
+                    metadata,
+                    database_hash: databaseHash,
+                });
+                return data
+            }
 
-            const interfaceNames = interfaces.map((e) => ({ name: e.name }));
-            const inputString = `${systemId}${JSON.stringify(classifiers.data)}${JSON.stringify(relations.data)}${JSON.stringify(interfaceNames)}`;
-            const databaseHash = CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
-            console.log(databaseHash)
-
-            const { data } = await authAxios.post("v1/generator/prototypes/", {
-                name: name,
-                description: description,
-                system_id: systemId,
-                metadata: metadata,
-                database_hash: databaseHash
-            });
-
-            return data;
         },
         onError: (error) => {
             setGenerationError("An error occurred while creating the prototype!");
         },
     });
 
-    const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         setError(null);
 
@@ -113,17 +146,24 @@ export const CreatePrototype: React.FC = () => {
             return;
         }
 
+        if (!databaseHash) {
+            setError("No database hash.");
+            return;
+        }
+
         mutateAsync({
             name,
             description,
             system: systemId || "",
             running,
             metadata,
+            database_hash: databaseHash,
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["prototypes"] });
             close();
             window.location.reload();
         }).catch((err) => {
+            console.log(err)
         });
     };
 
@@ -183,6 +223,15 @@ export const CreatePrototype: React.FC = () => {
                             options={interfaces.map((e) => ({ label: e.name, value: e}))}
                             value={selectedInterfaces}
                             onChange={setSelectedInterfaces}
+                        />
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel>Reuse database</FormLabel>
+                        <Select
+                            name="database"
+                            options={databasePrototypes}
+                            value={selectedDatabasePrototype}
+                            onChange={setSelectedDatabasePrototype}
                         />
                     </FormControl>
                     <FormControl>

@@ -30,12 +30,14 @@ def read_prototype(request, id):
 
 
 @prototypes.post("/", response=ReadPrototype)
-def create_prototype(request, prototype: CreatePrototype):
+def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
     GENERATION_URL = "http://studio-prototypes:8010/generate" # TODO: put this in env
     data = {
         'prototype_name': prototype.name,
         'metadata': json.dumps(prototype.metadata)
     }
+    if database_prototype_name and database_prototype_name != "":
+        data['database_prototype_name'] = database_prototype_name
     response = requests.post(GENERATION_URL, json=data)
 
     if response.status_code != 200:
@@ -54,7 +56,6 @@ def create_prototype(request, prototype: CreatePrototype):
 @prototypes.delete("/{uuid:prototype_id}", response=bool)
 def delete_prototype(request, prototype_id):
     DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
-
     prototype = Prototype.objects.filter(id=prototype_id).first()
     if not prototype:
         return False
