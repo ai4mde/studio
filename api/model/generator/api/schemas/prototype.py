@@ -10,8 +10,7 @@ class ReadPrototype(ModelSchema):
             "name", 
             "description", 
             "system", 
-            "running", 
-            "port",
+            "database_hash",
         ]
 
 
@@ -22,8 +21,7 @@ class CreatePrototype(ModelSchema):
             "name", 
             "description", 
             "system", 
-            "running", 
-            "port",
+            "database_hash",
             "metadata",
         ]
 
@@ -36,8 +34,7 @@ class UpdatePrototype(ModelSchema):
             "name", 
             "description", 
             "system", 
-            "running", 
-            "port",
+            "database_hash"
         ]
 
 

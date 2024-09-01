@@ -14,7 +14,7 @@ interfaces = Router()
 def list_interfaces(request, system: Optional[str] = None):
     qs = None
     if system:
-        qs = Interface.objects.filter(system=system)
+        qs = Interface.objects.filter(system=system).order_by('id')
     else:
         qs = Interface.objects.all()
     return qs

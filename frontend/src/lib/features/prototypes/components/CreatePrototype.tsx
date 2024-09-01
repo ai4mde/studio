@@ -7,6 +7,7 @@ import {
     Divider,
     FormControl,
     FormLabel,
+    getDialogContentUtilityClass,
     Input,
     Modal,
     ModalClose,
@@ -20,6 +21,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { useParams } from "react-router";
 import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
+import CryptoJS from 'crypto-js';
 
 type PrototypeInput = {
     name: string;
@@ -60,18 +62,28 @@ export const CreatePrototype: React.FC = () => {
         unknown,
         PrototypeInput
     >({
-        mutationFn: async ({ name, description, running }) => {
+        mutationFn: async ({ name, description }) => {
             const metadata = {
                 "diagrams": diagrams,
                 "interfaces": selectedInterfaces,
                 "useAuthentication": useAuthentication,
             };
+            const [classifiers, relations] = await Promise.all([
+                authAxios.get(`v1/metadata/systems/${systemId}/classes/`),
+                authAxios.get(`v1/metadata/systems/${systemId}/classifier-relations/`),
+            ]);
+
+            const interfaceNames = interfaces.map((e) => ({ name: e.name }));
+            const inputString = `${systemId}${JSON.stringify(classifiers.data)}${JSON.stringify(relations.data)}${JSON.stringify(interfaceNames)}`;
+            const databaseHash = CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
+            console.log(databaseHash)
+
             const { data } = await authAxios.post("v1/generator/prototypes/", {
                 name: name,
                 description: description,
                 system_id: systemId,
-                running: running,
                 metadata: metadata,
+                database_hash: databaseHash
             });
 
             return data;
