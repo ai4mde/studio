@@ -4,6 +4,7 @@ from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem
 from metadata.models import Project, System
 from .meta import meta
 from .classifiers import classifiers, classes, actors
+from .relations import relations, classifier_relations
 
 from ninja import Router
 
@@ -50,5 +51,8 @@ systems.add_router("/{uuid:system_id}/meta", meta)
 systems.add_router("/{uuid:system_id}/classifiers", classifiers)
 systems.add_router("/{uuid:system_id}/classes", classes)
 systems.add_router("/{uuid:system_id}/actors", actors)
+systems.add_router("/{uuid:system_id}/relations", relations)
+systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relations)
+
 
 __all__ = ["systems"]

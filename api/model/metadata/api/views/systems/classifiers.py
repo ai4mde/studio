@@ -61,7 +61,7 @@ def read_classes(request: HttpRequest):
         return 404, "System not found"
 
     return {
-        "classifiers": system.classifiers.filter(data__type='class'),
+        "classifiers": system.classifiers.filter(data__type='class').order_by('id'),
     }
 
 @classes.get("/{classifier_id}/", response=ClassifierSchema)
