@@ -53,10 +53,10 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     return new_prototype
 
 
-@prototypes.delete("/{uuid:prototype_id}", response=bool)
-def delete_prototype(request, prototype_id):
+@prototypes.delete("/{uuid:id}/", response=bool)
+def delete_prototype(request, id):
     DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
-    prototype = Prototype.objects.filter(id=prototype_id).first()
+    prototype = Prototype.objects.filter(id=id).first()
     if not prototype:
         return False
 
@@ -71,7 +71,7 @@ def delete_prototype(request, prototype_id):
     return True
 
 
-@prototypes.delete("/system/{uuid:system_id}", response=bool)
+@prototypes.delete("/system/{uuid:system_id}/", response=bool)
 def delete_system_prototypes(request, system_id):
     DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
 
