@@ -1,6 +1,6 @@
 import { useSystem } from "$browser/queries";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
-import { AppWindow, Blocks, GitGraph, PaintRoller, FileStack} from "lucide-react";
+import { AppWindow, GitGraph, PaintRoller, FileStack} from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -34,11 +34,6 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             strict: true,
                         },
                         {
-                            name: "Metadata",
-                            Icon: Blocks,
-                            href: `/systems/${systemId}/metadata`,
-                        },
-                        {
                             name: "Interfaces",
                             Icon: PaintRoller,
                             href: `/systems/${systemId}/interfaces`,
@@ -48,26 +43,6 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             Icon: AppWindow,
                             href: `/systems/${systemId}/prototypes`,
                         },
-                        {
-                            name: "Versions",
-                            Icon: FileStack,
-                            href: `/systems/${systemId}/versions`,
-                        },
-                        /*{
-                            name: "Applications",
-                            Icon: AppWindow,
-                            href: `/systems/${systemId}/applications`,
-                        },
-                        {
-                            name: "Components",
-                            Icon: Component,
-                            href: `/systems/${systemId}/components`,
-                        },
-                        {
-                            name: "Users",
-                            Icon: User,
-                            href: `/systems/${systemId}/users`,
-                        },*/
                     ]}
                 />
             </div>

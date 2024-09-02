@@ -1,11 +1,12 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import SystemLayout from "$lib/features/browser/components/systems/SystemLayout";
 import { queryClient } from "$lib/shared/hooks/queryClient";
-import { LinearProgress } from "@mui/joy";
+import { LinearProgress, Modal, ModalClose, ModalDialog } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow } from "lucide-react";
-import React from "react";
+import { Component, Network, Plus, User, Workflow, Blocks } from "lucide-react";
+import React, { useState } from "react";
 import { useParams } from "react-router";
+import { ShowMetadata } from "$metadata/components/ShowMetadata";
 
 type FlatDiagram = {
     id: string;
@@ -32,11 +33,12 @@ type NewDiagram = {
 
 const SystemDiagrams: React.FC = () => {
     const { systemId } = useParams();
+    const [showModal, setShowModal] = useState(false);
 
     const system = useQuery<SystemOut>({
         queryKey: [`system`, `${systemId}`],
         queryFn: async () => {
-            return (await authAxios.get(`/v1/metadata/systems/${systemId}`))
+            return (await authAxios.get(`/v1/metadata/systems/${systemId}/`))
                 .data;
         },
         enabled: !!systemId,
@@ -82,50 +84,82 @@ const SystemDiagrams: React.FC = () => {
         },
     ];
 
+    const showMetadata = () => {
+        setShowModal(true);
+    };
+
+    const closeMetadata = () => {
+        setShowModal(false);
+    };
+    
     return (
-        <SystemLayout>
-            {system.isLoading && (
-                <LinearProgress className="absolute left-0 right-0 top-0" />
-            )}
-            {system.isSuccess && (
-                <>
-                    <div className="flex flex-col gap-3 p-3">
-                        {uiDiagrams.map(({ name, Icon, diagrams, type }) => (
-                            <>
-                                <span className="flex flex-row items-center gap-2">
-                                    <Icon size={24} />
-                                    <h1 className="text-lg">{name}</h1>
-                                </span>
-                                <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
-                                    {diagrams.map(({ id, name }) => (
-                                        <a
-                                            href={`/diagram/${id}`}
-                                            className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
+        <>
+            <SystemLayout>
+                {system.isLoading && (
+                    <LinearProgress className="absolute left-0 right-0 top-0" />
+                )}
+                {system.isSuccess && (
+                    <>
+                        <div className="flex flex-col gap-3 p-3">
+                            {uiDiagrams.map(({ name, Icon, diagrams, type }) => (
+                                <>
+                                    <span className="flex flex-row items-center gap-2">
+                                        <Icon size={24} />
+                                        <h1 className="text-lg">{name}</h1>
+                                    </span>
+                                    <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
+                                        {diagrams.map(({ id, name }) => (
+                                            <a
+                                                href={`/diagram/${id}`}
+                                                className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
+                                            >
+                                                <h3 className="text-lg">{name}</h3>
+                                                <span className="text-xs">
+                                                    {id.split("-").slice(-1)}
+                                                </span>
+                                            </a>
+                                        ))}
+                                        <button
+                                            onClick={() =>
+                                                newDiagram.mutate({
+                                                    type: type,
+                                                    name: name,
+                                                })
+                                            }
+                                            className="flex h-full flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                                         >
-                                            <h3 className="text-lg">{name}</h3>
-                                            <span className="text-xs">
-                                                {id.split("-").slice(-1)}
-                                            </span>
-                                        </a>
-                                    ))}
-                                    <button
-                                        onClick={() =>
-                                            newDiagram.mutate({
-                                                type: type,
-                                                name: name,
-                                            })
-                                        }
-                                        className="flex h-full flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
-                                    >
-                                        <Plus />
-                                    </button>
-                                </div>
-                            </>
-                        ))}
+                                            <Plus />
+                                        </button>
+                                    </div>
+                                </>
+                            ))}
+                            <button
+                                className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
+                                onClick={() => showMetadata()}
+                            >
+                                <Blocks size={16}/>
+                                <h2 className="text-base">Show Metadata</h2>
+                            </button>
+                        </div>
+                    </>
+                )}
+            </SystemLayout>
+            <Modal
+                open={showModal}
+                onClose={closeMetadata}
+            >
+                <ModalDialog className="max-h-screen overflow-y-auto">
+                    <ModalClose
+                        sx={{
+                            position: "relative",
+                        }}
+                    />
+                    <div className="flex h-full w-full flex-col gap-1 p-3">
+                        <ShowMetadata systemId={systemId} />
                     </div>
-                </>
-            )}
-        </SystemLayout>
+                </ModalDialog>
+            </Modal>
+        </>
     );
 };
 

@@ -18,6 +18,8 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const [prototypeUrls, setPrototypeUrls] = useState<{ [key: string]: string }>({});
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
+    const [metadata, setMetadata] = useState("");
+    const [showMetadataModal, setShowMetadataModal] = useState(false);
 
     useEffect(() => {
         if (isSuccess && data) {
@@ -115,6 +117,21 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
         }
     };
     
+    const showMetadata = async (prototypeId: string) => {
+        try {
+            const response = await authAxios.get(`/v1/generator/prototypes/${prototypeId}/meta`);
+            setMetadata(response.data);
+            setShowMetadataModal(true);
+
+        } catch (error) {
+            console.error('Error making request:', error);
+        }
+    }
+
+    const closeMetadataModal = () => {
+        setMetadata("");
+        setShowMetadataModal(false);
+    }
 
     return (
         <>
@@ -129,7 +146,7 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                         </th>
                         <th className="py-2 px-4 text-left border-b border-stone-200 w-52">Status</th>
                         <th className="py-2 px-4 text-left border-b border-stone-200 w-52">URL</th>
-                        <th className="py-2 px-4 text-left border-b border-stone-200 w-40">
+                        <th className="py-2 px-4 text-left border-b border-stone-200 w-40 text-right">
                             <Button
                                 onClick={openModal}
                                 color="danger"
@@ -159,7 +176,13 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                         {prototypeUrls[e.name]}
                                     </a>
                                 </td>
-                                <td className="py-2 px-4 text-left border-b border-gray-200 w-40 flex space-x-2">
+                                <td className="py-2 px-4 text-left border-b border-gray-200 w-60 flex space-x-2">
+                                    <button
+                                        onClick={() => showMetadata(e.id)}
+                                        className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
+                                    >
+                                        Metadata
+                                    </button>
                                     { prototypeStatuses[e.name] === "Running" && (
                                         <button
                                             onClick={() => handleStop(e.name)}
@@ -221,6 +244,21 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                         <Button onClick={proceedDeleteAll} variant="solid" color="danger">
                             Confirm
                         </Button>
+                    </div>
+                </ModalDialog>
+            </Modal>
+            <Modal
+                open={showMetadataModal}
+                onClose={closeMetadataModal}
+            >
+                <ModalDialog className="max-h-screen overflow-y-auto">
+                    <ModalClose
+                        sx={{
+                            position: "relative",
+                        }}
+                    />
+                    <div className="flex h-full w-full flex-col gap-1 p-3">
+                        <pre>{JSON.stringify(metadata, null, 2)}</pre>
                     </div>
                 </ModalDialog>
             </Modal>

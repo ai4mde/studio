@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
 from metadata.models import System
@@ -17,6 +17,14 @@ def list_prototypes(request, system: Optional[str] = None):
     else:
         qs = Prototype.objects.all()
     return qs
+
+
+@prototypes.get("/{uuid:id}/meta/", response=Dict)
+def read_prototype_meta(request, id):
+    prototype = Prototype.objects.get(id=id)
+    if not prototype:
+        return 404, "Prototype not found"
+    return prototype.metadata
 
 
 @prototypes.get("/{str:database_hash}", response=List[ReadPrototype])
@@ -48,7 +56,7 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         description=prototype.description,
         system=System.objects.get(pk=prototype.system),
         database_hash=prototype.database_hash,
-        metadata={} # TODO: maybe we do not want to push all metadata to the DB?
+        metadata=prototype.metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
     return new_prototype
 
