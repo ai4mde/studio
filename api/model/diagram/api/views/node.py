@@ -52,8 +52,9 @@ def delete_node(request: HttpRequest, node_id: str):
     if not diagram:
         return 404, "Diagram not found"
 
-    diagram.nodes.filter(id=node_id).delete()
-    return True
+    if utils.delete_node(diagram=diagram, node_id=node_id):
+        return True
+    return False
 
 
 class PatchModel(BaseModel):

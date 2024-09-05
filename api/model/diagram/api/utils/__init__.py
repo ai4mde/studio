@@ -1,7 +1,7 @@
 from django.http import HttpRequest
 from diagram.models import Diagram
-from .node import create_node
-from .edge import create_edge
+from .node import create_node, delete_node
+from .edge import create_edge, delete_edge
 
 
 def get_diagram(request: HttpRequest) -> Diagram | None:
@@ -19,4 +19,6 @@ __all__ = [
     "get_diagram",
     "create_node",
     "create_edge",
+    "delete_node",
+    "delete_edge",
 ]

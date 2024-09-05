@@ -21,4 +21,18 @@ def create_node(diagram: Diagram, data: spec.Classifier):
     return node
 
 
-__all__ = ["create_node"]
+def delete_node(diagram: Diagram, node_id: str):
+    node = diagram.nodes.filter(id=node_id).first()
+    if node is None:
+        return
+
+    linked_edges = diagram.edges.filter(rel__source=node.cls) | diagram.edges.filter(rel__target=node.cls)
+    linked_edges.delete()
+    classifier = node.cls
+    node.delete()
+    if not Node.objects.filter(cls = classifier).exists():
+        classifier.delete()
+    return True
+
+
+__all__ = ["create_node", "delete_node"]

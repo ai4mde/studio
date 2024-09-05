@@ -21,6 +21,16 @@ def create_edge(diagram: Diagram, data: spec.Relation, source: Node, target: Nod
 
     return edge
 
+
+def delete_edge(diagram: Diagram, edge_id: str):
+    edge = diagram.edges.filter(id=edge_id).first()
+    relation = edge.rel
+    edge.delete()
+    if not Edge.objects.filter(rel = relation).exists():
+        relation.delete()
+    return True
+
+
 def fetch_and_update_edges(diagram: Diagram):
     # Fetch all the nodes for the diagram
     nodes = diagram.nodes.all()
@@ -54,4 +64,4 @@ def fetch_and_update_edges(diagram: Diagram):
     return diagram.edges.all()
 
 
-__all__ = ["create_edge", "fetch_and_update_edges"]
+__all__ = ["create_edge", "delete_edge", "fetch_and_update_edges"]

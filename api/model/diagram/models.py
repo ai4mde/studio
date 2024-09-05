@@ -17,14 +17,14 @@ class Diagram(models.Model):
 class Node(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="nodes")
-    cls = models.ForeignKey(Classifier, on_delete=models.RESTRICT)
+    cls = models.ForeignKey(Classifier, on_delete=models.CASCADE)
     data = models.JSONField()
 
 
 class Edge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="edges")
-    rel = models.ForeignKey(Relation, on_delete=models.RESTRICT)
+    rel = models.ForeignKey(Relation, on_delete=models.CASCADE)
     data = models.JSONField()
 
     @property
