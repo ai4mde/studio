@@ -41,11 +41,15 @@ def update_system(request, id, payload: UpdateSystem):
     return None
 
 
-@systems.delete("/{uuid:id}")
+@systems.delete("/{uuid:id}/")
 def delete_system(request, id):
-    print(id)
-    return None
-
+    try:
+        system = System.objects.get(id=id)
+        system.delete()
+    except Exception as e:
+        raise Exception("Failed to delete system, error: " + e)
+    return True
+    
 
 systems.add_router("/{uuid:system_id}/meta", meta)
 systems.add_router("/{uuid:system_id}/classifiers", classifiers)
