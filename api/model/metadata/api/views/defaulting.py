@@ -50,7 +50,7 @@ def get_extended_use_cases(system: System, use_cases: List[Classifier]) -> List[
     extended_use_cases = []
     for relation in system.relations.filter(data__type='extension'):
         for use_case in use_cases:
-            if relation.source == use_case:
+            if relation.source == use_case and relation.target not in use_cases and relation.target not in extended_use_cases:
                 extended_use_cases.append(relation.target)
 
     return extended_use_cases
@@ -127,6 +127,8 @@ def get_default_use_cases(system: System, relevant_use_cases: List[Classifier]) 
         name = use_case.data['name'].lower()
         class_acted_on = get_class_acted_on(system, name)
         if not class_acted_on:
+            continue
+        if get_crud_type(name) == CrudType.OTHER:
             continue
 
         if class_acted_on in classes_visited:
