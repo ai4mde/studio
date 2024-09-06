@@ -1,6 +1,7 @@
 from diagram.models import Diagram, Node
 from metadata.models import Classifier
 import metadata.specification as spec
+from diagram.api.utils.edge import delete_edge
 
 
 def create_node(diagram: Diagram, data: spec.Classifier):
@@ -27,7 +28,8 @@ def delete_node(diagram: Diagram, node_id: str):
         return
 
     linked_edges = diagram.edges.filter(rel__source=node.cls) | diagram.edges.filter(rel__target=node.cls)
-    linked_edges.delete()
+    for linked_edge in linked_edges:
+        delete_edge(diagram, linked_edge.id)
     classifier = node.cls
     node.delete()
     if not Node.objects.filter(cls = classifier).exists():
