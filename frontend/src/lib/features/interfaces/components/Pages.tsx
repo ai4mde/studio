@@ -171,18 +171,28 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                                     )}
                                     {isSuccessSections && (
                                         <div className='space-y-1'>
-                                            <h3 className="text-xl font-bold">Section Components</h3>
-                                            <Multiselect
-                                                options={sections}
-                                                displayValue='name'
-                                                placeholder="Select sections..."
-                                                showCheckbox={true}
-                                                style={{chips:{background:'rgb(231 229 228)',color:'rgb(61 56 70)'}}}
-                                                selectedValues={selectedSections}
-                                                onSelect={(selectedList, selectedItem) => handleSectionSelect(selectedList, selectedItem, index)}
-                                                onRemove={(selectedList, selectedItem) => handleSectionRemove(selectedList, selectedItem, index)}
-                                            />
-                                        </div>
+                                        <h3 className="text-xl font-bold">Section Components</h3>
+                                        <Multiselect
+                                            options={sections}
+                                            displayValue='name'
+                                            placeholder="Select sections..."
+                                            showCheckbox={true}
+                                            style={{
+                                                chips: {
+                                                    background: 'rgb(231 229 228)',
+                                                    color: 'rgb(61 56 70)',
+                                                    maxWidth: '100%',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
+                                                }
+                                            }}
+                                            selectedValues={selectedSections}
+                                            onSelect={(selectedList, selectedItem) => handleSectionSelect(selectedList, selectedItem, index)}
+                                            onRemove={(selectedList, selectedItem) => handleSectionRemove(selectedList, selectedItem, index)}
+                                        />
+                                    </div>
+                                    
                                     )}
                                     <Divider />
                                     <div className="flex gap-2">

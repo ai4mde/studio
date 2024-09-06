@@ -170,8 +170,11 @@ export const CreatePrototype: React.FC = () => {
     if (isPending) {
         return (
             <Modal open>
-                <ModalDialog>
+                <ModalDialog className="flex flex-row items-center gap-2">
                     <CircularProgress className="animate-spin" />
+                    <Typography>
+                        <h1 className="text-lg">Generating...</h1>
+                    </Typography>
                 </ModalDialog>
             </Modal>
         );

@@ -92,11 +92,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                                 {isSaving ? <CircularProgress /> : <Save />}
                             </button>
                             <button
-                                className="w-[140px] h-[40px] bg-gray-400 text-white px-2 py-1 rounded-md hover:bg-gray-500"
-                            >
-                                Discard changes
-                            </button>
-                            <button
                                 className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
                             >
                                 <div>
