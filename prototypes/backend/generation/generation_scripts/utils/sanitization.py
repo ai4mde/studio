@@ -8,6 +8,8 @@ def general_name_sanitization(proposed_name: str) -> str:
         proposed_name = str(uuid4())
     proposed_name = proposed_name.replace(' ', '_')
     proposed_name = proposed_name.replace('-', '_')
+    while '__' in proposed_name:
+        proposed_name = proposed_name.replace('__', '_')
     if keyword.iskeyword(proposed_name):
         proposed_name = "nm_" + proposed_name
     return re.sub(r'[^a-zA-Z0-9_]', '', proposed_name)
