@@ -27,6 +27,8 @@
 
                 {% if authentication_present -%}
                 {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}
+                {% else -%}
+                {% raw %}<a href="{% url 'noauth_home-homerender' %}">Other Application</a>{% endraw %}
                 {% endif -%}
             </div>
     

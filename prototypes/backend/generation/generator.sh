@@ -53,6 +53,16 @@ create_authentication_app() {
 
 }
 
+create_noauth_home_app() {
+    cd "${OUTDIR}/${PROJECT_NAME}"
+    python -m django startapp "noauth_home"
+    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA"
+    cd "${OUTDIR}/${PROJECT_NAME}/${PROJECT_NAME}"
+	echo "INSTALLED_APPS += ['noauth_home']" >> settings.py
+    echo "urlpatterns += [path(\"\", include(\"noauth_home.urls\"))]" >> urls.py
+}
+
+
 update_global_app_settings() {
     local app="$1"
     cd "${OUTDIR}/${PROJECT_NAME}/${PROJECT_NAME}"
@@ -80,6 +90,8 @@ create_django_apps() {
     create_shared_models_app
     if [ "$AUTH_PRESENT" = "True" ]; then
         create_authentication_app
+    else
+        create_noauth_home_app
     fi
     for app in $applications; do
         create_new_django_app "$app"
