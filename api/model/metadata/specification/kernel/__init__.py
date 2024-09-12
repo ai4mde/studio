@@ -1,12 +1,13 @@
 from pydantic import BaseModel
-from typing import Union, Literal
+from typing import Union, Literal, Optional
 
-DataType = Literal["str", "int", "bool", "datetime"]
+DataType = Literal["str", "int", "bool", "datetime", "enum"]
 
 
 class Attribute(BaseModel):
     name: str
     type: DataType
+    enum: Optional[str]
     derived: bool = False
 
 

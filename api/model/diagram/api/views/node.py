@@ -10,6 +10,8 @@ from diagram.api.schemas import CreateNode, PatchNode, NodeSchema
 
 from metadata.specification import Classifier
 
+from diagram.models import Node, Edge
+
 node = Router()
 
 
@@ -43,6 +45,26 @@ def read_node(request: HttpRequest, node_id: str):
         return 404, "Diagram not found"
 
     return diagram.nodes.get(id=node_id)
+
+
+@node.get("/{uuid:node_id}/enums/", response=List[NodeSchema])
+def get_connected_enums(request: HttpRequest, node_id: str):
+    out = []
+    node = Node.objects.get(pk=node_id)
+    if not node:
+        return 404, "Node not found"
+    
+    edges_target = Edge.objects.filter(rel__source=node.cls)
+    for edge in edges_target:
+        if edge.target.cls.data['type'] == 'enum':
+            out.append(edge.target)
+
+    edges_source = Edge.objects.filter(rel__target=node.cls)
+    for edge in edges_source:
+        if edge.source.cls.data['type'] == 'enum':
+            out.append(edge.source)
+
+    return out
 
 
 @node.delete("/{uuid:node_id}/", response=bool)
