@@ -1,9 +1,9 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import SystemLayout from "$lib/features/browser/components/systems/SystemLayout";
 import { queryClient } from "$lib/shared/hooks/queryClient";
-import { LinearProgress, Modal, ModalClose, ModalDialog } from "@mui/joy";
+import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow, Blocks } from "lucide-react";
+import { Component, Network, Plus, User, Workflow, Blocks, X } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";
@@ -34,6 +34,8 @@ type NewDiagram = {
 const SystemDiagrams: React.FC = () => {
     const { systemId } = useParams();
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteDiagramModal, setShowDeleteDiagramModal] = useState(false);
+    const [diagramToDelete, setDiagramToDelete] = useState("");
 
     const system = useQuery<SystemOut>({
         queryKey: [`system`, `${systemId}`],
@@ -91,6 +93,25 @@ const SystemDiagrams: React.FC = () => {
     const closeMetadata = () => {
         setShowModal(false);
     };
+
+    const handleDeleteDiagram = async (diagramId: string) => {
+        try {
+            await authAxios.delete(`/v1/diagram/${diagramId}/`);
+        } catch (error) {
+            console.error('Error deleting diagram:', error);
+        } finally {
+            setDiagramToDelete("");
+            setShowDeleteDiagramModal(false);
+            queryClient.invalidateQueries({
+                queryKey: [`system`, `${systemId}`],
+            });
+        }
+    }
+
+    const openDeleteDiagramModal = (diagramId: string) => {
+        setShowDeleteDiagramModal(true);
+        setDiagramToDelete(diagramId);
+    }
     
     return (
         <>
@@ -109,15 +130,23 @@ const SystemDiagrams: React.FC = () => {
                                     </span>
                                     <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
                                         {diagrams.map(({ id, name }) => (
-                                            <a
-                                                href={`/diagram/${id}`}
-                                                className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
-                                            >
-                                                <h3 className="text-lg">{name}</h3>
-                                                <span className="text-xs">
-                                                    {id.split("-").slice(-1)}
-                                                </span>
-                                            </a>
+                                            <div className="relative">
+                                                <a
+                                                    href={`/diagram/${id}`}
+                                                    className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
+                                                >
+                                                    <h3 className="text-lg">{name}</h3>
+                                                    <span className="text-xs">
+                                                        {id.split("-").slice(-1)}
+                                                    </span>
+                                                </a>
+                                                <button
+                                                    onClick={() => openDeleteDiagramModal(id)}
+                                                    className="absolute top-1 right-1 text-gray-500 hover:text-red-500"
+                                                >
+                                                    <X />
+                                                </button>
+                                            </div>
                                         ))}
                                         <button
                                             onClick={() =>
@@ -156,6 +185,35 @@ const SystemDiagrams: React.FC = () => {
                     />
                     <div className="flex h-full w-full flex-col gap-1 p-3">
                         <ShowMetadata systemId={systemId} />
+                    </div>
+                </ModalDialog>
+            </Modal>
+            <Modal
+                open={showDeleteDiagramModal}
+                onClose={() => setShowDeleteDiagramModal(false)}
+            >
+                <ModalDialog>
+                    <div className="flex w-full flex-row justify-between pb-1">
+                        <div className="flex flex-col">
+                            <h1 className="font-bold">Confirm</h1>
+                            <h3 className="text-sm">Are you sure you want to delete this diagram?</h3>
+                        </div>
+                        <ModalClose
+                            sx={{
+                                position: "relative",
+                                top: 0,
+                                right: 0,
+                            }}
+                        />
+                    </div>
+                    <Divider />
+                    <div className="flex flex-row pt-1 gap-4">
+                        <Button onClick={() => {setShowDeleteDiagramModal(false); setDiagramToDelete("");}} variant="outlined" color="neutral">
+                            Cancel
+                        </Button>
+                        <Button onClick={() => handleDeleteDiagram(diagramToDelete)} variant="solid" color="danger">
+                            Confirm
+                        </Button>
                     </div>
                 </ModalDialog>
             </Modal>
