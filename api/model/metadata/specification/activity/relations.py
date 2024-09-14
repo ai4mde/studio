@@ -6,4 +6,4 @@ class ActivityRelation(BaseModel):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
-    type: Literal["activity"] = "activity"
+    type: Literal["controlflow"] = "controlflow"

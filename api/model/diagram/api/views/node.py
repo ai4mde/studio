@@ -56,13 +56,10 @@ def get_connected_enums(request: HttpRequest, node_id: str):
     
     edges_target = Edge.objects.filter(rel__source=node.cls)
     for edge in edges_target:
+        if edge.rel.data['type'] != 'dependency':
+            continue
         if edge.target.cls.data['type'] == 'enum':
             out.append(edge.target)
-
-    edges_source = Edge.objects.filter(rel__target=node.cls)
-    for edge in edges_source:
-        if edge.source.cls.data['type'] == 'enum':
-            out.append(edge.source)
 
     return out
 
