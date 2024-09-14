@@ -54,6 +54,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                         setAttributes((s: any) => {
                             s.push({
                                 type: "str",
+                                enum: null,
                             });
                             return [...s];
                         })

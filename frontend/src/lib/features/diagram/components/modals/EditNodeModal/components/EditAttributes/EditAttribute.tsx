@@ -56,7 +56,6 @@ const EditAttribute: React.FC<{
                 enum: selectedOption.id
             };
             update(updatedAttribute);
-            console.log(updatedAttribute);
         }
         else {
             let updatedAttribute = {
@@ -65,7 +64,6 @@ const EditAttribute: React.FC<{
                 enum: null
             };
             update(updatedAttribute);
-            console.log(updatedAttribute);
         }
     }
 
