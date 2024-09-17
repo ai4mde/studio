@@ -14,6 +14,14 @@ prototype_metadata = {
 class PrototypeAPITests(APITestCase):
 
     def setUp(self):
+        self.user = User.objects.create_superuser(username='admin', password='sequoias')
+
+        auth_url = '/api/v1/auth/token'
+        auth_response = self.client.post(auth_url, {'username': 'admin', 'password': 'sequoias'}, format='json')
+        self.assertEqual(auth_response.status_code, 200)
+        self.token = auth_response.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token)
+
         self.project1 = Project.objects.create(name="TestProject",
                                                description="Testing description."
                                                )
@@ -68,6 +76,6 @@ class PrototypeAPITests(APITestCase):
         self.assertIn(self.prototype2.name, prototype_names)
 
     def test_list_prototypes_empty_system(self):
-        response = self.client.get(self.url, {'system': 0})
+        response = self.client.get(self.url, {'system': uuid4()}) # Random uuid
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 0)  # No prototypes

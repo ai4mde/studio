@@ -70,13 +70,6 @@ class Styling(BaseModel):
             raise ValueError('Invalid radius')
         return v
     
-    @field_validator('text-color', 'accent-color', 'background_color')
-    def color_must_be_hex(cls, v):
-        clr = r'^#(?:[0-9a-fA-F]{3}){1,2}$'
-        if not re.match(clr, v):
-            raise ValueError('Invalid color hex code')
-        return v
-    
 
 # TODO: fragments definition
 class Fragment(BaseModel):
