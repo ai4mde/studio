@@ -1,14 +1,9 @@
 import Editor from "@monaco-editor/react";
-import { X } from "lucide-react";
+import { X, Pencil, PanelTopClose, Trash2 } from "lucide-react";
 import {
     Button,
-    Divider,
     FormControl,
     FormLabel,
-    Input,
-    Modal,
-    ModalClose,
-    ModalDialog,
     Textarea,
 } from "@mui/joy";
 import React, { useState } from "react";
@@ -22,18 +17,15 @@ const EditMethod: React.FC<{
     dirty?: boolean;
     create?: boolean;
 }> = ({ method, del, update, dirty, create }) => {
+    const [openEditMenu, setOpenEditMenu] = useState(false);
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
     const LLMOptions = [
         { value: 'GPT-4o', label: 'GPT-4o' },
     ]
     return (
         <>
-            <div
-                className={[style.method, create && style.new, dirty && style.dirty]
-                    .filter(Boolean)
-                    .join(" ")}
-            >
-                <div className={style.header}>
+            <div className={style.header}>
+                 <div className="flex flex-row gap-1 items-center h-full">
                     <span className="p-2">+</span>
                     <input
                         type="text"
@@ -41,69 +33,71 @@ const EditMethod: React.FC<{
                         onChange={(e) =>
                             update({ ...method, name: e.target.value })
                         }
+                        placeholder="Enter method name..."
                     ></input>
-                    <span className="p-2">:</span>
-                    <select
-                        value={method?.type}
-                        onChange={(e) =>
-                            update({ ...method, type: e.target.value })
+                    <button type="button" onClick={() => {setOpenEditMenu((openEditMenu) => !openEditMenu)}}>
+                        { openEditMenu ?
+                            <PanelTopClose size={20} />
+                            : <Pencil size={20} />
                         }
-                    >
-                        <option value="str">string</option>
-                        <option value="int">integer</option>
-                        <option value="bool">boolean</option>
-                    </select>
-                    <button type="button" onClick={del} className={style.delete}>
-                        <X size={12} />
+                    </button>
+                    <button type="button" onClick={del}>
+                        <Trash2 size={20}/>
                     </button>
                 </div>
-                <div className={style.body}>
-                    <Editor
-                        value={method?.body}
-                        language="python"
-                        options={{
-                            lineNumbers: "off",
-                            folding: false,
-                        }}
-                        height="12rem"
-                        width="100%"
-                        onChange={(e) => update({ ...method, body: e ?? "" })}
-                    />
-                </div>
             </div>
-
-            <Button
-                color="primary"
-                className="w-full"
-                size="sm"
-                variant="outlined"
-                onClick={() => setOpenGenerateModal(true)}
-            >
-                Generate using LLM
-            </Button>
-            <Modal open={openGenerateModal} onClose={() => setOpenGenerateModal(false)}>
-                <ModalDialog>
-                    <div className="flex w-full flex-row justify-between pb-1">
-                        <div className="flex flex-col">
-                            <h1 className="font-bold">Generate a Custom Method using an LLM</h1>
-                        </div>
-                        <ModalClose
-                            sx={{
-                                position: "relative",
-                                top: 0,
-                                right: 0,
-                            }}
-                        />
+            {openEditMenu && 
+                <div
+                    className={[style.method, create && style.new, dirty && style.dirty]
+                        .filter(Boolean)
+                        .join(" ")}
+                >
+                    <div className={style.header}>
+                        <select
+                            value={method?.type}
+                            onChange={(e) =>
+                                update({ ...method, type: e.target.value })
+                            }
+                            className="h-[30px] hover:cursor-pointer"
+                        >
+                            <option value="str">string</option>
+                            <option value="int">integer</option>
+                            <option value="bool">boolean</option>
+                        </select>
                     </div>
+                        <div className={style.body}>
+                            <Editor
+                                value={method?.body}
+                                language="python"
+                                options={{
+                                    lineNumbers: "off",
+                                    folding: false,
+                                }}
+                                height="12rem"
+                                width="100%"
+                                onChange={(e) => update({ ...method, body: e ?? "" })}
+                            />
+                    </div>
+                    {!openGenerateModal &&
+                        <Button
+                            color="primary"
+                            className="w-full"
+                            size="sm"
+                            variant="outlined"
+                            onClick={() => setOpenGenerateModal(true)}
+                        >
+                            Generate using LLM
+                        </Button>
+                    }
+                </div>
+            }
+            {openGenerateModal && openEditMenu && (
+                <div>
                     <form
                         id="generate-method"
                         className="flex min-w-96 flex-col gap-2"
                         onSubmit={() => {}}
                     >
-                        <FormControl required>
-                            <FormLabel>Name</FormLabel>
-                            <Input name="name" placeholder="Method name" required />
-                        </FormControl>
                         <FormControl required>
                             <FormLabel>Description</FormLabel>
                             <Textarea
@@ -115,7 +109,6 @@ const EditMethod: React.FC<{
                             />
                         </FormControl>
                     </form>
-                    <Divider />
                     <div className="flex flex-row gap-4 pt-1">
                         <Button form="generate-method" type="submit" disabled>
                             Generate
@@ -124,9 +117,12 @@ const EditMethod: React.FC<{
                             options={LLMOptions}
                             value={LLMOptions[0]}
                         />
+                        <button type="button" onClick={() => setOpenGenerateModal(false)}>
+                            <X size={20}/>
+                        </button>
                     </div>
-                </ModalDialog>
-            </Modal>
+                </div>
+            )}
         </>
     );
 };
