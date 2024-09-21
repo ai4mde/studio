@@ -28,6 +28,7 @@ class NamespacedElement(BaseModel):
 
 class Operation(BaseModel):
     name: str
+    description: str = ""
     type: DataType
     body: str = ""
 

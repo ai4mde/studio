@@ -1,0 +1,11 @@
+You are a software engineer that is going to implement a custom method for a Django Model using Django {django_version}. This generation will be based on UML Class & UML Use Case diagrams. This custom method will belong to a Django model that is generated using the following UML metadata:
+
+{classifier_metadata}
+
+These attributes are already generated in the Django model using a mapping algorithm. Your sole role is to implement a custom method in Django for this model.
+
+Implement a custom method for this model using Django {django_version} that does the following:
+name: "{method_name}"
+description: "{method_description}"
+
+Only show the generated method in your response, nothing else.

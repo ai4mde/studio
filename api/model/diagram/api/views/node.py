@@ -1,5 +1,7 @@
 from typing import List
 from django.http import HttpRequest
+from django.core import serializers
+import openai
 
 from ninja import Router
 from pydantic import BaseModel
@@ -10,7 +12,9 @@ from diagram.api.schemas import CreateNode, PatchNode, NodeSchema
 
 from metadata.specification import Classifier
 
-from diagram.models import Node, Edge
+from diagram.models import Node, Edge, Diagram
+
+import os
 
 node = Router()
 
@@ -102,4 +106,42 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
     return node
 
 
+@node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
+def generate_method(request: HttpRequest, node_id: str, name: str, description: str):
+    diagram = utils.get_diagram(request)
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    node = diagram.nodes.get(id=node_id)
+    if not node:
+        return 404, "Node not found"
+    
+    try:
+        with open('/usr/src/model/diagram/api/views/prompts/generate_method.txt', 'r') as file: # TODO: no absolute path
+            prompt = file.read()
+        prompt = prompt.format(
+            django_version="5.0.2", # TODO: put this in env
+            method_name=name,
+            method_description=description, # TODO: prompt injection protection
+            classifier_metadata=serializers.serialize('json', [node.cls]),
+        )
+    except Exception as e:
+        raise Exception("Failed to format prompt, error: " + str(e))
+
+    return prompt
+    openai.api_key = os.environ['OPENAI_KEY']
+    messages = [{"role": "user", "content": prompt}]
+    reply = None
+    try:
+        chat = openai.ChatCompletion.create(model="gpt-4o", messages=messages)
+        reply = chat.choices[0].message.content
+    except:
+        return 404, "Could not connect to ChatGPT"
+    
+    try:
+        compile(reply, '<string>', exec)
+        return reply
+    except SyntaxError as e:
+        return 422, "Invalid generated code"
+    
 __all__ = ["node"]
