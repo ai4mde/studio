@@ -9,19 +9,36 @@ import {
 import React, { useState } from "react";
 import Select from "react-select";
 import style from "./editmethods.module.css";
+import { useDiagramStore } from "$diagram/stores";
+import { authAxios } from "$lib/features/auth/state/auth";
 
 const EditMethod: React.FC<{
     method: any;
+    node: any;
     update: (v: any) => void;
     del: () => void;
     dirty?: boolean;
     create?: boolean;
-}> = ({ method, del, update, dirty, create }) => {
+}> = ({ method, node, del, update, dirty, create }) => {
     const [openEditMenu, setOpenEditMenu] = useState(false);
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
+    const { diagram } = useDiagramStore();
+    const [generationError, setGenerationError] = useState<string | null>(null);
     const LLMOptions = [
         { value: 'GPT-4o', label: 'GPT-4o' },
     ]
+
+    const generateMethod = async (event) => {
+        event.preventDefault();
+        setGenerationError(null);
+        try {
+            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}`);
+            update({ ...method, body: data })
+        } catch (error) {
+            setGenerationError("Failed to generate method: API call failed.");
+        }
+    }
+
     return (
         <>
             <div className={style.header}>
@@ -96,7 +113,7 @@ const EditMethod: React.FC<{
                     <form
                         id="generate-method"
                         className="flex min-w-96 flex-col gap-2"
-                        onSubmit={() => {}}
+                        onSubmit={generateMethod}
                     >
                         <FormControl required>
                             <FormLabel>Description</FormLabel>
@@ -106,21 +123,26 @@ const EditMethod: React.FC<{
                                 minRows={4}
                                 maxRows={4}
                                 required
+                                value={method?.description}
+                                onChange={(e) =>
+                                    update({ ...method, description: e.target.value })
+                                }
                             />
                         </FormControl>
                     </form>
                     <div className="flex flex-row gap-4 pt-1">
-                        <Button form="generate-method" type="submit" disabled>
+                        <Button form="generate-method" type="submit" disabled={!method?.description}>
                             Generate
                         </Button>
                         <Select
                             options={LLMOptions}
                             value={LLMOptions[0]}
                         />
-                        <button type="button" onClick={() => setOpenGenerateModal(false)}>
+                        <button type="button" onClick={() => {setOpenGenerateModal(false);setGenerationError(null);}}>
                             <X size={20}/>
                         </button>
                     </div>
+                    {generationError && <p style={{ color: 'red' }}>{generationError}</p>}
                 </div>
             )}
         </>
