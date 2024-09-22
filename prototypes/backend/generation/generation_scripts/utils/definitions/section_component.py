@@ -1,7 +1,7 @@
 from typing import List
 from utils.definitions.model import Model, AttributeType
 from utils.sanitization import section_name_sanitization
-
+import ast
 
 class SectionAttribute():
     def __init__(
@@ -13,6 +13,33 @@ class SectionAttribute():
         self.name = name
         self.type = type
         self.updatable = updatable
+
+    def __str__(self):
+        return self.name
+    
+
+def extract_call_name(body: str) -> str:
+    start = body.find("def ") + len("def ")
+    end = body.find("(self)")
+    if start and end:
+        return body[start:end].strip()
+    return None
+
+
+class SectionCustomMethod():
+    def __init__(
+            self,
+            name: str,
+            body: str
+    ):
+        self.name = name
+        self.call_name = extract_call_name(body)
+        try:
+            ast.parse(body)
+            self.body = body
+            self.body_is_valid = True
+        except SyntaxError:
+            self.body_is_valid = False
 
     def __str__(self):
         return self.name
@@ -32,7 +59,8 @@ class SectionComponent():
             attributes: List[SectionAttribute],
             has_create_operation: bool = False,
             has_delete_operation: bool = False,
-            has_update_operation: bool = False
+            has_update_operation: bool = False,
+            custom_methods = List[SectionCustomMethod]
     ):
         self.name = section_name_sanitization(name)
         self.id = id
@@ -44,6 +72,7 @@ class SectionComponent():
         self.has_create_operation = has_create_operation
         self.has_delete_operation = has_delete_operation
         self.has_update_operation = has_update_operation
+        self.custom_methods = custom_methods
 
     def __str__(self):
         return self.name

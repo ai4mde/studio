@@ -38,8 +38,9 @@ class {{ model.name }}(models.Model):
     {% endif %}
 
     {%- for custom_method in model.custom_methods %}
+    {% if custom_method.body_is_valid -%}
 
-    def {{ custom_method.name }}(self, request = None):
-        {{ custom_method.body| replace('\n','\n        ') -}}
+    {{ custom_method.body | replace('\n','\n    ') -}}
+    {% endif -%}
     {% endfor %}
 {% endfor %}

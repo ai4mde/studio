@@ -42,6 +42,28 @@ export const useClassAttributes = (systemId: string, classId: string) => {
     ];
 };
 
+export const useClassCustomMethods = (systemId: string, classId: string) => {
+    const queryResult = useQuery({
+        queryKey: ["system", "metadata", systemId, "class", classId, "methods"],
+        queryFn: async () => {
+            if (systemId && classId) {
+                const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classes/${classId}/`);
+                return response.data;
+            }
+            return [];
+        },
+    });
+
+    const classCustomMethods = queryResult.data?.data?.methods || [];
+
+    return [
+        classCustomMethods,
+        queryResult.isSuccess,
+        queryResult.isLoading,
+        queryResult.error,
+    ];
+};
+
 export const useSystemActors = (systemId: string) => {
     const queryResult = useQuery({
         queryKey: ["system", "metadata", "actors", systemId],

@@ -127,6 +127,16 @@
                 </form>
             </td>
             {% endif %}
+
+            {#- CUSTOM METHOD BUTTONS#}
+            {% for custom_method in section_component.custom_methods -%}
+            <td>
+                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_{{ custom_method }}' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+                    {% raw %}{% csrf_token %}{% endraw %}
+                        <input type="submit" value="{{ custom_method }}"/>
+                </form>
+            </td>
+            {% endfor -%}
         </tr>
         {% raw %}{% endfor %}{% endraw %}
 

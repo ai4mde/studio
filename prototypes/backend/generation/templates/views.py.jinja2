@@ -98,6 +98,23 @@ def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
 
 
 {% endif -%}
+
+{% for custom_method in section_component.custom_methods -%}
+{% if custom_method.body_is_valid -%}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_{{ custom_method }}(request, instance_id):
+    instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+    instance.{{ custom_method.call_name }}()
+    context = {}
+    {% for model in models_on_pages[page] -%}
+    context['{{ model }}_list'] = {{ model }}.objects.all()
+    {% endfor -%}
+    return render(request, '{{ application_name }}_{{ page }}.html', context)
+{% endif -%}
+{% endfor -%}
+
 {% endfor %}
 {% endfor %}
 

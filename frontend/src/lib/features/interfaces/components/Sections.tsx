@@ -7,7 +7,7 @@ import {
     Divider,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
-import { useSystemClasses, useClassAttributes } from "../queries";
+import { useSystemClasses, useClassAttributes, useClassCustomMethods } from "../queries";
 import { useParams } from "react-router";
 import Multiselect from 'multiselect-react-dropdown';
 
@@ -29,8 +29,10 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
     const [ classAttributes ] = useClassAttributes(systemId, selectedClass);
+    const [ classCustomMethods ] = useClassCustomMethods(systemId, selectedClass)
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
+    const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
 
 
     const handleEdit = async (index: number) => {
@@ -55,6 +57,12 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
             setSelectedAttributes(data[index].attributes);
         } else {
             setSelectedAttributes([]);
+        }
+
+        if (data[index].methods) {
+            setSelectedCustomMethods(data[index].methods);
+        } else {
+            setSelectedCustomMethods([]);
         }
 
         setEditIndex(index);
@@ -124,6 +132,22 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+    };
+
+    const handleCustomMethodSelect = (selectedList, selectedItem, sectionIndex: number) => {
+        const updatedCustomMethods = [...selectedCustomMethods, selectedItem];
+        setSelectedCustomMethods(updatedCustomMethods);
+        const newData = [...data];
+        newData[sectionIndex].methods = updatedCustomMethods;
+        setData(newData);
+    };
+
+    const handleCustomMethodRemove = (selectedList, selectedItem, sectionIndex: number) => {
+        const updatedCustomMethods = selectedCustomMethods.filter(attr => attr !== selectedItem);
+        setSelectedCustomMethods(updatedCustomMethods);
+        const newData = [...data];
+        newData[sectionIndex].methods = updatedCustomMethods;
         setData(newData);
     };
 
@@ -231,6 +255,16 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                     </FormControl>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Custom Operations</h3>
+                                        <Multiselect
+                                            options={classCustomMethods}
+                                            displayValue='name'
+                                            placeholder="Select methods..."
+                                            showCheckbox={true}
+                                            style={{chips:{background:'rgb(231 229 228)',color:'rgb(61 56 70)'}}}
+                                            selectedValues={selectedCustomMethods}
+                                            onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
+                                            onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
+                                        />
                                     </FormControl>
                                     <Divider />
                                     <div className="flex gap-2">

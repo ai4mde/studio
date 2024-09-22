@@ -1,9 +1,9 @@
 from typing import List
 import sys
-from utils.definitions.model import Model, Attribute, AttributeType
+from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod
 from utils.file_generation import generate_output_file
 import json
-from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization
+from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
 from utils.loading_json_utils import get_apps
 
 
@@ -60,6 +60,19 @@ def retrieve_model_attributes(node: str) -> List[Attribute]:
     return out
 
 
+def retrieve_model_custom_methods(node: str) -> List[CustomMethod]:
+    """Function that parses the custom methods of a class node from JSON to a Python objects"""
+    out = []
+    for custom_method in node["cls"]["methods"]:
+        mtd = CustomMethod(
+            name = custom_method_name_sanitization(custom_method["name"]),
+            body = custom_method["body"]
+        )
+        out.append(mtd)
+    
+    return out
+ 
+
 def retrieve_models(metadata: str) -> List[Model]:
     """Function that parses the class nodes of a class diagram from JSON to Python objects"""
     if metadata in ["", None]:
@@ -75,7 +88,7 @@ def retrieve_models(metadata: str) -> List[Model]:
                     cls = Model(
                         name = model_name_sanitization(node["cls"]["name"]),
                         attributes = retrieve_model_attributes(node) + retrieve_foreign_models(node, diagram),
-                        custom_methods = [] # TODO
+                        custom_methods = retrieve_model_custom_methods(node)
                     )
                     out.append(cls)
     except:

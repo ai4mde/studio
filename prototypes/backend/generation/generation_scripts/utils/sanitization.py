@@ -51,3 +51,7 @@ def section_name_sanitization(proposed_name: str) -> str:
 
 def category_name_sanitization(proposed_name: str) -> str:
     return general_name_sanitization(proposed_name)
+
+
+def custom_method_name_sanitization(proposed_name: str) -> str:
+    return general_name_sanitization(proposed_name)

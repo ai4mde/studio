@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+import ast
 
 class CustomMethod():
     def __init__(
@@ -8,7 +9,12 @@ class CustomMethod():
             body: str
     ):
         self.name = name
-        self.body = body
+        try:
+            ast.parse(body)
+            self.body = body
+            self.body_is_valid = True
+        except SyntaxError:
+            self.body_is_valid = False
 
     def __str__(self):
         return self.name

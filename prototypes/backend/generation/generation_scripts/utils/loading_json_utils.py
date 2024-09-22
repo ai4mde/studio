@@ -1,7 +1,7 @@
 from typing import List, Dict
 from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization, attribute_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
-from utils.definitions.section_component import SectionComponent, SectionAttribute
+from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod
 from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.model import AttributeType, Model
@@ -142,6 +142,23 @@ def retrieve_section_attributes(section: str) -> List[SectionAttribute]:
     return out
 
 
+def retrieve_section_custom_methods(section: str) -> List[str]:
+    if not section:
+        return []
+    if "methods" not in section:
+        return []
+    
+    out = []
+    for custom_method in section["methods"]:
+        mtd = SectionCustomMethod(
+            name = custom_method["name"],
+            body = custom_method["body"]
+        )
+        out.append(mtd)
+    
+    return out
+
+
 def retrieve_section_components(application_name: str, page_name: str, metadata: str) -> List[SectionComponent]:
     '''Function that retrieves the section components corresponding to page_name from
     metadata and returns a list of SectionComponent objects.'''
@@ -173,7 +190,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_create_operation = section["operations"]["create"],
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
-
+                        custom_methods = retrieve_section_custom_methods(section)
                     )
                     out.append(sec)
             return out
