@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema
+from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram
 
 from metadata.specification import Classifier
 
@@ -116,6 +116,9 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     if not node:
         return 404, "Node not found"
     
+    diagrams = Diagram.objects.filter(system=diagram.system)
+    diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
+    
     try:
         with open('/usr/src/model/diagram/api/views/prompts/generate_method.txt', 'r') as file: # TODO: no absolute path
             prompt = file.read()
@@ -124,6 +127,7 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
             method_name=name,
             method_description=description, # TODO: prompt injection protection
             classifier_metadata=serializers.serialize('json', [node.cls]),
+            diagrams_metadata=diagram_data
         )
     except Exception as e:
         raise Exception("Failed to format prompt, error: " + str(e))
