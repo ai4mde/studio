@@ -19,7 +19,7 @@ urlpatterns = [
     {% endif -%}
     {% for custom_method in section_component.custom_methods -%}
     {% if custom_method.body_is_valid %}
-    path('{{ page }}_{{ section_component }}_{{ custom_method }}/<int:instance_id>', views.{{ page }}_{{ section_component }}_{{ custom_method }}, name='{{ page }}_{{ section_component }}_{{ custom_method }}')
+    path('{{ page }}_{{ section_component }}_{{ custom_method }}/<int:instance_id>', views.{{ page }}_{{ section_component }}_{{ custom_method }}, name='{{ page }}_{{ section_component }}_{{ custom_method }}'),
     {% endif -%}
     {% endfor -%}
     {% endfor -%}
