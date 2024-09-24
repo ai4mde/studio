@@ -4,7 +4,7 @@ from utils.definitions.model import Model, Attribute, AttributeType, CustomMetho
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
-from utils.loading_json_utils import get_apps
+from utils.loading_json_utils import get_apps, get_enum_literals
 
 
 def retrieve_class_by_id(node_id: str, diagram: str) -> Attribute:
@@ -12,10 +12,13 @@ def retrieve_class_by_id(node_id: str, diagram: str) -> Attribute:
     for node in diagram["nodes"]:
         if node["id"] != node_id:
             continue
-        return Attribute(
-            name = model_name_sanitization(node["cls"]["name"]),
-            type = AttributeType.FOREIGN_MODEL
-        )
+        if node["cls"]["type"] == "class":
+            return Attribute(
+                name = model_name_sanitization(node["cls"]["name"]),
+                type = AttributeType.FOREIGN_MODEL,
+                enum_literals = None
+            )
+        return None
 
 
 # TODO: implement different type of foreign models for differnt type of associations
@@ -26,7 +29,8 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     for association in diagram["edges"]:
         if association["source_ptr"] == node["id"]:
             foreign_model = retrieve_class_by_id(association["target_ptr"], diagram)
-            out.append(foreign_model)
+            if foreign_model:
+                out.append(foreign_model)
 
         '''
         TODO: above lines might need to be replaced by these lines, depending on direction of ptrs
@@ -38,22 +42,32 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     return out
 
 
-def retrieve_model_attributes(node: str) -> List[Attribute]:
+def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
 
     for attribute in node["cls"]["attributes"]:
         att_type = AttributeType.NONE
+        enum_literals = None
         if attribute["type"] == "str":
             att_type = AttributeType.STRING
         elif attribute["type"] == "bool":
             att_type = AttributeType.BOOLEAN
         elif attribute["type"] == "int":
             att_type = AttributeType.INTEGER
+        elif attribute["type"] == "enum":
+            att_type = AttributeType.ENUM
+            if "enum" not in attribute:
+                enum_literals = []
+            elif not attribute["enum"]:
+                enum_literals = []
+            else:
+                enum_literals = get_enum_literals(metadata, attribute["enum"])
         
         att = Attribute(
             name = attribute_name_sanitization(attribute["name"]),
-            type = att_type
+            type = att_type,
+            enum_literals = enum_literals
         )
         out.append(att)
 
@@ -85,9 +99,11 @@ def retrieve_models(metadata: str) -> List[Model]:
                 if diagram["type"] != "classes":
                     continue
                 for node in diagram["nodes"]:
+                    if node["cls"]["type"] != "class":
+                        continue
                     cls = Model(
                         name = model_name_sanitization(node["cls"]["name"]),
-                        attributes = retrieve_model_attributes(node) + retrieve_foreign_models(node, diagram),
+                        attributes = retrieve_model_attributes(metadata, node) + retrieve_foreign_models(node, diagram),
                         custom_methods = retrieve_model_custom_methods(node)
                     )
                     out.append(cls)

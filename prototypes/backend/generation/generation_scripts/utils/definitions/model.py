@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 import ast
 
 class CustomMethod():
@@ -24,18 +24,21 @@ class AttributeType(Enum):
     INTEGER = 1
     STRING = 2
     BOOLEAN = 3
-    FOREIGN_MODEL = 4
-    NONE = 5
+    ENUM = 4
+    FOREIGN_MODEL = 5
+    NONE = 6
 
 
 class Attribute():
     def __init__(
             self,
             name: str,
-            type: AttributeType
+            type: AttributeType,
+            enum_literals: Optional[List[str]]
     ):
         self.name = name
         self.type = type
+        self.enum_literals = enum_literals
 
     def __str__(self):
         return self.name

@@ -35,6 +35,18 @@ def authentication_is_present(metadata: str) -> bool:
     
     return False
 
+def get_enum_literals(metadata: str, class_id: str) -> List[str]:
+    out = []
+    for diagram in json.loads(metadata)["diagrams"]:
+        if diagram["type"] != "classes":
+            continue
+        for node in diagram["nodes"]:
+            if node["cls_ptr"] == class_id and node["cls"]["type"] == "enum":
+                for literal in node["cls"]["literals"]:
+                    out.append(str(literal))
+                return out
+    return []
+
 
 def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     for diagram in json.loads(metadata)["diagrams"]:
@@ -51,7 +63,7 @@ def find_model_by_id(metadata: str, class_id: str) -> str | None:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if node["id"] == class_id:
+            if node["id"] == class_id and node["cls"]["type"] == "class":
                 return model_name_sanitization(node["cls"]["name"])
     return None
 
@@ -77,11 +89,13 @@ def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> Lis
             return []
         for edge in diagram["edges"]:
             if edge["source_ptr"] == primary_class_id:
-                cls = model_name_sanitization(find_model_by_id(metadata, edge["target_ptr"]))
-                out.append(cls)
+                model_name = find_model_by_id(metadata, edge["target_ptr"])
+                if model_name:
+                    out.append(model_name_sanitization(model_name))
             if edge["target_ptr"] == primary_class_id:
-                cls = model_name_sanitization(find_model_by_id(metadata, edge["source_ptr"]))
-                out.append(cls)
+                model_name = find_model_by_id(metadata, edge["source_ptr"])
+                if model_name:
+                    out.append(model_name_sanitization(model_name))
     return out
 
 
@@ -114,7 +128,7 @@ def filter_pages_by_application(pages: List[Page], application: str) -> List[Pag
     return out
 
 
-def retrieve_section_attributes(section: str) -> List[SectionAttribute]:
+def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttribute]:
     if not section:
         return []
     if "attributes" not in section:
@@ -123,18 +137,24 @@ def retrieve_section_attributes(section: str) -> List[SectionAttribute]:
     out = []
     for attribute in section["attributes"]:
         attribute_type = None
+        enum_literals = None
         if attribute["type"] == "str":
             attribute_type  = AttributeType.STRING
         elif attribute["type"] == "int":
             attribute_type  = AttributeType.INTEGER
         elif attribute["type"] == "bool":
             attribute_type  = AttributeType.BOOLEAN
+        elif attribute["type"] == "enum":
+            attribute_type  = AttributeType.ENUM
+            enum_literals = get_enum_literals(metadata, attribute["enum"])
+
 
         # TODO: retrieve foreign models (also TODO in frontend)
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attribute["name"]),
             type = attribute_type,
+            enum_literals = enum_literals,
             updatable = True # TODO: frontend management of updatable attributes
         )
         out.append(att)
@@ -186,7 +206,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         page = page_name,
                         primary_model = find_model_by_class_ptr(metadata, section["class"]), # TODO: there might be a quicker method than this
                         parent_models = find_parent_models_by_id(metadata, section["class"]), # TODO: quicker method?
-                        attributes = retrieve_section_attributes(section),
+                        attributes = retrieve_section_attributes(metadata, section),
                         has_create_operation = section["operations"]["create"],
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from utils.definitions.model import Model, AttributeType
 from utils.sanitization import section_name_sanitization
 import ast
@@ -8,10 +8,12 @@ class SectionAttribute():
             self,
             name: str,
             type: AttributeType,
+            enum_literals: Optional[List[str]],
             updatable: bool
     ):
         self.name = name
         self.type = type
+        self.enum_literals = enum_literals
         self.updatable = updatable
 
     def __str__(self):

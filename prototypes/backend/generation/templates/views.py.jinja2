@@ -20,7 +20,7 @@ def {{ page }}_{{ section_component }}_create(request):
         {% for attribute in section_component.attributes -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
-        {% elif attribute.type == AttributeType.STRING -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
         if request.POST.get('instance_{{ attribute }}') == '':
             new_object.{{ attribute }} = None
         else:
@@ -73,7 +73,7 @@ def {{ page }}_{{ section_component }}_update(request, instance_id):
         {% for attribute in section_component.updatable_attributes -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
-        {% elif attribute.type == AttributeType.STRING -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
         {% elif attribute.type == AttributeType.INTEGER -%}
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
