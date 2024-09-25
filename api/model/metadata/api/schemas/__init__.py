@@ -1,6 +1,7 @@
 from .project import ReadProject, UpdateProject, CreateProject
 from .system import ReadSystem, UpdateSystem, CreateSystem
-from .meta import MetaSchema
+from .interface import ReadInterface, UpdateInterface, CreateInterface
+from .meta import MetaSchema, MetaClassifiersSchema, MetaRelationsSchema
 
 __all__ = [
     "ReadProject",
@@ -10,4 +11,9 @@ __all__ = [
     "UpdateSystem",
     "CreateSystem",
     "MetaSchema",
+    "MetaClassifiersSchema",
+    "MetaRelationsSchema",
+    "ReadInterface",
+    "UpdateInterface",
+    "CreateInterface",
 ]

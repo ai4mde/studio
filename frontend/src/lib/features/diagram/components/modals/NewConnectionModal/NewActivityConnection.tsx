@@ -15,7 +15,7 @@ export const NewActivityConnection: React.FC<Props> = ({
         () =>
             setObject((o: any) => ({
                 isDirected: true,
-                type: "activity",
+                type: "controlflow",
                 ...o,
             })),
         [],

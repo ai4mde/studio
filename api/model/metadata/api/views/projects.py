@@ -35,7 +35,12 @@ def update_project(request, project_id, payload: UpdateProject):
 
 @projects.delete("/{uuid:project_id}")
 def delete_project(request, project_id):
-    print(project_id)
-    return None
+    try:
+        project = Project.objects.get(id=project_id)
+        project.delete()
+    except Exception as e:
+        raise Exception("Failed to delete project, error: " + e)
+    return True
+    
 
 __all__ = ["projects"]

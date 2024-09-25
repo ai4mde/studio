@@ -1,9 +1,10 @@
 import SystemLayout from "$browser/components/systems/SystemLayout";
-import { ShowMetadata } from "$metadata/components/ShowMetadata";
+//import { ShowInterfaces } from "$interfaces/components/ShowInterfaces";
+import ShowInterfaces from "lib/features/interfaces/components/ShowInterfaces"
 import React from "react";
 import { useParams } from "react-router";
 
-const SystemMetadata: React.FC = () => {
+const SystemInterfaces: React.FC = () => {
     const { systemId } = useParams();
 
     if (!systemId) {
@@ -13,10 +14,11 @@ const SystemMetadata: React.FC = () => {
     return (
         <SystemLayout>
             <div className="flex h-full w-full flex-col gap-1 p-3">
-                <ShowMetadata systemId={systemId} />
+                <ShowInterfaces system={systemId}/>
             </div>
         </SystemLayout>
     );
 };
 
-export default SystemMetadata;
+export default SystemInterfaces;
+

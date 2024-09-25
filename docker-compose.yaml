@@ -43,6 +43,21 @@ services:
       - "traefik.http.routers.studio-api.entrypoints=web"
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
 
+  studio-prototypes:
+    depends_on: ["postgres"]
+    build:
+      context: prototypes
+    env_file: config/prototypes.env
+    networks:
+      - ai4mde_traefik
+    volumes:
+      - ./prototypes:/usr/src/prototypes
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio-prototypes.rule=Host(`prototypes.ai4mde.localhost`)"
+      - "traefik.http.routers.studio-prototypes.entrypoints=web"
+      - "traefik.http.services.studio-prototypes.loadbalancer.server.port=8010"
+
   studio:
     build:
       context: frontend
@@ -59,7 +74,7 @@ services:
 
 volumes:
   pgsql-data:
-
+  
 networks:
   ai4mde_traefik:
     name: "ai4mde_traefik"

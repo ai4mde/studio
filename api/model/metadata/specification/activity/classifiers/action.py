@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal
+from typing import Literal, Optional
 from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
 
 
@@ -11,15 +11,15 @@ class ActionClasses(BaseModel):
 class Action(NamedElement, NamespacedElement, BaseModel):
     type: Literal["action"] = "action"
     role: Literal["action"] = "action"
-    localPrecondition: str = ""
-    localPostcondition: str = ""
-    body: str = ""
-    operation: Operation
-    publish: list[str] = []  # TODO: Should refer to an event
-    subscribe: list[str] = []  # TODO: Should refer to an event
-    classes: ActionClasses = ActionClasses(input=[], output=[])
-    application_models: list[str] = []  # TODO: Should refer to an application model
-    page: str = ""  # TODO: In reality a page is more complex than just a string
+    localPrecondition: Optional[str] = ""
+    localPostcondition: Optional[str] = ""
+    body: Optional[str] = ""
+    operation: Optional[Operation] = None
+    publish: Optional[list[str]] = None  # TODO: Should refer to an event
+    subscribe: Optional[list[str]] = None  # TODO: Should refer to an event
+    classes: Optional[ActionClasses] = None
+    application_models: Optional[list[str]] = None  # TODO: Should refer to an application model
+    page: Optional[str] = None  # TODO: In reality a page is more complex than just a string
 
 
 ActionClassifier = Action

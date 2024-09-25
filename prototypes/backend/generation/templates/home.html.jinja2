@@ -1,0 +1,12 @@
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block content %}{% endraw %}
+
+{% if authentication_present -%}
+<h2>Welcome, <b>{% raw %}{{ user }}{% endraw %}</b></h2>
+{% else %}
+<h2>Welcome!</b></h2>
+{% endif -%}
+
+<h3>Use the navigation menu on the left to navigate through this application.</h3>
+
+{% raw %}{% endblock %}{% endraw %}

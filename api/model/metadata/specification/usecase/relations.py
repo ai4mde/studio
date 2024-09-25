@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class UsecaseRelation(BaseModel):
-    type: Literal["interaction", "exclusion", "inclusion"] = "interaction"
+    type: Literal["interaction", "extension", "inclusion"] = "interaction"
 
 
 __all__ = ["UsecaseRelation"]

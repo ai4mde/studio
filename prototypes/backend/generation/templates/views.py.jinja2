@@ -1,0 +1,139 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import user_passes_test
+from shared_models.models import *
+
+{% if authentication_present -%}
+def login_check(user):
+    return user.is_authenticated and user.is_{{ application_name }} # TODO: actor name instead of app name
+{% endif -%}
+
+{% for page in pages %}
+{% for section_component in page.section_components -%}
+{% if section_component.has_create_operation %}
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_create(request):
+    if request.method == 'POST':
+        new_object = {{ section_component.primary_model }}()
+        {% for attribute in section_component.attributes -%}
+        {% if attribute.type == AttributeType.BOOLEAN -%}
+        new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else:
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else: 
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% endif -%}
+        {% endfor -%}
+        {% for parent_model in section_component.parent_models -%}
+        new_object.{{ parent_model }} = request.POST.get('instance_{{ parent_model }}')
+        {% endfor -%}
+        new_object.save()
+    return redirect('render_{{ application_name }}_{{ page }}')
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_create_popup(request):
+    context = {}
+    {% for model in models_on_pages[page] -%}
+    context['{{ model }}_list'] = {{ model }}.objects.all()
+    {% endfor -%}
+    context['{{ section_component }}_create_popup'] = True
+    return render(request, '{{ application_name }}_{{ page }}.html', context)
+
+{% endif -%}
+
+{% if section_component.has_delete_operation %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_delete(request, instance_id):
+    if request.method == 'POST':
+        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+        instance.delete()
+        return redirect('render_{{ application_name }}_{{ page }}')
+{% endif -%}
+
+{% if section_component.has_update_operation %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_update(request, instance_id):
+    if request.method == 'POST':
+        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+        {% for attribute in section_component.updatable_attributes -%}
+        {% if attribute.type == AttributeType.BOOLEAN -%}
+        instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% endif -%}
+        {% endfor -%}
+        {% for parent_model in section_component.parent_models -%}
+        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
+        {% endfor -%}
+        instance.save()
+        return redirect('render_{{ application_name }}_{{ page }}')
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
+    context = {}
+    {% for model in models_on_pages[page] -%}
+    context['{{ model }}_list'] = {{ model }}.objects.all()
+    {% endfor -%}
+    context['update_instance'] = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+    return render(request, '{{ application_name }}_{{ page }}.html', context)
+
+
+{% endif -%}
+
+{% for custom_method in section_component.custom_methods -%}
+{% if custom_method.body_is_valid -%}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def {{ page }}_{{ section_component }}_{{ custom_method }}(request, instance_id):
+    instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+    instance.{{ custom_method.call_name }}()
+    context = {}
+    {% for model in models_on_pages[page] -%}
+    context['{{ model }}_list'] = {{ model }}.objects.all()
+    {% endfor -%}
+    return render(request, '{{ application_name }}_{{ page }}.html', context)
+{% endif -%}
+{% endfor -%}
+
+{% endfor %}
+{% endfor %}
+
+{% for page in pages %}
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def render_{{ application_name }}_{{ page }}(request):
+    context = {}
+    {% for model in models_on_pages[page] -%}
+    context['{{ model }}_list'] = {{ model }}.objects.all()
+    {% endfor -%}
+    return render(request, '{{ application_name }}_{{ page }}.html', context)
+{% endfor %}
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
+{% endif -%}
+def homerender(request):
+    context = {}
+    context['user'] = request.user
+    return render(request, '{{ application_name }}_home.html', context)

@@ -11,3 +11,26 @@ export const useSystemMetadata = (systemId: string) =>
             return response.data;
         },
     });
+
+
+export const useActor = (systemId: string, classifierId: string) => {
+    if (!classifierId) {
+        return "";
+    }
+    const queryResult = useQuery({
+        queryKey: ["system", "metadata", systemId, "classifiers", classifierId],
+        queryFn: async () => {
+            const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/${classifierId}`);
+            return response.data;
+        },
+    });
+
+    const actor = queryResult.data?.data.name;
+
+    return [
+        actor,
+        queryResult.isSuccess,
+        queryResult.isLoading,
+        queryResult.error,
+    ];
+};

@@ -1,0 +1,72 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from shared_models.models import User
+
+{% for user_type in user_types %}
+def create_{{ user_type }}(request):
+    username = request.POST['username']
+    password = request.POST['password']
+    {% for user_type in user_types %}
+    is_{{ user_type }} = (request.POST['user_type'] == '{{ user_type }}')
+    {% endfor %}
+    User.objects.create_user(username=username, password=password, 
+    {%- for user_type in user_types %}is_{{ user_type }}=is_{{ user_type }}{% if not loop.last %}, {% endif %}{% endfor -%})
+{%- endfor %}
+
+def login_user(request):
+    context = {}
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            request.session['user'] = username
+            {% for user_type in user_types %}
+            if user.is_{{ user_type }}:
+                return redirect('/{{ user_type }}/')
+            {% endfor %}
+            context['auth_mess'] = "Incorrect user type!"
+            context['auth_mess_color'] = "red"
+            return render(request, 'authentication_index.html', context)
+        else:
+            context['auth_mess'] = "Incorrect password/username!"
+            context['auth_mess_color'] = "red"
+            return render(request, 'authentication_index.html', context)
+    else:
+        return render(request, 'authentication_index.html', context)
+    
+def logout_user(request):
+    context = {}
+    logout(request)
+    context['log_out_mess'] = "User was logged out."
+    context['log_out_mess_color'] = "green"
+    return render(request, 'authentication_index.html', context)
+
+def register_user(request):
+    context = {}
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        {% for user_type in user_types %}
+        is_{{ user_type }} = (request.POST['user_type'] == '{{ user_type }}')
+        {% endfor %}
+        if User.objects.filter(username=username).exists():
+            context['reg_mess'] = "User " + username + " already exists!"
+            context['reg_mess_color'] = "red"
+            return render(request, 'authentication_index.html', context)
+        {% if user_types != [] -%} 
+        {% for user_type in user_types -%}
+        if request.POST['user_type'] == '{{ user_type }}':
+            create_{{ user_type }}(request)
+        {% endfor -%}
+        {% else -%}
+        User.objects.create_user(username=username, password=password {% for user_type in user_types -%} 
+        {% if loop.first %}, {% endif -%} is_{{ user_type }}=is_{{ user_type }}{% if not loop.last %}, {% endif %}{% endfor -%}
+                                )
+        {% endif -%}
+        context['reg_mess'] = "Successfuly created user: " + username
+        context['reg_mess_color'] = "green"
+        return render(request, 'authentication_index.html', context)
+    else:
+        return render(request, 'authentication_index.html', context)

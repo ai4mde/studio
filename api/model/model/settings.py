@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "diagram",  # The diagram app is used to store diagram-specific data
     "prompt",  # The prompt app is used for the chat / prompting functionalities
     "prose",  # The prose app is used to store and build NLP pipelines
+    "generator", # The generator app is used to store and build prototypes
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -124,3 +126,11 @@ CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?
 PROSE_API_KEY = (
     "sequoias"  # TODO: Leverage the JWT to make connections to the Prose API
 )
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        }
+    }
+}

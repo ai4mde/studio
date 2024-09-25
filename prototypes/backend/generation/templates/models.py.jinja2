@@ -1,0 +1,56 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.shortcuts import get_object_or_404
+
+{% if authentication_present -%}
+class User(AbstractUser):
+    {% if user_types -%}
+    {% for user_type in user_types -%}
+    is_{{ user_type }} = models.BooleanField(default=False)
+    {% endfor -%}
+    {% else -%}
+    pass
+    {% endif %}
+{% endif %}
+
+{% for model in models -%}
+class {{ model.name }}(models.Model):
+    {% if model.attributes -%}
+    {% for attribute in model.attributes -%}
+    {%- if attribute.type == AttributeType.BOOLEAN -%}
+    {{ attribute.name }} = models.BooleanField(default=False, blank=True)
+    {% elif attribute.type == AttributeType.INTEGER -%}
+    {{ attribute.name }} = models.IntegerField(default=0, null=True, blank=True)
+    {% elif attribute.name == "username" or attribute.name == "password" -%}
+    {% elif attribute.type == AttributeType.STRING -%}
+    {{ attribute.name }} = models.CharField(max_length=255, default='', null=True, blank=True)
+    {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
+    {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE, null=True, blank=True)
+    {% elif attribute.type == AttributeType.ENUM %}
+    class {{ attribute.name }}(models.TextChoices):
+        {% for literal in attribute.enum_literals -%}
+        {{ literal }} = '{{ literal }}', '{{ literal }}'
+        {% endfor %}
+    {{ attribute.name }} = models.CharField(
+        max_length=512,
+        choices={{ attribute.name }}.choices,
+        default={{ attribute.name }}.choices[0][0]
+    )
+    {% endif -%}
+    {% endfor -%}
+    {% else -%}
+    pass
+    {% endif -%}
+
+    {% if model.object_name_attribute %}
+    def __str__(self):
+        return self.{{ model.object_name_attribute }}
+    {% endif %}
+
+    {%- for custom_method in model.custom_methods %}
+    {% if custom_method.body_is_valid -%}
+
+    {{ custom_method.body | replace('\n','\n    ') -}}
+    {% endif -%}
+    {% endfor %}
+{% endfor %}

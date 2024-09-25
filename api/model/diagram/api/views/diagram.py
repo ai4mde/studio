@@ -16,6 +16,7 @@ from ninja import Router
 
 from .node import node
 from .edge import edge
+from .system import system
 
 diagrams = Router()
 
@@ -86,11 +87,17 @@ def update_diagram(request, diagram_id, payload: UpdateDiagram):
 
 @diagrams.delete("/{uuid:diagram_id}/")
 def delete_diagram(request, diagram_id):
-    print(diagram_id)
-    return None
+    try:
+        diagram = Diagram.objects.get(id=diagram_id)
+        diagram.delete()
+    except Exception as e:
+        raise Exception("Failed to delete diagram, error: " + e)
+    return True
+    
 
 
 diagrams.add_router("/{uuid:diagram}/node", node)
 diagrams.add_router("/{uuid:diagram}/edge", edge)
+diagrams.add_router("/system/", system)
 
 __all__ = ["diagrams"]

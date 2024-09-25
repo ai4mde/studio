@@ -1,4 +1,4 @@
-FROM python:3.8.18 AS venv
+FROM python:3.12.1 AS venv
 
 ENV PYTHONFAULTHANDLER=1 \
     PYTHONUNBUFFERED=1 \
@@ -21,16 +21,11 @@ RUN pipx ensurepath
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-dev --no-root --no-interaction --no-ansi
 
-FROM python:3.8.18
+FROM python:3.12.1
 WORKDIR /usr/src/app
 
 COPY --from=venv /.venv /usr/src/.venv
-
+COPY . /usr/src/prototypes
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-RUN python -c "import nltk; nltk.download('punkt')"
-RUN python -c "import nltk; nltk.download('wordnet')"
-
-COPY src /usr/src/app/src
-
-CMD ["python3", "-m", "uvicorn", "--host", "0.0.0.0", "--port", "8000", "--reload", "src.main:app"]
+CMD [ "python", "-u", "/usr/src/prototypes/backend/api.py" ]

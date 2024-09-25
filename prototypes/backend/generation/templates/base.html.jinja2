@@ -1,0 +1,43 @@
+{% raw %}{% load static %}{% endraw %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{{ application_name }}</title>
+            <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="logo">
+                <img src='{{ logo }}'>
+            </div>
+            <h1>{{ application_name | capitalize }}</h1>
+        </div>
+            <div class="menu">
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
+                {% for page in pages %}
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page }}</a>
+                {% endfor %}
+                {# TODO: implement categories
+                {% for category in categories %}
+                    <a href="#">{{ category }}</a>
+                {% endfor %}
+                #}
+
+                {% if authentication_present -%}
+                {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}
+                {% else -%}
+                {% raw %}<a href="{% url 'noauth_home-homerender' %}">Other Application</a>{% endraw %}
+                {% endif -%}
+            </div>
+    
+    <div class="content">
+        {% raw %}
+        {% block content %}
+
+        {% endblock %}
+        {% endraw %}
+    </div>
+    </body>
+</html>

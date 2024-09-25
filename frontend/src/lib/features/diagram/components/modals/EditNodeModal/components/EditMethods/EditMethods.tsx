@@ -28,6 +28,7 @@ const EditMethods: React.FC<Props> = ({ node }) => {
             {methods.map((e: any, idx: number) => (
                 <EditMethod
                     key={`method-${idx}`}
+                    node={node}
                     method={e}
                     update={(v) => {
                         setMethods((s: any[]) => {

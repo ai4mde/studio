@@ -1,6 +1,6 @@
 import { useSystem } from "$browser/queries";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
-import { AppWindow, Blocks, Component, GitGraph, User } from "lucide-react";
+import { AppWindow, GitGraph, PaintRoller, FileStack} from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -34,24 +34,14 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             strict: true,
                         },
                         {
-                            name: "Metadata",
-                            Icon: Blocks,
-                            href: `/systems/${systemId}/metadata`,
+                            name: "Interfaces",
+                            Icon: PaintRoller,
+                            href: `/systems/${systemId}/interfaces`,
                         },
                         {
-                            name: "Applications",
+                            name: "Prototypes",
                             Icon: AppWindow,
-                            href: `/systems/${systemId}/applications`,
-                        },
-                        {
-                            name: "Components",
-                            Icon: Component,
-                            href: `/systems/${systemId}/components`,
-                        },
-                        {
-                            name: "Users",
-                            Icon: User,
-                            href: `/systems/${systemId}/users`,
+                            href: `/systems/${systemId}/prototypes`,
                         },
                     ]}
                 />

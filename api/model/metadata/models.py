@@ -24,6 +24,15 @@ class Classifier(models.Model):
     data = models.JSONField()
 
 
+class Interface(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    system = models.ForeignKey(System, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    actor = models.ForeignKey(Classifier, on_delete=models.CASCADE, null=True)
+    data = models.JSONField(default=dict)
+
+
 class Relation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     data = models.JSONField()

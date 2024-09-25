@@ -1,5 +1,6 @@
 import { createProjectAtom } from "$browser/atoms";
 import { authAxios } from "$lib/features/auth/state/auth";
+import { queryClient } from "$shared/hooks/queryClient";
 import {
     Button,
     CircularProgress,
@@ -30,7 +31,7 @@ export const CreateProject: React.FC = () => {
     const [open, setOpen] = useAtom(createProjectAtom);
     const close = () => setOpen(false);
 
-    const { mutate, isPending } = useMutation<
+    const { mutateAsync, isPending } = useMutation<
         ProjectOutput,
         unknown,
         ProjectInput
@@ -49,9 +50,12 @@ export const CreateProject: React.FC = () => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        mutate({
+        mutateAsync({
             name: `${formData.get("name")}`,
             description: `${formData.get("description")}`,
+        }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+            close();
         });
     };
 

@@ -40,6 +40,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                             return [...s.filter((_, i) => i != idx)];
                         });
                     }}
+                    node={node}
                 />
             ))}
 
@@ -53,6 +54,7 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                         setAttributes((s: any) => {
                             s.push({
                                 type: "str",
+                                enum: null,
                             });
                             return [...s];
                         })

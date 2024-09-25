@@ -49,14 +49,14 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     )}
                     {object.role == "object" && (
                         <>
-                            <Option value="class">Class</Option>
-                            <Option value="buffer">Buffer</Option>
-                            <Option value="pin">Pin</Option>
+                            <Option value="class" disabled>Class</Option>
+                            <Option value="buffer" disabled>Buffer</Option>
+                            <Option value="pin" disabled>Pin</Option>
                         </>
                     )}
                 </Select>
             </FormControl>
-            {object.type == "action" && (
+            {(object.type == "action") && (
                 <FormControl size="sm" className="w-full">
                     <FormLabel>Name</FormLabel>
                     <Input

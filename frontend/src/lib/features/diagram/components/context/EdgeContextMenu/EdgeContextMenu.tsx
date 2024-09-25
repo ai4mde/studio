@@ -20,7 +20,7 @@ const EdgeContextMenu: React.FC = () => {
     const onDelete = async () => {
         if (edge) {
             await authAxios.delete(
-                `/api/model/diagram/${diagram}/edge/${edge.id}/`,
+                `/v1/diagram/${diagram}/edge/${edge.id}/`,
             );
             await queryClient.refetchQueries({
                 queryKey: [`diagram`],

@@ -8,6 +8,16 @@ class MetaSchema(Schema):
     relations: List[RelationSchema]
 
 
+class MetaClassifiersSchema(Schema):
+    classifiers: List[ClassifierSchema]
+
+
+class MetaRelationsSchema(Schema):
+    relations: List[RelationSchema]
+
+
 __all__ = [
     "MetaSchema",
+    "MetaClassifiersSchema",
+    "MetaRelationsSchema"
 ]

@@ -32,3 +32,39 @@ export const useSystem = (systemId?: string) =>
         },
         enabled: !!systemId,
     });
+
+export type InterfaceOut = {
+    id: string;
+    name: string;
+    description?: string;
+    project?: string;
+    system?: string;
+    actor: string;
+};
+
+export const useInterfaces = ( systemId?: string) =>
+    useQuery<InterfaceOut[]>({
+        queryKey: ["interfaces", `${systemId}`],
+        queryFn: async () => {
+            return (
+                await authAxios.get(`/v1/metadata/interfaces/`, {
+                    params: {
+                        system: systemId,
+                    },
+                })
+            ).data;
+        },
+        enabled: !!systemId,
+    });
+
+export const useInterface = (interfaceId?: string) =>
+    useQuery<InterfaceOut>({
+        queryKey: ["interface", `${interfaceId}`],
+        queryFn: async () => {
+            return (await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`))
+                .data;
+        },
+        enabled: !!interfaceId,
+    });
+
+    
