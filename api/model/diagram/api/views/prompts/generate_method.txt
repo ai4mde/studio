@@ -12,4 +12,4 @@ Implement a custom method for this model using Django {django_version} that does
 name: "{method_name}"
 description: "{method_description}"
 
-Only show the generated method in your response, nothing else.
+Only show the generated method in your response, nothing else. So also not the implemented model, only the method.

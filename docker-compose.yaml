@@ -32,7 +32,9 @@ services:
     depends_on: ["postgres"]
     build:
       context: api
-    env_file: config/api.env
+    env_file:
+      - config/api.env
+      - config/api_keys.env
     networks:
       - ai4mde_traefik
     volumes:

@@ -1,7 +1,7 @@
 from typing import List
 from django.http import HttpRequest
 from django.core import serializers
-import openai
+from openai import OpenAI
 
 from ninja import Router
 from pydantic import BaseModel
@@ -106,6 +106,13 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
     return node
 
 
+def remove_reply_markdown(reply: str) -> str:
+    lines = reply.splitlines()
+    if len(lines) > 2:
+        return '\n'.join(lines[1:-1])
+    return ""
+
+
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
 def generate_method(request: HttpRequest, node_id: str, name: str, description: str):
     diagram = utils.get_diagram(request)
@@ -115,6 +122,9 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     node = diagram.nodes.get(id=node_id)
     if not node:
         return 404, "Node not found"
+    
+    if node.cls.data["type"] != "class":
+        return 422, "Node is not a class"
     
     diagrams = Diagram.objects.filter(system=diagram.system)
     diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
@@ -132,18 +142,26 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     except Exception as e:
         raise Exception("Failed to format prompt, error: " + str(e))
 
-    return prompt
-    openai.api_key = os.environ['OPENAI_KEY']
     messages = [{"role": "user", "content": prompt}]
     reply = None
+
     try:
-        chat = openai.ChatCompletion.create(model="gpt-4o", messages=messages)
+        client = OpenAI(
+            api_key=os.environ.get("OPENAI_KEY"),
+        )
+
+        chat = client.chat.completions.create(
+            messages=messages,
+            model="gpt-4o",
+        )
         reply = chat.choices[0].message.content
-    except:
-        return 404, "Could not connect to ChatGPT"
+    except Exception as e:
+        raise Exception("Error while connecting to ChatGPT: " + str(e))
+    
+    reply = remove_reply_markdown(reply)
     
     try:
-        compile(reply, '<string>', exec)
+        compile(reply, '<string>', 'exec')
         return reply
     except SyntaxError as e:
         return 422, "Invalid generated code"

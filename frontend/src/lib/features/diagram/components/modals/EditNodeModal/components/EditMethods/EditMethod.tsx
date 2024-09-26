@@ -27,15 +27,20 @@ const EditMethod: React.FC<{
     const LLMOptions = [
         { value: 'GPT-4o', label: 'GPT-4o' },
     ]
+    const [generateButtonDisabled, setGenerateButtonDisabled] = useState(false);
 
     const generateMethod = async (event) => {
         event.preventDefault();
         setGenerationError(null);
+        setGenerateButtonDisabled(true)
         try {
             const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}`);
             update({ ...method, body: data })
+            setOpenGenerateModal(false);
         } catch (error) {
             setGenerationError("Failed to generate method: API call failed.");
+        } finally {
+            setGenerateButtonDisabled(false)
         }
     }
 
@@ -131,7 +136,7 @@ const EditMethod: React.FC<{
                         </FormControl>
                     </form>
                     <div className="flex flex-row gap-4 pt-1">
-                        <Button form="generate-method" type="submit" disabled={!method?.description}>
+                        <Button form="generate-method" type="submit" disabled={!method?.description || generateButtonDisabled}>
                             Generate
                         </Button>
                         <Select
