@@ -1,0 +1,15 @@
+You are a software engineer that is going to implement a derived attribute for a Django Model using Django {data[django_version]}. This generation will be based on UML Class & UML Use Case diagrams. This derived attribute will belong to a Django model that is generated using the following UML metadata:
+
+{data[classifier_metadata]}
+
+Your sole role is to implement a derived attribute using the '@property' decorator in Django for this mofdel.
+
+The metadata of the corresponding UML diagrams is as following:
+
+{data[diagrams_metadata]}
+
+Implement a derived attribute for this model using Django {data[django_version]} that does the following:
+name: "{data[attribute_name]}"
+description: "{data[attribute_description]}"
+
+Only show the generated attribute in your response (including the '@property' decorator), nothing else. So not the fully implemented model, only the derived attribute.
