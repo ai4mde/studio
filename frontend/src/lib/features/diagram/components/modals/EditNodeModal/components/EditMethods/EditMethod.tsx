@@ -87,18 +87,18 @@ const EditMethod: React.FC<{
                             <option value="bool">boolean</option>
                         </select>
                     </div>
-                        <div className={style.body}>
-                            <Editor
-                                value={method?.body}
-                                language="python"
-                                options={{
-                                    lineNumbers: "off",
-                                    folding: false,
-                                }}
-                                height="12rem"
-                                width="100%"
-                                onChange={(e) => update({ ...method, body: e ?? "" })}
-                            />
+                    <div className={style.body}>
+                        <Editor
+                            value={method?.body}
+                            language="python"
+                            options={{
+                                lineNumbers: "off",
+                                folding: false,
+                            }}
+                            height="12rem"
+                            width="100%"
+                            onChange={(e) => update({ ...method, body: e ?? "" })}
+                        />
                     </div>
                     {!openGenerateModal &&
                         <Button
