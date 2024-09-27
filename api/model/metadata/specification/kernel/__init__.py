@@ -9,7 +9,8 @@ class Attribute(BaseModel):
     type: DataType
     enum: Optional[str]
     derived: bool = False
-
+    description: Optional[str] = None
+    body: Optional[str] = None
 
 class Multiplicity(BaseModel):
     is_ordered: bool = False

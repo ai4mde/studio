@@ -2,7 +2,7 @@ You are a software engineer that is going to implement a derived attribute for a
 
 {data[classifier_metadata]}
 
-Your sole role is to implement a derived attribute using the '@property' decorator in Django for this mofdel.
+Your sole role is to implement a derived attribute in Django for this mofdel.
 
 The metadata of the corresponding UML diagrams is as following:
 
@@ -10,6 +10,7 @@ The metadata of the corresponding UML diagrams is as following:
 
 Implement a derived attribute for this model using Django {data[django_version]} that does the following:
 name: "{data[attribute_name]}"
+return type: {data[attribute_return_type]}
 description: "{data[attribute_description]}"
 
-Only show the generated attribute in your response (including the '@property' decorator), nothing else. So not the fully implemented model, only the derived attribute.
+Only show the generated attribute in your response, nothing else. So not the fully implemented model, only the derived attribute.

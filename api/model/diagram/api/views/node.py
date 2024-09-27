@@ -106,7 +106,7 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 
 
 @node.post("{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: str})
-def generate_attribute(request: HttpRequest, node_id: str, name: str, description: str):
+def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
@@ -125,6 +125,7 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, descriptio
     prompt_data = {
         "django_version": "5.0.2", # TODO: put this in env
         "attribute_name": name,
+        "attribute_return_type": type,
         "attribute_description": description, # TODO: prompt injection protection
         "classifier_metadata": serializers.serialize('json', [node.cls]),
         "diagrams_metadata": diagram_data
