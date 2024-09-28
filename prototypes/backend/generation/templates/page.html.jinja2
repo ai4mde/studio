@@ -23,6 +23,7 @@
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
         <tr>
             {#- UPDATE FORM #}
+            {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
@@ -80,6 +81,7 @@
                 </td>
             </form>
             {% raw %}{% else %}{% endraw %}
+            {% endif -%}
             
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
@@ -100,7 +102,9 @@
             {% for parent_model in section_component.parent_models -%}
             <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
             {% endfor -%}
+            {% if section_component.has_update_operation -%}
             {% raw %}{% endif %}{% endraw %}
+            {% endif -%}
 
             {#- UPDATE #}
             {% if section_component.has_update_operation -%}
