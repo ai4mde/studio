@@ -18,6 +18,7 @@ def {{ page }}_{{ section_component }}_create(request):
     if request.method == 'POST':
         new_object = {{ section_component.primary_model }}()
         {% for attribute in section_component.attributes -%}
+        {% if not attibute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
@@ -35,6 +36,7 @@ def {{ page }}_{{ section_component }}_create(request):
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
         new_object.{{ parent_model }} = request.POST.get('instance_{{ parent_model }}')
+        {% endif -%}
         {% endfor -%}
         new_object.save()
     return redirect('render_{{ application_name }}_{{ page }}')
@@ -70,13 +72,15 @@ def {{ page }}_{{ section_component }}_delete(request, instance_id):
 def {{ page }}_{{ section_component }}_update(request, instance_id):
     if request.method == 'POST':
         instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-        {% for attribute in section_component.updatable_attributes -%}
+        {% for attribute in section_component.attributes -%}
+        {% if attribute.updatable and not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
         {% elif attribute.type == AttributeType.INTEGER -%}
         instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% endif -%}
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
