@@ -4,10 +4,8 @@ import useLocalStorage from './useLocalStorage';
 import {
     FormControl,
     Input,
-    Option,
     Divider,
 } from "@mui/joy"
-import Multiselect from 'multiselect-react-dropdown';
 import Select from "react-select";
 
 type Props = {
@@ -159,7 +157,7 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                                         <Select
                                             isMulti
                                             name="sections"
-                                            options={sections.map((e) => ({ label: e.name, value: e}))}
+                                            options={sections.map((e) => ({ label: e.name, value: e.id}))}
                                             value={selectedSections}
                                             onChange={setSelectedSections}
                                         />

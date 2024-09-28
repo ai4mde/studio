@@ -199,8 +199,16 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 if page["name"] != page_name:
                     continue
 
-                for section_data in page["sections"]:
-                    section = section_data["value"]
+                for page_section in page["sections"]:
+                    section = None
+                    page_section_id = page_section["value"]
+                    for application_section in application_component["value"]["data"]["sections"]:
+                        if application_section["id"] == page_section_id:
+                            section = application_section
+                    
+                    if not section:
+                        continue
+
                     sec = SectionComponent(
                         id = section["id"],
                         name = section["name"],
