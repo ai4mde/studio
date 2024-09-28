@@ -98,7 +98,7 @@ def get_class_attributes(class_id: str) -> List[ModelAttribute]:
         att = ModelAttribute(
             name = attribute['name'],
             type = attribute['type'],
-            derived = False # TODO
+            derived = attribute['derived']
         )
         out.append(att)
     return out
