@@ -17,7 +17,10 @@ class User(AbstractUser):
 class {{ model.name }}(models.Model):
     {% if model.attributes -%}
     {% for attribute in model.attributes -%}
-    {%- if attribute.type == AttributeType.BOOLEAN -%}
+    {% if attribute.derived %}
+    @property
+    {{ attribute.body | replace('\n','\n    ') }}
+    {% elif attribute.type == AttributeType.BOOLEAN -%}
     {{ attribute.name }} = models.BooleanField(default=False, blank=True)
     {% elif attribute.type == AttributeType.INTEGER -%}
     {{ attribute.name }} = models.IntegerField(default=0, null=True, blank=True)

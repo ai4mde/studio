@@ -8,7 +8,6 @@ export const DiagramPage: React.FC = () => {
     if (!diagramId) {
         return <Navigate to="/diagram"></Navigate>;
     }
-
     return <Diagram diagram={diagramId}></Diagram>;
 };
 

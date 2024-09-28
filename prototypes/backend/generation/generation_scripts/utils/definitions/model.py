@@ -34,11 +34,15 @@ class Attribute():
             self,
             name: str,
             type: AttributeType,
-            enum_literals: Optional[List[str]]
+            enum_literals: Optional[List[str]],
+            derived: bool = False,
+            body: Optional[str] = None
     ):
         self.name = name
         self.type = type
         self.enum_literals = enum_literals
+        self.derived = derived
+        self.body = body
 
     def __str__(self):
         return self.name

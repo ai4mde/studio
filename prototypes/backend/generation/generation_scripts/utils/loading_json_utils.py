@@ -155,7 +155,8 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
             name = attribute_name_sanitization(attribute["name"]),
             type = attribute_type,
             enum_literals = enum_literals,
-            updatable = True # TODO: frontend management of updatable attributes
+            updatable = True, # TODO: frontend management of updatable attributes
+            derived = attribute["derived"]
         )
         out.append(att)
 

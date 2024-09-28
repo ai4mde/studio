@@ -27,7 +27,7 @@
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
-                {% if attribute.updatable %}
+                {% if attribute.updatable and not attribute.derived %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
                     <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
@@ -161,6 +161,9 @@
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
+                {% if attribute.derived -%}
+                <td></td>
+                {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
                     <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
@@ -177,6 +180,7 @@
                     
                     {%- endif %}
                 </td>
+                {% endif -%}
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>
