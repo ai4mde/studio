@@ -201,8 +201,8 @@ def build_data_styling() -> Dict[str, Any]:
     return {
         "radius": 0,
         "textColor": "#000000",
-        "accentColor": "#777777",
-        "selectedStyle": "basic",
+        "accentColor": "#F5F5F4",
+        "selectedStyle": "modern",
         "backgroundColor": "#FFFFFF"
     }
 

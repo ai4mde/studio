@@ -49,16 +49,16 @@
 
                 {% else %}
                 {% if attribute.type == AttributeType.STRING %}
-                <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
                 
                 {% elif attribute.type == AttributeType.INTEGER %}
-                <td style="text-align:right;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
                 {% elif attribute.type == AttributeType.BOOLEAN %}
                 <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
                 
                 {% elif attribute.type == AttributeType.ENUM %}
-                <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
                 {% endif -%}
                 {% endif -%}
@@ -84,21 +84,21 @@
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
             {% if attribute.type == AttributeType.STRING -%}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {%- elif attribute.type == AttributeType.INTEGER %}
-            <td style="text-align:right;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
             
             {%- elif attribute.type == AttributeType.BOOLEAN %}
             <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
             
             {%- elif attribute.type == AttributeType.ENUM %}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {% endif -%}
             {% endfor -%}
             {% for parent_model in section_component.parent_models -%}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
             {% endfor -%}
             {% raw %}{% endif %}{% endraw %}
 

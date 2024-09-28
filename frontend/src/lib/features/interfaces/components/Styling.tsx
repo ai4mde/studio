@@ -28,8 +28,8 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                 radius: 0,
                 backgroundColor: '#FFFFFF',
                 textColor: '#000000',
-                accentColor: '#777777',
-                selectedStyle: 'basic'
+                accentColor: '#F5F5F4',
+                selectedStyle: 'modern'
             };
             setData(defaultStyling);
         }
