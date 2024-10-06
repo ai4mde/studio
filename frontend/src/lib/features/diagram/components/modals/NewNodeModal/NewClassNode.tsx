@@ -41,6 +41,7 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                         setObject((o: any) => ({
                             ...o,
                             name: e.target.value,
+                            derived: false,
                         }))
                     }
                     placeholder={`Name of the ${object.type ?? "node"}...`}

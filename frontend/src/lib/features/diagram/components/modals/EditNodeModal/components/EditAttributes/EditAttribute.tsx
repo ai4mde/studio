@@ -1,12 +1,12 @@
-import Editor from "@monaco-editor/react";
-import { X, Pencil, PanelTopClose } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import style from "./editattributes.module.css";
-import Select from "react-select";
-import { Tooltip, Button, FormControl, FormLabel, Textarea } from "@mui/joy";
-import { Node } from "reactflow";
-import { authAxios } from "$lib/features/auth/state/auth";
 import { useDiagramStore } from "$diagram/stores";
+import { authAxios } from "$lib/features/auth/state/auth";
+import Editor from "@monaco-editor/react";
+import { Button, FormControl, FormLabel, Textarea, Tooltip } from "@mui/joy";
+import { PanelTopClose, Pencil, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import Select from "react-select";
+import { Node } from "reactflow";
+import style from "./editattributes.module.css";
 
 const EditAttribute: React.FC<{
     attribute: any;
@@ -16,7 +16,7 @@ const EditAttribute: React.FC<{
     create?: boolean;
     node: Node;
 }> = ({ attribute, del, update, dirty, create, node }) => {
-    const [ enumClassifiers, setEnumClassifiers ] = useState([]);
+    const [enumClassifiers, setEnumClassifiers] = useState([]);
     const { diagram } = useDiagramStore();
     const [openEditMenu, setOpenEditMenu] = useState(false);
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
@@ -44,21 +44,21 @@ const EditAttribute: React.FC<{
         { value: 'str', label: 'string', id: 'string' },
         { value: 'int', label: 'integer', id: 'integer' },
         { value: 'bool', label: 'boolean', id: 'boolean' },
-      ];
-      
+    ];
+
     const dynamicOptions = enumClassifiers.map((e) => ({
         value: 'enum',
         label: `enum: ${e.cls.name}`,
         id: e.cls_ptr,
     }));
-      
+
     const selectOptions = [...staticOptions, ...dynamicOptions];
 
     const [selectedOption, setSelectedOption] = useState(null);
-    const handleSelectChange = (selectedOption) =>{
+    const handleSelectChange = (selectedOption) => {
         console.log('Selected value:', selectedOption.value); // Access the value
         setSelectedOption(selectedOption);
-        if (selectedOption.value === "enum"){
+        if (selectedOption.value === "enum") {
             let updatedAttribute = {
                 ...attribute,
                 type: 'enum',
@@ -104,9 +104,8 @@ const EditAttribute: React.FC<{
                 <Tooltip
                     size="sm"
                     placement="left"
-                    title={`Make attribute ${
-                        attribute?.derived ? "public" : "derived"
-                    }`}
+                    title={`Make attribute ${attribute?.derived ? "public" : "derived"
+                        }`}
                 >
                     <button
                         className="p-2"
@@ -117,14 +116,14 @@ const EditAttribute: React.FC<{
                         {attribute?.derived ? "/" : "+"}
                     </button>
                 </Tooltip>
-                { attribute?.derived &&
+                {attribute?.derived &&
                     <Tooltip
                         size="sm"
                         placement="left"
                         title={`${openEditMenu ? "Close" : "Edit derived attribute logic"}`}
                     >
-                        <button type="button" onClick={() => {setOpenEditMenu((openEditMenu) => !openEditMenu)}}>
-                            { openEditMenu ? <PanelTopClose size={16} /> : <Pencil size={16} /> }
+                        <button type="button" onClick={() => { setOpenEditMenu((openEditMenu) => !openEditMenu) }}>
+                            {openEditMenu ? <PanelTopClose size={16} /> : <Pencil size={16} />}
                         </button>
                     </Tooltip>
                 }
@@ -152,7 +151,7 @@ const EditAttribute: React.FC<{
                     <X size={12} />
                 </button>
             </div>
-            { attribute?.derived && openEditMenu && 
+            {attribute?.derived && openEditMenu &&
                 <div className="">
                     <Editor
                         value={attribute?.body}
@@ -167,7 +166,7 @@ const EditAttribute: React.FC<{
                     />
                 </div>
             }
-            { attribute?.derived && !openGenerateModal && openEditMenu &&
+            {attribute?.derived && !openGenerateModal && openEditMenu &&
                 <Button
                     color="primary"
                     className="w-full"
@@ -208,8 +207,8 @@ const EditAttribute: React.FC<{
                             options={LLMOptions}
                             value={LLMOptions[0]}
                         />
-                        <button type="button" onClick={() => {setOpenGenerateModal(false);setGenerationError(null);}}>
-                            <X size={20}/>
+                        <button type="button" onClick={() => { setOpenGenerateModal(false); setGenerationError(null); }}>
+                            <X size={20} />
                         </button>
                     </div>
                     {generationError && <p style={{ color: 'red' }}>{generationError}</p>}

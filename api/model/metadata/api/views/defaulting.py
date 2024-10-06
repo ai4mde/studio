@@ -1,6 +1,6 @@
 from metadata.models import System, Classifier, Interface
 from metadata.api.schemas import ReadInterface
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from enum import Enum
 from uuid import uuid4
 
@@ -17,10 +17,12 @@ class ModelAttribute():
     def __init__(self,
                  name: str,
                  type: str,
-                 derived: bool):
+                 derived: bool,
+                 enum: Optional[str]):
         self.name = name
         self.type = type
         self.derived = derived
+        self.enum = enum
         
 
 class DefaultUsecase():
@@ -98,7 +100,8 @@ def get_class_attributes(class_id: str) -> List[ModelAttribute]:
         att = ModelAttribute(
             name = attribute['name'],
             type = attribute['type'],
-            derived = attribute['derived']
+            derived = attribute['derived'],
+            enum = attribute['enum']
         )
         out.append(att)
     return out
@@ -157,6 +160,7 @@ def build_data_section_attributes(use_case: DefaultUsecase) -> List[Dict[str, An
             "name": attribute.name,
             "type": attribute.type,
             "derived": attribute.derived,
+            "enum": attribute.enum
         }
         out.append(att)
     return out

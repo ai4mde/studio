@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash, Save, Ban, Pencil } from "lucide-react";
 import useLocalStorage from './useLocalStorage';
 import {
@@ -10,6 +10,9 @@ import Chip from '@mui/joy/Chip';
 import { useSystemClasses, useClassAttributes, useClassCustomMethods } from "../queries";
 import { useParams } from "react-router";
 import Multiselect from 'multiselect-react-dropdown';
+import { Slate, Editable, withReact } from 'slate-react';
+import { createEditor, Transforms, Text } from 'slate';
+import { withHistory } from 'slate-history';
 
 type Props = {
     projectId: string;
@@ -18,6 +21,8 @@ type Props = {
     interfaceId: string;
     componentId: string;
 };
+
+const BLOCK_TYPES = ['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
 
 export const Sections: React.FC<Props> = ({ app_comp }) => {
     const { systemId } = useParams();
@@ -33,6 +38,8 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
+    const [editor] = useState(() => withHistory(withReact(createEditor())));
+    const [editorValue, setEditorValue] = useState([]);
 
 
     const handleEdit = async (index: number) => {
@@ -151,6 +158,43 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         setData(newData);
     };
 
+    const renderElement = useCallback(props => {
+        switch (props.element.type) {
+            case 'H1':
+                return <h1 {...props.attributes}>{props.children}</h1>;
+            case 'H2':
+                return <h2 {...props.attributes}>{props.children}</h2>;
+            case 'H3':
+                return <h3 {...props.attributes}>{props.children}</h3>;
+            case 'H4':
+                return <h4 {...props.attributes}>{props.children}</h4>;
+            case 'H5':
+                return <h5 {...props.attributes}>{props.children}</h5>;
+            case 'H6':
+                return <h6 {...props.attributes}>{props.children}</h6>;
+            default:
+                return <p {...props.attributes}>{props.children}</p>;
+        }
+    }, []);
+
+    const isBlockActive = (editor, format) => {
+        const [match] = Array.from(
+          editor.children
+        ).filter(([node]) => node.type === format);
+        return !!match;
+      };
+
+    const toggleBlock = (editor, format) => {
+        const isActive = isBlockActive(editor, format);
+        Transforms.setNodes(
+          editor,
+          { type: isActive ? 'P' : format },
+          { match: n => Text.isText(n), split: true }
+        );
+      };
+
+
+
     return (
         <>
             {isSuccess && (
@@ -248,10 +292,20 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                         />
                                     </div>
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Links</h3>
-                                    </FormControl>
-                                    <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Text</h3>
+                                        <Slate editor={editor} initialValue={[{ type: 'P', children: [{ text: '' }] }]} onChange={setEditorValue}>
+                                            <div className="flex flex-row gap-2">
+                                                {BLOCK_TYPES.map((type) => (
+                                                <button key={type} onClick={() => toggleBlock(editor, type)} className="w-[30px] h-[30px] p-1 bg-stone-100 hover:bg-stone-200">
+                                                    {type}
+                                                </button>
+                                                ))}
+                                            </div>
+                                            <Editable 
+                                                renderElement={renderElement}
+                                                className="border border-solid border-stone-300 rounded p-1 h-[100px]"
+                                            />
+                                        </Slate>
                                     </FormControl>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Custom Operations</h3>

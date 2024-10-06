@@ -17,7 +17,7 @@ class User(AbstractUser):
 class {{ model.name }}(models.Model):
     {% if model.attributes -%}
     {% for attribute in model.attributes -%}
-    {% if attribute.derived %}
+    {% if attribute.derived and attribute.body %}
     @property
     {{ attribute.body | replace('\n','\n    ') }}
     {% elif attribute.type == AttributeType.BOOLEAN -%}

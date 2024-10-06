@@ -145,6 +145,7 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         elif attribute["type"] == "bool":
             attribute_type  = AttributeType.BOOLEAN
         elif attribute["type"] == "enum":
+            print(attribute)
             attribute_type  = AttributeType.ENUM
             enum_literals = get_enum_literals(metadata, attribute["enum"])
 
