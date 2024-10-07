@@ -6,6 +6,7 @@ from generator.api import generator_router
 from ninja import NinjaAPI, Schema
 from chatlog.api import chatlog_router
 from requirement.api import requirement_router
+from srsdoc.api import srsdoc_router
 
 from model.auth import auth, create_token
 
@@ -22,7 +23,7 @@ api.add_router("/prose/", prose_router)
 api.add_router("/generator/", generator_router)
 api.add_router("/chatlog/", chatlog_router)
 api.add_router("/requirement/", requirement_router)
-
+api.add_router("/srsdoc/", srsdoc_router)
 
 class GetTokenSchema(Schema):
     username: str
