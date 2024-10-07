@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     "prompt",  # The prompt app is used for the chat / prompting functionalities
     "prose",  # The prose app is used to store and build NLP pipelines
     "generator", # The generator app is used to store and build prototypes
-    "chatlog",    # This apps stores the user-chat
+    "chatlog",    # This app stores the user-chat
+    "requirement",# This app stores the generated Functional Requirements
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
