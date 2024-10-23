@@ -1,8 +1,8 @@
 from typing import List
 
 from metadata.api.schemas import ReadRelease, UpdateRelease
-from metadata.models import Release, System, Interface
-from diagram.models import Diagram
+from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams
+from metadata.models import Release, System
 from ninja import Router
 
 releases = Router()
@@ -32,43 +32,17 @@ def create_release(request, system_id: str, name: str):
     if not system:
         return 404, "System not found"
     
-    interfaces = Interface.objects.filter(system=system)
-    serialized_interfaces = []
-    for interface in interfaces:
-        obj = {
-            "id": str(interface.id),
-            "name": str(interface.name),
-            "description": str(interface.description),
-            "system": str(system_id),
-            "actor": str(interface.actor.id),
-            "data": interface.data
-        }
-        serialized_interfaces.append(obj)
-    
-    diagrams = Diagram.objects.filter(system=system)
-    serialized_diagrams = []
-    for diagram in diagrams:
-        obj = {
-            "id": str(diagram.id),
-            "project": str(system.project.id),
-            "name": str(diagram.name),
-            "description": str(diagram.description),
-            "type": str(diagram.type),
-            "system": str(system_id),
-            "nodes": [], # TODO
-            "edges": [], # TODO
-        }
-        serialized_diagrams.append(obj)
+    serialized_interfaces = serialize_interfaces(system=system)
+    serialized_diagrams = serialize_diagrams(system=system)
     
     return Release.objects.create(
         name=name,
         project=system.project,
         system=system,
-        diagrams=serialized_diagrams, # TODO
-        metadata={}, # TODO
+        diagrams=serialized_diagrams,
+        metadata={},
         interfaces=serialized_interfaces,
     )
-    
 
 
 @releases.put("/{uuid:release_id}/", response=ReadRelease)
