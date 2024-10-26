@@ -195,7 +195,12 @@ def build_data_pages(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "id": uuid4().hex,
             "name": section["name"] + " page",
             "category": None,
-            "sections": [section]
+            "sections": [
+                {
+                    "label": section['name'],
+                    "value": section['id']
+                }
+            ]
         }
         out.append(page)
     return out
