@@ -18,6 +18,10 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
     const [releases, isSuccessReleases, ,] = useSystemReleases(systemId);
 
     const [showNewReleaseModal, setShowNewReleaseModal] = useState(false);
+    const [showLoadReleaseModal, setShowLoadReleaseModal] = useState(false);
+    const [loadReleaseObject, setLoadReleaseObject] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+
 
     const [diagramsData, setDiagramsData] = useState("")
     const [showDiagramsDataModal, setShowDiagramsDataModal] = useState(false);
@@ -64,8 +68,9 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         }
     };
 
-    const handleLoad = async (releaseId: string) => {
-
+    const openLoadModal = async (release) => {
+        setLoadReleaseObject(release);
+        setShowLoadReleaseModal(true);
     };
 
 
@@ -110,6 +115,19 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         });
     };
 
+    const handleLoad = async () => {
+        setIsLoading(true);
+        try {
+            const response = await authAxios.post(`/v1/metadata/releases/${loadReleaseObject.id}/load/`);
+        } catch (error) {
+            console.error('Error making request:', error);
+        } finally {
+            setLoadReleaseObject("");
+            setShowLoadReleaseModal(false);
+            setIsLoading(false);
+        }
+    };
+
 
     return (
         <>
@@ -151,9 +169,8 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                             Interfaces
                                         </button>
                                         <button
-                                            onClick={() => handleLoad(e.id)}
-                                            disabled
-                                            className="w-[70px] h-[40px] bg-blue-500 text-white rounded-md hover:cursor-not-allowed flex items-center justify-center"
+                                            onClick={() => openLoadModal(e)}
+                                            className="w-[70px] h-[40px] bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center justify-center"
                                         >
                                             Load
                                         </button>
@@ -242,6 +259,40 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                         </Button>
                     </div>
                     <h3 className="text-sm text-red-500">Warning: this will delete all prototypes of this system!</h3>
+                </ModalDialog>
+            </Modal>
+            <Modal open={showLoadReleaseModal} onClose={() => { close(); setShowLoadReleaseModal(false) }}>
+                <ModalDialog>
+                    <div className="flex w-full flex-row justify-between pb-1">
+                        <div className="flex flex-col">
+                            <h1 className="font-bold">Load a release</h1>
+                            <h3 className="text-sm">The diagrams and interfaces from release <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
+                        </div>
+                        <ModalClose
+                            sx={{
+                                position: "relative",
+                                top: 0,
+                                right: 0,
+                            }}
+                        />
+                    </div>
+                    <Divider />
+                    <div className="flex flex-col pt-1 w-16">
+                        <Button
+                            onClick={handleLoad}
+                            color="primary"
+                            variant="solid"
+                            disabled={isLoading} // Disable button if isLoading is true
+                        >
+                            {isLoading ? (
+                                <div className="flex flex-row gap-2">
+                                    <CircularProgress className="animate-spin" />
+                                    <p>Loading...</p>
+                                </div>
+                            ) : "Load"}
+                        </Button>
+                    </div>
+                    <h3 className="text-sm text-red-500">Warning: this will delete all current changes that have not been released!</h3>
                 </ModalDialog>
             </Modal>
         </>
