@@ -61,7 +61,17 @@ class Edge(models.Model):
     @property
     def source(self):
         return self.diagram.nodes.filter(cls=self.rel.source).first()
+    
+    @source.setter
+    def source(self, value):
+        self.rel.source = value
+        self.rel.save()
 
     @property
     def target(self):
         return self.diagram.nodes.filter(cls=self.rel.target).first()
+    
+    @target.setter
+    def target(self, value):
+        self.rel.target = value
+        self.rel.save()

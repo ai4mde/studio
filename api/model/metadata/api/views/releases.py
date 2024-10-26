@@ -1,7 +1,7 @@
 from typing import List
 
 from metadata.api.schemas import ReadRelease, UpdateRelease
-from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams
+from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
 from metadata.models import Release, System
 from ninja import Router
 
@@ -43,6 +43,29 @@ def create_release(request, system_id: str, name: str):
         metadata={},
         interfaces=serialized_interfaces,
     )
+
+
+@releases.post("/{uuid:release_id}/load/")
+def load_release(request, release_id):
+    release = Release.objects.get(id=release_id)
+    if not release:
+        return 404, "Release not found"
+    
+    system = release.system
+    if not system:
+        return 404, "System not found"
+    
+    if not load_diagrams(system=system, release=release):
+        return 422
+    
+    if not load_interfaces(system=system, release=release):
+        return 422
+    
+    return 200
+    
+    
+
+
 
 
 @releases.put("/{uuid:release_id}/", response=ReadRelease)

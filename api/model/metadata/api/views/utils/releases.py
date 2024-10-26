@@ -1,6 +1,7 @@
 
-from metadata.models import System, Interface
+from metadata.models import System, Interface, Release, Classifier, Relation
 from diagram.models import Diagram, Node, Edge
+from typing import Dict, Any
 
 def serialize_interfaces(system: System):
     out = []
@@ -72,3 +73,80 @@ def serialize_diagrams(system: System):
         }
         out.append(obj)
     return out
+
+
+def load_interfaces(system: System, release: Release) -> bool:
+    Interface.objects.filter(system=system).delete()
+    
+    try:
+        for interface in release.interfaces:
+            Interface.objects.create(
+                id = interface['id'],
+                system = system,
+                name = interface['name'],
+                description = interface['description'],
+                actor_id = interface['actor'],
+                data = interface['data']
+            )
+    except:
+        return False
+    return True
+
+
+def load_nodes(system: System, diagram: Dict[str, Any]):
+    Node.objects.filter(diagram_id=diagram['id']).delete()
+    for node in diagram['nodes']:
+        Classifier.objects.create(
+            id = node['cls']['id'],
+            system = system,
+            data = node['cls']['data']
+        )
+        Node.objects.create(
+            id = node['id'],
+            diagram_id = diagram['id'],
+            cls_id = node['cls']['id'],
+            data = node['data'],
+        )
+
+
+def load_edges(system: System, diagram: Dict[str, Any]):
+    Edge.objects.filter(diagram_id=diagram['id']).delete()
+    for edge in diagram['edges']:
+        source_node = Node.objects.get(id=edge['source_ptr'])
+        target_node = Node.objects.get(id=edge['target_ptr'])
+        Relation.objects.create(
+            id = edge['rel']['id'],
+            system = system,
+            data = edge['rel']['data'],
+            source = source_node.cls,
+            target = target_node.cls
+        )
+        Edge.objects.create(
+            id = edge['id'],
+            diagram_id = diagram['id'],
+            rel_id = edge['rel']['id'],
+            source = source_node.cls,
+            target = target_node.cls,
+            data = edge['data'],
+        )
+
+
+def load_diagrams(system: System, release: Release) -> bool:
+    Diagram.objects.filter(system=system).delete()
+    Classifier.objects.filter(system=system).delete()
+    Relation.objects.filter(system=system).delete()
+    
+    try:
+        for diagram in release.diagrams:
+            Diagram.objects.create(
+                id = diagram['id'],
+                type = diagram['type'],
+                name = diagram['name'],
+                description = diagram['description'],
+                system = system
+            )
+            load_nodes(system, diagram)
+            load_edges(system, diagram)
+    except:
+        return False
+    return True
