@@ -39,24 +39,11 @@ class Node(models.Model):
     cls = models.ForeignKey(Classifier, on_delete=models.CASCADE)
     data = models.JSONField()
 
-    def delete(self, *args, **kwargs):
-        classifier = self.cls
-        super().delete(*args, **kwargs)
-        if not Node.objects.filter(cls=classifier).exists():
-            classifier.delete()
-
-
 class Edge(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="edges")
     rel = models.ForeignKey(Relation, on_delete=models.CASCADE)
     data = models.JSONField()
-
-    def delete(self, *args, **kwargs):
-        relation = self.rel
-        super().delete(*args, **kwargs)
-        if not Edge.objects.filter(rel=relation).exists():
-            relation.delete()
 
     @property
     def source(self):
