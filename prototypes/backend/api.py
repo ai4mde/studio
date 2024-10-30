@@ -30,7 +30,6 @@ def start_prototype(prototype_name: str):
             return running_prototypes[prototype_name]
         
         prototype_path = os.path.join(ROOT_DIR, prototype_name)
-        print(prototype_path)
         if not os.path.isdir(prototype_path):
             return None
 
@@ -42,10 +41,8 @@ def start_prototype(prototype_name: str):
             stderr=subprocess.PIPE
         )
         time.sleep(2)
-        print(f"process: {process.pid}")
         if process.poll() is not None:
             return None
-        print("setting")
     
         running_prototypes[prototype_name] = (process.pid, port)
         return process, port
