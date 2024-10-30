@@ -15,7 +15,6 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const { systemId } = useParams();
     const [data, isSuccess] = useSystemPrototypes(systemId);
     const [prototypeStatuses, setPrototypeStatuses] = useState<{ [key: string]: string }>({});
-    const [prototypeUrls, setPrototypeUrls] = useState<{ [key: string]: string }>({});
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
     const [metadata, setMetadata] = useState("");
@@ -33,19 +32,11 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                             ...prev,
                             [prototype.name]: "Running",
                         }));
-                        setPrototypeUrls((prev) => ({
-                            ...prev,
-                            [prototype.name]: url,
-                        }));
                     }
                     else {
                         setPrototypeStatuses((prev) => ({
                             ...prev,
                             [prototype.name]: "Not running",
-                        }));
-                        setPrototypeUrls((prev) => ({
-                            ...prev,
-                            [prototype.name]: "",
                         }));
                     }
                 };
@@ -107,7 +98,7 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const handleStop = async (prototypeName: string) => {
         setLoading((prev) => ({ ...prev, [prototypeName]: true }));
         try {
-            await authAxios.post(`/v1/generator/prototypes/stop/${prototypeName}`);
+            await authAxios.post(`/v1/generator/prototypes/stop_prototypes/`);
         } catch (error) {
             console.error('Error making stop request:', error);
         } finally {
@@ -172,9 +163,11 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                     )}
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    <a href={"http://" + prototypeUrls[e.name]} target="_blank" className="text-blue-500 hover:underline">
-                                        {prototypeUrls[e.name]}
-                                    </a>
+                                    {(prototypeStatuses[e.name] === "Running") &&
+                                        <a href="http://prototype.ai4mde.localhost/" target="_blank" className="text-blue-500 hover:underline">
+                                            prototype.ai4mde.localhost
+                                        </a>
+                                    }
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200 w-60 flex space-x-2">
                                     <button

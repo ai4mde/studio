@@ -117,9 +117,9 @@ def get_prototype_status(request, prototype_name):
     return response.json()
 
 
-@prototypes.post("/stop/{str:prototype_name}", response=bool)
-def stop_prototype(request, prototype_name):
-    STOP_URL = f"http://studio-prototypes:8010/stop/{prototype_name}" # TODO: put this in env
+@prototypes.post("/stop_prototypes/", response=bool)
+def stop_prototypes(request):
+    STOP_URL = f"http://studio-prototypes:8010/stop_prototypes" # TODO: put this in env
     try:
         response = requests.post(STOP_URL)
     except:

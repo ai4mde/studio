@@ -14,13 +14,14 @@ manager = Manager()
 running_prototypes = manager.dict()
 lock = Lock()
 
+def stop_prototypes_func():
+    with lock:
+        for prototype_name in list(running_prototypes.keys()):
+            pid, _ = running_prototypes[prototype_name]
+            os.kill(pid, signal.SIGTERM)
+            del running_prototypes[prototype_name]
+    return True
 
-def find_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        free_port = s.getsockname()[1]
-    return free_port
 
 
 def start_prototype(prototype_name: str):
@@ -29,22 +30,22 @@ def start_prototype(prototype_name: str):
             return running_prototypes[prototype_name]
         
         prototype_path = os.path.join(ROOT_DIR, prototype_name)
-    
+        print(prototype_path)
         if not os.path.isdir(prototype_path):
             return None
-    
-        port = find_free_port()
-    
+
+        port = 8020 # TODO: put in env
         process = subprocess.Popen(
             ["python", "manage.py", "runserver", f"0.0.0.0:{port}"],
             cwd=prototype_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-    
         time.sleep(2)
+        print(f"process: {process.pid}")
         if process.poll() is not None:
             return None
+        print("setting")
     
         running_prototypes[prototype_name] = (process.pid, port)
         return process, port
@@ -52,25 +53,19 @@ def start_prototype(prototype_name: str):
 
 @app.route('/run/<prototype_name>', methods=['POST'])
 def run_prototype(prototype_name: str):
+    stop_prototypes_func()
     result = start_prototype(prototype_name)
-    container_ip = socket.gethostbyname(socket.gethostname())
     if result:
         pid, port = result
-        return redirect(f"http://{container_ip}:{port}", code=307)
+        return redirect(f"http://prototype.ai4mde.localhost", code=307)
     else:
         abort(404)
 
 
-@app.route('/stop/<prototype_name>', methods=['POST'])
-def stop_prototype(prototype_name: str):
-    with lock:
-        if prototype_name not in running_prototypes:
-            return f"{prototype_name} is not running", 404
-    
-        pid, _ = running_prototypes[prototype_name]
-        os.kill(pid, signal.SIGTERM)
-        del running_prototypes[prototype_name]
-    return f"{prototype_name} stopped", 200
+@app.route('/stop_prototypes', methods=['POST'])
+def stop_prototypes():
+    stop_prototypes_func()
+    return f"Stopped all running prototypes", 200
 
 
 @app.route('/status/<prototype_name>', methods=['GET'])
