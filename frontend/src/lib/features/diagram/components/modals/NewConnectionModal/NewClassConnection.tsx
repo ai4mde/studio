@@ -60,8 +60,8 @@ export const NewActivityConnection: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setObject((o: any) => ({
                                         ...o,
-                                        multiplicity: {
-                                            ...o.multiplicity,
+                                        labels: {
+                                            ...o.labels,
                                             source: e.target.value,
                                         },
                                     }))
@@ -75,8 +75,8 @@ export const NewActivityConnection: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setObject((o: any) => ({
                                         ...o,
-                                        multiplicity: {
-                                            ...o.multiplicity,
+                                        labels: {
+                                            ...o.labels,
                                             target: e.target.value,
                                         },
                                     }))

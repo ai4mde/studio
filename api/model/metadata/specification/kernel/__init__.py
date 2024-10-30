@@ -35,8 +35,8 @@ class Operation(BaseModel):
 
 
 class RelationMultiplicity(BaseModel):
-    source: Multiplicity
-    target: Multiplicity
+    source: str # TODO: Multiplicity
+    target: str # TODO: Multiplicity
 
 
 class RelationLabels(BaseModel):

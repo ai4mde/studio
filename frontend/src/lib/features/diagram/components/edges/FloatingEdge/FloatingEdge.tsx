@@ -60,21 +60,39 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             </text>
             <text
                 style={{ userSelect: "none" }}
-                textAnchor="start"
+                textAnchor="middle"
                 x={sx + shift.x}
                 y={sy + shift.y}
                 fontSize="12"
             >
-                {data?.labelFrom ?? ""}
+                {data?.multiplicity?.source ?? ""}
+            </text>
+            <text
+                style={{ userSelect: "none" }}
+                textAnchor="middle"
+                x={tx - shift.x}
+                y={ty + shift.y}
+                fontSize="12"
+            >
+                {data?.multiplicity?.target ?? ""}
+            </text>
+            <text
+                style={{ userSelect: "none" }}
+                textAnchor="start"
+                x={sx + shift.x}
+                y={sy - shift.y}
+                fontSize="12"
+            >
+                {data?.labels?.source ?? ""}
             </text>
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="start"
                 x={tx - shift.x}
-                y={ty + shift.y}
+                y={ty - shift.y}
                 fontSize="12"
             >
-                {data?.labelTo ?? ""}
+                {data?.labels?.target ?? ""}
             </text>
         </>
     );
