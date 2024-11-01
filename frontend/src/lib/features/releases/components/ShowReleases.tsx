@@ -36,6 +36,19 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         }
     };
 
+    const [releaseNotesData, setReleaseNotesData] = useState([])
+    const [showReleaseNotesDataModal, setShowReleaseNotesDataModal] = useState(false);
+    const showReleaseNotes = async (releaseId: string) => {
+        try {
+            const response = await authAxios.get(`/v1/metadata/releases/${releaseId}`);
+            setReleaseNotesData(response.data.release_notes);
+            setShowReleaseNotesDataModal(true);
+
+        } catch (error) {
+            console.error('Error making request:', error);
+        }
+    };
+
     const closeDiagramsDataModal = () => {
         setDiagramsData("");
         setShowDiagramsDataModal(false);
@@ -57,6 +70,10 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
     const closeInterfacesDataModal = () => {
         setInterfacesData("");
         setShowInterfacesDataModal(false);
+    }
+    const closeReleaseNotesDataModal = () => {
+        setReleaseNotesData([]);
+        setShowReleaseNotesDataModal(false);
     }
 
     const handleDelete = async (releaseId: string) => {
@@ -93,7 +110,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
     >({
         mutationFn: async (input) => {
             const { name, system, releaseNotes } = input;
-            const { data } = await authAxios.post(`v1/metadata/releases/?system_id=${system}&name=${name}&release_notes=${releaseNotes}`);
+            const { data } = await authAxios.post(`v1/metadata/releases/?system_id=${system}&name=${name}&release_notes=${JSON.stringify(releaseNotes)}`);
             return data
         },
     });
@@ -173,6 +190,12 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                 <td className="py-2 px-4 text-right border-b border-gray-200 w-full">
                                     <div className="flex justify-end space-x-2">
                                         <button
+                                            onClick={() => showReleaseNotes(e.id)}
+                                            className="w-[120px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
+                                        >
+                                            Release Notes
+                                        </button>
+                                        <button
                                             onClick={() => showDiagrams(e.id)}
                                             className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
                                         >
@@ -236,6 +259,26 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                     />
                     <div className="flex h-full w-full flex-col gap-1 p-3">
                         <pre>{JSON.stringify(interfacesData, null, 2)}</pre>
+                    </div>
+                </ModalDialog>
+            </Modal>
+            <Modal
+                open={showReleaseNotesDataModal}
+                onClose={closeReleaseNotesDataModal}
+            >
+                <ModalDialog className="max-h-screen overflow-y-auto">
+                    <ModalClose
+                        sx={{
+                            position: "relative",
+                        }}
+                    />
+                    <div className="flex h-full w-full flex-col gap-1 p-3">
+                        <h1 className="font-bold">Release Notes:</h1>
+                        {releaseNotesData.map((e, index) => (
+                            <div className="flex flex-row gap-4">
+                                <p>{index + 1}. {e}</p>
+                            </div>
+                        ))}
                     </div>
                 </ModalDialog>
             </Modal>
