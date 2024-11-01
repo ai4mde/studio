@@ -3,7 +3,7 @@ import { useSystemReleases } from "$lib/features/releases/queries";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Button, CircularProgress, Divider, FormControl, FormLabel, Input, Modal, ModalClose, ModalDialog } from '@mui/joy';
 import { useMutation } from "@tanstack/react-query";
-import { Rocket, Trash } from "lucide-react";
+import { Rocket, Trash, X } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 
@@ -77,12 +77,14 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
     type ReleaseInput = {
         name: string;
         system: string;
+        releaseNotes: string[];
     };
 
     type ReleaseOutput = {
         id: string;
         name: string;
         system: string;
+        releaseNotes: string[];
     };
     const { mutateAsync, isPending } = useMutation<
         ReleaseOutput,
@@ -90,8 +92,8 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         ReleaseInput
     >({
         mutationFn: async (input) => {
-            const { name, system } = input;
-            const { data } = await authAxios.post(`v1/metadata/releases/?system_id=${system}&name=${name}`);
+            const { name, system, releaseNotes } = input;
+            const { data } = await authAxios.post(`v1/metadata/releases/?system_id=${system}&name=${name}&release_notes=${releaseNotes}`);
             return data
         },
     });
@@ -105,6 +107,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         mutateAsync({
             name,
             system: systemId || "",
+            releaseNotes,
         }).then(() => {
             queryClient.invalidateQueries({ queryKey: ["releases"] });
             authAxios.delete(`/v1/generator/prototypes/system/${systemId}/`);
@@ -128,6 +131,19 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         }
     };
 
+    const [releaseNotes, setReleaseNotes] = useState([]);
+    const [newNote, setNewNote] = useState("");
+
+    const handleAddReleaseNote = () => {
+        if (newNote.trim()) {
+            setReleaseNotes([...releaseNotes, newNote]);
+            setNewNote("");
+        }
+    };
+
+    const handleDeleteReleaseNote = (index: number) => {
+        setReleaseNotes(releaseNotes.filter((_, i) => i !== index));
+    };
 
     return (
         <>
@@ -223,7 +239,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                     </div>
                 </ModalDialog>
             </Modal>
-            <Modal open={showNewReleaseModal} onClose={() => { close(); setShowNewReleaseModal(false) }}>
+            <Modal open={showNewReleaseModal} onClose={() => { close(); setShowNewReleaseModal(false); setReleaseNotes([]); }}>
                 <ModalDialog>
                     <div className="flex w-full flex-row justify-between pb-1">
                         <div className="flex flex-col">
@@ -240,12 +256,34 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                     </div>
                     <form
                         id="create-release"
-                        className="flex min-w-96 flex-col gap-2"
+                        className="flex min-w-96 flex-col space-y-8"
                         onSubmit={newRelease}
                     >
                         <FormControl required>
-                            <FormLabel>Name</FormLabel>
+                            <FormLabel>Name:</FormLabel>
                             <Input name="name" placeholder="v0.0.1" required />
+                        </FormControl>
+                        <FormControl>
+                            <FormLabel>Release Notes:</FormLabel>
+                            {releaseNotes.map((e, index) => (
+                                <div className="flex flex-row gap-4">
+                                    <p>{index + 1}. {e}</p>
+                                    <button
+                                        onClick={() => handleDeleteReleaseNote(index)}
+                                    >
+                                        <X />
+                                    </button>
+
+                                </div>
+                            ))}
+                            <div className="flex flex-row gap-2 mt-2">
+                                <Input
+                                    placeholder="Write release note..."
+                                    value={newNote}
+                                    onChange={(e) => setNewNote(e.target.value)}
+                                />
+                                <Button variant="outlined" onClick={handleAddReleaseNote}>Add</Button>
+                            </div>
                         </FormControl>
                     </form>
                     <Divider />
