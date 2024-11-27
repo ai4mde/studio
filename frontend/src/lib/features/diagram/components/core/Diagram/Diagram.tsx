@@ -36,7 +36,7 @@ import {
     useNewConnectionModal,
 } from "$diagram/stores/modals";
 import { LinearProgress } from "@mui/joy";
-import { toPng } from 'html-to-image';
+import { toSvg } from 'html-to-image';
 import { Download } from 'lucide-react';
 
 const multiSelectionKeyCodes = ["Meta", "Shift"];
@@ -52,6 +52,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     const editNodeModal = useEditNodeModal();
     const newConnectionModal = useNewConnectionModal();
     const editConnectionModal = useEditConnectionModal();
+    const flowRef = useRef<HTMLDivElement>(null);
 
     // On load, push the diagram URL to the diagram store as well
     useEffect(() => {
@@ -77,8 +78,6 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     if (!isSuccess) {
         return <LinearProgress className="absolute top-0 left-0 right-0" />;
     }
-
-    const flowRef = useRef(null);
 
     return (
         <div style={{ height: "100%" }}>
@@ -126,14 +125,15 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                 <Controls showInteractive={false} >
                     <ControlButton onClick={() => {
                         if (flowRef.current === null) return
-                        toPng(flowRef.current, {
+                        toSvg(flowRef.current, {
                             filter: node => !(
                                 node?.classList?.contains('react-flow__minimap') ||
-                                node?.classList?.contains('react-flow__controls')
+                                node?.classList?.contains('react-flow__controls') ||
+                                node?.classList?.contains('react-flow__background')
                             ),
                         }).then(dataUrl => {
                             const a = document.createElement('a');
-                            a.setAttribute('download', diagram + '.png');
+                            a.setAttribute('download', diagram + '.svg');
                             a.setAttribute('href', dataUrl);
                             a.click();
                         });
