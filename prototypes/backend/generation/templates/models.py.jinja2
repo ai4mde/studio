@@ -28,7 +28,26 @@ class {{ model.name }}(models.Model):
     {% elif attribute.type == AttributeType.STRING -%}
     {{ attribute.name }} = models.CharField(max_length=255, default='', null=True, blank=True)
     {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
+
+    {% if attribute.cardinality == Cardinality.ONE_TO_ONE_SOURCE %}
+    {{ attribute.name }} = models.OneToOneField("{{ attribute.name }}", on_delete=models.CASCADE)
+    {% elif attribute.cardinality in [Cardinality.ZERO_ONE_TO_ONE, Cardinality.ONE_MANY_TO_ZERO_ONE] %}
     {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE, null=True, blank=True)
+    {% elif attribute.cardinality == Cardinality.ZERO_ONE_TO_ZERO_ONE_SOURCE %}
+    # TODO: {{ attribute.name }} Cardinality.ZERO_ONE_TO_ZERO_ONE_SOURCE
+    {% elif attribute.cardinality in [Cardinality.ZERO_MANY_TO_ONE, Cardinality.ONE_MANY_TO_ONE] %}
+    {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.CASCADE)
+    {% elif attribute.cardinality == Cardinality.ZERO_MANY_TO_ZERO_MANY_SOURCE %}
+    # TODO: {{ attribute.name }} Cardinality.ZERO_MANY_TO_ZERO_MANY_SOURCE
+    {% elif attribute.cardinality == Cardinality.ZERO_MANY_ONE_MANY %}
+    {{ attribute.name }} = models.ManyToManyField("{{ attribute.name }}")
+    {% elif attribute.cardinality == Cardinality.ZERO_MANY_TO_ZERO_ONE %}
+    {{ attribute.name }} = models.ForeignKey("{{ attribute.name }}", on_delete=models.SET_NULL, null=True, blank=True)
+    {% elif attribute.cardinality == Cardinality.ONE_MANY_TO_ONE_MANY_SOURCE %}
+    # TODO: {{ attribute.name }} Cardinality.ONE_MANY_TO_ONE_MANY_SOURCE
+    {% endif %}
+
+
     {% elif attribute.type == AttributeType.ENUM %}
     class {{ attribute.name }}(models.TextChoices):
         {% for literal in attribute.enum_literals -%}

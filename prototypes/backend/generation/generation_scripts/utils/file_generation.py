@@ -3,7 +3,7 @@ import os
 import jinja2
 import pathlib
 from jinja2 import Environment, FileSystemLoader, Template
-from utils.definitions.model import Attribute, AttributeType, CustomMethod
+from utils.definitions.model import Attribute, AttributeType, CustomMethod, Cardinality
 from utils.definitions.section_component import SectionComponent, SectionCustomMethod
 from utils.definitions.page import Page
 from utils.definitions.application_component import ApplicationComponent
@@ -26,6 +26,7 @@ def add_jinja_globals(template: Template) -> Template:
     template.globals['ApplicationComponent'] = ApplicationComponent
     template.globals['CustomMethod'] = CustomMethod
     template.globals['SectionCustomMethod'] = SectionCustomMethod
+    template.globals['Cardinality'] = Cardinality
 
     return template
 

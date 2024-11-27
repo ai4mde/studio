@@ -1,23 +1,19 @@
 from typing import List
 import sys
-from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod
+from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod, define_cardinality
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
 from utils.loading_json_utils import get_apps, get_enum_literals
 
 
-def retrieve_class_by_id(node_id: str, diagram: str) -> Attribute:
+def retrieve_class_name_by_id(node_id: str, diagram: str) -> str:
     """Function that finds a 'node' in 'diagram' by id and builds a foreign model attribute for it"""
     for node in diagram["nodes"]:
         if node["id"] != node_id:
             continue
         if node["cls"]["type"] == "class":
-            return Attribute(
-                name = model_name_sanitization(node["cls"]["name"]),
-                type = AttributeType.FOREIGN_MODEL,
-                enum_literals = None
-            )
+            return model_name_sanitization(node["cls"]["name"])
         return None
 
 
@@ -26,19 +22,35 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     """Function that retrieves relations from 'node' to other nodes in 'diagram'
     and builds foreign model attributes for these relations"""
     out = []
-    for association in diagram["edges"]:
-        if association["source_ptr"] == node["id"]:
-            foreign_model = retrieve_class_by_id(association["target_ptr"], diagram)
+    for edge in diagram["edges"]:
+        if edge["rel"]["type"] != "association":
+            continue
+
+        if edge["source_ptr"] == node["id"] :
+            foreign_model = Attribute(
+                retrieve_class_name_by_id(edge["target_ptr"], diagram),
+                AttributeType.FOREIGN_MODEL,
+                enum_literals=None,
+                cardinality=define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=True),
+                derived=False,
+                body=None,
+
+            )
             if foreign_model:
                 out.append(foreign_model)
 
-        '''
-        TODO: above lines might need to be replaced by these lines, depending on direction of ptrs
-        if association["target_ptr"] == node["id"]:
-            foreign_model = retrieve_class_by_id(association["source_ptr"], diagram)
-            out.append(foreign_model)
-        '''
+        if edge["target_ptr"] == node["id"] :
+            foreign_model = Attribute(
+                retrieve_class_name_by_id(edge["source_ptr"], diagram),
+                AttributeType.FOREIGN_MODEL,
+                enum_literals=None,
+                cardinality=define_cardinality(edge["rel"]["multiplicity"]["target"], edge["rel"]["multiplicity"]["source"], node_is_source=False),
+                derived=False,
+                body=None,
 
+            )
+            if foreign_model:
+                out.append(foreign_model)
     return out
 
 
@@ -68,6 +80,7 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
             name = attribute_name_sanitization(attribute["name"]),
             type = att_type,
             enum_literals = enum_literals,
+            cardinality = None,
             derived = attribute["derived"],
             body = attribute["body"]
         )
