@@ -9,9 +9,9 @@ import {
 } from "$diagram/events";
 import { navigationPortalAtom } from "$shared/hooks/navigationPortal";
 import { useAtom } from "jotai";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Background, Controls, ReactFlow } from "reactflow";
+import { Background, ControlButton, Controls, ReactFlow } from "reactflow";
 import "reactflow/dist/style.css";
 
 import { useDiagram } from "$diagram/queries";
@@ -36,6 +36,8 @@ import {
     useNewConnectionModal,
 } from "$diagram/stores/modals";
 import { LinearProgress } from "@mui/joy";
+import { toSvg } from 'html-to-image';
+import { Download } from 'lucide-react';
 
 const multiSelectionKeyCodes = ["Meta", "Shift"];
 
@@ -50,6 +52,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     const editNodeModal = useEditNodeModal();
     const newConnectionModal = useNewConnectionModal();
     const editConnectionModal = useEditConnectionModal();
+    const flowRef = useRef<HTMLDivElement>(null);
 
     // On load, push the diagram URL to the diagram store as well
     useEffect(() => {
@@ -80,6 +83,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         <div style={{ height: "100%" }}>
             <Markers />
             <ReactFlow
+                ref={flowRef}
                 nodes={diagramStore.nodes}
                 onNodesChange={
                     diagramStore.lock ? diagramStore.onNodesChange : undefined
@@ -118,7 +122,25 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                 fitView
             >
                 <Background />
-                <Controls showInteractive={false} />
+                <Controls showInteractive={false} >
+                    <ControlButton onClick={() => {
+                        if (flowRef.current === null) return
+                        toSvg(flowRef.current, {
+                            filter: node => !(
+                                node?.classList?.contains('react-flow__minimap') ||
+                                node?.classList?.contains('react-flow__controls') ||
+                                node?.classList?.contains('react-flow__background')
+                            ),
+                        }).then(dataUrl => {
+                            const a = document.createElement('a');
+                            a.setAttribute('download', diagram + '.svg');
+                            a.setAttribute('href', dataUrl);
+                            a.click();
+                        });
+                    }}>
+                        <Download />
+                    </ControlButton>
+                </Controls>
                 <ContextMenus />
                 <Modals />
                 <Screens />
@@ -128,6 +150,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
 
                 {navRef.current &&
                     createPortal(<DiagramControls />, navRef.current)}
+
             </ReactFlow>
         </div>
     );

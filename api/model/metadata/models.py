@@ -25,6 +25,7 @@ class Release(models.Model):
     diagrams = models.JSONField()
     metadata = models.JSONField()
     interfaces = models.JSONField()
+    release_notes = models.JSONField()
 
 
 class Classifier(models.Model):

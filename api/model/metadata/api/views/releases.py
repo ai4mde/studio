@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from metadata.api.schemas import ReadRelease, UpdateRelease
 from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
 from metadata.models import Release, System
 from ninja import Router
+import json
 
 releases = Router()
 
@@ -25,7 +26,7 @@ def read_release(request, release_id):
 
 
 @releases.post("/", response=ReadRelease)
-def create_release(request, system_id: str, name: str):
+def create_release(request, system_id: str, name: str, release_notes: Optional[str] = None):
     system = System.objects.get(id=system_id)
     if not name:
         return 422
@@ -41,6 +42,7 @@ def create_release(request, system_id: str, name: str):
         system=system,
         diagrams=serialized_diagrams,
         metadata={},
+        release_notes=json.loads(release_notes or ""),
         interfaces=serialized_interfaces,
     )
 
