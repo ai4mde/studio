@@ -1,0 +1,90 @@
+services:
+  # ===========================================================================
+  # Postgres
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: chatbot_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - /opt/ai4mde/dev/postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # Qdrant
+  # ---------------------------------------------------------------------------
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - /opt/ai4mde/dev/qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+
+  # ===========================================================================
+  # Redis
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - /opt/ai4mde/dev/redis_data:/data
+
+  # ===========================================================================
+  # Chatback
+  # ---------------------------------------------------------------------------
+  chatback:
+    build:
+      context: ./chatback
+      dockerfile: Dockerfile
+      args:
+        - USER_ID=${UID:-1101} 
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chatback:/chatback
+      # Private backend data (templates, questions, etc)
+      - /opt/ai4mde/dev/chatback:/chatback/data
+      # User-specific data structure
+      - /opt/ai4mde/dev/userdata:/chatback/userdata:rw
+    user: "${USER_ID:-1101}:${USER_ID:-1101}"
+    env_file:
+      - config/chatback.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      redis:
+        condition: service_started
+
+
+  # ===========================================================================
+  # Chatfront
+  # ---------------------------------------------------------------------------
+  #chatfront:
+  #  build: 
+  #    context: ./chatfront
+  #  ports:
+  #    - "3000:3000"
+  #  environment:
+  #    - NEXTAUTH_URL=http://localhost:3000
+  #    - NEXTAUTH_SECRET=hjmYvWCf33i6bD11lloxQEYTVvqq2cQme3NlwOIini0=
+  #    - NEXT_PUBLIC_API_URL=http://chatback:8000
+  #    - AUTH_API_URL=http://chatback:8000
+  #  volumes:
+  #  #  - ./chatfront:/app
+  #    - /opt/ai4mde/dev/shared:/chatfront/data
+  #  depends_on:
+  #    - chatback
