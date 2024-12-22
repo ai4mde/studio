@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Catppuccin colors: https://catppuccin.com/palette */
+
+@layer base {
+  :root {
+    /* Catppuccin Latte */
+    --background: 220 23% 95%;    /* #eff1f5 */
+    --foreground: 234 16% 35%;    /* #4c4f69 */
+    
+    --card: 220 23% 95%;         /* #eff1f5 */
+    --card-foreground: 234 16% 35%; /* #4c4f69 */
+    
+    --popover: 220 23% 95%;      /* #eff1f5 */
+    --popover-foreground: 234 16% 35%; /* #4c4f69 */
+    
+    --primary: 220 91% 54%;      /* #1e66f5 */
+    --primary-foreground: 220 23% 95%; /* #eff1f5 */
+    
+    --secondary: 231 84% 85%;    /* #bcc0ff */
+    --secondary-foreground: 234 16% 35%; /* #4c4f69 */
+    
+    --muted: 220 16% 90%;        /* #e6e9ef */
+    --muted-foreground: 234 13% 55%; /* #8c8fa1 */
+    
+    --accent: 231 84% 85%;       /* #bcc0ff */
+    --accent-foreground: 234 16% 35%; /* #4c4f69 */
+    
+    --destructive: 347 87% 44%;  /* #d20f39 */
+    --destructive-foreground: 220 23% 95%; /* #eff1f5 */
+
+    --border: 220 13% 91%;       /* #e6e9ef */
+    --input: 220 13% 91%;        /* #e6e9ef */
+    --ring: 220 91% 54%;         /* #1e66f5 */
+
+    --radius: 0.5rem;
+
+    /* Custom chat colors */
+    --chat-user-bubble: 220 23% 92%;  /* #e6e9ef - Latte Overlay 1 */
+    --chat-user-text: 234 16% 35%;    /* #4c4f69 - Latte Text */
+    --chat-ai-bubble: 220 23% 89%;    /* #dce0e8 - Latte Surface 1 */
+    --chat-ai-text: 234 16% 35%;      /* #4c4f69 - Latte Text */
+  }
+
+  .dark {
+    /* Catppuccin Frappé */
+    --background: 229 23% 22%;    /* #303446 */
+    --foreground: 227 70% 87%;    /* #c6d0f5 */
+    
+    --card: 229 23% 22%;         /* #303446 */
+    --card-foreground: 227 70% 87%; /* #c6d0f5 */
+    
+    --popover: 229 23% 22%;      /* #303446 */
+    --popover-foreground: 227 70% 87%; /* #c6d0f5 */
+    
+    --primary: 227 68% 75%;      /* #8caaee */
+    --primary-foreground: 229 23% 22%; /* #303446 */
+    
+    --secondary: 231 32% 29%;    /* #414559 */
+    --secondary-foreground: 227 70% 87%; /* #c6d0f5 */
+    
+    --muted: 231 32% 29%;        /* #414559 */
+    --muted-foreground: 225 35% 77%; /* #b5bfe2 */
+    
+    --accent: 231 32% 29%;       /* #414559 */
+    --accent-foreground: 227 70% 87%; /* #c6d0f5 */
+    
+    --destructive: 351 74% 78%;  /* #e78284 */
+    --destructive-foreground: 227 70% 87%; /* #c6d0f5 */
+
+    --border: 231 32% 29%;       /* #414559 */
+    --input: 231 32% 29%;        /* #414559 */
+    --ring: 227 68% 75%;         /* #8caaee */
+
+    /* Custom chat colors */
+    --chat-user-bubble: 228 30% 26%;  /* #454c6d - Frappé Overlay 1 */
+    --chat-user-text: 227 70% 87%;    /* #c6d0f5 - Frappé Text */
+    --chat-ai-bubble: 227 27% 27%;    /* #414559 - Frappé Surface 1 */
+    --chat-ai-text: 227 70% 87%;      /* #c6d0f5 - Frappé Text */
+  }
+}
+
+/* Base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Keep existing utility classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    border: 2px solid transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+}
+
+/* Custom component styles */
+@layer components {
+  /* Button styles */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  /* Card styles */
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+
+  .card-content {
+    @apply p-6 pt-0;
+  }
+
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+
+  /* Input styles */
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Navigation styles */
+  .nav-link {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2;
+  }
+
+  .nav-link-active {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* Prose styles for markdown content */
+  .prose {
+    @apply text-foreground max-w-none;
+    
+    /* Headings */
+    h1 { font-size: 2.25rem; line-height: 2.5rem; }  /* text-4xl */
+    h2 { font-size: 1.875rem; line-height: 2.25rem; }  /* text-3xl */
+    h3 { font-size: 1.5rem; line-height: 2rem; }  /* text-2xl */
+    h4 { font-size: 1.25rem; line-height: 1.75rem; }  /* text-xl */
+    
+    /* Paragraphs and lists */
+    p, ul, ol {
+      @apply mb-4 leading-7;
+    }
+    
+    /* Lists */
+    ul, ol {
+      @apply ml-6;
+      li { @apply mb-2; }
+    }
+    
+    ul { @apply list-disc; }
+    ol { @apply list-decimal; }
+    
+    /* Code blocks */
+    pre {
+      @apply p-4 rounded-lg bg-[hsl(var(--muted))] overflow-x-auto;
+      @apply my-4 text-sm;
+    }
+    
+    code {
+      @apply rounded bg-[hsl(var(--muted))] px-1.5 py-0.5;
+      @apply font-mono text-[hsl(var(--primary))];
+    }
+    
+    /* Links */
+    a {
+      @apply text-[hsl(var(--primary))] hover:underline;
+      @apply transition-colors;
+    }
+    
+    /* Blockquotes */
+    blockquote {
+      @apply pl-6 border-l-2 border-[hsl(var(--primary))];
+      @apply italic my-4;
+    }
+    
+    /* Tables */
+    table {
+      @apply w-full my-4;
+      
+      thead {
+        @apply border-b border-[hsl(var(--border))];
+        th {
+          @apply py-2 px-4 text-left font-semibold;
+        }
+      }
+      
+      tbody {
+        tr {
+          @apply border-b border-[hsl(var(--border))];
+          td {
+            @apply py-2 px-4;
+          }
+        }
+      }
+    }
+  }
+
+  /* Dark mode adjustments */
+  .dark .prose {
+    pre {
+      @apply bg-[hsl(var(--muted))];
+    }
+    
+    code {
+      @apply text-[hsl(var(--primary))];
+    }
+  }
+}

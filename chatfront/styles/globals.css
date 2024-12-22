@@ -1,0 +1,103 @@
+@import '@fontsource/geist-sans';
+@import '@fontsource/geist-mono';
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 14% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14% 10%;
+    --primary: 221 44% 41%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 13% 91%;
+    --secondary-foreground: 221 44% 41%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 14% 46%;
+    --accent: 220 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 44% 41%;
+    --radius: 0.5rem;
+    --chart-1: 221 44% 41%;
+    --chart-2: 220 100% 50%;
+    --chart-3: 220 14% 46%;
+    --chart-4: 220 13% 91%;
+    --chart-5: 220 14% 96%;
+    --font-size-xs: 0.75rem;    /* 12px */
+    --font-size-sm: 0.875rem;   /* 14px */
+    --font-size-base: 1rem;     /* 16px */
+    --font-size-lg: 1.125rem;   /* 18px */
+    --font-size-xl: 1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;    /* 24px */
+    --font-size-3xl: 1.875rem;  /* 30px */
+    --font-size-4xl: 2.25rem;   /* 36px */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+  }
+
+  .dark {
+    --background: 220 14% 10%;
+    --foreground: 0 0% 100%;
+    --card: 220 14% 12%;
+    --card-foreground: 0 0% 100%;
+    --popover: 220 14% 12%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 221 44% 51%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 20%;
+    --secondary-foreground: 221 44% 51%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 220 14% 70%;
+    --accent: 220 100% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 20%;
+    --input: 220 14% 20%;
+    --ring: 221 44% 51%;
+    --radius: 0.5rem;
+    --chart-1: 221 44% 51%;
+    --chart-2: 220 100% 60%;
+    --chart-3: 220 14% 70%;
+    --chart-4: 220 14% 40%;
+    --chart-5: 220 14% 20%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+  }
+}
+
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted)) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted));
+  border-radius: var(--radius);
+}
