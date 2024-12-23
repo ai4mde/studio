@@ -14,34 +14,39 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserSchema)
-def register(
-    *,
-    db: Session = Depends(deps.get_db),
-    user_in: UserCreate,
-) -> Any:
-    user = db.query(User).filter(User.email == user_in.email).first()
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="A user with this email already exists.",
-        )
-    user = db.query(User).filter(User.username == user_in.username).first()
-    if user:
-        raise HTTPException(
-            status_code=400,
-            detail="A user with this username already exists.",
-        )
-    
-    user = User(
-        email=user_in.email,
-        username=user_in.username,
-        hashed_password=security.get_password_hash(user_in.password),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
+# Registration endpoint disabled
+# Use create_user script to create users:
+# `docker exec -it studio-chatback-1 python scripts/create_user.py`
+#
+#@router.post("/register", response_model=UserSchema)
+#def register(
+#    *,
+#    db: Session = Depends(deps.get_db),
+#    user_in: UserCreate,
+#) -> Any:
+#    user = db.query(User).filter(User.email == user_in.email).first()
+#    if user:
+#        raise HTTPException(
+#            status_code=400,
+#            detail="A user with this email already exists.",
+#        )
+#    user = db.query(User).filter(User.username == user_in.username).first()
+#    if user:
+#        raise HTTPException(
+#            status_code=400,
+#            detail="A user with this username already exists.",
+#        )
+#    
+#    user = User(
+#        email=user_in.email,
+#        username=user_in.username,
+#        hashed_password=security.get_password_hash(user_in.password),
+#    )
+#    db.add(user)
+#    db.commit()
+#    db.refresh(user)
+#    return user
+
 
 @router.post("/login", response_model=Token)
 def login(
