@@ -1,2 +1,3 @@
-# Keys
-api_keys.env
+# Environment variables files
+*.env
+!*.env.example

@@ -3,17 +3,16 @@ services:
   # Postgres
   # ---------------------------------------------------------------------------
   postgres:
+    container_name: postgres
     image: postgres:17-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: chatbot_db
+    env_file:
+      - config/postgres.env
     ports:
       - "5432:5432"
     volumes:
-      - /opt/ai4mde/dev/postgres_data:/var/lib/postgresql/data
+      - /opt/ai4mde/acc/postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U cbdbuser"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,12 +21,13 @@ services:
   # Qdrant
   # ---------------------------------------------------------------------------
   qdrant:
+    container_name: qdrant
     image: qdrant/qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
     volumes:
-      - /opt/ai4mde/dev/qdrant_data:/qdrant/storage
+      - /opt/ai4mde/acc/qdrant_data:/qdrant/storage
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
 
@@ -35,16 +35,18 @@ services:
   # Redis
   # ---------------------------------------------------------------------------
   redis:
+    container_name: redis
     image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
-      - /opt/ai4mde/dev/redis_data:/data
+      - /opt/ai4mde/acc/redis_data:/data
 
   # ===========================================================================
   # Chatback
   # ---------------------------------------------------------------------------
   chatback:
+    container_name: chatback
     build:
       context: ./chatback
       dockerfile: Dockerfile
@@ -55,9 +57,9 @@ services:
     volumes:
       - ./chatback:/chatback
       # Private backend data (templates, questions, etc)
-      - /opt/ai4mde/dev/chatback:/chatback/data
+      - /opt/ai4mde/acc/chatback:/chatback/data
       # User-specific data structure
-      - /opt/ai4mde/dev/userdata:/chatback/userdata:rw
+      - /opt/ai4mde/acc/userdata:/chatback/userdata:rw
     user: "${USER_ID:-1101}:${USER_ID:-1101}"
     env_file:
       - config/chatback.env
@@ -74,6 +76,7 @@ services:
   # Chatfront
   # ---------------------------------------------------------------------------
   #chatfront:
+  #  container_name: chatfront
   #  build: 
   #    context: ./chatfront
   #  ports:

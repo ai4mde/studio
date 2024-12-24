@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 import os
 from .path_utils import sanitize_path_component, validate_path, ensure_path
+from urllib.parse import quote_plus
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "ChatBack API"
@@ -9,19 +10,19 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # Database settings
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "chatbot_db"
-    POSTGRES_HOST: str = "localhost"
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "cbdbuser")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "xK9mP2!vL5nQ8@jR3")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "chatbot_db")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "postgres")
     DATABASE_URL: Optional[str] = None
-    POSTGRES_SERVER: str = "postgres"
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_HOST", "postgres")
     
     # Vector Database settings
-    PGVECTOR_HOST: str = "localhost"
-    PGVECTOR_PORT: int = 5432
-    PGVECTOR_USER: str = "postgres"
-    PGVECTOR_PASSWORD: str = "postgres"
-    PGVECTOR_DB: str = "vector_db"
+    PGVECTOR_HOST: str = os.getenv("PGVECTOR_HOST", "localhost")
+    PGVECTOR_PORT: int = int(os.getenv("PGVECTOR_PORT", "5432"))
+    PGVECTOR_USER: str = os.getenv("PGVECTOR_USER", "cbdbuser")
+    PGVECTOR_PASSWORD: str = os.getenv("PGVECTOR_PASSWORD", "xK9mP2!vL5nQ8@jR3")
+    PGVECTOR_DB: str = os.getenv("PGVECTOR_DB", "vector_db")
     PGVECTOR_URL: Optional[str] = None
 
     # Redis settings
@@ -127,15 +128,15 @@ class Settings(BaseSettings):
     
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+        return f"postgresql://{self.POSTGRES_USER}:{quote_plus(self.POSTGRES_PASSWORD)}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
     class Config:
         env_file = ".env"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Set up PostgreSQL URL
-        self.DATABASE_URL = f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}/{self.POSTGRES_DB}"
+        # Set up PostgreSQL URL with URL-encoded password
+        self.DATABASE_URL = f"postgresql://{self.POSTGRES_USER}:{quote_plus(self.POSTGRES_PASSWORD)}@{self.POSTGRES_HOST}/{self.POSTGRES_DB}"
         
         # Set up PGVector URL
         self.PGVECTOR_URL = f"postgresql://{self.PGVECTOR_USER}:{self.PGVECTOR_PASSWORD}@{self.PGVECTOR_HOST}:{self.PGVECTOR_PORT}/{self.PGVECTOR_DB}"
