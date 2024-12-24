@@ -1,3 +1,0 @@
-# Environment variables files
-*.env
-!*.env.example
