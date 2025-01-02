@@ -3,11 +3,9 @@ import { auth } from '@/auth'
 
 // Define public paths that don't require authentication
 const PUBLIC_PATHS = [
-  '/login', 
-  '/api/auth',
   '/',
-  '/tutorial',
-  '/api/contact',
+  '/login',
+  '/guide',
   '/contact',
   '/terms',
   '/privacy',

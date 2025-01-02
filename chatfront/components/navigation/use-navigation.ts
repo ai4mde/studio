@@ -42,8 +42,8 @@ export function useNavigation() {
       description: 'Chat with AI assistant'
     },
     { 
-      name: 'Tutorial', 
-      href: '/tutorial', 
+      name: 'Guide', 
+      href: '/guide', 
       icon: Map, 
       protected: false,
       description: 'Learn how to use the platform'

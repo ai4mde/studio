@@ -87,7 +87,7 @@ export default function Home() {
                 asChild 
                 className="bg-sky-700 hover:bg-sky-600 text-white py-3 px-6 rounded-lg shadow-md"
               >
-                <Link href="/tutorial">Get Started</Link>
+                <Link href="/guide">Get Started</Link>
               </Button>
               <Button 
                 asChild 
@@ -123,7 +123,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                   <Link 
-                    href="/tutorial" 
+                    href="/guide" 
                     className="inline-flex items-center hover:text-sky-600 dark:hover:text-sky-400"
                   >
                     Learn More
@@ -160,7 +160,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                   <Link 
-                    href="/tutorial" 
+                    href="/guide" 
                     className="inline-flex items-center hover:text-sky-600 dark:hover:text-sky-400"
                   >
                     Learn More
@@ -198,7 +198,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                   <Link 
-                    href="/tutorial" 
+                    href="/guide" 
                     className="inline-flex items-center hover:text-sky-600 dark:hover:text-sky-400"
                   >
                     Learn More
