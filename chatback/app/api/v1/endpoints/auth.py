@@ -16,7 +16,7 @@ router = APIRouter()
 
 # Registration endpoint disabled
 # Use create_user script to create users:
-# `docker exec -it studio-chatback-1 python scripts/create_user.py`
+# `docker exec -it chatback python scripts/create_user.py`
 #
 #@router.post("/register", response_model=UserSchema)
 #def register(
