@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -73,11 +74,13 @@ export default function LoginPage() {
               width={128}
               height={32}
               priority
-              className="mb-8"
+              className="mb-8 dark:invert"
             />
           </div>
-          <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl text-center text-foreground">
+            Welcome Back
+          </CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
             Sign in to your account to continue
           </CardDescription>
         </CardHeader>
@@ -92,7 +95,9 @@ export default function LoginPage() {
             
             <div className="space-y-3">
               <div className="space-y-1">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username" className="text-foreground">
+                  Username
+                </Label>
                 <Input
                   id="username"
                   name="username"
@@ -101,11 +106,14 @@ export default function LoginPage() {
                   value={formData.username}
                   onChange={handleInputChange}
                   disabled={isLoading}
+                  className="bg-background border-border"
                 />
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-foreground">
+                  Password
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -115,18 +123,23 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={handleInputChange}
                     disabled={isLoading}
+                    className="bg-background border-border"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    className={cn(
+                      "absolute right-0 top-0 h-full px-3 py-2",
+                      "hover:bg-transparent",
+                      "text-muted-foreground hover:text-foreground"
+                    )}
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <Eye className="h-4 w-4 text-gray-500" />
+                      <Eye className="h-4 w-4" />
                     ) : (
-                      <EyeOff className="h-4 w-4 text-gray-500" />
+                      <EyeOff className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
@@ -135,7 +148,11 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-sky-600 hover:bg-sky-700 text-white"
+              className={cn(
+                "w-full",
+                "bg-primary hover:bg-primary/90",
+                "text-primary-foreground"
+              )}
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign in'}

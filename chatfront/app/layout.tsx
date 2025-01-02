@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Metadata } from "next"
-import "./globals.css"
+import '@/styles/globals.css'
 import { cn } from "@/lib/utils"
 import { fonts } from '@/styles/fonts'
 import { SessionProvider } from "@/components/providers/session-provider"

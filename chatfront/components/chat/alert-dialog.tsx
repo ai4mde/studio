@@ -33,10 +33,12 @@ export function AlertMessageDialog({
 }: AlertMessageDialogProps) {
   return (
     <AlertDialog open={isOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className="bg-background border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-foreground">
+            {title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">
             <span className="block">{message}</span>
             {countdownSeconds && (
               <span className="block mt-2 text-center">
@@ -46,9 +48,11 @@ export function AlertMessageDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Logout</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose} className="bg-background hover:bg-muted">
+            Logout
+          </AlertDialogCancel>
           {showContinue && (
-            <AlertDialogAction onClick={onContinue}>
+            <AlertDialogAction onClick={onContinue} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Continue Session
             </AlertDialogAction>
           )}

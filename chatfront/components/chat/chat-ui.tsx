@@ -38,39 +38,26 @@ export function ChatUI({ className }: ChatUIProps) {
   const [isNewChatOpen, setIsNewChatOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const handleNewChat = () => {
-    setIsNewChatOpen(true)
-  }
-
-  const handleCreateChat = async (title: string) => {
-    await startNewChat(title)
-    setIsNewChatOpen(false)
-  }
-
-  const handleDeleteChat = async () => {
-    await deleteChat()
-    setIsDeleteDialogOpen(false)
-  }
-
   return (
     <div className={cn(
       matrixStyles.layout.base,
       'fixed left-1/2 -translate-x-1/2 top-12',
       'w-full max-w-7xl',
-      'h-[calc(100vh-theme(spacing.20)-theme(spacing.8))] overflow-hidden'
+      'h-[calc(100vh-theme(spacing.20)-theme(spacing.8))] overflow-hidden',
+      className
     )}>
       <div className={matrixStyles.layout.gradient} />
       <Card className={cn(
         'flex h-full flex-col mb-8',
-        'bottom-4',
         'border-0 rounded-none',
+        'bg-background/95 backdrop-blur',
+        'supports-[backdrop-filter]:bg-background/60',
         matrixStyles.card.base,
-        matrixStyles.card.shadow,
-        className
+        matrixStyles.card.shadow
       )}>
         <ChatHeader 
           isLoading={isLoading} 
-          onNewChat={handleNewChat}
+          onNewChat={() => setIsNewChatOpen(true)}
           onSelectChat={selectChat}
           onClearChat={() => setIsDeleteDialogOpen(true)}
           sessions={sessions}
@@ -88,7 +75,7 @@ export function ChatUI({ className }: ChatUIProps) {
           <ChatScrollAnchor trackVisibility={true} />
         </ScrollArea>
 
-        <div className="border-t bg-background/50 p-4">
+        <div className="border-t border-border">
           <ChatInput
             input={input}
             handleInputChange={handleInputChange}
@@ -98,7 +85,7 @@ export function ChatUI({ className }: ChatUIProps) {
             hasActiveSession={!!currentSession}
           />
           {error && (
-            <Alert variant="destructive" className="mt-4">
+            <Alert variant="destructive" className="mx-4 mb-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -107,12 +94,12 @@ export function ChatUI({ className }: ChatUIProps) {
         <NewChatDialog
           isOpen={isNewChatOpen}
           onClose={() => setIsNewChatOpen(false)}
-          onCreateChat={handleCreateChat}
+          onCreateChat={startNewChat}
         />
         <DeleteChatDialog 
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={handleDeleteChat}
+          onConfirm={deleteChat}
           currentSession={currentSession}
         />
       </Card>

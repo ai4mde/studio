@@ -17,26 +17,26 @@ export function LayoutContent({ children }: LayoutContentProps) {
   const pathname = usePathname()
   const requiresInactivityCheck = PROTECTED_PATHS.some(path => pathname?.startsWith(path))
 
+  const layoutClasses = cn(
+    'relative min-h-screen flex flex-col',
+    'bg-background text-foreground',
+    'antialiased'  // Add antialiasing for smoother text
+  )
+
   return (
     <>
       {requiresInactivityCheck ? (
         <InactivityProvider>
-          <div className={cn(
-            'relative min-h-screen flex flex-col',
-            'bg-background text-foreground'
-          )}>
+          <div className={layoutClasses}>
             <NavBar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 w-full">{children}</main>
             <Footer />
           </div>
         </InactivityProvider>
       ) : (
-        <div className={cn(
-          'relative min-h-screen flex flex-col',
-          'bg-background text-foreground'
-        )}>
+        <div className={layoutClasses}>
           <NavBar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 w-full">{children}</main>
           <Footer />
         </div>
       )}

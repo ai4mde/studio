@@ -19,18 +19,25 @@ interface ChatDialogsProps {
 export function ChatDialogs({ isOpen, onClose, onReset, onNewChat }: ChatDialogsProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="bg-background border-border">
         <DialogHeader>
-          <DialogTitle>Start New Chat</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-foreground">Start New Chat</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Would you like to start a new chat or reset the current one?
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onReset}>
+          <Button 
+            variant="outline" 
+            onClick={onReset}
+            className="bg-background hover:bg-muted"
+          >
             Reset Current
           </Button>
-          <Button onClick={onNewChat}>
+          <Button 
+            onClick={onNewChat}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
             New Chat
           </Button>
         </div>

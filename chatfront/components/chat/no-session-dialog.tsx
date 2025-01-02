@@ -19,18 +19,21 @@ interface NoSessionDialogProps {
 export function NoSessionDialog({ isOpen, onClose }: NoSessionDialogProps) {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-[360px]">
+      <AlertDialogContent className="max-w-[360px] bg-background border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2">
-            <MessageCircleOff className="h-5 w-5" />
+          <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+            <MessageCircleOff className="h-5 w-5 text-muted-foreground" />
             No Active Chat
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-muted-foreground">
             Please start a new chat or select an existing one to continue.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>
+          <AlertDialogCancel 
+            onClick={onClose}
+            className="bg-background hover:bg-muted"
+          >
             Close
           </AlertDialogCancel>
         </AlertDialogFooter>

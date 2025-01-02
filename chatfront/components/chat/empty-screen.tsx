@@ -16,6 +16,7 @@ export function EmptyScreen({ className }: EmptyScreenProps) {
         'flex flex-col items-center justify-center',
         'p-8 space-y-6',
         'bg-background/60 backdrop-blur',
+        'border-border',
         'max-w-md mx-auto',
         className
       )}>
@@ -25,12 +26,15 @@ export function EmptyScreen({ className }: EmptyScreenProps) {
           width={96}
           height={96}
           priority
+          className="dark:invert"
         />
         <div className="text-center space-y-2">
           <h2 className="text-xl font-semibold text-foreground">
             Welcome to AI4MDE Chat
           </h2>
-          
+          <p className="text-muted-foreground">
+            Start a new chat or select an existing one to begin.
+          </p>
         </div>
       </Card>
     </div>

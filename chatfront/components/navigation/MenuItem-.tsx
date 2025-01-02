@@ -29,12 +29,12 @@ const MenuItem = ({ children, href, protected: isProtected, isAuthenticated, onP
       href={href}
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-2 px-3 py-2 rounded-md text-sm",
-        "text-muted-foreground hover:text-foreground transition-colors",
-        "hover:bg-[hsl(var(--primary)/0.1)]",
-        {
-          "text-[hsl(var(--primary))] font-medium bg-[hsl(var(--primary)/0.1)]": isActive
-        }
+        "flex items-center gap-2",
+        "px-3 py-2 rounded-md text-sm",
+        "transition-colors duration-200",
+        "text-muted-foreground hover:text-foreground",
+        "hover:bg-muted",
+        isActive && "text-primary font-medium bg-muted"
       )}
     >
       {children}

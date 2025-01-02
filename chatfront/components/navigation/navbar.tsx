@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useNavigation } from './use-navigation'
 import Image from "next/image";
 import { MobileNav } from "./mobile-nav"
-import MenuItem from "./MenuItem";
+import MenuItem from "./menu-item";
 import { Button } from '@/components/ui/button';
 import { LogOut, LogIn } from "lucide-react"
 import Logo from '@/app/assets/logo.svg';
@@ -23,7 +23,7 @@ const NavBar = () => {
             alt="Logo" 
             width={128} 
             height={32} 
-            className="w-auto h-12" 
+            className="w-auto h-12 dark:invert" 
             priority 
           />
         </Link>
@@ -36,7 +36,7 @@ const NavBar = () => {
             href={item.href}
             protected={item.protected}
             isAuthenticated={isAuthenticated}
-            onProtectedClick={(event) => handleProtectedLink(event, item.href)}
+            onProtectedClick={(event: React.MouseEvent) => handleProtectedLink(event, item.href)}
           >
             <div className="flex items-center gap-2">
               {item.icon && <item.icon className="h-4 w-4" />}
@@ -54,8 +54,8 @@ const NavBar = () => {
               variant="ghost"
               className={cn(
                 "flex items-center gap-2",
-                "text-muted-foreground hover:text-foreground",
-                "hover:bg-[hsl(var(--primary))] hover:text-primary-foreground"
+                "text-muted-foreground hover:text-primary",
+                "hover:bg-muted"
               )}
             >
               <LogOut className="h-4 w-4" />
@@ -67,8 +67,8 @@ const NavBar = () => {
                 variant="ghost"
                 className={cn(
                   "flex items-center gap-2",
-                  "text-muted-foreground hover:text-foreground",
-                  "hover:bg-[hsl(var(--primary))] hover:text-primary-foreground"
+                  "text-muted-foreground hover:text-primary",
+                  "hover:bg-muted"
                 )}
               >
                 <LogIn className="h-4 w-4" />

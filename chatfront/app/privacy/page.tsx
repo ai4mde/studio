@@ -82,25 +82,31 @@ We may update this privacy policy during the course of the research. Users will 
 This privacy policy is effective from [Start Date] until the completion of the thesis project (estimated [End Date]).
 `;
 
-//export default function Privacy() {
-//  return (
-//    <article className="prose dark:prose-invert max-w-4xl mx-auto p-8">
-//      <Markdown>{content}</Markdown>
-//    </article>
-//  );
-//}
 export default function Privacy() {
   return (
     <MaxWidthWrapper className="px-4">
-      <h1 className="text-4xl font-bold mb-8">Privacy</h1>
+      <h1 className="text-4xl font-bold text-foreground mb-8">Privacy Policy</h1>
       <div className="prose prose-lg max-w-none 
-        [&_p]:leading-tight 
-        [&_li]:leading-tight 
-        [&>*+*]:mt-3
-        [&_h2]:mb-3
-        [&_h3]:mb-2
-        [&_ul]:mt-0.5
-        [&_ul]:mb-0.5">
+        prose-headings:text-foreground
+        prose-p:text-foreground
+        prose-strong:text-foreground
+        prose-ul:text-foreground
+        prose-li:text-foreground
+        prose-a:text-primary
+        prose-a:no-underline
+        hover:prose-a:underline
+        hover:prose-a:text-primary/80
+        prose-hr:border-border
+        [&_p]:leading-relaxed
+        [&_li]:leading-relaxed
+        [&>*+*]:mt-4
+        [&_h2]:mb-4
+        [&_h2]:text-foreground
+        [&_h3]:mb-3
+        [&_h3]:text-foreground
+        [&_ul]:my-2
+        [&_ol]:my-2
+        dark:prose-invert">
         <Markdown>{content}</Markdown>
       </div>
     </MaxWidthWrapper>

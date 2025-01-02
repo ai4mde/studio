@@ -14,8 +14,8 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t py-6">
-      <div className="container flex flex-col items-center gap-4">
+    <footer className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex flex-col items-center gap-4 py-6">
         <div className="flex gap-4 text-sm text-muted-foreground">
           {menuItems.map(({ href, label }) => (
             <Link
@@ -23,7 +23,8 @@ export function Footer() {
               href={href}
               className={cn(
                 "transition-colors hover:text-foreground",
-                pathname === href && "font-bold text-primary"
+                "hover:underline hover:underline-offset-4",
+                pathname === href && "font-medium text-primary"
               )}
             >
               {label}
@@ -32,20 +33,12 @@ export function Footer() {
         </div>
         <p className="text-center text-sm leading-loose text-muted-foreground">
           Built by{" "}
-          {/* <a
-            href="https://ai4mde.org/team"
-            target="_blank"
-            rel="noreferrer"
-            className="font-medium underline underline-offset-4"
-          >
-            AI4MDE Team
-          </a> */}
           AI4MDE Team. The source code is available on{" "}
           <a
             href="https://github.com/ai4mde"
             target="_blank"
             rel="noreferrer"
-            className="font-medium underline underline-offset-4"
+            className="font-medium text-primary hover:text-primary/90 underline underline-offset-4"
           >
             GitHub
           </a>

@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useChat } from "./hooks/use-chat"
 import { ChatHeader } from "@/components/chat/chat-header"
@@ -7,18 +7,25 @@ import { MessageList } from "@/components/chat/message-list"
 import { NewChatDialog } from "@/components/chat/new-chat-dialog"
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertMessageDialog } from '@/components/chat/alert-dialog'
+import { signOut } from 'next-auth/react'
+import { cn } from "@/lib/utils"
 
 export default function ChatPageClient() {
-  const {
+  const { 
     messages,
     input,
     handleInputChange,
     handleSubmit,
     isLoading,
+    isAiThinking,
     error,
     startNewChat,
     sessions,
     currentSession,
+    showLogoutWarning,
+    timeRemaining,
+    onContinueSession
   } = useChat()
 
   const [isNewChatOpen, setIsNewChatOpen] = useState(false)
@@ -48,8 +55,8 @@ export default function ChatPageClient() {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  const handleClearChat = () => {
-    // Implement clear chat functionality
+  const handleLogout = () => {
+    signOut({ redirect: true, callbackUrl: '/login' })
   }
 
   const handleNewChat = () => {
@@ -61,53 +68,72 @@ export default function ChatPageClient() {
     console.log('Selected chat:', id)
   }
 
+  const handleClearChat = () => {
+    // Implement clear chat functionality
+  }
+
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <ChatHeader 
-        isLoading={isLoading} 
-        onNewChat={handleNewChat}
-        onSelectChat={handleSelectChat}
-        onClearChat={handleClearChat}
-        sessions={sessions}
-        currentSession={currentSession}
-      />
-      
-      {/* Message list container */}
-      <div 
-        ref={messageListRef} 
-        onScroll={handleScroll}
-        className="flex-1 overflow-y-auto"
-      >
-        <MessageList
-          messages={messages}
-          isLoading={isLoading}
-          isEmpty={messages.length === 0}
+    <>
+      <div className={cn(
+        "flex flex-col h-[calc(100vh-4rem)]",
+        "bg-background/95 backdrop-blur",
+        "supports-[backdrop-filter]:bg-background/60"
+      )}>
+        <ChatHeader 
+          isLoading={isLoading} 
+          onNewChat={handleNewChat}
+          onSelectChat={handleSelectChat}
+          onClearChat={handleClearChat}
+          sessions={sessions}
+          currentSession={currentSession}
         />
-        <div ref={messagesEndRef} />
+        
+        <div 
+          ref={messageListRef} 
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto"
+        >
+          <MessageList
+            messages={messages}
+            isLoading={isLoading}
+            isEmpty={messages.length === 0}
+            isAiThinking={isAiThinking}
+          />
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="border-t border-border bg-background/50">
+          <ChatInput
+            input={input}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            isLoading={isLoading}
+            lastMessageId={messages[messages.length - 1]?.id}
+            hasActiveSession={!!currentSession}
+          />
+          {error && (
+            <Alert variant="destructive" className="mx-4 mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <NewChatDialog
+          isOpen={isNewChatOpen}
+          onClose={() => setIsNewChatOpen(false)}
+          onCreateChat={startNewChat}
+        />
       </div>
 
-      {/* Input section */}
-      <div className="border-t bg-background">
-        <ChatInput
-          input={input}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          isLoading={isLoading}
-          lastMessageId={messages[messages.length - 1]?.id}
-          hasActiveSession={!!currentSession}
-        />
-        {error && (
-          <Alert variant="destructive" className="mx-4 mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-      </div>
-
-      <NewChatDialog
-        isOpen={isNewChatOpen}
-        onClose={() => setIsNewChatOpen(false)}
-        onCreateChat={startNewChat}
+      <AlertMessageDialog
+        isOpen={showLogoutWarning}
+        onClose={handleLogout}
+        onContinue={onContinueSession}
+        title="Session Timeout Warning"
+        message="Your session will expire soon due to inactivity."
+        showContinue={true}
+        countdownSeconds={timeRemaining}
       />
-    </div>
+    </>
   )
 } 

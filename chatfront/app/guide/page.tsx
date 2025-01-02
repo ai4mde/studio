@@ -1,6 +1,8 @@
 import { Metadata } from 'next';
 import Markdown from 'markdown-to-jsx';
 import MaxWidthWrapper from '@/components/layout/max-width-wrapper';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: 'Tutorial',
@@ -8,12 +10,6 @@ export const metadata: Metadata = {
 };
 
 const content = `
-<div style="background: yellow; padding: 10px;">
-<h1>🚧 <strong>Attention:</strong> <br>
-This page is under construction!</h1>
-<h2>Nothing on this page is valid yet.</h2>
-</div>
-
 # Getting Started Tutorial
 
 ## 1. Creating Your Account
@@ -51,15 +47,39 @@ Contact our support team for assistance.
 export default function Tutorial() {
   return (
     <MaxWidthWrapper className="px-4">
-      <h1 className="text-4xl font-bold mb-8">Tutorial</h1>
+      <h1 className="text-4xl font-bold text-foreground mb-8">Tutorial</h1>
+      
+      <Alert className="mb-8 border-primary bg-primary/5">
+        <AlertTriangle className="h-5 w-5 text-primary" />
+        <AlertTitle className="text-foreground font-semibold">
+          Under Construction
+        </AlertTitle>
+        <AlertDescription className="text-muted-foreground">
+          This page is currently being developed. The content shown here is placeholder text.
+        </AlertDescription>
+      </Alert>
+
       <div className="prose prose-lg max-w-none 
-        [&_p]:leading-tight 
-        [&_li]:leading-tight 
-        [&>*+*]:mt-3
-        [&_h2]:mb-3
-        [&_h3]:mb-2
-        [&_ul]:mt-2
-        [&_ul]:mb-2">
+        prose-headings:text-foreground
+        prose-p:text-foreground
+        prose-strong:text-foreground
+        prose-ul:text-foreground
+        prose-li:text-foreground
+        prose-a:text-primary
+        prose-a:no-underline
+        hover:prose-a:underline
+        hover:prose-a:text-primary/80
+        prose-hr:border-border
+        [&_p]:leading-relaxed
+        [&_li]:leading-relaxed
+        [&>*+*]:mt-4
+        [&_h2]:mb-4
+        [&_h2]:text-foreground
+        [&_h3]:mb-3
+        [&_h3]:text-foreground
+        [&_ul]:my-2
+        [&_ol]:my-2
+        dark:prose-invert">
         <Markdown>{content}</Markdown>
       </div>
     </MaxWidthWrapper>

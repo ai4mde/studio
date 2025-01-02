@@ -74,7 +74,7 @@ export function ChatInput({
     return (
       <div className="flex flex-col items-center justify-center p-8 text-center">
         <MessageCircleOff className="h-8 w-8 mb-4 text-muted-foreground" />
-        <p className="text-lg font-semibold">
+        <p className="text-lg font-semibold text-foreground">
           No Active Chat
         </p>
         <p className="text-sm text-muted-foreground mt-1">
@@ -107,9 +107,9 @@ export function ChatInput({
             className={cn(
               "min-h-[48px] w-full resize-none pr-10",
               "bg-background px-4 py-3",
-              "rounded-md border border-[hsl(var(--border))]",
+              "rounded-md border border-border",
               "focus-visible:outline-none focus-visible:ring-1",
-              "focus-visible:ring-[hsl(var(--ring))]",
+              "focus-visible:ring-ring",
               "disabled:opacity-50 disabled:cursor-not-allowed",
               "text-foreground placeholder:text-muted-foreground",
               "scrollbar-custom"
@@ -122,9 +122,9 @@ export function ChatInput({
             disabled={isLoading || !input.trim()}
             className={cn(
               "absolute right-2 bottom-2",
-              "bg-[hsl(var(--primary))] text-primary-foreground",
-              "hover:bg-[hsl(var(--primary)/.8)]",
-              "focus-visible:ring-1 focus-visible:ring-[hsl(var(--ring))]",
+              "bg-primary text-primary-foreground",
+              "hover:bg-primary/90",
+              "focus-visible:ring-1 focus-visible:ring-ring",
               "disabled:opacity-50"
             )}
           >

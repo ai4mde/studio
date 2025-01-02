@@ -44,13 +44,13 @@ export function DeleteChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="bg-background border-border">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Trash2 className="h-5 w-5 text-destructive" />
             Delete Chat
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground">
             Are you sure you want to delete &quot;{currentSession?.title || 'this chat'}&quot;? 
             This action cannot be undone.
           </DialogDescription>
@@ -60,6 +60,7 @@ export function DeleteChatDialog({
             variant="outline" 
             onClick={onClose}
             disabled={isDeleting}
+            className="bg-background hover:bg-muted"
           >
             Cancel
           </Button>
@@ -67,6 +68,7 @@ export function DeleteChatDialog({
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
+            className="text-destructive-foreground hover:bg-destructive/90"
           >
             {isDeleting ? (
               <>

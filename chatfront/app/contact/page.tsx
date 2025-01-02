@@ -61,7 +61,7 @@ export default function ContactPage() {
     <>
       <div className="container flex flex-col items-center py-10 space-y-8 max-w-7xl">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Get In Touch</h1>
+          <h1 className="text-3xl font-bold text-foreground">Get In Touch</h1>
           <p className="text-muted-foreground">
             Have questions, feedback, or want to collaborate? Drop us a message!
           </p>
@@ -70,7 +70,7 @@ export default function ContactPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="w-full space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="firstName" className="text-sm font-medium">
+              <label htmlFor="firstName" className="text-sm font-medium text-foreground">
                 First Name
               </label>
               <Input
@@ -78,10 +78,11 @@ export default function ContactPage() {
                 {...register('firstName')}
                 placeholder="John"
                 error={errors.firstName?.message}
+                className="bg-background border-border"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="lastName" className="text-sm font-medium">
+              <label htmlFor="lastName" className="text-sm font-medium text-foreground">
                 Last Name
               </label>
               <Input
@@ -89,12 +90,13 @@ export default function ContactPage() {
                 {...register('lastName')}
                 placeholder="Doe"
                 error={errors.lastName?.message}
+                className="bg-background border-border"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
+            <label htmlFor="email" className="text-sm font-medium text-foreground">
               Email
             </label>
             <Input
@@ -103,24 +105,25 @@ export default function ContactPage() {
               {...register('email')}
               placeholder="john.doe@example.com"
               error={errors.email?.message}
+              className="bg-background border-border"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="message" className="text-sm font-medium">
+            <label htmlFor="message" className="text-sm font-medium text-foreground">
               Message
             </label>
             <Textarea
               id="message"
               {...register('message')}
-              className="min-h-[250px]"
+              className="min-h-[250px] bg-background border-border resize-none"
               error={errors.message?.message}
             />
           </div>
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             disabled={isSending}
           >
             {isSending ? 'Sending...' : 'Send Message'}
@@ -129,10 +132,10 @@ export default function ContactPage() {
       </div>
 
       <Dialog open={showThankYou} onOpenChange={setShowThankYou}>
-        <DialogContent>
+        <DialogContent className="bg-background border-border">
           <DialogHeader>
-            <DialogTitle>Thank You!</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground">Thank You!</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               We have received your message and will get back to you within 2 working days.
             </DialogDescription>
           </DialogHeader>

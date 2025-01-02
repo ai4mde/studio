@@ -14,23 +14,18 @@ interface DocType {
   description: string;
 }
 
-// Make the component async to use getServerSession
 const DocList = async () => {
-  // Get user session
   const session = await getServerSession();
   if (!session?.user?.username) {
     throw new Error("User not authenticated");
   }
 
-  // Use user-specific path
   const userPath = `data/${session.user.username.toLowerCase()}/srsdocs`;
   
-  // Create directory if it doesn't exist
   if (!fs.existsSync(userPath)) {
     fs.mkdirSync(userPath, { recursive: true });
   }
 
-  // Read directory contents
   const dirContent = fs.readdirSync(userPath, "utf-8");
 
   const docs: DocType[] = dirContent
@@ -53,29 +48,50 @@ const DocList = async () => {
       )}>
         Your Software Requirements Specifications Documents
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {docs.map((doc: DocType, index: number) => (
-          <div key={index} className={cn(
-            "shadow-lg rounded-lg overflow-hidden",
-            "bg-card text-card-foreground",
-            "border border-[hsl(var(--border))]"
-          )}>
-            <div className="p-4">
-              <h2 className="text-xl font-semibold mb-2">{doc.title}</h2>
-              <p className="mb-4 text-muted-foreground">{doc.description}</p>
-              <Link
-                href={`/srsdoc/${doc.id}`}
-                className={buttonVariants({ 
-                  variant: "default",
-                  className: "bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary-hover))] text-primary-foreground"
-                })}
-              >
-                Open Document
-              </Link>
+      
+      {docs.length === 0 ? (
+        <div className={cn(
+          "text-center py-12",
+          "text-muted-foreground"
+        )}>
+          No documents found. Start a chat to create your first SRS document.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {docs.map((doc: DocType, index: number) => (
+            <div 
+              key={index} 
+              className={cn(
+                "rounded-lg overflow-hidden",
+                "bg-card text-card-foreground",
+                "border border-border",
+                "shadow-sm transition-all duration-200",
+                "hover:shadow-md hover:border-border/80"
+              )}
+            >
+              <div className="p-6">
+                <h2 className="text-xl font-semibold mb-3 text-foreground">
+                  {doc.title}
+                </h2>
+                <p className="mb-4 text-muted-foreground">
+                  {doc.description}
+                </p>
+                <Link
+                  href={`/srsdoc/${doc.id}`}
+                  className={cn(
+                    buttonVariants({ variant: "default" }),
+                    "w-full justify-center",
+                    "bg-primary hover:bg-primary/90",
+                    "text-primary-foreground"
+                  )}
+                >
+                  Open Document
+                </Link>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

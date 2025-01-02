@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useNavigation } from './use-navigation'
-import MenuItem from "./MenuItem"
+import MenuItem from "./menu-item"
 import LogoutButton from './logout-button'
 
 export function MobileNav() {
@@ -37,14 +37,21 @@ export function MobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="md:hidden text-foreground hover:text-primary hover:bg-muted"
+        >
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[80vw] sm:w-[350px] p-0">
-        <SheetHeader className="p-6 border-b">
-          <SheetTitle>Menu</SheetTitle>
+      <SheetContent 
+        side="left" 
+        className="w-[80vw] sm:w-[350px] p-0 bg-background border-border"
+      >
+        <SheetHeader className="p-6 border-b border-border">
+          <SheetTitle className="text-foreground">Menu</SheetTitle>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">
           <nav className="flex flex-col px-6 py-4">
@@ -64,7 +71,7 @@ export function MobileNav() {
               </MenuItem>
             ))}
             
-            <div className="pt-4 mt-4 border-t">
+            <div className="pt-4 mt-4 border-t border-border">
               {isAuthenticated ? (
                 <>
                   <div className="text-sm text-muted-foreground mb-2">
@@ -82,7 +89,7 @@ export function MobileNav() {
                 <Link
                   href="/login"
                   onClick={handleClose}
-                  className="flex items-center gap-2 py-2 text-lg text-muted-foreground hover:text-primary"
+                  className="flex items-center gap-2 py-2 text-lg text-muted-foreground hover:text-primary transition-colors duration-200"
                 >
                   <LogIn className="h-6 w-6" />
                   <span>Login</span>

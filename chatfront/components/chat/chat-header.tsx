@@ -37,66 +37,55 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  const handleDeleteClick = () => {
-    setIsDeleteDialogOpen(true)
-  }
-
-  const handleDeleteConfirm = async () => {
-    try {
-      if (onClearChat) {
-        await onClearChat()
-      }
-      setIsDeleteDialogOpen(false)
-    } catch (error) {
-      console.error('Failed to delete chat:', error)
-    }
-  }
-
   return (
-    <header className="sticky top-0 z-10 bg-background border-b">
+    <header className="sticky top-0 z-10 bg-background border-b border-border">
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-          <span className="font-bold text-sky-900">
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          <span className="font-bold text-foreground">
             {currentSession?.title || 'New Chat'}
           </span>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2">
+            <Button variant="ghost" className="flex items-center gap-2 text-foreground">
               <Menu className="h-4 w-4" />
               <span>Chat Menu</span>
               <span className="sr-only">Open menu</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onNewChat}>
+          <DropdownMenuContent align="end" className="bg-popover border-border">
+            <DropdownMenuItem onClick={onNewChat} className="text-foreground">
               <Plus className="mr-2 h-4 w-4" />
               New Chat
             </DropdownMenuItem>
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger className="text-foreground">
                 <MousePointerClick className="mr-2 h-4 w-4" />
                 Select Chat ({sessions?.length || 0})
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
+              <DropdownMenuSubContent className="bg-popover border-border">
                 {sessions && sessions.length > 0 ? (
                   sessions.map((session) => (
                     <DropdownMenuItem
                       key={session.id}
                       onClick={() => onSelectChat(session.id)}
+                      className="text-foreground"
                     >
                       {session.title}
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <DropdownMenuItem disabled>
+                  <DropdownMenuItem disabled className="text-muted-foreground">
                     No chats available
                   </DropdownMenuItem>
                 )}
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuItem onClick={handleDeleteClick} className="text-destructive">
+            <DropdownMenuItem 
+              onClick={() => setIsDeleteDialogOpen(true)} 
+              className="text-destructive focus:text-destructive"
+            >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Chat
             </DropdownMenuItem>
@@ -116,7 +105,9 @@ export function ChatHeader({
       <DeleteChatDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={async () => {
+          if (onClearChat) await onClearChat();
+        }}
         currentSession={currentSession}
       />
     </header>

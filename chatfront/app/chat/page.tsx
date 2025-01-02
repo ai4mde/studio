@@ -1,5 +1,7 @@
+import { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { getServerSession } from '@/auth'
 import { ChatUI } from "@/components/chat/chat-ui"
-import { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: 'Chat | AI4MDE',
@@ -7,11 +9,18 @@ export const metadata: Metadata = {
 }
 
 export default async function ChatPage() {
+  const session = await getServerSession()
+  
+  if (!session?.user) {
+    redirect('/login')
+  }
+
   return (
-    <div className="container mx-auto">
-      {/* <h1 className="text-2xl font-bold mb-4">Chat with AI4MDE</h1> */}
-      <ChatUI />
-    </div>
+    <main className="flex flex-col min-h-screen bg-background">
+      <div className="container mx-auto">
+        <ChatUI />
+      </div>
+    </main>
   )
 }
 

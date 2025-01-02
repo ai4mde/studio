@@ -121,16 +121,29 @@ These Terms are governed by the laws of [Your Country/State] and the policies of
 export default function Terms() {
   return (
     <MaxWidthWrapper className="px-4">
-      <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
+      <h1 className="text-4xl font-bold text-foreground mb-8">Terms of Service</h1>
       <div className="prose prose-lg max-w-none 
+        prose-headings:text-foreground
+        prose-p:text-foreground
+        prose-strong:text-foreground
+        prose-ul:text-foreground
+        prose-li:text-foreground
+        prose-a:text-primary
+        prose-a:no-underline
+        hover:prose-a:text-primary/80
+        hover:prose-a:underline
+        prose-hr:border-border
         [&_p]:leading-tight 
         [&_li]:leading-tight 
         [&>*+*]:mt-3
         [&_h2]:mb-3
+        [&_h2]:text-foreground
         [&_h3]:mb-2
+        [&_h3]:text-foreground
         [&_ul]:!mt-4
         [&_ul]:!mb-4
-        [&_ul_li]:!my-2">
+        [&_ul_li]:!my-2
+        dark:prose-invert">
         <Markdown>{content}</Markdown>
       </div>
     </MaxWidthWrapper>

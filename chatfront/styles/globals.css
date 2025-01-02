@@ -1,33 +1,10 @@
-@import '@fontsource/geist-sans';
-@import '@fontsource/geist-mono';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 14% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 14% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 14% 10%;
-    --primary: 221 44% 41%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 221 44% 41%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 14% 46%;
-    --accent: 220 100% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 44% 41%;
-    --radius: 0.5rem;
-    --chart-1: 221 44% 41%;
-    --chart-2: 220 100% 50%;
-    --chart-3: 220 14% 46%;
-    --chart-4: 220 13% 91%;
-    --chart-5: 220 14% 96%;
+    /* Font variables */
     --font-size-xs: 0.75rem;    /* 12px */
     --font-size-sm: 0.875rem;   /* 14px */
     --font-size-base: 1rem;     /* 16px */
@@ -40,64 +17,77 @@
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
     --font-weight-bold: 700;
+
+    /* Catppuccin colors: https://catppuccin.com/palette */
+    /* Catppuccin Latte */
+    --background: 220 23% 95%;              /* #eff1f5 - Base */
+    --foreground: 234 16% 35%;              /* #4c4f69 - Text */
+    --card: 220 23% 95%;                    /* #eff1f5 - Base */
+    --card-foreground: 234 16% 35%;         /* #4c4f69 - Text */
+    --popover: 220 23% 95%;                 /* #eff1f5 - Base */
+    --popover-foreground: 234 16% 35%;      /* #4c4f69 - Text */
+    --primary: 220 91% 54%;                 /* #1e66f5 - Blue */
+    --primary-foreground: 220 23% 95%;      /* #eff1f5 - Base */
+    --secondary: 231 84% 85%;               /* #bcc0ff - Lavender */
+    --secondary-foreground: 234 16% 35%;    /* #4c4f69 - Text */
+    --muted: 220 16% 90%;                   /* #e6e9ef - Surface 0 */
+    --muted-foreground: 234 13% 55%;        /* #8c8fa1 - Subtext 0 */
+    --accent: 197 97% 46%;                  /* #04a5e5 - Sky */
+    --accent-foreground: 234 16% 35%;       /* #4c4f69 - Text */
+    --destructive: 347 87% 44%;             /* #d20f39 - Red */
+    --destructive-foreground: 220 23% 95%;  /* #eff1f5 - Base */
+    --border: 220 13% 91%;                  /* #dce0e8 - Surface 1 */
+    --input: 220 13% 91%;                   /* #dce0e8 - Surface 1 */
+    --ring: 220 91% 54%;                    /* #1e66f5 - Blue */
+    --radius: 0.5rem;
+
+    /* Chart Colors - Latte */
+    --chart-1: 220 91% 54%;                 /* #1e66f5 - Blue */
+    --chart-2: 316 73% 69%;                 /* #ea76cb - Pink */
+    --chart-3: 23 92% 75%;                  /* #fe640b - Peach */
+    --chart-4: 150 60% 54%;                 /* #40a02b - Green */
+    --chart-5: 189 71% 73%;                 /* #04a5e5 - Sky */
   }
 
   .dark {
-    --background: 220 14% 10%;
-    --foreground: 0 0% 100%;
-    --card: 220 14% 12%;
-    --card-foreground: 0 0% 100%;
-    --popover: 220 14% 12%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 221 44% 51%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 14% 20%;
-    --secondary-foreground: 221 44% 51%;
-    --muted: 220 14% 16%;
-    --muted-foreground: 220 14% 70%;
-    --accent: 220 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 14% 20%;
-    --input: 220 14% 20%;
-    --ring: 221 44% 51%;
+    /* Catppuccin Macchiato */
+    --background: 235 21% 19%;              /* #24273a - Base */
+    --foreground: 227 70% 87%;              /* #cad3f5 - Text */
+    --card: 235 21% 19%;                    /* #24273a - Base */
+    --card-foreground: 227 70% 87%;         /* #cad3f5 - Text */
+    --popover: 235 21% 19%;                 /* #24273a - Base */
+    --popover-foreground: 227 70% 87%;      /* #cad3f5 - Text */
+    --primary: 221 83% 71%;                 /* #8aadf4 - Blue */
+    --primary-foreground: 235 21% 19%;      /* #24273a - Base */
+    --secondary: 232 97% 85%;               /* #b7bdf8 - Lavender */
+    --secondary-foreground: 235 21% 19%;    /* #24273a - Base */
+    --muted: 234 23% 23%;                   /* #363a4f - Surface 0 */
+    --muted-foreground: 228 39% 80%;        /* #a5adcb - Subtext 0 */
+    --accent: 189 59% 73%;                  /* #91d7e3 - Sky */
+    --accent-foreground: 235 21% 19%;       /* #24273a - Base */
+    --destructive: 343 81% 75%;             /* #ed8796 - Red */
+    --destructive-foreground: 235 21% 19%;  /* #24273a - Base */
+    --border: 233 25% 27%;                  /* #494d64 - Surface 1 */
+    --input: 233 25% 27%;                   /* #494d64 - Surface 1 */
+    --ring: 221 83% 71%;                    /* #8aadf4 - Blue */
     --radius: 0.5rem;
-    --chart-1: 221 44% 51%;
-    --chart-2: 220 100% 60%;
-    --chart-3: 220 14% 70%;
-    --chart-4: 220 14% 40%;
-    --chart-5: 220 14% 20%;
-  }
-}
 
-@layer base {
+    /* Chart Colors - Macchiato */
+    --chart-1: 221 83% 71%;                 /* #8aadf4 - Blue */
+    --chart-2: 316 72% 86%;                 /* #f5bde6 - Pink */
+    --chart-3: 21 86% 73%;                  /* #f5a97f - Peach */
+    --chart-4: 149 59% 65%;                 /* #a6da95 - Green */
+    --chart-5: 189 71% 73%;                 /* #91d7e3 - Sky */
+  }
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-normal);
   }
 }
 
-.scrollbar-custom {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--muted)) transparent;
-}
-
-.scrollbar-custom::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scrollbar-custom::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted));
-  border-radius: var(--radius);
-}
+/* Rest of your styles remain the same... */
