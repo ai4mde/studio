@@ -77,7 +77,8 @@ export default function Home() {
             {/* Description Section */}
             <div className="w-full md:w-2/3 text-center mx-auto mb-12">
               <p className="text-xl leading-relaxed text-muted-foreground">
-                Model-Driven Engineering (MDE) represents a software development methodology that emphasizes the use of domain-specific models as primary artifacts throughout the development lifecycle. AI4MDE, a pioneering initiative from Leiden University, revolutionizes this paradigm by integrating Large Language Models (LLMs) with traditional MDE approaches. Through sophisticated natural language processing and interactive dialogue systems, AI4MDE facilitates automated transformation from initial requirements specification to preliminary software architectures, effectively bridging the gap between human-centric documentation and formal model specifications. This innovative approach streamlines the software development process while maintaining rigorous engineering principles.
+                Artifacial Intelligence for Model-Driven Engineering in short AI4MDE is an initiative from Leiden University. Model-Driven Engineering (MDE) is a software development methodology that emphasizes the use of domain-specific models as primary artifacts throughout the development lifecycle. This project uses AI, more specific Large Language Models (LLMs) to conduct interviews with stakeholders and transforms these to requirements, models and documents required in the software development lifecycle. The aim of this project is to support Business Analysts and Architects speed up the software requirements engineering process.
+
               </p>
             </div>
 
@@ -118,7 +119,7 @@ export default function Home() {
                     Intelligent Interaction
                   </h1>
                   <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-50">
-                    Experience our advanced chatbot powered by Large Language Models, designed specifically for Model-Driven Engineering. Through natural language dialogue, it guides users from initial requirements gathering to generating UML diagrams and preliminary software architectures, making the software development process more intuitive and efficient.
+                    Discover our modularly designed AI-driven chatbot for engaging with end users. The chatbot makes use of AI agents, each of which is responsible for a specific task or function. This makes it relatively simple to adjust existing functionalities or add new ones. functions relatively simple. Natural language conversations guide the user through a predetermined procedure. Using natural language dialogue, it guides users through a predetermined procedure.
                   </p>
                 </CardContent>
                 <CardFooter className="flex justify-center">
@@ -155,7 +156,7 @@ export default function Home() {
                     Automated SRS Generation
                   </h1>
                   <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-50">
-                    Transform natural language conversations into comprehensive Software Requirements Specification documents. Our AI-powered system analyzes user requirements, automatically structures them into formal SRS sections, and generates detailed documentation following IEEE standards, complete with functional and non-functional requirements.
+                    Transform natural language conversations into comprehensive Software Requirements Specification documents. Our AI-powered system gathers and analyses user requirements through an interview and then automatically generates UML models. In conclusion, the system generates a software requirements specification (SRS) document that is compliant with the standards established by the IEEE.
                   </p>
                 </CardContent>
                 <CardFooter className="flex justify-center">
@@ -193,7 +194,7 @@ export default function Home() {
                     Automated Design Visualization
                   </h1>
                   <p className="leading-relaxed mb-3 text-gray-700 dark:text-gray-50">
-                    Convert natural language descriptions into precise UML diagrams automatically. Our AI system generates various diagram types including Class, Sequence, and Use Case diagrams, providing clear visual representations of your software architecture and system behavior while maintaining UML standards and best practices.
+                    Convert natural language descriptions into precise UML diagrams automatically. Our AI system generates various diagram types, including class, sequence, and use case diagrams, providing clear visual representations of your software architecture and system behaviour while maintaining UML standards and best practices. Finaly the UML diagrams can be modified in the Studio app.
                   </p>
                 </CardContent>
                 <CardFooter className="flex justify-center">
