@@ -18,10 +18,12 @@ export async function POST(req: Request) {
     
     // Create filename with timestamp
     const filename = `${data.firstName}_${data.lastName}_${timestamp}.md`
-    const filePath = path.join(process.cwd(), 'app/data/contact', filename)
+    const filePath = path.join(process.cwd(), 'data', 'contact', filename)
     
-    // Ensure directory exists
-    await createDirectoryIfNotExists(path.join(process.cwd(), 'app/data/contact'))
+    // Ensure contact directory exists
+    await createDirectoryIfNotExists(path.dirname(filePath))
+    
+    console.log('Writing to:', filePath) // Debug log
     
     // Create markdown content
     const markdown = `---
@@ -38,7 +40,10 @@ ${data.message}
     
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Failed to save contact form:', error)
+    console.error('Failed to save contact form:', error, {
+      cwd: process.cwd(),
+      env: process.env.NODE_ENV
+    })
     return NextResponse.json(
       { error: 'Failed to save contact form' },
       { status: 500 }
@@ -50,6 +55,7 @@ async function createDirectoryIfNotExists(dirPath: string) {
   try {
     await access(dirPath)
   } catch {
+    console.log('Creating directory:', dirPath) // Debug log
     await mkdir(dirPath, { recursive: true })
   }
 } 
