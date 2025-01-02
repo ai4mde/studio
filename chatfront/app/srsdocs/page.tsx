@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import SiteConfig from "@/config/site";
 import { cn } from "@/lib/utils";
+import { getServerSession } from "@/auth";
 
 interface DocType {
   id: string;
@@ -13,20 +14,37 @@ interface DocType {
   description: string;
 }
 
-const dirContent = fs.readdirSync("content", "utf-8");
+// Make the component async to use getServerSession
+const DocList = async () => {
+  // Get user session
+  const session = await getServerSession();
+  if (!session?.user?.username) {
+    throw new Error("User not authenticated");
+  }
 
-const docs: DocType[] = dirContent.map((file) => {
-  const fileContent = readFileSync(`content/${file}`, "utf-8");
-  const { data } = matter(fileContent);
-  const value: DocType = {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-  };
-  return value;
-});
+  // Use user-specific path
+  const userPath = `data/${session.user.username.toLowerCase()}/srsdocs`;
+  
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(userPath)) {
+    fs.mkdirSync(userPath, { recursive: true });
+  }
 
-const DocList = () => {
+  // Read directory contents
+  const dirContent = fs.readdirSync(userPath, "utf-8");
+
+  const docs: DocType[] = dirContent
+    .filter(file => file.endsWith('.md'))
+    .map((file) => {
+      const fileContent = readFileSync(`${userPath}/${file}`, "utf-8");
+      const { data } = matter(fileContent);
+      return {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+      };
+    });
+
   return (
     <div className="container mx-auto p-4">
       <h1 className={cn(
