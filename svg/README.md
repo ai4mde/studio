@@ -6,7 +6,7 @@
 - The API can be run locally: `npm start`
 
 # Endpoints
-- `/svg?=diagram_id={diagram_id}`
+- `/svg?diagram_id={diagram_id}`
     - Returns the SVG format of a diagram with id `diagram_id`
 
 # TODO
