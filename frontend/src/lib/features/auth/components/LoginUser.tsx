@@ -51,7 +51,7 @@ export const LoginUser = () => {
                         </FormHelperText>
                     </FormControl>
                     <div className="flex w-full flex-row gap-1">
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" className="w-full" name="login">
                             Login
                         </Button>
                         <Button
@@ -61,6 +61,7 @@ export const LoginUser = () => {
                             onClick={() => {
                                 setPage("register");
                             }}
+                            name="register"
                         >
                             Register
                         </Button>

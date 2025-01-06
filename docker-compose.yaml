@@ -57,7 +57,7 @@ services:
     labels:
       - "traefik.enable=true"
 
-    # Router for Flask API
+      # Router for Flask API
       - "traefik.http.routers.flask_api_router.rule=Host(`prototypes_api.ai4mde.localhost`)"
       - "traefik.http.routers.flask_api_router.service=flask_api_service"
       - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
@@ -77,13 +77,28 @@ services:
       - ai4mde_traefik
     labels:
       - "traefik.enable=true"
+      # Router for React frontend
       - "traefik.http.routers.studio.rule=Host(`ai4mde.localhost`)"
+      - "traefik.http.routers.studio.service=studio"
       - "traefik.http.routers.studio.entrypoints=web"
       - "traefik.http.services.studio.loadbalancer.server.port=5173"
 
+  svg-server:
+    build:
+      context: svg
+    env_file:
+      - config/svg.env
+    networks:
+      - ai4mde_traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.svg-server.rule=Host(`svg.ai4mde.localhost`)"
+      - "traefik.http.routers.svg-server.entrypoints=web"
+      - "traefik.http.services.svg-server.loadbalancer.server.port=3000"
+
 volumes:
   pgsql-data:
-  
+
 networks:
   ai4mde_traefik:
     name: "ai4mde_traefik"

@@ -39,6 +39,7 @@ import { LinearProgress } from "@mui/joy";
 import { toSvg } from 'html-to-image';
 import { Download } from 'lucide-react';
 
+
 const multiSelectionKeyCodes = ["Meta", "Shift"];
 
 type Props = {
@@ -74,6 +75,41 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         () => diagramStore.edgesFromAPI(data?.edges ?? []),
         [dataUpdatedAt],
     );
+
+    useEffect(() => {
+        const handleMessage = async (event: MessageEvent) => {
+            if (event.data?.type === "generate-svg") {
+                if (!flowRef.current) {
+                    console.error("Diagram container not found!");
+                    return;
+                }
+                try {
+                    const svgContent = await toSvg(flowRef.current, {
+                        filter: (node) =>
+                            !(
+                                node?.classList?.contains("react-flow__minimap") ||
+                                node?.classList?.contains("react-flow__controls") ||
+                                node?.classList?.contains("react-flow__background")
+                            ),
+                    });
+                    event.source?.postMessage(
+                        {
+                            type: "svg-generated",
+                            svg: svgContent,
+                        },
+                        event.origin
+                    );
+                } catch (error) {
+                    console.error("Failed to generate SVG:", error);
+                }
+            }
+        };
+        window.addEventListener("message", handleMessage);
+
+        return () => {
+            window.removeEventListener("message", handleMessage);
+        };
+    }, []);
 
     if (!isSuccess) {
         return <LinearProgress className="absolute top-0 left-0 right-0" />;
