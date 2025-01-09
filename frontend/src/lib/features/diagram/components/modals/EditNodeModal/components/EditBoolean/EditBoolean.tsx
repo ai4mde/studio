@@ -1,7 +1,7 @@
 import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
-import React, { useState } from "react";
 import { Save } from "lucide-react";
+import React, { useState } from "react";
 import { Node } from "reactflow";
 import style from "./editboolean.module.css";
 
@@ -45,12 +45,17 @@ export const EditBoolean: React.FC<Props> = ({ node, attribute }) => {
                     .join(" ")}
                 onSubmit={handleSubmit}
             >
-                <input
-                    type="checkbox"
-                    checked={value}
-                    onChange={(e) => setValue(e.target.checked)}
-                />
-                <Button dirty={value != node.data[attribute]} />
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex items-stretch">
+                        <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => setValue(e.target.checked)}
+                            className="h-full"
+                        />
+                    </div>
+                    <Button dirty={value != node.data[attribute]} />
+                </div>
             </form>
         </div>
     );
