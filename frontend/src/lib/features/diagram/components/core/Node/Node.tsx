@@ -12,6 +12,7 @@ import {
     PostconditionNode,
     PreconditionNode,
     ScenarioNode,
+    SwimLaneNode,
     SystemNode,
     TriggerNode,
     UsecaseNode,
@@ -40,6 +41,7 @@ export const nodeTypes: NodeTypes = {
     system: SystemNode,
     trigger: TriggerNode,
     usecase: UsecaseNode,
+    swimlane: SwimLaneNode,
     default: Node,
 };
 

@@ -1,5 +1,5 @@
-import React from "react";
 import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import React from "react";
 
 type Props = {
     object: any;
@@ -18,6 +18,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     }
                     placeholder="Select a role..."
                 >
+                    <Option value="swimlane">Swimlane</Option>
                     <Option value="action">Action</Option>
                     <Option value="control">Control</Option>
                     <Option value="object">Object</Option>
@@ -32,6 +33,11 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                         setObject((o: any) => ({ ...o, type: e }))
                     }
                 >
+                    {object.role == "swimlane" && (
+                        <>
+                            <Option value="swimlane">Swimlane</Option>
+                        </>
+                    )}
                     {object.role == "action" && (
                         <>
                             <Option value="action">Action</Option>
@@ -56,7 +62,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     )}
                 </Select>
             </FormControl>
-            {(object.type == "action") && (
+            {(object.type == "action" || object.type == "swimlane") && (
                 <FormControl size="sm" className="w-full">
                     <FormLabel>Name</FormLabel>
                     <Input
@@ -70,6 +76,36 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                         placeholder={`Name of the ${object.type ?? "node"}...`}
                     />
                 </FormControl>
+            )}
+            {object.type == "swimlane" && (
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Width</FormLabel>
+                        <Input
+                            value={object.width}
+                            type="number"
+                            onChange={(e) =>
+                                setObject((o: any) => ({
+                                    ...o,
+                                    width: e.target.value,
+                                }))
+                            }
+                        />
+                    </FormControl>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Height</FormLabel>
+                        <Input
+                            value={object.height}
+                            type="number"
+                            onChange={(e) =>
+                                setObject((o: any) => ({
+                                    ...o,
+                                    height: e.target.value,
+                                }))
+                            }
+                        />
+                    </FormControl>
+                </>
             )}
         </>
     );

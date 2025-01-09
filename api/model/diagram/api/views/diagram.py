@@ -92,7 +92,7 @@ def delete_diagram(request, diagram_id):
         diagram = Diagram.objects.get(id=diagram_id)
         diagram.delete()
     except Exception as e:
-        raise Exception("Failed to delete diagram, error: " + e)
+        raise Exception("Failed to delete diagram, error: " + str(e))
     return True
     
 

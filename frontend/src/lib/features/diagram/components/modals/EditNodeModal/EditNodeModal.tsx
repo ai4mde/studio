@@ -5,7 +5,7 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import Editor from "@monaco-editor/react";
 import Button from "@mui/joy/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
+import { Edit, X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
@@ -15,6 +15,7 @@ import {
     EditLiterals,
     EditMethods,
     EditName,
+    EditDimensions,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -107,6 +108,12 @@ export const EditNodeModal: React.FC = () => {
                                     )}
                                     {node.type == "application" && (
                                         <EditApplication node={node} />
+                                    )}
+                                    {node.type == "swimlane" && (
+                                        <>
+                                            <EditDimensions dimension="height" node={node} />
+                                            <EditDimensions dimension="width" node={node} />
+                                        </>
                                     )}
                                 </div>
                             </div>

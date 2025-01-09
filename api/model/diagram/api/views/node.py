@@ -31,7 +31,7 @@ def list_nodes(request):
 @node.post("/", response=NodeSchema)
 def create_node(request: HttpRequest, data: CreateNode):
     diagram = utils.get_diagram(request)
-
+    print("this runs", flush=True)
     if not diagram:
         return 404, "Diagram not found"
 
