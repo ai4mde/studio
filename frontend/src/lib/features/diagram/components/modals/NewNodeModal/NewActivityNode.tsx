@@ -1,5 +1,5 @@
-import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
-import React from "react";
+import { FormControl, FormLabel, Input, Option, Select, Checkbox } from "@mui/joy";
+import React, { useEffect } from "react";
 
 type Props = {
     object: any;
@@ -7,6 +7,16 @@ type Props = {
 };
 
 export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
+    // If the object is a swimlane, the default value for vertical is true
+    useEffect(() => {
+        if (object.vertical === undefined) {
+            setObject((o: any) => ({
+                ...o,
+                vertical: true,
+            }));
+        }
+    }, [object, setObject]);
+
     return (
         <>
             <FormControl size="sm" className="w-full">
@@ -103,6 +113,18 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                                     height: e.target.value,
                                 }))
                             }
+                        />
+                    </FormControl>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Vertical</FormLabel>
+                        <Checkbox
+                           checked={object.vertical}
+                           onChange={(e) => 
+                                 setObject((o: any) => ({
+                                      ...o,
+                                      vertical: e.target.checked,
+                                 }))
+                           }
                         />
                     </FormControl>
                 </>

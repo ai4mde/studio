@@ -7,6 +7,7 @@ class SwimLane(NamedElement, BaseModel):
     role: Literal["swimlane"] = "swimlane"
     height: int = 400
     width: int = 150
+    vertical: bool = True
 
 SwimLaneClassifier = SwimLane
 

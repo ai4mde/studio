@@ -16,6 +16,7 @@ import {
     EditMethods,
     EditName,
     EditDimensions,
+    EditBoolean,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -113,6 +114,7 @@ export const EditNodeModal: React.FC = () => {
                                         <>
                                             <EditDimensions dimension="height" node={node} />
                                             <EditDimensions dimension="width" node={node} />
+                                            <EditBoolean attribute="vertical" node={node} />
                                         </>
                                     )}
                                 </div>

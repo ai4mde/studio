@@ -5,7 +5,7 @@ import NodeWrapper from "../shared/NodeWrapper";
 export const SwimLaneNode: React.FC<NodeProps> = (node) => {
     const swimlaneNodeStyle: CSSProperties = {
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: node.data?.vertical ? 'column' : 'row',
         border: '2px solid #000',
         borderRadius: '4px',
         backgroundColor: '#f9f9f9',
@@ -18,7 +18,10 @@ export const SwimLaneNode: React.FC<NodeProps> = (node) => {
         padding: '8px',
         fontWeight: 'bold',
         textAlign: 'center',
-        borderBottom: '2px solid #000',
+        borderBottom: node.data?.vertical ? '2px solid #000' : 'none',
+        borderLeft: node.data?.vertical ? 'none': '2px solid #000',
+        writingMode: node.data?.vertical ? 'horizontal-tb' : 'vertical-rl' ,
+        transform: node.data?.vertical ?  'none': 'rotate(180deg)',
     };
 
     const swimlaneBodyStyle: CSSProperties = {
