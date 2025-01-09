@@ -30,9 +30,9 @@ docker-compose up -d
 Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
 
 
-For a full tutorial on how to install AI4MDE, see: [setup.md](/studio/docs/setup.md)
+For a full tutorial on how to install AI4MDE, see: [setup.md](./docs/setup.md)
 
-For an overview of the technical architecture, see [architecture.md](/studio/docs/architecture.md)
+For an overview of the technical architecture, see [architecture.md](./docs/architecture.md)
 <br/>
 
 ![Alt](https://repobeats.axiom.co/api/embed/80709bf7ea933c8ce8605ee6e8136a5f9420dcd6.svg "Repobeats analytics image")
