@@ -13,6 +13,7 @@ from diagram.api.utils import create_node, create_edge
 from metadata.models import System
 from django.db import transaction
 from ninja import Router
+import requests
 
 from .node import node
 from .edge import edge
@@ -94,6 +95,16 @@ def delete_diagram(request, diagram_id):
         raise Exception("Failed to delete diagram, error: " + e)
     return True
     
+@diagrams.get("/{uuid:diagram_id}/svg")
+def get_diagram_svg(request, diagram_id):
+    diagram = Diagram.objects.get(id=diagram_id)
+    if not diagram:
+        return 404
+    response = requests.get(f"http://host.docker.internal:3000/svg?diagram_id={diagram_id}") # TODO: put this in env
+    return {
+        "svg": response.text
+    }
+
 
 
 diagrams.add_router("/{uuid:diagram}/node", node)

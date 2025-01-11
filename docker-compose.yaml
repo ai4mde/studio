@@ -44,6 +44,8 @@ services:
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"
       - "traefik.http.routers.studio-api.entrypoints=web"
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   studio-prototypes:
     depends_on: ["postgres"]
@@ -83,18 +85,15 @@ services:
       - "traefik.http.routers.studio.entrypoints=web"
       - "traefik.http.services.studio.loadbalancer.server.port=5173"
 
-  svg-server:
+  svg_server:
     build:
       context: svg
-    env_file:
-      - config/svg.env
-    networks:
-      - ai4mde_traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.svg-server.rule=Host(`svg.ai4mde.localhost`)"
-      - "traefik.http.routers.svg-server.entrypoints=web"
-      - "traefik.http.services.svg-server.loadbalancer.server.port=3000"
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    network_mode: host
+
 
 volumes:
   pgsql-data:
@@ -102,4 +101,6 @@ volumes:
 networks:
   ai4mde_traefik:
     name: "ai4mde_traefik"
+    external: true
+    driver: bridge
   postgres:

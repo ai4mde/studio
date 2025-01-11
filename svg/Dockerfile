@@ -19,10 +19,8 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     xdg-utils \
     wget \
+    chromium \
     --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y chromium && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
@@ -36,7 +34,6 @@ COPY package.json /usr/src/app
 RUN npm install puppeteer-core
 
 COPY . /usr/src/app
-
 EXPOSE 3000
 
 CMD ["npm", "start"]
