@@ -37,7 +37,9 @@ import {
 } from "$diagram/stores/modals";
 import { LinearProgress } from "@mui/joy";
 import { toSvg } from 'html-to-image';
-import { Download } from 'lucide-react';
+import { Download, Move3d } from 'lucide-react';
+import { authAxios } from "$lib/features/auth/state/auth";
+
 
 const multiSelectionKeyCodes = ["Meta", "Shift"];
 
@@ -123,7 +125,15 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
             >
                 <Background />
                 <Controls showInteractive={false} >
-                    <ControlButton onClick={() => {
+                    <ControlButton title="auto layout" onClick={async () => {
+                        await authAxios.post(`/v1/diagram/${diagram}/auto_layout`);
+                        const updatedDiagram = await authAxios.get(`/v1/diagram/${diagram}`);
+                        diagramStore.nodesFromAPI(updatedDiagram.data?.nodes ?? []);
+                        diagramStore.edgesFromAPI(updatedDiagram.data?.edges ?? []);
+                    }}>
+                        <Move3d />
+                    </ControlButton>
+                    <ControlButton title="download svg"  onClick={() => {
                         if (flowRef.current === null) return
                         toSvg(flowRef.current, {
                             filter: node => !(

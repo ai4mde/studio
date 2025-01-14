@@ -2,6 +2,7 @@ import uuid
 
 from django.db import models
 from metadata.models import Classifier, Relation, System
+import networkx as nx
 
 
 class Diagram(models.Model):
@@ -12,6 +13,23 @@ class Diagram(models.Model):
     system = models.ForeignKey(
         System, on_delete=models.CASCADE, related_name="diagrams"
     )
+
+    def auto_layout(self):
+        graph = nx.Graph()
+        
+        for node in self.nodes.all():
+            graph.add_node(node.id)
+        for edge in self.edges.all():
+            graph.add_edge(edge.source.id, edge.target.id)
+
+        # We use the networkx spring_layout algorithm for autolayouting a diagram
+        # scale=500 seems to do the job, but can be adjusted as needed
+        positions = nx.spring_layout(G=graph, scale=500)
+
+        for node in self.nodes.all():
+            x, y = positions[node.id]
+            node.data["position"]["x"], node.data["position"]["y"] = int(round(x)), int(round(y))
+            node.save()
 
     def delete(self, *args, **kwargs):
         nodes = self.nodes.all()
