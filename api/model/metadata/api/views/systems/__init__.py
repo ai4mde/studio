@@ -51,12 +51,12 @@ def delete_system(request, id):
     return True
     
 
-systems.add_router("/{uuid:system_id}/meta", meta)
-systems.add_router("/{uuid:system_id}/classifiers", classifiers)
-systems.add_router("/{uuid:system_id}/classes", classes)
-systems.add_router("/{uuid:system_id}/actors", actors)
-systems.add_router("/{uuid:system_id}/relations", relations)
-systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relations)
+systems.add_router("/{uuid:system_id}/meta", meta, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/classifiers", classifiers, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/classes", classes, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/actors", actors, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/relations", relations, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relations, tags=["metadata"])
 
 
 __all__ = ["systems"]

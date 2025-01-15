@@ -107,8 +107,8 @@ def auto_layout_diagram(request, diagram_id):
     return diagram
 
 
-diagrams.add_router("/{uuid:diagram}/node", node)
-diagrams.add_router("/{uuid:diagram}/edge", edge)
-diagrams.add_router("/system/", system)
+diagrams.add_router("/{uuid:diagram}/node", node, tags=["diagrams"])
+diagrams.add_router("/{uuid:diagram}/edge", edge, tags=["diagrams"])
+diagrams.add_router("/system/", system, tags=["diagrams"])
 
 __all__ = ["diagrams"]
