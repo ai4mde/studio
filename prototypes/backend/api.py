@@ -10,6 +10,11 @@ app = Flask(__name__)
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 
+RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
+RUNNING_PROTOTYPE_HOST = os.environ.get('RUNNING_PROTOTYPE_HOST', "prototype.ai4mde.localhost")
+RUNNING_PROTOTYPE_PORT = os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)
+
+
 manager = Manager()
 lock = Lock()
 
@@ -35,9 +40,8 @@ def start_prototype(prototype_name: str):
         if not os.path.isdir(prototype_path):
             return None
 
-        port = 8020  # TODO: put in env
         process = subprocess.Popen(
-            ["python", "manage.py", "runserver", f"0.0.0.0:{port}"],
+            ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
             cwd=prototype_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
@@ -48,8 +52,8 @@ def start_prototype(prototype_name: str):
 
         running_prototype["name"] = prototype_name
         running_prototype["pid"] = process.pid
-        running_prototype["port"] = port
-        return process, port
+        running_prototype["port"] = RUNNING_PROTOTYPE_PORT
+        return process, RUNNING_PROTOTYPE_PORT
 
 
 @app.route('/run/<prototype_name>', methods=['POST'])
@@ -58,7 +62,7 @@ def run_prototype(prototype_name: str):
     result = start_prototype(prototype_name)
     if result:
         _, port = result
-        return redirect(f"http://prototype.ai4mde.localhost:{port}", code=307) # TODO: put in env
+        return redirect(f"{RUNNING_PROTOTYPE_PROTO}{RUNNING_PROTOTYPE_HOST}:{RUNNING_PROTOTYPE_PORT}", code=307)
     else:
         abort(404)
 
@@ -126,4 +130,4 @@ def remove_prototype():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8010, debug=True) # TODO: put in env
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8010), debug=True)

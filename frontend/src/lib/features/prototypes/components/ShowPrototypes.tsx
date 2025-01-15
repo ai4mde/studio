@@ -6,6 +6,7 @@ import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototype
 import { Button, Modal, ModalDialog, ModalClose, Divider, CircularProgress } from '@mui/joy';
 import { authAxios } from "$lib/features/auth/state/auth";
 import { useQueryClient } from "@tanstack/react-query";
+import { prototypeURL } from "$shared/globals";
 
 
 type Props = {
@@ -167,8 +168,8 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200">
                                     {(prototypeStatuses[e.name] === "Running") &&
-                                        <a href="http://prototype.ai4mde.localhost/" target="_blank" className="text-blue-500 hover:underline">
-                                            prototype.ai4mde.localhost
+                                        <a href={prototypeURL} target="_blank" className="text-blue-500 hover:underline">
+                                            {prototypeURL}
                                         </a>
                                     }
                                 </td>

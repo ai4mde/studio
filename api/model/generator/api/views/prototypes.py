@@ -5,8 +5,14 @@ from metadata.models import System
 from ninja import Router
 import json
 import requests
+import os
 
 prototypes = Router()
+
+PROTOTYPE_API_PROTO = os.environ.get('PROTOTYPE_API_PROTO', "http://")
+PROTOTYPE_API_HOST = os.environ.get('PROTOTYPE_API_HOST', "studio-prototypes")
+PROTOTYPE_API_PORT = os.environ.get('PROTOTYPE_API_PORT', 8010)
+PROTOTYPE_API_URL = f"{PROTOTYPE_API_PROTO}{PROTOTYPE_API_HOST}:{PROTOTYPE_API_PORT}"
 
 
 @prototypes.get("/", response=List[ReadPrototype])
@@ -39,7 +45,7 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
-    GENERATION_URL = "http://studio-prototypes:8010/generate" # TODO: put this in env
+    GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
     data = {
         'prototype_name': prototype.name,
         'metadata': json.dumps(prototype.metadata)
@@ -63,7 +69,7 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
 
 @prototypes.delete("/{uuid:id}/", response=bool)
 def delete_prototype(request, id):
-    DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
+    DELETION_URL = f"{PROTOTYPE_API_URL}/remove"
     prototype = Prototype.objects.filter(id=id).first()
     if not prototype:
         return False
@@ -81,7 +87,7 @@ def delete_prototype(request, id):
 
 @prototypes.delete("/system/{uuid:system_id}/", response=bool)
 def delete_system_prototypes(request, system_id):
-    DELETION_URL = "http://studio-prototypes:8010/remove" # TODO: put this in env
+    DELETION_URL = f"{PROTOTYPE_API_URL}/remove"
 
     prototypes = Prototype.objects.filter(system=System.objects.get(pk=system_id))
     if not prototypes:
@@ -112,7 +118,7 @@ def update_prototype(request, id, prototype: UpdatePrototype):
 
 @prototypes.post("/stop_prototypes/", response=bool)
 def stop_prototypes(request):
-    STOP_URL = f"http://studio-prototypes:8010/stop_prototypes" # TODO: put this in env
+    STOP_URL = f"{PROTOTYPE_API_URL}/stop_prototypes"
     try:
         response = requests.post(STOP_URL)
     except:
@@ -125,7 +131,7 @@ def stop_prototypes(request):
 
 @prototypes.post("/run/{str:prototype_name}", response=bool)
 def run_prototype(request, prototype_name):
-    RUN_URL = f"http://studio-prototypes:8010/run/{prototype_name}" # TODO: put this in env
+    RUN_URL = f"{PROTOTYPE_API_URL}/run/{prototype_name}"
     try:
         response = requests.post(RUN_URL)
     except:
@@ -138,7 +144,7 @@ def run_prototype(request, prototype_name):
 
 @prototypes.get("/active_prototype/")
 def get_active_prototype(request):
-    STATUS_URL = "http://studio-prototypes:8010/active_prototype" # TODO: put this in env
+    STATUS_URL = f"{PROTOTYPE_API_URL}/active_prototype"
     response = requests.get(STATUS_URL)
     return response.json()
 
