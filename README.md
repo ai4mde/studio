@@ -7,19 +7,18 @@
 </p>
 
 <h1 align="center">
-  AI4MDE &middot; <b>studio</b>
+  AI4MDE &middot; <b>Studio</b>
 </h1>
 
 <div align="center">
-  <strong>AI4MDE Back-end & Editor</strong>
+  <strong>AI4MDE API & Editor</strong>
 </div>
-
-<p align="center">
-  Repository with the central component of the AI4MDE System.
-</p>
 
 <br/>
 
+AI4MDE is an open-source research initiative at [LIACS](https://liacs.leidenuniv.nl/) that aims to bridge the gap between AI and Model-Driven Engineering. AI4MDE is a web-based environment in which users can design and manage UML Class, Activity, and Use Case Diagrams via a user-friendly interface. The platform provides the option to generate fully functional Django software prototypes from these diagrams.  
+
+## ⚡️ Quick start
 Get up and running with the AI4MDE studio and API in no time:
 
 ```
@@ -30,90 +29,10 @@ docker-compose up -d
 
 Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
 
+
+For a full tutorial on how to install AI4MDE, see: [setup.md](./docs/setup.md)
+
+For an overview of the technical architecture, see [architecture.md](./docs/architecture.md)
 <br/>
-
-## ⚡️ Quick start
-
-> ☝️ This project is assumes you run a GNU/Linux system.
-> If you find yourself on Windows, please work from WSL2.
-> You should be fine on macOS. If you're just running without
-> contributing, ignore the above.
-
-The easiest way to get started is through a container runtime and the docker compose
-file at the root. If these terms are unfamiliar to you, start with installing a container
-runtime. We recommend the permissive-licensed [Rancher Desktop](https://rancherdesktop.io/),
-when asked use the `dockerd` backend instead of `containerd`.
-
-With everything ready and this repository cloned, you can get started from a shell:
-
-```bash
-# Ensure that you have the correct tools installed, you might have to restart
-# your shell / system after installing Rancher Desktop
-docker -v
-docker compose version
-
-# Build all the necessary images (only required on first install or dependency change)
-docker compose build
-
-# Start all the containers (add -d flag to start in background)
-docker compose up
-```
-
-This will start multiple services in the background and set everything up (for development).
-As soon as that's done, you can find the following services on your machine's network:
-
-- [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `./frontend`
-- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `./api`
-- [docs.ai4mde.localhost](http://docs.ai4mde.localhost) - Docs from `./docs`
-
-## Development outside of containers
-
-Even though you can run the entire suite in docker, we recommend installing local
-dependencies for development. Especially using tools such as git hooks or using an
-integrated development environment is easier if you have the necessary binaries
-installed locally.
-
-You can install a supported python distribution locally with [pyenv](https://github.com/pyenv/pyenv?tab=readme-ov-file#installation)
-and use [pipx](https://github.com/pypa/pipx?tab=readme-ov-file#install-pipx) to use
-a virtual environment to install poetry. After you have `python >= 3.10` and `pipx`
-installed you can install poetry and setup the dependencies:
-
-```bash
-pipx install poetry
-cd api && poetry install
-cd ..
-
-cd docs && poetry install
-cd ..
-```
-
-For our JavaScript applications, we use `bun` as a runtime. You can easily install
-bun with the following one-liner:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
-
-Then, install the dependencies in frontend:
-
-```bash
-cd frontend
-bun install
-cd ..
-```
-
-Finally, you can run the frontend using bun:
-
-```bash
-cd frontend && frontend_HOST="http://localhost:8000" bun dev
-```
-
-And you can run the server using poetry (in another shell):
-
-```bash
-cd api
-poetry shell
-POSTGRES_HOST=localhost ./model/manage.py runserver
-```
 
 ![Alt](https://repobeats.axiom.co/api/embed/80709bf7ea933c8ce8605ee6e8136a5f9420dcd6.svg "Repobeats analytics image")

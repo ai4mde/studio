@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash, Save, Ban, Pencil } from "lucide-react";
-import useLocalStorage from './useLocalStorage';
 import {
+    Divider,
     FormControl,
     Input,
-    Divider,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
-import { useSystemClasses, useClassAttributes, useClassCustomMethods } from "../queries";
-import { useParams } from "react-router";
+import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
 import Multiselect from 'multiselect-react-dropdown';
+import React, { useState } from 'react';
+import { useParams } from "react-router";
+import { useClassAttributes, useClassCustomMethods, useSystemClasses } from "../queries";
+import useLocalStorage from './useLocalStorage';
 
 type Props = {
     projectId: string;
@@ -28,8 +28,8 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     const [pencelClick, setPencelClick] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
-    const [ classAttributes ] = useClassAttributes(systemId, selectedClass);
-    const [ classCustomMethods ] = useClassCustomMethods(systemId, selectedClass)
+    const [classAttributes] = useClassAttributes(systemId, selectedClass);
+    const [classCustomMethods] = useClassCustomMethods(systemId, selectedClass)
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
@@ -173,8 +173,8 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
 
                                         {pencelClick && (
                                             <FormControl required className="space-y-1">
-                                                <Input 
-                                                    type="text" 
+                                                <Input
+                                                    type="text"
                                                     value={newName}
                                                     onChange={handleInputChange}
                                                 />
@@ -208,7 +208,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                                         {e.data.name}
                                                     </Chip>
                                                 )
-                                            ))}
+                                                ))}
                                         </div>
                                     </div>
                                     <div className="space-y-1">
@@ -241,15 +241,12 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                             displayValue='name'
                                             placeholder="Select attributes..."
                                             showCheckbox={true}
-                                            style={{chips:{background:'rgb(231 229 228)',color:'rgb(61 56 70)'}}}
+                                            style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
                                             selectedValues={selectedAttributes}
                                             onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
                                     </div>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Links</h3>
-                                    </FormControl>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Text</h3>
                                     </FormControl>
@@ -260,7 +257,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                                             displayValue='name'
                                             placeholder="Select methods..."
                                             showCheckbox={true}
-                                            style={{chips:{background:'rgb(231 229 228)',color:'rgb(61 56 70)'}}}
+                                            style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
                                             selectedValues={selectedCustomMethods}
                                             onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
@@ -296,8 +293,8 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: {"create":false,"update":false,"delete":false}, attributes: [] };
-                            
+                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [] };
+
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {
                                 newSection.class = classes[0].id;

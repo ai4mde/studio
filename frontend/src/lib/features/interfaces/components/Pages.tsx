@@ -4,11 +4,9 @@ import useLocalStorage from './useLocalStorage';
 import {
     FormControl,
     Input,
-    Select,
-    Option,
     Divider,
 } from "@mui/joy"
-import Multiselect from 'multiselect-react-dropdown';
+import Select from "react-select";
 
 type Props = {
     projectId: string;
@@ -55,13 +53,6 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
         setNewName(event.target.value);
     };
 
-    const handleCategoryChange = (event, newValue, pageIndex: number) => {
-        setSelectedCategory(newValue as string);
-        const newData = [...data];
-        newData[pageIndex].category = newValue;
-        setData(newData);
-    };
-
     const handleDelete = (index: number) => {
         const newData = [...data];
         newData.splice(index, 1);
@@ -69,29 +60,22 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
         setEditIndex(-1);
     };
 
-    
-    const handleSectionSelect = (selectedList, selectedItem, pageIndex: number) => {
-        if (!selectedSections) {
-            setSelectedSections([]);
-        }
-        const updatedSections = [...selectedSections, selectedItem];
-        setSelectedSections(updatedSections);
-        const newData = [...data];
-        newData[pageIndex].sections = updatedSections;
-        setData(newData);
-    };
-
-    const handleSectionRemove = (selectedList, selectedItem, pageIndex: number) => {
-        if (!selectedSections) {
-            setSelectedSections([]);
-        } else {
-            const updatedSections = selectedSections.slice(0, -1);
-            setSelectedSections(updatedSections);
+    useEffect(() => {
+        if (editIndex !== -1) {
             const newData = [...data];
-            newData[pageIndex].sections = updatedSections;
+            newData[editIndex].sections = selectedSections;
             setData(newData);
         }
-    };
+    }, [selectedSections]);
+
+    useEffect(() => {
+        if (editIndex !== -1) {
+            const newData = [...data];
+            newData[editIndex].category = selectedCategory;
+            setData(newData);
+        }
+    }, [selectedCategory]);
+
 
     const handlePencilClick = () => {
         setPencelClick(true);
@@ -155,15 +139,13 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                                         <FormControl className="space-y-1">
                                             <h3 className="text-xl font-bold">Category</h3>
                                             {categories.length > 0 ? (
-                                                <Select 
-                                                    placeholder="Choose one…"
+                                                <Select
+                                                    name="category"
+                                                    options={categories.map((e) => ({ label: e.name, value: e}))}
                                                     value={selectedCategory}
-                                                    onChange={(event, newValue) => handleCategoryChange(event, newValue, index)}
-                                                >
-                                                    {categories.map((e) => (
-                                                        <Option key={e.id} value={e.id}>{e.name}</Option>
-                                                    ))}
-                                                </Select>
+                                                    onChange={setSelectedCategory}
+                                                    isClearable={true}
+                                                />
                                             ) : (
                                                 <p>Create a new category!</p>
                                             )}
@@ -172,24 +154,12 @@ export const Pages: React.FC<Props> = ({ app_comp }) => {
                                     {isSuccessSections && (
                                         <div className='space-y-1'>
                                         <h3 className="text-xl font-bold">Section Components</h3>
-                                        <Multiselect
-                                            options={sections}
-                                            displayValue='name'
-                                            placeholder="Select sections..."
-                                            showCheckbox={true}
-                                            style={{
-                                                chips: {
-                                                    background: 'rgb(231 229 228)',
-                                                    color: 'rgb(61 56 70)',
-                                                    maxWidth: '100%',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }
-                                            }}
-                                            selectedValues={selectedSections}
-                                            onSelect={(selectedList, selectedItem) => handleSectionSelect(selectedList, selectedItem, index)}
-                                            onRemove={(selectedList, selectedItem) => handleSectionRemove(selectedList, selectedItem, index)}
+                                        <Select
+                                            isMulti
+                                            name="sections"
+                                            options={sections.map((e) => ({ label: e.name, value: e.id}))}
+                                            value={selectedSections}
+                                            onChange={setSelectedSections}
                                         />
                                     </div>
                                     

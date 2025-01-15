@@ -9,12 +9,14 @@ class SectionAttribute():
             name: str,
             type: AttributeType,
             enum_literals: Optional[List[str]],
-            updatable: bool
+            updatable: bool,
+            derived: bool = False
     ):
         self.name = name
         self.type = type
         self.enum_literals = enum_literals
         self.updatable = updatable
+        self.derived = derived
 
     def __str__(self):
         return self.name

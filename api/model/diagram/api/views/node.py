@@ -1,7 +1,6 @@
 from typing import List
 from django.http import HttpRequest
 from django.core import serializers
-from openai import OpenAI
 
 from ninja import Router
 from pydantic import BaseModel
@@ -14,7 +13,7 @@ from metadata.specification import Classifier
 
 from diagram.models import Node, Edge, Diagram
 
-import os
+from .llm_generation.generation import execute_prompt, remove_reply_markdown
 
 node = Router()
 
@@ -106,11 +105,40 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
     return node
 
 
-def remove_reply_markdown(reply: str) -> str:
-    lines = reply.splitlines()
-    if len(lines) > 2:
-        return '\n'.join(lines[1:-1])
-    return ""
+@node.post("{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: str})
+def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str):
+    diagram = utils.get_diagram(request)
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    node = diagram.nodes.get(id=node_id)
+    if not node:
+        return 404, "Node not found"
+    
+    if node.cls.data["type"] != "class":
+        return 422, "Node is not a class"
+    
+    prompt_path = "/usr/src/model/diagram/api/views/llm_generation/prompts/generate_attribute.txt" # TODO: put this in env
+    
+    diagrams = Diagram.objects.filter(system=diagram.system)
+    diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
+    prompt_data = {
+        "django_version": "5.0.2", # TODO: put this in env
+        "attribute_name": name,
+        "attribute_return_type": type,
+        "attribute_description": description, # TODO: prompt injection protection
+        "classifier_metadata": serializers.serialize('json', [node.cls]),
+        "diagrams_metadata": diagram_data
+    }
+
+    reply = execute_prompt(prompt_path=prompt_path, prompt_data=prompt_data)
+    reply = remove_reply_markdown(reply)
+    
+    try:
+        compile(reply, '<string>', 'exec')
+        return reply
+    except SyntaxError as e:
+        return 422, "Invalid generated code"
 
 
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
@@ -126,38 +154,19 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     if node.cls.data["type"] != "class":
         return 422, "Node is not a class"
     
+    prompt_path = "/usr/src/model/diagram/api/views/llm_generation/prompts/generate_method.txt" # TODO: put this in env
+    
     diagrams = Diagram.objects.filter(system=diagram.system)
     diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
-    
-    try:
-        with open('/usr/src/model/diagram/api/views/prompts/generate_method.txt', 'r') as file: # TODO: no absolute path
-            prompt = file.read()
-        prompt = prompt.format(
-            django_version="5.0.2", # TODO: put this in env
-            method_name=name,
-            method_description=description, # TODO: prompt injection protection
-            classifier_metadata=serializers.serialize('json', [node.cls]),
-            diagrams_metadata=diagram_data
-        )
-    except Exception as e:
-        raise Exception("Failed to format prompt, error: " + str(e))
+    prompt_data = {
+        "django_version": "5.0.2", # TODO: put this in env
+        "method_name": name,
+        "method_description": description, # TODO: prompt injection protection
+        "classifier_metadata": serializers.serialize('json', [node.cls]),
+        "diagrams_metadata": diagram_data
+    }
 
-    messages = [{"role": "user", "content": prompt}]
-    reply = None
-
-    try:
-        client = OpenAI(
-            api_key=os.environ.get("OPENAI_KEY"),
-        )
-
-        chat = client.chat.completions.create(
-            messages=messages,
-            model="gpt-4o",
-        )
-        reply = chat.choices[0].message.content
-    except Exception as e:
-        raise Exception("Error while connecting to ChatGPT: " + str(e))
-    
+    reply = execute_prompt(prompt_path=prompt_path, prompt_data=prompt_data)
     reply = remove_reply_markdown(reply)
     
     try:

@@ -56,9 +56,16 @@ services:
       - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.studio-prototypes.rule=Host(`prototypes.ai4mde.localhost`)"
-      - "traefik.http.routers.studio-prototypes.entrypoints=web"
-      - "traefik.http.services.studio-prototypes.loadbalancer.server.port=8010"
+
+    # Router for Flask API
+      - "traefik.http.routers.flask_api_router.rule=Host(`prototypes_api.ai4mde.localhost`)"
+      - "traefik.http.routers.flask_api_router.service=flask_api_service"
+      - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
+
+      # Router for Django prototype
+      - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
+      - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
+      - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
 
   studio:
     build:

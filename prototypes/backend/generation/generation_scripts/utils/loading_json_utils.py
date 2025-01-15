@@ -4,7 +4,7 @@ from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod
 from utils.definitions.page import Page
 from utils.definitions.category import Category
-from utils.definitions.model import AttributeType, Model
+from utils.definitions.model import AttributeType, Model, Cardinality, define_cardinality
 from utils.definitions.styling import Styling, StyleType
 import json
 from uuid import uuid4
@@ -77,6 +77,17 @@ def find_model_id_by_class_ptr(metadata: str, class_ptr: str) -> str:
                 return node["id"]
     return None
 
+SOURCE_ACCEPTABLE_CARDINALITIES = [
+    Cardinality.ZERO_MANY_TO_ONE,
+    Cardinality.ONE_MANY_TO_ONE
+    # TODO: maybe more?
+]
+TARGET_ACCEPTABLE_CARDINALITIES = [
+    Cardinality.ONE_TO_ZERO_MANY,
+    Cardinality.ONE_TO_ONE_MANY
+    # TODO: maybe more?
+]
+
 
 def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> List[str]:
     out = []
@@ -88,13 +99,17 @@ def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> Lis
         if "edges" not in diagram:
             return []
         for edge in diagram["edges"]:
+            if edge["rel"]["type"] != "association":
+                continue
             if edge["source_ptr"] == primary_class_id:
+                cardinality = define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=True)
                 model_name = find_model_by_id(metadata, edge["target_ptr"])
-                if model_name:
+                if model_name and cardinality in SOURCE_ACCEPTABLE_CARDINALITIES:
                     out.append(model_name_sanitization(model_name))
             if edge["target_ptr"] == primary_class_id:
+                cardinality = define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=False)
                 model_name = find_model_by_id(metadata, edge["source_ptr"])
-                if model_name:
+                if model_name and cardinality in TARGET_ACCEPTABLE_CARDINALITIES:
                     out.append(model_name_sanitization(model_name))
     return out
 
@@ -155,7 +170,8 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
             name = attribute_name_sanitization(attribute["name"]),
             type = attribute_type,
             enum_literals = enum_literals,
-            updatable = True # TODO: frontend management of updatable attributes
+            updatable = True, # TODO: frontend management of updatable attributes
+            derived = attribute["derived"]
         )
         out.append(att)
 
@@ -198,7 +214,16 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 if page["name"] != page_name:
                     continue
 
-                for section in page["sections"]:
+                for page_section in page["sections"]:
+                    section = None
+                    page_section_id = page_section["value"]
+                    for application_section in application_component["value"]["data"]["sections"]:
+                        if application_section["id"] == page_section_id:
+                            section = application_section
+                    
+                    if not section:
+                        continue
+
                     sec = SectionComponent(
                         id = section["id"],
                         name = section["name"],

@@ -21,6 +21,7 @@ import { queryClient } from "$shared/hooks/queryClient";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
 import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
+import { useQueryClient } from "@tanstack/react-query";
 
 type PrototypeInput = {
     name: string;
@@ -126,6 +127,7 @@ export const CreatePrototype: React.FC = () => {
         },
     });
 
+    const queryClient = useQueryClient();
     const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         setError(null);
@@ -159,9 +161,8 @@ export const CreatePrototype: React.FC = () => {
             metadata,
             database_hash: databaseHash,
         }).then(() => {
-            queryClient.invalidateQueries({ queryKey: ["prototypes"] });
+            queryClient.invalidateQueries(["prototypes", systemId]); 
             close();
-            window.location.reload();
         }).catch((err) => {
             console.log(err)
         });

@@ -13,6 +13,7 @@ from diagram.api.utils import create_node, create_edge
 from metadata.models import System
 from django.db import transaction
 from ninja import Router
+import networkx as nx
 
 from .node import node
 from .edge import edge
@@ -95,9 +96,19 @@ def delete_diagram(request, diagram_id):
     return True
     
 
+@diagrams.post("/{uuid:diagram_id}/auto_layout", response=FullDiagram)
+def auto_layout_diagram(request, diagram_id):
+    try:
+        diagram = Diagram.objects.get(id=diagram_id)
+    except Diagram.DoesNotExist:
+        return 404
 
-diagrams.add_router("/{uuid:diagram}/node", node)
-diagrams.add_router("/{uuid:diagram}/edge", edge)
-diagrams.add_router("/system/", system)
+    diagram.auto_layout()
+    return diagram
+
+
+diagrams.add_router("/{uuid:diagram}/node", node, tags=["diagrams"])
+diagrams.add_router("/{uuid:diagram}/edge", edge, tags=["diagrams"])
+diagrams.add_router("/system/", system, tags=["diagrams"])
 
 __all__ = ["diagrams"]

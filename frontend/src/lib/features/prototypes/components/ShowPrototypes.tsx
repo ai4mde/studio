@@ -5,6 +5,8 @@ import { useSystemPrototypes } from "$lib/features/prototypes/queries";
 import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototypes/mutations";
 import { Button, Modal, ModalDialog, ModalClose, Divider, CircularProgress } from '@mui/joy';
 import { authAxios } from "$lib/features/auth/state/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { prototypeURL } from "$shared/globals";
 
 
 type Props = {
@@ -15,50 +17,43 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const { systemId } = useParams();
     const [data, isSuccess] = useSystemPrototypes(systemId);
     const [prototypeStatuses, setPrototypeStatuses] = useState<{ [key: string]: string }>({});
-    const [prototypeUrls, setPrototypeUrls] = useState<{ [key: string]: string }>({});
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
     const [metadata, setMetadata] = useState("");
     const [showMetadataModal, setShowMetadataModal] = useState(false);
 
+    const queryClient = useQueryClient();
     useEffect(() => {
-        if (isSuccess && data) {
-            data.forEach((prototype, index) => {
-                const fetchStatus = async () => {
-                    const response = await authAxios.get(`/v1/generator/prototypes/status/${prototype.name}`);
-                    const status = response.data.running;
-                    const url = response.data.ip + ":" + response.data.port;
-                    if (status === true) {
-                        setPrototypeStatuses((prev) => ({
-                            ...prev,
-                            [prototype.name]: "Running",
-                        }));
-                        setPrototypeUrls((prev) => ({
-                            ...prev,
-                            [prototype.name]: url,
-                        }));
-                    }
-                    else {
-                        setPrototypeStatuses((prev) => ({
-                            ...prev,
-                            [prototype.name]: "Not running",
-                        }));
-                        setPrototypeUrls((prev) => ({
-                            ...prev,
-                            [prototype.name]: "",
-                        }));
-                    }
-                };
+        queryClient.invalidateQueries(["prototypes", systemId]);
+    }, [queryClient, systemId]);
+
+    useEffect(() => {
+        const fetchActivePrototype = async () => {
+            try {
+                const response = await authAxios.get(`/v1/generator/prototypes/active_prototype/`);
+                const activePrototypeName = response.data.prototype_name;
+                const isRunning = response.data.running;
     
-                const timeoutId = setTimeout(() => {
-                    fetchStatus();
-                    const intervalId = setInterval(fetchStatus, 10000);
-                    return () => clearInterval(intervalId);
-                }, index * 10000);    
-                return () => clearTimeout(timeoutId);
-            });
-        }
-    }, [isSuccess, data]);
+                if (data) {
+                    setPrototypeStatuses(() =>
+                        data.reduce((statuses, prototype) => {
+                            statuses[prototype.name] = 
+                                isRunning && prototype.name === activePrototypeName ? "Running" : "Not running";
+                            return statuses;
+                        }, {})
+                    );
+                }
+            } catch (error) {
+                console.error('Error fetching active prototype:', error);
+            }
+        };
+    
+        fetchActivePrototype();
+        const intervalId = setInterval(fetchActivePrototype, 5000);
+    
+        return () => clearInterval(intervalId);
+    }, [data]);
+    
 
     const handleDelete = async (prototypeId: string) => {
         try {
@@ -107,7 +102,7 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const handleStop = async (prototypeName: string) => {
         setLoading((prev) => ({ ...prev, [prototypeName]: true }));
         try {
-            await authAxios.post(`/v1/generator/prototypes/stop/${prototypeName}`);
+            await authAxios.post(`/v1/generator/prototypes/stop_prototypes/`);
         } catch (error) {
             console.error('Error making stop request:', error);
         } finally {
@@ -172,9 +167,11 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                     )}
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    <a href={"http://" + prototypeUrls[e.name]} target="_blank" className="text-blue-500 hover:underline">
-                                        {prototypeUrls[e.name]}
-                                    </a>
+                                    {(prototypeStatuses[e.name] === "Running") &&
+                                        <a href={prototypeURL} target="_blank" className="text-blue-500 hover:underline">
+                                            {prototypeURL}
+                                        </a>
+                                    }
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200 w-60 flex space-x-2">
                                     <button

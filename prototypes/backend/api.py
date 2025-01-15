@@ -10,84 +10,83 @@ app = Flask(__name__)
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 
+RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
+RUNNING_PROTOTYPE_HOST = os.environ.get('RUNNING_PROTOTYPE_HOST', "prototype.ai4mde.localhost")
+RUNNING_PROTOTYPE_PORT = os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)
+
+
 manager = Manager()
-running_prototypes = manager.dict()
 lock = Lock()
 
+running_prototype = manager.dict()
 
-def find_free_port():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        free_port = s.getsockname()[1]
-    return free_port
+
+def stop_prototype():
+    with lock:
+        if "name" in running_prototype:
+            pid = running_prototype["pid"]
+            os.kill(pid, signal.SIGTERM)
+            running_prototype.clear()
 
 
 def start_prototype(prototype_name: str):
     with lock:
-        if prototype_name in running_prototypes:
-            return running_prototypes[prototype_name]
-        
+        if "name" in running_prototype:
+            pid = running_prototype["pid"]
+            os.kill(pid, signal.SIGTERM)
+            running_prototype.clear()
+
         prototype_path = os.path.join(ROOT_DIR, prototype_name)
-    
         if not os.path.isdir(prototype_path):
             return None
-    
-        port = find_free_port()
-    
+
         process = subprocess.Popen(
-            ["python", "manage.py", "runserver", f"0.0.0.0:{port}"],
+            ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
             cwd=prototype_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
-    
         time.sleep(2)
         if process.poll() is not None:
             return None
-    
-        running_prototypes[prototype_name] = (process.pid, port)
-        return process, port
+
+        running_prototype["name"] = prototype_name
+        running_prototype["pid"] = process.pid
+        running_prototype["port"] = RUNNING_PROTOTYPE_PORT
+        return process, RUNNING_PROTOTYPE_PORT
 
 
 @app.route('/run/<prototype_name>', methods=['POST'])
 def run_prototype(prototype_name: str):
+    stop_prototype()
     result = start_prototype(prototype_name)
-    container_ip = socket.gethostbyname(socket.gethostname())
     if result:
-        pid, port = result
-        return redirect(f"http://{container_ip}:{port}", code=307)
+        _, port = result
+        return redirect(f"{RUNNING_PROTOTYPE_PROTO}{RUNNING_PROTOTYPE_HOST}:{RUNNING_PROTOTYPE_PORT}", code=307)
     else:
         abort(404)
 
 
-@app.route('/stop/<prototype_name>', methods=['POST'])
-def stop_prototype(prototype_name: str):
-    with lock:
-        if prototype_name not in running_prototypes:
-            return f"{prototype_name} is not running", 404
-    
-        pid, _ = running_prototypes[prototype_name]
-        os.kill(pid, signal.SIGTERM)
-        del running_prototypes[prototype_name]
-    return f"{prototype_name} stopped", 200
+@app.route('/stop_prototypes', methods=['POST'])
+def stop_prototypes():
+    stop_prototype()
+    return f"Stopped all running prototypes", 200
 
 
-@app.route('/status/<prototype_name>', methods=['GET'])
-def status_prototype(prototype_name: str):
+@app.route('/active_prototype', methods=['GET'])
+def get_active_prototype():
     with lock:
-        if prototype_name in running_prototypes:
-            pid, port = running_prototypes[prototype_name]
+        if "name" in running_prototype:
             return {
-                "prototype_name": prototype_name,
+                "prototype_name": running_prototype["name"],
                 "running": True,
-                "pid": pid,
+                "pid": running_prototype["pid"],
                 "ip": socket.gethostbyname(socket.gethostname()),
-                "port": port
+                "port": running_prototype["port"]
             }
         else:
             return {
-                "prototype_name": prototype_name,
+                "prototype_name": None,
                 "running": False,
                 "pid": None,
                 "ip": None,
@@ -106,7 +105,7 @@ def generate_prototype():
         subprocess.run([GENERATOR_PATH, prototype_name, metadata], check=True)
     except subprocess.CalledProcessError:
         return f"Failed to generate {prototype_name} prototype", 500
-    
+
     if 'database_prototype_name' in data:
         database_prototype_name = data.get('database_prototype_name')
         try:
@@ -118,13 +117,11 @@ def generate_prototype():
 
 @app.route('/remove', methods=['DELETE'])
 def remove_prototype():
-    REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh"
+    REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh" # TODO: put in env
     data = request.json
     prototype_name = data.get('prototype_name')
-    if prototype_name in running_prototypes:
-        pid, _ = running_prototypes[prototype_name]
-        os.kill(pid, signal.SIGTERM)
-        del running_prototypes[prototype_name]
+    if "name" in running_prototype and running_prototype["name"] == prototype_name:
+        stop_prototype()
     try:
         subprocess.run([REMOVER_PATH, prototype_name], check=True)
     except subprocess.CalledProcessError:
@@ -133,4 +130,4 @@ def remove_prototype():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8010, debug=True)
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8010), debug=True)

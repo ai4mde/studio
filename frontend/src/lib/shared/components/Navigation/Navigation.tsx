@@ -57,7 +57,7 @@ export const Navigation: React.FC = () => {
                     <Box size={20} />
                     <span className="font-bold text-sm">Projects</span>
                 </a>
-                <a
+                {/*<a
                     className={
                         linkClassName +
                         " " +
@@ -69,7 +69,7 @@ export const Navigation: React.FC = () => {
                 >
                     <List size={20} />
                     <span className="font-bold text-sm">Libraries</span>
-                </a>
+                </a>*/}
                 {isAuthenticated && (
                     <div className="flex flex-col mt-auto">
                         {/* This button can be enabled when

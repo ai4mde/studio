@@ -9,7 +9,8 @@ class Attribute(BaseModel):
     type: DataType
     enum: Optional[str]
     derived: bool = False
-
+    description: Optional[str] = None
+    body: Optional[str] = None
 
 class Multiplicity(BaseModel):
     is_ordered: bool = False
@@ -34,8 +35,8 @@ class Operation(BaseModel):
 
 
 class RelationMultiplicity(BaseModel):
-    source: Multiplicity
-    target: Multiplicity
+    source: str # TODO: Multiplicity
+    target: str # TODO: Multiplicity
 
 
 class RelationLabels(BaseModel):

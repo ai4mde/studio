@@ -23,11 +23,12 @@
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
         <tr>
             {#- UPDATE FORM #}
+            {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
-                {% if attribute.updatable %}
+                {% if attribute.updatable and not attribute.derived %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
                     <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
@@ -49,16 +50,16 @@
 
                 {% else %}
                 {% if attribute.type == AttributeType.STRING %}
-                <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
                 
                 {% elif attribute.type == AttributeType.INTEGER %}
-                <td style="text-align:right;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
                 {% elif attribute.type == AttributeType.BOOLEAN %}
                 <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
                 
                 {% elif attribute.type == AttributeType.ENUM %}
-                <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
                 {% endif -%}
                 {% endif -%}
@@ -80,27 +81,30 @@
                 </td>
             </form>
             {% raw %}{% else %}{% endraw %}
+            {% endif -%}
             
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
             {% if attribute.type == AttributeType.STRING -%}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {%- elif attribute.type == AttributeType.INTEGER %}
-            <td style="text-align:right;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
             
             {%- elif attribute.type == AttributeType.BOOLEAN %}
             <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
             
             {%- elif attribute.type == AttributeType.ENUM %}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {% endif -%}
             {% endfor -%}
             {% for parent_model in section_component.parent_models -%}
-            <td style="text-align:left;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
             {% endfor -%}
+            {% if section_component.has_update_operation -%}
             {% raw %}{% endif %}{% endraw %}
+            {% endif -%}
 
             {#- UPDATE #}
             {% if section_component.has_update_operation -%}
@@ -161,6 +165,9 @@
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
+                {% if attribute.derived -%}
+                <td></td>
+                {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
                     <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
@@ -177,6 +184,7 @@
                     
                     {%- endif %}
                 </td>
+                {% endif -%}
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>

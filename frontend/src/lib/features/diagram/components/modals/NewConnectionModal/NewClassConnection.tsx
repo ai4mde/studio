@@ -1,5 +1,5 @@
-import React from "react";
 import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import React from "react";
 
 type Props = {
     object: any;
@@ -60,8 +60,8 @@ export const NewActivityConnection: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setObject((o: any) => ({
                                         ...o,
-                                        multiplicity: {
-                                            ...o.multiplicity,
+                                        labels: {
+                                            ...o.labels,
                                             source: e.target.value,
                                         },
                                     }))
@@ -75,8 +75,8 @@ export const NewActivityConnection: React.FC<Props> = ({
                                 onChange={(e) =>
                                     setObject((o: any) => ({
                                         ...o,
-                                        multiplicity: {
-                                            ...o.multiplicity,
+                                        labels: {
+                                            ...o.labels,
                                             target: e.target.value,
                                         },
                                     }))
@@ -85,35 +85,63 @@ export const NewActivityConnection: React.FC<Props> = ({
                         </FormControl>
                     </div>
                     <div className="flex w-full flex-row gap-2">
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Source Multiplicity</FormLabel>
-                            <Input
+                            <Select
+                                required
                                 value={object.multiplicity?.source?.lower}
-                                onChange={(e) =>
+                                onChange={(_, v) =>
                                     setObject((o: any) => ({
                                         ...o,
                                         multiplicity: {
                                             ...o.multiplicity,
-                                            source: e.target.value,
+                                            source: v,
                                         },
                                     }))
                                 }
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Target Multiplicity</FormLabel>
-                            <Input
+                            <Select
+                                required
                                 value={object.multiplicity?.target?.lower}
-                                onChange={(e) =>
+                                onChange={(_, v) =>
                                     setObject((o: any) => ({
                                         ...o,
                                         multiplicity: {
                                             ...o.multiplicity,
-                                            target: e.target.value,
+                                            target: v,
                                         },
                                     }))
                                 }
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
                     </div>
                 </>
@@ -168,35 +196,63 @@ export const NewActivityConnection: React.FC<Props> = ({
                         </FormControl>
                     </div>
                     <div className="flex w-full flex-row gap-2">
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Source Multiplicity</FormLabel>
-                            <Input
+                            <Select
+                                required
                                 value={object.multiplicity?.source?.lower}
-                                onChange={(e) =>
+                                onChange={(_, v) =>
                                     setObject((o: any) => ({
                                         ...o,
                                         multiplicity: {
                                             ...o.multiplicity,
-                                            source: e.target.value,
+                                            source: v,
                                         },
                                     }))
                                 }
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Target Multiplicity</FormLabel>
-                            <Input
+                            <Select
+                                required
                                 value={object.multiplicity?.target?.lower}
-                                onChange={(e) =>
+                                onChange={(_, v) =>
                                     setObject((o: any) => ({
                                         ...o,
                                         multiplicity: {
                                             ...o.multiplicity,
-                                            target: e.target.value,
+                                            target: v,
                                         },
                                     }))
                                 }
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
                     </div>
                 </>
