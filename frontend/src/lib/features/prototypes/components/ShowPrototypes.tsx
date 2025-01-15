@@ -5,6 +5,7 @@ import { useSystemPrototypes } from "$lib/features/prototypes/queries";
 import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototypes/mutations";
 import { Button, Modal, ModalDialog, ModalClose, Divider, CircularProgress } from '@mui/joy';
 import { authAxios } from "$lib/features/auth/state/auth";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 type Props = {
@@ -19,6 +20,11 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
     const [metadata, setMetadata] = useState("");
     const [showMetadataModal, setShowMetadataModal] = useState(false);
+    
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        queryClient.invalidateQueries(["prototypes", systemId]);
+    }, [queryClient, systemId]);
 
     useEffect(() => {
         if (isSuccess && data) {
