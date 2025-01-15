@@ -110,13 +110,6 @@ def update_prototype(request, id, prototype: UpdatePrototype):
     return True
 
 
-@prototypes.get("/status/{str:prototype_name}")
-def get_prototype_status(request, prototype_name):
-    STATUS_URL = f"http://studio-prototypes:8010/status/{prototype_name}" # TODO: put this in env
-    response = requests.get(STATUS_URL)
-    return response.json()
-
-
 @prototypes.post("/stop_prototypes/", response=bool)
 def stop_prototypes(request):
     STOP_URL = f"http://studio-prototypes:8010/stop_prototypes" # TODO: put this in env
@@ -141,5 +134,13 @@ def run_prototype(request, prototype_name):
     if response.status_code in [200, 307]:
         return True
     return False
+
+
+@prototypes.get("/active_prototype/")
+def get_active_prototype(request):
+    STATUS_URL = "http://studio-prototypes:8010/active_prototype" # TODO: put this in env
+    response = requests.get(STATUS_URL)
+    return response.json()
+
 
 __all__ = ["prototypes"]

@@ -20,42 +20,39 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
     const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
     const [metadata, setMetadata] = useState("");
     const [showMetadataModal, setShowMetadataModal] = useState(false);
-    
+
     const queryClient = useQueryClient();
     useEffect(() => {
         queryClient.invalidateQueries(["prototypes", systemId]);
     }, [queryClient, systemId]);
 
     useEffect(() => {
-        if (isSuccess && data) {
-            data.forEach((prototype, index) => {
-                const fetchStatus = async () => {
-                    const response = await authAxios.get(`/v1/generator/prototypes/status/${prototype.name}`);
-                    const status = response.data.running;
-                    const url = response.data.ip + ":" + response.data.port;
-                    if (status === true) {
-                        setPrototypeStatuses((prev) => ({
-                            ...prev,
-                            [prototype.name]: "Running",
-                        }));
-                    }
-                    else {
-                        setPrototypeStatuses((prev) => ({
-                            ...prev,
-                            [prototype.name]: "Not running",
-                        }));
-                    }
-                };
+        const fetchActivePrototype = async () => {
+            try {
+                const response = await authAxios.get(`/v1/generator/prototypes/active_prototype/`);
+                const activePrototypeName = response.data.prototype_name;
+                const isRunning = response.data.running;
     
-                const timeoutId = setTimeout(() => {
-                    fetchStatus();
-                    const intervalId = setInterval(fetchStatus, 10000);
-                    return () => clearInterval(intervalId);
-                }, index * 10000);    
-                return () => clearTimeout(timeoutId);
-            });
-        }
-    }, [isSuccess, data]);
+                if (data) {
+                    setPrototypeStatuses(() =>
+                        data.reduce((statuses, prototype) => {
+                            statuses[prototype.name] = 
+                                isRunning && prototype.name === activePrototypeName ? "Running" : "Not running";
+                            return statuses;
+                        }, {})
+                    );
+                }
+            } catch (error) {
+                console.error('Error fetching active prototype:', error);
+            }
+        };
+    
+        fetchActivePrototype();
+        const intervalId = setInterval(fetchActivePrototype, 5000);
+    
+        return () => clearInterval(intervalId);
+    }, [data]);
+    
 
     const handleDelete = async (prototypeId: string) => {
         try {
