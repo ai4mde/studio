@@ -100,7 +100,7 @@ def get_diagram_svg(request, diagram_id):
     diagram = Diagram.objects.get(id=diagram_id)
     if not diagram:
         return 404
-    response = requests.get(f"http://host.docker.internal:3000/svg?diagram_id={diagram_id}") # TODO: put this in env
+    response = requests.get(f"http://svg-server:3000/svg?diagram_id={diagram_id}") # TODO: put in env
     return {
         "svg": response.text
     }

@@ -85,14 +85,39 @@ services:
       - "traefik.http.routers.studio.entrypoints=web"
       - "traefik.http.services.studio.loadbalancer.server.port=5173"
 
-  svg_server:
+  # An extry copy that runs the frontend with different environment variables, such that
+  # the studio-svg container can properly interact with the frontend
+  studio-puppeteer:
+    build:
+      context: frontend
+    env_file: config/frontend.env
+    volumes:
+      - ./frontend/src:/usr/src/app/src:ro
+      - ./config/puppeteer/frontend_puppeteer.env:/usr/src/app/src/.env
+      - ./config/puppeteer/globals.ts:/usr/src/app/src/lib/shared/globals.ts
+      - ./config/puppeteer/package.json:/usr/src/app/package.json
+    networks:
+      - ai4mde_traefik
+    labels:
+      - "traefik.enable=true"
+      # Router for React frontend
+      - "traefik.http.routers.studio_puppeteer.rule=Host(`puppeteer.ai4mde.localhost`)"
+      - "traefik.http.routers.studio_puppeteer.service=studio_puppeteer"
+      - "traefik.http.routers.studio_puppeteer.entrypoints=web"
+      - "traefik.http.services.studio_puppeteer.loadbalancer.server.port=5174"
+
+  svg-server:
+    depends_on: ["studio-puppeteer"]
     build:
       context: svg
-    ports:
-      - "3000:3000"
-    stdin_open: true
-    tty: true
-    network_mode: host
+    networks:
+      - ai4mde_traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.svg_server.rule=Host(`svg.ai4mde.localhost`)"
+      - "traefik.http.routers.svg_server.service=svg_server"
+      - "traefik.http.routers.svg_server.entrypoints=web"
+      - "traefik.http.services.svg_server.loadbalancer.server.port=3000"
 
 
 volumes:
@@ -101,6 +126,4 @@ volumes:
 networks:
   ai4mde_traefik:
     name: "ai4mde_traefik"
-    external: true
-    driver: bridge
   postgres:

@@ -112,6 +112,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # TODO: Investigate if nee
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",  # TODO: Setup some environment variables for this
     "http://localhost:5173",
+    "http://localhost:3000", # TODO: env
     "http://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
     "https://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
     "http://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
