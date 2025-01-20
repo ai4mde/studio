@@ -64,30 +64,6 @@ def read_classes(request: HttpRequest):
         "classifiers": system.classifiers.filter(data__type='class').order_by('id'),
     }
 
-@classes.get("/{classifier_id}/", response=ClassifierSchema)
-def read_class(request: HttpRequest, classifier_id: str):
-    if not request.resolver_match:
-        return 500, "Resolver match not found"
-
-    system_id = request.resolver_match.kwargs.get("system_id")
-    system = System.objects.get(id=system_id)
-
-    if not system:
-        return 404, "System not found"
-    
-    try:
-        classifier = system.classifiers.get(id=classifier_id)
-    except Classifier.DoesNotExist:
-        return 404, "Classifier not found"
-    
-    if classifier.data['type'] != 'class':
-        return 405, "Classifier not a class"
-
-    return { 
-        "id": classifier.id,
-        "data": classifier.data,
-    }
-
 
 actors = Router()
 

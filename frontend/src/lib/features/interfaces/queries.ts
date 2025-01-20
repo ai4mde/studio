@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { authAxios } from "$auth/state/auth";
+import { useQuery } from "@tanstack/react-query";
 
 export const useSystemClasses = (systemId: string) => {
     const queryResult = useQuery({
@@ -25,7 +25,7 @@ export const useClassAttributes = (systemId: string, classId: string) => {
         queryKey: ["system", "metadata", systemId, "class", classId],
         queryFn: async () => {
             if (systemId && classId) {
-                const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classes/${classId}/`);
+                const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/${classId}/`);
                 return response.data;
             }
             return [];
@@ -47,7 +47,7 @@ export const useClassCustomMethods = (systemId: string, classId: string) => {
         queryKey: ["system", "metadata", systemId, "class", classId, "methods"],
         queryFn: async () => {
             if (systemId && classId) {
-                const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classes/${classId}/`);
+                const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/${classId}/`);
                 return response.data;
             }
             return [];
