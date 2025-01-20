@@ -50,6 +50,8 @@ def section_name_sanitization(proposed_name: str) -> str:
 
 
 def category_name_sanitization(proposed_name: str) -> str:
+    if proposed_name in ["", None]:
+        return proposed_name
     return general_name_sanitization(proposed_name)
 
 

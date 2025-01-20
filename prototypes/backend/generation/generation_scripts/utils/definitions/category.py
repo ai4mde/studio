@@ -1,4 +1,5 @@
 from utils.sanitization import category_name_sanitization
+from typing import List
 
 class Category():
     '''Definition of a Category object.'''

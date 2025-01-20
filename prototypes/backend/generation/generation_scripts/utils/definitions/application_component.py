@@ -11,6 +11,7 @@ class ApplicationComponent():
         id: str,
         project: str,
         name: str,
+        categories: List[str],
         pages: List[Page],
         styling: Styling,
         authentication_present: bool = True,
@@ -18,6 +19,7 @@ class ApplicationComponent():
         self.id = id
         self.project = project
         self.name = app_name_sanitization(name)
+        self.categories = categories
         self.pages = pages
         self.styling = styling
         self.authentication_present = authentication_present # TODO: maybe put this in a global settings object

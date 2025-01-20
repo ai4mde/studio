@@ -114,17 +114,6 @@ def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> Lis
     return out
 
 
-def find_category_by_id(metadata: str, category_id: str) -> str | None:
-    for interface in json.loads(metadata)["interfaces"]:
-        if "categories" not in interface["value"]["data"]:
-            continue # Empty interface
-
-        for category in interface["value"]["data"]["categories"]:
-            if category["id"] == category_id:
-                return category_name_sanitization(category["name"])
-    return None
-
-
 # TODO: redundant
 def filter_section_components_by_application(section_components: List[SectionComponent], application: str) -> List[SectionComponent]:
     out = []
@@ -162,9 +151,6 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         elif attribute["type"] == "enum":
             attribute_type  = AttributeType.ENUM
             enum_literals = get_enum_literals(metadata, attribute["enum"])
-
-
-        # TODO: retrieve foreign models (also TODO in frontend)
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attribute["name"]),
@@ -245,6 +231,35 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
     return out
 
 
+def retrieve_categories(application_name: str, metadata: str) -> List[Category]:
+    '''Function that retrieves the categories corresponding to application_name from
+    metadata and returns a list of Category objects.'''
+    
+    if metadata in ["", None]:
+        raise Exception("Failed to retrieve pages from metadata: metadata is empty")
+    
+    out = []
+
+    try:
+        for application_component in json.loads(metadata)["interfaces"]:
+            if "categories" not in application_component["value"]["data"]: # empty interface
+                continue
+            if application_component["label"] != application_name:
+                continue
+
+            for category in application_component["value"]["data"]["categories"]:
+                cat = Category(
+                    id = category["id"],
+                    name = category["name"],
+                )
+                out.append(cat)
+    except:
+        raise Exception("Failed to retrieve pages from metadata: parsing error")
+
+    return out
+
+
+
 def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
     '''Function that retrieves the pages corresponding to application_name from
     metadata and returns a list of Page objects.'''
@@ -262,11 +277,14 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 continue
 
             for page in application_component["value"]["data"]["pages"]:
+                category = None
+                if page["category"] != None:
+                    category = page["category"]["value"]["name"]
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
                     application = application_component["label"],
-                    category = find_category_by_id(metadata, page["category"]), # TODO: there might be a quicker method than this
+                    category = category,
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
                 )
                 out.append(pg)
@@ -350,10 +368,12 @@ def get_application_component(project_name: str, application_name: str, metadata
     '''Function that builds an ApplicationComponent object for application_name
     from metadata.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
+    categories = retrieve_categories(application_name=application_name, metadata=metadata)
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
         project = project_name,
         name = application_name,
+        categories = categories,
         pages = pages,
         styling = retrieve_styling(application_name, metadata),
         authentication_present = authentication_present

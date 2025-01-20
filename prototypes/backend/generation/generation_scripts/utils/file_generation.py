@@ -6,6 +6,7 @@ from jinja2 import Environment, FileSystemLoader, Template
 from utils.definitions.model import Attribute, AttributeType, CustomMethod, Cardinality
 from utils.definitions.section_component import SectionComponent, SectionCustomMethod
 from utils.definitions.page import Page
+from utils.definitions.category import Category
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.styling import Styling, StyleType
 
@@ -23,6 +24,7 @@ def add_jinja_globals(template: Template) -> Template:
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent
     template.globals['Page'] = Page
+    template.globals['Category'] = Category
     template.globals['ApplicationComponent'] = ApplicationComponent
     template.globals['CustomMethod'] = CustomMethod
     template.globals['SectionCustomMethod'] = SectionCustomMethod

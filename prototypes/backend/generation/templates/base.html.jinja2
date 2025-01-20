@@ -16,14 +16,24 @@
         </div>
             <div class="menu">
                 <a href="{% raw %}{%{% endraw %} url '{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
-                {% for page in pages %}
-                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page }}</a>
-                {% endfor %}
-                {# TODO: implement categories
                 {% for category in categories %}
-                    <a href="#">{{ category }}</a>
+                <b>{{ category }}</b>
+                {% for page in pages %}
+                {% if page.category == category.name %}
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page
+                    }}</a>
+                {% endif %}
                 {% endfor %}
-                #}
+                {% endfor %}
+
+                <br>
+
+                {% for page in pages %}
+                {% if page.category in ["", none] %}
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page
+                    }}</a>
+                {% endif %}
+                {% endfor %}
 
                 {% if authentication_present -%}
                 {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}

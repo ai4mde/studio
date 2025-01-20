@@ -11,7 +11,7 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_base.html"
     
     logo = "" # TODO: retrieve from metadata
-    categories = [] # TODO: retrieve from metadata
+    categories = application_component.categories
 
     data = {
         "application_name": application_name,
