@@ -69,6 +69,12 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
             setSelectedCustomMethods([]);
         }
 
+        if (data[index].text) {
+            setNewText(data[index].text);
+        } else {
+            setNewText('');
+        }
+
         setEditIndex(index);
     };
 
