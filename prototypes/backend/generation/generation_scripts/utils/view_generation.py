@@ -3,13 +3,13 @@ from utils.sanitization import project_name_sanitization, app_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
 from utils.loading_json_utils import retrieve_models_on_pages
 
-def generate_views(application_component: ApplicationComponent) -> bool:
+def generate_views(application_component: ApplicationComponent, system_id: str) -> bool:
     project_name = application_component.project
     application_name = application_component.name
     pages_in_app = application_component.pages
 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/views.py.jinja2"
-    OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + project_name_sanitization(project_name) + "/" + app_name_sanitization(application_name)+ "/views.py"
+    OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name_sanitization(project_name) + "/" + app_name_sanitization(application_name)+ "/views.py"
 
     models_on_pages = retrieve_models_on_pages(application_component)
     

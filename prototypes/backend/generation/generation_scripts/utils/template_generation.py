@@ -41,13 +41,13 @@ def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     return False
     
 
-def generate_templates(application_component: ApplicationComponent) -> bool:
+def generate_templates(application_component: ApplicationComponent, system_id: str) -> bool:
     project_name = project_name_sanitization(application_component.project)
     application_name = app_name_sanitization(application_component.name)
     pages_in_app = application_component.pages
 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/page.html.jinja2"
-    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/" + application_name + "/templates"
+    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     
     try:
         makedirs(OUTPUT_TEMPLATES_DIRECTORY, exist_ok=True)

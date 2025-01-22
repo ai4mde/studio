@@ -45,18 +45,6 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
-    GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
-    data = {
-        'prototype_name': prototype.name,
-        'metadata': json.dumps(prototype.metadata)
-    }
-    if database_prototype_name and database_prototype_name != "":
-        data['database_prototype_name'] = database_prototype_name
-    response = requests.post(GENERATION_URL, json=data)
-
-    if response.status_code != 200:
-        raise Exception("Failed to generate prototype " + prototype.name)
-
     new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
@@ -64,6 +52,21 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         database_hash=prototype.database_hash,
         metadata=prototype.metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
+    GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
+    data = {
+        'id': str(new_prototype.id),
+        'name': prototype.name,
+        'system': str(prototype.system),
+        'metadata': json.dumps(prototype.metadata)
+    }
+    # TODO: database retrieval should be done using ids
+    if database_prototype_name and database_prototype_name != "":
+        data['database_prototype_name'] = database_prototype_name
+    response = requests.post(GENERATION_URL, json=data)
+
+    if response.status_code != 200:
+        raise Exception("Failed to generate prototype " + prototype.name)
+
     return new_prototype
 
 
@@ -75,7 +78,9 @@ def delete_prototype(request, id):
         return False
 
     data = {
-        'prototype_name': prototype.name,
+        'id': str(prototype.id),
+        'name': prototype.name,
+        'system': str(prototype.system.id)
     }
 
     response = requests.delete(DELETION_URL, json=data)
@@ -95,7 +100,9 @@ def delete_system_prototypes(request, system_id):
     
     for prototype in prototypes:
         data = {
-            'prototype_name': prototype.name,
+            'id': str(prototype.id),
+            'name': prototype.name,
+            'system': str(prototype.system.id)
         }
         response = requests.delete(DELETION_URL, json=data)
         if response.status_code != 200:
@@ -129,11 +136,20 @@ def stop_prototypes(request):
     return False
 
 
-@prototypes.post("/run/{str:prototype_name}", response=bool)
-def run_prototype(request, prototype_name):
-    RUN_URL = f"{PROTOTYPE_API_URL}/run/{prototype_name}"
+@prototypes.post("/run/{str:prototype_id}", response=bool)
+def run_prototype(request, prototype_id):
+    prototype = Prototype.objects.get(id=prototype_id)
+    if not prototype:
+        return False
+    
+    RUN_URL = f"{PROTOTYPE_API_URL}/run"
+    data = {
+        'id': str(prototype.id),
+        'name': prototype.name,
+        'system': str(prototype.system.id)
+    }
     try:
-        response = requests.post(RUN_URL)
+        response = requests.post(RUN_URL, json=data)
     except:
         return False
     

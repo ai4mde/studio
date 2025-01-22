@@ -1,9 +1,9 @@
 from utils.file_generation import generate_output_file
 from os import makedirs
 
-def generate_auth_styling(project_name: str) -> bool:
+def generate_auth_styling(project_name: str, system_id: str) -> bool:
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/authentication/auth_style.css.jinja2"    
-    OUTPUT_STATIC_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/authentication/static/authentication"
+    OUTPUT_STATIC_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name  + "/authentication/static/authentication"
     
     try:
         makedirs(OUTPUT_STATIC_DIRECTORY, exist_ok=True)

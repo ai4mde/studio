@@ -17,9 +17,9 @@ def generate_auth_base_page(metadata: str, OUTPUT_TEMPLATES_DIRECTORY: str) -> b
     return False
     
 
-def generate_auth_templates(project_name: str, metadata: str) -> bool:
+def generate_auth_templates(project_name: str, metadata: str, system_id: str) -> bool:
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/authentication/auth_index.html.jinja2"
-    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/authentication/templates"
+    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/authentication/templates"
     OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/authentication_index.html"
 
     try:
@@ -42,9 +42,9 @@ def generate_auth_templates(project_name: str, metadata: str) -> bool:
     return True
 
 
-def generate_noauth_home_template(project_name: str, metadata: str) -> bool:
+def generate_noauth_home_template(project_name: str, metadata: str, system_id: str) -> bool:
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/authentication/noauth_index.html.jinja2"
-    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/noauth_home/templates"
+    OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/noauth_home/templates"
     OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/noauth_home_index.html"
 
     try:

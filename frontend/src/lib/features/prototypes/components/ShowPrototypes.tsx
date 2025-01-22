@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Package, Trash } from "lucide-react";
-import { useParams } from "react-router";
-import { useSystemPrototypes } from "$lib/features/prototypes/queries";
-import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototypes/mutations";
-import { Button, Modal, ModalDialog, ModalClose, Divider, CircularProgress } from '@mui/joy';
 import { authAxios } from "$lib/features/auth/state/auth";
-import { useQueryClient } from "@tanstack/react-query";
+import { deletePrototype, deleteSystemPrototypes } from "$lib/features/prototypes/mutations";
+import { useSystemPrototypes } from "$lib/features/prototypes/queries";
 import { prototypeURL } from "$shared/globals";
+import { Button, CircularProgress, Divider, Modal, ModalClose, ModalDialog } from '@mui/joy';
+import { useQueryClient } from "@tanstack/react-query";
+import { Package, Trash } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router";
 
 
 type Props = {
@@ -31,14 +31,14 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
         const fetchActivePrototype = async () => {
             try {
                 const response = await authAxios.get(`/v1/generator/prototypes/active_prototype/`);
-                const activePrototypeName = response.data.prototype_name;
+                const activePrototypeId = response.data.prototype_id;
                 const isRunning = response.data.running;
-    
+
                 if (data) {
                     setPrototypeStatuses(() =>
                         data.reduce((statuses, prototype) => {
-                            statuses[prototype.name] = 
-                                isRunning && prototype.name === activePrototypeName ? "Running" : "Not running";
+                            statuses[prototype.id] =
+                                isRunning && prototype.id === activePrototypeId ? "Running" : "Not running";
                             return statuses;
                         }, {})
                     );
@@ -47,13 +47,13 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                 console.error('Error fetching active prototype:', error);
             }
         };
-    
+
         fetchActivePrototype();
         const intervalId = setInterval(fetchActivePrototype, 5000);
-    
+
         return () => clearInterval(intervalId);
     }, [data]);
-    
+
 
     const handleDelete = async (prototypeId: string) => {
         try {
@@ -86,32 +86,32 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
         await handleDeleteAll();
     };
 
-    const handleRun = async (prototypeName: string) => {
-        setLoading((prev) => ({ ...prev, [prototypeName]: true }));
+    const handleRun = async (prototypeId: string) => {
+        setLoading((prev) => ({ ...prev, [prototypeId]: true }));
         try {
-            await authAxios.post(`/v1/generator/prototypes/run/${prototypeName}`);
+            await authAxios.post(`/v1/generator/prototypes/run/${prototypeId}`);
         } catch (error) {
             console.error('Error making run request:', error);
         } finally {
             setTimeout(() => {
-                setLoading((prev) => ({ ...prev, [prototypeName]: false }));
+                setLoading((prev) => ({ ...prev, [prototypeId]: false }));
             }, 6000);
         }
     };
-    
-    const handleStop = async (prototypeName: string) => {
-        setLoading((prev) => ({ ...prev, [prototypeName]: true }));
+
+    const handleStop = async (prototypeId: string) => {
+        setLoading((prev) => ({ ...prev, [prototypeId]: true }));
         try {
             await authAxios.post(`/v1/generator/prototypes/stop_prototypes/`);
         } catch (error) {
             console.error('Error making stop request:', error);
         } finally {
             setTimeout(() => {
-                setLoading((prev) => ({ ...prev, [prototypeName]: false }));
+                setLoading((prev) => ({ ...prev, [prototypeId]: false }));
             }, 6000);
         }
     };
-    
+
     const showMetadata = async (prototypeId: string) => {
         try {
             const response = await authAxios.get(`/v1/generator/prototypes/${prototypeId}/meta`);
@@ -162,12 +162,12 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                     <h2 className="text-stone-400">{e.description}</h2>
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    {prototypeStatuses[e.name] || (
+                                    {prototypeStatuses[e.id] || (
                                         <CircularProgress className="animate-spin" />
                                     )}
                                 </td>
                                 <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    {(prototypeStatuses[e.name] === "Running") &&
+                                    {(prototypeStatuses[e.id] === "Running") &&
                                         <a href={prototypeURL} target="_blank" className="text-blue-500 hover:underline">
                                             {prototypeURL}
                                         </a>
@@ -180,24 +180,22 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
                                     >
                                         Metadata
                                     </button>
-                                    { prototypeStatuses[e.name] === "Running" && (
+                                    {prototypeStatuses[e.id] === "Running" && (
                                         <button
-                                            onClick={() => handleStop(e.name)}
-                                            disabled={loading[e.name]}
-                                            className={`w-[60px] h-[40px] rounded-md ${
-                                                loading[e.name] ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
-                                            } text-white`}
+                                            onClick={() => handleStop(e.id)}
+                                            disabled={loading[e.id]}
+                                            className={`w-[60px] h-[40px] rounded-md ${loading[e.id] ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                                                } text-white`}
                                         >
                                             Kill
                                         </button>
                                     )}
-                                    { prototypeStatuses[e.name] === "Not running" && (
+                                    {prototypeStatuses[e.id] === "Not running" && (
                                         <button
-                                            onClick={() => handleRun(e.name)}
-                                            disabled={loading[e.name]}
-                                            className={`w-[60px] h-[40px] rounded-md ${
-                                                loading[e.name] ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
-                                            } text-white`}
+                                            onClick={() => handleRun(e.id)}
+                                            disabled={loading[e.id]}
+                                            className={`w-[60px] h-[40px] rounded-md ${loading[e.id] ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                                                } text-white`}
                                         >
                                             Run
                                         </button>

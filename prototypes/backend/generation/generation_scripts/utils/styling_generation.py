@@ -3,12 +3,12 @@ from utils.definitions.application_component import ApplicationComponent
 from utils.sanitization import project_name_sanitization, app_name_sanitization
 from os import makedirs
 
-def generate_styling(application_component: ApplicationComponent) -> bool:
+def generate_styling(application_component: ApplicationComponent, system_id: str) -> bool:
     project_name = project_name_sanitization(application_component.project)
     application_name = app_name_sanitization(application_component.name)
     
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/style.css.jinja2"    
-    OUTPUT_STATIC_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + project_name + "/" + application_name + "/static/" + application_name
+    OUTPUT_STATIC_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/static/" + application_name
     
     try:
         makedirs(OUTPUT_STATIC_DIRECTORY, exist_ok=True)

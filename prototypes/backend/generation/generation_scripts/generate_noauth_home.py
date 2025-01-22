@@ -6,19 +6,20 @@ from utils.authentication.auth_view_generation import generate_noauth_home_views
 
 
 def main():
-    if (len(sys.argv) != 3):
+    if (len(sys.argv) != 4):
         raise Exception("Invalid number of system arguments.")
     
     project_name = project_name_sanitization(sys.argv[1])
     metadata = sys.argv[2]
+    system_id = sys.argv[3]
 
-    if not generate_noauth_home_views(project_name, metadata):
+    if not generate_noauth_home_views(project_name, metadata, system_id):
         raise Exception("Failed to generate noauth_home views")
 
-    if not generate_noauth_home_urls(project_name):
+    if not generate_noauth_home_urls(project_name, system_id):
         raise Exception("Failed to generate noauth_home urls")
     
-    if not generate_noauth_home_template(project_name, metadata):
+    if not generate_noauth_home_template(project_name, metadata, system_id):
         raise Exception("Failed to generate noauth_home template")
     
     return True
