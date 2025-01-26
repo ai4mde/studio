@@ -24,7 +24,7 @@ class QdrantManager:
             logger.error(f"Failed to connect to Qdrant: {str(e)}")
             raise
         self.embeddings = OpenAIEmbeddings(
-            api_key=settings.OPENAI_API_KEY
+            api_key="sk-pro..." # move to env-file
         )
         self._ensure_collection()
 

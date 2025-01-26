@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { auth } from '@/auth'
 
 // Define public paths that don't require authentication
@@ -19,9 +19,14 @@ const STATIC_PATHS = [
   'public'
 ] as const
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
+export default auth((req: NextRequest & { auth?: any }) => {
   const { pathname } = req.nextUrl
+  const isLoggedIn = !!req.auth
+
+  // Skip middleware for static paths
+  if (STATIC_PATHS.some(path => pathname.startsWith(`/${path}`))) {
+    return NextResponse.next()
+  }
 
   // Allow public paths
   if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
@@ -30,17 +35,17 @@ export default auth((req) => {
 
   // Redirect to login if not authenticated
   if (!isLoggedIn) {
-    const url = new URL('/login', req.url)
-    url.searchParams.set('callbackUrl', encodeURI(pathname))
-    return NextResponse.redirect(url)
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('callbackUrl', encodeURI(pathname))
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()
 })
 
-// Configure matcher to exclude static paths
+// Static matcher configuration for Next.js 15
 export const config = {
   matcher: [
-    `/((?!${STATIC_PATHS.join('|')}|${PUBLIC_PATHS.join('|')}).*)`,
-  ],
+    '/((?!_next/static|_next/image|favicon.ico|public|login|guide|contact|terms|privacy).*)',
+  ]
 } 

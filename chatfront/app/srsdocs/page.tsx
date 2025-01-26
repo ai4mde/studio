@@ -1,44 +1,45 @@
-import React from "react";
-import { buttonVariants } from "@/components/ui/button";
-import fs, { readFileSync } from "fs";
-import matter from "gray-matter";
-import Link from "next/link";
-import { Metadata } from "next";
-import SiteConfig from "@/config/site";
-import { cn } from "@/lib/utils";
-import { getServerSession } from "@/auth";
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import { buttonVariants } from "@/components/ui/button"
+import fs from "fs"
+import matter from "gray-matter"
+import Link from "next/link"
+import { Metadata } from "next"
+import SiteConfig from "@/config/site"
+import { cn } from "@/lib/utils"
 
 interface DocType {
-  id: string;
-  title: string;
-  description: string;
+  id: string
+  title: string
+  description: string
 }
 
-const DocList = async () => {
-  const session = await getServerSession();
+export default async function DocList() {
+  // Early auth check
+  const session = await auth()
   if (!session?.user?.username) {
-    throw new Error("User not authenticated");
+    redirect('/login')
   }
 
-  const userPath = `data/${session.user.username.toLowerCase()}/srsdocs`;
+  const userPath = `data/${session.user.username.toLowerCase()}/srsdocs`
   
+  // Ensure user directory exists
   if (!fs.existsSync(userPath)) {
-    fs.mkdirSync(userPath, { recursive: true });
+    fs.mkdirSync(userPath, { recursive: true })
   }
 
-  const dirContent = fs.readdirSync(userPath, "utf-8");
-
-  const docs: DocType[] = dirContent
+  // Load and parse documents
+  const docs: DocType[] = fs.readdirSync(userPath, "utf-8")
     .filter(file => file.endsWith('.md'))
-    .map((file) => {
-      const fileContent = readFileSync(`${userPath}/${file}`, "utf-8");
-      const { data } = matter(fileContent);
+    .map(file => {
+      const fileContent = fs.readFileSync(`${userPath}/${file}`, "utf-8")
+      const { data } = matter(fileContent)
       return {
         id: data.id,
         title: data.title,
         description: data.description,
-      };
-    });
+      }
+    })
 
   return (
     <div className="container mx-auto p-4">
@@ -58,7 +59,7 @@ const DocList = async () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {docs.map((doc: DocType, index: number) => (
+          {docs.map((doc, index) => (
             <div 
               key={index} 
               className={cn(
@@ -93,13 +94,11 @@ const DocList = async () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 export const metadata: Metadata = {
   title: SiteConfig.title,
   description: SiteConfig.description,
-};
-
-export default DocList;
+}
 

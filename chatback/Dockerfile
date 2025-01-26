@@ -83,8 +83,8 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /opt/poetry/bin/ /usr/local/bin/
 
 # Create non-root user and required directories
-RUN adduser -D -u ${USER_ID} -h /chatback -s /bin/bash cbuser && \
-    mkdir /chatback/data && \
+RUN adduser -D -u ${USER_ID} -s /bin/bash cbuser && \
+    #mkdir /chatback/data && \
     # Change ownership of data directory
     echo "permit nopass cbuser as root cmd chown args -R cbuser:cbuser /chatback/data" > /etc/doas.d/doas.conf
 

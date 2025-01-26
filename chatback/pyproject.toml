@@ -17,6 +17,7 @@ passlib = {extras = ["argon2"], version = "^1.7.4"}
 argon2-cffi = "^23.1.0"
 python-multipart = "^0.0.19"
 psycopg2-binary = "^2.9.10"
+asyncpg = "^0.30.0"
 langchain = "^0.3.11"
 langchain-openai = "^0.2.12"
 langchain-community = "^0.3.11"

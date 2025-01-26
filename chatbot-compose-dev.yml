@@ -55,11 +55,12 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      # Chatback source code Mount only during development
       - ./chatback:/chatback
       # Private backend data (templates, questions, etc)
       - /opt/ai4mde/acc/chatback:/chatback/data
       # User-specific data structure
-      - /opt/ai4mde/acc/userdata:/chatback/userdata:rw
+      #- /opt/ai4mde/acc/userdata:/chatback/userdata:rw
     user: "${USER_ID:-1101}:${USER_ID:-1101}"
     env_file:
       - config/chatback.env

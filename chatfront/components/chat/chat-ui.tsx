@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useChat } from '@/app/chat/hooks/use-chat'
+import { useSession } from 'next-auth/react'
+import { redirect } from 'next/navigation'
 import { ChatHeader } from './chat-header'
 import { ChatInput } from './chat-input'
 import { MessageList } from './message-list'
@@ -19,6 +21,12 @@ interface ChatUIProps {
 }
 
 export function ChatUI({ className }: ChatUIProps) {
+  const { status } = useSession()
+  
+  if (status === 'unauthenticated') {
+    redirect('/login')
+  }
+
   const {
     messages,
     input,
@@ -37,6 +45,10 @@ export function ChatUI({ className }: ChatUIProps) {
 
   const [isNewChatOpen, setIsNewChatOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  const handleNewChat = async (title: string) => {
+    await startNewChat(title);
+  };
 
   return (
     <div className={cn(
@@ -94,12 +106,16 @@ export function ChatUI({ className }: ChatUIProps) {
         <NewChatDialog
           isOpen={isNewChatOpen}
           onClose={() => setIsNewChatOpen(false)}
-          onCreateChat={startNewChat}
+          onCreateChat={handleNewChat}
         />
         <DeleteChatDialog 
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={deleteChat}
+          onConfirm={async () => {
+            if (currentSession) {
+              await deleteChat(currentSession.id)
+            }
+          }}
           currentSession={currentSession}
         />
       </Card>

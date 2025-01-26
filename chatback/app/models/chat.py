@@ -22,6 +22,7 @@ class ChatSession(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    group_id = Column(Integer, ForeignKey("groups.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=False)
 
@@ -29,6 +30,7 @@ class ChatSession(Base):
     messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
     state = relationship("ChatState", back_populates="session", uselist=False, cascade="all, delete-orphan")
     user = relationship("User", back_populates="chat_sessions")
+    group = relationship("Group", back_populates="chat_sessions")
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"

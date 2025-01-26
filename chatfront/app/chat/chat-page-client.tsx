@@ -1,6 +1,6 @@
 'use client'
 
-import { useChat } from "./hooks/use-chat"
+import { useChat } from "@/app/chat/hooks/use-chat"
 import { ChatHeader } from "@/components/chat/chat-header"
 import { ChatInput } from "@/components/chat/chat-input"
 import { MessageList } from "@/components/chat/message-list"

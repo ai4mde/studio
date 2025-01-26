@@ -1,0 +1,115 @@
+"""initial schema
+
+Revision ID: initial_schema
+Revises: 
+Create Date: 2024-01-25
+
+"""
+from typing import Sequence, Union
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+
+# revision identifiers, used by Alembic.
+revision: str = 'initial_schema'
+down_revision: Union[str, None] = None
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+def upgrade() -> None:
+    # Create users table
+    op.create_table(
+        'users',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('email', sa.String(), nullable=False),
+        sa.Column('username', sa.String(), nullable=False),
+        sa.Column('hashed_password', sa.String(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), default=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
+
+    # Create groups table
+    op.create_table(
+        'groups',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(), nullable=False),
+        sa.Column('description', sa.String(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_groups_id'), 'groups', ['id'], unique=False)
+
+    # Create user_group association table
+    op.create_table(
+        'user_group',
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('group_id', sa.Integer(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['group_id'], ['groups.id']),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id']),
+        sa.PrimaryKeyConstraint('user_id', 'group_id')
+    )
+
+    # Create chat_sessions table
+    op.create_table(
+        'chat_sessions',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('title', sa.String(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('group_id', sa.Integer(), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id']),
+        sa.ForeignKeyConstraint(['group_id'], ['groups.id']),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_chat_sessions_id'), 'chat_sessions', ['id'], unique=False)
+
+    # Create chat_messages table
+    op.create_table(
+        'chat_messages',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('session_id', sa.Integer(), nullable=False),
+        sa.Column('message_uuid', sa.UUID(), nullable=False),
+        sa.Column('role', sa.Enum('USER', 'ASSISTANT', 'SYSTEM', name='chatrole'), nullable=False),
+        sa.Column('content', sa.Text(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('message_metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.ForeignKeyConstraint(['session_id'], ['chat_sessions.id']),
+        sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_chat_messages_id'), 'chat_messages', ['id'], unique=False)
+
+    # Create chat_state table
+    op.create_table(
+        'chat_state',
+        sa.Column('session_id', sa.Integer(), nullable=False),
+        sa.Column('current_section', sa.Integer(), nullable=False),
+        sa.Column('current_question_index', sa.Integer(), nullable=False),
+        sa.Column('state', sa.Enum('INTERVIEW', 'DOCUMENT', 'COMPLETED', name='conversationstate'), nullable=False),
+        sa.Column('progress', sa.Float(), nullable=True),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.ForeignKeyConstraint(['session_id'], ['chat_sessions.id']),
+        sa.PrimaryKeyConstraint('session_id')
+    )
+
+def downgrade() -> None:
+    # Drop tables in reverse order
+    op.drop_table('chat_state')
+    op.drop_index(op.f('ix_chat_messages_id'), table_name='chat_messages')
+    op.drop_table('chat_messages')
+    op.drop_index(op.f('ix_chat_sessions_id'), table_name='chat_sessions')
+    op.drop_table('chat_sessions')
+    op.drop_table('user_group')
+    op.drop_index(op.f('ix_groups_id'), table_name='groups')
+    op.drop_table('groups')
+    op.drop_index(op.f('ix_users_username'), table_name='users')
+    op.drop_index(op.f('ix_users_id'), table_name='users')
+    op.drop_index(op.f('ix_users_email'), table_name='users')
+    op.drop_table('users') 

@@ -27,27 +27,21 @@ export function NewChatDialog({
   const [title, setTitle] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
-  const handleCreate = async () => {
-    if (!title.trim() || isCreating) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || isCreating) return;
 
     try {
-      setIsCreating(true)
-      await onCreateChat(title)
-      setTitle('')
-      onClose()
+      setIsCreating(true);
+      await onCreateChat(title);
+      setTitle('');
+      onClose();
     } catch (error) {
-      console.error('Failed to create chat:', error)
+      console.error('Failed to create chat:', error);
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleCreate()
-    }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -61,39 +55,38 @@ export function NewChatDialog({
             Create a new chat session. Give it a descriptive title.
           </DialogDescription>
         </DialogHeader>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter chat title..."
-          disabled={isCreating}
-          autoFocus
-          className="bg-background border-border"
-        />
-        <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={onClose}
-            disabled={isCreating}
-            className="bg-background hover:bg-muted"
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreate}
-            disabled={!title.trim() || isCreating}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {isCreating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              'Create'
-            )}
-          </Button>
-        </DialogFooter>
+        <form onSubmit={handleSubmit}>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter chat title"
+            className="mb-4"
+          />
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isCreating}
+              className="bg-background hover:bg-muted"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!title.trim() || isCreating}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create'
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -42,7 +42,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError('Invalid username or password');
+        setError(result.error);
         return;
       }
 

@@ -33,7 +33,11 @@ export function MessageList({
   }, [messages, isLoading])
 
   if (isEmpty) {
-    return <EmptyScreen />
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <EmptyScreen />
+      </div>
+    )
   }
 
   return (

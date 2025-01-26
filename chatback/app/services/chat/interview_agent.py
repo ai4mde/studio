@@ -130,7 +130,7 @@ class InterviewAgent:
             self.max_history_messages = 6  # Keep last 6 messages (3 exchanges)
             
             # Where to save the interviews
-            self.user_dir = os.path.join(settings.SHARED_DATA_PATH, username, "chats")
+            self.user_dir = os.path.join(settings.CHATBOT_DATA_PATH, username, "chats")
             self.template_path = os.path.join(settings.TEMPLATES_PATH, "interview_answered_template.md")
             os.makedirs(self.user_dir, exist_ok=True)
             

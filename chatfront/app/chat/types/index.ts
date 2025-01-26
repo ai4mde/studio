@@ -13,6 +13,7 @@ export interface ChatSession {
   user_id: number;
   created_at: string;
   updated_at: string;
+  messages: Message[];
 }
 
 export interface ApiResponse<T> {
@@ -52,4 +53,13 @@ export interface MessageResponse {
   message: string;
   session_id: number;
   message_uuid: string;
+}
+
+export interface CreateSessionResponse {
+  id: string;
+  title: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+  messages: Message[];
 }

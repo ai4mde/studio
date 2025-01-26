@@ -45,7 +45,6 @@ venv.bak/
 *~
 
 # Project specific
-app/data/poems/*
 app/data/interviews/*
 !app/data/templates/
 !app/data/*.md
@@ -67,6 +66,7 @@ docs/
 node_modules/
 tmp/
 temp/
+shell.nix
 
 # Database
 *.sqlite3

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { getServerSession } from '@/auth'
+import { auth } from "@/auth"
 import { ChatUI } from "@/components/chat/chat-ui"
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ChatPage() {
-  const session = await getServerSession()
+  const session = await auth()
   
   if (!session?.user) {
     redirect('/login')

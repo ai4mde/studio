@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 def load_interview_questions() -> Tuple[Dict[int, str], Dict[int, List[str]]]:
     """Load interview sections and questions from markdown file."""
     try:
-        questions_path = os.path.join(settings.CHATBACK_DATA_PATH, "interviews", "interview_questions.md")
+        questions_path = os.path.join(settings.CHATBOT_DATA_PATH, "interviews", "interview_questions.md")
         
         # Check if file exists
         if not os.path.exists(questions_path):

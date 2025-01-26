@@ -78,120 +78,69 @@ const createApiHeaders = (accessToken: string) => ({
 export const chatApi = {
   getSessions: async (accessToken: string): Promise<ApiResponse<ChatSession[]>> => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chat/sessions?skip=0&limit=10`, 
-        { headers: createApiHeaders(accessToken) }
-      );
+      const response = await fetch(`${API_URL}/api/v1/chat/sessions`, {
+        method: 'GET',
+        headers: createApiHeaders(accessToken),
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch sessions');
-      }
-
+      if (!response.ok) throw response;
       const data = await response.json();
       return { data };
     } catch (error) {
-      console.error('Failed to fetch sessions:', error);
-      return { error: error instanceof Error ? error.message : 'Failed to fetch sessions' };
+      return handleApiError(error, 'Failed to fetch chat sessions');
     }
   },
 
-  createChatSession: async (title: string, accessToken: string): Promise<ApiResponse<ChatSession>> => {
+  createSession: async (accessToken: string, title?: string): Promise<ApiResponse<ChatSession>> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/chat/sessions`, {
+      const response = await fetch(`${API_URL}/api/v1/chat/sessions`, {
         method: 'POST',
         headers: createApiHeaders(accessToken),
-        body: JSON.stringify({ title })
+        body: JSON.stringify({ 
+          title: title || 'New Chat'  // Use provided title or default
+        })
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create chat session');
-      }
-
+      if (!response.ok) throw response;
       const data = await response.json();
       return { data };
     } catch (error) {
-      console.error('Failed to create chat session:', error);
-      return { error: error instanceof Error ? error.message : 'Failed to create chat session' };
+      return handleApiError(error, 'Failed to create chat session');
     }
   },
 
   getMessages: async (sessionId: string, accessToken: string): Promise<ApiResponse<Message[]>> => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chat/sessions/${sessionId}/messages`, 
-        {
-          method: 'GET',
-          headers: createApiHeaders(accessToken),
-          credentials: 'include',
-          mode: 'cors',
-          signal: AbortSignal.timeout(5000)
-        }
-      );
-
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${responseText}`);
-      }
-
-      const data = JSON.parse(responseText);
-      return { data };
-    } catch (error: unknown) {
-      console.error('Error details:', {
-        error,
-        message: error instanceof Error ? error.message : 'Unknown error',
-        sessionId
-      });
-      return handleApiError(error, 'Failed to fetch messages');
-    }
-  },
-
-  createSession: async (accessToken: string) => {
-    try {
-      const token = ensureValidToken(accessToken);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/chat/sessions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': token,
-          'accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
+      const response = await fetch(`${API_URL}/api/v1/chat/chat/${sessionId}`, {
+        method: 'GET',
+        headers: createApiHeaders(accessToken),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create session');
+        throw new Error('Failed to fetch messages');
       }
 
       const data = await response.json();
       return { data };
     } catch (error) {
-      console.error('Failed to create session:', error);
-      return { error: error instanceof Error ? error.message : 'Failed to create session' };
+      console.error('Failed to fetch messages:', error);
+      return { error: error instanceof Error ? error.message : 'Failed to fetch messages' };
     }
   },
 
   sendMessage: async (accessToken: string, sessionId: string, content: string): Promise<ApiResponse<MessageResponse>> => {
     try {
-      const response = await fetch(
-        `${API_URL}/api/v1/chat/sessions/${sessionId}/messages`,
-        {
-          method: 'POST',
-          headers: createApiHeaders(accessToken),
-          credentials: 'include',
-          mode: 'cors',
-          body: JSON.stringify({
-            content,
-            message_uuid: crypto.randomUUID()
-          }),
-          signal: AbortSignal.timeout(30000)
-        }
-      );
+      const response = await fetch(`${API_URL}/api/v1/chat/chat/${sessionId}`, {
+        method: 'POST',
+        headers: createApiHeaders(accessToken),
+        body: JSON.stringify({
+          content,
+          session_id: sessionId.toString(),
+          message_uuid: null
+        })
+      });
 
-      if (!response.ok) {
-        throw response; // Throw the response to be caught by error handler
-      }
-
+      if (!response.ok) throw response;
       const data = await response.json();
       return { data };
     } catch (error) {
@@ -201,19 +150,13 @@ export const chatApi = {
 
   deleteSession: async (accessToken: string, sessionId: string): Promise<ApiResponse<void>> => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/chat/sessions/${sessionId}`,
-        {
-          method: 'DELETE',
-          headers: createApiHeaders(accessToken),
-          credentials: 'include',
-          mode: 'cors',
-        }
-      );
+      const response = await fetch(`${API_URL}/api/v1/chat/sessions/${sessionId}`, {
+        method: 'DELETE',
+        headers: createApiHeaders(accessToken),
+      });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} ${errorText}`);
+        throw new Error('Failed to delete session');
       }
 
       return { data: undefined };

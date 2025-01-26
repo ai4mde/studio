@@ -4,10 +4,11 @@ from datetime import datetime
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: Annotated[str, StringConstraints(min_length=3, max_length=50)]
+    username: str
 
 class UserCreate(UserBase):
-    password: Annotated[str, StringConstraints(min_length=8, max_length=100)]
+    password: str
+    group_id: int | None = None
 
     @field_validator('password')
     def validate_password(cls, v):
@@ -23,25 +24,19 @@ class UserCreate(UserBase):
             raise ValueError('Password must contain at least one special character')
         return v
 
-class UserUpdate(BaseModel):
-    email: Optional[EmailStr] = None
-    username: Optional[Annotated[str, StringConstraints(min_length=3, max_length=50)]] = None
+class UserUpdate(UserBase):
+    password: str | None = None
+    group_id: int | None = None
 
-class UserInDB(UserBase):
+class User(UserBase):
     id: int
     is_active: bool
+    group_id: int | None = None
     created_at: datetime
     updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
-
-class User(UserInDB):
-    pass
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 class TokenData(BaseModel):
     username: Optional[str] = None

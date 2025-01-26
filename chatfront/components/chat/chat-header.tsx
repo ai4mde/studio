@@ -43,7 +43,7 @@ export function ChatHeader({
         <div className="flex items-center gap-2">
           {isLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           <span className="font-bold text-foreground">
-            {currentSession?.title || 'New Chat'}
+            {currentSession?.title || 'No Active Chat'}
           </span>
         </div>
         <DropdownMenu>
