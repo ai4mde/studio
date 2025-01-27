@@ -22,9 +22,12 @@ const EditAttribute: React.FC<{
     const [openGenerateModal, setOpenGenerateModal] = useState(false);
     const [generationError, setGenerationError] = useState<string | null>(null);
     const LLMOptions = [
-        { value: 'GPT-4o', label: 'GPT-4o' },
+        { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
+        { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile' },
+        { value: 'gpt-4o', label: 'gpt-4o' },
     ]
     const [generateButtonDisabled, setGenerateButtonDisabled] = useState(false);
+    const [selectedLLMOption, setSelectedLLMOption] = useState(LLMOptions[0]);
 
 
     useEffect(() => {
@@ -81,7 +84,7 @@ const EditAttribute: React.FC<{
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
-            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${attribute?.name}&type=${attribute?.type}&description=${attribute?.description}`);
+            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${attribute?.name}&type=${attribute?.type}&description=${attribute?.description}&model=${selectedLLMOption.value}`);
             update({ ...attribute, body: data })
             setOpenGenerateModal(false);
         } catch (error) {
@@ -205,7 +208,8 @@ const EditAttribute: React.FC<{
                         </Button>
                         <Select
                             options={LLMOptions}
-                            value={LLMOptions[0]}
+                            value={selectedLLMOption}
+                            onChange={setSelectedLLMOption}
                         />
                         <button type="button" onClick={() => { setOpenGenerateModal(false); setGenerationError(null); }}>
                             <X size={20} />

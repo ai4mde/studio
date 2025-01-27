@@ -23,6 +23,7 @@ requests = "^2.32.3"
 openai = "^1.47.0"
 networkx = "^3.4.2"
 numpy = "^2.2.1"
+groq = "^0.15.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -13,7 +13,7 @@ from metadata.specification import Classifier
 
 from diagram.models import Node, Edge, Diagram
 
-from .llm_generation.generation import execute_prompt, remove_reply_markdown
+from llm.handler import llm_handler, remove_reply_markdown
 
 node = Router()
 
@@ -106,7 +106,7 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 
 
 @node.post("{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: str})
-def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str):
+def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "mixtral-8x7b-32768"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
@@ -118,11 +118,9 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
     if node.cls.data["type"] != "class":
         return 422, "Node is not a class"
     
-    prompt_path = "/usr/src/model/diagram/api/views/llm_generation/prompts/generate_attribute.txt" # TODO: put this in env
-    
     diagrams = Diagram.objects.filter(system=diagram.system)
     diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
-    prompt_data = {
+    input_data = {
         "django_version": "5.0.2", # TODO: put this in env
         "attribute_name": name,
         "attribute_return_type": type,
@@ -130,19 +128,15 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
         "classifier_metadata": serializers.serialize('json', [node.cls]),
         "diagrams_metadata": diagram_data
     }
+    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_ATTRIBUTE", 
+                         model = model,
+                         input_data = input_data)
 
-    reply = execute_prompt(prompt_path=prompt_path, prompt_data=prompt_data)
-    reply = remove_reply_markdown(reply)
+    return remove_reply_markdown(reply)
     
-    try:
-        compile(reply, '<string>', 'exec')
-        return reply
-    except SyntaxError as e:
-        return 422, "Invalid generated code"
-
 
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
-def generate_method(request: HttpRequest, node_id: str, name: str, description: str):
+def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "mixtral-8x7b-32768"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
@@ -154,11 +148,9 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     if node.cls.data["type"] != "class":
         return 422, "Node is not a class"
     
-    prompt_path = "/usr/src/model/diagram/api/views/llm_generation/prompts/generate_method.txt" # TODO: put this in env
-    
     diagrams = Diagram.objects.filter(system=diagram.system)
     diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
-    prompt_data = {
+    input_data = {
         "django_version": "5.0.2", # TODO: put this in env
         "method_name": name,
         "method_description": description, # TODO: prompt injection protection
@@ -166,13 +158,10 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
         "diagrams_metadata": diagram_data
     }
 
-    reply = execute_prompt(prompt_path=prompt_path, prompt_data=prompt_data)
-    reply = remove_reply_markdown(reply)
-    
-    try:
-        compile(reply, '<string>', 'exec')
-        return reply
-    except SyntaxError as e:
-        return 422, "Invalid generated code"
+    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_METHOD", 
+                         model = model,
+                         input_data = input_data)
+
+    return remove_reply_markdown(reply)
     
 __all__ = ["node"]

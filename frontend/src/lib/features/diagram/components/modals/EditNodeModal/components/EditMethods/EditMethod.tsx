@@ -1,16 +1,16 @@
+import { useDiagramStore } from "$diagram/stores";
+import { authAxios } from "$lib/features/auth/state/auth";
 import Editor from "@monaco-editor/react";
-import { X, Pencil, PanelTopClose, Trash2 } from "lucide-react";
 import {
     Button,
     FormControl,
     FormLabel,
     Textarea,
 } from "@mui/joy";
+import { PanelTopClose, Pencil, Trash2, X } from "lucide-react";
 import React, { useState } from "react";
 import Select from "react-select";
 import style from "./editmethods.module.css";
-import { useDiagramStore } from "$diagram/stores";
-import { authAxios } from "$lib/features/auth/state/auth";
 
 const EditMethod: React.FC<{
     method: any;
@@ -25,16 +25,19 @@ const EditMethod: React.FC<{
     const { diagram } = useDiagramStore();
     const [generationError, setGenerationError] = useState<string | null>(null);
     const LLMOptions = [
-        { value: 'GPT-4o', label: 'GPT-4o' },
+        { value: 'mixtral-8x7b-32768', label: 'mixtral-8x7b-32768' },
+        { value: 'llama-3.3-70b-versatile', label: 'llama-3.3-70b-versatile' },
+        { value: 'gpt-4o', label: 'gpt-4o' },
     ]
     const [generateButtonDisabled, setGenerateButtonDisabled] = useState(false);
+    const [selectedLLMOption, setSelectedLLMOption] = useState(LLMOptions[0]);
 
     const generateMethod = async (event) => {
         event.preventDefault();
         setGenerationError(null);
         setGenerateButtonDisabled(true)
         try {
-            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}`);
+            const { data } = await authAxios.post(`v1/diagram/${diagram}/node/${node.id}/generate_method/?name=${method.name}&description=${method.description}&model=${selectedLLMOption.value}`);
             update({ ...method, body: data })
             setOpenGenerateModal(false);
         } catch (error) {
@@ -47,7 +50,7 @@ const EditMethod: React.FC<{
     return (
         <>
             <div className={style.header}>
-                 <div className="flex flex-row gap-1 items-center h-full">
+                <div className="flex flex-row gap-1 items-center h-full">
                     <span className="p-2">+</span>
                     <input
                         type="text"
@@ -57,18 +60,18 @@ const EditMethod: React.FC<{
                         }
                         placeholder="Enter method name..."
                     ></input>
-                    <button type="button" onClick={() => {setOpenEditMenu((openEditMenu) => !openEditMenu)}}>
-                        { openEditMenu ?
+                    <button type="button" onClick={() => { setOpenEditMenu((openEditMenu) => !openEditMenu) }}>
+                        {openEditMenu ?
                             <PanelTopClose size={20} />
                             : <Pencil size={20} />
                         }
                     </button>
                     <button type="button" onClick={del}>
-                        <Trash2 size={20}/>
+                        <Trash2 size={20} />
                     </button>
                 </div>
             </div>
-            {openEditMenu && 
+            {openEditMenu &&
                 <div
                     className={[style.method, create && style.new, dirty && style.dirty]
                         .filter(Boolean)
@@ -141,10 +144,11 @@ const EditMethod: React.FC<{
                         </Button>
                         <Select
                             options={LLMOptions}
-                            value={LLMOptions[0]}
+                            value={selectedLLMOption}
+                            onChange={setSelectedLLMOption}
                         />
-                        <button type="button" onClick={() => {setOpenGenerateModal(false);setGenerationError(null);}}>
-                            <X size={20}/>
+                        <button type="button" onClick={() => { setOpenGenerateModal(false); setGenerationError(null); }}>
+                            <X size={20} />
                         </button>
                     </div>
                     {generationError && <p style={{ color: 'red' }}>{generationError}</p>}
