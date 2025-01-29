@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Plus, Trash, Save, Ban } from "lucide-react";
-import useLocalStorage from './useLocalStorage';
 import {
+    Divider,
     FormControl,
     Input,
-    Divider,
-} from "@mui/joy"
+} from "@mui/joy";
+import { Ban, Plus, Save, Trash } from "lucide-react";
+import React, { useState } from 'react';
+import useLocalStorage from './useLocalStorage';
 
 type Props = {
     projectId: string;
@@ -18,7 +18,8 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
     const [data, setData, isSuccess] = useLocalStorage('categories', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
-    const [, setPages, isSuccessPages] = useLocalStorage('pages', []);
+    const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
+
 
     const handleEdit = (index: number) => {
         setEditIndex(index);
@@ -27,10 +28,23 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
 
     const handleSave = (index: number) => {
         const newData = [...data];
+        const categoryId = data[index].id;
+        const updatedCategory = {
+            label: newName,
+            value: { id: categoryId, name: newName }
+        };
         newData[index].name = newName;
         setData(newData);
+        if (isSuccessPages) {
+            const newPages = [...pages]
+            newPages.map(page => {
+                page.category.value.id === categoryId ? (page.category = updatedCategory) : null
+            })
+            setPages(newPages);
+        }
         setEditIndex(-1);
     };
+
 
     const handleCancel = () => {
         setEditIndex(-1);
@@ -47,13 +61,12 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
         setData(newData);
 
         if (isSuccessPages) {
-            setPages(prevPages => 
-                prevPages.map(page => 
-                    page.category === categoryId ? { ...page, category: null } : page
-                )
-            );
+            const newPages = [...pages]
+            newPages.map(page => {
+                page.category.value.id === categoryId ? (page.category = null) : null
+            })
+            setPages(newPages);
         }
-
         setEditIndex(-1);
     };
 
@@ -67,11 +80,11 @@ export const Categories: React.FC<Props> = ({ app_comp }) => {
                                 <div className="flex flex-col gap-2 space-y-3">
                                     <FormControl required className="space-y-1">
                                         <h3 className="text-xl font-bold">Name</h3>
-                                            <Input 
-                                                type="text" 
-                                                value={newName}
-                                                onChange={handleInputChange}
-                                            />
+                                        <Input
+                                            type="text"
+                                            value={newName}
+                                            onChange={handleInputChange}
+                                        />
                                     </FormControl>
                                     <Divider />
                                     <div className="flex gap-2">

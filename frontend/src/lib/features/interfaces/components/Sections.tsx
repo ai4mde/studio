@@ -36,6 +36,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
+    const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
 
 
     const handleEdit = async (index: number) => {
@@ -82,6 +83,16 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         const newData = [...data];
         newData[index].name = newName;
         setData(newData);
+        const sectionId = data[index].id;
+        if (isSuccessPages) {
+            const newPages = [...pages]
+            newPages.map(page => {
+                page.sections.map(section => {
+                    section.value === sectionId ? (section.label = newName) : null
+                })
+            })
+            setPages(newPages);
+        }
         setPencelClick(false);
     };
 
