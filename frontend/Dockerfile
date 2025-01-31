@@ -1,7 +1,7 @@
-FROM oven/bun:1
+FROM node:18
 WORKDIR /usr/src/app
 
 COPY . /usr/src/app
-RUN bun install --frozen-lockfile
-RUN bun vite build
-ENTRYPOINT ["bun", "dev", "--host", "0.0.0.0"]
+RUN npm install --frozen-lockfile
+RUN npm run build
+ENTRYPOINT ["npm", "run", "dev", "--", "--host"]

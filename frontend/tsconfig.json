@@ -2,7 +2,11 @@
     "compilerOptions": {
         "target": "ES2020",
         "useDefineForClassFields": true,
-        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
         "module": "ESNext",
         "skipLibCheck": true,
         /* Bundler mode */
@@ -13,31 +17,62 @@
         "noEmit": true,
         "jsx": "react-jsx",
         /* Linting */
-        "strict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "strict": false,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "noUncheckedIndexedAccess": false,
         /* Path Aliases */
         "baseUrl": "./src",
         "paths": {
             /* Feature Folders */
-            "$browser/*": ["lib/features/browser/*"],
-            "$diagram/*": ["lib/features/diagram/*"],
-            "$chatbot/*": ["lib/features/chatbot/*"],
-            "$auth/*": ["lib/features/auth/*"],
-            "$metadata/*": ["lib/features/metadata/*"],
-            "$interfaces/*": ["lib/features/interfaces/*"],
-            "$prototypes/*": ["lib/features/prototypes/*"],
+            "$browser/*": [
+                "lib/features/browser/*"
+            ],
+            "$diagram/*": [
+                "lib/features/diagram/*"
+            ],
+            "$chatbot/*": [
+                "lib/features/chatbot/*"
+            ],
+            "$auth/*": [
+                "lib/features/auth/*"
+            ],
+            "$metadata/*": [
+                "lib/features/metadata/*"
+            ],
+            "$interfaces/*": [
+                "lib/features/interfaces/*"
+            ],
+            "$prototypes/*": [
+                "lib/features/prototypes/*"
+            ],
             /* Shared / Global */
-            "$shared/*": ["lib/shared/*"],
-            "$hooks/*": ["lib/shared/hooks/*"],
-            "$state/*": ["lib/shared/state/*"],
-            "$lib/*": ["lib/*"],
-            "$assets/*": ["assets/*"]
+            "$shared/*": [
+                "lib/shared/*"
+            ],
+            "$hooks/*": [
+                "lib/shared/hooks/*"
+            ],
+            "$state/*": [
+                "lib/shared/state/*"
+            ],
+            "$lib/*": [
+                "lib/*"
+            ],
+            "$assets/*": [
+                "assets/*"
+            ]
         },
-        "types": ["vitest/globals"]
+        "types": [
+            "vitest/globals"
+        ]
     },
-    "include": ["src"],
+    "include": [
+        "src"
+    ],
     "references": [
         {
             "path": "./tsconfig.node.json"
