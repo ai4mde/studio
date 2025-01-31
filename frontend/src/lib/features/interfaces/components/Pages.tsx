@@ -9,13 +9,9 @@ import Select from "react-select";
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
-    projectId: string;
-    systemId: string;
-    interfaceId: string;
-    componentId: string;
 };
 
-export const Pages: React.FC<Props> = ({ app_comp }) => {
+export const Pages: React.FC<Props> = () => {
     const [data, setData, isSuccess] = useLocalStorage('pages', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');

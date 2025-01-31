@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { useAtom } from "jotai";
-import { useMutation } from "@tanstack/react-query";
-import CryptoJS from 'crypto-js';
+import { authAxios } from "$lib/features/auth/state/auth";
+import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
+import { useSystemDiagrams, useSystemInterfaces } from "$lib/features/prototypes/queries";
 import {
     Button,
     CircularProgress,
@@ -15,13 +14,12 @@ import {
     Switch,
     Typography
 } from "@mui/joy";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import CryptoJS from 'crypto-js';
+import { useAtom } from "jotai";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import Select from "react-select";
-import { queryClient } from "$shared/hooks/queryClient";
-import { authAxios } from "$lib/features/auth/state/auth";
-import { createPrototypeAtom } from "$lib/features/prototypes/atoms";
-import { useSystemInterfaces, useSystemDiagrams } from "$lib/features/prototypes/queries";
-import { useQueryClient } from "@tanstack/react-query";
 
 type PrototypeInput = {
     name: string;
@@ -56,7 +54,7 @@ export const CreatePrototype: React.FC = () => {
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
-            setSelectedInterfaces(interfaces.map((e) => ({ label: e.name, value: e})));
+            setSelectedInterfaces(interfaces.map((e) => ({ label: e.name, value: e })));
         }
     }, [interfaces, isSuccessInterfaces]);
 
@@ -161,7 +159,7 @@ export const CreatePrototype: React.FC = () => {
             metadata,
             database_hash: databaseHash,
         }).then(() => {
-            queryClient.invalidateQueries(["prototypes", systemId]); 
+            queryClient.invalidateQueries({ queryKey: ['prototypes', systemId] })
             close();
         }).catch((err) => {
             console.log(err)
@@ -182,7 +180,7 @@ export const CreatePrototype: React.FC = () => {
     }
 
     return (
-        <Modal open={open} onClose={() => {close(); setGenerationError(null)}}>
+        <Modal open={open} onClose={() => { close(); setGenerationError(null) }}>
             <ModalDialog>
                 <div className="flex w-full flex-row justify-between pb-1">
                     <div className="flex flex-col">
@@ -224,9 +222,9 @@ export const CreatePrototype: React.FC = () => {
                         <Select
                             isMulti
                             name="interfaces"
-                            options={interfaces.map((e) => ({ label: e.name, value: e}))}
+                            options={interfaces.map((e) => ({ label: e.name, value: e }))}
                             value={selectedInterfaces}
-                            onChange={setSelectedInterfaces}
+                            onChange={() => setSelectedInterfaces}
                         />
                     </FormControl>
                     <FormControl>
@@ -240,9 +238,9 @@ export const CreatePrototype: React.FC = () => {
                     </FormControl>
                     <FormControl>
                         <span className="flex flex-row items-center gap-2">
-                            <Switch 
-                                defaultChecked={useAuthentication} 
-                                onChange={(e) => setUseAuthentication(e.target.checked)} 
+                            <Switch
+                                defaultChecked={useAuthentication}
+                                onChange={(e) => setUseAuthentication(e.target.checked)}
                             />
                             <FormLabel sx={{ marginTop: '4px' }}>Use Authentication</FormLabel>
                         </span>
@@ -251,11 +249,11 @@ export const CreatePrototype: React.FC = () => {
                 <Divider />
                 <div className="flex flex-row pt-1">
                     <Button form="create-project" type="submit" disabled={isPending}>
-                        {isPending ? 
-                        <div className="flex flex-row gap-2">
-                            <CircularProgress className="animate-spin" />
-                            <p>Generating</p>
-                        </div> : "Create"}
+                        {isPending ?
+                            <div className="flex flex-row gap-2">
+                                <CircularProgress className="animate-spin" />
+                                <p>Generating</p>
+                            </div> : "Create"}
                     </Button>
                 </div>
                 {generationError && (

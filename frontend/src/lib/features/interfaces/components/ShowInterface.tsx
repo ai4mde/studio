@@ -1,29 +1,26 @@
+import { authAxios } from '$auth/state/auth';
+import { deleteInterface } from '$browser/mutations';
+import { useInterface } from "$browser/queries";
 import {
-    Tabs,
+    CircularProgress,
     Tab,
     TabList,
     TabPanel,
-    CircularProgress,
+    Tabs,
 } from '@mui/joy';
-import { Save, Trash, CircleUserRound } from "lucide-react";
-import React, { useState, useEffect } from 'react';
-import { useInterface } from "$browser/queries";
-import { deleteInterface } from '$browser/mutations';
-import { Styling } from './Styling';
+import { CircleUserRound, Save, Trash } from "lucide-react";
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
-import { useNavigate, useParams } from 'react-router-dom';
-import { authAxios } from '$auth/state/auth';
-import { useActor } from "$lib/features/metadata/queries";
+import { Styling } from './Styling';
 
 
 type Props = {
-    projectId: string;
     systemId: string;
     app_comp: string;
-    interfaceId: string;
-}; 
+};
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const { data, isSuccess } = useInterface(app_comp);
@@ -65,7 +62,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         } catch (error) {
             console.error('Error saving interface:', error);
         } finally {
-            setTimeout(function(){
+            setTimeout(function () {
                 setIsSaving(false);
             }, 200);
         }
@@ -74,7 +71,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     return (
         <>
             {isSuccess && (
-                <>       
+                <>
                     <div className="flex items-center justify-between w-full gap-4">
                         <span>
                             <h3 className="text-xl font-bold">{data.name}</h3>
@@ -102,7 +99,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                                 </div>
                             </button>
                         </div>
-                    </div>           
+                    </div>
                     <Tabs>
                         <TabList>
                             <Tab>Fragment</Tab>
@@ -115,16 +112,16 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <p>Fragment</p>
                         </TabPanel>
                         <TabPanel value={1}>
-                            <Categories app_comp={app_comp} />
+                            <Categories />
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages app_comp={app_comp} />
+                            <Pages />
                         </TabPanel>
                         <TabPanel value={3}>
-                            <Sections app_comp={app_comp} />
+                            <Sections />
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Styling app_comp={app_comp} />
+                            <Styling />
                         </TabPanel>
                     </Tabs>
                 </>

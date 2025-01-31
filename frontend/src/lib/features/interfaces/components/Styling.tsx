@@ -1,22 +1,18 @@
-import React, { useEffect } from 'react'
 import {
     FormControl,
     Input,
-    Select,
     Option,
-} from "@mui/joy"
+    Select,
+} from "@mui/joy";
 import { Plus } from "lucide-react";
-import useLocalStorage from './useLocalStorage'
+import React, { useEffect } from 'react';
+import useLocalStorage from './useLocalStorage';
 
 
 type Props = {
-    projectId: string
-    systemId: string
-    interfaceId: string
-    componentId: string
 }
 
-export const Styling: React.FC<Props> = ({ app_comp }) => {
+export const Styling: React.FC<Props> = () => {
 
     const [data, setData, isSuccess] = useLocalStorage('styling', '');
     const [logoFile, setLogoFile] = useLocalStorage('logoFile', null);
@@ -63,13 +59,13 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
         setData(newData);
     };
 
-    const handleLogoChange = (event) => {
+    /*const handleLogoChange = (event) => {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     const maxWidth = 512;
                     const maxHeight = 512;
                     const width = img.width;
@@ -85,18 +81,18 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
             };
             reader.readAsDataURL(file);
         }
-    };
+    };*/
 
     return (
         <>
-            { isSuccess && (
+            {isSuccess && (
                 <div className="max-w-[300px] mx-auto mt-4 ml-2 space-y-4">
                     <FormControl>
                         <h3 className="text-xl font-bold">Logo</h3>
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={handleLogoChange}
+                            //onChange={handleLogoChange}
                             className="hidden"
                             id="logoInput"
                         />
@@ -122,15 +118,15 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                     <FormControl>
                         <h3 className="text-xl font-bold">Background color</h3>
                         <div className="flex w-full flex-row justify-between pb-1">
-                            <Input 
-                                type="text" 
+                            <Input
+                                type="text"
                                 value={data.backgroundColor}
                                 onChange={handleBackgroundColorChange}
-                                pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                //pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
                                 placeholder="#FFFFFF"
                             />
                             <input
-                                type="color" 
+                                type="color"
                                 value={data.backgroundColor}
                                 onChange={handleBackgroundColorChange}
                                 className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
@@ -142,15 +138,15 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                     <FormControl>
                         <h3 className="text-xl font-bold">Text color</h3>
                         <div className="flex w-full flex-row justify-between pb-1">
-                            <Input 
-                                type="text" 
+                            <Input
+                                type="text"
                                 value={data.textColor}
                                 onChange={handleTextColorChange}
-                                pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                                //pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
                                 placeholder="#000000"
                             />
                             <input
-                                type="color" 
+                                type="color"
                                 value={data.textColor}
                                 onChange={handleTextColorChange}
                                 className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
@@ -162,15 +158,14 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
                     <FormControl>
                         <h3 className="text-xl font-bold">Accent color</h3>
                         <div className="flex w-full flex-row justify-between pb-1">
-                            <Input 
-                                type="text" 
+                            <Input
+                                type="text"
                                 value={data.accentColor}
                                 onChange={handleAccentColorChange}
-                                pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
                                 placeholder="#777777"
                             />
                             <input
-                                type="color" 
+                                type="color"
                                 value={data.accentColor}
                                 onChange={handleAccentColorChange}
                                 className="w-[50px] h-[50px] border border-gray-500 p-0 cursor-pointer"
@@ -181,13 +176,11 @@ export const Styling: React.FC<Props> = ({ app_comp }) => {
 
                     <FormControl required>
                         <h3 className="text-xl font-bold">Radius</h3>
-                        <Input 
+                        <Input
                             type="number"
-                            value={data.radius} 
+                            value={data.radius}
                             onChange={handleRadiusChange}
-                            min={0}
-                            max={10}
-                            required 
+                            required
                         />
                     </FormControl>
                 </div>

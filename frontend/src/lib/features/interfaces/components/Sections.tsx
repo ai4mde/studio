@@ -13,14 +13,9 @@ import { useClassAttributes, useClassCustomMethods, useSystemClasses } from "../
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
-    projectId: string;
-    systemId: string;
-    app_comp: string;
-    interfaceId: string;
-    componentId: string;
 };
 
-export const Sections: React.FC<Props> = ({ app_comp }) => {
+export const Sections: React.FC<Props> = () => {
     const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('sections', []);
     const [editIndex, setEditIndex] = useState(-1);
@@ -127,7 +122,7 @@ export const Sections: React.FC<Props> = ({ app_comp }) => {
         setNewName(event.target.value);
     };
 
-    const handleInputChangeText = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChangeText = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewText(event.target.value);
     };
 

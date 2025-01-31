@@ -8,13 +8,9 @@ import React, { useState } from 'react';
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
-    projectId: string;
-    systemId: string;
-    interfaceId: string;
-    componentId: string;
 };
 
-export const Categories: React.FC<Props> = ({ app_comp }) => {
+export const Categories: React.FC<Props> = () => {
     const [data, setData, isSuccess] = useLocalStorage('categories', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');

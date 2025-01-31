@@ -10,10 +10,9 @@ import { useParams } from "react-router";
 
 
 type Props = {
-    system: string;
 };
 
-export const ShowPrototypes: React.FC<Props> = ({ system }) => {
+export const ShowPrototypes: React.FC<Props> = () => {
     const { systemId } = useParams();
     const [data, isSuccess] = useSystemPrototypes(systemId);
     const [prototypeStatuses, setPrototypeStatuses] = useState<{ [key: string]: string }>({});
@@ -24,7 +23,7 @@ export const ShowPrototypes: React.FC<Props> = ({ system }) => {
 
     const queryClient = useQueryClient();
     useEffect(() => {
-        queryClient.invalidateQueries(["prototypes", systemId]);
+        queryClient.invalidateQueries({ queryKey: ['prototypes', systemId] })
     }, [queryClient, systemId]);
 
     useEffect(() => {

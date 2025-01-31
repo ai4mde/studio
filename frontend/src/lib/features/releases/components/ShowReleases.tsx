@@ -13,13 +13,18 @@ type Props = {
     system: string;
 };
 
+interface Release {
+    id: string;
+    name: string;
+}
+
 export const ShowReleases: React.FC<Props> = ({ system }) => {
     const { systemId } = useParams();
     const [releases, isSuccessReleases, ,] = useSystemReleases(systemId);
 
     const [showNewReleaseModal, setShowNewReleaseModal] = useState(false);
     const [showLoadReleaseModal, setShowLoadReleaseModal] = useState(false);
-    const [loadReleaseObject, setLoadReleaseObject] = useState("");
+    const [loadReleaseObject, setLoadReleaseObject] = useState<Release | undefined>(undefined)
     const [isLoading, setIsLoading] = useState(false);
 
 
@@ -142,7 +147,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         } catch (error) {
             console.error('Error making request:', error);
         } finally {
-            setLoadReleaseObject("");
+            setLoadReleaseObject(undefined);
             setShowLoadReleaseModal(false);
             setIsLoading(false);
         }

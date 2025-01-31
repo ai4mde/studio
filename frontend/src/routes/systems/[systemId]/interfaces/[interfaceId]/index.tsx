@@ -1,5 +1,5 @@
 import SystemLayout from "$browser/components/systems/SystemLayout";
-import ShowInterface from "lib/features/interfaces/components/ShowInterface"
+import ShowInterface from "lib/features/interfaces/components/ShowInterface";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -18,7 +18,7 @@ const SystemInterfaces: React.FC = () => {
     return (
         <SystemLayout>
             <div className="flex h-full w-full flex-col gap-1 p-3">
-                <ShowInterface system={systemId} app_comp={interfaceId}/>
+                <ShowInterface systemId={systemId} app_comp={interfaceId} />
             </div>
         </SystemLayout>
     );

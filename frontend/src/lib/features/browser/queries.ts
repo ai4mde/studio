@@ -40,9 +40,10 @@ export type InterfaceOut = {
     project?: string;
     system?: string;
     actor: string;
+    data: string;
 };
 
-export const useInterfaces = ( systemId?: string) =>
+export const useInterfaces = (systemId?: string) =>
     useQuery<InterfaceOut[]>({
         queryKey: ["interfaces", `${systemId}`],
         queryFn: async () => {
@@ -67,4 +68,3 @@ export const useInterface = (interfaceId?: string) =>
         enabled: !!interfaceId,
     });
 
-    
