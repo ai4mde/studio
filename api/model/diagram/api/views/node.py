@@ -67,13 +67,13 @@ def get_connected_enums(request: HttpRequest, node_id: str):
 
 
 @node.delete("/{uuid:node_id}/", response=bool)
-def delete_node(request: HttpRequest, node_id: str):
+def delete_node(request: HttpRequest, node_id: str, deleteChildNodes: bool = False):
     diagram = utils.get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    if utils.delete_node(diagram=diagram, node_id=node_id):
+    if utils.delete_node(diagram=diagram, node_id=node_id, delete_child_nodes=deleteChildNodes):
         return True
     return False
 

@@ -5,7 +5,7 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import Editor from "@monaco-editor/react";
 import Button from "@mui/joy/Button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, X } from "lucide-react";
+import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
