@@ -29,7 +29,7 @@ class DefaultUsecase():
     def __init__(self, 
                  name: str,
                  crud_types: List[CrudType],
-                 model: str,
+                 model: Dict[str, Any],
                  attributes: List[ModelAttribute]):
         self.name = name
         self.crud_types = crud_types
@@ -142,10 +142,16 @@ def get_default_use_cases(system: System, relevant_use_cases: List[Classifier]) 
         else:
             classes_visited.append(class_acted_on)
             attributes = get_class_attributes(class_acted_on)
+            model_name = None
+            for cls in system.classifiers.filter(data__type='class'):
+                if 'name' not in cls.data:
+                    continue
+                if cls.data['name'].lower() in name:
+                    model_name = cls.data['name']
             default_use_case = DefaultUsecase(
                 name = name,
                 crud_types = crud_types_per_class[class_acted_on],
-                model = class_acted_on,
+                model = {'id': class_acted_on, 'name': model_name},
                 attributes = attributes
             )
             out.append(default_use_case)
@@ -180,9 +186,11 @@ def build_data_sections(default_use_case_objects: List[DefaultUsecase]) -> List[
         section = {
             "id": uuid4().hex,
             "name": use_case.name,
-            "class": str(use_case.model),
+            "class": str(use_case.model['id']),
+            "model_name": str(use_case.model['name']),
             "attributes": build_data_section_attributes(use_case),
-            "operations": build_data_section_operations(use_case)
+            "operations": build_data_section_operations(use_case),
+            "text": "",
         }
         out.append(section)
     return out
@@ -194,7 +202,13 @@ def build_data_pages(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         page = {
             "id": uuid4().hex,
             "name": section["name"] + " page",
-            "category": None,
+            "category": {
+                "label": section["model_name"],
+                "value": {
+                    "id": section["class"],
+                    "name": section["model_name"]
+                }
+            }, # TODO: this is a redundant structure, but the frontend must first be changed accordingly
             "sections": [
                 {
                     "label": section['name'],
@@ -216,11 +230,26 @@ def build_data_styling() -> Dict[str, Any]:
     }
 
 
-def build_data(default_use_case_objects: List[DefaultUsecase]) -> str:
+def build_data_categories(default_use_case_objects: List[DefaultUsecase]) -> List[Dict[str, Any]]:
+    out = []
+    models_written = []
+    for use_case in default_use_case_objects:
+        if use_case.model in models_written:
+            continue
+        category = {
+            "id": uuid4().hex,
+            "name": str(use_case.model['name']),
+        }
+        models_written.append(use_case.model)
+        out.append(category)
+    return out
+
+
+def build_data(default_use_case_objects: List[DefaultUsecase]) -> Dict[str, Any]:
     sections = build_data_sections(default_use_case_objects)
+    categories = build_data_categories(default_use_case_objects)
     pages = build_data_pages(sections)
     styling = build_data_styling()
-    categories = [] # TODO
 
     data = {
         "sections": sections,
