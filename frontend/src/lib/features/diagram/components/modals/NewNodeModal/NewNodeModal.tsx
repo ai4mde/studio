@@ -13,7 +13,7 @@ import { NewUsecaseNode } from "./NewUsecaseNode";
 import style from "./newnodemodal.module.css";
 
 export const NewNodeModal: React.FC = () => {
-    const { diagram, type } = useDiagramStore();
+    const { diagram, type, relatedDiagrams } = useDiagramStore();
     const { close } = useNewNodeModal();
 
     // TODO: Figure out a way to do better form building
@@ -66,6 +66,7 @@ export const NewNodeModal: React.FC = () => {
                             {type == "activity" && (
                                 <NewActivityNode
                                     object={object}
+                                    relatedDiagrams={relatedDiagrams}
                                     setObject={setObject}
                                 />
                             )}

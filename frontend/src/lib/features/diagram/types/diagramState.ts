@@ -1,5 +1,19 @@
 import { Edge, EdgeChange, Node, NodeChange } from "reactflow";
 
+export type RelatedNode = {
+    id: string;
+    name: string;
+    type: string;
+}
+
+export type RelatedDiagram = {
+    id: string;
+    name: string;
+    type: string;
+    nodes: RelatedNode[];
+}
+
+
 export type DiagramState = {
     diagram: string;
     setDiagramID: (id: string) => void;
@@ -30,4 +44,8 @@ export type DiagramState = {
 
     connecting: boolean;
     setConnecting: (val: boolean) => void;
+
+    relatedDiagrams: RelatedDiagram[];
+    setRelatedDiagrams: (relatedDiagrams: RelatedDiagram[]) => void;
+    relatedDiagramsFromAPI: (relatedDiagrams: RelatedDiagram[]) => void;
 };

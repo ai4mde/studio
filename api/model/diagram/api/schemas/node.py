@@ -31,7 +31,12 @@ class NodeSchema(ModelSchema):
 
     @staticmethod
     def resolve_cls(obj):
-        return obj.cls.data
+        cls_data = obj.cls.data
+        if cls_data.get('role') == 'swimlane':
+            cls_data['actorNodeName'] = Node.objects.get(
+                id=cls_data.get('actorNode'),
+            ).cls.data.get('name')
+        return cls_data
 
     @staticmethod
     def resolve_cls_ptr(obj):

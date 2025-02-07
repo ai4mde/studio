@@ -38,7 +38,7 @@ export const SwimLaneNode: React.FC<NodeProps> = (node) => {
         <NodeWrapper node={node} selected={node.selected}>
             <div style={swimlaneNodeStyle}>
                 <div style={swimlaneHeaderStyle}>
-                    {node.data?.name}
+                    {node.data?.actorNodeName}
                 </div>
                 <div style={swimlaneBodyStyle}>
                 </div>

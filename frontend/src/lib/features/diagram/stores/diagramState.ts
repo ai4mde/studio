@@ -8,6 +8,7 @@ import { DiagramState } from "../types/diagramState";
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
     edges: [],
+    relatedDiagrams: [],
     diagram: "",
     lock: true,
     connecting: false,
@@ -28,6 +29,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     setConnecting: (val) => set(() => ({ connecting: val })),
     setNodes: (nodes) => set(() => ({ nodes: nodes })),
     setEdges: (edges) => set(() => ({ edges: edges })),
+    setRelatedDiagrams: (relatedDiagrams) => set(() => ({ relatedDiagrams: relatedDiagrams })),
     onNodesChange: (changes) =>
         set((state) => ({
             nodes: applyNodeChanges(changes, state.nodes, state.diagram),
@@ -46,9 +48,9 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     y: e.data?.position?.y ?? 0,
                 },
                 parentNode: e?.cls?.parentNode,
-                extend: e?.cls?.parentNode ? 'parent': null,
+                extend: e?.cls?.parentNode ? 'parent' : null,
                 connectable: false,
-                zIndex: e?.cls?.type === 'swimlane' ? 0 : 1,
+                zIndex: e?.cls?.type === 'swimlane' ? -1 : 1,
                 data: e?.cls,
             })),
         })),
@@ -64,4 +66,17 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                 data: e?.rel,
             })),
         })),
-}));
+    relatedDiagramsFromAPI: (rds) =>
+        set(() => ({
+            relatedDiagrams: rds.map((e) => ({
+                id: e?.id,
+                name: e?.name,
+                type: e?.type,
+                nodes: e?.nodes.map((n) => ({
+                    id: n?.id,
+                    name: n?.name,
+                    type: n?.type,
+                })),
+            })),
+        })),
+}))

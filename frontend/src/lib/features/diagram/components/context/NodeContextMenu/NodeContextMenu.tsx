@@ -48,9 +48,6 @@ const NodeContextMenu: React.FC = () => {
 
     const onSwimlaneAdd = (swimLane: Node) => {
         if (node) {
-            // set parent node of action node to swimlane
-            // calculate new position of action node relative to swimlane
-            // set position of action node relative to swim
             partialUpdateNode(diagram, node.id, {
                 cls: {
                     parentNode: swimLane.id,

@@ -1,12 +1,14 @@
 import { FormControl, FormLabel, Input, Option, Select, Checkbox } from "@mui/joy";
 import React, { useEffect } from "react";
+import { RelatedDiagram, RelatedNode } from "$diagram/types/diagramState";
 
 type Props = {
     object: any;
+    relatedDiagrams: RelatedDiagram[];
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
+export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams, setObject }) => {
     // If the object is a swimlane, the default value for vertical is true
     useEffect(() => {
         if (object.vertical === undefined) {
@@ -17,12 +19,21 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
         }
     }, [object, setObject]);
 
+    const uniqueActors = Array.from(
+        relatedDiagrams.flatMap((diagram) => diagram.nodes).reduce((map, node) => {
+            if (!map.has(node.name)) {
+                map.set(node.name, node);
+            }
+            return map;
+        }, new Map<string, RelatedNode>()).values()
+    );
+
     return (
         <>
             <FormControl size="sm" className="w-full">
                 <FormLabel>Role</FormLabel>
                 <Select
-                    value={object.role}
+                    value={object.role || ""}
                     onChange={(_, e) =>
                         setObject((o: any) => ({ ...o, role: e }))
                     }
@@ -37,7 +48,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
             <FormControl size="sm" className="w-full">
                 <FormLabel>Type</FormLabel>
                 <Select
-                    value={object.type}
+                    value={object.type || ""}
                     placeholder="Select a type..."
                     onChange={(_, e) =>
                         setObject((o: any) => ({ ...o, type: e }))
@@ -72,11 +83,11 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     )}
                 </Select>
             </FormControl>
-            {(object.type == "action" || object.type == "swimlane") && (
+            {(object.type == "action") && (
                 <FormControl size="sm" className="w-full">
                     <FormLabel>Name</FormLabel>
                     <Input
-                        value={object.name}
+                        value={object.name || ""}
                         onChange={(e) =>
                             setObject((o: any) => ({
                                 ...o,
@@ -90,9 +101,28 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
             {object.type == "swimlane" && (
                 <>
                     <FormControl size="sm" className="w-full">
+                        <FormLabel>Actor</FormLabel>
+                        <Select
+                            value={object.actorNode || ""}
+                            onChange={(e, newValue) =>
+                                setObject((o: any) => ({
+                                    ...o,
+                                    actorNode: newValue,
+                                }))
+                            }
+                            placeholder="Select an actor..."
+                        >
+                            {uniqueActors.map((node) => (
+                                <Option key={node.id} value={node.id}>
+                                    {node.name}
+                                </Option>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl size="sm" className="w-full">
                         <FormLabel>Width</FormLabel>
                         <Input
-                            value={object.width}
+                            value={object.width || ""}
                             type="number"
                             onChange={(e) =>
                                 setObject((o: any) => ({
@@ -105,7 +135,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Height</FormLabel>
                         <Input
-                            value={object.height}
+                            value={object.height || ""}
                             type="number"
                             onChange={(e) =>
                                 setObject((o: any) => ({
@@ -118,7 +148,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, setObject }) => {
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Vertical</FormLabel>
                         <Checkbox
-                           checked={object.vertical}
+                           checked={object.vertical || false}
                            onChange={(e) => 
                                  setObject((o: any) => ({
                                       ...o,
