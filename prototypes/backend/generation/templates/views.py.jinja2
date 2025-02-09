@@ -36,7 +36,7 @@ def {{ page }}_{{ section_component }}_create(request):
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        new_object.{{ parent_model }} = request.POST.get('instance_{{ parent_model }}')
+        new_object.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
         {% endfor -%}
         new_object.save()
     return redirect('render_{{ application_name }}_{{ page }}')
