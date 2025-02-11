@@ -1,0 +1,22 @@
+@startuml
+actor User
+actor Admin
+
+usecase "Login to System" as UC1
+usecase "Manage Account" as UC2
+usecase "View Dashboard" as UC3
+usecase "Add to Cart" as UC4
+usecase "Place Order" as UC5
+usecase "Process Payment" as UC6
+
+User -- UC1
+User -- UC2
+User -- UC4
+User -- UC5
+Admin -- UC2
+Admin -- UC3
+UC2 ..> UC1 : includes
+UC5 ..> UC4 : includes
+UC5 ..> UC6 : includes
+UC3 .> UC1 : extends
+@enduml 

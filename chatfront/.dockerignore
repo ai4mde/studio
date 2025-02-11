@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+.pnpm-store
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+/build
+/public/build
+.cache
+.env
+.env.*
+!.env.example
+
+# Development files
+.git
+.gitignore
+README.md
+*.md
+*.log
+.editorconfig
+.prettierrc
+.eslintrc
+.vscode
+.idea
+*.test.*
+*.spec.*
+__tests__
+coverage
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Debug files
+.debug
+*.pem
+*.cert
+*.key 

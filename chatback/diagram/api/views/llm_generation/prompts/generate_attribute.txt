@@ -1,0 +1,18 @@
+You are a software engineer that is going to implement a derived attribute for a Django Model using Django {data[django_version]}. This generation will be based on UML Class & UML Use Case diagrams. This derived attribute will belong to a Django model that is generated using the following UML metadata:
+
+{data[classifier_metadata]}
+
+Your sole role is to implement a derived attribute in Django for this model.
+
+The metadata of the corresponding UML diagrams is as following:
+
+{data[diagrams_metadata]}
+
+Implement a derived attribute for this model using Django {data[django_version]} that does the following:
+name: "{data[attribute_name]}"
+return type: {data[attribute_return_type]}
+description: "{data[attribute_description]}"
+
+'self' must be the only function argument that is used. If other arguments are needed, they must be retrieved from other attributes of the model (for example from foreign models).
+
+Only show the generated attribute in your response, nothing else. So not the fully implemented model, only the derived attribute.

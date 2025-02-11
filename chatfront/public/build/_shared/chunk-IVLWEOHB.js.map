@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../app/hooks/use-user.ts"],
+  "sourcesContent": ["// REMIX HMR BEGIN\nimport * as __hmr__ from \"remix:hmr\";\nif (import.meta) {\nimport.meta.hot = __hmr__.createHotContext(\n//@ts-expect-error\n\"app/hooks/use-user.ts\"\n);\nimport.meta.hot.lastModified = \"1738662837903.6753\";\n}\n// REMIX HMR END\n\nimport { useRouteLoaderData } from \"@remix-run/react\";\nimport type { CustomUser } from \"../types/auth.types\";\n\nexport function useOptionalUser(): CustomUser | undefined {\n  const data = useRouteLoaderData(\"root\") as { user: CustomUser | undefined };\n  return data?.user;\n}\n\nexport function useUser(): CustomUser {\n  const user = useOptionalUser();\n  if (!user) {\n    throw new Error(\n      \"No user found in root loader, but user is required by useUser. If user is optional, try useOptionalUser instead.\"\n    );\n  }\n  return user;\n} "],
+  "mappings": ";;;;;;;;AAEA,IAAI,aAAa;AACjB,cAAY,MAAc;AAAA;AAAA,IAE1B;AAAA,EACA;AACA,cAAY,IAAI,eAAe;AAC/B;AAMO,SAAS,kBAA0C;AACxD,QAAM,OAAO,mBAAmB,MAAM;AACtC,SAAO,MAAM;AACf;AAEO,SAAS,UAAsB;AACpC,QAAM,OAAO,gBAAgB;AAC7B,MAAI,CAAC,MAAM;AACT,UAAM,IAAI;AAAA,MACR;AAAA,IACF;AAAA,EACF;AACA,SAAO;AACT;",
+  "names": []
+}

@@ -1,0 +1,19 @@
+curl -X POST "https://acc-api.ai4mde.org/api/v1/diagram/681f9f4f-b3f5-48d0-b61e-a3ae1004f156/node/" \
+-H "accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzgwNTcxMjksIm5iZiI6MTczNzk3MDcyOSwiaXNzIjoidXJuOmFpNG1kZXN0dWRpbyIsImlhdCI6MTczNzk3MDcyOSwidWlkIjo0fQ.XYb8SHIaeErEy5KC7_eGGMgeOd_EzGdVJoxS5WwMTFw" \
+-d '{
+  "cls": {
+    "namespace": "",
+    "name": "Login",
+    "type": "action",
+    "role": "action",
+    "description": "",
+    "operation": {
+      "name": "Login",
+      "description": "",
+      "type": "str",
+      "body": ""
+    }
+  }
+}'

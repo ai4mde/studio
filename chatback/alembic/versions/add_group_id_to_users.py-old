@@ -1,0 +1,43 @@
+"""add group id to users
+
+Revision ID: add_group_id_to_users
+Revises: <previous_revision_id>
+Create Date: 2024-03-21 10:00:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+revision = 'add_group_id_to_users'
+down_revision = '<previous_revision_id>'  # replace with your last migration id
+branch_labels = None
+depends_on = None
+
+def upgrade():
+    # Drop the user_group table if it exists
+    op.drop_table('user_group')
+    
+    # Add group_id column to users table
+    op.add_column('users', sa.Column('group_id', sa.Integer(), nullable=True))
+    op.create_foreign_key(
+        'fk_users_group_id_groups',
+        'users', 'groups',
+        ['group_id'], ['id']
+    )
+
+def downgrade():
+    # Remove the foreign key first
+    op.drop_constraint('fk_users_group_id_groups', 'users', type_='foreignkey')
+    # Remove the column
+    op.drop_column('users', 'group_id')
+    
+    # Recreate the user_group table
+    op.create_table('user_group',
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('group_id', sa.Integer(), nullable=False),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()')),
+        sa.ForeignKeyConstraint(['group_id'], ['groups.id'], ),
+        sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+        sa.PrimaryKeyConstraint('user_id', 'group_id')
+    ) 

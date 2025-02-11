@@ -1,0 +1,16 @@
+@startuml
+start
+:Login;
+if (Valid Credentials?) then (yes)
+  :Dashboard;
+  fork
+    :View Orders;
+  fork again
+    :Manage Profile;
+  end fork
+  :Logout;
+else (no)
+  :Show Error;
+endif
+stop
+@enduml

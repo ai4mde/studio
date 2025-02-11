@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    /* Catppuccin Latte */
+    --background: 220 23% 95%;    /* Base #eff1f5 */
+    --foreground: 234 16% 35%;    /* Text #4c4f69 */
+
+    --card: 220 23% 95%;          /* Base #eff1f5 */
+    --card-foreground: 234 16% 35%; /* Text #4c4f69 */
+ 
+    --popover: 220 23% 95%;       /* Base #eff1f5 */
+    --popover-foreground: 234 16% 35%; /* Text #4c4f69 */
+ 
+    --primary: 220 91% 54%;       /* Blue #1e66f5 */
+    --primary-foreground: 220 23% 95%; /* Base #eff1f5 */
+ 
+    --secondary: 234 16% 35%;     /* Text #4c4f69 */
+    --secondary-foreground: 220 23% 95%; /* Base #eff1f5 */
+ 
+    --muted: 223 16% 83%;         /* Surface 0 #ccd0da */
+    --muted-foreground: 233 13% 41%; /* Subtext 1 #5c5f77 */
+ 
+    --accent: 197 97% 46%;        /* Sky #04a5e5 */
+    --accent-foreground: 234 16% 35%; /* Text #4c4f69 */
+ 
+    --destructive: 347 87% 44%;   /* Red #d20f39 */
+    --destructive-foreground: 220 23% 95%; /* Base #eff1f5 */
+
+    --border: 220 21% 89%;        /* Crust #dce0e8 */
+    --input: 220 21% 89%;         /* Crust #dce0e8 */
+    --ring: 197 97% 46%;          /* Sky #04a5e5 */
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    /* Catppuccin Macchiato */
+    --background: 232 23% 18%;    /* Base #24273a */
+    --foreground: 227 68% 88%;    /* Text #cad3f5 */
+ 
+    --card: 232 23% 18%;          /* Base #24273a */
+    --card-foreground: 227 68% 88%; /* Text #cad3f5 */
+ 
+    --popover: 232 23% 18%;       /* Base #24273a */
+    --popover-foreground: 227 68% 88%; /* Text #cad3f5 */
+ 
+    --primary: 220 83% 75%;       /* Blue #8aadf4 */
+    --primary-foreground: 232 23% 18%; /* Base #24273a */
+ 
+    --secondary: 227 68% 88%;     /* Text #cad3f5 */
+    --secondary-foreground: 232 23% 18%; /* Base #24273a */
+ 
+    --muted: 230 19% 26%;         /* Surface 0 #363a4f */
+    --muted-foreground: 228 39% 80%; /* Subtext 1 #b8c0e0 */
+ 
+    --accent: 234 82% 85%;        /* Lavender #b7bdf8 */
+    --accent-foreground: 232 23% 18%; /* Base #24273a */
+ 
+    --destructive: 351 74% 73%;   /* Red #ed8796 */
+    --destructive-foreground: 227 68% 88%; /* Text #cad3f5 */
+ 
+    --border: 236 23% 12%;        /* Crust #181926 */
+    --input: 236 23% 12%;         /* Crust #181926 */
+    --ring: 234 82% 85%;          /* Lavender #b7bdf8 */
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} 

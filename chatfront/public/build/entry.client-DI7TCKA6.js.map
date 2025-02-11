@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../node_modules/.pnpm/@remix-run+dev@2.15.2_@remix-run+react@2.15.2_react-dom@18.3.1_react@18.3.1__react@18.3_558bd7ed9818072fa785260deb0bdc45/node_modules/@remix-run/dev/dist/config/defaults/entry.client.tsx"],
+  "sourcesContent": ["import { RemixBrowser } from \"@remix-run/react\";\nimport { startTransition, StrictMode } from \"react\";\nimport { hydrateRoot } from \"react-dom/client\";\n\nstartTransition(() => {\n  hydrateRoot(\n    document,\n    <StrictMode>\n      <RemixBrowser />\n    </StrictMode>\n  );\n});\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AACA,IAAAA,gBAA4C;AAC5C,oBAA4B;AAMtB;AAAA,IAJN,+BAAgB,MAAM;AACpB;AAAA,IACE;AAAA,IACA,mDAAC,4BACC,6DAAC,kBAAD;AAAA;AAAA;AAAA;AAAA,WAAc,KADhB;AAAA;AAAA;AAAA;AAAA,WAEA;AAAA,EACF;AACF,CAAC;",
+  "names": ["import_react"]
+}

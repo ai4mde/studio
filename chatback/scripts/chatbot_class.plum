@@ -1,0 +1,154 @@
+@startuml Chatback System Class Diagram
+
+' Base Classes
+abstract class BaseAgent {
+  # session_id: str
+  # username: str
+  # agent_name: str
+  # llm: ChatOpenAI
+  # message_history: RedisChatMessageHistory
+  + __init__(session_id: str, username: str, agent_name: str, model_name: str, temperature: float)
+  # _init_redis(redis_url: str, prefix: str): RedisChatMessageHistory
+  # _invoke_llm(system_prompt: str, user_prompt: str, variables: Dict): str
+}
+
+' Service Classes
+class ChatManager {
+  - interview_agent: InterviewAgent
+  - diagram_agent: DiagramAgent
+  - document_agent: SRSDocumentAgent
+  - converter_agent: UMLConverterAgent
+  + __init__(session_id: str, username: str)
+  + process_message(content: str): Dict
+  + get_progress(): float
+  + is_interview_complete(): bool
+  + save_chat(chat_name: str): Dict
+}
+
+class DocumentCoordinator {
+  - session_id: str
+  - username: str
+  + __init__(session_id: str, username: str)
+  + generate_documents(chat_name: str, messages: List): Dict
+  - _generate_diagrams(messages: List): Dict
+  - _generate_srs(chat_name: str, messages: List, diagrams: str): Dict
+}
+
+class ChatMemoryManager {
+  - redis_client: Redis
+  - session_id: str
+  + __init__(session_id: str)
+  + save_message(role: str, content: str)
+  + get_messages(): List[Dict]
+  + clear_messages()
+  + get_truncated_messages(max_tokens: int): List[Dict]
+}
+
+' Agent Classes
+class InterviewAgent {
+  - sections: List[str]
+  - questions: Dict[int, List[str]]
+  - current_section: int
+  - current_question_index: int
+  - total_questions: int
+  + __init__(session_id: str, username: str)
+  + process_message(content: str): str
+  + calculate_progress(): float
+  + is_interview_complete(): bool
+  + save_interview_responses(chat_name: str): str
+  - _save_state()
+  - _load_state()
+  - _get_introduction(): str
+  - _track_message_progress(content: str)
+  - _get_truncated_messages(): List[BaseMessage]
+}
+
+class DiagramAgent {
+  - summary_llm: ChatOpenAI
+  + __init__(session_id: str, username: str)
+  + generate_uml_diagrams(messages: List): Dict[str, str]
+  - _chunk_conversation(messages: List, chunk_size: int): List[List]
+  - _summarize_chunk(messages: List): str
+  - _summarize_conversation(messages: List): str
+}
+
+class UMLConverterAgent {
+  - studio_api_url: str
+  - access_token: str
+  + __init__(session_id: str, username: str)
+  + authenticate(username: str, password: str)
+  + convert_uml_to_json(plantuml_code: str, diagram_type: str): Dict
+  + create_diagram(system_id: str, plantuml_code: str, diagram_type: str): Dict
+  + create_diagram_flow(username: str, password: str, system_name: str, system_description: str, plantuml_code: str, diagram_type: str): Dict
+}
+
+class SRSDocumentAgent {
+  - srs_template: str
+  - srsdocs_dir: str
+  + __init__(session_id: str, username: str)
+  + generate_srs_document(chat_name: str, messages: List[BaseMessage], uml_diagrams: str): Dict
+}
+
+' Database Models
+class User {
+  + id: Integer
+  + email: String
+  + username: String
+  + hashed_password: String
+  + is_active: Boolean
+  + created_at: DateTime
+  + updated_at: DateTime
+  + group_id: Integer
+}
+
+class ChatSession {
+  + id: Integer
+  + user_id: Integer
+  + group_id: Integer
+  + title: String
+  + state: String
+  + created_at: DateTime
+  + updated_at: DateTime
+}
+
+class ChatMessage {
+  + id: Integer
+  + session_id: Integer
+  + message_uuid: UUID
+  + role: ChatRole
+  + content: Text
+  + created_at: DateTime
+  + message_metadata: JSONB
+}
+
+class ChatState {
+  + session_id: Integer
+  + current_section: Integer
+  + current_question_index: Integer
+  + state: ConversationState
+  + progress: Float
+  + updated_at: DateTime
+}
+
+' Relationships
+BaseAgent <|-- InterviewAgent
+BaseAgent <|-- DiagramAgent
+BaseAgent <|-- UMLConverterAgent
+BaseAgent <|-- SRSDocumentAgent
+
+ChatManager "1" *-- "1" InterviewAgent
+ChatManager "1" *-- "1" DiagramAgent
+ChatManager "1" *-- "1" SRSDocumentAgent
+ChatManager "1" *-- "1" UMLConverterAgent
+ChatManager "1" *-- "1" ChatMemoryManager
+
+DocumentCoordinator "1" *-- "1" DiagramAgent
+DocumentCoordinator "1" *-- "1" SRSDocumentAgent
+DocumentCoordinator "1" *-- "1" UMLConverterAgent
+
+User "1" -- "*" ChatSession
+ChatSession "1" -- "*" ChatMessage
+ChatSession "1" -- "1" ChatState
+
+@enduml
+

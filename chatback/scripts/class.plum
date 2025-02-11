@@ -1,0 +1,48 @@
+@startuml
+class User {
+  + userId: int
+  + name: String
+  + email: String
+  + password: String
+  + register()
+  + login()
+}
+
+class Product {
+  + productId: int
+  + name: String
+  + description: String
+  + price: float
+  + stock: int
+  + displayDetails()
+}
+
+class Cart {
+  + cartId: int
+  + userId: int
+  + addItem(product: Product, quantity: int)
+  + removeItem(product: Product)
+  + calculateTotal(): float
+}
+
+class Order {
+  + orderId: int
+  + userId: int
+  + orderDate: Date
+  + totalAmount: float
+  + placeOrder()
+}
+
+class Payment {
+  + paymentId: int
+  + orderId: int
+  + paymentDate: Date
+  + amount: float
+  + processPayment()
+}
+
+User "1" -- "0..*" Cart
+Cart "1" -- "0..*" Product
+User "1" -- "0..*" Order
+Order "1" -- "1" Payment
+@enduml

@@ -1,0 +1,84 @@
+@startuml Chatback ERD
+
+' Styling
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+
+' Enums
+enum ChatRole {
+    USER
+    ASSISTANT
+    SYSTEM
+}
+
+enum ConversationState {
+    INTERVIEW
+    DOCUMENT
+    COMPLETED
+}
+
+' Entities
+entity "users" as users {
+    * id: Integer <<PK>>
+    --
+    * email: String <<unique>>
+    * username: String <<unique>>
+    * hashed_password: String
+    * is_active: Boolean
+    * created_at: DateTime
+    updated_at: DateTime
+    group_id: Integer <<FK>>
+}
+
+entity "groups" as groups {
+    * id: Integer <<PK>>
+    --
+    * name: String <<unique>>
+    description: String
+    * created_at: DateTime
+    updated_at: DateTime
+}
+
+entity "chat_sessions" as chat_sessions {
+    * id: Integer <<PK>>
+    --
+    * title: String
+    * user_id: Integer <<FK>>
+    group_id: Integer <<FK>>
+    * created_at: DateTime
+    * updated_at: DateTime
+}
+
+entity "chat_messages" as chat_messages {
+    * id: Integer <<PK>>
+    --
+    * session_id: Integer <<FK>>
+    * message_uuid: UUID
+    * role: ChatRole
+    * content: Text
+    * created_at: DateTime
+    message_metadata: JSONB
+}
+
+entity "chat_state" as chat_state {
+    * session_id: Integer <<PK, FK>>
+    --
+    * current_section: Integer
+    * current_question_index: Integer
+    * state: ConversationState
+    progress: Float
+    * updated_at: DateTime
+}
+
+' Relationships
+users }|--|| groups : belongs to
+chat_sessions }|--|| users : owned by
+chat_sessions }o--|| groups : belongs to
+chat_messages }|--|| chat_sessions : belongs to
+chat_state ||--|| chat_sessions : tracks
+
+@enduml 
