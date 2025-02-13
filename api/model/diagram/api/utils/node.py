@@ -2,6 +2,7 @@ from diagram.models import Diagram, Node
 from metadata.models import Classifier
 import metadata.specification as spec
 from diagram.api.utils.edge import delete_edge
+from metadata.specification.activity.classifiers.swimlane import SwimLaneGroup
 
 
 def create_node(diagram: Diagram, data: spec.Classifier):
@@ -19,6 +20,17 @@ def create_node(diagram: Diagram, data: spec.Classifier):
             }
         },
     )
+    # In case a swimlane is added make sure all the swimlanes are grouped together
+    if data.type == 'swimlane':
+        # Also make sure the swimlane actor name is set
+        node.cls.data['actorNodeName'] = Node.objects.get(id=node.cls.data['actorNode']).cls.data['name']
+        node.cls.save()
+        swimlane_group = diagram.nodes.filter(cls__data__type='swimlanegroup').first()
+        if swimlane_group is None:
+            swimlane_group = create_node(diagram, SwimLaneGroup(swimlanes=[]))
+        swimlane_group.cls.data['swimlanes'].append({**node.cls.data})
+        swimlane_group.cls.save()
+        
     return node
 
 

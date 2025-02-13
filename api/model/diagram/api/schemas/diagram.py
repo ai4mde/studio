@@ -48,7 +48,7 @@ class RelatedNode(ModelSchema):
     
     @staticmethod
     def resolve_name(obj):
-        return obj.cls.data["name"]
+        return obj.cls.data.get('name') or ""
 
     @staticmethod
     def resolve_type(obj):

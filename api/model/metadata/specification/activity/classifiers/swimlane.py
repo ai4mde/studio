@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Literal, Optional
+from pydantic.fields import Field
+from typing import Annotated, Literal, Optional, List, Union, Dict, Any
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
@@ -10,9 +11,24 @@ class SwimLane(BaseModel):
     vertical: bool = True
     actorNodeName: Optional[str] = ""
 
-SwimLaneClassifier = SwimLane
+class SwimLaneGroup(BaseModel):
+    type: Literal["swimlanegroup"] = "swimlanegroup"
+    role: Literal["swimlane"] = "swimlane"
+    swimlanes: List[SwimLane]
+
+SwimLaneClassifier = Annotated[
+    Union[
+        SwimLane,
+        SwimLaneGroup,
+    ],
+    Field(
+        discriminator="type",
+    )
+]
+SwimLaneGroupClassifier = SwimLaneGroup
 
 __all__ = [
     "SwimLane",
+    "SwimLaneGroup",
     "SwimLaneClassifier",
 ]
