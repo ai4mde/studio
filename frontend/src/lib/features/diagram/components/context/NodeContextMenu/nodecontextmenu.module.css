@@ -29,9 +29,6 @@
     }
 }
 
-.activeButton {
-    @apply bg-blue-600 text-gray-50;
-}
 
 @keyframes pop-in {
     0% {

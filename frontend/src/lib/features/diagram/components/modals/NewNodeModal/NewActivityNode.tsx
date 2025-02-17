@@ -1,23 +1,27 @@
-import { FormControl, FormLabel, Input, Option, Select, Checkbox } from "@mui/joy";
+import { Checkbox, FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 import React, { useEffect } from "react";
-import { RelatedDiagram, RelatedNode } from "$diagram/types/diagramState";
+import { RelatedDiagram, RelatedNode } from "$diagram/types/diagramState"
 
 type Props = {
     object: any;
     relatedDiagrams: RelatedDiagram[];
+    swimlaneGroupExists: boolean;
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams, setObject }) => {
-    // If the object is a swimlane, the default value for vertical is true
+export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams,  swimlaneGroupExists, setObject }) => {
+
+    // Set default values for swimlane
     useEffect(() => {
-        if (object.vertical === undefined) {
+        if (object.role === "swimlane") {
             setObject((o: any) => ({
                 ...o,
-                vertical: true,
-            }));
+                height: o.height || 1000,
+                width: o.width || 300,
+                horizontal: o.horizontal || false,
+            }))
         }
-    }, [object, setObject]);
+    }, [object.role, setObject])
 
     const uniqueActors = Array.from(
         relatedDiagrams.flatMap((diagram) => diagram.nodes).reduce((map, node) => {
@@ -98,18 +102,20 @@ export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams, setO
                     />
                 </FormControl>
             )}
-            {object.type == "swimlane" && (
+            {(object.type == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Actor</FormLabel>
                         <Select
                             value={object.actorNode || ""}
-                            onChange={(e, newValue) =>
+                            onChange={(e, newValue) =>{
+                                const selectedNode = uniqueActors.find((node) => node.id === newValue);
                                 setObject((o: any) => ({
                                     ...o,
                                     actorNode: newValue,
+                                    actorNodeName: selectedNode ? selectedNode.name : "",
                                 }))
-                            }
+                            }}
                             placeholder="Select an actor..."
                         >
                             {uniqueActors.map((node) => (
@@ -119,44 +125,50 @@ export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams, setO
                             ))}
                         </Select>
                     </FormControl>
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>Width</FormLabel>
-                        <Input
-                            value={object.width || ""}
-                            type="number"
-                            onChange={(e) =>
-                                setObject((o: any) => ({
-                                    ...o,
-                                    width: e.target.value,
-                                }))
-                            }
-                        />
-                    </FormControl>
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>Height</FormLabel>
-                        <Input
-                            value={object.height || ""}
-                            type="number"
-                            onChange={(e) =>
-                                setObject((o: any) => ({
-                                    ...o,
-                                    height: e.target.value,
-                                }))
-                            }
-                        />
-                    </FormControl>
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>Vertical</FormLabel>
-                        <Checkbox
-                           checked={object.vertical || false}
-                           onChange={(e) => 
-                                 setObject((o: any) => ({
-                                      ...o,
-                                      vertical: e.target.checked,
-                                 }))
-                           }
-                        />
-                    </FormControl>
+                    {!swimlaneGroupExists && (
+                        <>
+                            <FormControl size="sm" className="w-full">
+                                <FormLabel>Height</FormLabel>
+                                <Input
+                                    value={object.height || 1000}
+                                    type="number"
+                                    onChange={(e) => 
+                                        setObject((o: any) => ({
+                                            ...o,
+                                            height: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="1000"
+                                />
+                            </FormControl>
+                            <FormControl size="sm" className="w-full">
+                                <FormLabel>Width</FormLabel>
+                                <Input
+                                    value={object.width || 300}
+                                    type="number"
+                                    onChange={(e) => 
+                                        setObject((o: any) => ({
+                                            ...o,
+                                            width: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="300"
+                                />
+                            </FormControl>
+                            <FormControl size="sm" className="w-full">
+                                <FormLabel>Horizontal</FormLabel>
+                                <Checkbox
+                                    checked={object.horizontal || false}
+                                    onChange={(e) =>
+                                        setObject((o: any) => ({
+                                            ...o,
+                                            horizontal: e.target.checked,
+                                        }))
+                                    }
+                                />
+                            </FormControl>
+                        </>
+                    )}
                 </>
             )}
         </>

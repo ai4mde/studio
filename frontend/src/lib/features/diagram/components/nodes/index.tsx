@@ -8,7 +8,7 @@ import {
     InitialNode,
     JoinNode,
     MergeNode,
-    SwimLaneNode,
+    SwimlaneGroupNode,
 } from "./activity";
 import {
     ActorNode,
@@ -38,7 +38,7 @@ export {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-    SwimLaneNode,
+    SwimlaneGroupNode,
 };
 
 export default {
@@ -59,5 +59,5 @@ export default {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-    SwimLaneNode,
+    SwimlaneGroupNode,
 };

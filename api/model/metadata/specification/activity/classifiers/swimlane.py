@@ -1,19 +1,20 @@
 from pydantic import BaseModel
 from pydantic.fields import Field
-from typing import Annotated, Literal, Optional, List, Union, Dict, Any
+from typing import Annotated, Union, Literal, List
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
     role: Literal["swimlane"] = "swimlane"
     actorNode: str
-    height: int = 400
-    width: int = 150
-    vertical: bool = True
-    actorNodeName: Optional[str] = ""
+    actorNodeName: str
+    
 
 class SwimLaneGroup(BaseModel):
     type: Literal["swimlanegroup"] = "swimlanegroup"
     role: Literal["swimlane"] = "swimlane"
+    height: int = 1000
+    width: int = 300
+    horizontal: bool = False
     swimlanes: List[SwimLane]
 
 SwimLaneClassifier = Annotated[
@@ -23,12 +24,10 @@ SwimLaneClassifier = Annotated[
     ],
     Field(
         discriminator="type",
-    )
+    ),
 ]
-SwimLaneGroupClassifier = SwimLaneGroup
 
 __all__ = [
-    "SwimLane",
     "SwimLaneGroup",
     "SwimLaneClassifier",
 ]

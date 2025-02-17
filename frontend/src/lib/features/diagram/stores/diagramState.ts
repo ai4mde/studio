@@ -38,7 +38,8 @@ export const useDiagramStore = create<DiagramState>((set) => ({
         set(() => ({
             // edges: [], // applyEdgeChanges(changes, state.edges, state.diagramURL),
         })),
-    nodesFromAPI: (nds) =>
+    nodesFromAPI: (nds) => {
+        const swimlaneGroupUUID = nds.filter((n) => n?.cls?.type === 'swimlanegroup')[0]?.id;
         set(() => ({
             nodes: nds.map((e) => ({
                 id: e?.id,
@@ -47,13 +48,14 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     x: e.data?.position?.x ?? 0,
                     y: e.data?.position?.y ?? 0,
                 },
-                parentNode: e?.cls?.parentNode,
-                extend: e?.cls?.parentNode ? 'parent' : null,
-                connectable: false,
-                zIndex: e?.cls?.type === 'swimlane' ? -1 : 1,
+                parentNode: e?.cls?.actorNode ? swimlaneGroupUUID : null,
+                extend: e?.cls?.actorNode ? 'parent' : null,
+                connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
+                zIndex: e?.cls?.type === "swimlanegroup" ? -1: 1,
                 data: e?.cls,
             })),
-        })),
+        }));
+    },
     edgesFromAPI: (eds) =>
         set(() => ({
             edges: eds.map((e) => ({

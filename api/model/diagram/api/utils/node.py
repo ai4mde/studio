@@ -44,14 +44,6 @@ def delete_node(diagram: Diagram, node_id: str, delete_child_nodes: bool):
         delete_edge(diagram, linked_edge.id)
 
     classifier = node.cls
-    if classifier.data['type'] == 'swimlane':
-        child_nodes = diagram.nodes.filter(cls__data__parentNode=str(node.id))            
-        for child_node in child_nodes:
-            if delete_child_nodes:
-                delete_node(diagram, child_node.id, False)
-            else:
-                del child_node.cls.data['parentNode']
-                child_node.cls.save()
 
     node.delete()
     if not Node.objects.filter(cls = classifier).exists():

@@ -20,7 +20,7 @@ class Action(NamedElement, NamespacedElement, BaseModel):
     classes: Optional[ActionClasses] = None
     application_models: Optional[list[str]] = None  # TODO: Should refer to an application model
     page: Optional[str] = None  # TODO: In reality a page is more complex than just a string
-    parentNode: Optional[str] = None
+    actorNode: Optional[str] = None
 
 ActionClassifier = Action
 

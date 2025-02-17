@@ -1,5 +1,4 @@
 import { deleteNode } from "$diagram/mutations/diagram";
-import { RelatedNode } from "$diagram/types/diagramState";
 import { useDiagramStore } from "$diagram/stores";
 import { useEditNodeModal } from "$diagram/stores/modals";
 import { authAxios } from "$lib/features/auth/state/auth";
@@ -16,28 +15,19 @@ import {
     EditLiterals,
     EditMethods,
     EditName,
-    EditDimensions,
     EditBoolean,
-    EditSwimlaneActor,
+    EditDimensions,
+    EditSwimlane,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
 export const EditNodeModal: React.FC = () => {
     const modalState = useEditNodeModal();
-    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
+    const { diagram, nodes } = useDiagramStore();
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),
         [modalState.node, nodes],
-    );
-
-    const uniqueActors = Array.from(
-        relatedDiagrams.flatMap((diagram) => diagram.nodes).reduce((map, node) => {
-            if (!map.has(node.name)) {
-                map.set(node.name, node);
-            }
-            return map;
-        }, new Map<string, RelatedNode>()).values()
     );
 
     const queryClient = useQueryClient();
@@ -121,12 +111,12 @@ export const EditNodeModal: React.FC = () => {
                                     {node.type == "application" && (
                                         <EditApplication node={node} />
                                     )}
-                                    {node.type == "swimlane" && (
+                                    {node.type == 'swimlanegroup' && (
                                         <>
-                                            <EditDimensions dimension="height" node={node} />
-                                            <EditDimensions dimension="width" node={node} />
-                                            <EditBoolean attribute="vertical" node={node} />
-                                            <EditSwimlaneActor uniqueActors={uniqueActors} node={node} />
+                                            <EditDimensions dimension='height' node={node} />
+                                            <EditDimensions dimension='width' node={node} />
+                                            <EditBoolean attribute="horizontal" node={node} />
+                                            <EditSwimlane node={node} />
                                         </>
                                     )}
                                 </div>

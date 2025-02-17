@@ -12,10 +12,10 @@ import {
     PostconditionNode,
     PreconditionNode,
     ScenarioNode,
-    SwimLaneNode,
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SwimlaneGroupNode,
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -41,7 +41,7 @@ export const nodeTypes: NodeTypes = {
     system: SystemNode,
     trigger: TriggerNode,
     usecase: UsecaseNode,
-    swimlane: SwimLaneNode,
+    swimlanegroup: SwimlaneGroupNode,
     default: Node,
 };
 
