@@ -31,8 +31,7 @@ class NodeSchema(ModelSchema):
 
     @staticmethod
     def resolve_cls(obj):
-        cls_data = obj.cls.data
-        return cls_data
+        return obj.cls.data
 
     @staticmethod
     def resolve_cls_ptr(obj):
