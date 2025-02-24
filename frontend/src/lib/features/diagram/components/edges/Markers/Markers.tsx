@@ -29,7 +29,7 @@ const Markers: React.FC = () => {
         <>
             <svg style={{ position: "absolute", top: 0, left: 0 }}>
                 <defs>
-                    <WrapMarker id="activity-end">
+                    <WrapMarker id="controlflow-end">
                         <svg width={16} height={16} viewBox="0 0 16 16">
                             <path
                                 d="M 1, 1 L 16, 8 L 1, 16"

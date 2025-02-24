@@ -40,7 +40,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         <>
             <path
                 id={id}
-                className="react-flow__edge-path !stroke-black !stroke-2"
+                stroke="black" stroke-width="1"
                 strokeDasharray={
                     data?.type == "dependency" ? "10,10" : undefined
                 }
