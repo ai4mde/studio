@@ -35,10 +35,10 @@ import {
     useEditNodeModal,
     useNewConnectionModal,
 } from "$diagram/stores/modals";
+import { authAxios } from "$lib/features/auth/state/auth";
 import { LinearProgress } from "@mui/joy";
 import { toSvg } from 'html-to-image';
 import { Download, Move3d } from 'lucide-react';
-import { authAxios } from "$lib/features/auth/state/auth";
 
 
 const multiSelectionKeyCodes = ["Meta", "Shift"];
@@ -82,10 +82,12 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     }
 
     return (
-        <div style={{ height: "100%" }}>
+        <div
+            style={{ height: "100%" }}
+            ref={flowRef}
+        >
             <Markers />
             <ReactFlow
-                ref={flowRef}
                 nodes={diagramStore.nodes}
                 onNodesChange={
                     diagramStore.lock ? diagramStore.onNodesChange : undefined
@@ -133,8 +135,8 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
                     }}>
                         <Move3d />
                     </ControlButton>
-                    <ControlButton title="download svg"  onClick={() => {
-                        if (flowRef.current === null) return
+                    <ControlButton title="download svg" onClick={() => {
+                        if (flowRef.current === null) return;
                         toSvg(flowRef.current, {
                             filter: node => !(
                                 node?.classList?.contains('react-flow__minimap') ||
