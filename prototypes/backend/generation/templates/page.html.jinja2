@@ -4,7 +4,7 @@
 <div>
     {%- for section_component in page.section_components %}
 
-    <h2>{{ section_component }}</h2>
+    <h2>{{ section_component.display_name }}</h2>
 
     <p>{{ section_component.text }}</p>
 

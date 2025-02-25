@@ -20,7 +20,7 @@
                 <b>{{ category }}</b>
                 {% for page in pages %}
                 {% if page.category == category.name %}
-                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
                 {% endif %}
                 {% endfor %}
@@ -30,7 +30,7 @@
 
                 {% for page in pages %}
                 {% if page.category in ["", none] %}
-                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page
+                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
                 {% endif %}
                 {% endfor %}

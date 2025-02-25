@@ -9,6 +9,7 @@ class Category():
             name: str,
     ):
         self.name = category_name_sanitization(name)
+        self.display_name = name
         self.id = id
 
     def __str__(self):
