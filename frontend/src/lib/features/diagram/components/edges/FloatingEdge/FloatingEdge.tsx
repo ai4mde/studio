@@ -56,7 +56,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 y={(sy + ty) / 2}
                 fontSize="12"
             >
-                {data?.label ?? ""}
+                {data?.type === "extension" ? "<<extends>>" : data?.type === "inclusion" ? "<<includes>>" : data?.label ?? ""}
             </text>
             <text
                 style={{ userSelect: "none" }}

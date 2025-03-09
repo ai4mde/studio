@@ -47,6 +47,12 @@ export const NewUsecaseConnection: React.FC<Props> = ({
                     <Option value="inclusion" label="Inclusion">
                         Inclusion
                     </Option>
+                    <Option value="inclusion" label="Inclusion">
+                        Inclusion
+                    </Option>
+                    <Option value="generalization" label="Generalization">
+                        Generalization
+                    </Option>
                 </Select>
             </FormControl>
         </>
