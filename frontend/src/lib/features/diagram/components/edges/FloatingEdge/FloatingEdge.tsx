@@ -66,6 +66,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 fontSize="12"
             >
                 {data?.multiplicity?.source ?? ""}
+                {data?.type === "objectflow" ? data?.cls : ""}
             </text>
             <text
                 style={{ userSelect: "none" }}
@@ -75,6 +76,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 fontSize="12"
             >
                 {data?.multiplicity?.target ?? ""}
+                {data?.type === "objectflow" ? data?.cls : ""}
             </text>
             <text
                 style={{ userSelect: "none" }}
