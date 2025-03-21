@@ -151,6 +151,7 @@ export const EditSwimlane: React.FC<Props> = ({ node }) => {
             )}
             {showPopup && (
                 <DeleteConfirmationModal
+                    text="Do you want to delete the action nodes linked to this swimlane as well?"
                     onConfirm={handleConfirmDelete}
                     onCancel={() => setShowPopup(false)}
                 />

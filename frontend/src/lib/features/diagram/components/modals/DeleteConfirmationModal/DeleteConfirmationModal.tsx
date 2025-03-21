@@ -6,11 +6,13 @@ import { X } from "lucide-react";
 import style from "./deleteconfirmationmodal.module.css";
 
 interface DeleteConfirmationModalProps {
-    onConfirm: (deleteChildren: boolean) => void;
+    text: string;
+    showNoButton?: boolean;
+    onConfirm: (confirm: boolean) => void;
     onCancel: () => void;
 }
 
-export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ onConfirm, onCancel }) => {
+export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ text, showNoButton = true, onConfirm, onCancel }) => {
     const nodeRef = React.useRef(null);
 
     return createPortal(
@@ -25,15 +27,17 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
                             </button>
                         </div>
                         <div className={style.body}>
-                            <p>Do you want to delete the child nodes as well?</p>
+                            <p>{text}</p>
                         </div>
                         <div className={style.actions}>
                             <Button color="danger" size="sm" onClick={() => onConfirm(true)}>
                                 Yes
                             </Button>
-                            <Button color="primary" size="sm" onClick={() => onConfirm(false)}>
-                                No
-                            </Button>
+                            {showNoButton && (
+                                <Button color="primary" size="sm" onClick={() => onConfirm(false)}>
+                                    No
+                                </Button>
+                            )}
                             <Button color="neutral" size="sm" onClick={onCancel}>
                                 Cancel
                             </Button>

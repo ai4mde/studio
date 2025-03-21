@@ -80,6 +80,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     id: n?.id,
                     name: n?.name,
                     type: n?.type,
+                    actorNode: n?.actorNode,
                 })),
             }));
 

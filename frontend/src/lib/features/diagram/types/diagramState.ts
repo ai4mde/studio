@@ -4,6 +4,7 @@ export type RelatedNode = {
     id: string;
     name: string;
     type: string;
+    actorNode: string;
 }
 
 export type RelatedDiagram = {
