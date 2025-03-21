@@ -31,7 +31,22 @@ class NodeSchema(ModelSchema):
 
     @staticmethod
     def resolve_cls(obj):
-        return obj.cls.data
+        cls_data = obj.cls.data
+
+        # Add the actor node names to the swimlanes
+        if obj.cls.data.get('type') == 'swimlanegroup':
+            cls_data['swimlanes'] = [
+                {
+                    **swimlane,
+                    'actorNodeName': (
+                        Node.objects.get(id=swimlane['actorNode']).cls.data['name']
+                        if Node.objects.filter(id=swimlane['actorNode']).exists()
+                        else 'Unknown actor'
+                    )
+                } for swimlane in obj.cls.data.get('swimlanes', [])
+            ]
+
+        return cls_data
 
     @staticmethod
     def resolve_cls_ptr(obj):

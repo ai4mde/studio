@@ -96,8 +96,6 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
         new_cls = {**node.cls.data, **data.cls}
         PatchModel.model_validate({"cls": new_cls})
         node.cls.data = new_cls
-        if node.cls.data['type'] == 'swimlane':
-            node.cls.data['actorNodeName'] = Node.objects.get(id=node.cls.data['actorNode']).cls.data['name']
         node.cls.save()
 
     if data.data is not None:

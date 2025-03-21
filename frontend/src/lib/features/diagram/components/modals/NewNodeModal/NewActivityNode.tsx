@@ -1,15 +1,17 @@
 import { Checkbox, FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 import React, { useEffect } from "react";
-import { RelatedDiagram, RelatedNode } from "$diagram/types/diagramState"
+import { RelatedNode } from "$diagram/types/diagramState"
+import { node } from "$diagram/types/spec";
 
 type Props = {
     object: any;
-    relatedDiagrams: RelatedDiagram[];
+    uniqueActors: RelatedNode[];
     swimlaneGroupExists: boolean;
+    existingActors: string[];
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams,  swimlaneGroupExists, setObject }) => {
+export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, setObject }) => {
 
     // Set default values for swimlane
     useEffect(() => {
@@ -22,15 +24,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams,  swi
             }))
         }
     }, [object.role, setObject])
-
-    const uniqueActors = Array.from(
-        relatedDiagrams.flatMap((diagram) => diagram.nodes).reduce((map, node) => {
-            if (!map.has(node.name)) {
-                map.set(node.name, node);
-            }
-            return map;
-        }, new Map<string, RelatedNode>()).values()
-    );
 
     return (
         <>
@@ -118,11 +111,14 @@ export const NewActivityNode: React.FC<Props> = ({ object, relatedDiagrams,  swi
                             }}
                             placeholder="Select an actor..."
                         >
-                            {uniqueActors.map((node) => (
-                                <Option key={node.id} value={node.id}>
-                                    {node.name}
-                                </Option>
-                            ))}
+                            {uniqueActors
+                                .filter((node) => !existingActors.includes(node.name))
+                                .map((node) => (
+                                    <Option key={node.id} value={node.id}>
+                                        {node.name}
+                                    </Option>
+                                ))
+                            }
                         </Select>
                     </FormControl>
                     {!swimlaneGroupExists && (

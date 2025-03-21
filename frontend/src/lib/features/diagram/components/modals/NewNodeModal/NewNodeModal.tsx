@@ -13,7 +13,7 @@ import { NewUsecaseNode } from "./NewUsecaseNode";
 import style from "./newnodemodal.module.css";
 
 export const NewNodeModal: React.FC = () => {
-    const { diagram, type, nodes, relatedDiagrams } = useDiagramStore();
+    const { diagram, type, nodes, uniqueActors } = useDiagramStore();
     const { close } = useNewNodeModal();
 
     // TODO: Figure out a way to do better form building
@@ -100,7 +100,12 @@ export const NewNodeModal: React.FC = () => {
                             {type == "activity" && (
                                 <NewActivityNode
                                     object={object}
-                                    relatedDiagrams={relatedDiagrams}
+                                    uniqueActors={uniqueActors}
+                                    existingActors={
+                                        swimlaneGroup
+                                            ? swimlaneGroup.data.swimlanes.map((swimlane) => swimlane.actorNodeName || "")
+                                            : []
+                                    }
                                     swimlaneGroupExists={!!swimlaneGroup}
                                     setObject={setObject}
                                 />

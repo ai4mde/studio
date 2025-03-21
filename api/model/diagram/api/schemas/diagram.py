@@ -41,6 +41,7 @@ class UpdateDiagram(Schema):
 class RelatedNode(ModelSchema):
     name: str
     type: str
+    actor_node: Optional[str]
 
     class Meta:
         model = Node
@@ -53,6 +54,11 @@ class RelatedNode(ModelSchema):
     @staticmethod
     def resolve_type(obj):
         return obj.cls.data["type"]
+
+    @staticmethod
+    def resolve_actor_node(obj):
+        return obj.cls.data.get('actorNode')
+
 
 class RelatedDiagram(ModelSchema):
     nodes: List[RelatedNode]

@@ -46,6 +46,7 @@ export type DiagramState = {
     setConnecting: (val: boolean) => void;
 
     relatedDiagrams: RelatedDiagram[];
+    uniqueActors: RelatedNode[];
     setRelatedDiagrams: (relatedDiagrams: RelatedDiagram[]) => void;
     relatedDiagramsFromAPI: (relatedDiagrams: RelatedDiagram[]) => void;
 };

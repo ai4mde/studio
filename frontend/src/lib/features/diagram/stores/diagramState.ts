@@ -1,6 +1,6 @@
 import { applyNodeChanges } from "$diagram/events/node";
 import { create } from "zustand";
-import { DiagramState } from "../types/diagramState";
+import { DiagramState, RelatedNode } from "../types/diagramState";
 // import { applyEdgeChanges, applyNodeChanges } from '../utils/applyChanges'
 // import processNodes from '../utils/nodes'
 // import processEdges from '../utils/edges'
@@ -9,6 +9,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
     edges: [],
     relatedDiagrams: [],
+    uniqueActors: [],
     diagram: "",
     lock: true,
     connecting: false,
@@ -68,9 +69,10 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                 data: e?.rel,
             })),
         })),
-    relatedDiagramsFromAPI: (rds) =>
-        set(() => ({
-            relatedDiagrams: rds.map((e) => ({
+    relatedDiagramsFromAPI: (rds) => {
+        set(() => {
+            // Map relatedDiagrams from API response
+            const relatedDiagrams = rds.map((e) => ({
                 id: e?.id,
                 name: e?.name,
                 type: e?.type,
@@ -79,6 +81,24 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     name: n?.name,
                     type: n?.type,
                 })),
-            })),
-        })),
-}))
+            }));
+
+            // Compute uniqueActors from relatedDiagrams
+            const uniqueActors = Array.from(
+                relatedDiagrams
+                    .filter((diagram) => diagram.type === "usecase")
+                    .flatMap((diagram) => diagram.nodes)
+                    .filter((node) => node.type === "actor")
+                    .reduce((map, node) => {
+                        map.set(node.name, node);
+                        return map;
+                    }, new Map<string, RelatedNode>())
+                    .values()
+            );
+
+            return { relatedDiagrams, uniqueActors };
+        });
+    }
+}));
+    
+
