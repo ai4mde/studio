@@ -49,7 +49,8 @@ create_shared_models_app() {
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
-    cp "${WORKDIR}/workflow_engine/"{models.py,urls.py,views.py} "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
+    python "${WORKDIR}/generation_scripts/workflow_engine/generate_models.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    cp "${WORKDIR}/workflow_engine/"{urls.py,views.py} "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine']" >> settings.py
 }   

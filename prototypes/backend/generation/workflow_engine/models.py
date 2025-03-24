@@ -1,12 +1,9 @@
 from django.db import models
-from django.db.models.manager import RelatedManager
+from django.db.models.query import QuerySet
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 
-
-class AssociatedModel(models.Model):
-    class_name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.class_name
+# Imports
 
 
 class ActionNode(models.Model):
@@ -25,8 +22,7 @@ class ActionNode(models.Model):
 class Process(models.Model):
     name = models.CharField(max_length=255)
     start_node = models.ForeignKey(ActionNode, related_name="start_node", on_delete=models.PROTECT)
-    associated_models = models.ManyToManyField(AssociatedModel, related_name="processes")
-    action_nodes: RelatedManager[ActionNode]
+    action_nodes: QuerySet[ActionNode]
 
     @property
     def end_nodes(self):
@@ -54,6 +50,10 @@ class ActiveProcess(models.Model):
     process = models.ForeignKey(Process, related_name="active_processes", on_delete=models.CASCADE)
     active_node = models.ForeignKey(ActionNode, related_name="active_processes", on_delete=models.PROTECT)
 
+    associated_model_instances: "QuerySet[AssociatedModelInstance]"
+
+    # Properties
+
     def complete_node(self):
         raise NotImplementedError
 
@@ -61,9 +61,10 @@ class ActiveProcess(models.Model):
         return f"Active process for {self.process}"
 
 class AssociatedModelInstance(models.Model):
-    instanceId = models.IntegerField()
-    associated_model = models.ForeignKey(AssociatedModel, related_name="instances", on_delete=models.PROTECT)
+    instance_id = models.IntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    instance = GenericForeignKey('content_type', 'instance_id')
     active_process = models.ForeignKey(ActiveProcess, related_name="associated_model_instances", on_delete=models.PROTECT)
 
     def __str__(self):
-        return f"Instance {self.instanceId} of {self.associated_model}"
+        return f"Instance {self.instance_id} of {self.content_type.name}"
