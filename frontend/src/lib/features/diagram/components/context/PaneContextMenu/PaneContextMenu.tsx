@@ -1,19 +1,21 @@
+import ContextMenu from "$diagram/components/context/ContextMenu/ContextMenu";
 import { usePaneContextMenu } from "$diagram/stores/contextMenus";
-import React from "react";
-import { useNewNodeModal } from "$diagram/stores/modals";
+import { useImportNodeModal, useNewNodeModal } from "$diagram/stores/modals";
 import {
     Bot,
     BoxSelect,
     Clipboard,
     DownloadCloud,
     Image,
+    Import,
     Plus,
 } from "lucide-react";
-import ContextMenu from "$diagram/components/context/ContextMenu/ContextMenu";
+import React from "react";
 
 const PaneContextMenu: React.FC = () => {
     const { x, y, close } = usePaneContextMenu();
     const newNodeModal = useNewNodeModal();
+    const importNodeModal = useImportNodeModal();
 
     return (
         <ContextMenu x={x} y={y}>
@@ -27,6 +29,17 @@ const PaneContextMenu: React.FC = () => {
                     >
                         <span>New Node</span>
                         <Plus size={14} />
+                    </button>
+                </li>
+                <li>
+                    <button
+                        onClick={() => {
+                            importNodeModal.open();
+                            close();
+                        }}
+                    >
+                        <span>Import Node</span>
+                        <Import size={14} />
                     </button>
                 </li>
                 <hr className="my-1" />

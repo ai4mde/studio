@@ -1,8 +1,9 @@
 import {
     EditConnectionModalState,
     EditNodeModalState,
+    ImportNodeModalState,
     NewConnectionModalState,
-    NewNodeModalState,
+    NewNodeModalState
 } from "$diagram/types/modals";
 import { create } from "zustand";
 
@@ -11,6 +12,13 @@ export const useNewNodeModal = create<NewNodeModalState>((set) => ({
     open: () => set(() => ({ active: true })),
     close: () => set(() => ({ active: false })),
 }));
+
+export const useImportNodeModal = create<ImportNodeModalState>((set) => ({
+    active: false,
+    open: () => set(() => ({ active: true })),
+    close: () => set(() => ({ active: false })),
+}));
+
 
 export const useNewConnectionModal = create<NewConnectionModalState>((set) => ({
     active: false,

@@ -11,6 +11,15 @@ export const addNode = async (diagram: string, data: any) => {
     });
 };
 
+export const importNode = async (diagram: string, id: string) => {
+    await authAxios.post(`/v1/diagram/${diagram}/node/import/${id}/`, {
+    });
+
+    queryClient.invalidateQueries({
+        queryKey: ["diagram", diagram],
+    });
+};
+
 export const partialUpdateNode = async (
     diagram: string,
     node: string,
