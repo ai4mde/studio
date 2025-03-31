@@ -8,6 +8,8 @@ export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
 
+export PYTHONPATH="${WORKDIR}/generation_scripts"
+
 # Global settings such as authentication go here
 export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA")
 
@@ -49,7 +51,8 @@ create_shared_models_app() {
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
-    python "${WORKDIR}/generation_scripts/workflow_engine/generate_models.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/generate_models_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/create_workflow_engine_data.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
     cp "${WORKDIR}/workflow_engine/"{urls.py,views.py} "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine']" >> settings.py
@@ -115,6 +118,7 @@ create_django_apps() {
 run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python "manage.py" "makemigrations"
+    cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
     python "manage.py" "migrate"
 }
 

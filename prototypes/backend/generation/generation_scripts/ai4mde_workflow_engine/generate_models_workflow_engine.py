@@ -11,11 +11,10 @@ def main():
 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/workflow_engine/models.py.jinja2"
     MODELS_PY_FILE_PATH = "/usr/src/prototypes/backend/generation/workflow_engine/models.py"
-    OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{project_name_sanitization(sys.argv[1])}/{sys.argv[3]}/workflow_engine/models.py"
+    OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{sys.argv[3]}/{project_name_sanitization(sys.argv[1])}/workflow_engine/models.py"
     models = [model.name for model in retrieve_models(sys.argv[2])]
-    properties = read_template_file(TEMPLATE_PATH).render(
-        models=models
-    )
+    
+    properties = read_template_file(TEMPLATE_PATH).render(models=models)
     imports = f"from shared_models.models import {', '.join(models)}"
 
     with open(MODELS_PY_FILE_PATH, "r") as f:

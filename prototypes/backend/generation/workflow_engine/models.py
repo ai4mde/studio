@@ -9,11 +9,9 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 class ActionNode(models.Model):
     actor = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
-    is_end_node = models.BooleanField(default=False)
     process = models.ForeignKey("Process", related_name="action_nodes", on_delete=models.CASCADE)
 
-    def get_next_node(self):
-        raise NotImplementedError
+    next_node_rule: "Rule"
 
     def __str__(self):
         return f"{self.actor} - {self.name}"
@@ -21,15 +19,15 @@ class ActionNode(models.Model):
 
 class Process(models.Model):
     name = models.CharField(max_length=255)
-    start_node = models.ForeignKey(ActionNode, related_name="start_node", on_delete=models.PROTECT)
+    start_node = models.ForeignKey(ActionNode, related_name="start_process", on_delete=models.PROTECT, null=True)
+
     action_nodes: QuerySet[ActionNode]
 
-    @property
-    def end_nodes(self):
-        return self.action_nodes.filter(is_end_node=True)
-
     def start_process(self):
-        raise NotImplementedError
+        return ActiveProcess.objects.create(
+            process=self,
+            active_node=self.start_node
+        )
 
     def __str__(self):
         return self.name
@@ -37,10 +35,11 @@ class Process(models.Model):
 
 class Rule(models.Model):
     condition = models.JSONField(default=dict)
-    action_node = models.OneToOneField(ActionNode, related_name="rule", on_delete=models.CASCADE)
+    action_node = models.OneToOneField(ActionNode, related_name="next_node_rule", on_delete=models.CASCADE)
 
-    def evaluate_rule(self):
-        raise NotImplementedError
+    def evaluate_rule(self) -> ActionNode:
+        # Currently only the id is stored not a rule since this is Case study 1
+        return ActionNode.objects.get(id=int(self.condition['next_node_id']))
 
     def __str__(self):
         return f"Next node rule for {self.action_node}"
@@ -54,8 +53,10 @@ class ActiveProcess(models.Model):
 
     # Properties
 
-    def complete_node(self):
-        raise NotImplementedError
+    def complete_node(self) -> None:
+        self.active_node = self.active_node.next_node_rule.evaluate_rule()
+        # TODO check if the node is the end node
+        self.save()
 
     def __str__(self):
         return f"Active process for {self.process}"
