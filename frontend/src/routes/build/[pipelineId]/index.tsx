@@ -1,5 +1,5 @@
 import { authAxios } from "$auth/state/auth";
-import { AddToSystem } from "$lib/features/ai/components/AddToSystem";
+import { AddToDiagram } from "$lib/features/ai/components/AddToDiagram";
 import { RunModel } from "$lib/features/ai/components/RunModel";
 import { SelectModel } from "$lib/features/ai/components/SelectModel";
 import { Steps } from "$lib/features/ai/components/Steps";
@@ -65,7 +65,7 @@ export const PipelineIndex: React.FC<Props> = () => {
             {data.step < 3 && <UploadRequirements pipeline={data} />}
             {data.step == 3 && <SelectModel pipeline={data} />}
             {data.step == 4 && <RunModel pipeline={data} />}
-            {data.step == 5 && <AddToSystem pipeline={data} />}
+            {data.step == 5 && <AddToDiagram pipeline={data} />}
         </div>
     );
 };

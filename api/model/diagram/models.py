@@ -14,6 +14,41 @@ class Diagram(models.Model):
         System, on_delete=models.CASCADE, related_name="diagrams"
     )
 
+
+    def add_node_and_classifier(self, classifier: dict):
+        cls = Classifier.objects.create(
+            id = classifier['id'],
+            system = self.system,
+            data = classifier['data']
+        )
+        Node.objects.create(
+            diagram = self,
+            cls = cls,
+            data = {
+            "position": {
+              "x": 0,
+              "y": 0
+            }
+          },
+        )
+
+
+    def add_edge_and_relation(self, relation: dict):
+        rel = Relation.objects.create(
+            id = relation['id'],
+            system = self.system,
+            source = Classifier.objects.get(pk=relation['source']),
+            target = Classifier.objects.get(pk=relation['target']),
+            data = relation['data']
+
+        )
+        Edge.objects.create(
+            diagram = self,
+            rel = rel,
+            data = {}
+        )
+
+
     def auto_layout(self):
         graph = nx.Graph()
         

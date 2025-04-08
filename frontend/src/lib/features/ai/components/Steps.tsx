@@ -96,7 +96,7 @@ export const Steps: React.FC<Props> = ({ step }) => {
                     </StepIndicator>
                 }
             >
-                Add to system
+                Add to diagram
             </Step>
         </Stepper>
     );
