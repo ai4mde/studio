@@ -12,6 +12,7 @@ import {
     PostconditionNode,
     PreconditionNode,
     ScenarioNode,
+    SignalNode,
     SystemNode,
     TriggerNode,
     UsecaseNode,
@@ -26,6 +27,7 @@ export const Node: React.FC<NodeProps> = () => {
 export const nodeTypes: NodeTypes = {
     class: ClassNode,
     enum: EnumNode,
+    signal: SignalNode,
     action: ActionNode,
     initial: InitialNode,
     decision: DecisionNode,
