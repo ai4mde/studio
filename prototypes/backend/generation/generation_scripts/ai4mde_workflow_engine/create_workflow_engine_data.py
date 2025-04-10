@@ -117,7 +117,7 @@ class ActivityDiagramParser:
         return self.parse_node(diagram, start_node[0]['id'])
 
     def parse_metadata(self) -> list[Diagram]:
-        """Parse all activity diagram in the metadata"""
+        """Parse all activity diagrams in the metadata"""
         return [
             Diagram(
                 name=diagram['name'],

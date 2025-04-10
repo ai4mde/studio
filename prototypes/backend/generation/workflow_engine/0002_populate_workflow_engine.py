@@ -11,6 +11,15 @@ def fill_workflow_engine(apps, schema_editor):
     # Load the data
     with open('workflow_engine/migrations/workflow_engine_data.json', 'r') as f:
         data = json.loads(f.read())
+    
+    # Create rules
+    rule_map = {}
+    for rule_data in data['rules']:
+        rule = Rule.objects.create(
+            id=rule_data['id'],
+            condition=rule_data['condition'],
+        )
+        rule_map[rule_data['action_node']] = rule
 
     # Create processes
     process_map = {}
@@ -30,16 +39,10 @@ def fill_workflow_engine(apps, schema_editor):
             actor=action_node_data['actor'],
             name=action_node_data['name'],
             process=process_map[action_node_data['process']],
+            next_node_rule=rule_map[action_node_data['id']],
         )
         action_node_map[action_node_data['id']] = action_node
-
-    # Create rules
-    for rule_data in data['rules']:
-        Rule.objects.create(
-            id=rule_data['id'],
-            condition=rule_data['condition'],
-            action_node=action_node_map[rule_data['action_node']]
-        )
+        
 
     # Update start_node for processes
     for process_data in data['processes']:
