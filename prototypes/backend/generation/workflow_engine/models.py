@@ -6,7 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
 from shared_models.models import User
-from workflow_engine.utils import get_user_for_task
 
 # Imports
 
@@ -89,25 +88,35 @@ class ActiveProcess(models.Model):
 
     # Properties
 
-    def complete_node(self, user: User | None) -> None:
-        """Complete the current node and move to the next node."""
+    def complete_node(self, user: User) -> None:
+        """Complete the current node and progress to the next node if needed."""
         if self.completed:
-            raise ValueError("Process is already completed")
+            raise ValueError("This process is already completed.")
+        
+        # Evaluate the rule to determine the next node
         next_node = self.active_node.next_node_rule.evaluate_rule()
 
         if not next_node:
-            self.completed = True
-            self.save()
-            # Log the completion of the process
-            ActionLog.objects.create(
-                status="COMPLETED",
-                process=self.process,
-                action_node=self.active_node,
-                active_process=self,
-                user=user,
-            )
+            self._complete_process(user)
             return
-        # Log the progression of the process and assignment to the next node
+        self._progress_to_next_node(next_node, user)
+        
+
+    def _complete_process(self, user: User) -> None:
+        """Mark the process as completed and log the completion."""
+        self.completed = True
+        self.save()
+        ActionLog.objects.create(
+            status="COMPLETED",
+            process=self.process,
+            action_node=self.active_node,
+            active_process=self,
+            user=user,
+        )
+
+    def _progress_to_next_node(self, next_node: ActionNode, user: User) -> None:
+        """Progress to the next node and assign the next user."""
+        self.active_node = next_node
         ActionLog.objects.create(
             status="PROGRESSED",
             process=self.process,
@@ -115,23 +124,34 @@ class ActiveProcess(models.Model):
             active_process=self,
             user=user,
         )
-        if next_node.actor in user.roles:
-            # User can also do the next node, keep the assignment the same
-            self.active_node = next_node
-            self.save()
-            next_user = user
-            # Log the assignment of the next node
-        else:
-            # User cannot do the next node, we need to find a new User who can
-            next_user = get_user_for_task(next_node)
+
+        # Determine the next user for the task
+        next_user = self._get_next_user(next_node, user)
+        self.user = next_user
+        self.save()
+
         ActionLog.objects.create(
-                status="ASSIGNED",
-                process=self.process,
-                action_node=next_node,
-                active_process=self,
-                user=next_user,
-            )
-        
+            status="ASSIGNED",
+            process=self.process,
+            action_node=next_node,
+            active_process=self,
+            user=next_user,
+        )
+
+    def _get_next_user(self, next_node: ActionNode, current_user: User) -> User:
+        """Determine the next user for the given node."""
+        # Try to keep the current user for the next node
+        if next_node.actor in current_user.roles:
+            return current_user
+
+        users = User.objects.filter(roles__contains=next_node.actor)
+        # TODO: Implement a better distribution algorithm
+        # For now, just return the first user that matches the actor
+        next_user = users.first() if users.exists() else None
+        if not next_user:
+            raise ValueError(f"No user found for task {next_node}")
+        return next_user
+    
     def __str__(self):
         return f"Active process for {self.process}"
 
@@ -159,9 +179,9 @@ class ActionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
-    process = models.ForeignKey(ActiveProcess, related_name="action_logs", on_delete=models.CASCADE)
+    process = models.ForeignKey(ActiveProcess, related_name="process_action_logs", on_delete=models.CASCADE)
     action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
-    active_process = models.ForeignKey(ActiveProcess, related_name="action_logs", on_delete=models.CASCADE)
+    active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="action_logs", on_delete=models.CASCADE)
 
     def __str__(self):
