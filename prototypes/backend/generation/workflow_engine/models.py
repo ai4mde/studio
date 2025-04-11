@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.core.exceptions import PermissionDenied
 
 from shared_models.models import User
 
@@ -29,13 +30,17 @@ class Process(models.Model):
     action_nodes: QuerySet[ActionNode]
 
     @staticmethod
-    def get_startable_processes(user: User) -> QuerySet["Process"]:
+    def get_available_processes(user: User) -> QuerySet["Process"]:
         return Process.objects.filter(
             start_node__actor__in=user.roles,
         )
 
     def start_process(self, user: User) -> None:
         """Start a process for the given user."""
+        assert self.start_node # TODO make start node required. This involves changing the workflow population migration.
+        if self.start_node.actor not in user.roles:
+            raise PermissionDenied(f"User {user.username} does not have the required role to start this process.")
+
         active_process = ActiveProcess.objects.create(
             process=self,
             active_node=self.start_node,

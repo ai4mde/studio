@@ -52,10 +52,12 @@ create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
     python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/generate_models_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/generate_views_workflow_engine.py" "$PROJECT_NAME" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/create_workflow_engine_data.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
-    cp "${WORKDIR}/workflow_engine/"{urls.py,views.py} "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
+    cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine']" >> settings.py
+    echo "urlpatterns += [path('workflow_engine', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
 }   
 
 create_authentication_app() {
