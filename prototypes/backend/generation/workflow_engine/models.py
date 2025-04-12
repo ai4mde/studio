@@ -184,7 +184,7 @@ class ActionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
-    process = models.ForeignKey(ActiveProcess, related_name="process_action_logs", on_delete=models.CASCADE)
+    process = models.ForeignKey(Process, related_name="process_action_logs", on_delete=models.CASCADE)
     action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="action_logs", on_delete=models.CASCADE)

@@ -12,19 +12,19 @@
 {% if authentication_present -%}
     <h3>Available Processes</h3>
     {% raw %}{% if available_processes %}{% endraw %}
-        <ul>
+        <div class="process-list">
             {% raw %}{% for process in available_processes %}{% endraw %}
-                <li>
-                    {% raw %}{{ process.name }}{% endraw %}
+                <div class="process-item">
+                    <h4>{% raw %}{{ process.name }}{% endraw %}</h4>
                     <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
                         {% raw %}{% csrf_token %}{% endraw %}
-                        <button type="submit">Start</button>
+                        <button type="submit" class="start-button">Start</button>
                     </form>
-                </li>
+                </div>
             {% raw %}{% endfor %}{% endraw %}
-        </ul>
+        </div>
     {% raw %}{% else %}{% endraw %}
-        <p>No processes available.</p>
+        <p class="no-processes">No processes available.</p>
     {% raw %}{% endif %}{% endraw %}
 {% endif %}
 
