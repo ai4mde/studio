@@ -98,6 +98,9 @@ class ActiveProcess(models.Model):
         if self.completed:
             raise ValueError("This process is already completed.")
         
+        if self.active_node.actor not in user.roles:
+            raise PermissionDenied(f"User {user.username} does not have the required role to complete this step.")
+
         # Evaluate the rule to determine the next node
         next_node = self.active_node.next_node_rule.evaluate_rule()
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
 from shared_models.models import *
-from workflow_engine.models import Process
+from workflow_engine.models import ActiveProcess, Process
 
 {% if authentication_present -%}
 def login_check(user):
@@ -142,4 +142,5 @@ def homerender(request):
     context = {}
     context['user'] = request.user
     context['available_processes'] = Process.get_available_processes(request.user)
+    context['active_processes'] = ActiveProcess.objects.filter(user=request.user, completed=False)
     return render(request, '{{ application_name }}_home.html', context)
