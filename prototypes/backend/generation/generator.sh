@@ -51,9 +51,7 @@ create_shared_models_app() {
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
-    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/generate_models_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
-    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/generate_views_workflow_engine.py" "$PROJECT_NAME" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
-    python "${WORKDIR}/generation_scripts/ai4mde_workflow_engine/create_workflow_engine_data.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine']" >> settings.py

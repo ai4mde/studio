@@ -1,9 +1,7 @@
 from functools import cached_property
 import json
-import sys
 from typing import Any, NamedTuple
 
-from utils.sanitization import project_name_sanitization
 from utils.file_generation import write_to_file
 
 
@@ -229,13 +227,12 @@ class ActivityDiagramParser:
         }
 
 
-def main():
-    if len(sys.argv) != 4:
-        raise Exception("Invalid number of system arguments.")
-    OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{sys.argv[3]}/{project_name_sanitization(sys.argv[1])}/workflow_engine/migrations/workflow_engine_data.json"
-    parser = ActivityDiagramParser(json.loads(sys.argv[2]))
+def generate_data(system_id: str, project_name: str, metadata: str) -> bool:
+    OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
+    parser = ActivityDiagramParser(json.loads(metadata))
     workflow_engine_data = parser.get_workflow_engine_data()
-    write_to_file(OUTPUT_FILE_PATH, json.dumps(workflow_engine_data, indent=4))
 
-if __name__ == "__main__":
-    main()
+    if write_to_file(OUTPUT_FILE_PATH, json.dumps(workflow_engine_data, indent=4)):
+        return True
+
+    raise Exception(f"Failed to generate {project_name}/workflow_engine/migrations/workflow_engine_data.json")
