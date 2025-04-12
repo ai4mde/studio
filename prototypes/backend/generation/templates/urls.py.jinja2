@@ -1,8 +1,11 @@
 from django.urls import path
 from . import views
 
+from workflow_engine.views import action_log_view
+
 urlpatterns = [
     path("", views.homerender, name="{{ application_name }}-homerender"),
+    path('action-log/', action_log_view, {'template_name': '{{ application_name}}_action_log.html'}, name="{{ application_name }}_action_log"),
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}", views.render_{{ application_name }}_{{ page }}, name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}

@@ -16,6 +16,7 @@
         </div>
             <div class="menu">
                 <a href="{% raw %}{%{% endraw %} url '{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}_action_log' {% raw %}%}{% endraw %}">Activity log</a>
                 {% for category in categories %}
                 <b>{{ category }}</b>
                 {% for page in pages %}

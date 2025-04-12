@@ -19,7 +19,7 @@ class ActionNode(models.Model):
     next_node_rule = models.OneToOneField("Rule", related_name="action_node", on_delete=models.PROTECT)
 
     def __str__(self):
-        return f"{self.actor} - {self.name}"
+        return self.name
 
 
 class Process(models.Model):

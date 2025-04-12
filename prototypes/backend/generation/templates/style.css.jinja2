@@ -18,6 +18,36 @@
     text-align: left;
 }
 
+/* TODO: Add table styles per style type */
+.filter-form {
+    margin-bottom: 20px;
+}
+
+.filter-form label {
+    margin-right: 10px;
+}
+
+.filter-form input,
+.filter-form select {
+    margin-right: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f4f4f4;
+}
+
 {% if styling.style_type == StyleType.BASIC %}
 body {
     font-family: Arial, sans-serif;
