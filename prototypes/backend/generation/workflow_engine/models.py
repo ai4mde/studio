@@ -1,6 +1,7 @@
 import re
 
 from django.db import models
+from django.utils.timezone import now
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -46,9 +47,10 @@ class Process(models.Model):
             active_node=self.start_node,
             user=user,
         )
+
         # Log the start of the process
         ActionLog.objects.create(
-            status="STARTED",
+            status="ASSIGNED",
             process=self,
             action_node=self.start_node,
             active_process=active_process,
@@ -114,36 +116,42 @@ class ActiveProcess(models.Model):
         """Mark the process as completed and log the completion."""
         self.completed = True
         self.save()
-        ActionLog.objects.create(
-            status="COMPLETED",
-            process=self.process,
+        # Log the completion of the process
+        current_action_log = ActionLog.objects.get(
             action_node=self.active_node,
             active_process=self,
-            user=user,
         )
+        current_action_log.completed_at = now()
+        current_action_log.status = "COMPLETED"
+        current_action_log.save()
 
     def _progress_to_next_node(self, next_node: ActionNode, user: User) -> None:
         """Progress to the next node and assign the next user."""
-        self.active_node = next_node
-        ActionLog.objects.create(
-            status="PROGRESSED",
-            process=self.process,
-            action_node=next_node,
+
+        # Log the completion of the current node
+        current_action_log = ActionLog.objects.get(
+            action_node=self.active_node,
             active_process=self,
-            user=user,
         )
+        current_action_log.completed_at = now()
+        current_action_log.status = "COMPLETED"
+        current_action_log.save()
+
+        # Set the next node as the active node
+        self.active_node = next_node
 
         # Determine the next user for the task
         next_user = self._get_next_user(next_node, user)
         self.user = next_user
         self.save()
 
+        # Log the assignment of the next node
         ActionLog.objects.create(
             status="ASSIGNED",
             process=self.process,
             action_node=next_node,
             active_process=self,
-            user=next_user,
+            user=user,
         )
 
     def _get_next_user(self, next_node: ActionNode, current_user: User) -> User:
@@ -179,12 +187,12 @@ class ActionLog(models.Model):
         ("STARTED", "Started"),
         ("COMPLETED", "Completed"),
         ("ASSIGNED", "Assigned"),
-        ("PROGRESSED", "Progressed"),
     ]
 
 
     id = models.AutoField(primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
     process = models.ForeignKey(Process, related_name="process_action_logs", on_delete=models.CASCADE)
