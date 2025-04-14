@@ -5,6 +5,7 @@ from metadata.models import Project, System
 from .meta import meta
 from .classifiers import classifiers, classes, actors
 from .relations import relations, classifier_relations
+from .node import nodes
 
 from ninja import Router
 
@@ -57,6 +58,7 @@ systems.add_router("/{uuid:system_id}/classes", classes, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/actors", actors, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/relations", relations, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relations, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/nodes", nodes, tags=["metadata"])
 
 
 __all__ = ["systems"]

@@ -5,21 +5,31 @@ import {
 } from "@mui/joy";
 import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
 import React, { useEffect, useState } from 'react';
+import { useSystemActions } from "$lib/features/interfaces/queries";
+import { useParams } from "react-router";
 import Select from "react-select";
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
+    actorName: string;
 };
 
-export const Pages: React.FC<Props> = () => {
+export const Pages: React.FC<Props> = ({ actorName }) => {
+    const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('pages', []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [categories, , isSuccessCategories] = useLocalStorage('categories', []);
     const [selectedCategory, setSelectedCategory] = useLocalStorage('selectedCategory', '');
+    const [selectedPageType, setSelectedPageType] = useLocalStorage('selectedPageType', '');
+    const [selectedAction, setSelectedAction] = useLocalStorage('selectedAction', '');
     const [sections, isSuccessSections] = useLocalStorage('sections', []);
     const [selectedSections, setSelectedSections] = useLocalStorage('selectedSections', []);
     const [pencelClick, setPencelClick] = useState(false);
+    const [actions, isSuccessActions] = useSystemActions(systemId, 'action');
+
+    // Filter out the actions that are not related to the current actor
+    const filteredActions = actions.filter((action) => action.cls.actorNodeName === actorName);
 
     useEffect(() => {
         if (editIndex !== -1 && data[editIndex].sections) {
@@ -34,6 +44,22 @@ export const Pages: React.FC<Props> = () => {
             setSelectedCategory(data[editIndex].category);
         } else {
             setSelectedCategory(null);
+        }
+    }, [editIndex, data]);
+
+    useEffect(() => {
+        if (editIndex !== -1 && data[editIndex].type) {
+            setSelectedPageType(data[editIndex].type || 'normal');
+        } else {
+            setSelectedCategory('normal');
+        }
+    }, [editIndex, data]);
+
+    useEffect(() => {
+        if (editIndex !== -1 && data[editIndex].action) {
+            setSelectedAction(data[editIndex].action);
+        } else {
+            setSelectedAction(null);
         }
     }, [editIndex, data]);
 
@@ -72,6 +98,26 @@ export const Pages: React.FC<Props> = () => {
         }
     }, [selectedCategory]);
 
+    useEffect(() => {
+        if (editIndex !== -1) {
+            const newData = [...data];
+            newData[editIndex].type = selectedPageType;
+            if (selectedPageType.value === 'normal') {
+                newData[editIndex].action = null;
+            } else {
+                newData[editIndex].category = null;
+            }
+            setData(newData);
+        }
+    }, [selectedPageType]);
+
+    useEffect(() => {
+        if (editIndex !== -1) {
+            const newData = [...data];
+            newData[editIndex].action = selectedAction;
+            setData(newData);
+        }
+    }, [selectedAction]);
 
     const handlePencilClick = () => {
         setPencelClick(true);
@@ -131,7 +177,19 @@ export const Pages: React.FC<Props> = () => {
                                             </FormControl>
                                         )}
                                     </div>
-                                    {isSuccessCategories && (
+                                    <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">Page type</h3>
+                                        <Select
+                                            name="pageType"
+                                            options={[
+                                                { label: 'Normal', value: 'normal' },
+                                                { label: 'Activity', value: 'activity' },
+                                            ]}
+                                            value={selectedPageType}
+                                            onChange={setSelectedPageType}
+                                        />
+                                    </FormControl>
+                                    {selectedPageType.value === 'normal' && isSuccessCategories && (
                                         <FormControl className="space-y-1">
                                             <h3 className="text-xl font-bold">Category</h3>
                                             {categories.length > 0 ? (
@@ -144,6 +202,22 @@ export const Pages: React.FC<Props> = () => {
                                                 />
                                             ) : (
                                                 <p>Create a new category!</p>
+                                            )}
+                                        </FormControl>
+                                    )}
+                                    {selectedPageType.value === 'activity' && isSuccessActions && (
+                                        <FormControl className="space-y-1">
+                                            <h3 className="text-xl font-bold">Activity</h3>
+                                            {actions.length > 0 ? (
+                                                <Select
+                                                    name="activity"
+                                                    options={filteredActions.map((e) => ({ label: e.cls.name, value: e.id }))}
+                                                    value={selectedAction}
+                                                    onChange={setSelectedAction}
+                                                    isClearable={true}
+                                                />
+                                            ) : (
+                                                <p>Create a new activity using the Activity Diagram editor</p>
                                             )}
                                         </FormControl>
                                     )}

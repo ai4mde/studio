@@ -115,7 +115,9 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Categories />
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages />
+                            <Pages
+                                actorName = {data?.name}    
+                            />
                         </TabPanel>
                         <TabPanel value={3}>
                             <Sections />
