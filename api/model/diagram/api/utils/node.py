@@ -31,6 +31,24 @@ def create_node(diagram: Diagram, data: spec.Classifier):
     return node
 
 
+def import_node(diagram: Diagram, id: str):
+    classifier = Classifier.objects.get(pk=id)
+    if not classifier:
+        return 404
+
+    node = Node.objects.create(
+        diagram=diagram,
+        cls=classifier,
+        data={
+            "position": {
+                "x": 0,
+                "y": 0,
+            }
+        },
+    )
+    return node
+
+
 def delete_node(diagram: Diagram, node_id: str):
     node = diagram.nodes.filter(id=node_id).first()
     if node is None:

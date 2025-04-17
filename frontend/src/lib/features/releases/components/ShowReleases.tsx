@@ -347,40 +347,42 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                     <h3 className="text-sm text-red-500">Warning: this will delete all prototypes of this system!</h3>
                 </ModalDialog>
             </Modal>
-            <Modal open={showLoadReleaseModal} onClose={() => { close(); setShowLoadReleaseModal(false) }}>
-                <ModalDialog>
-                    <div className="flex w-full flex-row justify-between pb-1">
-                        <div className="flex flex-col">
-                            <h1 className="font-bold">Load a release</h1>
-                            <h3 className="text-sm">The diagrams and interfaces from release <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
+            {showLoadReleaseModal &&
+                <Modal open={showLoadReleaseModal} onClose={() => { close(); setShowLoadReleaseModal(false) }}>
+                    <ModalDialog>
+                        <div className="flex w-full flex-row justify-between pb-1">
+                            <div className="flex flex-col">
+                                <h1 className="font-bold">Load a release</h1>
+                                <h3 className="text-sm">The diagrams and interfaces from release <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
+                            </div>
+                            <ModalClose
+                                sx={{
+                                    position: "relative",
+                                    top: 0,
+                                    right: 0,
+                                }}
+                            />
                         </div>
-                        <ModalClose
-                            sx={{
-                                position: "relative",
-                                top: 0,
-                                right: 0,
-                            }}
-                        />
-                    </div>
-                    <Divider />
-                    <div className="flex flex-col pt-1 w-16">
-                        <Button
-                            onClick={handleLoad}
-                            color="primary"
-                            variant="solid"
-                            disabled={isLoading} // Disable button if isLoading is true
-                        >
-                            {isLoading ? (
-                                <div className="flex flex-row gap-2">
-                                    <CircularProgress className="animate-spin" />
-                                    <p>Loading...</p>
-                                </div>
-                            ) : "Load"}
-                        </Button>
-                    </div>
-                    <h3 className="text-sm text-red-500">Warning: this will delete all current changes that have not been released!</h3>
-                </ModalDialog>
-            </Modal>
+                        <Divider />
+                        <div className="flex flex-col pt-1 w-16">
+                            <Button
+                                onClick={handleLoad}
+                                color="primary"
+                                variant="solid"
+                                disabled={isLoading} // Disable button if isLoading is true
+                            >
+                                {isLoading ? (
+                                    <div className="flex flex-row gap-2">
+                                        <CircularProgress className="animate-spin" />
+                                        <p>Loading...</p>
+                                    </div>
+                                ) : "Load"}
+                            </Button>
+                        </div>
+                        <h3 className="text-sm text-red-500">Warning: this will delete all current changes that have not been released!</h3>
+                    </ModalDialog>
+                </Modal>
+            }
         </>
     );
 };

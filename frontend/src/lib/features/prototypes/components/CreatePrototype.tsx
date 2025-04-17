@@ -224,8 +224,9 @@ export const CreatePrototype: React.FC = () => {
                             name="interfaces"
                             options={interfaces.map((e) => ({ label: e.name, value: e }))}
                             value={selectedInterfaces}
-                            onChange={() => setSelectedInterfaces}
+                            onChange={(newValue) => setSelectedInterfaces(newValue ? newValue.map((v) => v.value) : [])}
                         />
+
                     </FormControl>
                     <FormControl>
                         <FormLabel>Reuse database</FormLabel>

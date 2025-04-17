@@ -24,12 +24,31 @@ const WrapMarker: React.FC<WrapMarkerProps> = ({
     );
 };
 
+const LongWrapMarker: React.FC<WrapMarkerProps> = ({
+    id,
+    children,
+}: WrapMarkerProps) => {
+    return (
+        <marker
+            id={id}
+            viewBox="0 0 32 16"
+            markerHeight={16}
+            markerWidth={32}
+            refX={32}
+            refY={8}
+            orient="auto-start-reverse"
+        >
+            {children}
+        </marker>
+    );
+};
+
 const Markers: React.FC = () => {
     return (
         <>
             <svg style={{ position: "absolute", top: 0, left: 0 }}>
                 <defs>
-                    <WrapMarker id="activity-end">
+                    <WrapMarker id="controlflow-end">
                         <svg width={16} height={16} viewBox="0 0 16 16">
                             <path
                                 d="M 1, 1 L 16, 8 L 1, 16"
@@ -38,6 +57,35 @@ const Markers: React.FC = () => {
                             />
                         </svg>
                     </WrapMarker>
+                    <WrapMarker id="objectflow-start">
+                        <svg width={16} height={16} viewBox="0 0 16 16">
+                            <rect
+                                x="2"
+                                y="1"
+                                width="14"
+                                height="14"
+                                stroke="black"
+                                fill="white"
+                            />
+                        </svg>
+                    </WrapMarker>
+                    <LongWrapMarker id="objectflow-end">
+                        <svg width={32} height={16} viewBox="0 0 32 16">
+                            <path
+                                d="M 3, 1 L 18, 8 L 3, 16"
+                                stroke="black"
+                                fill="none"
+                            />
+                            <rect
+                                x="18"
+                                y="1"
+                                width="14"
+                                height="14"
+                                stroke="black"
+                                fill="white"
+                            />
+                        </svg>
+                    </LongWrapMarker>
                     <WrapMarker id="generalization-end">
                         <svg width={16} height={16} viewBox="0 0 16 16">
                             <path

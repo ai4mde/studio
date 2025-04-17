@@ -1,3 +1,14 @@
+export const externalModels = [
+    {
+        title: "llama",
+        version: "3.3-70b-versatile",
+        author: "Meta",
+        type: "metadata",
+        url: "llama-3.3-70b-versatile",
+        disabled: false,
+    }
+]
+
 export const models = [
     {
         title: "UML Classes",
@@ -5,7 +16,7 @@ export const models = [
         author: "",
         type: "metadata",
         url: "http://tiantian-class.ai4mde-prose.localhost/run_nlp/",
-        disabled: false,
+        disabled: true,
     },
     {
         title: "UML Activities",

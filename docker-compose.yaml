@@ -34,7 +34,7 @@ services:
       context: api
     env_file:
       - config/api.env
-      - config/api_keys.env
+      - config/secrets.env
     networks:
       - ai4mde_traefik
     volumes:

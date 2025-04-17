@@ -10,6 +10,7 @@ import diagram.api.utils as utils
 from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram
 
 from metadata.specification import Classifier
+from metadata.models import Classifier as MetaClassifier
 
 from diagram.models import Node, Edge, Diagram
 
@@ -101,6 +102,21 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
     if data.data is not None:
         node.data = {**node.data, **data.data.model_dump()}
         node.save()
+
+    return node
+
+@node.post("/import/{uuid:classifier_id}/", response=NodeSchema)
+def import_node(request: HttpRequest, classifier_id: str):
+    diagram = utils.get_diagram(request)
+    cls = MetaClassifier.objects.get(pk=classifier_id)
+
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    if not cls:
+        return 404, "Classifier not found"
+
+    node = utils.import_node(diagram, classifier_id)
 
     return node
 

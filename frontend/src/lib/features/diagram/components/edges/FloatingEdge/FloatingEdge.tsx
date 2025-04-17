@@ -40,7 +40,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         <>
             <path
                 id={id}
-                className="react-flow__edge-path !stroke-black !stroke-2"
+                stroke="black" stroke-width="1"
                 strokeDasharray={
                     data?.type == "dependency" ? "10,10" : undefined
                 }
@@ -56,7 +56,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 y={(sy + ty) / 2}
                 fontSize="12"
             >
-                {data?.label ?? ""}
+                {data?.type === "extension" ? "<<extends>>" : data?.type === "inclusion" ? "<<includes>>" : data?.label ?? ""}
             </text>
             <text
                 style={{ userSelect: "none" }}
@@ -66,6 +66,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 fontSize="12"
             >
                 {data?.multiplicity?.source ?? ""}
+                {data?.type === "objectflow" ? data?.cls : ""}
             </text>
             <text
                 style={{ userSelect: "none" }}
@@ -75,6 +76,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 fontSize="12"
             >
                 {data?.multiplicity?.target ?? ""}
+                {data?.type === "objectflow" ? data?.cls : ""}
             </text>
             <text
                 style={{ userSelect: "none" }}

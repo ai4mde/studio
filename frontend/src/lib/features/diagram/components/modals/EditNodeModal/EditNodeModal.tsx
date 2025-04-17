@@ -18,6 +18,7 @@ import {
     EditBoolean,
     EditDimensions,
     EditSwimlane,
+    EditCode,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -115,8 +116,33 @@ export const EditNodeModal: React.FC = () => {
                                         <>
                                             <EditDimensions dimension='height' node={node} />
                                             <EditDimensions dimension='width' node={node} />
-                                            <EditBoolean attribute="horizontal" node={node} />
+                                            <EditBoolean
+                                                attribute="horizontal"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Horizontal",
+                                                    falseText: "Vertical",
+                                                }}
+                                            />
                                             <EditSwimlane node={node} />
+                                        </>
+                                    )}
+                                    {node.type == "action" && (
+                                        <>
+                                            <EditBoolean
+                                                attribute="isAutomatic"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Automatic",
+                                                    falseText: "Manual",
+                                                }}
+                                            />
+                                            {node.data?.isAutomatic && (
+                                                <EditCode
+                                                    node={node}
+                                                    attribute="customCode"
+                                                />
+                                            )}
                                         </>
                                     )}
                                 </div>
