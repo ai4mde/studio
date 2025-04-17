@@ -93,6 +93,7 @@ class SectionComponent():
             custom_methods = List[SectionCustomMethod],
     ):
         self.name = section_name_sanitization(name)
+        self.display_name = name
         self.id = id
         self.application = application
         self.page = page

@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-studio:
-    runs-on: github-arc
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -30,7 +30,7 @@ jobs:
           tags: ghcr.io/ai4mde/studio-api:latest
 
   build-model:
-    runs-on: github-arc
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

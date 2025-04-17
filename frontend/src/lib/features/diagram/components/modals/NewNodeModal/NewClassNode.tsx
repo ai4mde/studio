@@ -30,6 +30,7 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                 >
                     <Option value="class">Class</Option>
                     <Option value="enum">Enum</Option>
+                    <Option value="signal">Signal</Option>
                     <Option value="application">Application</Option>
                 </Select>
             </FormControl>

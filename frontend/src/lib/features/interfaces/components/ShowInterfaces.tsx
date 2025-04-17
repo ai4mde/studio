@@ -27,10 +27,10 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
 
     const handleLoadInterface = (app_comp) => {
 
-        setStyling(app_comp.styling);
-        setCategories(app_comp.categories);
-        setPages(app_comp.pages);
-        setSections(app_comp.sections);
+        setStyling(app_comp.styling || {});
+        setCategories(app_comp.categories || []);
+        setPages(app_comp.pages || []);
+        setSections(app_comp.sections || []);
     }
 
     const generateDefaultInterfaces = async () => {

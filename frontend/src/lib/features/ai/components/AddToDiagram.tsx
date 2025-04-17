@@ -1,10 +1,11 @@
+import { authAxios } from "$auth/state/auth";
+import { PreviewNode } from "$diagram/components/core/Node/Node";
+import { queryClient } from "$shared/hooks/queryClient";
 import { Button, Card, Option, Select } from "@mui/joy";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
-import { PreviewNode } from "$diagram/components/core/Node/Node";
-import { ArrowRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { authAxios } from "$auth/state/auth";
 
 type Props = {
     pipeline: Pipeline;
@@ -21,11 +22,18 @@ type SystemOut = {
     description?: string;
 };
 
-export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
+type DiagramOut = {
+    id: string;
+    name: string;
+    description?: string;
+};
+
+export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [classifiers, setClassifiers] = React.useState<any[]>([]);
     const [relations, setRelations] = React.useState<any[]>([]);
     const [project, setProject] = React.useState<string | undefined>();
     const [system, setSystem] = React.useState<string | undefined>();
+    const [diagram, setDiagram] = React.useState<string | undefined>();
 
     const projects = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -46,6 +54,20 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
             ).data;
         },
         enabled: !!project,
+    });
+
+    const diagrams = useQuery<DiagramOut[]>({
+        queryKey: ["diagrams", `${project}`],
+        queryFn: async () => {
+            return (
+                await authAxios.get(`/v1/diagram/system/${system}/`, {
+                    params: {
+                        system_id: system,
+                    },
+                })
+            ).data;
+        },
+        enabled: !!system,
     });
 
     const _classifiers = pipeline?.output?.classifiers || [];
@@ -76,6 +98,21 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
             setClassifiers([...classifiers, source, target]);
         }
     };
+
+    const { mutate, isPending, isError, isSuccess } = useMutation({
+        mutationFn: async () => {
+            const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
+            const selectedRelations = _relations.filter((r) => relations.includes(r.id));
+            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${diagram}/`, {
+                pipeline_id: pipeline.id,
+                diagram_id: diagram,
+                classifiers: selectedClassifiers,
+                relations: selectedRelations,
+            });
+
+            queryClient.invalidateQueries({ queryKey: ["pipelines"] });
+        },
+    });
 
     return (
         <>
@@ -113,11 +150,41 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
                             </Option>
                         )}
                     </Select>
-                    <Button
-                        fullWidth
-                        disabled={!system || !project || !classifiers.length}
+                    <Select
+                        className="w-full"
+                        onChange={(_, val) => setDiagram(`${val}`)}
                     >
-                        Add to system
+                        {diagrams.isSuccess ? (
+                            diagrams.data.length > 0 ? (
+                                diagrams.data.map((p) => (
+                                    <Option key={p.id} value={p.id}>
+                                        {p.id}
+                                    </Option>
+                                ))
+                            ) : (
+                                <Option value="no-diagrams" disabled>
+                                    Create a diagram first!
+                                </Option>
+                            )
+                        ) : system ? (
+                            <Option value="setsys" disabled>
+                                Set a system first
+                            </Option>
+                        ) : (
+                            <Option value="loading" disabled>
+                                Loading...
+                            </Option>
+                        )}
+                    </Select>
+                    <Button
+                        onClick={() => mutate()}
+                        fullWidth
+                        disabled={!system || !project || !diagram || !classifiers.length || isPending || isSuccess}
+                    >
+                        {isPending ? "Generating..."
+                            : isSuccess ? "Successfully generated!"
+                                : "Add to diagram"
+                        }
                     </Button>
                 </div>
             </Card>
@@ -158,11 +225,11 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
                                 {[""].map(() => {
                                     const source = _classifiers.find(
                                         (e: any) =>
-                                            e.id == relation.data.source,
+                                            e.id == relation.source,
                                     );
                                     const target = _classifiers.find(
                                         (e: any) =>
-                                            e.id == relation.data.target,
+                                            e.id == relation.target,
                                     );
 
                                     if (!source || !target) {
@@ -180,8 +247,8 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
                                             onClick={() =>
                                                 toggleRelation(
                                                     relation.id,
-                                                    relation.data.source,
-                                                    relation.data.target,
+                                                    relation.source,
+                                                    relation.target,
                                                 )
                                             }
                                         >
@@ -200,9 +267,11 @@ export const AddToSystem: React.FC<Props> = ({ pipeline }) => {
                                                     />
                                                 )}
                                             </span>
+                                            {relation.data.multiplicity.source}
                                             <ArrowRight size={18} />
                                             {relation.data.type}
                                             <ArrowRight size={18} />
+                                            {relation.data.multiplicity.target}
                                             <span>
                                                 {target && (
                                                     <PreviewNode

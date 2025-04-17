@@ -1,11 +1,10 @@
 import { authAxios } from "$auth/state/auth";
+import { queryClient } from "$shared/hooks/queryClient";
 import { Button, Card, CircularProgress, Textarea } from "@mui/joy";
+import { useMutation } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
-import { useMutation } from "@tanstack/react-query";
-import { queryClient } from "$shared/hooks/queryClient";
-import axios from "axios";
-import { ArrowRight } from "lucide-react";
 
 type Props = {
     pipeline: Pipeline;
@@ -14,15 +13,9 @@ type Props = {
 export const RunModel: React.FC<Props> = ({ pipeline }) => {
     const { mutate, isPending, isError, isSuccess } = useMutation({
         mutationFn: async () => {
-            const res = await axios.get(pipeline.url, {
-                params: {
-                    requirements: pipeline.requirements,
-                },
-                withCredentials: false,
-            });
-
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/result/`, {
-                output: res.data,
+            console.log("Running model:");
+            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/run_model/`, {
+                model: pipeline.url,
             });
 
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });

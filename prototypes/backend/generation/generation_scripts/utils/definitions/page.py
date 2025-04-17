@@ -15,6 +15,7 @@ class Page():
             section_components: List[SectionComponent]
     ):
         self.name = page_name_sanitization(name)
+        self.display_name = name
         self.id = id
         self.application = application
         self.category = category_name_sanitization(category)

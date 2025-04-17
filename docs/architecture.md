@@ -48,7 +48,7 @@ The Ninja API consists of the following routers:
 - **Generator:**
     - Endpoints relates to prototype management & generation
 - **Prose:**
-    - Endpoints related to legacy AI pipelines
+    - Endpoints related to AI pipelines that build metadata from requirements
 - **Auth:**
     - Endpoints related to user authentication
 
@@ -98,7 +98,7 @@ DATABASES = {
 A React frontend is implemented in which end users can directly and intuitively manage and edit UML diagrams, and generate and manage software prototypes. This frontend can be accessed via [ai4mde.localhost](ai4mde.localhost)
 
 #### Tech stack
-- `bun` for depedency management ([https://bun.sh/docs](https://bun.sh/docs))
+- `npm` for depedency management ([https://docs.npmjs.com/](https://docs.npmjs.com/))
 - `vite` for a development server ([https://vite.dev/guide/](https://vite.dev/guide/]))
 - `React` and `TypeScript` for development ([https://react.dev/learn](https://react.dev/learn))
 - `Tailwind CSS` for styling ([https://tailwindcss.com/docs](https://tailwindcss.com/docs))
@@ -198,4 +198,4 @@ The Jinja2 templates that are filled by the Python scripts can be found under `/
 
 
 ### Chatbot
-TODO
+Work in progress..

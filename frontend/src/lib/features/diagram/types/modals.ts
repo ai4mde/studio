@@ -4,6 +4,12 @@ export type NewNodeModalState = {
     close: () => void;
 };
 
+export type ImportNodeModalState = {
+    active: boolean;
+    open: () => void;
+    close: () => void;
+};
+
 export type NewConnectionModalState = {
     active: boolean;
     source?: string;
