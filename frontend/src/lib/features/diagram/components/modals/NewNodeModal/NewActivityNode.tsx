@@ -1,7 +1,8 @@
-import { Checkbox, FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
-import React, { useEffect } from "react";
+import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
+import React, { useEffect, useState } from "react";
 import { RelatedNode } from "$diagram/types/diagramState"
 import { node } from "$diagram/types/spec";
+import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 
 type Props = {
     object: any;
@@ -24,6 +25,30 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             }))
         }
     }, [object.role, setObject])
+
+    // Set default values for action
+    useEffect(() => {
+        if (object.type === "action" && object.isAutomatic === undefined) {
+            setObject((o: any) => ({
+                ...o,
+                isAutomatic: false,
+            }));
+        }
+    }, [object.type, setObject]);
+
+
+    const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
+
+    const handleOpenCodeEditor = () => setIsCodeEditorOpen(true);
+    const handleCloseCodeEditor = () => setIsCodeEditorOpen(false);
+
+    const handleSaveCode = (updateCode: string) => {
+        setObject((o: any) => ({
+            ...o,
+            customCode: updateCode,
+        }));
+        handleCloseCodeEditor();
+    }
 
     return (
         <>
@@ -81,19 +106,56 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 </Select>
             </FormControl>
             {(object.type == "action") && (
-                <FormControl size="sm" className="w-full">
-                    <FormLabel>Name</FormLabel>
-                    <Input
-                        value={object.name || ""}
-                        onChange={(e) =>
-                            setObject((o: any) => ({
-                                ...o,
-                                name: e.target.value,
-                            }))
-                        }
-                        placeholder={`Name of the ${object.type ?? "node"}...`}
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Name</FormLabel>
+                        <Input
+                            value={object.name || ""}
+                            onChange={(e) =>
+                                setObject((o: any) => ({
+                                    ...o,
+                                    name: e.target.value,
+                                }))
+                            }
+                            placeholder={`Name of the ${object.type ?? "node"}...`}
+                        />
+                    </FormControl>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Execution Type</FormLabel>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                                <Switch
+                                    checked={object.isAutomatic || false}
+                                    onChange={(e) =>
+                                        setObject((o: any) => ({
+                                            ...o,
+                                            isAutomatic: e.target.checked,
+                                        }))
+                                    }
+                                />
+                            </div>
+                            <FormHelperText>
+                                {object.isAutomatic ? "Automatic" : "Manual"}
+                            </FormHelperText>
+                        </div>
+                    </FormControl>
+                    {object.isAutomatic && (
+                        <Button
+                            variant="outlined"
+                            size="sm"
+                            style={{ marginTop: "8px" }}
+                            onClick={handleOpenCodeEditor}
+                        >
+                            Edit Code
+                        </Button>
+                    )}
+                    <CodeEditorModal
+                        open={isCodeEditorOpen}
+                        onClose={handleCloseCodeEditor}
+                        onSave={handleSaveCode}
+                        initialCode={object.customCode || "def custom_code(active_process: ActiveProcess) -> None:\n    pass"}
                     />
-                </FormControl>
+                </>
             )}
             {(object.type == "swimlane") && (
                 <>
