@@ -208,7 +208,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                                     {selectedPageType.value === 'activity' && isSuccessActions && (
                                         <FormControl className="space-y-1">
                                             <h3 className="text-xl font-bold">Activity</h3>
-                                            {actions.length > 0 ? (
+                                            {filteredActions.length > 0 ? (
                                                 <Select
                                                     name="activity"
                                                     options={filteredActions.map((e) => ({ label: e.cls.name, value: e.id }))}
