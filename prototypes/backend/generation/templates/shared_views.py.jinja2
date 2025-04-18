@@ -1,0 +1,68 @@
+from django.apps import apps
+from django.shortcuts import get_object_or_404
+from django.views.generic import CreateView, UpdateView, ListView, DeleteView
+{% if authentication_present -%}
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+
+
+class RoleRequiredMixin(UserPassesTestMixin):
+    required_roles = []
+
+    def test_func(self):
+        for role in self.required_roles:
+            if getattr(self.request.user, f'is_{role}', False):
+                return True
+            return False
+            
+{% endif -%}
+
+class GenericViewMixin{% if authentication_present -%}(LoginRequiredMixin, RoleRequiredMixin){% endif %}:
+    model = None
+    template_name = None
+    context_object_name = None
+
+
+class GenericListView(GenericViewMixin, ListView):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        self._add_create_context(context)
+        self._add_update_context(context)
+        return context
+
+    def _get_related_keys(self, partial_key: str) -> list[str]:
+        return [
+            key for key in self.request.GET
+            if key.startswith(partial_key) and key != partial_key
+        ]
+
+    def _add_create_context(self, context: dict) -> None:
+        create_keys = self._get_related_keys('create_')
+        if not create_keys:
+            return
+        for key in create_keys:
+            if self.request.GET[key] == 'true':
+                context[key] = True
+                break
+        
+    def _add_update_context(self, context: dict) -> None:
+        update_keys = self._get_related_keys('instance_id_')
+        if not update_keys:
+            return
+        for key in update_keys:
+            if model := apps.get_model('shared_models', key.split("_")[-1]):
+                context['update_instance'] = get_object_or_404(model, pk=self.request.GET[key])
+                break
+
+class GenericCreateView(GenericViewMixin, CreateView):
+    fields = None
+    success_url = None
+
+
+class GenericUpdateView(GenericViewMixin, UpdateView):
+    fields = None
+    success_url = None
+
+
+class GenericDeleteView(GenericViewMixin, DeleteView):
+    success_url = None

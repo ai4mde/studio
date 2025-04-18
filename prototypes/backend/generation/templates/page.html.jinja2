@@ -33,16 +33,16 @@
                 {% if attribute.updatable and not attribute.derived %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.INTEGER %}
-                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.BOOLEAN %}
-                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
+                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
                     
                     {%- elif attribute.type == AttributeType.ENUM %}
-                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <select name="{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -68,7 +68,7 @@
                 {% endfor %}
                 {% for parent_model in section_component.parent_models %}
                 <td style="text-align:center;">
-                    <select name="instance_{{ parent_model }}_id">
+                    <select name="{{ parent_model }}">
                         {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
@@ -114,8 +114,8 @@
             {#- UPDATE BUTTON -#}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update_popup' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
-                    {% raw %}{% csrf_token %}{% endraw %}
+                <form action="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}'{% raw %}%}{% endraw %}" method="get">
+                    <input type="hidden" name="instance_id_{{ section_component.primary_model }}"  value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;" />
                         <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -162,7 +162,7 @@
 
         {# CREATE FORM -#}
         {% if section_component.has_create_operation -%}
-        {% raw %}{%{% endraw %} if {{ section_component }}_create_popup {% raw %}%}{% endraw %}
+        {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
         <tr>
             <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
@@ -172,13 +172,13 @@
                 {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.INTEGER -%}
-                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
-                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
                     {% elif attribute.type == AttributeType.ENUM -%}
-                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <select name="{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -190,7 +190,7 @@
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>
-                    <select name="instance_{{ parent_model }}_id">
+                    <select name="{{ parent_model }}">
                         {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
@@ -211,9 +211,9 @@
 
     {#- CREATE BUTTON #}
     {% if section_component.has_create_operation -%}
-    {% raw %}{%{% endraw %} if not {{ section_component }}_create_popup {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create_popup' {% raw %}%}{% endraw %}" method="post">
-        {% raw %}{% csrf_token %}{% endraw %}
+    {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+    <form action="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
+        <input type="hidden", name="create_{{ section_component }}" value="true">
         <label style="cursor:pointer;">
             <input type="submit" style="display:none;"/>
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
