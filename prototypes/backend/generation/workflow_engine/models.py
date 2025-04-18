@@ -1,3 +1,4 @@
+import importlib
 import re
 
 from django.db import models
@@ -16,6 +17,8 @@ class ActionNode(models.Model):
     id = models.AutoField(primary_key=True)
     actor = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, null=True, blank=True)
+    custom_code = models.CharField(max_length=255, null=True, blank=True)
     process = models.ForeignKey("Process", related_name="action_nodes", on_delete=models.CASCADE)
     next_node_rule = models.OneToOneField("Rule", related_name="action_node", on_delete=models.PROTECT)
 
@@ -36,7 +39,7 @@ class Process(models.Model):
             start_node__actor__in=user.roles,
         )
 
-    def start_process(self, user: User) -> None:
+    def start_process(self, user: User) -> "ActiveProcess":
         """Start a process for the given user."""
         assert self.start_node # TODO make start node required. This involves changing the workflow population migration.
         if self.start_node.actor not in user.roles:
@@ -56,6 +59,7 @@ class Process(models.Model):
             active_process=active_process,
             user=user,
         )
+        return active_process
 
     def __str__(self):
         return self.name
@@ -102,10 +106,10 @@ class ActiveProcess(models.Model):
         
         if self.active_node.actor not in user.roles:
             raise PermissionDenied(f"User {user.username} does not have the required role to complete this step.")
-
+        
         # Evaluate the rule to determine the next node
         next_node = self.active_node.next_node_rule.evaluate_rule()
-
+    
         if not next_node:
             self._complete_process(user)
             return
@@ -125,7 +129,7 @@ class ActiveProcess(models.Model):
         current_action_log.status = "COMPLETED"
         current_action_log.save()
 
-    def _progress_to_next_node(self, next_node: ActionNode, user: User) -> None:
+    def _progress_to_next_node(self, next_node: ActionNode, user: User | None) -> None:
         """Progress to the next node and assign the next user."""
 
         # Log the completion of the current node
@@ -139,6 +143,23 @@ class ActiveProcess(models.Model):
 
         # Set the next node as the active node
         self.active_node = next_node
+        self.save()
+
+        # No task (for system or user) is assigned to the next node, so we can progress to the next node.
+        if not self.active_node.url and not self.active_node.custom_code:
+            return self._progress_to_next_node(next_node, user)
+
+        # No URL means that the node is not a task node. Execute the custom_code if it exists.
+        if not self.active_node.url and self.active_node.custom_code:
+            ActionLog.objects.create(
+                status="SYSTEM START",
+                process=self.process,
+                action_node=next_node,
+                active_process=self,
+                user=None,
+            )
+            self._execute_custom_code()
+            return self._progress_to_next_node(next_node, None)
 
         # Determine the next user for the task
         next_user = self._get_next_user(next_node, user)
@@ -154,10 +175,10 @@ class ActiveProcess(models.Model):
             user=user,
         )
 
-    def _get_next_user(self, next_node: ActionNode, current_user: User) -> User:
+    def _get_next_user(self, next_node: ActionNode, current_user: User | None) -> User:
         """Determine the next user for the given node."""
         # Try to keep the current user for the next node
-        if next_node.actor in current_user.roles:
+        if current_user and next_node.actor in current_user.roles:
             return current_user
 
         users = User.objects.filter(roles__contains=next_node.actor)
@@ -167,6 +188,25 @@ class ActiveProcess(models.Model):
         if not next_user:
             raise ValueError(f"No user found for task {next_node}")
         return next_user
+
+    def _execute_custom_code(self) -> None:
+        assert self.active_node.custom_code, "Custom code is not defined for this node."
+        module_name, function_name = self.active_node.custom_code.rsplit(".", 1)
+        
+        try:
+            # Import the module and function dynamically
+            module = importlib.import_module(module_name)
+            custom_function = getattr(module, function_name)
+
+            if not callable(custom_function):
+                raise TypeError(f"{function_name} is not callable in module {module_name}")
+            
+            # Execute the custom function
+            custom_function(active_process=self)
+        except ImportError as e:
+            raise ImportError(f"Fialed to import module when executing custom code: {module_name}") from e
+        except AttributeError as e:
+            raise AttributeError(f"Module {module_name } does not have function named {function_name}") from e
     
     def __str__(self):
         return f"Active process for {self.process}"
@@ -187,6 +227,7 @@ class ActionLog(models.Model):
         ("STARTED", "Started"),
         ("COMPLETED", "Completed"),
         ("ASSIGNED", "Assigned"),
+        ("SYSTEM START", "System started"),
     ]
 
 
@@ -198,7 +239,7 @@ class ActionLog(models.Model):
     process = models.ForeignKey(Process, related_name="process_action_logs", on_delete=models.CASCADE)
     action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="action_logs", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, related_name="action_logs", on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Action log for {self.process} - {self.status} at {self.created_at}"

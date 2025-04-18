@@ -38,6 +38,8 @@ def fill_workflow_engine(apps, schema_editor):
             id=action_node_data['id'],
             actor=action_node_data['actor'],
             name=action_node_data['name'],
+            url=action_node_data.get("url"),
+            custom_code=action_node_data.get("custom_code"),
             process=process_map[action_node_data['process']],
             next_node_rule=rule_map[action_node_data['id']],
         )

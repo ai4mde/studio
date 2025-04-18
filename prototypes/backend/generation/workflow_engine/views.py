@@ -11,9 +11,8 @@ def login_check(user):
 def start_process(request, process_id) -> HttpResponse:
     if request.method == "POST":
         process = get_object_or_404(Process, id=process_id)
-        process.start_process(request.user)
-        # TODO implement URL
-        return redirect('/manager')
+        active_process = process.start_process(request.user)
+        return redirect(active_process.active_node.url)
     return HttpResponseNotAllowed(["POST"])
 
 
@@ -21,8 +20,7 @@ def start_process(request, process_id) -> HttpResponse:
 def redirect_to_process(request, active_process_id) -> HttpResponse:
     if request.method == "POST":
         active_process = get_object_or_404(ActiveProcess, id=active_process_id)
-        # TODO implement URL
-        return redirect('/manager')
+        return redirect(active_process.active_node.url)
     return HttpResponseNotAllowed(["POST"])
 
 
@@ -31,7 +29,7 @@ def complete_process_step(request, active_process_id) -> HttpResponse:
     if request.method == "POST":
         active_process = get_object_or_404(ActiveProcess, id=active_process_id)
         active_process.complete_node(request.user)
-        return redirect('/manager')
+        return redirect(f'/{request.user.roles[0]}')
     return HttpResponseNotAllowed(["POST"])
 
 

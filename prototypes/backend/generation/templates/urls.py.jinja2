@@ -11,13 +11,13 @@ urlpatterns = [
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
     path('{{ page }}_{{ section_component }}_create/', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
-    {% endif %}
+    {% endif -%}
     {% if section_component.has_update_operation -%}
     path('{{ page }}_{{ section_component }}_update/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
-    {% endif %}
+    {% endif -%}
     {% if section_component.has_delete_operation -%}
     path('{{ page }}_{{ section_component }}_delete/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
     {% endif -%}
-    {% endfor %}
-    {% endfor %}
+    {% endfor -%}
+    {% endfor -%}
 ]

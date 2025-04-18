@@ -9,10 +9,7 @@ class RoleRequiredMixin(UserPassesTestMixin):
     required_roles = []
 
     def test_func(self):
-        for role in self.required_roles:
-            if getattr(self.request.user, f'is_{role}', False):
-                return True
-            return False
+        return any(role in self.request.user.roles for role in self.required_roles)
             
 {% endif -%}
 

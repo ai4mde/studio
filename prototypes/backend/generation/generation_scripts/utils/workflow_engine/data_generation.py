@@ -1,3 +1,4 @@
+import re
 from functools import cached_property
 import json
 from typing import Any, NamedTuple
@@ -12,6 +13,8 @@ class Node(NamedTuple):
     actor_node: str | None
     next_nodes: list["Node"] | None
     conditions: list[str] | None
+    url: str | None = None
+    custom_code: str | None = None
 
 
 class Edge(NamedTuple):
@@ -47,6 +50,16 @@ class ActivityDiagramParser:
             actor_node['id']: actor_node['cls']['name'].lower()
             for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams'])
             for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes'])
+        }
+    
+    @cached_property
+    def interface_map(self) -> dict[str, str]:
+        """Map from the action node UUID to a possible interface url"""
+        return {
+            page['action']['value']: f"/{interface['value']['name']}/render_{interface['value']['name']}_{page['name']}"
+            for interface in self.metadata['interfaces']
+            for page in interface['value']['data']['pages']
+            if page['type']['value'] != 'normal'
         }
 
     def find_node(self, nodes: list[dict[str, Any]], node_id: str) -> dict[str, Any]:
@@ -84,6 +97,8 @@ class ActivityDiagramParser:
                 actor_node=self.actors.get(current_node['cls'].get('actorNode')),
                 next_nodes=None,
                 conditions=None,
+                url=self.interface_map.get(current_node['id']),
+                custom_code=current_node['cls'].get('customCode'),
             )
             self.visited_nodes[current_node_id] = node
             return node
@@ -103,6 +118,8 @@ class ActivityDiagramParser:
             actor_node=self.actors.get(current_node['cls'].get('actorNode')),
             next_nodes=next_nodes,
             conditions=conditions,
+            url=self.interface_map.get(current_node['id']),
+            custom_code=current_node['cls'].get('customCode'),
         )
         self.visited_nodes[current_node_id] = node
         return node
@@ -145,6 +162,8 @@ class ActivityDiagramParser:
                 "actor": node.actor_node,
                 "name": node.name,
                 "process": self.process_id,
+                "url": node.url,
+                "custom_code": node.custom_code
             }
             self.action_node_id += 1
 
@@ -229,9 +248,35 @@ class ActivityDiagramParser:
 
 def generate_data(system_id: str, project_name: str, metadata: str) -> bool:
     OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
+    CUSTOM_CODE_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/custom_code.py"
+
+    # Parse the metadata and generate the workflow engine data
     parser = ActivityDiagramParser(json.loads(metadata))
     workflow_engine_data = parser.get_workflow_engine_data()
 
+    # Process custom code for action nodes
+    custom_code_to_add = []
+    for action_node in workflow_engine_data['action_nodes']:
+        if action_node['custom_code']:
+            # Generate a unique function name
+            name_pattern = r"def\s+(\w+)\s*\("
+            action_node_name = action_node['name'].replace(" ", "_")
+            code = re.sub(name_pattern, r"def \1" + f"_{action_node_name}" + "(", action_node['custom_code'])
+            custom_code_to_add.append(code)
+
+            # Store a reference to the function in the action node
+            match = re.search(name_pattern, code)
+            if not match:
+                raise ValueError(f"Custom code for action node {action_node['name']} does not contain a function definition")
+            action_node['custom_code'] = f"workflow_engine.custom_code.{match.group(1)}"
+
+    # Add the custom code to the workflow engine file
+    if custom_code_to_add:
+        custom_code_content = f"from workflow_engine.models import ActiveProcess\n\n" + "\n\n".join(custom_code_to_add)
+        if not write_to_file(CUSTOM_CODE_FILE_PATH, custom_code_content):
+            raise Exception(f"Failed to generate {project_name}/workflow_engine/custom_code.py")
+
+    # Export the workflow engine data to a JSON file which can be used during the migration
     if write_to_file(OUTPUT_FILE_PATH, json.dumps(workflow_engine_data, indent=4)):
         return True
 

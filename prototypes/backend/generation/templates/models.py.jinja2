@@ -10,7 +10,7 @@ class User(AbstractUser):
     {% if user_types -%}
     {% for user_type in user_types -%}
     is_{{ user_type }} = models.BooleanField(default=False)
-    {% endfor -%}
+    {% endfor %}
 
     @cached_property
     def roles(self) -> list[str]:

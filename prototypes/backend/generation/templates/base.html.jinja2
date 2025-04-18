@@ -20,9 +20,11 @@
                 {% for category in categories %}
                 <b>{{ category }}</b>
                 {% for page in pages %}
+                {% if page.type == 'normal'%}
                 {% if page.category == category.name %}
                 <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
+                {% endif %}
                 {% endif %}
                 {% endfor %}
                 {% endfor %}
@@ -30,7 +32,7 @@
                 <br>
 
                 {% for page in pages %}
-                {% if page.category in ["", none] %}
+                {% if page.category in ["", none] and page.type != 'activity' %}
                 <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
                 {% endif %}
