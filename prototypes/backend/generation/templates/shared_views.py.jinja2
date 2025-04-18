@@ -28,6 +28,7 @@ class GenericListView(GenericViewMixin, ListView):
         context = super().get_context_data(**kwargs)
         self._add_create_context(context)
         self._add_update_context(context)
+        self._execute_custom_method()
         return context
 
     def _get_related_keys(self, partial_key: str) -> list[str]:
@@ -52,6 +53,17 @@ class GenericListView(GenericViewMixin, ListView):
         for key in update_keys:
             if model := apps.get_model('shared_models', key.split("_")[-1]):
                 context['update_instance'] = get_object_or_404(model, pk=self.request.GET[key])
+                break
+    
+    def _execute_custom_method(self) -> None:
+        custom_method_keys = self._get_related_keys('custom_')
+        if not custom_method_keys:
+            return
+        for key in custom_method_keys:
+            _, model, method = key.split("_", 2)
+            if model_instance := apps.get_model('shared_models', model):
+                instance = get_object_or_404(model_instance, pk=self.request.GET[key])
+                getattr(instance, method)()
                 break
 
 class GenericCreateView(GenericViewMixin, CreateView):

@@ -6,20 +6,20 @@ from shared_models.views import GenericListView, GenericCreateView, GenericUpdat
 from workflow_engine.models import ActiveProcess, Process
 
 {# Create, Update, Delete views #}
-{% for page in pages %}
+{% for page in pages -%}
 {% for section_component in page.section_components -%}
 
 {% if section_component.has_create_operation or section_component.has_update_operation or section_component.has_delete_operation %}
 class {{page}}_{{ section_component }}_{% if section_component.has_create_operation%}Create{% elif section_component.has_update_operation %}Update{% else %}Delete{% endif %}View(Generic{% if section_component.has_create_operation %}Create{% elif section_component.has_update_operation %}Update{% else %}Delete{% endif %}View):
-    {% if authentication_present %}
+    {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
-    {% endif %}
+    {% endif -%}
     model = {{ section_component.primary_model }}
     fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     success_url = reverse_lazy('render_{{ application_name }}_{{ page }}') 
 
-    {% if not section_component.has_delete_operation %}
+    {% if not section_component.has_delete_operation -%}
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
@@ -29,68 +29,45 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
         if not instance.{{ attribute }}:
             instance.{{ attribute }} = None
-        {% endif %}
-        {% endif %}
-        {% endfor %}
+        {% endif -%}
+        {% endif -%}
+        {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
         instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
-        {% endfor %}
+        {% endfor -%}
         return super().form_valid(form)
-    {% endif %}
-{% endif %}
-
-
-{# Custom method views #}
-{% for custom_method in section_component.custom_methods -%}
-{% if custom_method.body_is_valid -%}
-class {{ page }}_{{ section_component }}_{{ custom_method }}View(TemplateView{% if authentication_present %}, RoleRequiredMixin, LoginRequiredMixin{% endif %}):
-    {% if authentication_present %}
-    required_roles = ['{{ application_name }}']
-    {% endif %}
-    template_name = '{{ application_name }}_{{ page }}.html'
-
-    def post(self, request, *args, **kwargs):
-        instance_id = kwargs.get('instance_id')
-        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-        instance.{{ custom_method.call_name }}()
-        
-        context = self.get_context_data(**kwargs)
-        {% for model in models_on_pages[page] -%}
-        context['{{ model }}_list'] = {{ model }}.objects.all()
-        {% endfor %}
-        return self.render_to_response(context)
+    {% endif -%}
 {% endif -%}
 {% endfor -%}
-{% endfor %}
-{% endfor %}
+{% endfor -%}
 
 
 {# List views #}
 {% for page in pages %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView{% if authentication_present %}, RoleRequiredMixin{% endif %}):
-    {% if authentication_present %}
+    {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
-    {% endif %}
+    {% endif -%}
     template_name='{{ application_name }}_{{ page }}.html'
     model = {{ models_on_pages[page][0] }}
     context_object_name = '{{ models_on_pages[page][0] }}_list'
 
-    {% if models_on_pages[page] | length > 1 %}
+    {% if models_on_pages[page] | length > 1 -%}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page][1:] -%}
         context['{{model}}_list'] = {{model}}.objects.all()
-        {% endfor %}
+        {% endfor -%}
         return context
-    {% endif %}
-{% endfor %}
+    {% endif -%}
+{% endfor -%}
 
 
 {# Home render view #}
 class HomeRenderView(TemplateView{% if authentication_present %}, RoleRequiredMixin{% endif %}):
-    {% if authentication_present %}
+    {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
-    {% endif %}
+    {% endif -%}
     template_name = '{{ application_name }}_home.html'
 
     def get_context_data(self, **kwargs):

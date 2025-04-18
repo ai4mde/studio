@@ -18,11 +18,6 @@ urlpatterns = [
     {% if section_component.has_delete_operation -%}
     path('{{ page }}_{{ section_component }}_delete/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
     {% endif -%}
-    {% for custom_method in section_component.custom_methods -%}
-    {% if custom_method.body_is_valid -%}
-    path('{{ page }}_{{ section_component }}_{{ custom_method }}/<int:instance_id>/', views.{{ page }}_{{ section_component }}_{{ custom_method }}View.as_view(), name='{{ page }}_{{ section_component }}_{{ custom_method }}'),
-    {% endif %}
-    {% endfor %}
     {% endfor %}
     {% endfor %}
 ]
