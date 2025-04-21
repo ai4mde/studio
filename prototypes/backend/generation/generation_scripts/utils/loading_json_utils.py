@@ -296,18 +296,18 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
     return out
 
 
-def retrieve_models_on_pages(application_component: ApplicationComponent) -> Dict[Page, List[Model]]:
+def retrieve_models_on_pages(application_component: ApplicationComponent) -> dict[Page, Dict[str, List[Model] | Model]]:
     '''Function that returns all primary models & foreign/parent models on pages inside
     application_component'''
-    out: Dict[Page, List[Model]] = {}
+    out: dict[Page, Dict[str, List[Model] | Model]] = {}
 
     for page in application_component.pages:
         if page not in out:
-            out[page] = []
+            out[page] = {'primary_model': '', 'parent_models': []}
         for section_component in page.section_components:
-            out[page].append(section_component.primary_model)
+            out[page]['primary_model'] = section_component.primary_model
             for parent_model in section_component.parent_models:
-                out[page].append(parent_model)
+                out[page]['parent_models'].append(parent_model)
     return out
 
 

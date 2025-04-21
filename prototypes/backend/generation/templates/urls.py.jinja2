@@ -7,16 +7,16 @@ urlpatterns = [
     path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
     path('action-log/', action_log_view, {'template_name': '{{ application_name}}_action_log.html'}, name="{{ application_name }}_action_log"),
     {% for page in pages -%}
-    path("render_{{ application_name}}_{{ page }}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
+    path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_id>/<int:active_node_id>{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
-    path('{{ page }}_{{ section_component }}_create/', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
+    path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_id>{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
     {% endif -%}
     {% if section_component.has_update_operation -%}
     path('{{ page }}_{{ section_component }}_update/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
     {% endif -%}
     {% if section_component.has_delete_operation -%}
-    path('{{ page }}_{{ section_component }}_delete/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
+    path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
     {% endif -%}
     {% endfor -%}
     {% endfor -%}

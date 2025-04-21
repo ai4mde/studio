@@ -12,7 +12,7 @@ def start_process(request, process_id) -> HttpResponse:
     if request.method == "POST":
         process = get_object_or_404(Process, id=process_id)
         active_process = process.start_process(request.user)
-        return redirect(active_process.active_node.url)
+        return redirect(f"{active_process.active_node.url}/{active_process.id}/{active_process.active_node.id}")
     return HttpResponseNotAllowed(["POST"])
 
 
@@ -20,7 +20,7 @@ def start_process(request, process_id) -> HttpResponse:
 def redirect_to_process(request, active_process_id) -> HttpResponse:
     if request.method == "POST":
         active_process = get_object_or_404(ActiveProcess, id=active_process_id)
-        return redirect(active_process.active_node.url)
+        return redirect(f"{active_process.active_node.url}/{active_process.id}/{active_process.active_node.id}")
     return HttpResponseNotAllowed(["POST"])
 
 

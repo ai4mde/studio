@@ -49,22 +49,35 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView{% if authentica
     required_roles = ['{{ application_name }}']
     {% endif -%}
     template_name='{{ application_name }}_{{ page }}.html'
-    model = {{ models_on_pages[page][0] }}
-    context_object_name = '{{ models_on_pages[page][0] }}_list'
+    model = {{ models_on_pages[page]['primary_model'] }}
+    context_object_name = '{{ models_on_pages[page]['primary_model'] }}_list'
 
-    {% if models_on_pages[page] | length > 1 -%}
+    {% if page.type == 'activity' -%}
+    def get_queryset(self):
+        active_process = get_object_or_404(
+            ActiveProcess,
+            pk=self.kwargs.get('active_process_id'),
+        )
+        return active_process.{{ models_on_pages[page]['primary_model'].lower() }}s
+    {% endif -%}
+
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        {% for model in models_on_pages[page][1:] -%}
-        context['{{model}}_list'] = {{model}}.objects.all()
+        {% for model in models_on_pages[page]['parent_models'] -%}
+        context['parent_{{model}}_list'] = {{model}}.objects.all()
         {% endfor -%}
+        {% if page.type == 'activity' -%}
+        context['active_process_id'] = self.kwargs.get('active_process_id')
+        context['active_node_id'] = self.kwargs.get('active_node_id')
+        {% endif -%}
         return context
     {% endif -%}
 {% endfor -%}
 
 
 {# Home render view #}
-class HomeRenderView(TemplateView{% if authentication_present %}, RoleRequiredMixin{% endif %}):
+class HomeRenderView(TemplateView{% if authentication_present %}, LoginRequiredMixin, RoleRequiredMixin{% endif %}):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
