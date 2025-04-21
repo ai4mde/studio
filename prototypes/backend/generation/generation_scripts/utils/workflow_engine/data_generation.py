@@ -4,6 +4,7 @@ import json
 from typing import Any, NamedTuple
 
 from utils.file_generation import write_to_file
+from utils.sanitization import page_name_sanitization
 
 
 class Node(NamedTuple):
@@ -56,7 +57,7 @@ class ActivityDiagramParser:
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID to a possible interface url"""
         return {
-            page['action']['value']: f"/{interface['value']['name']}/render_{interface['value']['name']}_{page['name']}"
+            page['action']['value']: f"/{interface['value']['name']}/render_{interface['value']['name']}_{page_name_sanitization(page['name'])}"
             for interface in self.metadata['interfaces']
             for page in interface['value']['data']['pages']
             if page['type']['value'] != 'normal'

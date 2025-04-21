@@ -18,6 +18,7 @@ class User(AbstractUser):
             attr[3:]
             for attr in dir(self)
             if attr.startswith("is_") and getattr(self, attr, False) is True
+            and attr not in ["is_superuser", "is_staff", "is_active", "is_authenticated"]
         ]
     {% else -%}
     pass

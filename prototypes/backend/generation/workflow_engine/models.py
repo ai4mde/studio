@@ -53,7 +53,7 @@ class Process(models.Model):
 
         # Log the start of the process
         ActionLog.objects.create(
-            status="ASSIGNED",
+            status="STARTED",
             process=self,
             action_node=self.start_node,
             active_process=active_process,
@@ -168,7 +168,7 @@ class ActiveProcess(models.Model):
         # No URL means that the node is not a task node. Execute the custom_code if it exists.
         if not self.active_node.url and self.active_node.custom_code:
             ActionLog.objects.create(
-                status="SYSTEM START",
+                status="SYSTEM_START",
                 process=self.process,
                 action_node=next_node,
                 active_process=self,
@@ -184,7 +184,7 @@ class ActiveProcess(models.Model):
 
         # Log the assignment of the next node
         ActionLog.objects.create(
-            status="ASSIGNED",
+            status="STARTED",
             process=self.process,
             action_node=next_node,
             active_process=self,
@@ -242,10 +242,8 @@ class ActionLog(models.Model):
     STATUS_CHOICES = [
         ("STARTED", "Started"),
         ("COMPLETED", "Completed"),
-        ("ASSIGNED", "Assigned"),
-        ("SYSTEM START", "System started"),
+        ("SYSTEM_START", "System started"),
     ]
-
 
     id = models.AutoField(primary_key=True)
     created_at = models.DateTimeField(auto_now_add=True)

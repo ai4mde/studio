@@ -28,7 +28,7 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
     success_url = reverse_lazy('render_{{ application_name }}_{{ page }}')
     {% endif %}
 
-    {% if not section_component.has_delete_operation or page.type == 'activity' -%}
+    {% if not section_component.has_delete_operation -%}
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% if not section_component.has_delete_operation -%}
@@ -46,7 +46,7 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
         instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
         {% endfor -%}
         {% endif %}
-        {% if page.type == 'activity' and (section_component.has_create_operation or section_component.has_delete_operation) %}
+        {% if page.type == 'activity' and section_component.has_create_operation %}
         instance.save()
         active_process = get_object_or_404(
             ActiveProcess,
@@ -54,12 +54,21 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
         )
         {% if section_component.has_create_operation %}
         active_process.add_associated_instance(instance)
-        {% elif section_component.has_delete_operation %}
-        active_process.remove_associated_instance(instance)
         {% endif %}
-        {% endif %}
+        {% endif -%}
         return super().form_valid(form)
-    {% endif -%}
+    {% elif section_component.has_delete_operation and page.type == 'activity' -%}
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        active_process = get_object_or_404(
+            ActiveProcess,
+            pk=self.kwargs.get('active_process_id'),
+        )
+        active_process.remove_associated_instance(instance)
+        return super().delete(request, *args, **kwargs)
+    {% endif %}
+
+    
 {% endif -%}
 {% endfor -%}
 {% endfor -%}

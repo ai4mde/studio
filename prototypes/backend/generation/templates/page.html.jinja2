@@ -27,7 +27,7 @@
             {#- UPDATE FORM #}
             {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update'{% if page.type == 'activity' %}active_process_id active_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
                 {% if attribute.updatable and not attribute.derived %}
@@ -225,6 +225,17 @@
     {%- endif %}
 
     {% endfor %}
+
+    {% if page.type == 'activity' %}
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_id active_node_id {% raw %}%}{% endraw %}" method="post">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                Complete Activity
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 
 {% raw %}{% endblock %}{% endraw %}

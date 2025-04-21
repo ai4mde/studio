@@ -30,7 +30,8 @@
             <th>Action Node</th>
             <th>Status</th>
             <th>User</th>
-            <th>Created At</th>
+            <th>Started At</th>
+            <th>Completed At</th>
         </tr>
     </thead>
     <tbody>
@@ -42,6 +43,7 @@
                 <td>{{ log.get_status_display }}</td>
                 <td>{{ log.user }}</td>
                 <td>{{ log.created_at }}</td>
+                <td>{{ log.completed_at }}</td>
             </tr>
         {% empty %}
             <tr>

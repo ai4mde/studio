@@ -25,7 +25,8 @@ def redirect_to_process(request, active_process_id) -> HttpResponse:
 
 
 # Auth
-def complete_process_step(request, active_process_id) -> HttpResponse:
+def complete_process_step(request, active_process_id, active_node_id) -> HttpResponse:
+    # TODO use active_node_id when multiple active nodes are supported after implmenting parallelism
     if request.method == "POST":
         active_process = get_object_or_404(ActiveProcess, id=active_process_id)
         active_process.complete_node(request.user)
