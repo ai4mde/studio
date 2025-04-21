@@ -99,6 +99,22 @@ class ActiveProcess(models.Model):
 
     # Properties
 
+    def add_associated_instance(self, instance: models.Model) -> None:
+        AssociatedModelInstance.objects.create(
+            instance=instance,
+            content_type=ContentType.objects.get_for_model(instance),
+            instance_id=instance.pk,
+            active_process=self,
+        )
+    
+    def remove_associated_instance(self, instance: models.Model) -> None:
+        AssociatedModelInstance.objects.get(
+            instance=instance,
+            content_type=ContentType.objects.get_for_model(instance),
+            instance_id=instance.pk,
+            active_process=self,
+        ).delete()
+
     def complete_node(self, user: User) -> None:
         """Complete the current node and progress to the next node if needed."""
         if self.completed:

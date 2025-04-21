@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, RoleRequiredMixin, LoginRequiredMixin
@@ -17,11 +17,21 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
     model = {{ section_component.primary_model }}
     fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
-    success_url = reverse_lazy('render_{{ application_name }}_{{ page }}') 
+    {% if page.type == 'activity'%}
 
-    {% if not section_component.has_delete_operation -%}
+    def get_success_url(self):
+        return reverse('render_{{ application_name }}_{{ page }}', kwargs={
+            'active_process_id': self.kwargs.get('active_process_id'),
+            'active_node_id': self.kwargs.get('active_node_id'),
+        })
+    {% else -%}
+    success_url = reverse_lazy('render_{{ application_name }}_{{ page }}')
+    {% endif %}
+
+    {% if not section_component.has_delete_operation or page.type == 'activity' -%}
     def form_valid(self, form):
         instance = form.save(commit=False)
+        {% if not section_component.has_delete_operation -%}
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
@@ -35,6 +45,19 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
         {% for parent_model in section_component.parent_models -%}
         instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
         {% endfor -%}
+        {% endif %}
+        {% if page.type == 'activity' and (section_component.has_create_operation or section_component.has_delete_operation) %}
+        instance.save()
+        active_process = get_object_or_404(
+            ActiveProcess,
+            pk=self.kwargs.get('active_process_id'),
+        )
+        {% if section_component.has_create_operation %}
+        active_process.add_associated_instance(instance)
+        {% elif section_component.has_delete_operation %}
+        active_process.remove_associated_instance(instance)
+        {% endif %}
+        {% endif %}
         return super().form_valid(form)
     {% endif -%}
 {% endif -%}
@@ -44,7 +67,7 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
 
 {# List views #}
 {% for page in pages %}
-class {{ application_name }}_{{ page }}_ListView(GenericListView{% if authentication_present %}, RoleRequiredMixin{% endif %}):
+class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}

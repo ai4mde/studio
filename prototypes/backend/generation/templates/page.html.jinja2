@@ -27,7 +27,7 @@
             {#- UPDATE FORM #}
             {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update'{% if page.type == 'activity' %}active_process_id active_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
                 {% if attribute.updatable and not attribute.derived %}
@@ -132,7 +132,7 @@
             {#- DELETE BUTTON #}
             {% if section_component.has_delete_operation -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
                     {% raw %}{% csrf_token %}{% endraw %}
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;"/>
@@ -164,7 +164,7 @@
         {% if section_component.has_create_operation -%}
         {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
         <tr>
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_id{% endif %} {% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
                 {% if attribute.derived -%}

@@ -23,6 +23,7 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
         "models_on_pages": models_on_pages,
         "authentication_present": application_component.authentication_present
     }
+    print(data)
 
     data_shared = {
         "authentication_present": application_component.authentication_present,
