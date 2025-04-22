@@ -18,7 +18,8 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
         "logo": logo,
         "pages": application_component.pages,
         "categories": categories,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
+        "settings": application_component.settings,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
@@ -33,7 +34,7 @@ def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     
     data = {
         "application_name": application_name,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
@@ -75,8 +76,9 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate home page")
     
-    if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
-        raise Exception("Failed to generate action log page")
+    if application_component.settings.manager_access:
+        if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+            raise Exception("Failed to generate action log page")
 
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"

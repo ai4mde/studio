@@ -20,7 +20,7 @@ def main():
     if not generate_data(system_id, project_name, metadata):
         raise Exception("Failed to generate data")
     
-    if not generate_views(system_id, project_name, authentication_present):
+    if not generate_views(system_id, project_name, metadata, authentication_present):
         raise Exception("Failed to generate views")
     
     return True

@@ -9,6 +9,7 @@ from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.styling import Styling, StyleType
+from utils.definitions.settings import Settings
 
 
 # TODO: there could be added more logic here to only add relevant
@@ -29,6 +30,7 @@ def add_jinja_globals(template: Template) -> Template:
     template.globals['CustomMethod'] = CustomMethod
     template.globals['SectionCustomMethod'] = SectionCustomMethod
     template.globals['Cardinality'] = Cardinality
+    template.globals['Settings'] = Settings
 
     return template
 

@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, UpdateView, ListView, DeleteView
+from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
+from django.views import View
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 
@@ -9,7 +10,11 @@ class RoleRequiredMixin(UserPassesTestMixin):
     required_roles = []
 
     def test_func(self):
-        return any(role in self.request.user.roles for role in self.required_roles)
+        return (
+            any(role in self.request.user.roles for role in self.required_roles)
+            if self.required_roles is not None
+            else True
+        )
             
 {% endif -%}
 
@@ -17,6 +22,14 @@ class GenericViewMixin{% if authentication_present -%}(LoginRequiredMixin, RoleR
     model = None
     template_name = None
     context_object_name = None
+
+
+class GenericTemplateView({% if authentication_present -%}LoginRequiredMixin, RoleRequiredMixin, {% endif %}TemplateView):
+    template_name = None
+
+
+class GenericView({% if authentication_present -%}LoginRequiredMixin, RoleRequiredMixin, {% endif %}View):
+    pass
 
 
 class GenericListView(GenericViewMixin, ListView):

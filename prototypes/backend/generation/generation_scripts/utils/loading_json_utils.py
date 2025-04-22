@@ -6,6 +6,7 @@ from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.model import AttributeType, Model, Cardinality, define_cardinality
 from utils.definitions.styling import Styling, StyleType
+from utils.definitions.settings import Settings
 import json
 from uuid import uuid4
 
@@ -365,18 +366,53 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
     except:
         return Styling()
 
+def retrieve_settings(application_name: str, metadata: str) -> Settings:
+    if metadata in ["", None]:
+        raise Exception("Failed to retrieve styling from metadata: metadata is empty")
+    
+    manager_access = False
+    try:
+        for application_component in json.loads(metadata)["interfaces"]:
+            if application_component["label"] != application_name:
+                continue
+            if "settings" not in application_component['value']['data']:
+                return Settings(manager_access=manager_access)
+            settings = application_component["value"]["data"]["settings"]
+            return Settings(
+                manager_access=settings['managerAccess']
+                if 'managerAccess' in settings else False
+            )
+    except:
+        return Settings(manager_access=manager_access)
+    
+
+def retrieve_manager_roles(metadata: str) -> List[str]:
+    if metadata in ["", None]:
+        raise Exception("Failed to retrieve manager roles from metadata: metadata is empty")
+    manager_roles = []
+    for application_component in json.loads(metadata)["interfaces"]:
+        if "settings" not in application_component['value']['data']:
+            continue
+        settings = application_component["value"]["data"]["settings"]
+        if "managerAccess" not in settings or not settings["managerAccess"]:
+            continue
+        manager_roles.append(app_name_sanitization(application_component["label"]))
+    return manager_roles
+
 
 def get_application_component(project_name: str, application_name: str, metadata: str, authentication_present: bool) -> ApplicationComponent:
     '''Function that builds an ApplicationComponent object for application_name
     from metadata.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
+    settings = retrieve_settings(application_name=application_name, metadata=metadata)
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
         project = project_name,
         name = application_name,
         categories = categories,
         pages = pages,
+        settings = settings,
         styling = retrieve_styling(application_name, metadata),
         authentication_present = authentication_present
     )

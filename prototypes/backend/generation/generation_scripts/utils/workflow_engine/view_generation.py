@@ -1,20 +1,18 @@
-from utils.file_generation import write_to_file
+from utils.file_generation import generate_output_file
+from utils.loading_json_utils import retrieve_manager_roles
 
-def generate_views(system_id: str, project_name: str, authentication_present: bool) -> bool:
-    VIEWS_PY_FILE_PATH = "/usr/src/prototypes/backend/generation/workflow_engine/views.py"    
+def generate_views(system_id: str, project_name: str, metadata: str, authentication_present: bool) -> bool:
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/workflow_engine/views.py.jinja2"    
     OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/views.py"
 
-    with open(VIEWS_PY_FILE_PATH, "r") as f:
-        views_file_content = f.read()
+    manager_roles = retrieve_manager_roles(metadata)
+    
+    data = {
+        "manager_roles": manager_roles,
+        "authentication_present": authentication_present,
+    }
 
-    # Jinja2 template doesn't make sense here, since it is so little
-    views_file_content = (
-        views_file_content.replace("# Auth", "@user_passes_test(login_check)")
-        if authentication_present
-        else views_file_content.replace("# Auth", "")
-    )
-
-    if write_to_file(OUTPUT_FILE_PATH, views_file_content):
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
     
     raise Exception(f"Failed to generate {project_name}/workflow_engine/views.py")

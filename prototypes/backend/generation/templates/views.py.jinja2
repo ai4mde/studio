@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView
 from shared_models.models import *
-from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, RoleRequiredMixin, LoginRequiredMixin
+from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, Process
 
 {# Create, Update, Delete views #}
@@ -109,7 +109,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
 
 
 {# Home render view #}
-class HomeRenderView(TemplateView{% if authentication_present %}, LoginRequiredMixin, RoleRequiredMixin{% endif %}):
+class HomeRenderView(GenericTemplateView):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
