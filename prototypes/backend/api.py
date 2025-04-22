@@ -44,8 +44,8 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
         process = subprocess.Popen(
             ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
             cwd=prototype_path,
-            stdout=sys.stdout,
-            stderr=sys.stderr
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         time.sleep(2)
         if process.poll() is not None:
