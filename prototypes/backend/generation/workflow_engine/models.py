@@ -54,7 +54,6 @@ class Process(models.Model):
         # Log the start of the process
         ActionLog.objects.create(
             status="STARTED",
-            process=self,
             action_node=self.start_node,
             active_process=active_process,
             user=user,
@@ -154,7 +153,6 @@ class ActiveProcess(models.Model):
         
             ActionLog.objects.create(
                 status="STARTED",
-                process=self.process,
                 action_node=current_action_log.action_node,
                 active_process=self,
                 user=new_user,
@@ -187,7 +185,6 @@ class ActiveProcess(models.Model):
         if not self.active_node.url and self.active_node.custom_code:
             ActionLog.objects.create(
                 status="STARTED",
-                process=self.process,
                 action_node=next_node,
                 active_process=self,
                 user=None,
@@ -203,7 +200,6 @@ class ActiveProcess(models.Model):
         # Log the assignment of the next node
         ActionLog.objects.create(
             status="STARTED",
-            process=self.process,
             action_node=next_node,
             active_process=self,
             user=user,
@@ -280,10 +276,9 @@ class ActionLog(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
-    process = models.ForeignKey(Process, related_name="process_action_logs", on_delete=models.CASCADE)
     action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, related_name="action_logs", on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Action log for {self.process} - {self.status} at {self.created_at}"
+        return f"Action log for {self.active_process} - {self.status} at {self.created_at}"
