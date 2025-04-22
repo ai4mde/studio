@@ -4,7 +4,7 @@ import json
 from typing import Any, NamedTuple
 
 from utils.file_generation import write_to_file
-from utils.sanitization import page_name_sanitization
+from utils.sanitization import page_name_sanitization, app_name_sanitization
 
 
 class Node(NamedTuple):
@@ -48,7 +48,7 @@ class ActivityDiagramParser:
     def actors(self) -> dict[str, str]:
         """Returns id of the actors associated with their name"""
         return {
-            actor_node['id']: actor_node['cls']['name'].lower()
+            actor_node['id']: app_name_sanitization(actor_node['cls']['name'])
             for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams'])
             for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes'])
         }

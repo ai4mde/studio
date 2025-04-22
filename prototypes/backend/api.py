@@ -5,7 +5,6 @@ import os
 import time
 import socket
 import signal
-import sys
 
 app = Flask(__name__)
 

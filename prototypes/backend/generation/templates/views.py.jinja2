@@ -20,12 +20,12 @@ class {{page}}_{{ section_component }}_{% if section_component.has_create_operat
     {% if page.type == 'activity'%}
 
     def get_success_url(self):
-        return reverse('render_{{ application_name }}_{{ page }}', kwargs={
+        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_id': self.kwargs.get('active_process_id'),
             'active_node_id': self.kwargs.get('active_node_id'),
         })
     {% else -%}
-    success_url = reverse_lazy('render_{{ application_name }}_{{ page }}')
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
 
     {% if not section_component.has_delete_operation -%}

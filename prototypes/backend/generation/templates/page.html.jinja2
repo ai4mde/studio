@@ -27,7 +27,7 @@
             {#- UPDATE FORM #}
             {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
                 {% if attribute.updatable and not attribute.derived %}
@@ -79,7 +79,7 @@
                     <input type="submit" value="Save">
                 </td>
                 <td>
-                    <a href="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
                 </td>
             </form>
             {% raw %}{% else %}{% endraw %}
@@ -114,7 +114,7 @@
             {#- UPDATE BUTTON -#}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
             <td>
-                <form action="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                     <input type="hidden" name="instance_id_{{ section_component.primary_model }}"  value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;" />
@@ -132,7 +132,7 @@
             {#- DELETE BUTTON #}
             {% if section_component.has_delete_operation -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
                     {% raw %}{% csrf_token %}{% endraw %}
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;"/>
@@ -151,7 +151,7 @@
             {#- CUSTOM METHOD BUTTONS#}
             {% for custom_method in section_component.custom_methods -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
                     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
                     <input type="submit" value="{{ custom_method }}"/>
                 </form>
@@ -164,7 +164,7 @@
         {% if section_component.has_create_operation -%}
         {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
         <tr>
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
                 {% if attribute.derived -%}
@@ -201,7 +201,7 @@
                     <input type="submit" value="Save">
                 </td>
                 <td>
-                    <a href="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
                 </td>
             </form>
         </tr>
@@ -212,7 +212,7 @@
     {#- CREATE BUTTON #}
     {% if section_component.has_create_operation -%}
     {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_id active_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
         <input type="hidden", name="create_{{ section_component }}" value="true">
         <label style="cursor:pointer;">
             <input type="submit" style="display:none;"/>

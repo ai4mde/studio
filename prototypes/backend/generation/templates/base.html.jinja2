@@ -15,16 +15,18 @@
             <h1>{{ application_name | capitalize }}</h1>
         </div>
             <div class="menu">
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
                 {% if settings.manager_access %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}_action_log' {% raw %}%}{% endraw %}">Activity log</a>
+                <b>Manager</b>
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}">Activity log</a>
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}">User assignment</a>
                 {% endif %}
                 {% for category in categories %}
                 <b>{{ category }}</b>
                 {% for page in pages %}
                 {% if page.type == 'normal'%}
                 {% if page.category == category.name %}
-                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
                 {% endif %}
                 {% endif %}
@@ -35,7 +37,7 @@
 
                 {% for page in pages %}
                 {% if page.category in ["", none] and page.type != 'activity' %}
-                <a href="{% raw %}{%{% endraw %} url 'render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
                     }}</a>
                 {% endif %}
                 {% endfor %}

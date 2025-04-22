@@ -1,12 +1,14 @@
 from django.urls import path
 from . import views
 
-from workflow_engine.views import ActionLogView
+from workflow_engine.views import ActionLogView, ChangeUserAssignmentView, ChangeUserAssignmentUpdateView
 
+app_name="{{ application_name }}"
 urlpatterns = [
     path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
     {% if settings.manager_access -%}
     path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name }}_action_log"),
+    path('render_change_user_assignment/', ChangeUserAssignmentView.as_view(template_name='{{ application_name }}_change_user_assignment.html'), name="{{ application_name }}_change_user_assignment"),
     {% endif -%}
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_id>/<int:active_node_id>{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),

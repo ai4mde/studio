@@ -57,6 +57,21 @@ def generate_action_log_page(application_component: ApplicationComponent, OUTPUT
     return False
 
 
+def generate_change_user_assignment(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    application_name = app_name_sanitization(application_component.name)
+
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/workflow_engine/change_user_assignment.html.jinja2"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_change_user_assignment.html"
+
+    data = {
+        "application_name": application_name,
+    }
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        return True
+    
+    return False
+
+
 def generate_templates(application_component: ApplicationComponent, system_id: str) -> bool:
     project_name = project_name_sanitization(application_component.project)
     application_name = app_name_sanitization(application_component.name)
@@ -79,6 +94,8 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     if application_component.settings.manager_access:
         if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
             raise Exception("Failed to generate action log page")
+        if not generate_change_user_assignment(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+            raise Exception("Failed to generate change user assignment page")
 
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"

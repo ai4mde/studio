@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 
 from workflow_engine.models import ActionLog, ActiveProcess, Process
-from shared_models.views import GenericView, GenericTemplateView
+from shared_models.models import User
+from shared_models.views import GenericView, GenericTemplateView, GenericUpdateView
 
 class StartProcessView(GenericView):
     {% if authentication_present -%}
@@ -59,3 +61,43 @@ class ActionLogView(GenericTemplateView):
         }
 
         return context
+
+class ChangeUserAssignmentView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = [{% for name in manager_roles %}'{{ name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+
+    def __init__(self, template_name, **kwargs):
+        super().__init__(**kwargs)
+        self.template_name = template_name
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        action_logs = ActiveProcess.objects.filter(completed=False)
+
+        if update_instance_id := self.request.GET.get("update_instance_id"):
+            update_instance = get_object_or_404(ActiveProcess, id=update_instance_id)
+            actor = update_instance.active_node.actor
+            possible_users = User.objects.filter(**{f"is_{actor}": True})
+            return {
+                'active_processes': action_logs,
+                'update_instance': update_instance,
+                'possible_users': possible_users,
+            }
+        return {
+            'active_processes': action_logs,
+        }
+
+
+class ChangeUserAssignmentUpdateView(GenericView):
+    {% if authentication_present -%}
+    required_roles = [{% for name in manager_roles %}'{{ name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% endif %}
+
+    def post(self, request, pk, app, *args, **kwargs):
+        active_process = get_object_or_404(ActiveProcess, pk=pk)
+        if new_user_id := request.POST.get("new_user"):
+            new_user = get_object_or_404(User, pk=new_user_id)
+            active_process.reassign_user(new_user)
+        return redirect(reverse(f"{app}:{app}_change_user_assignment"))
+

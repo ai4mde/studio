@@ -130,32 +130,50 @@ class ActiveProcess(models.Model):
             self._complete_process(user)
             return
         self._progress_to_next_node(next_node, user)
+    
+    def reassign_user(self, new_user: User) -> None:
+        """Reassign the current node to a new user."""
+        if self.completed:
+            raise ValueError("This process is already completed.")
         
+        if self.active_node.actor not in new_user.roles:
+            raise PermissionDenied(f"User {new_user.username} does not have the required role to complete this step.")
+        
+        if self.user == new_user:
+            return
+        
+        current_action_log = ActionLog.objects.filter(
+            action_node=self.active_node,
+            active_process=self,
+        ).exclude(user=new_user).order_by("-created_at").first()
+
+        # Log the reassignment of the current node and the start by the new user
+        if current_action_log:
+            current_action_log.status = "REASSIGNED"
+            current_action_log.save()
+        
+            ActionLog.objects.create(
+                status="STARTED",
+                process=self.process,
+                action_node=current_action_log.action_node,
+                active_process=self,
+                user=new_user,
+            )
+        self.user = new_user
+        self.save()
+
 
     def _complete_process(self, user: User) -> None:
         """Mark the process as completed and log the completion."""
         self.completed = True
         self.save()
-        # Log the completion of the process
-        current_action_log = ActionLog.objects.get(
-            action_node=self.active_node,
-            active_process=self,
-        )
-        current_action_log.completed_at = now()
-        current_action_log.status = "COMPLETED"
-        current_action_log.save()
+        self._complete_log(user)
 
     def _progress_to_next_node(self, next_node: ActionNode, user: User | None) -> None:
         """Progress to the next node and assign the next user."""
 
         # Log the completion of the current node
-        current_action_log = ActionLog.objects.get(
-            action_node=self.active_node,
-            active_process=self,
-        )
-        current_action_log.completed_at = now()
-        current_action_log.status = "COMPLETED"
-        current_action_log.save()
+        self._complete_log(user)
 
         # Set the next node as the active node
         self.active_node = next_node
@@ -168,7 +186,7 @@ class ActiveProcess(models.Model):
         # No URL means that the node is not a task node. Execute the custom_code if it exists.
         if not self.active_node.url and self.active_node.custom_code:
             ActionLog.objects.create(
-                status="SYSTEM_START",
+                status="STARTED",
                 process=self.process,
                 action_node=next_node,
                 active_process=self,
@@ -190,6 +208,18 @@ class ActiveProcess(models.Model):
             active_process=self,
             user=user,
         )
+    
+    def _complete_log(self, user: User) -> None:
+        current_action_log = ActionLog.objects.filter(
+            action_node=self.active_node,
+            active_process=self,
+            user=user,
+        ).order_by("-created_at").first()
+        if current_action_log:
+            current_action_log.completed_at = now()
+            current_action_log.status = "COMPLETED"
+            current_action_log.save()
+
 
     def _get_next_user(self, next_node: ActionNode, current_user: User | None) -> User:
         """Determine the next user for the given node."""
@@ -242,7 +272,7 @@ class ActionLog(models.Model):
     STATUS_CHOICES = [
         ("STARTED", "Started"),
         ("COMPLETED", "Completed"),
-        ("SYSTEM_START", "System started"),
+        ("REASSIGNED", "Reassigned"),
     ]
 
     id = models.AutoField(primary_key=True)
