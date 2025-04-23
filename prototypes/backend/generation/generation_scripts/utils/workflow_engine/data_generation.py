@@ -57,7 +57,7 @@ class ActivityDiagramParser:
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID to a possible interface url"""
         return {
-            page['action']['value']: f"/{interface['value']['name']}/render_{interface['value']['name']}_{page_name_sanitization(page['name'])}"
+            page['action']['value']: f"/{app_name_sanitization(interface['value']['name'])}/render_{app_name_sanitization(interface['value']['name'])}_{page_name_sanitization(page['name'])}"
             for interface in self.metadata['interfaces']
             for page in interface['value']['data']['pages']
             if page['type']['value'] != 'normal'

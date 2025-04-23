@@ -91,7 +91,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate home page")
     
-    if application_component.settings.manager_access:
+    if application_component.settings and application_component.settings.manager_access:
         if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
             raise Exception("Failed to generate action log page")
         if not generate_change_user_assignment(application_component, OUTPUT_TEMPLATES_DIRECTORY):

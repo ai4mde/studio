@@ -191,7 +191,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
     out = []
     try:
         for application_component in json.loads(metadata)["interfaces"]:
-            if application_component["label"] != application_name:
+            if app_name_sanitization(application_component["label"]) != application_name:
                 continue
             
             if "pages" not in application_component["value"]["data"]: # no pages in interface
@@ -246,7 +246,7 @@ def retrieve_categories(application_name: str, metadata: str) -> List[Category]:
         for application_component in json.loads(metadata)["interfaces"]:
             if "categories" not in application_component["value"]["data"]: # empty interface
                 continue
-            if application_component["label"] != application_name:
+            if app_name_sanitization(application_component["label"]) != application_name:
                 continue
 
             for category in application_component["value"]["data"]["categories"]:
@@ -275,7 +275,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
         for application_component in json.loads(metadata)["interfaces"]:
             if "pages" not in application_component["value"]["data"]: # empty interface
                 continue
-            if application_component["label"] != application_name:
+            if app_name_sanitization(application_component["label"]) != application_name:
                 continue
 
             for page in application_component["value"]["data"]["pages"]:
@@ -297,16 +297,16 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
     return out
 
 
-def retrieve_models_on_pages(application_component: ApplicationComponent) -> dict[Page, Dict[str, List[Model] | Model]]:
+def retrieve_models_on_pages(application_component: ApplicationComponent) -> dict[Page, Dict[str, List[Model]]]:
     '''Function that returns all primary models & foreign/parent models on pages inside
     application_component'''
-    out: dict[Page, Dict[str, List[Model] | Model]] = {}
+    out: dict[Page, Dict[str, List[Model]]] = {}
 
     for page in application_component.pages:
         if page not in out:
-            out[page] = {'primary_model': '', 'parent_models': []}
+            out[page] = {'primary_models': [], 'parent_models': []}
         for section_component in page.section_components:
-            out[page]['primary_model'] = section_component.primary_model
+            out[page]['primary_models'].append(section_component.primary_model)
             for parent_model in section_component.parent_models:
                 out[page]['parent_models'].append(parent_model)
     return out
@@ -324,7 +324,7 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
     
     try:
         for application_component in json.loads(metadata)["interfaces"]:
-            if application_component["label"] != application_name:
+            if app_name_sanitization(application_component["label"]) != application_name:
                 continue
             if "styling" not in application_component["value"]["data"]: # empty interface
                 return Styling() # return default object
@@ -373,7 +373,7 @@ def retrieve_settings(application_name: str, metadata: str) -> Settings:
     manager_access = False
     try:
         for application_component in json.loads(metadata)["interfaces"]:
-            if application_component["label"] != application_name:
+            if app_name_sanitization(application_component["label"]) != application_name:
                 continue
             if "settings" not in application_component['value']['data']:
                 return Settings(manager_access=manager_access)
@@ -406,6 +406,8 @@ def get_application_component(project_name: str, application_name: str, metadata
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
+    styling = retrieve_styling(application_name=application_name, metadata=metadata)
+
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
         project = project_name,
@@ -413,6 +415,6 @@ def get_application_component(project_name: str, application_name: str, metadata
         categories = categories,
         pages = pages,
         settings = settings,
-        styling = retrieve_styling(application_name, metadata),
+        styling = styling,
         authentication_present = authentication_present
     )
