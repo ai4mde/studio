@@ -1,0 +1,7 @@
+Check loops
+Flatten rules
+
+
+divide models on page into foreignkey and main model
+models_on_pages
+add action_node_id and active_process_id to list, create, update, delete

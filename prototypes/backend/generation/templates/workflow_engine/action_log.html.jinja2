@@ -1,0 +1,55 @@
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block content %}{% endraw %}
+<h2>Action Log</h2>
+
+{% raw %}
+<form method="get" class="filter-form">
+    <label for="status">Filter by Status:</label>
+    <select name="status" id="status">
+        <option value="">All</option>
+        {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="user">Filter by User:</label>
+    <input type="text" name="user" id="user" value="{{ request.GET.user }}" placeholder="Search by username">
+    
+    <label for="active_process_id">Filter by Active Process ID:</label>
+    <input type="text" name="active_process_id" id="active_process_id" value="{{ request.GET.active_process_id }}" placeholder="Enter Active Process ID">
+
+    <button type="submit">Filter</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Active Process ID</th>
+            <th>Process</th>
+            <th>Action Node</th>
+            <th>Status</th>
+            <th>User</th>
+            <th>Started At</th>
+            <th>Completed At</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in action_logs %}
+            <tr>
+                <td>{{ log.active_process_id }}</td>
+                <td>{{ log.process }}</td>
+                <td>{{ log.action_node }}</td>
+                <td>{{ log.get_status_display }}</td>
+                <td>{{ log.user }}</td>
+                <td>{{ log.created_at }}</td>
+                <td>{{ log.completed_at }}</td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">No action logs found.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+{% endraw %}
