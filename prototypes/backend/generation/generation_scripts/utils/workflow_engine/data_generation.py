@@ -99,7 +99,7 @@ class ActivityDiagramParser:
                 next_nodes=None,
                 conditions=None,
                 url=self.interface_map.get(current_node['id']),
-                custom_code=current_node['cls'].get('customCode'),
+                custom_code=current_node['cls'].get('customCode') if current_node['cls'].get('isAutomatic') else None,
             )
             self.visited_nodes[current_node_id] = node
             return node

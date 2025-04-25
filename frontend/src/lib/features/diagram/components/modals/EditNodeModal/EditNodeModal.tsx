@@ -24,7 +24,7 @@ import style from "./editnodemodal.module.css";
 
 export const EditNodeModal: React.FC = () => {
     const modalState = useEditNodeModal();
-    const { diagram, nodes } = useDiagramStore();
+    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),
@@ -141,6 +141,11 @@ export const EditNodeModal: React.FC = () => {
                                                 <EditCode
                                                     node={node}
                                                     attribute="customCode"
+                                                    classes={
+                                                        relatedDiagrams
+                                                            .filter((diagram) => diagram.type === 'classes')
+                                                            .flatMap((diagram) => diagram.nodes.map((node) => node.name))
+                                                    }
                                                 />
                                             )}
                                         </>

@@ -1,7 +1,6 @@
 import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
 import React, { useEffect, useState } from "react";
 import { RelatedNode } from "$diagram/types/diagramState"
-import { node } from "$diagram/types/spec";
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 
 type Props = {
@@ -9,10 +8,11 @@ type Props = {
     uniqueActors: RelatedNode[];
     swimlaneGroupExists: boolean;
     existingActors: string[];
+    classes?: string[];
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, setObject }) => {
+export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, classes, setObject }) => {
 
     // Set default values for swimlane
     useEffect(() => {
@@ -153,7 +153,8 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                         open={isCodeEditorOpen}
                         onClose={handleCloseCodeEditor}
                         onSave={handleSaveCode}
-                        initialCode={object.customCode || "def custom_code(active_process: ActiveProcess) -> None:\n    pass"}
+                        initialCode={object.customCode}
+                        classes={classes}
                     />
                 </>
             )}

@@ -11,26 +11,24 @@
 
 {% if authentication_present -%}
     <div class="process-container">
+        {% raw %}{% if available_processes %}{% endraw %}
         <div class="available-processes">
-            <h3>Available Processes</h3>
-            {% raw %}{% if available_processes %}{% endraw %}
-                <div class="process-list">
-                    {% raw %}{% for process in available_processes %}{% endraw %}
-                        <div class="process-item">
-                            <h4>{% raw %}{{ process.name }}{% endraw %}</h4>
-                            <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
-                                {% raw %}{% csrf_token %}{% endraw %}
-                                <button type="submit" class="process-button">Start</button>
-                            </form>
-                        </div>
-                    {% raw %}{% endfor %}{% endraw %}
-                </div>
-            {% raw %}{% else %}{% endraw %}
-                <p class="no-processes">No processes available.</p>
-            {% raw %}{% endif %}{% endraw %}
+            <h3>Processes you can start</h3>
+            <div class="process-list">
+                {% raw %}{% for process in available_processes %}{% endraw %}
+                    <div class="process-item">
+                        <h4>{% raw %}{{ process.name }}{% endraw %}</h4>
+                        <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
+                            {% raw %}{% csrf_token %}{% endraw %}
+                            <button type="submit" class="process-button">Start</button>
+                        </form>
+                    </div>
+                {% raw %}{% endfor %}{% endraw %}
+            </div>
         </div>
+        {% raw %}{% endif %}{% endraw %}
         <div class="active-processes">
-            <h3>Active Processes</h3>
+            <h3>Tasks to complete</h3>
             {% raw %}{% if active_processes %}{% endraw %}
                 <div class="process-list">
                     {% raw %}{% for active_process in active_processes %}{% endraw %}
@@ -47,7 +45,7 @@
                     {% raw %}{% endfor %}{% endraw %}
                 </div>
             {% raw %}{% else %}{% endraw %}
-                <p class="no-processes">No active processes.</p>
+                <p class="no-processes">You currently have no ongoing tasks.</p>
             {% raw %}{% endif %}{% endraw %}
         </div>
     </div>

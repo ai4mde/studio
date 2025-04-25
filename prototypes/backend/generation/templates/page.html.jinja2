@@ -1,12 +1,18 @@
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
 
+
 <div>
+    {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
     {%- for section_component in page.section_components %}
 
-    <h2>{{ section_component.display_name }}</h2>
+    {% if page.type != 'activity' %}<h2>{{ section_component.display_name }}</h2>{% endif %}
 
-    <p>{{ section_component.text }}</p>
+    {% if page.type == 'activity' %}
+        <p>{{ loop.index }}. {{ section_component.text}}</p>
+    {% else  %}
+        <p>{{ section_component.text}}</p>
+    {% endif %}
 
     {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
     <table>
@@ -231,7 +237,7 @@
         <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_id active_node_id {% raw %}%}{% endraw %}" method="post">
             {% raw %}{% csrf_token %}{% endraw %}
             <button type="submit" class="complete-activity-button">
-                Complete Activity
+                Complete task
             </button>
         </form>
     </div>

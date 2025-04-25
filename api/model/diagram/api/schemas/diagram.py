@@ -38,10 +38,15 @@ class UpdateDiagram(Schema):
     description: Optional[str] = None
 
 
+class RelatedClassAttribute(Schema):
+    name: str
+    type: str
+
 class RelatedNode(ModelSchema):
     name: str
     type: str
     actorNode: Optional[str]
+    classAttributes: Optional[List[RelatedClassAttribute]] = None
 
     class Meta:
         model = Node
@@ -58,6 +63,15 @@ class RelatedNode(ModelSchema):
     @staticmethod
     def resolve_actorNode(obj):
         return obj.cls.data.get('actorNode')
+    
+    @staticmethod
+    def resolve_classNames(obj):
+        if obj.cls.data.get('type') == 'class':
+            return [
+                RelatedClassAttribute(name=attribute['name'], type=attribute['type'])
+                for attribute in obj.cls.data.get('attributes', [])
+            ]
+        return None
 
 
 class RelatedDiagram(ModelSchema):

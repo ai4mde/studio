@@ -1,10 +1,16 @@
 import { Edge, EdgeChange, Node, NodeChange } from "reactflow";
 
+export type classAttribute = {
+    name: string;
+    type: string;
+}
+
 export type RelatedNode = {
     id: string;
     name: string;
     type: string;
-    actorNode: string;
+    actorNode?: string;
+    classAttributes?: classAttribute[];
 }
 
 export type RelatedDiagram = {

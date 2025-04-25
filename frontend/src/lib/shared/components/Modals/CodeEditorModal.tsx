@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState, useEffect } from "react";
 import { Modal, Button, Typography } from "@mui/joy";
 import Editor from "@monaco-editor/react";
 
@@ -6,11 +6,22 @@ type CodeEditorModalProps = {
     open: boolean;
     onClose: () => void;
     onSave: (code: string) => void;
-    initialCode: string;
+    initialCode?: string;
+    classes?: string[];
 }
 
-const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ open, onClose, onSave, initialCode }) => {
-    const [currentCode, setCurrentCode] = React.useState(initialCode);
+const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ open, onClose, onSave, initialCode, classes }) => {
+    const [currentCode, setCurrentCode] = useState(initialCode);
+
+    useEffect(() => {
+        if (!initialCode && classes) {
+            const generatedCode = `def custom_code(active_process: ActiveProcess) -> None:\n` +
+                "    # The following variables are Django QuerySet objects related to the active process\n" +
+                classes.map((cls) => `    ${cls.toLowerCase()}s = active_process.${cls.toLowerCase()}s # Do not change this line`).join("\n") +
+                `\n    pass`;
+            setCurrentCode(generatedCode);
+        }
+    }, [initialCode, classes]);
 
     const handleSave = () => {
         onSave(currentCode);
@@ -19,11 +30,11 @@ const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ open, onClose, onSave
 
     return (
         <Modal open={open} onClose={onClose}>
-            <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "8px", width: "600px", margin: "auto" }}>
+            <div style={{ padding: "16px", backgroundColor: "white", borderRadius: "8px", width: "800px", height: "650px", margin: "auto" }}>
                 <Typography level="h2" component="h2" style={{ marginBottom: "16px" }}>
                     Edit Code
                 </Typography>
-                <div style={{ height: "400px", marginBottom: "16px" }}>
+                <div style={{ height: "500px", marginBottom: "16px" }}>
                     <Editor
                         height="100%"
                         defaultLanguage="python"

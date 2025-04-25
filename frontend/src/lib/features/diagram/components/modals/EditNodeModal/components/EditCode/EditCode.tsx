@@ -9,11 +9,12 @@ import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 type Props = {
     node: Node;
     attribute: string;
+    classes: string[];
 };
 
-export const EditCode: React.FC<Props> = ({ node, attribute }) => {
+export const EditCode: React.FC<Props> = ({ node, attribute, classes }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [code, setCode] = useState(node.data[attribute] || "def custom_code(active_process: ActiveProcess):\n    pass");
+    const [code, setCode] = useState(node.data[attribute]);
     const { diagram } = useDiagramStore();
 
     const handleOpenModal = () => setIsModalOpen(true);
@@ -47,7 +48,8 @@ export const EditCode: React.FC<Props> = ({ node, attribute }) => {
                 open={isModalOpen}
                 onClose={handleCloseModal}
                 onSave={handleSaveCode}
-                initialCode={code ||  "def custom_code(active_process: ActiveProcess) -> None:\n    pass"}
+                initialCode={code}
+                classes={classes}
             />
         </div>
     );

@@ -287,6 +287,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     name = page["name"],
                     application = application_component["label"],
                     category = category,
+                    activity_name = page['action']['label'] if page.get('action') else None,
                     type = page["type"]['value'] if page.get('type') else 'normal',
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
                 )

@@ -114,12 +114,12 @@ class ActiveProcess(models.Model):
             active_process=self,
         ).delete()
 
-    def complete_node(self, user: User) -> None:
+    def complete_node(self, user: User | None) -> None:
         """Complete the current node and progress to the next node if needed."""
         if self.completed:
             raise ValueError("This process is already completed.")
         
-        if self.active_node.actor not in user.roles:
+        if user and self.active_node.actor not in user.roles:
             raise PermissionDenied(f"User {user.username} does not have the required role to complete this step.")
         
         # Evaluate the rule to determine the next node
@@ -191,7 +191,7 @@ class ActiveProcess(models.Model):
                 user=None,
             )
             self._execute_custom_code()
-            return self._progress_to_next_node(next_node, None)
+            return self.complete_node(user)
 
         # Determine the next user for the task
         next_user = self._get_next_user(next_node, user)
@@ -237,7 +237,7 @@ class ActiveProcess(models.Model):
         except ImportError as e:
             raise ImportError(f"Fialed to import module when executing custom code: {module_name}") from e
         except AttributeError as e:
-            raise AttributeError(f"Module {module_name } does not have function named {function_name}") from e
+            raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
     
     def __str__(self):
         return f"Active process for {self.process}"

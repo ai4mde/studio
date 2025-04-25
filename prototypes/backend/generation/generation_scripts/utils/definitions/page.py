@@ -12,6 +12,7 @@ class Page():
             application: str,
             name: str,
             category: Optional[str], # TODO: refer to category object
+            activity_name: Optional[str],
             type: Literal['normal', 'activity'],
             section_components: List[SectionComponent]
     ):
@@ -20,6 +21,7 @@ class Page():
         self.id = id
         self.application = application
         self.category = category_name_sanitization(category)
+        self.activity_name = activity_name
         self.type = type
         self.section_components = section_components
 
