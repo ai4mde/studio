@@ -26,8 +26,8 @@ export const TopNavigation: React.FC<Props> = ({ back, navigation }) => {
                 </a>
             )}
             {navigation?.map(({ name, Icon, href, strict }) => (
+                <>
                     <a
-                        key={href}
                         className={[
                             "flex flex-row gap-2 px-3 items-center border-b border-transparent hover:text-stone-900 hover:bg-stone-200",
                             (strict
@@ -42,6 +42,7 @@ export const TopNavigation: React.FC<Props> = ({ back, navigation }) => {
                         <Icon size={14} />
                         {name}
                     </a>
+                </>
             ))}
         </div>
     );

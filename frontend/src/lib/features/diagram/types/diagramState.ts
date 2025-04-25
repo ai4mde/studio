@@ -1,26 +1,5 @@
 import { Edge, EdgeChange, Node, NodeChange } from "reactflow";
 
-export type classAttribute = {
-    name: string;
-    type: string;
-}
-
-export type RelatedNode = {
-    id: string;
-    name: string;
-    type: string;
-    actorNode?: string;
-    classAttributes?: classAttribute[];
-}
-
-export type RelatedDiagram = {
-    id: string;
-    name: string;
-    type: string;
-    nodes: RelatedNode[];
-}
-
-
 export type DiagramState = {
     diagram: string;
     setDiagramID: (id: string) => void;
@@ -51,9 +30,4 @@ export type DiagramState = {
 
     connecting: boolean;
     setConnecting: (val: boolean) => void;
-
-    relatedDiagrams: RelatedDiagram[];
-    uniqueActors: RelatedNode[];
-    setRelatedDiagrams: (relatedDiagrams: RelatedDiagram[]) => void;
-    relatedDiagramsFromAPI: (relatedDiagrams: RelatedDiagram[]) => void;
 };

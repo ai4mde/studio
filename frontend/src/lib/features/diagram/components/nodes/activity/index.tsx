@@ -6,7 +6,6 @@ import { JoinNode } from "./control";
 import { MergeNode } from "./control";
 import { BufferNode } from "./object";
 import { ActionNode } from "./ActionNode";
-import { SwimlaneGroupNode } from "./SwimlaneGroupNode";
 
 export {
     DecisionNode,
@@ -17,7 +16,6 @@ export {
     MergeNode,
     BufferNode,
     ActionNode,
-    SwimlaneGroupNode,
 };
 
 export default {
@@ -29,5 +27,4 @@ export default {
     MergeNode,
     BufferNode,
     ActionNode,
-    SwimlaneGroupNode,
 };

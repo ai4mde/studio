@@ -1,4 +1,4 @@
-import { addNode, partialUpdateNode } from "$diagram/mutations/diagram";
+import { addNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewNodeModal } from "$diagram/stores/modals";
 import Button from "@mui/joy/Button";
@@ -13,7 +13,7 @@ import { NewUsecaseNode } from "./NewUsecaseNode";
 import style from "./newnodemodal.module.css";
 
 export const NewNodeModal: React.FC = () => {
-    const { diagram, type, nodes, uniqueActors, relatedDiagrams } = useDiagramStore();
+    const { diagram, type } = useDiagramStore();
     const { close } = useNewNodeModal();
 
     // TODO: Figure out a way to do better form building
@@ -33,45 +33,7 @@ export const NewNodeModal: React.FC = () => {
         return () => document.removeEventListener("keydown", down);
     });
 
-    const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const nodeRef = React.useRef(null);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (object.type !== 'swimlane') {
-           addNode(diagram, object);
-        } else {
-            const { height, width, horizontal, ...swimlaneProps } = object;
-            if (swimlaneGroup) {
-                partialUpdateNode(
-                    diagram,
-                    swimlaneGroup.id,
-                    {
-                        cls: {
-                            swimlanes: [...swimlaneGroup.data.swimlanes, swimlaneProps],
-                        }
-                    }
-                )
-            } else {
-                addNode(
-                    diagram,
-                    {
-                        type: 'swimlanegroup',
-                        role: 'swimlane',
-                        swimlanes: [swimlaneProps],
-                        height,
-                        width,
-                        horizontal
-                    }
-                );
-            }
-        }
-        queryClient.refetchQueries({
-            queryKey: ["diagram"],
-        });
-        close();
-    };
 
     return createPortal(
         <div className={style.modal}>
@@ -80,7 +42,14 @@ export const NewNodeModal: React.FC = () => {
                     <form
                         ref={nodeRef}
                         className={style.main}
-                        onSubmit={handleSubmit}
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            addNode(diagram, object);
+                            queryClient.refetchQueries({
+                                queryKey: ["diagram"],
+                            });
+                            close();
+                        }}
                     >
                         <div className={style.head}>
                             <span className="p-2 px-3">
@@ -97,19 +66,7 @@ export const NewNodeModal: React.FC = () => {
                             {type == "activity" && (
                                 <NewActivityNode
                                     object={object}
-                                    uniqueActors={uniqueActors}
-                                    existingActors={
-                                        swimlaneGroup
-                                            ? swimlaneGroup.data.swimlanes.map((swimlane) => swimlane.actorNodeName || "")
-                                            : []
-                                    }
-                                    swimlaneGroupExists={!!swimlaneGroup}
                                     setObject={setObject}
-                                    classes={
-                                        relatedDiagrams
-                                            .filter((diagram) => diagram.type === 'classes')
-                                            .flatMap((diagram) => diagram.nodes.map((node) => node.name))
-                                    }
                                 />
                             )}
                             {type == "classes" && (
