@@ -241,7 +241,10 @@ export const CreatePrototype: React.FC = () => {
                         <span className="flex flex-row items-center gap-2">
                             <Switch
                                 defaultChecked={useAuthentication}
-                                onChange={(e) => setUseAuthentication(e.target.checked)}
+                                disabled={true}
+                                // Authentication is currently required for all prototypes
+                                // This should be removed after the workflow generation is changed to support non authenticated users
+                                // onChange={(e) => setUseAuthentication(e.target.checked)}
                             />
                             <FormLabel sx={{ marginTop: '4px' }}>Use Authentication</FormLabel>
                         </span>
