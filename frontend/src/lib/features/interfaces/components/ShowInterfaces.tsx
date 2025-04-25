@@ -22,7 +22,6 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCategories, ] = useLocalStorage('categories', []);
     const [, setPages, ] = useLocalStorage('pages', []);
     const [, setSections, ] = useLocalStorage('sections', []);
-    const [, setSettings, ] = useLocalStorage('settings', {});
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
 
@@ -32,7 +31,6 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
         setCategories(app_comp.categories || []);
         setPages(app_comp.pages || []);
         setSections(app_comp.sections || []);
-        setSettings(app_comp.settings || {});
     }
 
     const generateDefaultInterfaces = async () => {

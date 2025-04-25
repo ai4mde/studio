@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import List, Optional
 from utils.definitions.category import Category
 from utils.definitions.section_component import SectionComponent
 from utils.sanitization import page_name_sanitization, category_name_sanitization
@@ -12,8 +12,6 @@ class Page():
             application: str,
             name: str,
             category: Optional[str], # TODO: refer to category object
-            activity_name: Optional[str],
-            type: Literal['normal', 'activity'],
             section_components: List[SectionComponent]
     ):
         self.name = page_name_sanitization(name)
@@ -21,8 +19,6 @@ class Page():
         self.id = id
         self.application = application
         self.category = category_name_sanitization(category)
-        self.activity_name = activity_name
-        self.type = type
         self.section_components = section_components
 
     def __str__(self):

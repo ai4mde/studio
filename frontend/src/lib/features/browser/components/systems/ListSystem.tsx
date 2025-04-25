@@ -37,7 +37,7 @@ export const ListSystem: React.FC<Props> = ({ project }) => {
         <>
             {isSuccess &&
                 data.map((e) => (
-                    <div key={e.id} className="relative w-48">
+                    <div className="relative w-48">
                         <a
                             href={`/systems/${e.id}`}
                             className="flex h-fit flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"

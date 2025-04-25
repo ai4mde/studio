@@ -15,7 +15,6 @@ import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { Styling } from './Styling';
-import { Settings } from './Settings';
 
 
 type Props = {
@@ -45,7 +44,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         const categories = JSON.parse(localStorage.getItem('categories')) || [];
         const pages = JSON.parse(localStorage.getItem('pages')) || [];
         const sections = JSON.parse(localStorage.getItem('sections')) || [];
-        const settings = JSON.parse(localStorage.getItem('settings')) || {};
 
         setIsSaving(true);
         try {
@@ -59,7 +57,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                     "categories": categories,
                     "pages": pages,
                     "sections": sections,
-                    "settings": settings,
                 },
             });
         } catch (error) {
@@ -110,7 +107,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Pages</Tab>
                             <Tab>Section Components</Tab>
                             <Tab>Styling</Tab>
-                            <Tab>Settings</Tab>
                         </TabList>
                         <TabPanel value={0}>
                             <p>Fragment</p>
@@ -119,18 +115,13 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Categories />
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages
-                                actorName = {data?.name}    
-                            />
+                            <Pages />
                         </TabPanel>
                         <TabPanel value={3}>
                             <Sections />
                         </TabPanel>
                         <TabPanel value={4}>
                             <Styling />
-                        </TabPanel>
-                        <TabPanel value={5}>
-                            <Settings />
                         </TabPanel>
                     </Tabs>
                 </>

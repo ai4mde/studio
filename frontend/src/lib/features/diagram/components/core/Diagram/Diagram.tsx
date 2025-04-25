@@ -76,10 +76,6 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         () => diagramStore.edgesFromAPI(data?.edges ?? []),
         [dataUpdatedAt],
     );
-    useEffect(
-        () => diagramStore.relatedDiagramsFromAPI(data?.related_diagrams ?? []),
-        [dataUpdatedAt]
-    );
 
     if (!isSuccess) {
         return <LinearProgress className="absolute top-0 left-0 right-0" />;
