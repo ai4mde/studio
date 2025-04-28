@@ -14,7 +14,7 @@ import NewUsecaseConnection from "./NewUsecaseConnection";
 import style from "./newconnectionmodal.module.css";
 
 export const NewConnectionModal: React.FC = () => {
-    const { nodes, diagram, type } = useDiagramStore();
+    const { nodes, diagram, type, relatedDiagrams } = useDiagramStore();
     const { source, target, close } = useNewConnectionModal();
 
     // TODO: Figure out a way to do better form building
@@ -102,6 +102,8 @@ export const NewConnectionModal: React.FC = () => {
                             {type == "activity" && (
                                 <NewActivityConnection
                                     object={object}
+                                    sourceNode={sourceNode}
+                                    classDiagrams={relatedDiagrams.filter((d) => d.type == "classes")}
                                     setObject={setObject}
                                 />
                             )}

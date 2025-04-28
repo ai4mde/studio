@@ -40,7 +40,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         <>
             <path
                 id={id}
-                stroke="black" stroke-width="1"
+                stroke="black" strokeWidth="1"
                 strokeDasharray={
                     data?.type == "dependency" ? "10,10" : undefined
                 }
@@ -58,6 +58,21 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             >
                 {data?.type === "extension" ? "<<extends>>" : data?.type === "inclusion" ? "<<includes>>" : data?.label ?? ""}
             </text>
+            {data?.condition && (
+                <text
+                    style={{ userSelect: "none", fill: "red" }}
+                    textAnchor="middle"
+                    x={(sx + tx) / 2}
+                    y={(sy + ty) / 2 + 15}
+                    fontSize="12"
+                >
+                    {data.condition.isElse
+                        ? "[Else]"
+                        : data.condition.aggregator
+                        ? `${data.condition.aggregator}(${data.condition.target_class_name}.${data.condition.target_attribute}) ${data.condition.operator} ${data.condition.threshold}`
+                        : `${data.condition.target_class_name}.${data.condition.target_attribute} ${data.condition.operator} ${data.condition.threshold}`}
+                </text>
+            )}
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="middle"
