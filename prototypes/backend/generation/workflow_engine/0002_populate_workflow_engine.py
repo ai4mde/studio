@@ -17,7 +17,8 @@ def fill_workflow_engine(apps, schema_editor):
     for rule_data in data['rules']:
         rule = Rule.objects.create(
             id=rule_data['id'],
-            condition=rule_data['condition'],
+            next=rule_data.get('next'),
+            condition=rule_data.get('condition'),
         )
         rule_map[rule_data['action_node']] = rule
 

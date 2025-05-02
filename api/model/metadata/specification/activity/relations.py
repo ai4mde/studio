@@ -17,7 +17,11 @@ class ControlFlowCondition(BaseModel):
     def validate_condition(cls, values):
         if values.isElse:
             return values
-        required_fields = ['target_class', 'target_attribute', 'target_attribute_type', 'operator', 'threshold']
+        required_fields = (
+            ['target_class', 'operator', 'threshold']
+            if values.aggregator == "count"
+            else ['target_class', 'target_attribute', 'target_attribute_type', 'operator', 'threshold']
+        )
         missing_fields = [field for field in required_fields if not getattr(values, field)]
         if missing_fields:
             raise ValidationError(f"The following fields are required for a condition: {', '.join(missing_fields)}")
