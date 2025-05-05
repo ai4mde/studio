@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 
-from workflow_engine.models import ActionLog, ActiveProcess, Process
+from workflow_engine.models import ActionLog, ActiveProcess, ActiveProcessNode, Process
 from shared_models.models import User
 from shared_models.views import GenericView, GenericTemplateView, GenericUpdateView
 
@@ -11,26 +11,26 @@ class StartProcessView(GenericView):
     {% endif %}
     def post(self, request, process_id, *args, **kwargs):
         process = get_object_or_404(Process, id=process_id)
-        active_process = process.start_process(request.user)
-        return redirect(f"{active_process.active_node.url}/{active_process.id}/{active_process.active_node.id}")
+        active_process_node = process.start_process(request.user)
+        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
 
 
 class RedirectToProcessView(GenericView):
     {% if authentication_present -%}
     required_roles = None
     {% endif %}
-    def post(self, request, active_process_id, *args, **kwargs):
-        active_process = get_object_or_404(ActiveProcess, id=active_process_id)
-        return redirect(f"{active_process.active_node.url}/{active_process.id}/{active_process.active_node.id}")
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
 
 
 class CompleteProcessStepView(GenericView):
     {% if authentication_present -%}
     required_roles = None
     {% endif %}
-    def post(self, request, active_process_id, *args, **kwargs):
-        active_process = get_object_or_404(ActiveProcess, id=active_process_id)
-        active_process.complete_node(request.user)
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        active_process_node.complete_node(request.user)
         return redirect(f'/{request.user.roles[0]}')
 
 
@@ -73,19 +73,19 @@ class ChangeUserAssignmentView(GenericTemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        action_logs = ActiveProcess.objects.filter(completed=False)
+        active_process_nodes = ActiveProcessNode.objects.filter(active_process__completed=False)
 
         if update_instance_id := self.request.GET.get("update_instance_id"):
-            update_instance = get_object_or_404(ActiveProcess, id=update_instance_id)
-            actor = update_instance.active_node.actor
+            update_instance = get_object_or_404(ActiveProcessNode, id=update_instance_id)
+            actor = update_instance.action_node.actor
             possible_users = User.objects.filter(**{f"is_{actor}": True})
             return {
-                'active_processes': action_logs,
+                'active_processes': active_process_nodes,
                 'update_instance': update_instance,
                 'possible_users': possible_users,
             }
         return {
-            'active_processes': action_logs,
+            'active_processes': active_process_nodes,
         }
 
 
@@ -95,9 +95,9 @@ class ChangeUserAssignmentUpdateView(GenericView):
     {% endif %}
 
     def post(self, request, pk, app, *args, **kwargs):
-        active_process = get_object_or_404(ActiveProcess, pk=pk)
+        active_process_node = get_object_or_404(ActiveProcessNode, pk=pk)
         if new_user_id := request.POST.get("new_user"):
             new_user = get_object_or_404(User, pk=new_user_id)
-            active_process.reassign_user(new_user)
+            active_process_node.reassign_user(new_user)
         return redirect(reverse(f"{app}:{app}_change_user_assignment"))
 

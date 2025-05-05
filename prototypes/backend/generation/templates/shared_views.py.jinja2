@@ -5,7 +5,7 @@ from django.views import View
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 
-from workflow_engine.models import ActiveProcess
+from workflow_engine.models import ActiveProcessNode
 
 
 class RoleRequiredMixin(UserPassesTestMixin):
@@ -37,11 +37,11 @@ class GenericView({% if authentication_present -%}LoginRequiredMixin, RoleRequir
 class GenericListView(GenericViewMixin, ListView):
     
     @property
-    def active_process(self) -> ActiveProcess | None:
+    def active_process_node(self) -> ActiveProcessNode | None:
         return get_object_or_404(
-            ActiveProcess,
-            pk=self.kwargs.get('active_process_id'),
-        ) if 'active_process_id' in self.kwargs else None
+            ActiveProcessNode,
+            pk=self.kwargs.get('active_process_node_id'),
+        ) if 'active_process_node_id' in self.kwargs else None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

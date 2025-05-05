@@ -29,15 +29,15 @@
         {% raw %}{% endif %}{% endraw %}
         <div class="active-processes">
             <h3>Tasks to complete</h3>
-            {% raw %}{% if active_processes %}{% endraw %}
+            {% raw %}{% if active_process_nodes %}{% endraw %}
                 <div class="process-list">
-                    {% raw %}{% for active_process in active_processes %}{% endraw %}
+                    {% raw %}{% for active_process_node in active_process_nodes %}{% endraw %}
                         <div class="process-item">
                             <div>
-                                <h4>{% raw %}{{ active_process.process.name }}{% endraw %}</h4>
-                                <p class="active-node-name">{% raw %}{{ active_process.active_node.name }}{% endraw %}</p>
+                                <h4>{% raw %}{{ active_process_node.active_process.process.name }}{% endraw %}</h4>
+                                <p class="active-node-name">{% raw %}{{ active_process_node.action_node.name }}{% endraw %}</p>
                             </div>
-                            <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process' active_process.id {% raw %}%}{% endraw %}">
+                            <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process' active_process_node.id {% raw %}%}{% endraw %}">
                                 {% raw %}{% csrf_token %}{% endraw %}
                                 <button type="submit" class="process-button">Go to Task</button>
                             </form>

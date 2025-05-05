@@ -46,9 +46,9 @@
             {% raw %}{% else %}{% endraw %}
             <tr>
                 {% raw %}
-                <td>{{ process.id }}</td>
-                <td>{{ process.process }}</td>
-                <td>{{ process.active_node }}</td>
+                <td>{{ process.active_process.id }}</td>
+                <td>{{ process.active_process.process }}</td>
+                <td>{{ process.action_node }}</td>
                 <td>{{ process.user }}</td>
                 {% endraw %}
                 <td>
