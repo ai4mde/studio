@@ -22,10 +22,11 @@ class Node(NamedTuple):
     name: str | None
     type: str
     actor_node: str | None
-    next_nodes: list["Node"] | None
+    next_nodes: list[str] | None
     conditions: list[Condition | None] | None
     url: str | None = None
     custom_code: str | None = None
+    incoming_edges_count: int = 0
 
 
 class Edge(NamedTuple):
@@ -35,7 +36,7 @@ class Edge(NamedTuple):
 
 class Diagram(NamedTuple):
     name: str
-    nodes: Node
+    nodes: dict[str, Node]
 
 
 class ActivityDiagramParser:
@@ -47,10 +48,12 @@ class ActivityDiagramParser:
 
     def __init__(self, metadata: dict[str, Any]):
         self.metadata = metadata
-        self.visited_nodes: dict[str, Node] = {}
+        self.nodes: dict[str, Node] = {}
         self.action_nodes: dict[str, dict[str, Any]] = {}
+        self.join_nodes: dict[str, dict[str, Any]] = {}
         self.process_id = 1
         self.action_node_id = 1
+        self.join_node_id = 1
         self.rules_id = 1
         
     
@@ -72,6 +75,12 @@ class ActivityDiagramParser:
             for page in interface['value']['data']['pages']
             if page['type']['value'] != 'normal'
         }
+
+    def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
+        """Get the number of incoming edges for a node"""
+        return sum(
+            1 for _ in filter(lambda edge: edge['target_ptr'] == target_id, edges)
+        )
 
     def find_node(self, nodes: list[dict[str, Any]], node_id: str) -> dict[str, Any]:
         """Find a node by its uuid in a list of nodes"""
@@ -97,157 +106,156 @@ class ActivityDiagramParser:
             ) for edge in filter(lambda edge: edge['source_ptr'] == source_id, edges)
         ]
 
-    def parse_node(self, diagram: dict[str, Any], current_node_id: str) -> Node:
-        """Parse a node recursively to build the Node structure"""
-        # Base case: If the node has already been visited, return the existing node to avoid duplicates
-        if current_node_id in self.visited_nodes:
-            return self.visited_nodes[current_node_id]
+    def create_nodes(self, diagram: dict[str, Any], node_id: str) -> dict[str, Node] | None:
+        """Create all nodes in the diagram recursively"""
+        # Avoid revisiting nodes
+        if node_id in self.nodes:
+            return None
         
-        # Find the current node and its outgoing edges
-        current_node = self.find_node(diagram['nodes'], current_node_id)
-        outgoing_edges = self.find_edges(diagram['edges'], current_node_id)
+        # Find the current node and its outgoing edges as well as a count of incoming edges
+        current_node = self.find_node(diagram['nodes'], node_id)
+        outgoing_edges = self.find_edges(diagram['edges'], node_id)
+        incoming_edges_count = self._get_incoming_edges_count(diagram['edges'], node_id)
 
-        # Base case: If the current node is a final node or has no outgoing edges (end of diagram)
-        if current_node['cls']['type'] == 'final' or not outgoing_edges:
-            node = Node(
-                id=current_node['id'],
-                name=current_node['cls'].get('name'),
-                type=current_node['cls']['type'],
-                actor_node=self.actors.get(current_node['cls'].get('actorNode')),
-                next_nodes=None,
-                conditions=None,
-                url=self.interface_map.get(current_node['id']),
-                custom_code=current_node['cls'].get('customCode') if current_node['cls'].get('isAutomatic') else None,
-            )
-            self.visited_nodes[current_node_id] = node
-            return node
-
-        # Create the current node and mark it as visited
         node = Node(
             id=current_node['id'],
             name=current_node['cls'].get('name'),
             type=current_node['cls']['type'],
             actor_node=self.actors.get(current_node['cls'].get('actorNode')),
-            next_nodes=[],
-            conditions=[],
+            next_nodes=[edge.target_node for edge in outgoing_edges],
+            conditions=[edge.condition for edge in outgoing_edges],
+            incoming_edges_count=incoming_edges_count,
             url=self.interface_map.get(current_node['id']),
             custom_code=current_node['cls'].get('customCode'),
         )
-        self.visited_nodes[current_node_id] = node
+        self.nodes[node_id] = node
 
-        # Recursive case: Parse the next nodes
-        next_nodes, conditions = [], []
+        # Recursively create nodes for the next nodes
         for edge in outgoing_edges:
-            next_node = self.parse_node(diagram, edge.target_node)
-            next_nodes.append(next_node)
-            conditions.append(edge.condition)
+            self.create_nodes(diagram, edge.target_node)
+        return self.nodes
 
-        # Update the current node with the found next nodes and conditions
-        node = node._replace(
-            next_nodes=next_nodes,
-            conditions=conditions,
-        )
-        self.visited_nodes[current_node_id] = node
-        return node
-
-    def parse_activity_diagram(self, diagram: dict[str, Any]) -> Node:
+    def parse_activity_diagram(self, diagram: dict[str, Any]) -> dict[str, Node] | None:
         """Parse an activity diagram starting from the initial node"""
         start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
-        return self.parse_node(diagram, start_node[0]['id'])
+        return self.create_nodes(diagram, start_node[0]['id'])
 
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
         return [
             Diagram(
                 name=diagram['name'],
-                nodes=self.parse_activity_diagram(diagram),
-            ) for diagram in filter(lambda diagram: diagram['type'] == 'activity', self.metadata['diagrams'])
+                nodes=nodes,
+            )
+            for diagram in filter(lambda diagram: diagram['type'] == 'activity', self.metadata['diagrams'])
+            if (nodes := self.parse_activity_diagram(diagram)) is not None
         ]
 
-    def create_action_nodes(self, node: Node) -> tuple[list[dict[str, Any]], int | None]:
-        """Create action nodes starting from the initial node"""
-        start_node = None
+    def create_relevant_nodes(self, nodes: dict[str, Node]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+        for id, node in nodes.items():
+            if node.type == 'action':
+                if not node.actor_node:
+                    raise ValueError(f"Node {node.name} does not have a required actor node")
+                self.action_nodes[id] = {
+                    "id": self.action_node_id,
+                    "actor": node.actor_node,
+                    "name": node.name,
+                    "process": self.process_id,
+                    "url": node.url,
+                    "custom_code": node.custom_code
+                }
+                self.action_node_id += 1
+            elif node.type == 'join':
+                self.join_nodes[id] = {
+                    "id": self.join_node_id,
+                    "incoming_edges_count": node.incoming_edges_count,
+                    "process": self.process_id,
+                }
+                self.join_node_id += 1
+            else:
+                continue
 
-        # Avoid revisiting nodes
-        if node.id in self.action_nodes:
-            return ([], None)
 
-        if node.type == 'action':
-            if not node.actor_node:
-                raise ValueError(f"Node {node.name} does not have a required actor node")
+        # Find the initial node
+        start_node = next((node for node in nodes.values() if node.type == 'initial'), None)
+        if not start_node:
+            raise ValueError("Activity diagrams must have exactly one start node")
+        if not start_node.next_nodes or len(start_node.next_nodes or []) != 1:
+            raise ValueError("An initial node must have exactly one outgoing edge")
+        
+        # Get the ID of the start node
+        start_node_id = self.action_nodes[start_node.next_nodes[0]]['id']
 
-            # Set the first action node as the start node
-            if not start_node:
-                start_node = self.action_node_id
-
-            # Create the action node
-            self.action_nodes[node.id] = {
-                "id": self.action_node_id,
-                "actor": node.actor_node,
-                "name": node.name,
-                "process": self.process_id,
-                "url": node.url,
-                "custom_code": node.custom_code
-            }
-            self.action_node_id += 1
-
-        # Recursively process the next nodes
-        for next_node in node.next_nodes or []:
-            _, recursive_start_node = self.create_action_nodes(next_node)
-            if start_node is None and recursive_start_node is not None:
-                start_node = recursive_start_node
-
-        return list(self.action_nodes.values()), start_node
+        # Return the action nodes, join nodes and the start node ID
+        return list(self.action_nodes.values()), list(self.join_nodes.values()), start_node_id
 
     def create_condition(self, node: Node) -> list[dict[str, Any]]:
-        """Recursively create a rule for an action node. The input node should be of type 'action'"""
+        """Recursively create a condition for an action node. The input node should be of type 'action'"""
         rule: list[dict[str, Any]] = []
         if not node.next_nodes:
             return rule
         for next_node, condition in zip(node.next_nodes or [], node.conditions or []):
-            # TODO add logic for parallel nodes
+            next_node_obj = self.nodes.get(next_node)
+            if not next_node_obj:
+                raise ValueError(f"Something went wrong in the generation process, node {next_node} not found when creating a rule for it")
             next_value = (
-                "END" if next_node.type == "final"
-                else self.action_nodes[next_node.id]['id']
-                if next_node.type == "action"
-                else self.create_condition(next_node)
+                "END" if next_node_obj.type == "final"
+                else self.action_nodes[next_node]['id']
+                if next_node_obj.type == "action"
+                else self.create_condition(next_node_obj)
             )
 
-            # Flatten the next value if possible
-            if isinstance(next_value, list) and len(next_value) == 1 and len(next_value[0].keys()) == 1 and (
-                isinstance(next_value[0].get("next"), int) or next_value[0].get("next") == "END"
-            ):
-                next_value = next_value[0].get("next")
+            if isinstance(next_value, list):
+                if all(
+                    isinstance(entry, dict) and len(entry.keys()) == 1 and(
+                        isinstance(entry.get("next"), int) or entry.get("next") == "END"
+                    ) for entry in next_value
+                ):
+                    next_value = [entry.get("next") for entry in next_value] if len(next_value) > 1 else next_value[0]["next"]
+            
             rule_entry = {"next": next_value}
+            if next_node_obj.type == "join":
+                rule_entry["check"] = self.join_nodes[next_node]['id']
             if condition and not condition.isElse:
                 rule_entry["condition"] = condition._asdict()
+
+            # Further flatten the next value if possible
+            if isinstance(next_value, list) and len(next_value) == 1 and set(rule_entry.keys()) & set(next_value[0].keys()) == set({"next"}):
+                rule_entry = {
+                    **rule_entry,
+                    **next_value[0],
+                }
             rule.append(rule_entry)
         return rule
 
     def create_rules(self) -> list[dict[str, Any]]:
-        """Create rules for each action node"""
-        rules = []
-        for node_uuid, action_node in self.action_nodes.items():
-            if node_uuid not in self.visited_nodes:
-                raise ValueError(f"Something went wrong in the generation process, node {node_uuid} not found")
-            node = self.visited_nodes[node_uuid]
-
-
+        rules: list[dict[str, Any]] = []
+        for uuid, action_node in self.action_nodes.items():
+            node = self.nodes.get(uuid)
+            if not node:
+                raise ValueError(f"Something went wrong in the generation process, node {uuid} not found when creating a rule for it")
             rule = {
                 "id": self.rules_id,
                 "action_node": action_node['id'],
             }
-    
-            # Only add the condition if there are multiple next nodes
+
+            # Only add the condition if there are multiple next nodes and these nodes have either a condtion or check
             condition = self.create_condition(node)
-            if len(condition) == 1 and len(condition[0].keys()) == 1 and (
-                isinstance(condition[0].get("next"), int) or condition[0].get("next") == "END"
-            ):
-                rule['next'] = condition[0].get("next")
+            if len(condition) == 1 and len(condition[0].keys()) == 1:
+                if isinstance(condition[0].get("next"), int) or condition[0].get("next") == "END":
+                    rule['next'] = condition[0].get("next")
+                elif isinstance(condition[0].get("next"), list) and all(
+                    isinstance(entry, int) or entry == "END" for entry in condition[0]["next"]
+                ):
+                    rule['next'] = condition[0].get("next")
+                else:
+                    rule['condition'] = condition
             else:
                 rule['condition'] = condition
+            
+            # Add the rule to the list of rules
             rules.append(rule)
             self.rules_id += 1
         return rules
@@ -258,35 +266,44 @@ class ActivityDiagramParser:
         diagrams = self.parse_metadata()
 
         # Create a process for each diagram
-        processes = []
-        rules = []
-        action_nodes = []
+        process_entries = []
+        rule_entries = []
+        action_node_entries = []
+        join_node_entries = []
         for diagram in diagrams:
             process = {
                 "id": self.process_id,
                 "name": diagram.name,
             }
 
-            # Create action nodes for the diagram
-            nodes, start_node = self.create_action_nodes(diagram.nodes)
-            if start_node is None:
-                raise ValueError(f"Diagram {diagram.name} does not have a start node")
-            action_nodes.extend(nodes)
+            # Create action and join nodes as well as the start node
+            action_nodes, join_nodes, start_node = self.create_relevant_nodes(diagram.nodes)
+            
+            # Add the action and join nodes to the process
+            action_node_entries.extend(action_nodes)
+            join_node_entries.extend(join_nodes)
 
             # Add the start node to the process
             process['start'] = start_node
-            processes.append(process)
+            process_entries.append(process)
 
             # Create the rules connecting the action nodes
-            rules.extend(self.create_rules())
+            rule_entries.extend(self.create_rules())
 
-            # Reset the action nodes for the next diagram
+            # Reset the class attributes for the next process
+            self.nodes = {}
             self.action_nodes = {}
+            self.join_nodes = {}
+
+            # Increment the process ID for the next process
             self.process_id += 1
+        
+        # Return the data for the workflow engine
         return {
-            "processes": processes,
-            "action_nodes": action_nodes,
-            "rules": rules,
+            "processes": process_entries,
+            "action_nodes": action_node_entries,
+            "join_nodes": join_node_entries,
+            "rules": rule_entries,
         }
 
 

@@ -2,6 +2,7 @@ import importlib
 import json
 import logging
 from operator import eq, ne, lt, le, gt, ge
+import re
 from typing import NamedTuple, Union
 
 from django.db import models
@@ -34,8 +35,9 @@ class NextNode(NamedTuple):
     """
         Named tuple to represent the next node in the workflow.
     """
-    next: Union[int, str, list["NextNode"]]
+    next: Union[int, str, list[int], list["NextNode"]]
     condition: Condition | None = None
+    check: int | None = None
 
 
 class ConditionField(models.JSONField):
@@ -56,8 +58,11 @@ class ConditionField(models.JSONField):
         """
         return [
             NextNode(
-                next=item['next'] if not isinstance(item['next'], list) else self._to_structured_format(item['next']),
-                condition=Condition(**{key: item['condition'][key] for key in Condition._fields}) if 'condition' in item else None
+                next=item['next'] if isinstance(item['next'], list) and all(isinstance(n, int) for n in item['next']) else (
+                    self._to_structured_format(item['next']) if isinstance(item['next'], list) else item['next']
+                ),
+                condition=Condition(**{key: item['condition'][key] for key in Condition._fields}) if 'condition' in item else None,
+                check=item.get('check'),
             ) for item in raw_data
         ]
 
@@ -178,6 +183,18 @@ class Rule(models.Model):
         ">=": ge,
     }
 
+    @property
+    def next_nodes(self) -> list[ActionNode] | None:
+        if self.next is None or self.next == "END":
+            return None
+        if self.next.isnumeric():
+            return [self._get_action_node(int(self.next))]
+
+        match = re.findall(r'\d+', self.next)
+        if match:
+            return [self._get_action_node(int(n)) for n in match]
+        return None
+
     def _get_action_node(self, node_id: int) -> ActionNode:
         try:
             return ActionNode.objects.get(id=node_id)
@@ -241,7 +258,7 @@ class Rule(models.Model):
         except KeyError:
             raise ValueError(f"Unsupported operator: {condition.operator}")
         
-    def _get_next_node(self, active_process: "ActiveProcess", next_nodes: list[NextNode]) -> ActionNode | None:
+    def _get_next_node(self, active_process: "ActiveProcess", next_nodes: list[NextNode]) -> list[ActionNode] | None:
         """
             This method evaluates the next nodes, checks the condtions and returns the next node to be set as the active node.
         """
@@ -251,13 +268,51 @@ class Rule(models.Model):
             if node.condition and not self._evaluate_condition(active_process, node.condition):
                 # Skip this node if the condition is not met
                 continue
-        
+            
+            # The node is behind a convergence point. We need to check if the convergence point is completed.
+            # If it is not, we can't continue to the next node.
+            if node.check is not None:
+                convergence_point = ActiveConvergencePoint.objects.filter(
+                    active_process=active_process,
+                    convergence_point__id=node.check,
+                )
+
+                # if there are multiple convergence points throw an error
+                if convergence_point.count() > 1:
+                    raise ValueError(f"Rule {self.id} has multiple convergence points with the same id: {node.check}. This should not happen.")
+                
+                convergence_point = convergence_point.first()
+
+                if not convergence_point:
+                    # This is the first node to reach the convergence point. Create it.
+                    ActiveConvergencePoint.objects.create(
+                        active_process=active_process,
+                        convergence_point=ConvergencePoint.objects.get(id=node.check),
+                    )
+                    # The next node can't be reached yet, so we have no new nodes to activate.
+                    return None
+                else:
+                    # The convergence point is here, add a count to denote a new node has reached it.
+                    convergence_point.count += 1
+                    convergence_point.save()
+
+                    # If the convergence point is not completed, we can't continue to the next node.
+                    if not convergence_point.completed:
+                        # The next node can't be reached yet, so we have no new nodes to activate.
+                        return None
+                    # The convergence point is completed, delete it and continue to the next node.
+                    else:
+                        convergence_point.delete()
+
+
             # Condition is met, check the next value to determine the next node
             next_value = node.next
             if isinstance(next_value, list):
+                if all(isinstance(n, int) for n in next_value):
+                    return [self._get_action_node(n) for n in next_value]
                 return self._get_next_node(active_process, next_value)
             if isinstance(next_value, int):
-                return self._get_action_node(next_value)
+                return [self._get_action_node(next_value)]
             if isinstance(next_value, str) and next_value == "END":
                 return None
        
@@ -266,14 +321,12 @@ class Rule(models.Model):
         logger.warning(f"Rule {self.id} has no valid next nodes. This should not happen and is probably a misconfiguration when creating the workflow.")
         return None
 
-    def evaluate_rule(self, active_process: "ActiveProcess") -> ActionNode | None:
-        # TODO this currently only works for case study 1 + 2 and has to be adapted for case study 3.
-        if self.next:
-            if self.next == "END":
-                return None
-            return self._get_action_node(int(self.next))
-        
-        # if there is no next node, we have to evaluate the condition.
+    def evaluate_rule(self, active_process: "ActiveProcess") -> list[ActionNode] | None:
+        # Check if the next nodes are directly set in the rule
+        if self.next_nodes is not None or self.next == "END":
+            return self.next_nodes
+
+        # if there is no next node directly set, we have to evaluate the condition.
         if not self.condition:
             raise ValueError(f"Rule {self.id} does not have a next node or condition.")
         
@@ -291,6 +344,11 @@ class ActiveProcess(models.Model):
         ActionNode,
         related_name="active_processes",
         through="ActiveProcessNode",
+    )
+    active_convergence_points = models.ManyToManyField(
+        "ConvergencePoint",
+        related_name="active_processes",
+        through="ActiveConvergencePoint",
     )
 
     associated_model_instances: "QuerySet[AssociatedModelInstance]"
@@ -313,7 +371,7 @@ class ActiveProcess(models.Model):
             active_process=self,
         ).delete()
 
-    def _complete_process(self, user: User, active_node: ActionNode) -> None:
+    def _complete_process(self, user: User) -> None:
         """Mark the process as completed and log the completion."""
         # Remove all active nodes from this process
         ActiveProcessNode.objects.filter(active_process=self).delete()
@@ -321,7 +379,7 @@ class ActiveProcess(models.Model):
         # Log the completion of the process
         ActionLog.objects.create(
             status="COMPLETED_PROCESS",
-            action_node=active_node,
+            action_node=None,
             active_process=self,
             user=user,
         )
@@ -375,11 +433,20 @@ class ActiveProcessNode(models.Model):
         
         # Evaluate the rule to determine the next node
         next_nodes = self.action_node.next_node_rule.evaluate_rule(self.active_process)
-    
+
+        # Only progress to the next node if there is one
         if not next_nodes:
-            self.active_process._complete_process(user, self.action_node)
+            # Mark the current node as completed and delete it as an active node
+            self._log_action("COMPLETED", user)
+            self.delete()
+
+            # If there are no next nodes, we can complete the process
+            if not ActiveProcessNode.objects.filter(active_process=self.active_process).exists():
+                self.active_process._complete_process(user)
             return
-        self._progress_to_next_node([next_nodes], user)
+
+        # Progress to the next node
+        self._progress_to_next_node(next_nodes, user)
 
     def _progress_to_next_node(self, next_nodes: list[ActionNode], user: User | None) -> None:
         """Progress to the next node and assign the next user."""
@@ -408,6 +475,10 @@ class ActiveProcessNode(models.Model):
         # Remove the current node as an active node, since it is now completed
         self.delete()
 
+        # Complete the process if there are no active nodes left
+        if not ActiveProcessNode.objects.filter(active_process=self.active_process).exists():
+            self.active_process._complete_process(user)
+
     def _complete_unattended_nodes(self, user: User | None) -> None:
         """
             Complete all nodes that should be completed without any user interaction.
@@ -433,7 +504,7 @@ class ActiveProcessNode(models.Model):
         # Complete any node that does not have any action linked to it.
         for process_node in empty_nodes:
             logger.warning(
-                f"Node {process_node.action_node} has no URL and no custom code. THis should not happen and is probably a misconfiguration when creating the workflow."
+                f"Node {process_node.action_node} has no URL and no custom code. This should not happen and is probably a misconfiguration when creating the workflow."
                 "The node will be completed automatically."
             )
             process_node.complete_node(user)
@@ -457,6 +528,29 @@ class AssociatedModelInstance(models.Model):
         return f"Instance {self.instance_id} of {self.content_type.name}"
 
 
+class ConvergencePoint(models.Model):
+    id = models.AutoField(primary_key=True)
+    required_count = models.IntegerField()
+    process = models.ForeignKey(Process, related_name="convergence_points", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Convergence point for {self.process} with {self.required_count} required nodes"
+
+
+class ActiveConvergencePoint(models.Model):
+    id = models.AutoField(primary_key=True)
+    active_process = models.ForeignKey(ActiveProcess, related_name="awaiting_convergence_points", on_delete=models.CASCADE)
+    convergence_point = models.ForeignKey(ConvergencePoint, related_name="active_convergence_points", on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+
+    @property
+    def completed(self) -> bool:
+        return self.count >= self.convergence_point.required_count
+
+    def __str__(self):
+        return f"Active convergence point {self.convergence_point} for process {self.active_process}"
+
+
 class ActionLog(models.Model):
     STATUS_CHOICES = [
         ("STARTED", "Started next step"),
@@ -471,7 +565,7 @@ class ActionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
-    action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
+    action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE, null=True)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, related_name="action_logs", on_delete=models.CASCADE)
 

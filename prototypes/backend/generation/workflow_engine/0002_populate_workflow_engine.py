@@ -7,6 +7,7 @@ def fill_workflow_engine(apps, schema_editor):
     Process = apps.get_model('workflow_engine', 'Process')
     ActionNode = apps.get_model('workflow_engine', 'ActionNode')
     Rule = apps.get_model('workflow_engine', 'Rule')
+    ConvergencePoint = apps.get_model('workflow_engine', 'ConvergencePoint')
 
     # Load the data
     with open('workflow_engine/migrations/workflow_engine_data.json', 'r') as f:
@@ -46,6 +47,13 @@ def fill_workflow_engine(apps, schema_editor):
         )
         action_node_map[action_node_data['id']] = action_node
         
+    # Create convergence points
+    for convergence_point_data in data['join_nodes']:
+        ConvergencePoint.objects.create(
+            id=convergence_point_data['id'],
+            required_count=convergence_point_data['incoming_edges_count'],
+            process=process_map[convergence_point_data['process']],
+        )
 
     # Update start_node for processes
     for process_data in data['processes']:
