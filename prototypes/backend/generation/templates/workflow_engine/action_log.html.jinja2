@@ -29,20 +29,18 @@
             <th>Action Node</th>
             <th>Status</th>
             <th>User</th>
-            <th>Started At</th>
-            <th>Completed At</th>
+            <th>Created At</th>
         </tr>
     </thead>
     <tbody>
         {% for log in action_logs %}
             <tr>
                 <td>{{ log.active_process_id }}</td>
-                <td>{{ log.process }}</td>
+                <td>{{ log.active_process.process }}</td>
                 <td>{{ log.action_node }}</td>
                 <td>{{ log.get_status_display }}</td>
                 <td>{{ log.user }}</td>
                 <td>{{ log.created_at }}</td>
-                <td>{{ log.completed_at }}</td>
             </tr>
         {% empty %}
             <tr>

@@ -65,7 +65,7 @@ class RelatedNode(ModelSchema):
         return obj.cls.data.get('actorNode')
     
     @staticmethod
-    def resolve_classNames(obj):
+    def resolve_classAttributes(obj):
         if obj.cls.data.get('type') == 'class':
             return [
                 RelatedClassAttribute(name=attribute['name'], type=attribute['type'])
