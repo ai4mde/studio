@@ -1,5 +1,6 @@
-from pydantic import BaseModel, model_validator, ValidationError, field_validator
+from pydantic import BaseModel, model_validator, ValidationError
 from typing import Literal, Union, Optional
+from metadata.specification.base import RelationBase
 
 from diagram.models import Node
 
@@ -33,7 +34,7 @@ class ControlFlowCondition(BaseModel):
             values.target_class_name = Node.objects.get(id=values.target_class).cls.data.get("name", "Unknown class")
         return values
 
-class ControlFlow(BaseModel):
+class ControlFlow(RelationBase):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
@@ -41,7 +42,7 @@ class ControlFlow(BaseModel):
     type: Literal["controlflow"] = "controlflow"
 
 
-class ObjectFlow(BaseModel):
+class ObjectFlow(RelationBase):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
