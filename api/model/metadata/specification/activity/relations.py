@@ -1,21 +1,15 @@
-from pydantic import BaseModel
 from typing import Literal, Union
+from metadata.specification.base import RelationBase
 
 
-class PositionHandlers(BaseModel):
-    x: int
-    y: int
-
-
-class ControlFlow(BaseModel):
+class ControlFlow(RelationBase):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
-    position_handlers: list[PositionHandlers]
     type: Literal["controlflow"] = "controlflow"
 
 
-class ObjectFlow(BaseModel):
+class ObjectFlow(RelationBase):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
