@@ -77,6 +77,18 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         y: sy < ty ? -10 : 18,
     };
 
+    const points = [
+        {x: sx, y: sy},
+        ...positionHandlers,
+        {x: tx, y: ty},
+    ]
+
+    const midIndex = Math.floor((points.length - 1) / 2);
+    const p1 = points[midIndex];
+    const p2 = points[midIndex + 1] || points[midIndex];
+    const midX = (p1.x + p2.x) / 2;
+    const midY = (p1.y + p2.y) / 2;
+
     return (
         <>
             <path
@@ -118,9 +130,9 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 <text
                     style={{ userSelect: "none", fill: "red" }}
                     textAnchor="middle"
-                    x={(sx + tx) / 2}
-                    y={(sy + ty) / 2 + 15}
-                    fontSize="12"
+                    x={midX}
+                    y={midY + 15}
+                    fontSize="20"
                 >
                     {data.condition.isElse
                         ? "[Else]"
