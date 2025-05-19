@@ -17,6 +17,7 @@ from diagram.api.schemas.edge import (
     CreateEdge,
     ListEdges,
     EdgeSchema,
+    PatchEdge,
 )
 
 __all__ = [
@@ -30,6 +31,7 @@ __all__ = [
     "ListNodes",
     "NodeSchema",
     "CreateEdge",
+    "PatchEdge",
     "ListEdges",
     "EdgeSchema",
 ]

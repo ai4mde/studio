@@ -1,16 +1,70 @@
 import importlib
+import json
+import logging
+from operator import eq, ne, lt, le, gt, ge
 import re
+from typing import NamedTuple, Union
 
 from django.db import models
 from django.utils.timezone import now
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 
 from shared_models.models import User
 
 # Imports
+
+
+logger = logging.getLogger(__name__)
+
+class Condition(NamedTuple):
+    """
+        Named tuple to represent a condition in the workflow.
+    """
+    operator: str
+    threshold: int
+    aggregator: str | None
+    target_attribute: str
+    target_class_name: str
+    target_attribute_type: str
+
+
+class NextNode(NamedTuple):
+    """
+        Named tuple to represent the next node in the workflow.
+    """
+    next: Union[int, str, list[int], list["NextNode"]]
+    condition: Condition | None = None
+    check: int | None = None
+
+
+class ConditionField(models.JSONField):
+    """
+        Custom field to handle the condition field to determine the next node. 
+    """
+
+    def from_db_value(self, value, expression, connection) -> list[NextNode] | None:
+        """Validate JSON string from the database and convert into a structured Python object."""
+        if value is None:
+            return value
+        raw_data = json.loads(value)
+        return self._to_structured_format(raw_data)
+
+    def _to_structured_format(self, raw_data: list) -> list[NextNode]:
+        """
+            Convert the raw data into a structured format.
+        """
+        return [
+            NextNode(
+                next=item['next'] if isinstance(item['next'], list) and all(isinstance(n, int) for n in item['next']) else (
+                    self._to_structured_format(item['next']) if isinstance(item['next'], list) else item['next']
+                ),
+                condition=Condition(**{key: item['condition'][key] for key in Condition._fields}) if 'condition' in item else None,
+                check=item.get('check'),
+            ) for item in raw_data
+        ]
 
 
 class ActionNode(models.Model):
@@ -21,6 +75,46 @@ class ActionNode(models.Model):
     custom_code = models.CharField(max_length=255, null=True, blank=True)
     process = models.ForeignKey("Process", related_name="action_nodes", on_delete=models.CASCADE)
     next_node_rule = models.OneToOneField("Rule", related_name="action_node", on_delete=models.PROTECT)
+
+    def execute_custom_code(self, active_process: "ActiveProcess") -> None:
+        # No custom code to execute
+        if not self.custom_code:
+            return
+
+        module_name, function_name = self.custom_code.rsplit(".", 1)
+        
+        try:
+            # Import the module and function dynamically
+            module = importlib.import_module(module_name)
+            custom_function = getattr(module, function_name)
+
+            if not callable(custom_function):
+                raise TypeError(f"{function_name} is not callable in module {module_name}")
+            
+            # Execute the custom function
+            custom_function(active_process=active_process)
+        except ImportError as e:
+            raise ImportError(f"Failled to import module when executing custom code: {module_name}") from e
+        except AttributeError as e:
+            raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
+ 
+    def _get_next_user(self, current_user: User | None) -> User | None:
+        """Determine the next user for the given node."""
+        # No user assignment if there is nothing to do for the user
+        if not self.url:
+            return None
+
+        # Try to keep the current user for the next node
+        if current_user and self.actor in current_user.roles:
+            return current_user
+
+        users = User.objects.filter(**{f"is_{self.actor}": True})
+        # TODO: Implement a better distribution algorithm
+        # For now, just return the first user that matches the actor
+        next_user = users.first() if users.exists() else None
+        if not next_user:
+            raise ValueError(f"No user found for {self}. There are no users with the role {self.actor}.")
+        return next_user
 
     def __str__(self):
         return self.name
@@ -39,15 +133,19 @@ class Process(models.Model):
             start_node__actor__in=user.roles,
         )
 
-    def start_process(self, user: User) -> "ActiveProcess":
+    def start_process(self, user: User) -> "ActiveProcessNode":
         """Start a process for the given user."""
         assert self.start_node # TODO make start node required. This involves changing the workflow population migration.
         if self.start_node.actor not in user.roles:
             raise PermissionDenied(f"User {user.username} does not have the required role to start this process.")
 
-        active_process = ActiveProcess.objects.create(
-            process=self,
-            active_node=self.start_node,
+        # Create the active process
+        active_process = ActiveProcess.objects.create(process=self)
+
+        # Set the start node as the active node
+        active_process_node = ActiveProcessNode.objects.create(
+            active_process=active_process,
+            action_node=self.start_node,
             user=user,
         )
 
@@ -58,7 +156,7 @@ class Process(models.Model):
             active_process=active_process,
             user=user,
         )
-        return active_process
+        return active_process_node
 
     def __str__(self):
         return self.name
@@ -66,23 +164,174 @@ class Process(models.Model):
 
 class Rule(models.Model):
     id = models.AutoField(primary_key=True)
-    condition = models.JSONField(default=dict)
+    next = models.CharField(max_length=5, null=True, blank=True)
+    condition = ConditionField(default=list, null=True, blank=True)
 
     action_node: ActionNode
 
-    def evaluate_rule(self) -> ActionNode | None:
-        # TODO this currently only works for case study 1 and has to be adapted in the future
-        next_condition = self.condition.get("*")
-        if next_condition == "END":
+    type_converters = {
+        "int": int,
+        "str": str,
+        "bool": lambda x: x.lower() == "true",
+    }
+    operators = {
+        "==": eq,
+        "!=": ne,
+        "<": lt,
+        "<=": le,
+        ">": gt,
+        ">=": ge,
+    }
+
+    @property
+    def next_nodes(self) -> list[ActionNode] | None:
+        if self.next is None or self.next == "END":
             return None
-        if next_condition:
-            match = re.match(r"NEXT\((\d+)\)", next_condition)
-            if match:
-                try:
-                    return ActionNode.objects.get(id=int(match.group(1)))
-                except ActionNode.DoesNotExist:
-                    raise ValueError(f"Rule {self.id} references a non-existing action node: {match.group(1)}")
-        raise ValueError(f"Rule {self.id} does not have a valid condition: {self.condition}")
+        if self.next.isnumeric():
+            return [self._get_action_node(int(self.next))]
+
+        match = re.findall(r'\d+', self.next)
+        if match:
+            return [self._get_action_node(int(n)) for n in match]
+        return None
+
+    def _get_action_node(self, node_id: int) -> ActionNode:
+        try:
+            return ActionNode.objects.get(id=node_id)
+        except ActionNode.DoesNotExist:
+            raise ValueError(f"Rule {self.id} references a non-existing action node: {node_id}")
+
+    def _evaluate_condition(self, active_process: "ActiveProcess", condition: Condition) -> bool:
+        target_property_name = f"{condition.target_class_name.lower()}s"
+        target_objects = getattr(active_process, target_property_name, None)
+
+        if target_objects is None or not isinstance(target_objects, QuerySet):
+            raise ValueError(f"Active process {active_process.id} does not have a QuerySet property named {target_property_name}")
+                
+        if condition.aggregator:
+            if condition.aggregator == "sum":
+                value = target_objects.aggregate(total=models.Sum(condition.target_attribute))["total"]
+            elif condition.aggregator == "avg":
+                value = target_objects.aggregate(avg=models.Avg(condition.target_attribute))["avg"]
+            elif condition.aggregator == "max":
+                value = target_objects.aggregate(max=models.Max(condition.target_attribute))["max"]
+            elif condition.aggregator == "min":
+                value = target_objects.aggregate(min=models.Min(condition.target_attribute))["min"]
+            elif condition.aggregator == "count":
+                value = target_objects.count()
+            else:
+                raise ValueError(f"Unsupported aggregator: {condition.aggregator}")
+
+            # Return False if the aggregator fails to return a value
+            if value is None:
+                return False
+        else:
+            # If no aggregator is specified, we assume the condition is a direct comparison with a single objects
+            if len(target_objects) > 1:
+                logger.warning(
+                    f"Condition {condition} is not an aggregator but a direct comparison. The target object is a list of length {len(target_objects)}."
+                    "This should be a single object. Taking the first object for comparison. Please check the workflow configuration."
+                )
+            first_object = target_objects.first()
+            if not first_object:
+                logger.warning(
+                    f"Condition {condition} is not an aggregator but a direct comparison. The target object is empty."
+                    "This should be a single object. Please check the workflow configuration."
+                )
+                return False
+            value = getattr(first_object, condition.target_attribute, None)
+            
+        # Convert the threshold to the correct type
+        try:
+            # Count does not have a target attribute and thus no type. Count is always compared to an int.
+            threshold = (
+                self.type_converters[condition.target_attribute_type](condition.threshold)
+                if condition.aggregator != "count"
+                else int(condition.threshold)
+            )
+        except KeyError:
+            raise ValueError(f"Unsupported target attribute type: {condition.target_attribute_type}")   
+
+        # Evaluate the condition based on the operator
+        try:
+            return self.operators[condition.operator](value, threshold)
+        except KeyError:
+            raise ValueError(f"Unsupported operator: {condition.operator}")
+        
+    def _get_next_node(self, active_process: "ActiveProcess", next_nodes: list[NextNode]) -> list[ActionNode] | None:
+        """
+            This method evaluates the next nodes, checks the condtions and returns the next node to be set as the active node.
+        """
+        # Sort the next nodes. Nodes without a condtion should be evaluated last, since these are the ["Else"] conditions.
+        next_nodes = sorted(next_nodes, key=lambda node: node.condition is None)
+        for node in next_nodes:
+            if node.condition and not self._evaluate_condition(active_process, node.condition):
+                # Skip this node if the condition is not met
+                continue
+            
+            # The node is behind a convergence point. We need to check if the convergence point is completed.
+            # If it is not, we can't continue to the next node.
+            if node.check is not None:
+                convergence_point = ActiveConvergencePoint.objects.filter(
+                    active_process=active_process,
+                    convergence_point__id=node.check,
+                )
+
+                # if there are multiple convergence points throw an error
+                if convergence_point.count() > 1:
+                    raise ValueError(f"Rule {self.id} has multiple convergence points with the same id: {node.check}. This should not happen.")
+                
+                convergence_point = convergence_point.first()
+
+                if not convergence_point:
+                    # This is the first node to reach the convergence point. Create it.
+                    ActiveConvergencePoint.objects.create(
+                        active_process=active_process,
+                        convergence_point=ConvergencePoint.objects.get(id=node.check),
+                    )
+                    # The next node can't be reached yet, so we have no new nodes to activate.
+                    return None
+                else:
+                    # The convergence point is here, add a count to denote a new node has reached it.
+                    convergence_point.count += 1
+                    convergence_point.save()
+
+                    # If the convergence point is not completed, we can't continue to the next node.
+                    if not convergence_point.completed:
+                        # The next node can't be reached yet, so we have no new nodes to activate.
+                        return None
+                    # The convergence point is completed, delete it and continue to the next node.
+                    else:
+                        convergence_point.delete()
+
+
+            # Condition is met, check the next value to determine the next node
+            next_value = node.next
+            if isinstance(next_value, list):
+                if all(isinstance(n, int) for n in next_value):
+                    return [self._get_action_node(n) for n in next_value]
+                return self._get_next_node(active_process, next_value)
+            if isinstance(next_value, int):
+                return [self._get_action_node(next_value)]
+            if isinstance(next_value, str) and next_value == "END":
+                return None
+       
+            raise ValueError(f"Rule {self.id} has a condition with an invalid next value: {next_value}")
+
+        logger.warning(f"Rule {self.id} has no valid next nodes. This should not happen and is probably a misconfiguration when creating the workflow.")
+        return None
+
+    def evaluate_rule(self, active_process: "ActiveProcess") -> list[ActionNode] | None:
+        # Check if the next nodes are directly set in the rule
+        if self.next_nodes is not None or self.next == "END":
+            return self.next_nodes
+
+        # if there is no next node directly set, we have to evaluate the condition.
+        if not self.condition:
+            raise ValueError(f"Rule {self.id} does not have a next node or condition.")
+        
+        # Evaluate the condition and get the next node
+        return self._get_next_node(active_process, self.condition)
 
     def __str__(self):
         return f"Next node rule for {self.action_node}"
@@ -91,8 +340,16 @@ class ActiveProcess(models.Model):
     id = models.AutoField(primary_key=True)
     completed = models.BooleanField(default=False)
     process = models.ForeignKey(Process, related_name="active_processes", on_delete=models.CASCADE)
-    active_node = models.ForeignKey(ActionNode, related_name="active_processes", on_delete=models.PROTECT)
-    user = models.ForeignKey(User, related_name="active_processes", on_delete=models.PROTECT)
+    active_nodes = models.ManyToManyField(
+        ActionNode,
+        related_name="active_processes",
+        through="ActiveProcessNode",
+    )
+    active_convergence_points = models.ManyToManyField(
+        "ConvergencePoint",
+        related_name="active_processes",
+        through="ActiveConvergencePoint",
+    )
 
     associated_model_instances: "QuerySet[AssociatedModelInstance]"
 
@@ -114,28 +371,42 @@ class ActiveProcess(models.Model):
             active_process=self,
         ).delete()
 
-    def complete_node(self, user: User | None) -> None:
-        """Complete the current node and progress to the next node if needed."""
-        if self.completed:
-            raise ValueError("This process is already completed.")
-        
-        if user and self.active_node.actor not in user.roles:
-            raise PermissionDenied(f"User {user.username} does not have the required role to complete this step.")
-        
-        # Evaluate the rule to determine the next node
-        next_node = self.active_node.next_node_rule.evaluate_rule()
-    
-        if not next_node:
-            self._complete_process(user)
-            return
-        self._progress_to_next_node(next_node, user)
-    
+    def _complete_process(self, user: User) -> None:
+        """Mark the process as completed and log the completion."""
+        # Remove all active nodes from this process
+        ActiveProcessNode.objects.filter(active_process=self).delete()
+
+        # Log the completion of the process
+        ActionLog.objects.create(
+            status="COMPLETED_PROCESS",
+            action_node=None,
+            active_process=self,
+            user=user,
+        )
+
+        # Mark the process as completed
+        self.completed = True
+        self.save()
+
+    def __str__(self):
+        return f"Active process for {self.process}"
+
+
+class ActiveProcessNode(models.Model):
+    class Meta:
+        unique_together = ("active_process", "action_node")
+
+    id = models.AutoField(primary_key=True)
+    active_process = models.ForeignKey(ActiveProcess, on_delete=models.CASCADE)
+    action_node = models.ForeignKey(ActionNode, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+
     def reassign_user(self, new_user: User) -> None:
         """Reassign the current node to a new user."""
-        if self.completed:
+        if self.active_process.completed:
             raise ValueError("This process is already completed.")
         
-        if self.active_node.actor not in new_user.roles:
+        if self.action_node.actor not in new_user.roles:
             raise PermissionDenied(f"User {new_user.username} does not have the required role to complete this step.")
         
         if self.user == new_user:
@@ -144,103 +415,107 @@ class ActiveProcess(models.Model):
         # Log the reassignment of the current node
         ActionLog.objects.create(
             status="REASSIGNED",
-            action_node=self.active_node,
-            active_process=self,
+            action_node=self.action_node,
+            active_process=self.active_process,
             user=new_user,
         )
         self.user = new_user
         self.save()
 
-
-    def _complete_process(self, user: User) -> None:
-        """Mark the process as completed and log the completion."""
-        self.completed = True
-        self.save()
-        ActionLog.objects.create(
-            status="COMPLETED_PROCESS",
-            action_node=self.active_node,
-            active_process=self,
-            user=user,
-        )
-
-    def _progress_to_next_node(self, next_node: ActionNode, user: User | None) -> None:
-        """Progress to the next node and assign the next user."""
-
-        # Log the completion of the current node
-        ActionLog.objects.create(
-            status="COMPLETED",
-            action_node=self.active_node,
-            active_process=self,
-            user=user,
-        )
-
-        # Set the next node as the active node
-        self.active_node = next_node
-        self.save()
-
-        # No task (for system or user) is assigned to the next node, so we can progress to the next node.
-        if not self.active_node.url and not self.active_node.custom_code:
-            return self._progress_to_next_node(next_node, user)
-
-        # No URL means that the node is not a task node. Execute the custom_code if it exists.
-        if not self.active_node.url and self.active_node.custom_code:
-            ActionLog.objects.create(
-                status="SYSTEM",
-                action_node=next_node,
-                active_process=self,
-                user=None,
-            )
-            self._execute_custom_code()
-            return self.complete_node(user)
-
-        # Determine the next user for the task
-        next_user = self._get_next_user(next_node, user)
-        self.user = next_user
-        self.save()
-
-        # Log the assignment of the next node
-        ActionLog.objects.create(
-            status="STARTED",
-            action_node=next_node,
-            active_process=self,
-            user=self.user,
-        )
-    
-    def _get_next_user(self, next_node: ActionNode, current_user: User | None) -> User:
-        """Determine the next user for the given node."""
-        # Try to keep the current user for the next node
-        if current_user and next_node.actor in current_user.roles:
-            return current_user
-
-        users = User.objects.filter(**{f"is_{next_node.actor}": True})
-        # TODO: Implement a better distribution algorithm
-        # For now, just return the first user that matches the actor
-        next_user = users.first() if users.exists() else None
-        if not next_user:
-            raise ValueError(f"No user found for task {next_node}")
-        return next_user
-
-    def _execute_custom_code(self) -> None:
-        assert self.active_node.custom_code, "Custom code is not defined for this node."
-        module_name, function_name = self.active_node.custom_code.rsplit(".", 1)
+    def complete_node(self, user: User | None) -> None:
+        """Complete the current node and progress to the next node if needed."""
+        if self.active_process.completed:
+            self.delete()
+            raise ValueError("This process has already been completed")
         
-        try:
-            # Import the module and function dynamically
-            module = importlib.import_module(module_name)
-            custom_function = getattr(module, function_name)
+        if user and self.action_node.actor not in user.roles:
+            raise PermissionDenied(f"User {user.username} does not have the required role to complete this step.")
+        
+        # Evaluate the rule to determine the next node
+        next_nodes = self.action_node.next_node_rule.evaluate_rule(self.active_process)
 
-            if not callable(custom_function):
-                raise TypeError(f"{function_name} is not callable in module {module_name}")
-            
-            # Execute the custom function
-            custom_function(active_process=self)
-        except ImportError as e:
-            raise ImportError(f"Fialed to import module when executing custom code: {module_name}") from e
-        except AttributeError as e:
-            raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
-    
-    def __str__(self):
-        return f"Active process for {self.process}"
+        # Only progress to the next node if there is one
+        if not next_nodes:
+            # Mark the current node as completed and delete it as an active node
+            self._log_action("COMPLETED", user)
+            self.delete()
+
+            # If there are no next nodes, we can complete the process
+            if not ActiveProcessNode.objects.filter(active_process=self.active_process).exists():
+                self.active_process._complete_process(user)
+            return
+
+        # Progress to the next node
+        self._progress_to_next_node(next_nodes, user)
+
+    def _progress_to_next_node(self, next_nodes: list[ActionNode], user: User | None) -> None:
+        """Progress to the next node and assign the next user."""
+        # Log the completion of the current node
+        self._log_action("COMPLETED", user)
+
+        for next_node in next_nodes:
+            # If the node is already active, skip it
+            if ActiveProcessNode.objects.filter(active_process=self.active_process, action_node=next_node).exists():
+                continue
+
+            # Assign a user and mark the next node as active for this process
+            next_user = next_node._get_next_user(user)
+            ActiveProcessNode.objects.create(
+                active_process=self.active_process,
+                action_node=next_node,
+                user=next_user,
+            )
+
+            # Log the start of the next node
+            self._log_action("STARTED", next_user, next_node)
+        
+        # Complete all nodes that should be completed without any user interaction.
+        self._complete_unattended_nodes(None)
+
+        # Remove the current node as an active node, since it is now completed
+        self.delete()
+
+        # Complete the process if there are no active nodes left
+        if not ActiveProcessNode.objects.filter(active_process=self.active_process).exists():
+            self.active_process._complete_process(user)
+
+    def _complete_unattended_nodes(self, user: User | None) -> None:
+        """
+            Complete all nodes that should be completed without any user interaction.
+            This includes custom code nodes and nodes without a URL.
+        """
+        custom_code_nodes = ActiveProcessNode.objects.filter(
+            active_process=self.active_process,
+            action_node__custom_code__isnull=False,
+            action_node__url__isnull=True,
+        )
+
+        # Execute custom code for nodes and progress to the next node
+        for process_node in custom_code_nodes:
+            process_node.action_node.execute_custom_code(self.active_process)
+            process_node.complete_node(user)
+        
+        empty_nodes = ActiveProcessNode.objects.filter(
+            active_process=self.active_process,
+            action_node__url__isnull=True,
+            action_node__custom_code__isnull=True,
+        )
+
+        # Complete any node that does not have any action linked to it.
+        for process_node in empty_nodes:
+            logger.warning(
+                f"Node {process_node.action_node} has no URL and no custom code. This should not happen and is probably a misconfiguration when creating the workflow."
+                "The node will be completed automatically."
+            )
+            process_node.complete_node(user)
+
+    def _log_action(self, status: str, user: User | None, next_node: ActionNode | None = None) -> None:
+        ActionLog.objects.create(
+            status=status,
+            action_node=self.action_node if next_node is None else next_node,
+            active_process=self.active_process,
+            user=user,
+        )
 
 class AssociatedModelInstance(models.Model):
     id = models.AutoField(primary_key=True)
@@ -251,6 +526,29 @@ class AssociatedModelInstance(models.Model):
 
     def __str__(self):
         return f"Instance {self.instance_id} of {self.content_type.name}"
+
+
+class ConvergencePoint(models.Model):
+    id = models.AutoField(primary_key=True)
+    required_count = models.IntegerField()
+    process = models.ForeignKey(Process, related_name="convergence_points", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Convergence point for {self.process} with {self.required_count} required nodes"
+
+
+class ActiveConvergencePoint(models.Model):
+    id = models.AutoField(primary_key=True)
+    active_process = models.ForeignKey(ActiveProcess, related_name="awaiting_convergence_points", on_delete=models.CASCADE)
+    convergence_point = models.ForeignKey(ConvergencePoint, related_name="active_convergence_points", on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+
+    @property
+    def completed(self) -> bool:
+        return self.count >= self.convergence_point.required_count
+
+    def __str__(self):
+        return f"Active convergence point {self.convergence_point} for process {self.active_process}"
 
 
 class ActionLog(models.Model):
@@ -267,7 +565,7 @@ class ActionLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
 
-    action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE)
+    action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE, null=True)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
     user = models.ForeignKey(User, null=True, related_name="action_logs", on_delete=models.CASCADE)
 

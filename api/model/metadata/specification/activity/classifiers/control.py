@@ -20,6 +20,8 @@ class Final(BaseModel):
 class Fork(BaseModel):
     type: Literal["fork"] = "fork"
     role: Literal["control"] = "control"
+    height: int = 8
+    width: int = 56
 
 
 class Initial(BaseModel):
@@ -32,6 +34,8 @@ class Join(BaseModel):
     type: Literal["join"] = "join"
     role: Literal["control"] = "control"
     join_spec: str = ""
+    height: int = 8
+    width: int = 56
     is_combine_duplicate: bool = False
 
 

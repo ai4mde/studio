@@ -150,6 +150,12 @@ export const EditNodeModal: React.FC = () => {
                                             )}
                                         </>
                                     )}
+                                    {(node.type == "join" || node.type == "fork") && (
+                                        <>
+                                            <EditDimensions dimension='height' node={node} />
+                                            <EditDimensions dimension='width' node={node} />
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <div className="bg-white p-3 text-xs">

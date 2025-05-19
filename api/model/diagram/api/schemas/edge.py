@@ -53,6 +53,11 @@ class EdgeSchema(ModelSchema):
         return obj.target.id
 
 
+class PatchEdge(Schema):
+    rel: Optional[dict] = None
+    data: Optional[EdgeData] = None
+
+
 class ListEdges(Schema):
     nodes: List[EdgeSchema] = []
 
