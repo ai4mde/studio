@@ -65,6 +65,11 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
 
     const handleEdit = (index: number) => {
         setEditIndex(index);
+        if (data[index]?.type) {
+            setSelectedPageType(data[index].type);
+        } else {
+            setSelectedPageType({ label: 'Normal', value: 'normal' });
+        }
     };
 
     const handleMinus = () => {
@@ -265,8 +270,9 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                 )}
                 <button
                     onClick={() => {
-                        const newPage = { id: window.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null };
+                        const newPage = { id: window.crypto.randomUUID(), name: `Page ${data.length + 1}`, category: null, type: { label: 'Normal', value: 'normal' } };
                         setData([...data, newPage]);
+                        setEditIndex(data.length);
                     }}
                     className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                 >
