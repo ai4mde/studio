@@ -257,6 +257,42 @@ class Rule(models.Model):
             return self.operators[condition.operator](value, threshold)
         except KeyError:
             raise ValueError(f"Unsupported operator: {condition.operator}")
+    
+    def _check_convergence_point(self, active_process: "ActiveProcess", convergence_point_id: int) -> bool:
+        """
+            Check if the convergence point is completed, marking parallel controlflows can be merged.
+            This method will also track the number of nodes that have reached the convergence point.
+        """
+        convergence_point = ActiveConvergencePoint.objects.filter(
+            active_process=active_process,
+            convergence_point__id=convergence_point_id,
+        )
+
+        # If there are multiple convergence points, throw an error
+        if convergence_point.count() > 1:
+            raise ValueError(f"Rule {self.id} has multiple convergence points with the same id: {convergence_point_id}. This should not happen.")
+        
+        convergence_point = convergence_point.first()
+
+        if not convergence_point:
+            # This is the first node to reach the convergence point. Create it.
+            ActiveConvergencePoint.objects.create(
+                active_process=active_process,
+                convergence_point=ConvergencePoint.objects.get(id=convergence_point_id),
+            )
+            return False
+        else:
+            # The convergence point is here, add a count to denote a new node has reached it.
+            convergence_point.count += 1
+            convergence_point.save()
+
+            # If the convergence point is not completed, we can't continue to the next node.
+            if not convergence_point.completed:
+                return False
+            # The convergence point is completed, delete it and continue to the next node.
+            else:
+                convergence_point.delete()
+                return True
         
     def _get_next_node(self, active_process: "ActiveProcess", next_nodes: list[NextNode]) -> list[ActionNode] | None:
         """
@@ -271,39 +307,8 @@ class Rule(models.Model):
             
             # The node is behind a convergence point. We need to check if the convergence point is completed.
             # If it is not, we can't continue to the next node.
-            if node.check is not None:
-                convergence_point = ActiveConvergencePoint.objects.filter(
-                    active_process=active_process,
-                    convergence_point__id=node.check,
-                )
-
-                # if there are multiple convergence points throw an error
-                if convergence_point.count() > 1:
-                    raise ValueError(f"Rule {self.id} has multiple convergence points with the same id: {node.check}. This should not happen.")
-                
-                convergence_point = convergence_point.first()
-
-                if not convergence_point:
-                    # This is the first node to reach the convergence point. Create it.
-                    ActiveConvergencePoint.objects.create(
-                        active_process=active_process,
-                        convergence_point=ConvergencePoint.objects.get(id=node.check),
-                    )
-                    # The next node can't be reached yet, so we have no new nodes to activate.
-                    return None
-                else:
-                    # The convergence point is here, add a count to denote a new node has reached it.
-                    convergence_point.count += 1
-                    convergence_point.save()
-
-                    # If the convergence point is not completed, we can't continue to the next node.
-                    if not convergence_point.completed:
-                        # The next node can't be reached yet, so we have no new nodes to activate.
-                        return None
-                    # The convergence point is completed, delete it and continue to the next node.
-                    else:
-                        convergence_point.delete()
-
+            if node.check is not None and not self._check_convergence_point(active_process, node.check):
+                return None
 
             # Condition is met, check the next value to determine the next node
             next_value = node.next
