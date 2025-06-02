@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.http import HttpResponse, HttpResponseForbidden
 
 from workflow_engine.models import ActionLog, ActiveProcess, ActiveProcessNode, Process
 from shared_models.models import User
@@ -31,6 +32,26 @@ class CompleteProcessStepView(GenericView):
     def post(self, request, active_process_node_id, *args, **kwargs):
         active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
         active_process_node.complete_node(request.user)
+        return redirect(f'/{request.user.roles[0]}')
+
+
+class DeleteProcessView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        if active_process_node.user != request.user:
+            return HttpResponseForbidden("You do not have permission to delete this process.")
+        active_process_node.active_process.completed = True
+        active_process_node.active_process.save()
+        active_process_node.delete()
+        ActionLog.objects.create(
+            status="CANCELLED",
+            action_node=active_process_node.action_node,
+            active_process=active_process_node.active_process,
+            user=request.user,
+        )
         return redirect(f'/{request.user.roles[0]}')
 
 

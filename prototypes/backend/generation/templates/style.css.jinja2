@@ -31,6 +31,25 @@
     margin-right: 10px;
 }
 
+.trashcan {
+  width: 20px;
+  height: 20px;
+  
+  .trashcan-open {
+    display: none;
+  }
+  
+  &:hover {
+    .trashcan-open {
+      display: inline;
+    }
+    .trashcan-closed {
+      display: none;
+    }
+  }
+  
+}
+
 {% if styling.style_type == StyleType.BASIC %}
 body {
     font-family: Arial, sans-serif;
@@ -144,6 +163,7 @@ form a {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .process-item:hover {

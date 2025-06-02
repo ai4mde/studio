@@ -112,8 +112,7 @@ class ActionNode(models.Model):
         # TODO: Implement a better distribution algorithm
         # For now, just return the first user that matches the actor
         next_user = users.first() if users.exists() else None
-        if not next_user:
-            raise ValueError(f"No user found for {self}. There are no users with the role {self.actor}.")
+        logger.warning(f"No user found for actor {self.actor}. The user assignment for this node will have to be done manually.")
         return next_user
 
     def __str__(self):
@@ -564,6 +563,7 @@ class ActionLog(models.Model):
         ("STARTED_PROCESS", "Started Process"),
         ("REASSIGNED", "Reassigned to new user"),
         ("SYSTEM", "Executed system code"),
+        ("CANCELLED", "Cancelled Process"),
     ]
 
     id = models.AutoField(primary_key=True)

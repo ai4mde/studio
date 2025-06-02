@@ -134,7 +134,7 @@ export const EditNodeModal: React.FC = () => {
                                                 node={node}
                                                 helperText={{
                                                     trueText: "Automatic",
-                                                    falseText: "Manual",
+                                                    falseText: "UI task",
                                                 }}
                                             />
                                             {node.data?.isAutomatic && (

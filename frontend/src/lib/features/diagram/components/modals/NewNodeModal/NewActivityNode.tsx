@@ -135,7 +135,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 />
                             </div>
                             <FormHelperText>
-                                {object.isAutomatic ? "Automatic" : "Manual"}
+                                {object.isAutomatic ? "Automatic" : "UI task"}
                             </FormHelperText>
                         </div>
                     </FormControl>
