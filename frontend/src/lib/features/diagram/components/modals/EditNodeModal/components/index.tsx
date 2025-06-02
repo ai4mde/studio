@@ -7,8 +7,9 @@ import EditDimensions from "./EditDimensions/EditDimensions";
 import EditBoolean from "./EditBoolean/EditBoolean";
 import EditSwimlane from "./EditSwimlane/EditSwimlane";
 import EditCode from "./EditCode/EditCode";
+import EditSchedule from "./EditSchedule/EditSchedule";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditDimensions, EditBoolean, EditSwimlane, EditCode };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditSchedule };
 export default {
     EditAttributes,
     EditMethods,
@@ -19,4 +20,5 @@ export default {
     EditBoolean,
     EditSwimlane,
     EditCode,
+    EditSchedule,
 };

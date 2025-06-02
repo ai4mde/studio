@@ -132,10 +132,10 @@ class Process(models.Model):
             start_node__actor__in=user.roles,
         )
 
-    def start_process(self, user: User) -> "ActiveProcessNode":
+    def start_process(self, user: User | None) -> "ActiveProcessNode":
         """Start a process for the given user."""
         assert self.start_node # TODO make start node required. This involves changing the workflow population migration.
-        if self.start_node.actor not in user.roles:
+        if user and self.start_node.actor not in user.roles:
             raise PermissionDenied(f"User {user.username} does not have the required role to start this process.")
 
         # Create the active process
@@ -155,6 +155,7 @@ class Process(models.Model):
             active_process=active_process,
             user=user,
         )
+        active_process_node._complete_unattended_nodes(user)
         return active_process_node
 
     def __str__(self):

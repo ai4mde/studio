@@ -54,7 +54,7 @@ create_workflow_engine_app() {
     python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
-    echo "INSTALLED_APPS += ['workflow_engine']" >> settings.py
+    echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py
     echo "urlpatterns += [path('workflow_engine', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
 }   
 
@@ -122,12 +122,19 @@ run_migrations() {
     python "manage.py" "migrate"
 }
 
+add_cron_jobs() {
+    cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
+    python "manage.py" crontab remove 2>/dev/null || true
+    python "manage.py" crontab add
+}
+
 generate_prototype() {
     create_outdir
     create_new_django_project
     update_django_project_settings
     create_django_apps
     run_migrations
+    add_cron_jobs
 }
 
 generate_prototype

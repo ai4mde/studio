@@ -19,6 +19,7 @@ import {
     EditDimensions,
     EditSwimlane,
     EditCode,
+    EditSchedule,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -155,6 +156,25 @@ export const EditNodeModal: React.FC = () => {
                                             <EditDimensions dimension='height' node={node} />
                                             <EditDimensions dimension='width' node={node} />
                                         </>
+                                    )}
+                                    {node.type == "initial" && (
+                                        <>
+                                            <EditBoolean
+                                                attribute="scheduled"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Scheduled",
+                                                    falseText: "Not Scheduled",
+                                                }}
+                                            />
+                                            {node.data?.scheduled && (
+                                                <EditSchedule
+                                                    node={node}
+                                                    attribute="schedule"
+                                                />
+                                            )}
+                                        </>
+
                                     )}
                                 </div>
                             </div>

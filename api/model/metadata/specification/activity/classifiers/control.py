@@ -28,6 +28,8 @@ class Initial(BaseModel):
     type: Literal["initial"] = "initial"
     role: Literal["control"] = "control"
     activity_scope: Literal["flow", "activity"] = "activity"
+    scheduled: bool = False
+    schedule: str = ""
 
 
 class Join(BaseModel):

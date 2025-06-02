@@ -34,9 +34,15 @@ class Edge(NamedTuple):
     condition: Condition | None
 
 
+class CronJob(NamedTuple):
+    process_id: int
+    schedule: str
+
+
 class Diagram(NamedTuple):
     name: str
     nodes: dict[str, Node]
+    cron_job: CronJob | None = None
 
 
 class ActivityDiagramParser:
@@ -135,23 +141,31 @@ class ActivityDiagramParser:
             self.create_nodes(diagram, edge.target_node)
         return self.nodes
 
-    def parse_activity_diagram(self, diagram: dict[str, Any]) -> dict[str, Node] | None:
+    def parse_activity_diagram(self, diagram: dict[str, Any]) -> tuple[CronJob | None, dict[str, Node] | None]:
         """Parse an activity diagram starting from the initial node"""
         start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
-        return self.create_nodes(diagram, start_node[0]['id'])
+        start_node = start_node[0]
+        cron_job = CronJob(
+            process_id=self.process_id,
+            schedule=start_node['cls'].get('schedule', '')
+        ) if start_node['cls'].get('scheduled', False) and start_node['cls'].get('schedule', '') else None
+        return cron_job, self.create_nodes(diagram, start_node['id'])
 
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
-        return [
-            Diagram(
+        diagrams = []
+        for diagram in filter(lambda diagram: diagram['type'] == 'activity', self.metadata['diagrams']):
+            cron_job, nodes = self.parse_activity_diagram(diagram)
+            if nodes is None:
+                continue
+            diagrams.append(Diagram(
                 name=diagram['name'],
                 nodes=nodes,
-            )
-            for diagram in filter(lambda diagram: diagram['type'] == 'activity', self.metadata['diagrams'])
-            if (nodes := self.parse_activity_diagram(diagram)) is not None
-        ]
+                cron_job=cron_job
+            ))
+        return diagrams
 
     def create_relevant_nodes(self, nodes: dict[str, Node]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
         for id, node in nodes.items():
@@ -260,7 +274,7 @@ class ActivityDiagramParser:
             self.rules_id += 1
         return rules
 
-    def get_workflow_engine_data(self) -> dict[str, list[dict[str, Any]]]:
+    def get_workflow_engine_data(self) -> tuple[list[CronJob], dict[str, list[dict[str, Any]]]]:
         """Wrapper function that combines all steps to generate the data for the workflow engine"""
         # Parse the metadata into a more usable format
         diagrams = self.parse_metadata()
@@ -270,11 +284,15 @@ class ActivityDiagramParser:
         rule_entries = []
         action_node_entries = []
         join_node_entries = []
+        cron_jobs = []
         for diagram in diagrams:
             process = {
                 "id": self.process_id,
                 "name": diagram.name,
             }
+
+            if diagram.cron_job:
+                cron_jobs.append(diagram.cron_job)
 
             # Create action and join nodes as well as the start node
             action_nodes, join_nodes, start_node = self.create_relevant_nodes(diagram.nodes)
@@ -299,21 +317,25 @@ class ActivityDiagramParser:
             self.process_id += 1
         
         # Return the data for the workflow engine
-        return {
-            "processes": process_entries,
-            "action_nodes": action_node_entries,
-            "join_nodes": join_node_entries,
-            "rules": rule_entries,
-        }
+        return (
+            cron_jobs,
+            {
+                "processes": process_entries,
+                "action_nodes": action_node_entries,
+                "join_nodes": join_node_entries,
+                "rules": rule_entries,
+            }
+        )
 
 
-def generate_data(system_id: str, project_name: str, metadata: str) -> bool:
+
+def generate_data(system_id: str, project_name: str, metadata: str) -> list[CronJob]:
     OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
     CUSTOM_CODE_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/custom_code.py"
 
     # Parse the metadata and generate the workflow engine data
     parser = ActivityDiagramParser(json.loads(metadata))
-    workflow_engine_data = parser.get_workflow_engine_data()
+    cron_jobs, workflow_engine_data = parser.get_workflow_engine_data()
 
     # Process custom code for action nodes
     custom_code_to_add = []
@@ -339,6 +361,6 @@ def generate_data(system_id: str, project_name: str, metadata: str) -> bool:
 
     # Export the workflow engine data to a JSON file which can be used during the migration
     if write_to_file(OUTPUT_FILE_PATH, json.dumps(workflow_engine_data, indent=4)):
-        return True
+        return cron_jobs
 
     raise Exception(f"Failed to generate {project_name}/workflow_engine/migrations/workflow_engine_data.json")
