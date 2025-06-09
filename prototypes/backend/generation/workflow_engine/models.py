@@ -174,6 +174,7 @@ class Rule(models.Model):
         "str": str,
         "bool": lambda x: x.lower() == "true",
     }
+
     operators = {
         "==": eq,
         "!=": ne,
@@ -181,6 +182,16 @@ class Rule(models.Model):
         "<=": le,
         ">": gt,
         ">=": ge,
+        "between": lambda value, threshold: threshold[0] <= value <= threshold[1],
+    }
+
+    aggregators = {
+        "sum": lambda qs, attr: qs.aggregate(total=models.Sum(attr))["total"],
+        "avg": lambda qs, attr: qs.aggregate(avg=models.Avg(attr))["avg"],
+        "max": lambda qs, attr: qs.aggregate(max=models.Max(attr))["max"],
+        "min": lambda qs, attr: qs.aggregate(min=models.Min(attr))["min"],
+        "count": lambda qs, _: qs.count(),
+        "exists": lambda qs, _: qs.exists(),
     }
 
     @property
@@ -209,18 +220,10 @@ class Rule(models.Model):
             raise ValueError(f"Active process {active_process.id} does not have a QuerySet property named {target_property_name}")
                 
         if condition.aggregator:
-            if condition.aggregator == "sum":
-                value = target_objects.aggregate(total=models.Sum(condition.target_attribute))["total"]
-            elif condition.aggregator == "avg":
-                value = target_objects.aggregate(avg=models.Avg(condition.target_attribute))["avg"]
-            elif condition.aggregator == "max":
-                value = target_objects.aggregate(max=models.Max(condition.target_attribute))["max"]
-            elif condition.aggregator == "min":
-                value = target_objects.aggregate(min=models.Min(condition.target_attribute))["min"]
-            elif condition.aggregator == "count":
-                value = target_objects.count()
-            else:
+            aggregator = self.aggregators.get(condition.aggregator)
+            if not aggregator:
                 raise ValueError(f"Unsupported aggregator: {condition.aggregator}")
+            value = aggregator(target_objects, condition.target_attribute)
 
             # Return False if the aggregator fails to return a value
             if value is None:
