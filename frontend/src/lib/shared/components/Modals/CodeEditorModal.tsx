@@ -17,7 +17,7 @@ const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ open, onClose, onSave
         if (!initialCode && classes) {
             const generatedCode = `def custom_code(active_process: ActiveProcess) -> None:\n` +
                 "    # The following variables are Django QuerySet objects related to the active process\n" +
-                classes.map((cls) => `    ${cls.toLowerCase()}s = active_process.${cls.toLowerCase()}s # Do not change this line`).join("\n") +
+                classes.map((cls) => `    ${cls.toLowerCase().replace("-", "_")}s = active_process.${cls.toLowerCase().replace("-", "_")}s # Do not change this line`).join("\n") +
                 `\n    pass`;
             setCurrentCode(generatedCode);
         }

@@ -61,14 +61,14 @@ class {{ model.name }}(models.Model):
 
 
     {% elif attribute.type == AttributeType.ENUM %}
-    class {{ attribute.name }}(models.TextChoices):
+    class {{ attribute.name|capitalize }}(models.TextChoices):
         {% for literal in attribute.enum_literals -%}
         {{ literal }} = '{{ literal }}', '{{ literal }}'
         {% endfor %}
-    {{ attribute.name }} = models.CharField(
+    {{ attribute.name|lower }} = models.CharField(
         max_length=512,
-        choices={{ attribute.name }}.choices,
-        default={{ attribute.name }}.choices[0][0]
+        choices={{ attribute.name|capitalize }}.choices,
+        default={{ attribute.name|capitalize }}.choices[0][0]
     )
     {% endif -%}
     {% endfor -%}
@@ -78,7 +78,7 @@ class {{ model.name }}(models.Model):
 
     {% if model.object_name_attribute %}
     def __str__(self):
-        return self.{{ model.object_name_attribute }}
+        return str(self.{{ model.object_name_attribute }})
     {% endif %}
 
     {%- for custom_method in model.custom_methods %}

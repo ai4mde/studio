@@ -112,7 +112,8 @@ class ActionNode(models.Model):
         # TODO: Implement a better distribution algorithm
         # For now, just return the first user that matches the actor
         next_user = users.first() if users.exists() else None
-        logger.warning(f"No user found for actor {self.actor}. The user assignment for this node will have to be done manually.")
+        if not next_user:
+            logger.warning(f"No user found for actor {self.actor}. The user assignment for this node will have to be done manually.")
         return next_user
 
     def __str__(self):
@@ -477,16 +478,15 @@ class ActiveProcessNode(models.Model):
             # Log the start of the next node
             self._log_action("STARTED", next_user, next_node)
         
-        # Complete all nodes that should be completed without any user interaction.
-        self._complete_unattended_nodes(None)
-
         # Remove the current node as an active node, since it is now completed
         self.delete()
 
         # Complete the process if there are no active nodes left
         if not ActiveProcessNode.objects.filter(active_process=self.active_process).exists():
             self.active_process._complete_process(user)
-
+        else:
+            self._complete_unattended_nodes(None)
+        
     def _complete_unattended_nodes(self, user: User | None) -> None:
         """
             Complete all nodes that should be completed without any user interaction.

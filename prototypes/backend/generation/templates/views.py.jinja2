@@ -150,6 +150,11 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endif -%}
         context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
         {% endif -%}
+        {% if page.type != 'activity' -%}
+        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
+        context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
+        {% endfor %}
+        {% endif %}
         return context
 
     {% endif -%}
