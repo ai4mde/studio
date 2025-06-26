@@ -76,10 +76,29 @@ const NodeContextMenu: React.FC = () => {
     }
 
     const addToSwimlane = (nodeId: string, actorNodeId: string) => {
-        console.log(nodeId, actorNodeId);
+        const currentNode = nodes.find((n) => n.id === nodeId);
+        const removeAction = currentNode?.data.actorNode === actorNodeId
+
+        let newPosition = currentNode?.position
+        if (!removeAction && swimlaneGroup && currentNode) {
+            newPosition = {
+                x: currentNode.position.x - swimlaneGroup.position.x,
+                y: currentNode.position.y - swimlaneGroup.position.y
+            };
+        }
+        if (removeAction && swimlaneGroup && currentNode) {
+            newPosition = {
+                x: currentNode.position.x + swimlaneGroup.position.x,
+                y: currentNode.position.y + swimlaneGroup.position.y
+            };
+        }
+
         partialUpdateNode(diagram, nodeId, {
             cls: {
-                actorNode: actorNodeId,
+                actorNode: removeAction ? null : actorNodeId,
+            },
+            data: {
+                position: newPosition,
             }
         });
         queryClient.refetchQueries({
