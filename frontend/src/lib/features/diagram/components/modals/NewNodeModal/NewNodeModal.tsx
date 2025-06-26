@@ -89,6 +89,7 @@ export const NewNodeModal: React.FC = () => {
                             <button
                                 className="m-1 mx-2 rounded-sm"
                                 onClick={close}
+                                type="button"
                             >
                                 <X size={20} />
                             </button>

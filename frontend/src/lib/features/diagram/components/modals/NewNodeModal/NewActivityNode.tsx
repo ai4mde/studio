@@ -14,28 +14,34 @@ type Props = {
 
 export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, classes, setObject }) => {
 
-    // Set default values for swimlane
-    useEffect(() => {
-        if (object.role === "swimlane") {
-            setObject((o: any) => ({
-                ...o,
-                height: o.height || 1000,
-                width: o.width || 300,
-                horizontal: o.horizontal || false,
-            }))
-        }
-    }, [object.role, setObject])
+    const DEFAULTS: Record<string, Partial<typeof object>> = {
+        swimlane: {
+            type: "swimlane",
+            height: 1000,
+            width: 300,
+            horizontal: false,
+        },
+        action: {
+            type: "action",
+            isAutomatic: false,
+        },
+    };
 
-    // Set default values for action
     useEffect(() => {
-        if (object.type === "action" && object.isAutomatic === undefined) {
-            setObject((o: any) => ({
-                ...o,
-                isAutomatic: false,
-            }));
+        if (object.role && DEFAULTS[object.role]) {
+            setObject((o: any) => {
+                const defaults = DEFAULTS[object.role];
+                // Only set default for keys that are undefined
+                const newObject = { ...o };
+                for (const key in defaults) {
+                    if (newObject[key] === undefined) {
+                        newObject[key] = defaults[key];
+                    }
+                }
+                return newObject;
+            });
         }
-    }, [object.type, setObject]);
-
+    }, [object.role, setObject]);
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 

@@ -7,7 +7,7 @@ import {
     Select,
 } from "@mui/joy";
 import { Plus, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 type Props = {
     object: any;
@@ -17,12 +17,19 @@ type Props = {
 export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
     const [literal, setLiteral] = useState("");
 
+
+    useEffect(() => {
+        if (!object.type) {
+            setObject((o: any) => ({ ...o, type: "class" }));
+        }
+    }, [object.type, setObject]);
+
     return (
         <>
             <FormControl size="sm" className="w-full">
                 <FormLabel>Type</FormLabel>
                 <Select
-                    value={object.type}
+                    value={object.type || ""}
                     onChange={(_, e) =>
                         setObject((o: any) => ({ ...o, type: e }))
                     }
