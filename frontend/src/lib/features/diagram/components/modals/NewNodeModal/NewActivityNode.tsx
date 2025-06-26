@@ -161,18 +161,22 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             {(object.type == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
-                        <FormLabel>Actor</FormLabel>
+                        <FormLabel>Actors</FormLabel>
                         <Select
-                            value={object.actorNode || ""}
-                            onChange={(e, newValue) =>{
-                                const selectedNode = uniqueActors.find((node) => node.id === newValue);
+                            multiple
+                            placeholder="Select actors..."
+                            onChange={(_, newValue) =>{
+                                const selectedNodes = uniqueActors.filter((node) => newValue.includes(node.id))
                                 setObject((o: any) => ({
                                     ...o,
-                                    actorNode: newValue,
-                                    actorNodeName: selectedNode ? selectedNode.name : "",
+                                    swimlanes: selectedNodes.map((node) => ({
+                                        role: "swimlane",
+                                        type: "swimlane",
+                                        actorNode: node.id,
+                                        actorNodeName: node.name,
+                                    }))
                                 }))
                             }}
-                            placeholder="Select an actor..."
                         >
                             {uniqueActors
                                 .filter((node) => !existingActors.includes(node.name))

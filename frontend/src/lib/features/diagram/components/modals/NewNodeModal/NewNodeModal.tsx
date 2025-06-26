@@ -42,14 +42,14 @@ export const NewNodeModal: React.FC = () => {
         if (object.type !== 'swimlane') {
            addNode(diagram, object);
         } else {
-            const { height, width, horizontal, ...swimlaneProps } = object;
+            const { height, width, horizontal, swimlanes } = object;
             if (swimlaneGroup) {
                 partialUpdateNode(
                     diagram,
                     swimlaneGroup.id,
                     {
                         cls: {
-                            swimlanes: [...swimlaneGroup.data.swimlanes, swimlaneProps],
+                            swimlanes: [...swimlaneGroup.data.swimlanes, ...swimlanes],
                         }
                     }
                 )
@@ -59,7 +59,7 @@ export const NewNodeModal: React.FC = () => {
                     {
                         type: 'swimlanegroup',
                         role: 'swimlane',
-                        swimlanes: [swimlaneProps],
+                        swimlanes: swimlanes,
                         height,
                         width,
                         horizontal
