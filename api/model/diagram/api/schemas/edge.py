@@ -69,7 +69,7 @@ class ExportRelation(ModelSchema):
 
 class ImportRelation(Schema):
     id: str
-    data: Relation
+    data: dict
     system: str
     source: str
     target: str

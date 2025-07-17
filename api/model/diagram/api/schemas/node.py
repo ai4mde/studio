@@ -56,7 +56,7 @@ class ExportClassifier(ModelSchema):
 class ImportClassifier(Schema):
     id: str
     system: str
-    data: Classifier
+    data: dict
 
 
 class ExportNode(ModelSchema):
