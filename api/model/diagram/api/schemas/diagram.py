@@ -4,8 +4,8 @@ from typing import List, Optional
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema
-from .edge import CreateEdge, EdgeSchema
+from .node import CreateNode, NodeSchema, ExportNode, ImportNode
+from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
 
 
 class DiagramType(str, Enum):
@@ -109,10 +109,39 @@ class ImportDiagram(CreateDiagram):
     edges: List[CreateEdge]
 
 
+class ExportDiagram(ModelSchema):
+    nodes: List[ExportNode] = []
+    edges: List[ExportEdge] = []
+
+    class Meta:
+        model = Diagram
+        fields = "__all__"
+
+    @staticmethod
+    def resolve_nodes(obj):
+        return obj.nodes.all()
+
+    @staticmethod
+    def resolve_edges(obj):
+        return obj.edges.all()
+
+
+class ImportDiagram(Schema):
+    id: str
+    type: DiagramType
+    name: str
+    description: Optional[str] = None
+    system: str
+    nodes: list[ImportNode]
+    edges: list[ImportEdge]
+
+
 __all__ = [
     "ReadDiagram",
     "ImportDiagram",
     "CreateDiagram",
     "UpdateDiagram",
     "FullDiagram",
+    "ExportDiagram",
+    "ImportDiagram",
 ]

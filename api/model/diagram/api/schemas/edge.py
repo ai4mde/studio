@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
-from diagram.models import Edge
+from diagram.models import Edge, Relation as RelationModel
 from metadata.specification import Relation
 
 
@@ -61,9 +61,44 @@ class PatchEdge(Schema):
 class ListEdges(Schema):
     nodes: List[EdgeSchema] = []
 
+class ExportRelation(ModelSchema):
+    class Meta:
+        model = RelationModel
+        fields = "__all__"
+
+
+class ImportRelation(Schema):
+    id: str
+    data: Relation
+    system: str
+    source: str
+    target: str
+
+
+class ExportEdge(ModelSchema):
+    rel_data: ExportRelation
+
+    class Meta:
+        model = Edge
+        fields = "__all__"
+    
+    @staticmethod
+    def resolve_rel_data(obj):
+        return obj.rel
+
+
+class ImportEdge(Schema):
+    id: str
+    diagram: str
+    rel: str
+    data: dict
+    rel_data: ImportRelation
+
 
 __all__ = [
     "CreateEdge",
     "EdgeSchema",
     "ListEdges",
+    "ExportEdge",
+    "ImportEdge",
 ]

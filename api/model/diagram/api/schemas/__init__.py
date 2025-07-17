@@ -4,6 +4,7 @@ from diagram.api.schemas.diagram import (
     ReadDiagram,
     UpdateDiagram,
     FullDiagram,
+    ExportDiagram,
 )
 
 from diagram.api.schemas.node import (
@@ -34,4 +35,5 @@ __all__ = [
     "PatchEdge",
     "ListEdges",
     "EdgeSchema",
+    "ExportDiagram",
 ]

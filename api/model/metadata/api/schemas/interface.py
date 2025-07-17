@@ -1,4 +1,6 @@
-from ninja import ModelSchema
+from typing import Optional
+
+from ninja import Schema, ModelSchema
 from metadata.models import Interface
 
 
@@ -26,4 +28,19 @@ class DeleteInterface(ModelSchema):
         fields = ["id"]
 
 
-__all__ = ["ReadInterface", "CreateInterface", "UpdateInterface", "DeleteInterface"]
+class ExportInterface(ModelSchema):
+    class Meta:
+        model = Interface
+        fields = "__all__"
+
+
+class ImportInterface(Schema):
+    id: str
+    system: str
+    name: str
+    description: Optional[str] = None
+    actor: str
+    data: dict
+
+
+__all__ = ["ReadInterface", "CreateInterface", "UpdateInterface", "DeleteInterface", "ExportInterface", "ImportInterface"]
