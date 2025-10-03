@@ -117,75 +117,86 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     return (
         <>
             <Card>
-                <div className="flex w-full flex-row gap-4 p-1">
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setProject(`${val}`)}
-                    >
-                        {projects.isSuccess ? (
-                            projects.data.map((p) => (
-                                <Option value={p.id}>{p.name}</Option>
-                            ))
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setSystem(`${val}`)}
-                    >
-                        {systems.isSuccess ? (
-                            systems.data.map((p) => (
-                                <Option value={p.id}>{p.name}</Option>
-                            ))
-                        ) : project ? (
-                            <Option value="setproj" disabled>
-                                Set a project first
-                            </Option>
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setDiagram(`${val}`)}
-                    >
-                        {diagrams.isSuccess ? (
-                            diagrams.data.length > 0 ? (
-                                diagrams.data.map((p) => (
-                                    <Option key={p.id} value={p.id}>
-                                        {p.id}
-                                    </Option>
+                <div className="flex w-full flex-row gap-4 p-1 items-end">
+                    <div className="w-full">
+                        <label className="block test-sm font-medium mb-1">Project</label>
+                        <Select
+                            className="w-full"
+                            onChange={(_, val) => setProject(`${val}`)}
+                        >
+                            {projects.isSuccess ? (
+                                projects.data.map((p) => (
+                                    <Option value={p.id}>{p.name}</Option>
                                 ))
                             ) : (
-                                <Option value="no-diagrams" disabled>
-                                    Create a diagram first!
+                                <Option value="loading" disabled>
+                                    Loading...
                                 </Option>
-                            )
-                        ) : system ? (
-                            <Option value="setsys" disabled>
-                                Set a system first
-                            </Option>
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Button
-                        onClick={() => mutate()}
-                        fullWidth
-                        disabled={!system || !project || !diagram || !classifiers.length || isPending || isSuccess}
-                    >
-                        {isPending ? "Generating..."
-                            : isSuccess ? "Successfully generated!"
-                                : "Add to diagram"
-                        }
-                    </Button>
+                            )}
+                        </Select>
+                    </div>
+                    <div className="w-full">
+                        <label className="block test-sm font-medium mb-1">System</label>
+                        <Select
+                            className="w-full"
+                            onChange={(_, val) => setSystem(`${val}`)}
+                        >
+                            {systems.isSuccess ? (
+                                systems.data.map((p) => (
+                                    <Option value={p.id}>{p.name}</Option>
+                                ))
+                            ) : project ? (
+                                <Option value="setproj" disabled>
+                                    Set a project first
+                                </Option>
+                            ) : (
+                                <Option value="loading" disabled>
+                                    Loading...
+                                </Option>
+                            )}
+                        </Select>
+                    </div>
+                    <div className="w-full">
+                        <label className="block test-sm font-medium mb-1">Diagram</label>
+                        <Select
+                            className="w-full"
+                            onChange={(_, val) => setDiagram(`${val}`)}
+                        >
+                            {diagrams.isSuccess ? (
+                                diagrams.data.length > 0 ? (
+                                    diagrams.data.map((p) => (
+                                        <Option key={p.id} value={p.id}>
+                                            {p.id}
+                                        </Option>
+                                    ))
+                                ) : (
+                                    <Option value="no-diagrams" disabled>
+                                        Create a diagram first!
+                                    </Option>
+                                )
+                            ) : system ? (
+                                <Option value="setsys" disabled>
+                                    Set a system first
+                                </Option>
+                            ) : (
+                                <Option value="loading" disabled>
+                                    Loading...
+                                </Option>
+                            )}
+                        </Select>
+                    </div>
+                    <div className="w-full">
+                        <Button
+                            onClick={() => mutate()}
+                            fullWidth
+                            disabled={!system || !project || !diagram || !classifiers.length || isPending || isSuccess}
+                        >
+                            {isPending ? "Generating..."
+                                : isSuccess ? "Successfully generated!"
+                                    : "Add to diagram"
+                            }
+                        </Button>
+                    </div>
                 </div>
             </Card>
             <Card className="flex w-full flex-col gap-4 p-4">
