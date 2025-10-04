@@ -1,7 +1,7 @@
 import { authAxios } from "$auth/state/auth";
 import { PreviewNode } from "$diagram/components/core/Node/Node";
 import { queryClient } from "$shared/hooks/queryClient";
-import { Button, Card, Option, Select } from "@mui/joy";
+import { Button, Card, Option, Select, Menu, MenuItem } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
@@ -30,12 +30,21 @@ type DiagramOut = {
 
 const NEW_DIAGRAM = "__new_diagram__";
 
+const DIAGRAM_TYPES = [
+    {value: "classes", label: "Class"},
+    {value: "usecase", label: "Use Case"},
+    {value: "activity", label: "Activity"},
+    {value: "component", label: "Component"},
+];
+
 export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [classifiers, setClassifiers] = React.useState<any[]>([]);
     const [relations, setRelations] = React.useState<any[]>([]);
     const [project, setProject] = React.useState<string | undefined>();
     const [system, setSystem] = React.useState<string | undefined>();
     const [diagram, setDiagram] = React.useState<string | undefined>();
+    const [submenuAnchorEl, setSubmenuAnchorEl] = React.useState<HTMLElement | null>(null);
+    const [submenuOpen, setSubmenuOpen] = React.useState(false);
 
     const projects = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -117,20 +126,27 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     });
 
     const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
-        mutationFn: async () => {
+        mutationFn: async ({ type }: { type: string}) => {
             const { data } = await authAxios.post("/v1/diagram/", {
                 name: "Untitled diagram",
                 system,
-                type: "classes",
+                type
             });
             return data;
         },
         onSuccess: async (data) => {
-            console.log("created diagram", data);
-            // Refresh list so new diagram appears in dropdown
-            await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
+            queryClient.setQueryData<DiagramOut[]>(
+                ["diagrams", `${project}`],
+                (old) => {
+                    const prev = Array.isArray(old) ? old : [];
+                    if (prev.some(d => String(d.id) === String(data.id))) return prev;
+                    return [{ id: String(data.id), name: data.name ?? "Untitled diagram" }, ...prev];
+                }
+            );
             // Select new diagram
             setDiagram(String(data.id));
+            // Refresh list so new diagram appears in dropdown
+            await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
         }
     });
 
@@ -183,7 +199,6 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             value = {diagram ?? null}
                             onChange={async (_e, val) => {
                                 if (val === NEW_DIAGRAM) {
-                                    await createDiagram();
                                     return;
                                 }
                                 if (val == null) {
@@ -194,9 +209,25 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             }}
                         >
                             {project && system && (
-                                <Option key="__new__" value={NEW_DIAGRAM}>
-                                    <Plus size={16} className="inline mr-1" />
-                                    New Diagram
+                                <Option
+                                key="__new__" 
+                                value={NEW_DIAGRAM}
+                                // Open submenu on hover
+                                onMouseEnter={(e) => {
+                                    setSubmenuAnchorEl(e.currentTarget as HTMLElement);
+                                    setSubmenuOpen(true);
+                                }}
+                                onMouseLeave={() => {
+                                    setSubmenuOpen(false);
+                                }}
+                                // Prevent selecting this option
+                                onClick={(e) => e.preventDefault()}
+                                >
+                                    <span className="flex items-center">
+                                        <Plus size={16} className="inline mr-1" />
+                                        New Diagram...
+                                        <span className="ml-auto">▸</span>
+                                    </span>
                                 </Option>
                             )}
                             {diagrams.isSuccess ? (
@@ -221,6 +252,29 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                                 </Option>
                             )}
                         </Select>
+                        <Menu
+                            open={submenuOpen}
+                            anchorEl={submenuAnchorEl}
+                            onClose={() => setSubmenuOpen(true)}
+                            placement="right-start"
+                            variant="outlined"
+                            size="sm"
+                            sx={{ zIndex: 1300 }}
+                            onMouseEnter={() => setSubmenuOpen(true)}
+                            onMouseLeave={() => setSubmenuOpen(false)}
+                        >
+                            {DIAGRAM_TYPES.map(t => (
+                                <MenuItem
+                                    key={t.value}
+                                    onClick={async () => {
+                                        setSubmenuOpen(false);
+                                        await createDiagram({ type: t.value });
+                                    }}
+                                >
+                                    {t.label}
+                                </MenuItem>
+                            ))}
+                        </Menu>
                     </div>
                     <div className="w-full">
                         <Button
