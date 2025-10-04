@@ -3,7 +3,7 @@ import { PreviewNode } from "$diagram/components/core/Node/Node";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Button, Card, Option, Select } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
 
@@ -27,6 +27,8 @@ type DiagramOut = {
     name: string;
     description?: string;
 };
+
+const NEW_DIAGRAM = "__new_diagram__";
 
 export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [classifiers, setClassifiers] = React.useState<any[]>([]);
@@ -114,12 +116,30 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         },
     });
 
+    const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
+        mutationFn: async () => {
+            const { data } = await authAxios.post("/v1/diagram/", {
+                name: "Untitled diagram",
+                system,
+                type: "classes",
+            });
+            return data;
+        },
+        onSuccess: async (data) => {
+            console.log("created diagram", data);
+            // Refresh list so new diagram appears in dropdown
+            await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
+            // Select new diagram
+            setDiagram(String(data.id));
+        }
+    });
+
     return (
         <>
             <Card>
                 <div className="flex w-full flex-row gap-4 p-1 items-end">
                     <div className="w-full">
-                        <label className="block test-sm font-medium mb-1">Project</label>
+                        <label className="block text-sm font-medium mb-1">Project</label>
                         <Select
                             className="w-full"
                             onChange={(_, val) => setProject(`${val}`)}
@@ -136,7 +156,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         </Select>
                     </div>
                     <div className="w-full">
-                        <label className="block test-sm font-medium mb-1">System</label>
+                        <label className="block text-sm font-medium mb-1">System</label>
                         <Select
                             className="w-full"
                             onChange={(_, val) => setSystem(`${val}`)}
@@ -157,15 +177,32 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         </Select>
                     </div>
                     <div className="w-full">
-                        <label className="block test-sm font-medium mb-1">Diagram</label>
+                        <label className="block text-sm font-medium mb-1">Diagram</label>
                         <Select
                             className="w-full"
-                            onChange={(_, val) => setDiagram(`${val}`)}
+                            value = {diagram ?? null}
+                            onChange={async (_e, val) => {
+                                if (val === NEW_DIAGRAM) {
+                                    await createDiagram();
+                                    return;
+                                }
+                                if (val == null) {
+                                    setDiagram(undefined);
+                                    return;
+                                }
+                                setDiagram(String(val));
+                            }}
                         >
+                            {project && system && (
+                                <Option key="__new__" value={NEW_DIAGRAM}>
+                                    <Plus size={16} className="inline mr-1" />
+                                    New Diagram
+                                </Option>
+                            )}
                             {diagrams.isSuccess ? (
                                 diagrams.data.length > 0 ? (
                                     diagrams.data.map((p) => (
-                                        <Option key={p.id} value={p.id}>
+                                        <Option key={p.id} value={String(p.id)}>
                                             {p.id}
                                         </Option>
                                     ))
@@ -189,7 +226,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         <Button
                             onClick={() => mutate()}
                             fullWidth
-                            disabled={!system || !project || !diagram || !classifiers.length || isPending || isSuccess}
+                            disabled={!system || !project || !diagram || diagram === NEW_DIAGRAM || !classifiers.length || isPending || isSuccess || creatingDiagram}
                         >
                             {isPending ? "Generating..."
                                 : isSuccess ? "Successfully generated!"
