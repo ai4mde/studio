@@ -198,14 +198,28 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             className="w-full"
                             value = {diagram ?? null}
                             onChange={async (_e, val) => {
-                                if (val === NEW_DIAGRAM) {
+                                const raw = val && typeof val === "object" ? (val as any).value : val;
+                                if (raw === NEW_DIAGRAM) {
                                     return;
                                 }
-                                if (val == null) {
+                                if (raw == null) {
                                     setDiagram(undefined);
                                     return;
                                 }
-                                setDiagram(String(val));
+                                setDiagram(String(raw));
+                            }}
+                            renderValue={(selected) => {
+                                if (!selected) return null;
+                                const raw =
+                                    typeof selected === "string" || typeof selected === "number"
+                                        ? String(selected)
+                                        : (selected as any)?.value ?? "";
+                                if (!raw) return null;
+                                const d = diagrams.data?.find((x) => String(x.id) === raw);
+                                if (d) return d.name;
+                                if (typeof selected === "object" && (selected as any)?.label)
+                                    return (selected as any).label;
+                                return raw;
                             }}
                         >
                             {project && system && (
@@ -234,7 +248,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                                 diagrams.data.length > 0 ? (
                                     diagrams.data.map((p) => (
                                         <Option key={p.id} value={String(p.id)}>
-                                            {p.id}
+                                            {p.name}
                                         </Option>
                                     ))
                                 ) : (
@@ -255,7 +269,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         <Menu
                             open={submenuOpen}
                             anchorEl={submenuAnchorEl}
-                            onClose={() => setSubmenuOpen(true)}
+                            onClose={() => setSubmenuOpen(false)}
                             placement="right-start"
                             variant="outlined"
                             size="sm"
