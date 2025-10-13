@@ -45,6 +45,9 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [diagram, setDiagram] = React.useState<string | undefined>();
     const [submenuAnchorEl, setSubmenuAnchorEl] = React.useState<HTMLElement | null>(null);
     const [submenuOpen, setSubmenuOpen] = React.useState(false);
+    const [newDiagramType, setNewDiagramType] = React.useState<string | null>(null);
+    const [newDiagramName, setNewDiagramName] = React.useState("");
+    const [createMode, setCreateMode] = React.useState(false);
 
     const projects = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -110,25 +113,36 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         }
     };
 
-    const { mutate, isPending, isError, isSuccess } = useMutation({
-        mutationFn: async () => {
+    const { mutateAsync: addToDiagram, isPending, isError, isSuccess } = useMutation({
+        mutationFn: async (targetDiagramId: string) => {
             const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
             const selectedRelations = _relations.filter((r) => relations.includes(r.id));
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${diagram}/`, {
+            console.log("addidng", {
+                diagramId: targetDiagramId,
+                classifierId: selectedClassifiers.map(c=>c.id),
+                relationIds: selectedRelations.map(r=>r.id),
+            });
+            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${targetDiagramId}/`, {
                 pipeline_id: pipeline.id,
-                diagram_id: diagram,
+                diagram_id: targetDiagramId,
                 classifiers: selectedClassifiers,
                 relations: selectedRelations,
             });
 
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });
         },
+        onError: (e: any) => {
+            console.error("add_to_diagram failed", e?.response?.status, e?.response?.data || e?.message);
+        },
+        onSuccess: () => {
+            console.log("components added to diagram");
+        }
     });
 
     const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
-        mutationFn: async ({ type }: { type: string}) => {
+        mutationFn: async ({ type, name }: { type: string, name: string }) => {
             const { data } = await authAxios.post("/v1/diagram/", {
-                name: "Untitled diagram",
+                name,
                 system,
                 type
             });
@@ -153,10 +167,13 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     return (
         <>
             <Card>
-                <div className="flex w-full flex-row gap-4 p-1 items-end">
-                    <div className="w-full">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-1">
+
+                    {/* Project */}
+                    <div className="md:col-start-1 md:row-start-1">
                         <label className="block text-sm font-medium mb-1">Project</label>
                         <Select
+                            size="md"
                             className="w-full"
                             onChange={(_, val) => setProject(`${val}`)}
                         >
@@ -171,9 +188,12 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             )}
                         </Select>
                     </div>
-                    <div className="w-full">
+                    
+                    {/* System */}
+                    <div className="md:col-start-2 md:row-start-1">
                         <label className="block text-sm font-medium mb-1">System</label>
                         <Select
+                            size="md"
                             className="w-full"
                             onChange={(_, val) => setSystem(`${val}`)}
                         >
@@ -192,50 +212,29 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             )}
                         </Select>
                     </div>
-                    <div className="w-full">
+
+                    {/* Diagram */}
+                    <div className="md:col-start-3 md:row-start-1">
                         <label className="block text-sm font-medium mb-1">Diagram</label>
                         <Select
+                            size="md"
                             className="w-full"
                             value = {diagram ?? null}
-                            onChange={async (_e, val) => {
-                                const raw = val && typeof val === "object" ? (val as any).value : val;
-                                if (raw === NEW_DIAGRAM) {
-                                    return;
-                                }
-                                if (raw == null) {
-                                    setDiagram(undefined);
-                                    return;
-                                }
-                                setDiagram(String(raw));
-                            }}
-                            renderValue={(selected) => {
-                                if (!selected) return null;
-                                const raw =
-                                    typeof selected === "string" || typeof selected === "number"
-                                        ? String(selected)
-                                        : (selected as any)?.value ?? "";
-                                if (!raw) return null;
-                                const d = diagrams.data?.find((x) => String(x.id) === raw);
-                                if (d) return d.name;
-                                if (typeof selected === "object" && (selected as any)?.label)
-                                    return (selected as any).label;
-                                return raw;
-                            }}
+                            onChange={(_, val) => setDiagram(val ?? undefined)}
                         >
                             {project && system && (
                                 <Option
-                                key="__new__" 
-                                value={NEW_DIAGRAM}
-                                // Open submenu on hover
-                                onMouseEnter={(e) => {
-                                    setSubmenuAnchorEl(e.currentTarget as HTMLElement);
-                                    setSubmenuOpen(true);
-                                }}
-                                onMouseLeave={() => {
-                                    setSubmenuOpen(false);
-                                }}
-                                // Prevent selecting this option
-                                onClick={(e) => e.preventDefault()}
+                                    value="__new__"
+                                    // Open submenu on hover
+                                    onMouseEnter={(e) => {
+                                        setSubmenuAnchorEl(e.currentTarget as HTMLElement);
+                                        setSubmenuOpen(true);
+                                    }}
+                                    // Close submenu
+                                    onMouseLeave={() => {setSubmenuOpen(false)}}
+                                    // Prevent selecting this option
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={(e) => e.preventDefault()}
                                 >
                                     <span className="flex items-center">
                                         <Plus size={16} className="inline mr-1" />
@@ -244,6 +243,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                                     </span>
                                 </Option>
                             )}
+
                             {diagrams.isSuccess ? (
                                 diagrams.data.length > 0 ? (
                                     diagrams.data.map((p) => (
@@ -280,29 +280,86 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             {DIAGRAM_TYPES.map(t => (
                                 <MenuItem
                                     key={t.value}
-                                    onClick={async () => {
+                                    onClick={() => {
                                         setSubmenuOpen(false);
-                                        await createDiagram({ type: t.value });
+                                        setCreateMode(true);
+                                        setNewDiagramType(t.value);
+                                        setNewDiagramName("");
                                     }}
                                 >
                                     {t.label}
                                 </MenuItem>
                             ))}
                         </Menu>
+
+                        {/* Inline creation UI appears when createMode is on */}
+                        {createMode && (
+                            <div className="mt-2">
+                                <label className="block text-sm font-medium mb-1">
+                                    New Diagram Name
+                                </label>
+                                <input
+                                    type="text"
+                                    className="w-full border rounded px-2 py-1"
+                                    placeholder="Enter a name..."
+                                    value={newDiagramName}
+                                    onChange={(e) => setNewDiagramName(e.target.value)}
+                                />
+                            </div>
+                        )}
                     </div>
-                    <div className="w-full">
+
+                    {/* Button */}
+                    <div className="md:col-start-4 md:row-start-1">
+                        <label className="block text-sm fpnt-medium mb-1 invisible" aria-hidden>
+                            Action
+                        </label>
                         <Button
-                            onClick={() => mutate()}
-                            fullWidth
-                            disabled={!system || !project || !diagram || diagram === NEW_DIAGRAM || !classifiers.length || isPending || isSuccess || creatingDiagram}
+                            size="md"
+                            onClick={async () => {
+                                let targetId = diagram;
+                                if (createMode) {
+                                    if (!newDiagramType || !newDiagramName.trim()) return;
+                                    const created = await createDiagram({ type: newDiagramType, name: newDiagramName.trim() });
+                                    targetId = String(created.id);
+                                    setDiagram(targetId);
+                                    setCreateMode(false);
+                                }
+                                if (targetId) {
+                                    await addToDiagram(targetId);
+                                }
+                            }}
+                            disabled={
+                                !system ||
+                                !project ||
+                                (!createMode && !diagram) ||
+                                (createMode && (!newDiagramType || !newDiagramName.trim())) ||
+                                !classifiers.length ||
+                                isPending ||
+                                isSuccess ||
+                                creatingDiagram
+                            }
                         >
                             {isPending ? "Generating..."
                                 : isSuccess ? "Successfully generated!"
-                                    : "Add to diagram"
+                                : createMode ? "Create & add"
+                                : "Add to diagram"
                             }
                         </Button>
                     </div>
                 </div>
+                {diagram === NEW_DIAGRAM && (
+                    <div className="mt-2">
+                        <label className="block text-xs font-medium mb-1">New diagram name</label>
+                        <input
+                            type="text"
+                            className="w-full border rounded px-2 py-1"
+                            placeholder="Enter a name..."
+                            value={newDiagramName}
+                            onChange={(e) => setNewDiagramName(e.target.value)}
+                        />
+                    </div>
+                )}
             </Card>
             <Card className="flex w-full flex-col gap-4 p-4">
                 <div className="flex w-full flex-col gap-1">
