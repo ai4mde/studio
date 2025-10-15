@@ -15,12 +15,17 @@ class Diagram(models.Model):
     )
 
 
-    def add_node_and_classifier(self, classifier: dict):
+    def add_node_and_classifier(self, classifier: dict, id_map: dict | None = None):
+        old_id = classifier.get('id')
         cls = Classifier.objects.create(
-            id = classifier['id'],
             system = self.system,
             data = classifier['data']
         )
+
+        # Save old-new id mapping
+        if id_map is not None and old_id:
+            id_map[old_id] = cls.id
+
         Node.objects.create(
             diagram = self,
             cls = cls,
@@ -32,21 +37,30 @@ class Diagram(models.Model):
           },
         )
 
+        return cls.id
 
-    def add_edge_and_relation(self, relation: dict):
+
+    def add_edge_and_relation(self, relation: dict, id_map: dict | None = None):
+        # Remap old ids of classifiers to new ones
+        source_old = relation['source']
+        target_old = relation['target']
+        source_new = id_map.get(source_old, source_old) if id_map else source_old
+        target_new = id_map.get(target_old, target_old) if id_map else target_old
+
         rel = Relation.objects.create(
-            id = relation['id'],
             system = self.system,
-            source = Classifier.objects.get(pk=relation['source']),
-            target = Classifier.objects.get(pk=relation['target']),
+            source = Classifier.objects.get(pk=source_new),
+            target = Classifier.objects.get(pk=target_new),
             data = relation['data']
-
         )
+
         Edge.objects.create(
             diagram = self,
             rel = rel,
             data = {}
         )
+        
+        return rel.id
 
 
     def auto_layout(self):
