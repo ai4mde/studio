@@ -1,7 +1,7 @@
 import { authAxios } from "$auth/state/auth";
 import { PreviewNode } from "$diagram/components/core/Node/Node";
 import { queryClient } from "$shared/hooks/queryClient";
-import { Button, Card, Option, Select, Menu, MenuItem } from "@mui/joy";
+import { Button, Card, Option, Select } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
@@ -43,8 +43,6 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [project, setProject] = React.useState<string | undefined>();
     const [system, setSystem] = React.useState<string | undefined>();
     const [diagram, setDiagram] = React.useState<string | undefined>();
-    const [submenuAnchorEl, setSubmenuAnchorEl] = React.useState<HTMLElement | null>(null);
-    const [submenuOpen, setSubmenuOpen] = React.useState(false);
     const [newDiagramType, setNewDiagramType] = React.useState<string | null>(null);
     const [newDiagramName, setNewDiagramName] = React.useState("");
     const [createMode, setCreateMode] = React.useState(false);
@@ -117,17 +115,20 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         mutationFn: async (targetDiagramId: string) => {
             const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
             const selectedRelations = _relations.filter((r) => relations.includes(r.id));
-            console.log("addidng", {
+            console.log("add_to_diagram", {
                 diagramId: targetDiagramId,
-                classifierId: selectedClassifiers.map(c=>c.id),
-                relationIds: selectedRelations.map(r=>r.id),
+                classifiersCount: selectedClassifiers.length,
+                relationsCount: selectedRelations.length,
+                firstClassifierId: selectedClassifiers[0]?.id,
+                firstRelationId: selectedRelations[0]?.id,
             });
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${targetDiagramId}/`, {
+            const res = await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${targetDiagramId}/`, {
                 pipeline_id: pipeline.id,
                 diagram_id: targetDiagramId,
                 classifiers: selectedClassifiers,
                 relations: selectedRelations,
             });
+            console.log("add_to_diagram response:", res.status, res.data);
 
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });
         },
@@ -220,26 +221,23 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                             size="md"
                             className="w-full"
                             value = {diagram ?? null}
-                            onChange={(_, val) => setDiagram(val ?? undefined)}
+                            onChange={(_, val) => {
+                                if (val === (NEW_DIAGRAM)) {
+                                    setDiagram(NEW_DIAGRAM);
+                                    setCreateMode(true);
+                                    setNewDiagramType(null);
+                                    setNewDiagramName("");
+                                    return;
+                                }
+                                setCreateMode(false);
+                                setDiagram(val ?? undefined);
+                            }}
                         >
                             {project && system && (
-                                <Option
-                                    value="__new__"
-                                    // Open submenu on hover
-                                    onMouseEnter={(e) => {
-                                        setSubmenuAnchorEl(e.currentTarget as HTMLElement);
-                                        setSubmenuOpen(true);
-                                    }}
-                                    // Close submenu
-                                    onMouseLeave={() => {setSubmenuOpen(false)}}
-                                    // Prevent selecting this option
-                                    onMouseDown={(e) => e.preventDefault()}
-                                    onClick={(e) => e.preventDefault()}
-                                >
+                                <Option value={NEW_DIAGRAM}>
                                     <span className="flex items-center">
                                         <Plus size={16} className="inline mr-1" />
                                         New Diagram...
-                                        <span className="ml-auto">▸</span>
                                     </span>
                                 </Option>
                             )}
@@ -266,47 +264,6 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                                 </Option>
                             )}
                         </Select>
-                        <Menu
-                            open={submenuOpen}
-                            anchorEl={submenuAnchorEl}
-                            onClose={() => setSubmenuOpen(false)}
-                            placement="right-start"
-                            variant="outlined"
-                            size="sm"
-                            sx={{ zIndex: 1300 }}
-                            onMouseEnter={() => setSubmenuOpen(true)}
-                            onMouseLeave={() => setSubmenuOpen(false)}
-                        >
-                            {DIAGRAM_TYPES.map(t => (
-                                <MenuItem
-                                    key={t.value}
-                                    onClick={() => {
-                                        setSubmenuOpen(false);
-                                        setCreateMode(true);
-                                        setNewDiagramType(t.value);
-                                        setNewDiagramName("");
-                                    }}
-                                >
-                                    {t.label}
-                                </MenuItem>
-                            ))}
-                        </Menu>
-
-                        {/* Inline creation UI appears when createMode is on */}
-                        {createMode && (
-                            <div className="mt-2">
-                                <label className="block text-sm font-medium mb-1">
-                                    New Diagram Name
-                                </label>
-                                <input
-                                    type="text"
-                                    className="w-full border rounded px-2 py-1"
-                                    placeholder="Enter a name..."
-                                    value={newDiagramName}
-                                    onChange={(e) => setNewDiagramName(e.target.value)}
-                                />
-                            </div>
-                        )}
                     </div>
 
                     {/* Button */}
@@ -348,16 +305,38 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         </Button>
                     </div>
                 </div>
-                {diagram === NEW_DIAGRAM && (
-                    <div className="mt-2">
-                        <label className="block text-xs font-medium mb-1">New diagram name</label>
-                        <input
-                            type="text"
-                            className="w-full border rounded px-2 py-1"
-                            placeholder="Enter a name..."
-                            value={newDiagramName}
-                            onChange={(e) => setNewDiagramName(e.target.value)}
-                        />
+
+                {/* Render diagram creation fields when in create mode */}
+                {createMode && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-1">
+
+                        {/* New Diagram Type */}
+                        <div className="md:col-start-2">
+                            <label className="block text-sm font-medium mb-1">Diagram Type</label>
+                            <Select
+                                size="md"
+                                className="w-full"
+                                placeholder="Select a type"
+                                value={newDiagramType ?? null}
+                                onChange={(_, val) => setNewDiagramType(val as string | null)}
+                            >
+                                {DIAGRAM_TYPES.map((t) => (
+                                    <Option key={t.value} value={t.value}>{t.label}</Option>
+                                ))}
+                            </Select>
+                        </div>
+                    
+                        {/* New Diagram Name */}
+                        <div className="md:col-start-3">
+                            <label className="block text-sm font-medium mb-1">New Diagram Name</label>
+                            <input
+                                type="text"
+                                className="w-full border rounded px-2 py-1"
+                                placeholder="Enter a name..."
+                                value={newDiagramName}
+                                onChange={(e) => setNewDiagramName(e.target.value)}
+                            />
+                        </div>
                     </div>
                 )}
             </Card>
