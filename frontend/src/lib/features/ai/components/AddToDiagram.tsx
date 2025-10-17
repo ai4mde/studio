@@ -115,20 +115,12 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         mutationFn: async (targetDiagramId: string) => {
             const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
             const selectedRelations = _relations.filter((r) => relations.includes(r.id));
-            console.log("add_to_diagram", {
-                diagramId: targetDiagramId,
-                classifiersCount: selectedClassifiers.length,
-                relationsCount: selectedRelations.length,
-                firstClassifierId: selectedClassifiers[0]?.id,
-                firstRelationId: selectedRelations[0]?.id,
-            });
             const res = await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${targetDiagramId}/`, {
                 pipeline_id: pipeline.id,
                 diagram_id: targetDiagramId,
                 classifiers: selectedClassifiers,
                 relations: selectedRelations,
             });
-            console.log("add_to_diagram response:", res.status, res.data);
 
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });
         },
