@@ -16,37 +16,99 @@ class Diagram(models.Model):
 
 
     def add_node_and_classifier(self, classifier: dict, id_map: dict | None = None):
-        old_id = classifier.get('id')
+        old_id = str(classifier.get('id')) if classifier.get('id') else None
+
+        # If the original classifier was already added to this diagram, reuse it
+        # Check via id
+        if old_id:
+            existing_cls_id = (
+                Node.objects
+                .filter(diagram=self, data__origin_id=old_id)
+                .values_list('cls_id', flat=True)
+                .first()
+            )
+            if existing_cls_id:
+                if id_map is not None:
+                    id_map[old_id] = str(existing_cls_id)
+                return str(existing_cls_id)
+            
+        # Check via name + type
+        name = classifier.get('data', {}).get('name')
+        ctype = classifier.get('data', {}).get('type')
+        if name and ctype:
+            existing_by_semantics = (
+                Node.objects
+                .filter(
+                    diagram=self,
+                    cls__data__name=name,
+                    cls__data__type=ctype,
+                )
+                .values_list('cls_id', flat=True)
+                .first()
+            )
+            if existing_by_semantics:
+                if id_map is not None and old_id:
+                    id_map[old_id] = str(existing_by_semantics)
+                return str(existing_by_semantics)
+        
+        # Otherwise clone a new classifier
         cls = Classifier.objects.create(
             system = self.system,
             data = classifier['data']
         )
 
+        node_data = {"position": {"x": 0, "y": 0}}
         # Save old-new id mapping
         if id_map is not None and old_id:
-            id_map[old_id] = cls.id
+            id_map[old_id] = old_id
 
         Node.objects.create(
             diagram = self,
             cls = cls,
-            data = {
-            "position": {
-              "x": 0,
-              "y": 0
-            }
-          },
+            data = node_data,
         )
 
-        return cls.id
+        if id_map is not None and old_id:
+            id_map[old_id] = str(cls.id)
+
+        return str(cls.id)
 
 
     def add_edge_and_relation(self, relation: dict, id_map: dict | None = None):
         # Remap old ids of classifiers to new ones
-        source_old = relation['source']
-        target_old = relation['target']
+        existing_rel_id = str(relation.get('id')) if relation.get('id') else None
+        source_old = str(relation['source'])
+        target_old = str(relation['target'])
         source_new = id_map.get(source_old, source_old) if id_map else source_old
         target_new = id_map.get(target_old, target_old) if id_map else target_old
 
+        # If this relation was already added to the diagram, skip
+        if existing_rel_id and Edge.objects.filter(diagram=self, data__origin_id=existing_rel_id).exists():
+                return
+            
+        # Guard against duplicates by checking nodes and relation type/multiplicity
+        rel_type = relation['data'].get('type')
+        mult_source = relation['data'].get('multiplicity', {}).get('source')
+        mult_target = relation['data'].get('multiplicity', {}).get('target')
+
+        # Find an existing endge that connects the same nodes and has the same type
+        exists_same = (
+            Edge.objects
+            .select_related('rel')
+            .filter(
+                diagram=self,
+                rel__source_id=source_new,
+                rel__target_id=target_new,
+                rel__data__type=rel_type,
+                rel__data__multiplicity__source=mult_source,
+                rel__data__multiplicity__target=mult_target,
+            )
+            .exists()
+        )
+        if exists_same:
+            return
+
+        # Create new relation
         rel = Relation.objects.create(
             system = self.system,
             source = Classifier.objects.get(pk=source_new),
@@ -54,13 +116,17 @@ class Diagram(models.Model):
             data = relation['data']
         )
 
+        edge_data = {}
+        if existing_rel_id:
+            edge_data['origin_id'] = existing_rel_id
+
         Edge.objects.create(
             diagram = self,
             rel = rel,
-            data = {}
+            data = edge_data,
         )
-        
-        return rel.id
+
+        return str(rel.id)
 
 
     def auto_layout(self):

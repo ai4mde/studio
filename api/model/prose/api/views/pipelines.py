@@ -80,7 +80,7 @@ def add_to_diagram(request, pipeline_id: str, diagram_id: str, classifiers: List
         diagram.add_node_and_classifier(cls, id_map=id_map)
     for rel in relations:
         diagram.add_edge_and_relation(rel, id_map=id_map)
-        
+
     diagram.auto_layout()
     return diagram
 
