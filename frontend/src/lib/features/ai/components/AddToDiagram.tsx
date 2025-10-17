@@ -172,6 +172,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         <Select
                             size="md"
                             className="w-full"
+                            placeholder="Select a project"
                             onChange={(_, val) => setProject(`${val}`)}
                         >
                             {projects.isSuccess ? (
@@ -192,6 +193,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         <Select
                             size="md"
                             className="w-full"
+                            placeholder="Select a system"
                             onChange={(_, val) => setSystem(`${val}`)}
                         >
                             {systems.isSuccess ? (
@@ -216,6 +218,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
                         <Select
                             size="md"
                             className="w-full"
+                            placeholder="Select a diagram"
                             value = {diagram ?? null}
                             onChange={(_, val) => {
                                 if (val === (NEW_DIAGRAM)) {
