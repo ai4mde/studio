@@ -111,7 +111,7 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         }
     };
 
-    const { mutateAsync: addToDiagram, isPending, isError, isSuccess } = useMutation({
+    const { mutateAsync: addToDiagram, isPending, isSuccess, reset: resetAdd } = useMutation({
         mutationFn: async (targetDiagramId: string) => {
             const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
             const selectedRelations = _relations.filter((r) => relations.includes(r.id));
@@ -139,6 +139,10 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
             console.log("components added to diagram");
         }
     });
+
+    React.useEffect(() => {
+        resetAdd();
+    }, [project, system, diagram, createMode, newDiagramType, newDiagramName, classifiers, relations]);
 
     const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
         mutationFn: async ({ type, name }: { type: string, name: string }) => {
