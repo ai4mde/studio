@@ -1,9 +1,0 @@
-{% for model in models %}
-    @property
-    def {{ model.lower() }}s(self) -> QuerySet["{{ model }}"]:
-        return {{ model }}.objects.filter(
-            id__in=self.associated_model_instances.filter(
-                content_type=ContentType.objects.get_for_model({{ model }})
-            ).values_list("instance_id", flat=True)
-        )
-{% endfor %}

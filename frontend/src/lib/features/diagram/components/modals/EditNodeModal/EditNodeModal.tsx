@@ -15,16 +15,12 @@ import {
     EditLiterals,
     EditMethods,
     EditName,
-    EditBoolean,
-    EditDimensions,
-    EditSwimlane,
-    EditCode,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
 export const EditNodeModal: React.FC = () => {
     const modalState = useEditNodeModal();
-    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
+    const { diagram, nodes } = useDiagramStore();
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),
@@ -111,44 +107,6 @@ export const EditNodeModal: React.FC = () => {
                                     )}
                                     {node.type == "application" && (
                                         <EditApplication node={node} />
-                                    )}
-                                    {node.type == 'swimlanegroup' && (
-                                        <>
-                                            <EditDimensions dimension='height' node={node} />
-                                            <EditDimensions dimension='width' node={node} />
-                                            <EditBoolean
-                                                attribute="horizontal"
-                                                node={node}
-                                                helperText={{
-                                                    trueText: "Horizontal",
-                                                    falseText: "Vertical",
-                                                }}
-                                            />
-                                            <EditSwimlane node={node} />
-                                        </>
-                                    )}
-                                    {node.type == "action" && (
-                                        <>
-                                            <EditBoolean
-                                                attribute="isAutomatic"
-                                                node={node}
-                                                helperText={{
-                                                    trueText: "Automatic",
-                                                    falseText: "Manual",
-                                                }}
-                                            />
-                                            {node.data?.isAutomatic && (
-                                                <EditCode
-                                                    node={node}
-                                                    attribute="customCode"
-                                                    classes={
-                                                        relatedDiagrams
-                                                            .filter((diagram) => diagram.type === 'classes')
-                                                            .flatMap((diagram) => diagram.nodes.map((node) => node.name))
-                                                    }
-                                                />
-                                            )}
-                                        </>
                                     )}
                                 </div>
                             </div>

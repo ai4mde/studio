@@ -72,10 +72,15 @@ def run_model(request, pipeline_id: str, model="llama-3.3-70b-versatile"):
 @pipelines.post('/{uuid:pipeline_id}/add_to_diagram/{uuid:diagram_id}/', response=FullDiagram)
 def add_to_diagram(request, pipeline_id: str, diagram_id: str, classifiers: List[dict], relations: List[dict]):
     diagram = Diagram.objects.get(id=diagram_id)
+
+    # Keep an old-new id mapping for the classifiers being cloned
+    id_map: dict[str, str] = {}
+
     for cls in classifiers:
-        diagram.add_node_and_classifier(cls)
+        diagram.add_node_and_classifier(cls, id_map=id_map)
     for rel in relations:
-        diagram.add_edge_and_relation(rel)
+        diagram.add_edge_and_relation(rel, id_map=id_map)
+
     diagram.auto_layout()
     return diagram
 
