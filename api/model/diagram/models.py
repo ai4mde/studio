@@ -14,120 +14,119 @@ class Diagram(models.Model):
         System, on_delete=models.CASCADE, related_name="diagrams"
     )
 
+    def _find_or_create_classifier(self, classifier: dict) -> Classifier:
+        """
+            Reuse a Classifier in this system if possible (search by id and by name + type).
+            Otherwise create a new Classifier.
+        """
+        cls_id = str(classifier.get("id")) if classifier.get("id") else None
+        data = classifier.get("data", {}) or {}
+
+        # Search by id
+        if cls_id:
+            existing = Classifier.objects.filter(id=cls_id, system=self.system).first()
+            if existing:
+                return existing
+            
+        # Search by name and type
+        name = data.get("name")
+        ctype = data.get("type")
+        if name and ctype:
+            existing = Classifier.objects.filter(system=self.system, data__name=name, data__type=ctype).first()
+            if existing:
+                return existing
+            
+        # If not existing, create Classifier
+        return Classifier.objects.create(system=self.system, data=data)
+
+    def _find_or_create_relation(self, relation: dict) -> Relation:
+        """
+            Reuse a Relation in this system if possible (search by id and by source + target + type + multiplicity).
+            Otherwise create a new Relation.
+        """
+        rel_id = str(relation.get("id")) if relation.get("id") else None
+        data = relation.get("data", {}) or {}
+
+        source_id = str(relation["source"])
+        target_id = str(relation["target"])
+
+        # Search by id
+        if rel_id:
+            existing = Relation.objects.filter(id=rel_id, system=self.system).first()
+            if existing:
+                return existing
+            
+        # Find source and target
+        try:
+            source = Classifier.objects.get(pk=source_id, system=self.system)
+            target = Classifier.objects.get(pk=target_id, system=self.system)
+        except Classifier.DoesNotExist:
+            raise Classifier.DoesNotExist(f"Relation source and/or target not found in system: {source_id}, {target_id}")
+        
+        # Search by source, target, type
+        r = Relation.objects.filter(system=self.system, source=source, target=target)
+        rtype = data.get("type")
+        if rtype is not None:
+            r = r.filter(data__type=rtype)
+
+        # Filter by multiplicity
+        multiplicity = data.get("multiplicity") or {}
+        m_source = multiplicity.get("source")
+        m_target = multiplicity.get("target")
+        if m_source is not None:
+            r = r.filter(data__multiplicity__source=m_source)
+        if m_target is not None:
+            r = r.filter(data__multiplicity__target=m_target)
+
+        existing = r.first()
+        if existing:
+            return existing
+        
+        # If not existing, create Relation
+        return Relation.objects.create(system=self.system, source=source, target=target, data=data)
 
     def add_node_and_classifier(self, classifier: dict, id_map: dict | None = None):
-        old_id = str(classifier.get('id')) if classifier.get('id') else None
-
-        # If the original classifier was already added to this diagram, reuse it
-        # Check via id
-        if old_id:
-            existing_cls_id = (
-                Node.objects
-                .filter(diagram=self, data__origin_id=old_id)
-                .values_list('cls_id', flat=True)
-                .first()
-            )
-            if existing_cls_id:
-                if id_map is not None:
-                    id_map[old_id] = str(existing_cls_id)
-                return str(existing_cls_id)
-            
-        # Check via name + type
-        name = classifier.get('data', {}).get('name')
-        ctype = classifier.get('data', {}).get('type')
-        if name and ctype:
-            existing_by_semantics = (
-                Node.objects
-                .filter(
-                    diagram=self,
-                    cls__data__name=name,
-                    cls__data__type=ctype,
-                )
-                .values_list('cls_id', flat=True)
-                .first()
-            )
-            if existing_by_semantics:
-                if id_map is not None and old_id:
-                    id_map[old_id] = str(existing_by_semantics)
-                return str(existing_by_semantics)
-        
-        # Otherwise clone a new classifier
-        cls = Classifier.objects.create(
-            system = self.system,
-            data = classifier['data']
-        )
-
-        node_data = {"position": {"x": 0, "y": 0}}
-        # Save old-new id mapping
-        if id_map is not None and old_id:
-            id_map[old_id] = old_id
-
-        Node.objects.create(
-            diagram = self,
-            cls = cls,
-            data = node_data,
-        )
+        """
+        Ensure classifier exists in the system. Create a node in this diagram pointing to classifier.
+        Update id_map[old_id] -> system_id so relations can remap endpoints.
+        """
+        old_id = str(classifier.get('id') or "")
+        cls_obj = self._find_or_create_classifier(classifier)
 
         if id_map is not None and old_id:
-            id_map[old_id] = str(cls.id)
+            id_map[old_id] = str(cls_obj.id)
 
-        return str(cls.id)
+        # One node per (diagram, classifier)
+        Node.objects.get_or_create(
+            diagram=self,
+            cls=cls_obj,
+            defaults={"data": {"position": {"x": 0, "y": 0}}}
+        )
+
+        return str(cls_obj.id)
 
 
     def add_edge_and_relation(self, relation: dict, id_map: dict | None = None):
-        # Remap old ids of classifiers to new ones
-        existing_rel_id = str(relation.get('id')) if relation.get('id') else None
-        source_old = str(relation['source'])
-        target_old = str(relation['target'])
-        source_new = id_map.get(source_old, source_old) if id_map else source_old
-        target_new = id_map.get(target_old, target_old) if id_map else target_old
+        """
+        Ensure relation exists in the system. Create an edge in this diagram pointing to relation.
+        """
+        # Make a shallow copy so we can safely tweak ids before handing to the helper
+        rel_payload = dict(relation)
 
-        # If this relation was already added to the diagram, skip
-        if existing_rel_id and Edge.objects.filter(diagram=self, data__origin_id=existing_rel_id).exists():
-                return
-            
-        # Guard against duplicates by checking nodes and relation type/multiplicity
-        rel_type = relation['data'].get('type')
-        mult_source = relation['data'].get('multiplicity', {}).get('source')
-        mult_target = relation['data'].get('multiplicity', {}).get('target')
+        if id_map:
+            rel_payload['source'] = id_map.get(str(relation['source']), str(relation['source']))
+            rel_payload['target'] = id_map.get(str(relation['target']), str(relation['target']))
 
-        # Find an existing endge that connects the same nodes and has the same type
-        exists_same = (
-            Edge.objects
-            .select_related('rel')
-            .filter(
-                diagram=self,
-                rel__source_id=source_new,
-                rel__target_id=target_new,
-                rel__data__type=rel_type,
-                rel__data__multiplicity__source=mult_source,
-                rel__data__multiplicity__target=mult_target,
-            )
-            .exists()
-        )
-        if exists_same:
-            return
+        rel_obj = self._find_or_create_relation(rel_payload)
 
-        # Create new relation
-        rel = Relation.objects.create(
-            system = self.system,
-            source = Classifier.objects.get(pk=source_new),
-            target = Classifier.objects.get(pk=target_new),
-            data = relation['data']
+        # Prevent duplicate edges for the same relation in this diagram
+        Edge.objects.get_or_create(
+            diagram=self,
+            rel=rel_obj,
+            defaults={"data": {}}
         )
 
-        edge_data = {}
-        if existing_rel_id:
-            edge_data['origin_id'] = existing_rel_id
-
-        Edge.objects.create(
-            diagram = self,
-            rel = rel,
-            data = edge_data,
-        )
-
-        return str(rel.id)
-
+        return str(rel_obj.id)
 
     def auto_layout(self):
         graph = nx.Graph()
