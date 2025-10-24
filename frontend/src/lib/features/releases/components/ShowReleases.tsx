@@ -81,6 +81,26 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         setShowReleaseNotesDataModal(false);
     }
 
+    const downloadReleaseAsFile = async (release: { id: string; name: string}) => {
+        try {
+            // Load release metadata as object
+            const { data } = await authAxios.get(`/v1/metadata/releases/${release.id}`);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            // Download object as JSON file using a temporary <a> element
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${(release.name || "release").replace(/\s+/g, "_")}-${release.id}.json`
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Failed to download release:", err);
+        }
+    };
+
     const handleDelete = async (releaseId: string) => {
         try {
             const response = await authAxios.delete(`/v1/metadata/releases/${releaseId}`);
@@ -211,6 +231,12 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                             className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
                                         >
                                             Interfaces
+                                        </button>
+                                        <button
+                                            onClick={() => downloadReleaseAsFile(e)}
+                                            className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
+                                        >
+                                            Download
                                         </button>
                                         <button
                                             onClick={() => openLoadModal(e)}
