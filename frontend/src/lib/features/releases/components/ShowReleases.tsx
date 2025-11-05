@@ -81,17 +81,23 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         setShowReleaseNotesDataModal(false);
     }
 
-    const downloadReleaseAsFile = async (release: { id: string; name: string}) => {
+    const downloadReleaseAsFile = async (release: { id: string; name: string; created_at: string }) => {
         try {
             // Load release metadata as object
             const { data } = await authAxios.get(`/v1/metadata/releases/${release.id}`);
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
 
+            // Format download filename
+            const releaseDate = new Date(release.created_at)
+            const formattedDate = releaseDate.toISOString().slice(0, 16).replace("T", "-");
+            const safeName = (release.name || "release").replace(/\s+/g, "_");
+            const filename = `${safeName}-${formattedDate}.json`;
+
             // Download object as JSON file using a temporary <a> element
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${(release.name || "release").replace(/\s+/g, "_")}-${release.id}.json`
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
