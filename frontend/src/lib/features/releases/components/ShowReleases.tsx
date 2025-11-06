@@ -81,6 +81,32 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         setShowReleaseNotesDataModal(false);
     }
 
+    const downloadReleaseAsFile = async (release: { id: string; name: string; created_at: string }) => {
+        try {
+            // Load release metadata as object
+            const { data } = await authAxios.get(`/v1/metadata/releases/${release.id}`);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            // Format download filename
+            const releaseDate = new Date(release.created_at)
+            const formattedDate = releaseDate.toISOString().slice(0, 16).replace("T", "-");
+            const safeName = (release.name || "release").replace(/\s+/g, "_");
+            const filename = `${safeName}-${formattedDate}.json`;
+
+            // Download object as JSON file using a temporary <a> element
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Failed to download release:", err);
+        }
+    };
+
     const handleDelete = async (releaseId: string) => {
         try {
             const response = await authAxios.delete(`/v1/metadata/releases/${releaseId}`);
@@ -126,18 +152,85 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
         const formData = new FormData(e.currentTarget);
         const name = `${formData.get("name")}`;
 
-        mutateAsync({
-            name,
-            system: systemId || "",
-            releaseNotes,
-        }).then(() => {
+        try {
+            if (loadFromFile) {
+                if (!fileToImport) {
+                    setImportError("Please choose a JSON file.");
+                    return;
+                }
+                const text = await fileToImport.text();
+                let payload: any;
+                try {
+                    payload = JSON.parse(text);
+                } catch {
+                    setImportError("Invalid JSON file.");
+                    return;
+                }
+
+                await importRelease.mutateAsync({
+                    systemId: systemId || "",
+                    name,
+                    releaseNotes,
+                    payload,
+                });
+            } else {
+                await mutateAsync({
+                    name,
+                    system: systemId || "",
+                    releaseNotes,
+                });
+
+                authAxios.delete(`/v1/generator/prototypes/system/${systemId}/`);
+            }
+
             queryClient.invalidateQueries({ queryKey: ["releases"] });
-            authAxios.delete(`/v1/generator/prototypes/system/${systemId}/`);
-            close();
+            setShowNewReleaseModal(false);
+            setReleaseNotes([]);
+            setLoadFromFile(false);
+            setFileToImport(null);
+            setImportError(null);
             window.location.reload();
-        }).catch((err) => {
-            console.log(err)
-        });
+        } catch (err) {
+            console.error(err);
+            setImportError("Failed to create/import release. Check console for details.");
+        }
+    };
+
+    const [loadFromFile, setLoadFromFile] = useState(false);
+    const [fileToImport, setFileToImport] = useState<File | null>(null);
+    const [importError, setImportError] = useState<string | null>(null);
+    const importRelease = useMutation({
+        mutationFn: async (input: { systemId: string; name: string; releaseNotes: string[]; payload: any }) => {
+            const { systemId, name, releaseNotes, payload } = input;
+            const { data } = await authAxios.post(
+                `/v1/metadata/releases/import?system_id=${systemId}&name=${encodeURIComponent(name)}`,
+                { ...payload, release_notes: releaseNotes }
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["releases"] });
+        },
+    });
+
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] || null;
+        setImportError(null);
+
+        if (!file) {
+            setFileToImport(null);
+            return;
+        }
+        
+        const looksJson = file.type === "application/json" || file.name.toLowerCase().endsWith(".json");
+
+        if (!looksJson) {
+            setFileToImport(null);
+            setImportError("Please choose a JSON file.")
+            return;
+        }
+
+        setFileToImport(file);
     };
 
     const handleLoad = async () => {
@@ -211,6 +304,12 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                             className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
                                         >
                                             Interfaces
+                                        </button>
+                                        <button
+                                            onClick={() => downloadReleaseAsFile(e)}
+                                            className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
+                                        >
+                                            Download
                                         </button>
                                         <button
                                             onClick={() => openLoadModal(e)}
@@ -333,6 +432,38 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                 <Button variant="outlined" onClick={handleAddReleaseNote}>Add</Button>
                             </div>
                         </FormControl>
+                        <FormControl>
+                            <div className="flex items-center justify-between">
+                                <FormLabel>Load from file instead</FormLabel>
+                                <Button
+                                    type="button"
+                                    variant={loadFromFile ? "solid" : "outlined"}
+                                    onClick={() => setLoadFromFile(v => !v)}
+                                    size="sm"
+                                >
+                                    {loadFromFile ? "Using file" : "Use file"}
+                                </Button>
+                            </div>
+                        </FormControl>
+
+                        {loadFromFile && (
+                            <div className="mt-2 space-y-2">
+                                <FormControl>
+                                    <FormLabel>Release JSON file</FormLabel>
+                                    <Input
+                                        slotProps= {{
+                                            input: {
+                                                type: "file",
+                                                accept: "application/json",
+                                                onChange: onFileChange,
+                                            },
+                                        }}
+                                    />
+                                </FormControl>
+                                {importError && <p className="text-red-600 text-sm">{importError}</p>}
+                            </div>
+                        )}
+
                     </form>
                     <Divider />
                     <div className="flex flex-row pt-1">
