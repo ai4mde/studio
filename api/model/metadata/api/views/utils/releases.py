@@ -98,6 +98,7 @@ def load_nodes(system: System, diagram: Dict[str, Any]):
     for node in diagram['nodes']:
         Classifier.objects.create(
             id = node['cls']['id'],
+            project = system.project,
             system = system,
             data = node['cls']['data']
         )

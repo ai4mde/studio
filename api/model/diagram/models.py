@@ -37,7 +37,7 @@ class Diagram(models.Model):
                 return existing
             
         # If not existing, create Classifier
-        return Classifier.objects.create(system=self.system, data=data)
+        return Classifier.objects.create(project=self.system.project, system=self.system, data=data)
 
     def _find_or_create_relation(self, relation: dict) -> Relation:
         """

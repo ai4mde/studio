@@ -6,6 +6,7 @@ from diagram.api.utils.edge import delete_edge
 
 def create_node(diagram: Diagram, data: spec.Classifier):
     classifier = Classifier.objects.create(
+        project=diagram.system.project,
         system=diagram.system,
         data=data.model_dump(),
     )
