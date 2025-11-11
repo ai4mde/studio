@@ -21,7 +21,7 @@ def get_classifiers(request: HttpRequest):
         return 404, "System not found"
 
     return {
-        "classifiers": system.classifiers.all(),
+        "classifiers": system.project.classifiers.all(),
     }
 
 
