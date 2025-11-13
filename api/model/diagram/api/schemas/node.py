@@ -24,6 +24,8 @@ class NodeSchema(ModelSchema):
     cls: Classifier
     cls_ptr: UUID
     data: NodeData
+    system_name: str
+    system_id: UUID
 
     class Meta:
         model = Node
@@ -36,6 +38,14 @@ class NodeSchema(ModelSchema):
     @staticmethod
     def resolve_cls_ptr(obj):
         return obj.cls.id
+    
+    @staticmethod
+    def resolve_system_name(obj):
+        return obj.cls.system.name
+    
+    @staticmethod
+    def resolve_system_id(obj):
+        return getattr(obj.cls, "system_id", None)
 
 
 class PatchNode(Schema):

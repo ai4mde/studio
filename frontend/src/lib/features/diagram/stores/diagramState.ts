@@ -45,7 +45,11 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     x: e.data?.position?.x ?? 0,
                     y: e.data?.position?.y ?? 0,
                 },
-                data: e?.cls,
+                data: {
+                    ...e.cls,
+                    systemName: e.system_name,
+                    systemId: e.system_id,
+                },
             })),
         })),
     edgesFromAPI: (eds) =>
