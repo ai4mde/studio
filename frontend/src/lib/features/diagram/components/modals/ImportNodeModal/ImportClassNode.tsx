@@ -10,9 +10,10 @@ type Props = {
 };
 
 export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
-    const { system } = useDiagramStore();
+    const system = useDiagramStore((s) => s.system);
     const [classifiers, isSuccess] = useSystemClassClassifiers(system);
-    const [selectedClassifier, setSelectedClassifier] = useState(null)
+    const [selectedClassifier, setSelectedClassifier] = useState(null);
+    const normalize = (v: unknown) => (v ?? "").toString().toLowerCase();
 
     return (
         <>
@@ -28,9 +29,19 @@ export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
                     required
                 >
                     {isSuccess && (
-                        classifiers.map((e) => (
-                            <Option value={e.id}>{e.data.name} ({e.data.type})</Option>
-                        )
+                        classifiers.map((e) => {
+                            const sameSystem = normalize(e.system_id) === normalize(system);
+
+                            return (
+                                <Option value={e.id} sx={{"--Option-decoratorChildHeight": "0px",}}>{e.data.name} ({e.data.type}) 
+                                    {!sameSystem && e.system_name && 
+                                        <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">
+                                            {e.system_name}
+                                        </span>
+                                    }
+                                </Option>
+                            )
+                        }
                         ))}
                 </Select>
             </FormControl>
