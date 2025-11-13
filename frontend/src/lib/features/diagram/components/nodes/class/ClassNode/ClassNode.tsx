@@ -21,7 +21,8 @@ const ClassNode: React.FC<NodeProps> = (node) => {
             <div className="flex flex-col border border-solid border-black bg-white text-center font-mono">
                 <span className="px-6 py-2 font-bold">
                     {node.data?.name}
-                    {showSystem && <span className="ml-2 text-gray-500 text-sm">({systemName})</span>}
+                    {showSystem &&
+                        <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">{systemName}</span>}
                 </span>
                 <div className="flex flex-col border-t border-solid border-black p-1">
                     {node.data?.attributes?.map(
