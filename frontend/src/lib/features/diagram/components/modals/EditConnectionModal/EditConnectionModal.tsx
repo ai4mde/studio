@@ -19,13 +19,17 @@ export const EditConnectionModal: React.FC = () => {
         [modalState.edge, edges],
     );
 
-    const [object, setObject] = useState<any>(edge?.data);
+    console.log("EDGE DATA:", edge?.data);
+
+    const [object, setObject] = useState<any>(edge?.data ?? {});
+
+    useEffect(() => {
+        setObject(edge?.data ?? {});
+    }, [edge]);
 
     const connectionTypes = useMemo(() => {
-        return schema.definitions.Edge.anyOf.filter(
-            (e) => e.properties.diagram.const == type,
-        );
-    }, [type]);
+        return schema.definitions.Edge.anyOf ?? [];
+    }, []);
 
     const selectedType = useMemo(() => {
         return schema.definitions.Edge.anyOf.find(
@@ -72,13 +76,12 @@ export const EditConnectionModal: React.FC = () => {
                                         <FormLabel>Type</FormLabel>
                                         <Select
                                             placeholder="Select a connection type"
+                                            value={object?.type ?? null}
                                             onChange={(_, value) => {
-                                                setObject((obj: any) => {
-                                                    return {
-                                                        ...obj,
-                                                        type: value,
-                                                    };
-                                                });
+                                                setObject((obj: any) => ({
+                                                    ...obj,
+                                                    type: value,
+                                                }));
                                             }}
                                         >
                                             {connectionTypes.map(
@@ -89,12 +92,12 @@ export const EditConnectionModal: React.FC = () => {
                                                             key={idx}
                                                             value={
                                                                 type.properties
-                                                                    .type?.const
+                                                                    .type.const
                                                             }
                                                         >
                                                             {
                                                                 type.properties
-                                                                    .type?.const
+                                                                    .type.const
                                                             }
                                                         </Option>
                                                     ),
