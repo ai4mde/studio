@@ -91,7 +91,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
             // Format download filename
             const releaseDate = new Date(release.created_at)
             const formattedDate = releaseDate.toISOString().slice(0, 16).replace("T", "-");
-            const safeName = (release.name || "release").replace(/\s+/g, "_");
+            const safeName = (release.name || "version").replace(/\s+/g, "_");
             const filename = `${safeName}-${formattedDate}.json`;
 
             // Download object as JSON file using a temporary <a> element
@@ -103,7 +103,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
             a.remove();
             URL.revokeObjectURL(url);
         } catch (err) {
-            console.error("Failed to download release:", err);
+            console.error("Failed to download version:", err);
         }
     };
 
@@ -192,7 +192,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
             window.location.reload();
         } catch (err) {
             console.error(err);
-            setImportError("Failed to create/import release. Check console for details.");
+            setImportError("Failed to create/import version. Check console for details.");
         }
     };
 
@@ -268,7 +268,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                         <th className="py-2 px-4 text-left border-b border-stone-200 w-30">
                             <span className="flex flex-row items-center gap-2">
                                 <Rocket size={24} />
-                                <h1 className="text-lg">Releases</h1>
+                                <h1 className="text-lg">Versions</h1>
                             </span>
                         </th>
                         <th className="py-2 px-4 text-left border-b border-stone-200 w-52">Date</th>
@@ -291,7 +291,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                             onClick={() => showReleaseNotes(e.id)}
                                             className="w-[120px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
                                         >
-                                            Release Notes
+                                            Version Notes
                                         </button>
                                         <button
                                             onClick={() => showDiagrams(e.id)}
@@ -334,7 +334,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                 className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
                 onClick={() => setShowNewReleaseModal(true)}
             >
-                New release
+                New version
             </button>
             <Modal
                 open={showDiagramsDataModal}
@@ -377,7 +377,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                         }}
                     />
                     <div className="flex h-full w-full flex-col gap-1 p-3">
-                        <h1 className="font-bold">Release Notes:</h1>
+                        <h1 className="font-bold">Version Notes:</h1>
                         {releaseNotesData.map((e, index) => (
                             <div className="flex flex-row gap-4">
                                 <p>{index + 1}. {e}</p>
@@ -390,7 +390,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                 <ModalDialog>
                     <div className="flex w-full flex-row justify-between pb-1">
                         <div className="flex flex-col">
-                            <h1 className="font-bold">New release</h1>
+                            <h1 className="font-bold">New version</h1>
                             <h3 className="text-sm">Release the current diagrams & metadata</h3>
                         </div>
                         <ModalClose
@@ -411,7 +411,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                             <Input name="name" placeholder="v0.0.1" required />
                         </FormControl>
                         <FormControl>
-                            <FormLabel>Release Notes:</FormLabel>
+                            <FormLabel>Verison Notes:</FormLabel>
                             {releaseNotes.map((e, index) => (
                                 <div className="flex flex-row gap-4">
                                     <p>{index + 1}. {e}</p>
@@ -425,7 +425,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                             ))}
                             <div className="flex flex-row gap-2 mt-2">
                                 <Input
-                                    placeholder="Write release note..."
+                                    placeholder="Write version note..."
                                     value={newNote}
                                     onChange={(e) => setNewNote(e.target.value)}
                                 />
@@ -449,7 +449,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                         {loadFromFile && (
                             <div className="mt-2 space-y-2">
                                 <FormControl>
-                                    <FormLabel>Release JSON file</FormLabel>
+                                    <FormLabel>Version JSON file</FormLabel>
                                     <Input
                                         slotProps= {{
                                             input: {
@@ -472,7 +472,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                                 <div className="flex flex-row gap-2">
                                     <CircularProgress className="animate-spin" />
                                     <p>Releasing...</p>
-                                </div> : "Release"}
+                                </div> : "Version"}
                         </Button>
                     </div>
                     <h3 className="text-sm text-red-500">Warning: this will delete all prototypes of this system!</h3>
@@ -483,8 +483,8 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                     <ModalDialog>
                         <div className="flex w-full flex-row justify-between pb-1">
                             <div className="flex flex-col">
-                                <h1 className="font-bold">Load a release</h1>
-                                <h3 className="text-sm">The diagrams and interfaces from release <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
+                                <h1 className="font-bold">Load a version</h1>
+                                <h3 className="text-sm">The diagrams and interfaces from version <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
                             </div>
                             <ModalClose
                                 sx={{
