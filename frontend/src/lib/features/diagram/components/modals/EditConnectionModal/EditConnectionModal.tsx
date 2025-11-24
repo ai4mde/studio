@@ -113,11 +113,35 @@ export const EditConnectionModal: React.FC = () => {
                                                     <FormLabel>
                                                         Label From
                                                     </FormLabel>
-                                                    <Input></Input>
+                                                    <Input
+                                                        value={object?.labels?.source ?? ""}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setObject((obj: any) => ({
+                                                                ...obj,
+                                                                labels: {
+                                                                    ...(obj.labels ?? {}),
+                                                                    source: value,
+                                                                },
+                                                            }));
+                                                        }}
+                                                    />
                                                 </FormControl>
                                                 <FormControl size="sm">
                                                     <FormLabel>To</FormLabel>
-                                                    <Input></Input>
+                                                    <Input
+                                                        value={object?.labels?.target ?? ""}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setObject((obj: any) => ({
+                                                                ...obj,
+                                                                labels: {
+                                                                    ...(obj.labels ?? {}),
+                                                                    target: value,
+                                                                },
+                                                            }));
+                                                        }}
+                                                    />
                                                 </FormControl>
                                             </div>
                                         )}
@@ -130,11 +154,35 @@ export const EditConnectionModal: React.FC = () => {
                                                     <FormLabel>
                                                         Multiplicity From
                                                     </FormLabel>
-                                                    <Input></Input>
+                                                    <Input
+                                                        value={object?.multiplicity?.source ?? ""}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setObject((obj: any) => ({
+                                                                ...obj,
+                                                                multiplicity: {
+                                                                    ...(obj.multiplicity ?? {}),
+                                                                    source: value,
+                                                                },
+                                                            }));
+                                                        }}
+                                                    />
                                                 </FormControl>
                                                 <FormControl size="sm">
                                                     <FormLabel>To</FormLabel>
-                                                    <Input></Input>
+                                                    <Input
+                                                        value={object?.multiplicity?.target ?? ""}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            setObject((obj: any) => ({
+                                                                ...obj,
+                                                                multiplicity: {
+                                                                    ...Button(obj.multiplicity ?? {}),
+                                                                    source: value,
+                                                                },
+                                                            }));
+                                                        }}
+                                                    />
                                                 </FormControl>
                                             </div>
                                         )}
