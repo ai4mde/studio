@@ -9,33 +9,104 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import style from "./editconnectionmodal.module.css";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authAxios } from "$lib/features/auth/state/auth";
 
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
-    const { diagram, edges, type } = useDiagramStore();
+    const { diagram, edges, type: diagramType } = useDiagramStore();
 
     const edge = useMemo(
         () => edges.find((e) => e.id == modalState.edge),
         [modalState.edge, edges],
     );
 
-    console.log("EDGE DATA:", edge?.data);
-
     const [object, setObject] = useState<any>(edge?.data ?? {});
 
+    // --- helpers for schema inspection ---------------------------------------
+
+    const getDiagramConst = (def: any): string | null => {
+        return def?.properties?.diagram?.const ?? null;
+    };
+
+    const getTypeValue = (def: any): string | null => {
+        const t = def?.properties?.type;
+        if (!t) return null;
+        if (t.const) return t.const;
+        if (Array.isArray(t.enum) && t.enum.length > 0) return t.enum[0];
+        return null;
+    };
+
+    // normalize diagram kind: default to "class" if unknown/empty
+    const diagramKind: "class" | "activity" | "usecase" = (
+        diagramType === "activity" || diagramType === "usecase"
+    )
+        ? (diagramType as "activity" | "usecase")
+        : "class";
+
+    // --- diagram-aware relation type list ------------------------------------
+
+    const connectionTypes = useMemo(() => {
+        const anyOf = schema.definitions.Edge.anyOf ?? [];
+
+        if (diagramKind === "class") {
+            const allowed = [
+                "association",
+                "composition",
+                "generalization",
+                "dependency",
+            ];
+
+            return anyOf.filter((def: any) => {
+                const diagConst = getDiagramConst(def); // "class", "activity", "usecase" or null
+                const t = getTypeValue(def); // "association", "composition", ...
+
+                if (!t || !allowed.includes(t)) return false;
+                // keep only edges that are for class diagrams or have no diagram at all (dependency)
+                if (diagConst && diagConst !== "class") return false;
+
+                return true;
+            });
+        }
+
+        if (diagramKind === "activity") {
+            return anyOf.filter(
+                (def: any) => getDiagramConst(def) === "activity",
+            );
+        }
+
+        if (diagramKind === "usecase") {
+            return anyOf.filter(
+                (def: any) => getDiagramConst(def) === "usecase",
+            );
+        }
+
+        return [];
+    }, [diagramKind]);
+
+    // keep local object in sync with current edge
     useEffect(() => {
         setObject(edge?.data ?? {});
     }, [edge]);
 
-    const connectionTypes = useMemo(() => {
-        return schema.definitions.Edge.anyOf ?? [];
-    }, []);
+    const relType = object?.type ?? null;
+    const isAssociation = relType === "association";
+    const isComposition = relType === "composition";
+    const isDependency = relType === "dependency";
+    const isGeneralization = relType === "generalization";
+    const isAssocOrComp = isAssociation || isComposition;
 
-    const selectedType = useMemo(() => {
-        return schema.definitions.Edge.anyOf.find(
-            (e) => e.properties.type && e.properties.type.const == object.type,
-        );
-    }, [object, object.type, type]);
+    const queryClient = useQueryClient();
+
+    const updateEdge = useMutation({
+        mutationFn: async () => {
+            await authAxios.patch(
+                `/v1/diagram/${diagram}/edge/${edge?.id}/`,
+                { rel: object },
+            );
+            queryClient.invalidateQueries({ queryKey: ["diagram"] });
+        },
+    });
 
     const onDelete = () => {
         modalState?.edge && deleteEdge(diagram, modalState.edge);
@@ -43,7 +114,9 @@ export const EditConnectionModal: React.FC = () => {
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            e.key === "Escape" && close();
+            if (e.key === "Escape") {
+                modalState.close();
+            }
         };
 
         document.addEventListener("keydown", down);
@@ -70,13 +143,15 @@ export const EditConnectionModal: React.FC = () => {
                                     <X size={20} />
                                 </button>
                             </div>
+
                             <div className="h-full overflow-y-scroll bg-white">
                                 <div className={style.body}>
+                                    {/* TYPE SELECT */}
                                     <FormControl size="sm">
                                         <FormLabel>Type</FormLabel>
                                         <Select
                                             placeholder="Select a connection type"
-                                            value={object?.type ?? null}
+                                            value={relType}
                                             onChange={(_, value) => {
                                                 setObject((obj: any) => ({
                                                     ...obj,
@@ -85,110 +160,195 @@ export const EditConnectionModal: React.FC = () => {
                                             }}
                                         >
                                             {connectionTypes.map(
-                                                (type, idx) =>
-                                                    type.properties.type
-                                                        ?.const && (
-                                                        <Option
-                                                            key={idx}
-                                                            value={
-                                                                type.properties
-                                                                    .type.const
-                                                            }
-                                                        >
-                                                            {
-                                                                type.properties
-                                                                    .type.const
-                                                            }
-                                                        </Option>
-                                                    ),
+                                                (def: any, idx: number) => {
+                                                    const t = getTypeValue(def);
+                                                    return (
+                                                        t && (
+                                                            <Option
+                                                                key={idx}
+                                                                value={t}
+                                                            >
+                                                                {t}
+                                                            </Option>
+                                                        )
+                                                    );
+                                                },
                                             )}
                                         </Select>
                                     </FormControl>
-                                    {selectedType &&
-                                        Object.keys(
-                                            selectedType.properties,
-                                        ).includes("labels") && (
+
+                                    {/* ASSOCIATION / COMPOSITION FIELDS */}
+                                    {isAssocOrComp && (
+                                        <>
+                                            <FormControl size="sm">
+                                                <FormLabel>Label</FormLabel>
+                                                <Input
+                                                    value={object?.label ?? ""}
+                                                    onChange={(e) => {
+                                                        const value =
+                                                            e.target.value;
+                                                        setObject(
+                                                            (obj: any) => ({
+                                                                ...obj,
+                                                                label: value,
+                                                            }),
+                                                        );
+                                                    }}
+                                                />
+                                            </FormControl>
+
                                             <div className="flex w-full flex-row items-center justify-between gap-2">
                                                 <FormControl size="sm">
                                                     <FormLabel>
-                                                        Label From
+                                                        Source Label
                                                     </FormLabel>
                                                     <Input
-                                                        value={object?.labels?.source ?? ""}
+                                                        value={
+                                                            object?.labels
+                                                                ?.source ?? ""
+                                                        }
                                                         onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setObject((obj: any) => ({
-                                                                ...obj,
-                                                                labels: {
-                                                                    ...(obj.labels ?? {}),
-                                                                    source: value,
-                                                                },
-                                                            }));
+                                                            const value =
+                                                                e.target.value;
+                                                            setObject(
+                                                                (obj: any) => ({
+                                                                    ...obj,
+                                                                    labels: {
+                                                                        ...(obj.labels ??
+                                                                            {}),
+                                                                        source:
+                                                                            value,
+                                                                    },
+                                                                }),
+                                                            );
                                                         }}
                                                     />
                                                 </FormControl>
                                                 <FormControl size="sm">
-                                                    <FormLabel>To</FormLabel>
+                                                    <FormLabel>
+                                                        Target Label
+                                                    </FormLabel>
                                                     <Input
-                                                        value={object?.labels?.target ?? ""}
+                                                        value={
+                                                            object?.labels
+                                                                ?.target ?? ""
+                                                        }
                                                         onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setObject((obj: any) => ({
-                                                                ...obj,
-                                                                labels: {
-                                                                    ...(obj.labels ?? {}),
-                                                                    target: value,
-                                                                },
-                                                            }));
+                                                            const value =
+                                                                e.target.value;
+                                                            setObject(
+                                                                (obj: any) => ({
+                                                                    ...obj,
+                                                                    labels: {
+                                                                        ...(obj.labels ??
+                                                                            {}),
+                                                                        target:
+                                                                            value,
+                                                                    },
+                                                                }),
+                                                            );
                                                         }}
                                                     />
                                                 </FormControl>
                                             </div>
-                                        )}
-                                    {selectedType &&
-                                        Object.keys(
-                                            selectedType.properties,
-                                        ).includes("multiplicity") && (
+
                                             <div className="flex w-full flex-row items-center justify-between gap-2">
                                                 <FormControl size="sm">
                                                     <FormLabel>
-                                                        Multiplicity From
+                                                        Source Multiplicity
                                                     </FormLabel>
                                                     <Input
-                                                        value={object?.multiplicity?.source ?? ""}
+                                                        value={
+                                                            object
+                                                                ?.multiplicity
+                                                                ?.source ?? ""
+                                                        }
                                                         onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setObject((obj: any) => ({
-                                                                ...obj,
-                                                                multiplicity: {
-                                                                    ...(obj.multiplicity ?? {}),
-                                                                    source: value,
-                                                                },
-                                                            }));
+                                                            const value =
+                                                                e.target.value;
+                                                            setObject(
+                                                                (obj: any) => ({
+                                                                    ...obj,
+                                                                    multiplicity:
+                                                                        {
+                                                                            ...(obj.multiplicity ??
+                                                                                {}),
+                                                                            source:
+                                                                                value,
+                                                                        },
+                                                                }),
+                                                            );
                                                         }}
                                                     />
                                                 </FormControl>
                                                 <FormControl size="sm">
-                                                    <FormLabel>To</FormLabel>
+                                                    <FormLabel>
+                                                        Target Multiplicity
+                                                    </FormLabel>
                                                     <Input
-                                                        value={object?.multiplicity?.target ?? ""}
+                                                        value={
+                                                            object
+                                                                ?.multiplicity
+                                                                ?.target ?? ""
+                                                        }
                                                         onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setObject((obj: any) => ({
-                                                                ...obj,
-                                                                multiplicity: {
-                                                                    ...Button(obj.multiplicity ?? {}),
-                                                                    source: value,
-                                                                },
-                                                            }));
+                                                            const value =
+                                                                e.target.value;
+                                                            setObject(
+                                                                (obj: any) => ({
+                                                                    ...obj,
+                                                                    multiplicity:
+                                                                        {
+                                                                            ...(obj.multiplicity ??
+                                                                                {}),
+                                                                            target:
+                                                                                value,
+                                                                        },
+                                                                }),
+                                                            );
                                                         }}
                                                     />
                                                 </FormControl>
                                             </div>
-                                        )}
+                                        </>
+                                    )}
+
+                                    {/* DEPENDENCY FIELDS */}
+                                    {isDependency && (
+                                        <FormControl size="sm">
+                                            <FormLabel>Label</FormLabel>
+                                            <Input
+                                                value={object?.label ?? ""}
+                                                onChange={(e) => {
+                                                    const value =
+                                                        e.target.value;
+                                                    setObject((obj: any) => ({
+                                                        ...obj,
+                                                        label: value,
+                                                    }));
+                                                }}
+                                            />
+                                        </FormControl>
+                                    )}
+
+                                    {/* GENERALIZATION: no extra fields */}
+                                    {isGeneralization && (
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Generalization has no additional
+                                            editable properties.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
+
                             <div className={style.actions}>
+                                <Button
+                                    size="sm"
+                                    onClick={() => updateEdge.mutate()}
+                                    disabled={updateEdge.isPending}
+                                >
+                                    Save
+                                </Button>
                                 <Button
                                     color="danger"
                                     size="sm"
