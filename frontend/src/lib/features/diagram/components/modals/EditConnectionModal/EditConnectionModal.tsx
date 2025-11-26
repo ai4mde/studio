@@ -12,9 +12,13 @@ import style from "./editconnectionmodal.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authAxios } from "$lib/features/auth/state/auth";
 
+import EditClassConnection from "./EditClassConnection";
+import EditActivityConnection from "./EditActivityConnection";
+import EditUseCaseConnection from "./EditUseCaseConnection";
+
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
-    const { diagram, edges, type: diagramType } = useDiagramStore();
+    const { diagram, edges, type } = useDiagramStore();
 
     const edge = useMemo(
         () => edges.find((e) => e.id == modalState.edge),
@@ -23,78 +27,9 @@ export const EditConnectionModal: React.FC = () => {
 
     const [object, setObject] = useState<any>(edge?.data ?? {});
 
-    // --- helpers for schema inspection ---------------------------------------
-
-    const getDiagramConst = (def: any): string | null => {
-        return def?.properties?.diagram?.const ?? null;
-    };
-
-    const getTypeValue = (def: any): string | null => {
-        const t = def?.properties?.type;
-        if (!t) return null;
-        if (t.const) return t.const;
-        if (Array.isArray(t.enum) && t.enum.length > 0) return t.enum[0];
-        return null;
-    };
-
-    // normalize diagram kind: default to "class" if unknown/empty
-    const diagramKind: "class" | "activity" | "usecase" = (
-        diagramType === "activity" || diagramType === "usecase"
-    )
-        ? (diagramType as "activity" | "usecase")
-        : "class";
-
-    // --- diagram-aware relation type list ------------------------------------
-
-    const connectionTypes = useMemo(() => {
-        const anyOf = schema.definitions.Edge.anyOf ?? [];
-
-        if (diagramKind === "class") {
-            const allowed = [
-                "association",
-                "composition",
-                "generalization",
-                "dependency",
-            ];
-
-            return anyOf.filter((def: any) => {
-                const diagConst = getDiagramConst(def); // "class", "activity", "usecase" or null
-                const t = getTypeValue(def); // "association", "composition", ...
-
-                if (!t || !allowed.includes(t)) return false;
-                // keep only edges that are for class diagrams or have no diagram at all (dependency)
-                if (diagConst && diagConst !== "class") return false;
-
-                return true;
-            });
-        }
-
-        if (diagramKind === "activity") {
-            return anyOf.filter(
-                (def: any) => getDiagramConst(def) === "activity",
-            );
-        }
-
-        if (diagramKind === "usecase") {
-            return anyOf.filter(
-                (def: any) => getDiagramConst(def) === "usecase",
-            );
-        }
-
-        return [];
-    }, [diagramKind]);
-
-    // keep local object in sync with current edge
     useEffect(() => {
         setObject(edge?.data ?? {});
     }, [edge]);
-
-    const relType = object?.type ?? null;
-    const isAssociation = relType === "association";
-    const isComposition = relType === "composition";
-    const isDependency = relType === "dependency";
-    const isGeneralization = relType === "generalization";
-    const isAssocOrComp = isAssociation || isComposition;
 
     const queryClient = useQueryClient();
 
@@ -125,6 +60,10 @@ export const EditConnectionModal: React.FC = () => {
 
     const nodeRef = React.useRef(null);
 
+    if (!edge) {
+        return <></>;
+    }
+
     return edge ? (
         createPortal(
             <div className={style.modal}>
@@ -144,199 +83,25 @@ export const EditConnectionModal: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="h-full overflow-y-scroll bg-white">
+                            <div className="h-full overfull-y-scroll bg-white">
                                 <div className={style.body}>
-                                    {/* TYPE SELECT */}
-                                    <FormControl size="sm">
-                                        <FormLabel>Type</FormLabel>
-                                        <Select
-                                            placeholder="Select a connection type"
-                                            value={relType}
-                                            onChange={(_, value) => {
-                                                setObject((obj: any) => ({
-                                                    ...obj,
-                                                    type: value,
-                                                }));
-                                            }}
-                                        >
-                                            {connectionTypes.map(
-                                                (def: any, idx: number) => {
-                                                    const t = getTypeValue(def);
-                                                    return (
-                                                        t && (
-                                                            <Option
-                                                                key={idx}
-                                                                value={t}
-                                                            >
-                                                                {t}
-                                                            </Option>
-                                                        )
-                                                    );
-                                                },
-                                            )}
-                                        </Select>
-                                    </FormControl>
-
-                                    {/* ASSOCIATION / COMPOSITION FIELDS */}
-                                    {isAssocOrComp && (
-                                        <>
-                                            <FormControl size="sm">
-                                                <FormLabel>Label</FormLabel>
-                                                <Input
-                                                    value={object?.label ?? ""}
-                                                    onChange={(e) => {
-                                                        const value =
-                                                            e.target.value;
-                                                        setObject(
-                                                            (obj: any) => ({
-                                                                ...obj,
-                                                                label: value,
-                                                            }),
-                                                        );
-                                                    }}
-                                                />
-                                            </FormControl>
-
-                                            <div className="flex w-full flex-row items-center justify-between gap-2">
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Source Label
-                                                    </FormLabel>
-                                                    <Input
-                                                        value={
-                                                            object?.labels
-                                                                ?.source ?? ""
-                                                        }
-                                                        onChange={(e) => {
-                                                            const value =
-                                                                e.target.value;
-                                                            setObject(
-                                                                (obj: any) => ({
-                                                                    ...obj,
-                                                                    labels: {
-                                                                        ...(obj.labels ??
-                                                                            {}),
-                                                                        source:
-                                                                            value,
-                                                                    },
-                                                                }),
-                                                            );
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Target Label
-                                                    </FormLabel>
-                                                    <Input
-                                                        value={
-                                                            object?.labels
-                                                                ?.target ?? ""
-                                                        }
-                                                        onChange={(e) => {
-                                                            const value =
-                                                                e.target.value;
-                                                            setObject(
-                                                                (obj: any) => ({
-                                                                    ...obj,
-                                                                    labels: {
-                                                                        ...(obj.labels ??
-                                                                            {}),
-                                                                        target:
-                                                                            value,
-                                                                    },
-                                                                }),
-                                                            );
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                            </div>
-
-                                            <div className="flex w-full flex-row items-center justify-between gap-2">
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Source Multiplicity
-                                                    </FormLabel>
-                                                    <Input
-                                                        value={
-                                                            object
-                                                                ?.multiplicity
-                                                                ?.source ?? ""
-                                                        }
-                                                        onChange={(e) => {
-                                                            const value =
-                                                                e.target.value;
-                                                            setObject(
-                                                                (obj: any) => ({
-                                                                    ...obj,
-                                                                    multiplicity:
-                                                                        {
-                                                                            ...(obj.multiplicity ??
-                                                                                {}),
-                                                                            source:
-                                                                                value,
-                                                                        },
-                                                                }),
-                                                            );
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Target Multiplicity
-                                                    </FormLabel>
-                                                    <Input
-                                                        value={
-                                                            object
-                                                                ?.multiplicity
-                                                                ?.target ?? ""
-                                                        }
-                                                        onChange={(e) => {
-                                                            const value =
-                                                                e.target.value;
-                                                            setObject(
-                                                                (obj: any) => ({
-                                                                    ...obj,
-                                                                    multiplicity:
-                                                                        {
-                                                                            ...(obj.multiplicity ??
-                                                                                {}),
-                                                                            target:
-                                                                                value,
-                                                                        },
-                                                                }),
-                                                            );
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                            </div>
-                                        </>
+                                    {type === "classes" && (
+                                        <EditClassConnection
+                                            object={object}
+                                            setObject={setObject}
+                                        />
                                     )}
-
-                                    {/* DEPENDENCY FIELDS */}
-                                    {isDependency && (
-                                        <FormControl size="sm">
-                                            <FormLabel>Label</FormLabel>
-                                            <Input
-                                                value={object?.label ?? ""}
-                                                onChange={(e) => {
-                                                    const value =
-                                                        e.target.value;
-                                                    setObject((obj: any) => ({
-                                                        ...obj,
-                                                        label: value,
-                                                    }));
-                                                }}
-                                            />
-                                        </FormControl>
+                                    {type === "activity" && (
+                                        <EditActivityConnection
+                                            object={object}
+                                            setObject={setObject}
+                                        />
                                     )}
-
-                                    {/* GENERALIZATION: no extra fields */}
-                                    {isGeneralization && (
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            Generalization has no additional
-                                            editable properties.
-                                        </p>
+                                    {type === "usecase" && (
+                                        <EditUseCaseConnection
+                                            object={object}
+                                            setObject={setObject}
+                                        />
                                     )}
                                 </div>
                             </div>

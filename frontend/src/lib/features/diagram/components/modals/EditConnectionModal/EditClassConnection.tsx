@@ -1,0 +1,165 @@
+import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import React from "react";
+
+type Props = {
+    object: any;
+    setObject: (o: any) => void;
+}
+
+export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
+    const relType = object?.type ?? null;
+    const isAssociation = relType === "association";
+    const isComposition = relType === "composition";
+    const isDependency = relType === "dependency";
+    const isAssocOrComp = isAssociation || isComposition;
+
+    return (
+        <>
+            {/* TYPE */}
+            <FormControl size="sm" className="w-full">
+                <FormLabel>Type</FormLabel>
+                <Select
+                    placeholder="Select a connection type"
+                    value={relType}
+                    onChange={(_, value) => {
+                        setObject((obj: any) => ({
+                            ...obj,
+                            type: value,
+                        }));
+                    }}
+                >
+                    <Option value="association" label="Association">
+                        Association
+                    </Option>
+                    <Option value="generalization" label="Generalization">
+                        Generalization
+                    </Option>
+                    <Option value="composition" label="Composition">
+                        Composition
+                    </Option>
+                    <Option value="dependency" label="Dependency">
+                        Dependency
+                    </Option>
+                </Select>
+            </FormControl>
+
+            {/* ASSOCIATION / COMPOSITION FIELDS */}
+            {isAssocOrComp && (
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Label</FormLabel>
+                        <Input
+                            value={object?.label ?? ""}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setObject((obj: any) => ({
+                                        ...obj,
+                                        label: value,
+                                    }),
+                                );
+                            }}
+                        />
+                    </FormControl>
+
+                    <div className="flex w-full flex-row items-center justify-between gap-2">
+                        <FormControl size="sm" className="w-full">
+                            <FormLabel>Source Label</FormLabel>
+                            <Input
+                                value={object?.labels?.source ?? ""}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setObject((obj: any) => ({
+                                            ...obj,
+                                            labels: {
+                                                ...(obj.labels ?? {}),
+                                                source: value,
+                                            },
+                                        }),
+                                    );
+                                }}
+                            />
+                        </FormControl>
+                        <FormControl size="sm" className="w-full">
+                            <FormLabel>Target Label</FormLabel>
+                            <Input
+                                value={object?.labels?.target ?? ""}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setObject((obj: any) => ({
+                                            ...obj,
+                                            labels: {
+                                                ...(obj.labels ?? {}),
+                                                target: value,
+                                            },
+                                        }),
+                                    );
+                                }}
+                            />
+                        </FormControl>
+                    </div>
+
+                    <div className="flex w-full flex-row items-center justify-between gap-2">
+                        <FormControl size="sm" className="w-full">
+                            <FormLabel>
+                                Source Multiplicity
+                            </FormLabel>
+                            <Input
+                                value={object?.multiplicity?.source ?? ""}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setObject(
+                                        (obj: any) => ({
+                                            ...obj,
+                                            multiplicity:
+                                            {
+                                                ...(obj.multiplicity ?? {}),
+                                                source: value,
+                                            },
+                                        }),
+                                    );
+                                }}
+                            />
+                        </FormControl>
+                        <FormControl size="sm" className="w-full">
+                            <FormLabel>Target Multiplicity</FormLabel>
+                            <Input
+                                value={object?.multiplicity?.target ?? ""}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setObject(
+                                        (obj: any) => ({
+                                            ...obj,
+                                            multiplicity:{
+                                                ...(obj.multiplicity ?? {}),
+                                                target: value,
+                                            },
+                                        }),
+                                    );
+                                }}
+                            />
+                        </FormControl>
+                    </div>
+                </>
+            )}
+
+            {/* DEPENDENCY */}
+            {isDependency && (
+                <FormControl size="sm" className="w-full">
+                    <FormLabel>Label</FormLabel>
+                    <Input
+                        value={object?.label ?? ""}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setObject((obj: any) => ({
+                                ...obj,
+                                label: value,
+                            }));
+                        }}
+                    />
+                </FormControl>
+            )}
+        </>
+    );
+};
+
+export default EditClassConnection;
