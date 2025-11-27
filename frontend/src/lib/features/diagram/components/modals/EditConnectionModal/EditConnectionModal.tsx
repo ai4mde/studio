@@ -1,8 +1,6 @@
 import { deleteEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useEditConnectionModal } from "$diagram/stores/modals";
-import schema from "$diagram/types/edge.schema.json";
-import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 import Button from "@mui/joy/Button";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
