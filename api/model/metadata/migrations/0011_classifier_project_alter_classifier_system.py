@@ -30,17 +30,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="classifier",
-            name="project",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="classifiers",
-                to="metadata.project",
-            ),
-        ),
         migrations.AlterField(
             model_name="classifier",
             name="system",
