@@ -3,27 +3,6 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
-
-def forwards_fill_project(apps, schem_editor):
-    Classifier = apps.get_model("metadata", "Classifier")
-    System = apps.get_model("metadata", "System")
-
-    for cls in Classifier.objects.all():
-        # Get project id from system
-        if cls.system_id:
-            try:
-                system = System.objects.get(id=cls.system_id)
-                cls.project_id = system.project_id
-                cls.save(update_fields=["project"])
-            except System.DoesNotExist:
-                pass
-
-
-def backwards_unset_project(apps, schema_editor):
-    Classifier = apps.get_model("metadata", "Classifier")
-    Classifier.objects.update(project_id=None)
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("metadata", "0010_release_release_notes"),
@@ -41,13 +20,12 @@ class Migration(migrations.Migration):
                 to="metadata.system",
             ),
         ),
-        migrations.RunPython(forwards_fill_project, backwards_unset_project),
         migrations.AddField(
             model_name="classifier",
             name="project",
             field=models.ForeignKey(
-                blank=False,
-                null=False,
+                blank=True,
+                null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="classifiers",
                 to="metadata.project",
