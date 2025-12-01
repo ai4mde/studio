@@ -13,6 +13,9 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import EditClassConnection from "./EditClassConnection";
 import EditActivityConnection from "./EditActivityConnection";
 import EditUseCaseConnection from "./EditUseCaseConnection";
+import ClassConnectionFields from "../ConnectionFields/ClassConnectionFields";
+import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
+import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
@@ -84,19 +87,19 @@ export const EditConnectionModal: React.FC = () => {
                             <div className="h-full overfull-y-scroll bg-white">
                                 <div className={style.body}>
                                     {type === "classes" && (
-                                        <EditClassConnection
+                                        <ClassConnectionFields
                                             object={object}
                                             setObject={setObject}
                                         />
                                     )}
                                     {type === "activity" && (
-                                        <EditActivityConnection
+                                        <ActivityConnectionFields
                                             object={object}
                                             setObject={setObject}
                                         />
                                     )}
                                     {type === "usecase" && (
-                                        <EditUseCaseConnection
+                                        <UseCaseConnectionFields
                                             object={object}
                                             setObject={setObject}
                                         />
