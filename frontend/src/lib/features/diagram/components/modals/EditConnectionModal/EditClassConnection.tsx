@@ -4,7 +4,7 @@ import React from "react";
 type Props = {
     object: any;
     setObject: (o: any) => void;
-}
+};
 
 export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
     const relType = object?.type ?? null;
@@ -53,10 +53,9 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                             onChange={(e) => {
                                 const value = e.target.value;
                                 setObject((obj: any) => ({
-                                        ...obj,
-                                        label: value,
-                                    }),
-                                );
+                                    ...obj,
+                                    label: value,
+                                }));
                             }}
                         />
                     </FormControl>
@@ -69,13 +68,12 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     setObject((obj: any) => ({
-                                            ...obj,
-                                            labels: {
-                                                ...(obj.labels ?? {}),
-                                                source: value,
-                                            },
-                                        }),
-                                    );
+                                        ...obj,
+                                        labels: {
+                                            ...(obj.labels ?? {}),
+                                            source: value,
+                                        },
+                                    }));
                                 }}
                             />
                         </FormControl>
@@ -86,57 +84,80 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                                 onChange={(e) => {
                                     const value = e.target.value;
                                     setObject((obj: any) => ({
-                                            ...obj,
-                                            labels: {
-                                                ...(obj.labels ?? {}),
-                                                target: value,
-                                            },
-                                        }),
-                                    );
+                                        ...obj,
+                                        labels: {
+                                            ...(obj.labels ?? {}),
+                                            target: value,
+                                        },
+                                    }));
                                 }}
                             />
                         </FormControl>
                     </div>
 
                     <div className="flex w-full flex-row items-center justify-between gap-2">
+                        {/* SOURCE MULTIPLICITY */}
                         <FormControl size="sm" className="w-full">
-                            <FormLabel>
-                                Source Multiplicity
-                            </FormLabel>
-                            <Input
+                            <FormLabel>Source Multiplicity</FormLabel>
+                            <Select
+                                placeholder="Select source multiplicity"
                                 value={object?.multiplicity?.source ?? ""}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setObject(
-                                        (obj: any) => ({
-                                            ...obj,
-                                            multiplicity:
-                                            {
-                                                ...(obj.multiplicity ?? {}),
-                                                source: value,
-                                            },
-                                        }),
-                                    );
+                                onChange={(_, value) => {
+                                    const v = value ?? "";
+                                    setObject((obj: any) => ({
+                                        ...obj,
+                                        multiplicity: {
+                                            ...(obj.multiplicity ?? {}),
+                                            source: v,
+                                        },
+                                    }));
                                 }}
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
+
+                        {/* TARGET MULTIPLICITY */}
                         <FormControl size="sm" className="w-full">
                             <FormLabel>Target Multiplicity</FormLabel>
-                            <Input
+                            <Select
+                                placeholder="Select target multiplicity"
                                 value={object?.multiplicity?.target ?? ""}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    setObject(
-                                        (obj: any) => ({
-                                            ...obj,
-                                            multiplicity:{
-                                                ...(obj.multiplicity ?? {}),
-                                                target: value,
-                                            },
-                                        }),
-                                    );
+                                onChange={(_, value) => {
+                                    const v = value ?? "";
+                                    setObject((obj: any) => ({
+                                        ...obj,
+                                        multiplicity: {
+                                            ...(obj.multiplicity ?? {}),
+                                            target: v,
+                                        },
+                                    }));
                                 }}
-                            />
+                            >
+                                <Option value="1" label="1">
+                                    1
+                                </Option>
+                                <Option value="0..1" label="0..1">
+                                    0..1
+                                </Option>
+                                <Option value="*" label="*">
+                                    *
+                                </Option>
+                                <Option value="1..*" label="1..*">
+                                    1..*
+                                </Option>
+                            </Select>
                         </FormControl>
                     </div>
                 </>
