@@ -70,7 +70,7 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                                     setObject((obj: any) => ({
                                         ...obj,
                                         labels: {
-                                            ...(obj.labels ?? {}),
+                                            ...(obj.labels),
                                             source: value,
                                         },
                                     }));
@@ -86,7 +86,7 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                                     setObject((obj: any) => ({
                                         ...obj,
                                         labels: {
-                                            ...(obj.labels ?? {}),
+                                            ...(obj.labels),
                                             target: value,
                                         },
                                     }));
@@ -102,13 +102,12 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                             <Select
                                 placeholder="Select source multiplicity"
                                 value={object?.multiplicity?.source ?? ""}
-                                onChange={(_, value) => {
-                                    const v = value ?? "";
+                                onChange={(_, value = "") => {
                                     setObject((obj: any) => ({
                                         ...obj,
                                         multiplicity: {
-                                            ...(obj.multiplicity ?? {}),
-                                            source: v,
+                                            ...(obj.multiplicity),
+                                            source: value,
                                         },
                                     }));
                                 }}
@@ -134,13 +133,12 @@ export const EditClassConnection: React.FC<Props> = ({ object, setObject }) => {
                             <Select
                                 placeholder="Select target multiplicity"
                                 value={object?.multiplicity?.target ?? ""}
-                                onChange={(_, value) => {
-                                    const v = value ?? "";
+                                onChange={(_, value = "") => {
                                     setObject((obj: any) => ({
                                         ...obj,
                                         multiplicity: {
-                                            ...(obj.multiplicity ?? {}),
-                                            target: v,
+                                            ...(obj.multiplicity),
+                                            target: value,
                                         },
                                     }));
                                 }}
