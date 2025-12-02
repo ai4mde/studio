@@ -10,7 +10,7 @@ import style from "./editconnectionmodal.module.css";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authAxios } from "$lib/features/auth/state/auth";
 
-import ClassConnectionFields from "../ConnectionFields/ClassConnectionFields";
+import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 
@@ -57,6 +57,16 @@ export const EditConnectionModal: React.FC = () => {
     });
 
     const nodeRef = React.useRef(null);
+
+    const isValid = () => {
+        if (!object?.type) return false;
+
+        if (type === "classes" || type === "class") {
+            return isClassConnectionValid(object);
+        }
+
+        return true;
+    };
 
     if (!edge) {
         return <></>;
@@ -107,8 +117,8 @@ export const EditConnectionModal: React.FC = () => {
                             <div className={style.actions}>
                                 <Button
                                     size="sm"
-                                    onClick={() => updateEdge.mutate()}
-                                    disabled={updateEdge.isPending}
+                                    onClick={() => isValid() && updateEdge.mutate()}
+                                    disabled={!isValid() || updateEdge.isPending}
                                 >
                                     Save
                                 </Button>

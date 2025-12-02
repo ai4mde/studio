@@ -6,12 +6,63 @@ type Props = {
     setObject: (o: any) => void;
 };
 
+// Chaeck that string is not empty
+const isNonEmpty = (v: unknown): boolean =>
+    typeof v === "string" && v.trim().length > 0;
+
+// Check property validity
+export const isClassConnectionValid = (object: any): boolean => {
+    const relType = object?.type;
+    const mult = object?.multiplicity ?? {};
+
+    if (relType === "association") {
+        // label + both multiplicities required
+        return (
+            isNonEmpty(object?.label) &&
+            isNonEmpty(mult.source) &&
+            isNonEmpty(mult.target)
+        );
+    }
+
+    if (relType === "composition") {
+        // only multiplicities required
+        return (
+            isNonEmpty(mult.source) &&
+            isNonEmpty(mult.target)
+        );
+    }
+
+    // For other types (generalization, dependency)
+    return !!relType;
+};
+
 export const ClassConnectionFields: React.FC<Props> = ({ object, setObject }) => {
     const relType = object?.type ?? null;
     const isAssociation = relType === "association";
     const isComposition = relType === "composition";
     const isDependency = relType === "dependency";
     const isAssocOrComp = isAssociation || isComposition;
+
+    const  multiplicityOptions = [
+        {value: "1", label: "1"},
+        {value: "0..1", label: "0..1"},
+        {value: "*", label: "*"},
+        {value: "1..*", label: "1..*"},
+    ] as const;
+
+    const handleMultiplicityChange = (
+        side: "source" | "target",
+        value: string | null,
+    ) => {
+        const v = value ?? "";
+        setObject((obj: any) => ({
+            ...obj,
+            multiplicity: {
+                ...(obj.multiplicity ?? {}),
+                [side]: v,
+            },
+        }));
+    };
 
     return (
         <>
@@ -45,7 +96,7 @@ export const ClassConnectionFields: React.FC<Props> = ({ object, setObject }) =>
             {/* ASSOCIATION / COMPOSITION FIELDS */}
             {isAssocOrComp && (
                 <>
-                    <FormControl size="sm" className="w-full">
+                    <FormControl required={isAssociation} size="sm" className="w-full">
                         <FormLabel>Label</FormLabel>
                         <Input
                             value={object?.label ?? ""}
@@ -96,62 +147,44 @@ export const ClassConnectionFields: React.FC<Props> = ({ object, setObject }) =>
 
                     <div className="flex w-full flex-row items-center justify-between gap-2">
                         {/* SOURCE MULTIPLICITY */}
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Source Multiplicity</FormLabel>
                             <Select
                                 value={object?.multiplicity?.source ?? ""}
-                                onChange={(_, value = "") => {
-                                    setObject((obj: any) => ({
-                                        ...obj,
-                                        multiplicity: {
-                                            ...(obj.multiplicity),
-                                            source: value,
-                                        },
-                                    }));
-                                }}
+                                onChange={(_, value = "") => 
+                                    handleMultiplicityChange("source", value)
+                                }
                             >
-                                <Option value="1" label="1">
-                                    1
-                                </Option>
-                                <Option value="0..1" label="0..1">
-                                    0..1
-                                </Option>
-                                <Option value="*" label="*">
-                                    *
-                                </Option>
-                                <Option value="1..*" label="1..*">
-                                    1..*
-                                </Option>
+                                {multiplicityOptions.map((opt) => (
+                                    <Option
+                                        key={opt.value}
+                                        value={opt.value}
+                                        label={opt.label}
+                                    >
+                                        {opt.label}
+                                    </Option>
+                                ))}
                             </Select>
                         </FormControl>
 
                         {/* TARGET MULTIPLICITY */}
-                        <FormControl size="sm" className="w-full">
+                        <FormControl required size="sm" className="w-full">
                             <FormLabel>Target Multiplicity</FormLabel>
                             <Select
                                 value={object?.multiplicity?.target ?? ""}
-                                onChange={(_, value = "") => {
-                                    setObject((obj: any) => ({
-                                        ...obj,
-                                        multiplicity: {
-                                            ...(obj.multiplicity),
-                                            target: value,
-                                        },
-                                    }));
-                                }}
+                                onChange={(_, value = "") => 
+                                    handleMultiplicityChange("target", value)
+                                }
                             >
-                                <Option value="1" label="1">
-                                    1
-                                </Option>
-                                <Option value="0..1" label="0..1">
-                                    0..1
-                                </Option>
-                                <Option value="*" label="*">
-                                    *
-                                </Option>
-                                <Option value="1..*" label="1..*">
-                                    1..*
-                                </Option>
+                                {multiplicityOptions.map((opt) => (
+                                    <Option
+                                        key={opt.value}
+                                        value={opt.value}
+                                        label={opt.label}
+                                    >
+                                        {opt.label}
+                                    </Option>
+                                ))}
                             </Select>
                         </FormControl>
                     </div>
