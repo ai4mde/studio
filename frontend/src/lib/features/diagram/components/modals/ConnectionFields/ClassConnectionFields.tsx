@@ -52,13 +52,13 @@ export const ClassConnectionFields: React.FC<Props> = ({ object, setObject }) =>
 
     const handleMultiplicityChange = (
         side: "source" | "target",
-        value: string | null,
+        value: string | null = "",
     ) => {
-        const v = value ?? "";
+        const v = value;
         setObject((obj: any) => ({
             ...obj,
             multiplicity: {
-                ...(obj.multiplicity ?? {}),
+                ...(obj.multiplicity),
                 [side]: v,
             },
         }));
