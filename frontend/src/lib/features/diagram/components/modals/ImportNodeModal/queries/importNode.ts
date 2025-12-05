@@ -1,9 +1,10 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
 
-export const useSystemClassClassifiers = (systemId: string) => {
+export const useSystemClassClassifiers = (systemId: string | null | undefined) => {
     const queryResult = useQuery({
         queryKey: ["system", "metadata", systemId],
+        enabled: !!systemId,
         queryFn: async () => {
             const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/`);
             return response.data;
@@ -19,12 +20,13 @@ export const useSystemClassClassifiers = (systemId: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 };
 
-export const useSystemActivityClassifiers = (systemId: string) => {
+export const useSystemActivityClassifiers = (systemId: string | null | undefined) => {
     const queryResult = useQuery({
         queryKey: ["system", "metadata", systemId],
+        enabled: !!systemId,
         queryFn: async () => {
             const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/`);
             return response.data;
@@ -40,12 +42,13 @@ export const useSystemActivityClassifiers = (systemId: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 };
 
-export const useSystemUsecaseClassifiers = (systemId: string) => {
+export const useSystemUsecaseClassifiers = (systemId: string | null | undefined) => {
     const queryResult = useQuery({
         queryKey: ["system", "metadata", systemId],
+        enabled: !!systemId,
         queryFn: async () => {
             const response = await authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/`);
             return response.data;
@@ -61,5 +64,5 @@ export const useSystemUsecaseClassifiers = (systemId: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 };
