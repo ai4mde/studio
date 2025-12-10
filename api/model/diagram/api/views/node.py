@@ -1,6 +1,7 @@
 from typing import List
 from django.http import HttpRequest
 from django.core import serializers
+from django.db.models import Q
 
 from ninja import Router
 from pydantic import BaseModel
@@ -10,7 +11,7 @@ import diagram.api.utils as utils
 from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram
 
 from metadata.specification import Classifier
-from metadata.models import Classifier as MetaClassifier
+from metadata.models import Classifier as MetaClassifier, Relation
 
 from diagram.models import Node, Edge, Diagram
 
@@ -108,15 +109,39 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 @node.post("/import/{uuid:classifier_id}/", response=NodeSchema)
 def import_node(request: HttpRequest, classifier_id: str):
     diagram = utils.get_diagram(request)
-    cls = MetaClassifier.objects.get(pk=classifier_id)
 
     if not diagram:
         return 404, "Diagram not found"
     
-    if not cls:
+    try:
+        cls = MetaClassifier.objects.get(pk=classifier_id)
+    except MetaClassifier.DoesNotExist:
         return 404, "Classifier not found"
 
+    # Import the node to this diagram
     node = utils.import_node(diagram, classifier_id)
+    cls = node.cls
+
+    # Map of classifier id -> node
+    nodes = diagram.nodes.select_related("cls").all()
+    classifier_ids_in_diagram = [n.cls_id for n in nodes]
+    nodes_by_classifier_id = {str(n.cls_id): n for n in nodes}
+
+    relations = Relation.objects.filter(
+        system__project=diagram.system.project
+    ).filter(
+        Q(source=cls, target_id__in=nodes_by_classifier_id.keys()) |
+        Q(target=cls, source_id__in=nodes_by_classifier_id.keys())
+    )
+
+    # Add edge to diagram
+    for rel in relations:
+        # Create edge
+        Edge.objects.get_or_create(
+            diagram=diagram,
+            rel=rel,
+            defaults={"data": {}},
+        )
 
     return node
 
