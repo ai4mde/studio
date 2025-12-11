@@ -38,6 +38,17 @@ const FloatingEdge: React.FC<EdgeProps> = ({
 
     return (
         <>
+            {/* Invisible thick hit area */}
+            <path
+                id={id + '-hitbox'}
+                d={edgePath}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={7}
+                className="react-flow__edge-interaction"
+            />
+
+            {/* Visible line */}
             <path
                 id={id}
                 stroke="black" stroke-width="1"
