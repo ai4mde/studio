@@ -68,13 +68,11 @@ const EditAttributes: React.FC<Props> = ({ node }) => {
                     color="primary"
                     className="w-full"
                     size="sm"
-                    onClick={() =>
+                    onClick={() => {
                         partialUpdateNode(diagram, node.id, {
-                            cls: {
-                                attributes: attributes,
-                            },
-                        })
-                    }
+                            cls: { attributes },
+                        });
+                    }}
                 >
                     Save
                 </Button>

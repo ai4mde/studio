@@ -58,6 +58,7 @@ class Enum(NamedElement, NamespacedElement, BaseModel):
 
 class Signal(NamedElement, NamespacedElement, BaseModel):
     type: Literal["signal"] = "signal"
+    attributes: List[Attribute] = []
 
 
 ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal]

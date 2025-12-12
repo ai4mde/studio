@@ -10,6 +10,22 @@ const SignalNode: React.FC<NodeProps> = (node) => {
                     <span className="text-xs">{`<<signal>>`}</span>
                     <span className="font-bold">{node.data?.name}</span>
                 </div>
+                {node.data?.attributes?.length > 0 && (
+                    <div className="flex flex-col border-t border-solid border-black p-1">
+                        {node.data.attributes.map((attribute: any, idx: number) => (
+                            <div
+                                key={`attribute-${node.id}-${idx}`}
+                                className="flex flex-row justify-between gap-2 px-1 text-sm"
+                            >
+                                <span>
+                                    {attribute?.derived ? "/" : "+"}
+                                    {attribute?.name}
+                                </span>
+                                <span>: {attribute?.type}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </NodeWrapper>
     );

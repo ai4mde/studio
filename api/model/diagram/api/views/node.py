@@ -101,7 +101,7 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
         node.cls.save()
 
     if data.data is not None:
-        node.data = {**node.data, **data.data.model_dump()}
+        node.data = {**node.data, **data.data.model_dump(exclude_unset=True, exclude_none=True)}
         node.save()
 
     return node

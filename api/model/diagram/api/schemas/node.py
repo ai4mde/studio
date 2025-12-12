@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
@@ -12,7 +12,8 @@ class NodePosition(Schema):
 
 
 class NodeData(Schema):
-    position: NodePosition
+    position: Optional[NodePosition] = None
+    attributes: Optional[List[Dict[str, Any]]] = None
 
 
 class CreateNode(Schema):

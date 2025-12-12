@@ -96,7 +96,7 @@ export const EditNodeModal: React.FC = () => {
                                     {node.data?.name && (
                                         <EditName node={node} />
                                     )}
-                                    {node.type == "class" && (
+                                    {(node.type == "class" || node.type == "signal") && (
                                         <EditAttributes node={node} />
                                     )}
                                     {node.type == "class" && (
