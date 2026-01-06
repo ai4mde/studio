@@ -70,15 +70,29 @@ def get_connected_enums(request: HttpRequest, node_id: str):
 
 
 @node.delete("/{uuid:node_id}/", response=bool)
-def delete_node(request: HttpRequest, node_id: str):
+def remove_node(request: HttpRequest, node_id: str):
     diagram = utils.get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    if utils.delete_node(diagram=diagram, node_id=node_id):
+    if utils.remove_node(diagram=diagram, node_id=node_id):
         return True
     return False
+
+
+@node.delete("/{uuid:node_id}/hard/", response=bool)
+def hard_delete_classifier(request: HttpRequest, node_id: str):
+    diagram = utils.get_diagram(request)
+
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    node = Node.objects.filter(id=node_id).first()
+    if not node:
+        return 404, "Node not found"
+    
+    return utils.delete_classifier_everywhere(str(node.cls_id))
 
 
 class PatchModel(BaseModel):

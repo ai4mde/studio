@@ -1,6 +1,6 @@
 from django.http import HttpRequest
 from diagram.models import Diagram
-from .node import create_node, import_node, delete_node
+from .node import create_node, import_node, remove_node, delete_classifier_everywhere
 from .edge import create_edge, delete_edge
 
 
@@ -20,6 +20,7 @@ __all__ = [
     "create_node",
     "import_node",
     "create_edge",
-    "delete_node",
+    "remove_node",
+    "delete_classifier_everywhere",
     "delete_edge",
 ]

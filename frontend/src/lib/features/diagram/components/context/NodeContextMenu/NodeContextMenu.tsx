@@ -20,9 +20,19 @@ const NodeContextMenu: React.FC = () => {
         close();
     };
 
-    const onDelete = async () => {
+    const onRemove = async () => {
         if (node) {
             await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
+            await queryClient.refetchQueries({
+                queryKey: [`diagram`],
+            });
+            close();
+        }
+    };
+
+    const onDeleteCompletely = async () => {
+        if (node) {
+            await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/hard/`);
             await queryClient.refetchQueries({
                 queryKey: [`diagram`],
             });
@@ -46,8 +56,14 @@ const NodeContextMenu: React.FC = () => {
                 </li>
                 <hr className="my-1" />
                 <li>
-                    <button onClick={onDelete}>
-                        <span>Delete</span>
+                    <button onClick={onRemove}>
+                        <span>Remove from Diagram</span>
+                        <Trash size={14} />
+                    </button>
+                </li>
+                <li>
+                    <button onClick={onDeleteCompletely}>
+                        <span>Delete Completely</span>
                         <Trash size={14} />
                     </button>
                 </li>
