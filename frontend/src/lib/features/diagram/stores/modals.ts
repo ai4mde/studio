@@ -1,3 +1,6 @@
+import { create } from "zustand";
+import { atom, useAtom } from "jotai";
+
 import {
     EditConnectionModalState,
     EditNodeModalState,
@@ -5,7 +8,33 @@ import {
     NewConnectionModalState,
     NewNodeModalState
 } from "$diagram/types/modals";
-import { create } from "zustand";
+import { DiagramUsageItem } from "$diagram/types/classifierUsage";
+
+type ConfirmDeleteClassifierState = {
+    active: boolean;
+    nodeId: string | null;
+    classifierName: string;
+    usages: DiagramUsageItem[];
+};
+
+const confirmDeleteClassifierAtom = atom<ConfirmDeleteClassifierState>({
+    active: false,
+    nodeId: null,
+    classifierName: "(unknown)",
+    usages: [],
+});
+
+export const useConfirmDeleteClassifierModal = () => {
+    const [state, setState] = useAtom(confirmDeleteClassifierAtom);
+
+    return {
+        ...state,
+        open: (payload: {nodeId: string; classifierName: string; usages: DiagramUsageItem[] }) =>
+            setState({ active: true, nodeId: payload.nodeId, classifierName: payload.classifierName, usages: payload.usages, }),
+        close: () =>
+            setState((s) => ({ active: false, nodeId: null, classifierName: "(unknown)", usages: [], })),
+    };
+};
 
 export const useNewNodeModal = create<NewNodeModalState>((set) => ({
     active: false,

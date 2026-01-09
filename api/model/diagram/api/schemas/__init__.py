@@ -11,6 +11,8 @@ from diagram.api.schemas.node import (
     PatchNode,
     ListNodes,
     NodeSchema,
+    DiagramUsageItem,
+    ClassifierUsageResponse,
 )
 
 from diagram.api.schemas.edge import (
@@ -30,6 +32,8 @@ __all__ = [
     "PatchNode",
     "ListNodes",
     "NodeSchema",
+    "DiagramUsageItem",
+    "ClassifierUsageResponse",
     "CreateEdge",
     "ListEdges",
     "EdgeSchema",
