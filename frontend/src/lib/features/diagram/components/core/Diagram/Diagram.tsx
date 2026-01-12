@@ -64,9 +64,9 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
             diagramStore.setType(data.type);
             diagramStore.setProject(data.project);
 
-            const systemId = data.system?.id ?? data.system_id ?? data.system ?? null;
-
-            diagramStore.setSystem(systemId);
+            const systemId = data.system_id;
+            const systemName = data.system_name;
+            diagramStore.setSystem(systemId, systemName);
         }
     }, [isSuccess]);
 

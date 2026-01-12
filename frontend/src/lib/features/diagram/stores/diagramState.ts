@@ -1,9 +1,6 @@
 import { applyNodeChanges } from "$diagram/events/node";
 import { create } from "zustand";
 import { DiagramState } from "../types/diagramState";
-// import { applyEdgeChanges, applyNodeChanges } from '../utils/applyChanges'
-// import processNodes from '../utils/nodes'
-// import processEdges from '../utils/edges'
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -18,8 +15,9 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     project: "",
     setProject: (val) => set(() => ({ project: val })),
 
-    system: "",
-    setSystem: (val) => set(() => ({ system: val })),
+    systemId: "",
+    systemName: "",
+    setSystem: (id, name = "") => set(() => ({ systemId: id, systemName: name })),
 
     refreshLock: () => set(() => ({})),
     requestLock: () => set(() => ({ lock: true })),
