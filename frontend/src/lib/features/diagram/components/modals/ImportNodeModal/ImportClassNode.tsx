@@ -10,10 +10,10 @@ type Props = {
 };
 
 export const ImportClassNode: React.FC<Props> = ({ object, setObject }) => {
-const system = useDiagramStore((s) => s.system);
+  const systemId = useDiagramStore((s) => s.systemId);
   const nodes = useDiagramStore((s) => s.nodes);
 
-  const [classifiers, isSuccess] = useSystemClassClassifiers(system);
+  const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
   const [selectedClassifier, setSelectedClassifier] = useState<string | null>(null);
 
   const normalize = (v: unknown) => (v ?? "").toString().toLowerCase();
@@ -78,7 +78,7 @@ const system = useDiagramStore((s) => s.system);
                 >
                     {isSuccess && (
                         availableClassifiers.map((e) => {
-                            const sameSystem = normalize(e.system_id) === normalize(system);
+                            const sameSystem = normalize(e.system_id) === normalize(systemId);
 
                             return (
                                 <Option key={e.id} value={e.id} sx={{"--Option-decoratorChildHeight": "0px",}}>{e.data.name} ({e.data.type}) 
