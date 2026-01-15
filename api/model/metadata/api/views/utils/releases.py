@@ -1,7 +1,19 @@
+from typing import Dict, Any
+import logging
+
+from django.db import transaction
 
 from metadata.models import System, Interface, Release, Classifier, Relation
 from diagram.models import Diagram, Node, Edge
-from typing import Dict, Any
+
+DIAGRAM_TYPE_MAP = {
+    "classes": "classes",
+    "class": "classes",
+    "activity": "activity",
+    "usecase": "usecase",
+}
+
+logger = logging.getLogger(__name__)
 
 def serialize_interfaces(system: System):
     out = []
@@ -95,59 +107,80 @@ def load_interfaces(system: System, release: Release) -> bool:
 
 def load_nodes(system: System, diagram: Dict[str, Any]):
     Node.objects.filter(diagram_id=diagram['id']).delete()
-    for node in diagram['nodes']:
-        Classifier.objects.create(
-            id = node['cls']['id'],
-            project = system.project,
-            system = system,
-            data = node['cls']['data']
+
+    for node in diagram.get("nodes", []):
+        cls_id = node["cls"]["id"]
+        cls_data = node["cls"]["data"]
+
+        Classifier.objects.update_or_create(
+            id = cls_id,
+            defaults = {
+                "project": system.project,
+                "system": system,
+                "data": cls_data,
+            }
         )
+
         Node.objects.create(
             id = node['id'],
             diagram_id = diagram['id'],
-            cls_id = node['cls']['id'],
-            data = node['data'],
+            cls_id = cls_id,
+            data = node.get("data", {}) or {},
         )
 
 
 def load_edges(system: System, diagram: Dict[str, Any]):
     Edge.objects.filter(diagram_id=diagram['id']).delete()
-    for edge in diagram['edges']:
+
+    for edge in diagram.get("edges", []):
         source_node = Node.objects.get(id=edge['source_ptr'])
         target_node = Node.objects.get(id=edge['target_ptr'])
-        Relation.objects.create(
-            id = edge['rel']['id'],
-            system = system,
-            data = edge['rel']['data'],
-            source = source_node.cls,
-            target = target_node.cls
+
+        rel_id = edge["rel"]["id"]
+        rel_data = edge["rel"]["data"]
+
+        Relation.objects.update_or_create(
+            id = rel_id,
+            defaults = {
+                "system": system,
+                "data": rel_data,
+                "source": source_node.cls,
+                "target": target_node.cls,
+            }
         )
+
         Edge.objects.create(
-            id = edge['id'],
-            diagram_id = diagram['id'],
-            rel_id = edge['rel']['id'],
-            source = source_node.cls,
-            target = target_node.cls,
-            data = edge['data'],
+            id = edge["id"],
+            diagram_id = diagram["id"],
+            rel_id = rel_id,
+            data = edge.get("data", {}) or {},
         )
 
 
 def load_diagrams(system: System, release: Release) -> bool:
-    Diagram.objects.filter(system=system).delete()
-    Classifier.objects.filter(system=system).delete()
-    Relation.objects.filter(system=system).delete()
-    
     try:
-        for diagram in release.diagrams:
-            Diagram.objects.create(
-                id = diagram['id'],
-                type = diagram['type'],
-                name = diagram['name'],
-                description = diagram['description'],
-                system = system
-            )
-            load_nodes(system, diagram)
-            load_edges(system, diagram)
+        with transaction.atomic():
+            Node.objects.filter(diagram__system=system).delete()
+            Edge.objects.filter(diagram__system=system).delete()
+            Diagram.objects.filter(system=system).delete()
+            Classifier.objects.filter(system=system).delete()
+            Relation.objects.filter(system=system).delete()
+        
+            for diagram in release.diagrams:
+                dtype_raw = diagram.get("type")
+                dtype = DIAGRAM_TYPE_MAP.get(dtype_raw, dtype_raw)
+
+                Diagram.objects.create(
+                    id = diagram["id"],
+                    type = dtype,
+                    name = diagram["name"],
+                    description = diagram.get("description", "") or "",
+                    system = system,
+                )
+                load_nodes(system, diagram)
+                load_edges(system, diagram)
+
+        return True
     except:
+        logger.exception("Failed loading diagrams for system=%s release=%s", system.id, release.id)
         return False
-    return True
