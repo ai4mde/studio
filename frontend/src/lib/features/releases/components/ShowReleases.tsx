@@ -236,7 +236,7 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
     const handleLoad = async () => {
         setIsLoading(true);
         try {
-            const response = await authAxios.post(`/v1/metadata/releases/${loadReleaseObject.id}/load/`);
+            await authAxios.post(`/v1/metadata/releases/${loadReleaseObject.id}/load/?system_id=${systemId}`);
         } catch (error) {
             console.error('Error making request:', error);
         } finally {
