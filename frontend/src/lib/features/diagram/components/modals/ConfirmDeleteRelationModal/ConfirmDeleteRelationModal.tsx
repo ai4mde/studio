@@ -5,16 +5,14 @@ import { DiagramUsageItem } from "$diagram/types/diagramUsage";
 type Props = {
     open: boolean;
     onClose: () => void;
-    classifierName: string;
     usages: DiagramUsageItem[];
     onProceed: () => void;
     isDeleting?: boolean;
 };
 
-export const ConfirmDeleteClassifierModal: React.FC<Props> = ({
+export const ConfirmDeleteRelationModal: React.FC<Props> = ({
     open,
     onClose,
-    classifierName,
     usages,
     onProceed,
     isDeleting = false
@@ -24,11 +22,11 @@ export const ConfirmDeleteClassifierModal: React.FC<Props> = ({
             <ModalDialog>
                 <DialogTitle>Warning</DialogTitle>
                 <DialogContent>
-                    <p>This action also deletes the classifier associated to the node {classifierName}, as well as any edges and relations involving it in other diagrams and systems in this project.</p>
+                    <p>This action also deletes the relation associated to this edge.</p>
 
                     {usages.length > 0 && (
                         <>
-                            <p>Nodes referring to this classifier in the following diagams will also be deleted:</p>
+                            <p>Edges referring to this relation in the following diagams will also be deleted:</p>
                             <ul className="list-disc pl-6 mt-2 space-y-1">
                                 {usages.map((u) => (
                                     <li>Diagram {u.diagram_name} in system {u.system_name}.</li>

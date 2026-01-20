@@ -4,7 +4,8 @@ import {
     useImportNodeModal,
     useNewConnectionModal,
     useNewNodeModal,
-    useConfirmDeleteClassifierModal
+    useConfirmDeleteClassifierModal,
+    useConfirmDeleteRelationModal
 } from "$diagram/stores/modals";
 import React, { useState } from "react";
 import EditConnectionModal from "../EditConnectionModal/EditConnectionModal";
@@ -13,6 +14,7 @@ import { ImportNodeModal } from "../ImportNodeModal/ImportNodeModal";
 import NewConnectionModal from "../NewConnectionModal/NewConnectionModal";
 import { NewNodeModal } from "../NewNodeModal/NewNodeModal";
 import { ConfirmDeleteClassifierModal } from "../ConfirmDeleteClassifierModal/ConfirmDeleteClassifierModal";
+import { ConfirmDeleteRelationModal } from "../ConfirmDeleteRelationModal/ConfirmDeleteRelationModal";
 import { useDiagramStore } from "$diagram/stores";
 import { queryClient } from "$shared/hooks/queryClient";
 import { authAxios } from "$lib/features/auth/state/auth";
@@ -26,8 +28,10 @@ export const Modals: React.FC = () => {
     const newConnectionModal = useNewConnectionModal();
     const editConnectionModal = useEditConnectionModal();
     const confirmDeleteClassifierModal = useConfirmDeleteClassifierModal();
+    const confirmDeleteRelationModal = useConfirmDeleteRelationModal();
 
     const [ isDeleting, setIsDeleting ] = useState(false);
+    const [ isDeletingRelation, setIsDeletingRelation ] = useState(false);
 
     const onProceedDelete = async () => {
         if (confirmDeleteClassifierModal.nodeId) {
@@ -40,6 +44,21 @@ export const Modals: React.FC = () => {
                 confirmDeleteClassifierModal.close();
             } finally {
                 setIsDeleting(false);
+            }
+        }
+    }
+
+    const onProceedDeleteRelation = async () => {
+        if (confirmDeleteRelationModal.edgeId) {
+            try {
+                setIsDeletingRelation(true);
+                await authAxios.delete(`/v1/diagram/${diagram}/edge/${confirmDeleteRelationModal.edgeId}/hard/`);
+                await queryClient.refetchQueries({
+                    queryKey: [`diagram`],
+                });
+                confirmDeleteRelationModal.close();
+            } finally {
+                setIsDeletingRelation(false);
             }
         }
     }
@@ -60,6 +79,17 @@ export const Modals: React.FC = () => {
                     usages={confirmDeleteClassifierModal.usages}
                     onProceed={onProceedDelete}
                     isDeleting={isDeleting}
+                />
+            )}
+
+            {confirmDeleteRelationModal.active && (
+                <ConfirmDeleteRelationModal
+                    open={confirmDeleteRelationModal.active}
+                    onClose={confirmDeleteRelationModal.close}
+                    classifierName={confirmDeleteRelationModal.classifierName}
+                    usages={confirmDeleteRelationModal.usages}
+                    onProceed={onProceedDeleteRelation}
+                    isDeleting={isDeletingRelation}
                 />
             )}
         </>

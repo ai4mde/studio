@@ -25,7 +25,7 @@ def list_edges(request):
     return fetch_and_update_edges(diagram)
 
 
-@edge.get("/{uuid:edge_id}/relation-usage", response=RelationUsageResponse)
+@edge.get("/{uuid:edge_id}/relation-usage/", response=RelationUsageResponse)
 def relation_usage(request, edge_id: str):
     diagram = utils.get_diagram(request)
     if not diagram:
@@ -59,7 +59,6 @@ def relation_usage(request, edge_id: str):
 
     return RelationUsageResponse(
         relation_id=str(rel.id),
-        relation_name=rel_label,
         usages=usage_items,
     )
 

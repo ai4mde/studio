@@ -71,8 +71,7 @@ class ClassifierUsageResponse(Schema):
 
 
 class RelationUsageResponse(Schema):
-    classifier_id: str
-    classifier_name: str
+    relation_id: str
     usages: List[DiagramUsageItem]
 
 

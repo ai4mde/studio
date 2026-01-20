@@ -1,3 +1,5 @@
+from django.db.models import Count, Q
+
 from diagram.models import Diagram, Edge, Node
 from metadata.models import Relation
 import metadata.specification as spec
@@ -12,14 +14,32 @@ def create_edge(diagram: Diagram, data: spec.Relation, source: Node, target: Nod
         target=target.cls,
     )
 
-    # Create the edge
+    # Create the edge in the current diagram
     edge = Edge.objects.create(
         diagram=diagram,
         rel=relation,
         data={},
     )
 
-    return edge
+    # Create in other diagrams in the same project that have both classifiers
+    other_diagrams = (
+        Diagram.objects
+        .filter(system__project=diagram.system.project)
+        .exclude(id=diagram.id)
+        .annotate(
+            has_both=Count(
+                "nodes",
+                filter=Q(nodes__cls=source.cls) | Q(nodes__cls=target.cls),
+                distinct=True,
+            )
+        )
+        .filter(has_both=2)
+    )
+
+    for d in other_diagrams:
+        Edge.objects.get_or_create(diagram=d, rel=relation, defaults={"data": {}})
+
+    return Edge.objects.get(diagram=diagram, rel=relation)
 
 
 def remove_edge_from_diagram(diagram: Diagram, edge_id: str):

@@ -24,28 +24,24 @@ const NodeContextMenu: React.FC = () => {
         let cancelled = false;
 
         const run = async () => {
-        if (!node) return;
+            if (!node) return;
+            setCheckingUsage(true);
 
-        setCheckingUsage(true);
-        try {
-            const res = await authAxios.get(
-            `/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,
-            );
-
-            const usages = res.data?.usages ?? [];
-            const allowRemove = usages.length > 0;
-
-            if (!cancelled) setCanRemove(allowRemove);
-        } catch {
-            if (!cancelled) setCanRemove(true);
-        } finally {
-            if (!cancelled) setCheckingUsage(false);
-        }
+            try {
+                const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,);
+                const usages = res.data?.usages ?? [];
+                const allowRemove = usages.length > 0;
+                if (!cancelled) setCanRemove(allowRemove);
+            } catch {
+                if (!cancelled) setCanRemove(true);
+            } finally {
+                if (!cancelled) setCheckingUsage(false);
+            }
         };
 
         run();
         return () => {
-        cancelled = true;
+            cancelled = true;
         };
     }, [node?.id, diagram]);
 
