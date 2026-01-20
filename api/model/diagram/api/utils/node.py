@@ -2,7 +2,7 @@ from django.db import transaction
 from diagram.models import Diagram, Node, Edge
 from metadata.models import Classifier, Relation
 import metadata.specification as spec
-from diagram.api.utils.edge import delete_edge
+from diagram.api.utils.edge import remove_edge_from_diagram, delete_relation_everywhere
 
 
 def create_node(diagram: Diagram, data: spec.Classifier):
@@ -49,7 +49,7 @@ def remove_node(diagram: Diagram, node_id: str):
 
     linked_edges = diagram.edges.filter(rel__source=node.cls) | diagram.edges.filter(rel__target=node.cls)
     for linked_edge in linked_edges:
-        delete_edge(diagram, linked_edge.id)
+        remove_edge_from_diagram(diagram, linked_edge.id)
     
     node.delete()
     return True
@@ -68,7 +68,7 @@ def delete_classifier_everywhere(classifier_id: str):
             linked_edges = diagram.edges.filter(rel__source=node.cls) | diagram.edges.filter(rel__target=node.cls)
 
             for linked_edge in linked_edges:
-                delete_edge(diagram, linked_edge.id)
+                delete_relation_everywhere(diagram, linked_edge.id)
 
             node.delete()
 
@@ -80,4 +80,4 @@ def delete_classifier_everywhere(classifier_id: str):
     return True
 
 
-__all__ = ["create_node", "remove_node"]
+__all__ = ["create_node", "remove_node", "delete_classifier_everywhere"]

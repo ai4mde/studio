@@ -17,14 +17,18 @@ const EdgeContextMenu: React.FC = () => {
         close();
     };
 
-    const onDelete = async () => {
+    const onRemove = async () => {
         if (edge) {
-            await authAxios.delete(
-                `/v1/diagram/${diagram}/edge/${edge.id}/`,
-            );
-            await queryClient.refetchQueries({
-                queryKey: [`diagram`],
-            });
+            await authAxios.delete(`/v1/diagram/${diagram}/edge/${edge.id}/`);
+            await queryClient.refetchQueries({ queryKey: ["diagram", diagram] });
+            close();
+        }
+    };
+
+    const onDeleteCompletely = async () => {
+        if (edge) {
+            await authAxios.delete(`/v1/diagram/${diagram}/edge/${edge.id}/hard/`);
+            await queryClient.refetchQueries({ queryKey: ["diagram", diagram] });
             close();
         }
     };
@@ -40,8 +44,15 @@ const EdgeContextMenu: React.FC = () => {
                 </li>
                 <hr className="my-1" />
                 <li>
-                    <button onClick={onDelete}>
-                        <span>Delete</span>
+                    <button onClick={onRemove}>
+                        <span>Remove from Diagram</span>
+                        <Trash size={14} />
+                    </button>
+                </li>
+                <hr className="my-1" />
+                <li>
+                    <button onClick={onDeleteCompletely}>
+                        <span>Delete Completely</span>
                         <Trash size={14} />
                     </button>
                 </li>

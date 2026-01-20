@@ -13,6 +13,7 @@ from diagram.api.schemas.node import (
     NodeSchema,
     DiagramUsageItem,
     ClassifierUsageResponse,
+    RelationUsageResponse,
 )
 
 from diagram.api.schemas.edge import (
@@ -34,6 +35,7 @@ __all__ = [
     "NodeSchema",
     "DiagramUsageItem",
     "ClassifierUsageResponse",
+    "RelationUsageResponse",
     "CreateEdge",
     "ListEdges",
     "EdgeSchema",

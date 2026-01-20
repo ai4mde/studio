@@ -70,9 +70,18 @@ class ClassifierUsageResponse(Schema):
     usages: List[DiagramUsageItem]
 
 
+class RelationUsageResponse(Schema):
+    classifier_id: str
+    classifier_name: str
+    usages: List[DiagramUsageItem]
+
+
 __all__ = [
     "CreateNode",
     "PatchNode",
     "NodeSchema",
     "ListNodes",
+    "DiagramUsageItem",
+    "ClassifierUsageResponse",
+    "RelationUsageResponse",
 ]
