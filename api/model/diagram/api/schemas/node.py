@@ -57,9 +57,30 @@ class ListNodes(Schema):
     nodes: List[NodeSchema] = []
 
 
+class DiagramUsageItem(Schema):
+    diagram_id: str
+    diagram_name: str
+    system_id: str
+    system_name: str
+
+
+class ClassifierUsageResponse(Schema):
+    classifier_id: str
+    classifier_name: str
+    usages: List[DiagramUsageItem]
+
+
+class RelationUsageResponse(Schema):
+    relation_id: str
+    usages: List[DiagramUsageItem]
+
+
 __all__ = [
     "CreateNode",
     "PatchNode",
     "NodeSchema",
     "ListNodes",
+    "DiagramUsageItem",
+    "ClassifierUsageResponse",
+    "RelationUsageResponse",
 ]

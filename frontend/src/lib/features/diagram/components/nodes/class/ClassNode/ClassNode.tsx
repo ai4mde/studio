@@ -4,9 +4,9 @@ import NodeWrapper from "../../shared/NodeWrapper";
 import { useDiagramStore } from "$diagram/stores/diagramState";
 
 const ClassNode: React.FC<NodeProps> = (node) => {
-    const diagramSystemId = useDiagramStore((state) => state.system)
+    const diagramSystemId = useDiagramStore((state) => state.systemId);
     const systemId = node.data?.systemId;
-    const systemName = node.data?.systemName
+    const systemName = node.data?.systemName;
 
     const norm = (v: unknown) => (v ?? "").toString().toLowerCase();
     const sameSystem = norm(systemId) === norm(diagramSystemId);

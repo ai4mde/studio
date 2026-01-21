@@ -1,3 +1,4 @@
+from uuid import UUID
 from enum import Enum
 from typing import List, Optional
 
@@ -17,6 +18,8 @@ class DiagramType(str, Enum):
 
 class ReadDiagram(ModelSchema):
     project: str
+    system_id: UUID
+    system_name: str
 
     class Meta:
         model = Diagram
@@ -25,6 +28,14 @@ class ReadDiagram(ModelSchema):
     @staticmethod
     def resolve_project(obj):
         return str(obj.system.project.id)
+    
+    @staticmethod
+    def resolve_system_id(obj):
+        return str(obj.system_id)
+    
+    @staticmethod
+    def resolve_system_name(obj):
+        return str(obj.system.name)
 
 
 class CreateDiagram(Schema):

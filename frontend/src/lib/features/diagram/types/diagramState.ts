@@ -10,8 +10,10 @@ export type DiagramState = {
     project: string;
     setProject: (project: string) => void;
 
-    system: string;
-    setSystem: (system: string) => void;
+    systemId: string;
+    systemName: string;
+    setSystem: (id: string, name?: string) => void;
+
 
     lock: boolean;
     refreshLock: () => void;
