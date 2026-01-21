@@ -86,7 +86,6 @@ export const Modals: React.FC = () => {
                 <ConfirmDeleteRelationModal
                     open={confirmDeleteRelationModal.active}
                     onClose={confirmDeleteRelationModal.close}
-                    classifierName={confirmDeleteRelationModal.classifierName}
                     usages={confirmDeleteRelationModal.usages}
                     onProceed={onProceedDeleteRelation}
                     isDeleting={isDeletingRelation}
