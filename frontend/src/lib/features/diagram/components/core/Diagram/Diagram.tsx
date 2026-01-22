@@ -63,7 +63,10 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         if (isSuccess) {
             diagramStore.setType(data.type);
             diagramStore.setProject(data.project);
-            diagramStore.setSystem(data.system);
+
+            const systemId = data.system_id;
+            const systemName = data.system_name;
+            diagramStore.setSystem(systemId, systemName);
         }
     }, [isSuccess]);
 
@@ -75,10 +78,6 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
     useEffect(
         () => diagramStore.edgesFromAPI(data?.edges ?? []),
         [dataUpdatedAt],
-    );
-    useEffect(
-        () => diagramStore.relatedDiagramsFromAPI(data?.related_diagrams ?? []),
-        [dataUpdatedAt]
     );
 
     if (!isSuccess) {

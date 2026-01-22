@@ -16,12 +16,13 @@ def get_classifiers(request: HttpRequest):
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
+    project = system.project
 
-    if not system:
-        return 404, "System not found"
+    if not project:
+        return {"classifiers": []}
 
     return {
-        "classifiers": system.classifiers.all(),
+        "classifiers": project.classifiers.all(),
     }
 
 

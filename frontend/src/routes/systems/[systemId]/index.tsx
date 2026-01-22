@@ -138,14 +138,14 @@ const SystemDiagrams: React.FC = () => {
                     <>
                         <div className="flex flex-col gap-3 p-3">
                             {uiDiagrams.map(({ name, Icon, diagrams, type }) => (
-                                <React.Fragment key={type}>
+                                <>
                                     <span className="flex flex-row items-center gap-2">
                                         <Icon size={24} />
                                         <h1 className="text-lg">{name}</h1>
                                     </span>
                                     <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
                                         {diagrams.map(({ id, name }) => (
-                                            <div key={id} className="relative">
+                                            <div className="relative">
                                                 <a
                                                     href={`/diagram/${id}`}
                                                     className="flex h-fit flex-col gap-2 rounded-md bg-stone-200 p-4 hover:bg-stone-300"
@@ -175,7 +175,7 @@ const SystemDiagrams: React.FC = () => {
                                             <Plus />
                                         </button>
                                     </div>
-                                </React.Fragment>
+                                </>
                             ))}
                             <button
                                 className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"

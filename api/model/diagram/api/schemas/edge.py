@@ -51,6 +51,11 @@ class EdgeSchema(ModelSchema):
     @staticmethod
     def resolve_target_ptr(obj):
         return obj.target.id
+    
+
+class UpdateEdge(Schema):
+    rel: Optional[dict] = None
+    data: Optional[EdgeData] = None
 
 
 class PatchEdge(Schema):

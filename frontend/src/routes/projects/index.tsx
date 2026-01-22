@@ -105,7 +105,7 @@ const ProjectsIndex: React.FC = () => {
                         <div className="flex flex-row flex-nowrap rounded-md bg-stone-100 p-2 gap-2 ">
                             {isSuccess &&
                                 data.map((e) => (
-                                    <div key={e.id} className="relative">
+                                    <div className="relative">
                                         <a
                                             href={`/projects/${e.id}`}
                                             className="flex flex-col gap-2 p-4 w-48 text-ellipsis overflow-hidden rounded-md bg-stone-200 hover:bg-stone-300 h-fit"

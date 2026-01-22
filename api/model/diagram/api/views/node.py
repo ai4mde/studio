@@ -1,16 +1,17 @@
 from typing import List
 from django.http import HttpRequest
 from django.core import serializers
+from django.db.models import Q
 
-from ninja import Router
+from ninja import Router, Schema
 from pydantic import BaseModel
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram
+from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram, DiagramUsageItem, ClassifierUsageResponse
 
 from metadata.specification import Classifier
-from metadata.models import Classifier as MetaClassifier
+from metadata.models import Classifier as MetaClassifier, Relation
 
 from diagram.models import Node, Edge, Diagram
 
@@ -51,6 +52,48 @@ def read_node(request: HttpRequest, node_id: str):
     return diagram.nodes.get(id=node_id)
 
 
+@node.get("/{uuid:node_id}/classifier-usage/", response=ClassifierUsageResponse)
+def classifier_usage(request: HttpRequest, node_id: str):
+    diagram = utils.get_diagram(request)
+    
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    node = diagram.nodes.select_related("cls").filter(id=node_id).first()
+    if not node:
+        return 404, "Node not found"
+
+    cls = node.cls
+    cls_name = (cls.data or {}).get("name", cls.id)
+    nodes = (
+        Node.objects
+        .select_related("diagram", "diagram__system")
+        .filter(cls=cls)
+        .exclude(diagram=diagram)
+    )
+
+    seen = set()
+    usage_items = []
+
+    for n in nodes:
+        d = n.diagram
+        if d.id in seen:
+            continue
+        seen.add(d.id)
+
+        usage_items.append(DiagramUsageItem(
+            diagram_id = str(d.id),
+            diagram_name = d.name,
+            system_id = str(d.system.id),
+            system_name = d.system.name,
+        ))
+
+    return ClassifierUsageResponse(
+        classifier_id = str(cls.id),
+        classifier_name = cls_name,
+        usages = usage_items,
+    )
+
 @node.get("/{uuid:node_id}/enums/", response=List[NodeSchema])
 def get_connected_enums(request: HttpRequest, node_id: str):
     out = []
@@ -69,15 +112,29 @@ def get_connected_enums(request: HttpRequest, node_id: str):
 
 
 @node.delete("/{uuid:node_id}/", response=bool)
-def delete_node(request: HttpRequest, node_id: str):
+def remove_node(request: HttpRequest, node_id: str):
     diagram = utils.get_diagram(request)
 
     if not diagram:
         return 404, "Diagram not found"
 
-    if utils.delete_node(diagram=diagram, node_id=node_id):
+    if utils.remove_node(diagram=diagram, node_id=node_id):
         return True
     return False
+
+
+@node.delete("/{uuid:node_id}/hard/", response=bool)
+def hard_delete_classifier(request: HttpRequest, node_id: str):
+    diagram = utils.get_diagram(request)
+
+    if not diagram:
+        return 404, "Diagram not found"
+    
+    node = Node.objects.filter(id=node_id).first()
+    if not node:
+        return 404, "Node not found"
+    
+    return utils.delete_classifier_everywhere(str(node.cls_id))
 
 
 class PatchModel(BaseModel):
@@ -108,15 +165,39 @@ def update_node(request: HttpRequest, node_id: str, data: PatchNode):
 @node.post("/import/{uuid:classifier_id}/", response=NodeSchema)
 def import_node(request: HttpRequest, classifier_id: str):
     diagram = utils.get_diagram(request)
-    cls = MetaClassifier.objects.get(pk=classifier_id)
 
     if not diagram:
         return 404, "Diagram not found"
     
-    if not cls:
+    try:
+        cls = MetaClassifier.objects.get(pk=classifier_id)
+    except MetaClassifier.DoesNotExist:
         return 404, "Classifier not found"
 
+    # Import the node to this diagram
     node = utils.import_node(diagram, classifier_id)
+    cls = node.cls
+
+    # Map of classifier id -> node
+    nodes = diagram.nodes.select_related("cls").all()
+    classifier_ids_in_diagram = [n.cls_id for n in nodes]
+    nodes_by_classifier_id = {str(n.cls_id): n for n in nodes}
+
+    relations = Relation.objects.filter(
+        system__project=diagram.system.project
+    ).filter(
+        Q(source=cls, target_id__in=nodes_by_classifier_id.keys()) |
+        Q(target=cls, source_id__in=nodes_by_classifier_id.keys())
+    )
+
+    # Add edge to diagram
+    for rel in relations:
+        # Create edge
+        Edge.objects.get_or_create(
+            diagram=diagram,
+            rel=rel,
+            defaults={"data": {}},
+        )
 
     return node
 

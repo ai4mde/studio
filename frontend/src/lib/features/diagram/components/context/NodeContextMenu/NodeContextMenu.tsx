@@ -3,28 +3,82 @@ import { startManualConnect } from "$diagram/events";
 import { partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNodeContextMenu } from "$diagram/stores/contextMenus";
-import { useEditNodeModal } from "$diagram/stores/modals";
+import { useEditNodeModal, useConfirmDeleteClassifierModal } from "$diagram/stores/modals";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Copy, Edit, GitBranchPlus, Trash, UploadCloud, PlusCircle } from "lucide-react";
-import React, { MouseEventHandler, useState, useRef } from "react";
+import React, { MouseEventHandler, useState, useRef, useEffect } from "react";
 import { useStoreApi } from "reactflow";
 import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmationModal/DeleteConfirmationModal";
 
 const NodeContextMenu: React.FC = () => {
     const { x, y, node, close } = useNodeContextMenu();
     const { diagram, nodes, relatedDiagrams } = useDiagramStore();
-    const editNode = useEditNodeModal();
     const { setState, getState } = useStoreApi();
+    
+    const [canRemove, setCanRemove] = useState(true);
+    const [checkingUsage, setCheckingUsage] = useState(false);
+
+    const confirmDeleteClassifierModal = useConfirmDeleteClassifierModal();
+    const editNode = useEditNodeModal();
 
     const swimlaneButtonRef = useRef<HTMLLIElement>(null);
     const [showSwimlanes, setShowSwimlanes] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const swimlaneGroup = nodes.filter((n) => n.data.type === 'swimlanegroup')[0];
 
+    useEffect(() => {
+            let cancelled = false;
+    
+            const run = async () => {
+                if (!node) return;
+                setCheckingUsage(true);
+    
+                try {
+                    const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,);
+                    const usages = res.data?.usages ?? [];
+                    const allowRemove = usages.length > 0;
+                    if (!cancelled) setCanRemove(allowRemove);
+                } catch {
+                    if (!cancelled) setCanRemove(true);
+                } finally {
+                    if (!cancelled) setCheckingUsage(false);
+                }
+            };
+    
+            run();
+            return () => {
+                cancelled = true;
+            };
+        }, [node?.id, diagram]);
+    
+
     const onEdit = () => {
         node && editNode.open(node.id);
         close();
+    };
+
+    const onRemove = async () => {
+        if (node) {
+            await authAxios.delete(`/v1/diagram/${diagram}/node/${node.id}/`);
+            await queryClient.refetchQueries({
+                queryKey: [`diagram`],
+            });
+            close();
+        }
+    };
+
+    const onDeleteCompletely = async () => {
+        if (node) {
+            const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`);
+            confirmDeleteClassifierModal.open({
+                nodeId: node.id,
+                classifierName: res.data.classifier_name,
+                usages: res.data.usages,
+            });
+
+            close();
+        }
     };
 
     const onDelete = async (force: boolean = false) => {
@@ -118,6 +172,21 @@ const NodeContextMenu: React.FC = () => {
                         </button>
                     </li>
                     <hr className="my-1" />
+                    <li>
+                        <button
+                            onClick={onRemove}
+                            disabled={!canRemove || checkingUsage}
+                        >
+                            <span>Remove from Diagram</span>
+                            <Trash size={14} />
+                        </button>
+                    </li>
+                    <li>
+                        <button onClick={onDeleteCompletely}>
+                            <span>Delete Completely</span>
+                            <Trash size={14} />
+                        </button>
+                    </li>
                     {node.data.type !== 'swimlanegroup' && (
                         <li>
                             <button onClick={() => onDelete()}>
@@ -141,11 +210,11 @@ const NodeContextMenu: React.FC = () => {
                     </li>
                     {['action', 'control', 'object'].includes(node.data.type) && (
                          <li
-                         ref={swimlaneButtonRef}
-                         onMouseEnter={handleMouseEnter}
-                         onMouseLeave={handleMouseLeave}
-                         style={{ position: 'relative' }}
-                     >
+                            ref={swimlaneButtonRef}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                            style={{ position: 'relative' }}
+                        >
                          <button>
                              <span>Add to swimlane</span>
                              <PlusCircle size={14} />

@@ -8,10 +8,20 @@ import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
-import NewActivityConnection from "./NewActivityConnection";
-import NewClassConnection from "./NewClassConnection";
-import NewUsecaseConnection from "./NewUsecaseConnection";
+import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
+import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
+import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 import style from "./newconnectionmodal.module.css";
+
+const isConnectionValid = (diagramType: string, o: any): boolean => {
+    if (!o?.type) return false;
+
+    if (diagramType === "classes" || diagramType === "class") {
+        return isClassConnectionValid(o);
+    }
+
+    return true;
+};
 
 export const NewConnectionModal: React.FC = () => {
     const { nodes, diagram, type, relatedDiagrams } = useDiagramStore();
@@ -93,32 +103,32 @@ export const NewConnectionModal: React.FC = () => {
                                     </div>
                                 </div>
                             </Alert>
-                            {type == "classes" && (
-                                <NewClassConnection
+                            {type == "classes" || type == "class" ? (
+                                <ClassConnectionFields
                                     object={object}
                                     setObject={setObject}
                                 />
-                            )}
-                            {type == "activity" && (
-                                <NewActivityConnection
+                            ) : null}
+                            {type == "activity" ? (
+                                <ActivityConnectionFields
                                     object={object}
                                     sourceNode={sourceNode}
                                     classDiagrams={relatedDiagrams.filter((d) => d.type == "classes")}
                                     setObject={setObject}
                                 />
-                            )}
-                            {type == "usecase" && (
-                                <NewUsecaseConnection
+                            ): null}
+                            {type == "usecase" ? (
+                                <UseCaseConnectionFields
                                     object={object}
                                     setObject={setObject}
                                 />
-                            )}
+                            ) : null}
                         </div>
                         <div className={style.actions}>
                             <Button
                                 color="primary"
                                 size="sm"
-                                disabled={!object.type}
+                                disabled={!isConnectionValid(type, object)}
                                 type="submit"
                             >
                                 Add

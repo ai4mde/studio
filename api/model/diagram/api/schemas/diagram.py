@@ -1,9 +1,10 @@
+from uuid import UUID
 from enum import Enum
 from typing import List, Optional
 
 from ninja import ModelSchema, Schema
 
-from diagram.models import Diagram, Node
+from diagram.models import Diagram
 from .node import CreateNode, NodeSchema, ExportNode, ImportNode
 from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
 
@@ -17,6 +18,8 @@ class DiagramType(str, Enum):
 
 class ReadDiagram(ModelSchema):
     project: str
+    system_id: UUID
+    system_name: str
 
     class Meta:
         model = Diagram
@@ -25,6 +28,14 @@ class ReadDiagram(ModelSchema):
     @staticmethod
     def resolve_project(obj):
         return str(obj.system.project.id)
+    
+    @staticmethod
+    def resolve_system_id(obj):
+        return str(obj.system_id)
+    
+    @staticmethod
+    def resolve_system_name(obj):
+        return str(obj.system.name)
 
 
 class CreateDiagram(Schema):
@@ -89,7 +100,6 @@ class RelatedDiagram(ModelSchema):
 class FullDiagram(ReadDiagram):
     nodes: List[NodeSchema]
     edges: List[EdgeSchema]
-    related_diagrams: List[RelatedDiagram]
 
     @staticmethod
     def resolve_nodes(obj):
@@ -98,10 +108,6 @@ class FullDiagram(ReadDiagram):
     @staticmethod
     def resolve_edges(obj):
         return obj.edges.prefetch_related("rel").all()
-
-    @staticmethod
-    def resolve_related_diagrams(obj):
-        return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
 
 
 class ImportDiagram(CreateDiagram):

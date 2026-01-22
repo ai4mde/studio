@@ -1,6 +1,5 @@
-from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
-from django.views.generic import TemplateView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import user_passes_test
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
@@ -8,7 +7,6 @@ from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 {# Create, Update, Delete views #}
 {% for page in pages -%}
 {% for section_component in page.section_components -%}
-
 {% if section_component.has_create_operation %}
 class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% if authentication_present -%}
@@ -32,15 +30,23 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
+        new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
-        if not instance.{{ attribute }}:
-            instance.{{ attribute }} = None
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else:
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        if request.POST.get('instance_{{ attribute }}') == '':
+            new_object.{{ attribute }} = None
+        else: 
+            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
         {% endif -%}
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        new_object.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
         {% endfor -%}
         {% if page.type == 'activity' %}
         instance.save()
@@ -74,19 +80,24 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived -%}
+        {% if attribute.updatable and not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
+        instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
-        if not instance.{{ attribute }}:
-            instance.{{ attribute }} = None
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        {% elif attribute.type == AttributeType.INTEGER -%}
+        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
         {% endif -%}
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
         {% endfor -%}
-        return super().form_valid(form)
+        instance.save()
+        return redirect('render_{{ application_name }}_{{ page }}')
+
+{% if authentication_present -%}
+@user_passes_test(login_check)
 {% endif -%}
 
 {% if section_component.has_delete_operation -%}
@@ -119,9 +130,10 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     {% endif -%}
 {% endif -%}
 {% endfor -%}
-{% endfor -%}
 
-{# List views #}
+{% endfor %}
+{% endfor %}
+
 {% for page in pages %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if authentication_present -%}

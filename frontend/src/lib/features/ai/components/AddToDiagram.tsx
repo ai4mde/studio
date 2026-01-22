@@ -3,7 +3,7 @@ import { PreviewNode } from "$diagram/components/core/Node/Node";
 import { queryClient } from "$shared/hooks/queryClient";
 import { Button, Card, Option, Select } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import React from "react";
 import { Pipeline } from "../types";
 
@@ -28,12 +28,24 @@ type DiagramOut = {
     description?: string;
 };
 
+const NEW_DIAGRAM = "__new_diagram__";
+
+const DIAGRAM_TYPES = [
+    {value: "classes", label: "Class"},
+    {value: "usecase", label: "Use Case"},
+    {value: "activity", label: "Activity"},
+    {value: "component", label: "Component"},
+];
+
 export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
     const [classifiers, setClassifiers] = React.useState<any[]>([]);
     const [relations, setRelations] = React.useState<any[]>([]);
     const [project, setProject] = React.useState<string | undefined>();
     const [system, setSystem] = React.useState<string | undefined>();
     const [diagram, setDiagram] = React.useState<string | undefined>();
+    const [newDiagramType, setNewDiagramType] = React.useState<string | null>(null);
+    const [newDiagramName, setNewDiagramName] = React.useState("");
+    const [createMode, setCreateMode] = React.useState(false);
 
     const projects = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -99,94 +111,233 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
         }
     };
 
-    const { mutate, isPending, isError, isSuccess } = useMutation({
-        mutationFn: async () => {
+    const { mutateAsync: addToDiagram, isPending, isSuccess, reset: resetAdd } = useMutation({
+        mutationFn: async (targetDiagramId: string) => {
             const selectedClassifiers = _classifiers.filter((c) => classifiers.includes(c.id));
             const selectedRelations = _relations.filter((r) => relations.includes(r.id));
-            await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${diagram}/`, {
+            const res = await authAxios.post(`/v1/prose/pipelines/${pipeline.id}/add_to_diagram/${targetDiagramId}/`, {
                 pipeline_id: pipeline.id,
-                diagram_id: diagram,
+                diagram_id: targetDiagramId,
                 classifiers: selectedClassifiers,
                 relations: selectedRelations,
             });
 
             queryClient.invalidateQueries({ queryKey: ["pipelines"] });
         },
+        onError: (e: any) => {
+            console.error("add_to_diagram failed", e?.response?.status, e?.response?.data || e?.message);
+        },
+        onSuccess: () => {
+            console.log("components added to diagram");
+        }
+    });
+
+    React.useEffect(() => {
+        resetAdd();
+    }, [project, system, diagram, createMode, newDiagramType, newDiagramName, classifiers, relations]);
+
+    const { mutateAsync: createDiagram, isPending: creatingDiagram} = useMutation({
+        mutationFn: async ({ type, name }: { type: string, name: string }) => {
+            const { data } = await authAxios.post("/v1/diagram/", {
+                name,
+                system,
+                type
+            });
+            return data;
+        },
+        onSuccess: async (data) => {
+            queryClient.setQueryData<DiagramOut[]>(
+                ["diagrams", `${project}`],
+                (old) => {
+                    const prev = Array.isArray(old) ? old : [];
+                    if (prev.some(d => String(d.id) === String(data.id))) return prev;
+                    return [{ id: String(data.id), name: data.name ?? "Untitled diagram" }, ...prev];
+                }
+            );
+            // Select new diagram
+            setDiagram(String(data.id));
+            // Refresh list so new diagram appears in dropdown
+            await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
+        }
     });
 
     return (
         <>
             <Card>
-                <div className="flex w-full flex-row gap-4 p-1">
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setProject(`${val}`)}
-                    >
-                        {projects.isSuccess ? (
-                            projects.data.map((p) => (
-                                <Option value={p.id}>{p.name}</Option>
-                            ))
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setSystem(`${val}`)}
-                    >
-                        {systems.isSuccess ? (
-                            systems.data.map((p) => (
-                                <Option value={p.id}>{p.name}</Option>
-                            ))
-                        ) : project ? (
-                            <Option value="setproj" disabled>
-                                Set a project first
-                            </Option>
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Select
-                        className="w-full"
-                        onChange={(_, val) => setDiagram(`${val}`)}
-                    >
-                        {diagrams.isSuccess ? (
-                            diagrams.data.length > 0 ? (
-                                diagrams.data.map((p) => (
-                                    <Option key={p.id} value={p.id}>
-                                        {p.id}
-                                    </Option>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-1">
+
+                    {/* Project */}
+                    <div className="md:col-start-1 md:row-start-1">
+                        <label className="block text-sm font-medium mb-1">Project</label>
+                        <Select
+                            size="md"
+                            className="w-full"
+                            placeholder="Select a project"
+                            onChange={(_, val) => setProject(`${val}`)}
+                        >
+                            {projects.isSuccess ? (
+                                projects.data.map((p) => (
+                                    <Option value={p.id}>{p.name}</Option>
                                 ))
                             ) : (
-                                <Option value="no-diagrams" disabled>
-                                    Create a diagram first!
+                                <Option value="loading" disabled>
+                                    Loading...
                                 </Option>
-                            )
-                        ) : system ? (
-                            <Option value="setsys" disabled>
-                                Set a system first
-                            </Option>
-                        ) : (
-                            <Option value="loading" disabled>
-                                Loading...
-                            </Option>
-                        )}
-                    </Select>
-                    <Button
-                        onClick={() => mutate()}
-                        fullWidth
-                        disabled={!system || !project || !diagram || !classifiers.length || isPending || isSuccess}
-                    >
-                        {isPending ? "Generating..."
-                            : isSuccess ? "Successfully generated!"
+                            )}
+                        </Select>
+                    </div>
+                    
+                    {/* System */}
+                    <div className="md:col-start-2 md:row-start-1">
+                        <label className="block text-sm font-medium mb-1">System</label>
+                        <Select
+                            size="md"
+                            className="w-full"
+                            placeholder="Select a system"
+                            onChange={(_, val) => setSystem(`${val}`)}
+                        >
+                            {systems.isSuccess ? (
+                                systems.data.map((p) => (
+                                    <Option value={p.id}>{p.name}</Option>
+                                ))
+                            ) : project ? (
+                                <Option value="setproj" disabled>
+                                    Set a project first
+                                </Option>
+                            ) : (
+                                <Option value="loading" disabled>
+                                    Loading...
+                                </Option>
+                            )}
+                        </Select>
+                    </div>
+
+                    {/* Diagram */}
+                    <div className="md:col-start-3 md:row-start-1">
+                        <label className="block text-sm font-medium mb-1">Diagram</label>
+                        <Select
+                            size="md"
+                            className="w-full"
+                            placeholder="Select a diagram"
+                            value = {diagram ?? null}
+                            onChange={(_, val) => {
+                                if (val === (NEW_DIAGRAM)) {
+                                    setDiagram(NEW_DIAGRAM);
+                                    setCreateMode(true);
+                                    setNewDiagramType(null);
+                                    setNewDiagramName("");
+                                    return;
+                                }
+                                setCreateMode(false);
+                                setDiagram(val ?? undefined);
+                            }}
+                        >
+                            {project && system && (
+                                <Option value={NEW_DIAGRAM}>
+                                    <span className="flex items-center">
+                                        <Plus size={16} className="inline mr-1" />
+                                        New Diagram...
+                                    </span>
+                                </Option>
+                            )}
+
+                            {diagrams.isSuccess ? (
+                                diagrams.data.length > 0 ? (
+                                    diagrams.data.map((p) => (
+                                        <Option key={p.id} value={String(p.id)}>
+                                            {p.name}
+                                        </Option>
+                                    ))
+                                ) : (
+                                    <Option value="no-diagrams" disabled>
+                                        Create a diagram first!
+                                    </Option>
+                                )
+                            ) : system ? (
+                                <Option value="setsys" disabled>
+                                    Set a system first
+                                </Option>
+                            ) : (
+                                <Option value="loading" disabled>
+                                    Loading...
+                                </Option>
+                            )}
+                        </Select>
+                    </div>
+
+                    {/* Button */}
+                    <div className="md:col-start-4 md:row-start-1">
+                        <label className="block text-sm fpnt-medium mb-1 invisible" aria-hidden>
+                            Action
+                        </label>
+                        <Button
+                            size="md"
+                            onClick={async () => {
+                                let targetId = diagram;
+                                if (createMode) {
+                                    if (!newDiagramType || !newDiagramName.trim()) return;
+                                    const created = await createDiagram({ type: newDiagramType, name: newDiagramName.trim() });
+                                    targetId = String(created.id);
+                                    setDiagram(targetId);
+                                    setCreateMode(false);
+                                }
+                                if (targetId) {
+                                    await addToDiagram(targetId);
+                                }
+                            }}
+                            disabled={
+                                !system ||
+                                !project ||
+                                (!createMode && !diagram) ||
+                                (createMode && (!newDiagramType || !newDiagramName.trim())) ||
+                                !classifiers.length ||
+                                isPending ||
+                                isSuccess ||
+                                creatingDiagram
+                            }
+                        >
+                            {isPending ? "Generating..."
+                                : isSuccess ? "Successfully generated!"
+                                : createMode ? "Create & add"
                                 : "Add to diagram"
-                        }
-                    </Button>
+                            }
+                        </Button>
+                    </div>
                 </div>
+
+                {/* Render diagram creation fields when in create mode */}
+                {createMode && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-1">
+
+                        {/* New Diagram Type */}
+                        <div className="md:col-start-2">
+                            <label className="block text-sm font-medium mb-1">Diagram Type</label>
+                            <Select
+                                size="md"
+                                className="w-full"
+                                placeholder="Select a type"
+                                value={newDiagramType ?? null}
+                                onChange={(_, val) => setNewDiagramType(val as string | null)}
+                            >
+                                {DIAGRAM_TYPES.map((t) => (
+                                    <Option key={t.value} value={t.value}>{t.label}</Option>
+                                ))}
+                            </Select>
+                        </div>
+                    
+                        {/* New Diagram Name */}
+                        <div className="md:col-start-3">
+                            <label className="block text-sm font-medium mb-1">New Diagram Name</label>
+                            <input
+                                type="text"
+                                className="w-full border rounded px-2 py-1"
+                                placeholder="Enter a name..."
+                                value={newDiagramName}
+                                onChange={(e) => setNewDiagramName(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                )}
             </Card>
             <Card className="flex w-full flex-col gap-4 p-4">
                 <div className="flex w-full flex-col gap-1">

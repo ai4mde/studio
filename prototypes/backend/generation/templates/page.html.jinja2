@@ -1,18 +1,12 @@
-{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{%{% endraw %} extends "{{ page.application }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
 
-
 <div>
-    {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
     {%- for section_component in page.section_components %}
 
-    {% if page.type != 'activity' %}<h2>{{ section_component.display_name }}</h2>{% endif %}
+    <h2>{{ section_component.display_name }}</h2>
 
-    {% if page.type == 'activity' %}
-        <p>{{ loop.index }}. {{ section_component.text}}</p>
-    {% else  %}
-        <p>{{ section_component.text}}</p>
-    {% endif %}
+    <p>{{ section_component.text }}</p>
 
     {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
     <table>
@@ -39,16 +33,16 @@
                 {% if attribute.updatable and not attribute.derived %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.INTEGER %}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.BOOLEAN %}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
+                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
                     
                     {%- elif attribute.type == AttributeType.ENUM %}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
+                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -74,8 +68,8 @@
                 {% endfor %}
                 {% for parent_model in section_component.parent_models %}
                 <td style="text-align:center;">
-                    <select name="{{ parent_model }}">
-                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                    <select name="instance_{{ parent_model }}_id">
+                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
@@ -168,7 +162,7 @@
 
         {# CREATE FORM -#}
         {% if section_component.has_create_operation -%}
-        {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
+        {% raw %}{%{% endraw %} if {{ section_component }}_create_popup {% raw %}%}{% endraw %}
         <tr>
             <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
@@ -178,13 +172,13 @@
                 {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.INTEGER -%}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
+                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}">
                     {% elif attribute.type == AttributeType.ENUM -%}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
+                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -196,8 +190,8 @@
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>
-                    <select name="{{ parent_model }}">
-                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                    <select name="instance_{{ parent_model }}_id">
+                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
                     </select>

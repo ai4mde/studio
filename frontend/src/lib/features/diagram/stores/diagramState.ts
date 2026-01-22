@@ -1,9 +1,6 @@
 import { applyNodeChanges } from "$diagram/events/node";
 import { create } from "zustand";
 import { DiagramState, RelatedNode } from "../types/diagramState";
-// import { applyEdgeChanges, applyNodeChanges } from '../utils/applyChanges'
-// import processNodes from '../utils/nodes'
-// import processEdges from '../utils/edges'
 
 export const useDiagramStore = create<DiagramState>((set) => ({
     nodes: [],
@@ -20,8 +17,10 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     project: "",
     setProject: (val) => set(() => ({ project: val })),
 
+    systemId: "",
+    systemName: "",
     system: "",
-    setSystem: (val) => set(() => ({ system: val })),
+    setSystem: (id, name = "") => set(() => ({ systemId: id, systemName: name })),
 
     refreshLock: () => set(() => ({})),
     requestLock: () => set(() => ({ lock: true })),
@@ -49,13 +48,13 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     x: e.data?.position?.x ?? 0,
                     y: e.data?.position?.y ?? 0,
                 },
-                parentNode: e?.cls?.actorNode ? swimlaneGroupUUID : null,
-                extend: e?.cls?.actorNode ? 'parent' : null,
-                connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
-                zIndex: e?.cls?.type === "swimlanegroup" ? -1: 1,
-                data: e?.cls,
+                data: {
+                    ...e.cls,
+                    systemName: e.system_name,
+                    systemId: e.system_id,
+                },
             })),
-        }));
+        }))
     },
     edgesFromAPI: (eds) =>
         set(() => ({
@@ -102,5 +101,5 @@ export const useDiagramStore = create<DiagramState>((set) => ({
         });
     }
 }));
-    
+
 

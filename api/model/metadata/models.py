@@ -30,8 +30,11 @@ class Release(models.Model):
 
 class Classifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="classifiers", null=True, blank=True,
+    )
     system = models.ForeignKey(
-        System, on_delete=models.CASCADE, related_name="classifiers"
+        System, on_delete=models.CASCADE, related_name="classifiers", null=True, blank=True,
     )
     data = models.JSONField()
 

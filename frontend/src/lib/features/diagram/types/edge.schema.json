@@ -168,6 +168,16 @@
                 },
                 {
                     "type": "object",
+                    "properties": {
+                        "type": { "const": "dependency" },
+                        "label": {
+                            "type": "string"
+                        }
+                    },
+                    "required": ["type"]
+                },
+                {
+                    "type": "object",
                     "additionalProperties": false,
                     "properties": {
                         "isDirected": {

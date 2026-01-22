@@ -1,14 +1,8 @@
-import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
-import React, { useEffect, useState } from "react";
-import { RelatedNode } from "$diagram/types/diagramState"
-import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
+import React from "react";
+import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 
 type Props = {
     object: any;
-    uniqueActors: RelatedNode[];
-    swimlaneGroupExists: boolean;
-    existingActors: string[];
-    classes?: string[];
     setObject: (o: any) => void;
 };
 
@@ -61,13 +55,12 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             <FormControl size="sm" className="w-full">
                 <FormLabel>Role</FormLabel>
                 <Select
-                    value={object.role || ""}
+                    value={object.role}
                     onChange={(_, e) =>
                         setObject((o: any) => ({ ...o, role: e }))
                     }
                     placeholder="Select a role..."
                 >
-                    <Option value="swimlane">Swimlane</Option>
                     <Option value="action">Action</Option>
                     <Option value="control">Control</Option>
                     <Option value="object">Object</Option>
@@ -76,17 +69,12 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             <FormControl size="sm" className="w-full">
                 <FormLabel>Type</FormLabel>
                 <Select
-                    value={object.type || ""}
+                    value={object.type}
                     placeholder="Select a type..."
                     onChange={(_, e) =>
                         setObject((o: any) => ({ ...o, type: e }))
                     }
                 >
-                    {object.role == "swimlane" && (
-                        <>
-                            <Option value="swimlane">Swimlane</Option>
-                        </>
-                    )}
                     {object.role == "action" && (
                         <>
                             <Option value="action">Action</Option>
