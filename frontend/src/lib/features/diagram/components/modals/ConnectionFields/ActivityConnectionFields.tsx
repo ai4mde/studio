@@ -1,5 +1,5 @@
 import { FormControl, FormLabel, Input, Option, Select, Switch } from "@mui/joy";
-import React from "react";
+import React, { useEffect } from "react";
 import { Node } from "reactflow";
 import { RelatedDiagram } from "$diagram/types/diagramState";
 

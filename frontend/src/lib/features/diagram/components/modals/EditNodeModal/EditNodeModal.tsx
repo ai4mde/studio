@@ -16,12 +16,17 @@ import {
     EditMethods,
     EditName,
     EditSchedule,
+    EditDimensions,
+    EditBoolean,
+    EditSwimlane,
+    EditCode
 } from "./components";
 import style from "./editnodemodal.module.css";
 
+
 export const EditNodeModal: React.FC = () => {
     const modalState = useEditNodeModal();
-    const { diagram, nodes } = useDiagramStore();
+    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),

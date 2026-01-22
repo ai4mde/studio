@@ -32,6 +32,8 @@ export type DiagramState = {
     setProject: (project: string) => void;
 
     system: string;
+    systemId: string;
+    systemName: string;
     setSystem: (system: string) => void;
 
     lock: boolean;

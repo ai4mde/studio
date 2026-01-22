@@ -66,7 +66,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
 
             const systemId = data.system_id;
             const systemName = data.system_name;
-            diagramStore.setSystem(systemId, systemName);
+            diagramStore.setSystem(systemId);
         }
     }, [isSuccess]);
 

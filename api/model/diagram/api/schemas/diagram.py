@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from ninja import ModelSchema, Schema
 
-from diagram.models import Diagram
+from diagram.models import Diagram, Node
 from .node import CreateNode, NodeSchema, ExportNode, ImportNode
 from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
 

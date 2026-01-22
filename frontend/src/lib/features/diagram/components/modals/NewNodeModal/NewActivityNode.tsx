@@ -1,8 +1,14 @@
-import React from "react";
-import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
+import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
+import React, { useEffect, useState } from "react";
+import { RelatedNode } from "$diagram/types/diagramState"
+import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 
 type Props = {
     object: any;
+    uniqueActors: RelatedNode[];
+    swimlaneGroupExists: boolean;
+    existingActors: string[];
+    classes?: string[];
     setObject: (o: any) => void;
 };
 
