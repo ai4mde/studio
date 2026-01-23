@@ -91,6 +91,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
     if data.rel is not None:
         current = edge_obj.rel.data or {}
         merged = {**current, **data.rel}
+        PatchModel.model_validate({"rel": merged})
         new_type = merged.get("type", current.get("type"))
 
         # default fallback if type is missing
@@ -103,6 +104,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
             mult = merged.get("multiplicity") or {}
 
             cleaned = {
+                **merged,
                 "type": new_type,
                 "label": merged.get("label", ""),
                 "labels": {
@@ -117,12 +119,14 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
         elif new_type == "dependency":
             cleaned = {
+                **merged,
                 "type": "dependency",
                 "label": merged.get("label", ""),
             }
 
         elif new_type == "generalization":
             cleaned = {
+                **merged,
                 "type": "generalization",
             }
 
@@ -134,7 +138,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
     if data.data is not None:
         current_data = edge_obj.data or {}
-        updated_data = {**current_data, **data.data}
+        updated_data = {**current_data, **data.data.model_dump()}
         edge_obj.data = updated_data
         edge_obj.save()
 
@@ -162,56 +166,11 @@ def hard_delete_relation(request: HttpRequest, edge_id: str):
 
 
 
-class PatchModel(BaseModel):
-    rel: Relation
-
-
-@edge.patch("/{uuid:edge_id}/", response=EdgeSchema)
-def update_edge(request: HttpRequest, edge_id: str, data: PatchEdge):
-    diagram = utils.get_diagram(request)
-
-    if not diagram:
-        return 404, "Diagram not found"
-
-    edge = diagram.edges.get(id=edge_id)
-
-    if data.rel is not None:
-        new_rel = {**edge.rel.data, **data.rel}
-        PatchModel.model_validate({"rel": new_rel})
-        edge.rel.data = new_rel
-        edge.rel.save()
-
-    if data.data is not None:
-        edge.data = {**edge.data, **data.data.model_dump()}
-        edge.save()
-
-    return edge
 
 
 class PatchModel(BaseModel):
     rel: Relation
 
-
-@edge.patch("/{uuid:edge_id}/", response=EdgeSchema)
-def update_edge(request: HttpRequest, edge_id: str, data: PatchEdge):
-    diagram = utils.get_diagram(request)
-
-    if not diagram:
-        return 404, "Diagram not found"
-
-    edge = diagram.edges.get(id=edge_id)
-
-    if data.rel is not None:
-        new_rel = {**edge.rel.data, **data.rel}
-        PatchModel.model_validate({"rel": new_rel})
-        edge.rel.data = new_rel
-        edge.rel.save()
-
-    if data.data is not None:
-        edge.data = {**edge.data, **data.data.model_dump()}
-        edge.save()
-
-    return edge
 
 @edge.get("/{uuid:edge_id}/", response=EdgeSchema)
 def edge_node(request: HttpRequest, edge_id: str):
