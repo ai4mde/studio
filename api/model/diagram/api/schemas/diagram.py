@@ -20,6 +20,7 @@ class ReadDiagram(ModelSchema):
     project: str
     system_id: UUID
     system_name: str
+    system: UUID # TODO Remove later
 
     class Meta:
         model = Diagram
@@ -36,6 +37,11 @@ class ReadDiagram(ModelSchema):
     @staticmethod
     def resolve_system_name(obj):
         return str(obj.system.name)
+
+    # TODO Remove later
+    @staticmethod
+    def resolve_system(obj):
+        return str(obj.system.id)
 
 
 class CreateDiagram(Schema):
@@ -100,6 +106,7 @@ class RelatedDiagram(ModelSchema):
 class FullDiagram(ReadDiagram):
     nodes: List[NodeSchema]
     edges: List[EdgeSchema]
+    related_diagrams: List[RelatedDiagram] = []
 
     @staticmethod
     def resolve_nodes(obj):
@@ -108,6 +115,10 @@ class FullDiagram(ReadDiagram):
     @staticmethod
     def resolve_edges(obj):
         return obj.edges.prefetch_related("rel").all()
+
+    @staticmethod
+    def resolve_related_diagrams(obj):
+        return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
 
 
 class ImportDiagram(CreateDiagram):
