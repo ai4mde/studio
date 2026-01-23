@@ -1,26 +1,14 @@
-from .action import ActionClassifier
-from .control import ControlClassifier
-from .object import ObjectClassifier
-from .swimlane import SwimLaneClassifier
- 
-from typing import Union
- 
-ActivityClassifier = Union[SwimLaneClassifier, ActionClassifier, ControlClassifier, ObjectClassifier]
- 
-__all__ = ["ActivityClassifier"]
- 
- 
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
- 
+
 {# Create, Update, Delete views #}
 {% for page in pages -%}
 {% for section_component in page.section_components -%}
- 
+
 {% if section_component.has_create_operation %}
 class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% if authentication_present -%}
@@ -30,7 +18,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
- 
+
     def get_success_url(self):
         return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
@@ -38,7 +26,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
- 
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
@@ -64,7 +52,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% endif -%}
         return super().form_valid(form)
 {% endif %}
- 
+
 {% if section_component.has_update_operation %}
 class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     {% if authentication_present -%}
@@ -74,7 +62,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
- 
+
     def get_success_url(self):
         return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
@@ -82,7 +70,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
- 
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
@@ -100,7 +88,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% endfor -%}
         return super().form_valid(form)
 {% endif -%}
- 
+
 {% if section_component.has_delete_operation -%}
 class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     {% if authentication_present -%}
@@ -109,7 +97,7 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     model = {{ section_component.primary_model }}
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
- 
+
     def get_success_url(self):
         return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
@@ -117,7 +105,7 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif -%}
- 
+
     {% if page.type == 'activity' %}
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -127,12 +115,12 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
         )
         active_process_node.active_process.remove_associated_instance(instance)
         return super().delete(request, *args, **kwargs)
- 
+
     {% endif -%}
 {% endif -%}
 {% endfor -%}
 {% endfor -%}
- 
+
 {# List views #}
 {% for page in pages %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView):
@@ -142,12 +130,12 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     template_name='{{ application_name }}_{{ page }}.html'
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
- 
+
     {% if page.type == 'activity' -%}
     def get_queryset(self):
         return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
     {% endif -%}
- 
+
     {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -168,18 +156,18 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endfor %}
         {% endif %}
         return context
- 
+
     {% endif -%}
 {% endfor -%}
- 
- 
+
+
 {# Home render view #}
 class HomeRenderView(GenericTemplateView):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
     {% endif -%}
     template_name = '{{ application_name }}_home.html'
- 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
@@ -189,5 +177,3 @@ class HomeRenderView(GenericTemplateView):
         )
         context['available_processes'] = Process.get_available_processes(self.request.user)
         return context
- 
- 

@@ -1,3 +1,6 @@
+{% if authentication_present -%}
+from functools import cached_property
+{% endif -%}
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.shortcuts import get_object_or_404
@@ -7,7 +10,16 @@ class User(AbstractUser):
     {% if user_types -%}
     {% for user_type in user_types -%}
     is_{{ user_type }} = models.BooleanField(default=False)
-    {% endfor -%}
+    {% endfor %}
+
+    @cached_property
+    def roles(self) -> list[str]:
+        return [
+            attr[3:]
+            for attr in dir(self)
+            if attr.startswith("is_") and getattr(self, attr, False) is True
+            and attr not in ["is_superuser", "is_staff", "is_active", "is_authenticated"]
+        ]
     {% else -%}
     pass
     {% endif %}

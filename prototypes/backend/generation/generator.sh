@@ -8,6 +8,8 @@ export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
 
+export PYTHONPATH="${WORKDIR}/generation_scripts"
+
 # Global settings such as authentication go here
 export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA")
 
@@ -102,6 +104,7 @@ create_django_apps() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     
     create_shared_models_app
+    create_workflow_engine_app
     if [ "$AUTH_PRESENT" = "True" ]; then
         create_authentication_app
     else
@@ -115,6 +118,7 @@ create_django_apps() {
 run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python "manage.py" "makemigrations"
+    cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
     python "manage.py" "migrate"
 }
 
