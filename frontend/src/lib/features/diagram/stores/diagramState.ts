@@ -20,7 +20,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     systemId: "",
     systemName: "",
     system: "",
-    setSystem: (id, name = "") => set(() => ({ systemId: id, systemName: name })),
+    setSystem: (id, name = "") => set(() => ({ systemId: id, systemName: name, system: id })),
 
     refreshLock: () => set(() => ({})),
     requestLock: () => set(() => ({ lock: true })),

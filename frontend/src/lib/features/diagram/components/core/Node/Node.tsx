@@ -16,6 +16,7 @@ import {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SwimlaneGroupNode,
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -43,6 +44,7 @@ export const nodeTypes: NodeTypes = {
     trigger: TriggerNode,
     usecase: UsecaseNode,
     default: Node,
+    swimlanegroup: SwimlaneGroupNode,
 };
 
 export const PreviewNode: React.FC<NodeProps> = (node) => {

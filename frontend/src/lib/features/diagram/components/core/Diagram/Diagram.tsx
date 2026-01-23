@@ -65,7 +65,7 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
             diagramStore.setProject(data.project);
 
             const systemId = data.system_id;
-            const systemName = data.system_name;
+            const systemName = data.system_name; // TODO variable not used?
             diagramStore.setSystem(systemId);
         }
     }, [isSuccess]);
@@ -79,6 +79,10 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         () => diagramStore.edgesFromAPI(data?.edges ?? []),
         [dataUpdatedAt],
     );
+    useEffect(
+        () => diagramStore.relatedDiagramsFromAPI(data?.related_diagrams ?? []),
+        [dataUpdatedAt],
+    )
 
     if (!isSuccess) {
         return <LinearProgress className="absolute top-0 left-0 right-0" />;
