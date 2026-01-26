@@ -3,7 +3,7 @@ import SystemLayout from "$lib/features/browser/components/systems/SystemLayout"
 import { queryClient } from "$lib/shared/hooks/queryClient";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow, Blocks, X } from "lucide-react";
+import { Component, Network, Plus, User, Workflow, Blocks, X, Download } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";
@@ -57,6 +57,21 @@ const SystemDiagrams: React.FC = () => {
             });
         },
     });
+
+    const handleExportSystem = async () => {
+        const response = await authAxios.get(`/v1/metadata/systems/export/${systemId}/`);
+        const jsonStr = JSON.stringify(response.data, null, 2);
+        const blow = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blow);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${system.data?.name ?? "system"}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 
     const { diagrams_by_type } = system.data ?? {};
     const uiDiagrams = [
@@ -169,6 +184,14 @@ const SystemDiagrams: React.FC = () => {
                                 <Blocks size={16}/>
                                 <h2 className="text-base">Show Metadata</h2>
                             </button>
+                            <button
+                                className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
+                                onClick={() => handleExportSystem()}
+                            >
+                                <Download size={16}/>
+                                <h2 className="text-base">Export System</h2>
+                            </button>
+                            
                         </div>
                     </>
                 )}

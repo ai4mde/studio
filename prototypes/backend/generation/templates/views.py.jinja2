@@ -1,143 +1,179 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import get_object_or_404
+from django.urls import reverse, reverse_lazy
+from django.views.generic import TemplateView
 from shared_models.models import *
+from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
+from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 
-{% if authentication_present -%}
-def login_check(user):
-    return user.is_authenticated and user.is_{{ application_name }} # TODO: actor name instead of app name
-{% endif -%}
-
-{% for page in pages %}
+{# Create, Update, Delete views #}
+{% for page in pages -%}
 {% for section_component in page.section_components -%}
-{% if section_component.has_create_operation %}
 
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_create(request):
-    if request.method == 'POST':
-        new_object = {{ section_component.primary_model }}()
+{% if section_component.has_create_operation %}
+class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    model = {{ section_component.primary_model }}
+    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    template_name = '{{ application_name }}_{{ page }}.html'
+    {% if page.type == 'activity' -%}
+
+    def get_success_url(self):
+        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+            'active_process_node_id': self.kwargs.get('active_process_node_id'),
+        })
+    {% else -%}
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+    {% endif %}
+
+    def form_valid(self, form):
+        instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        new_object.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
-        if request.POST.get('instance_{{ attribute }}') == '':
-            new_object.{{ attribute }} = None
-        else:
-            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
-
-        {% elif attribute.type == AttributeType.INTEGER -%}
-        if request.POST.get('instance_{{ attribute }}') == '':
-            new_object.{{ attribute }} = None
-        else: 
-            new_object.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        if not instance.{{ attribute }}:
+            instance.{{ attribute }} = None
         {% endif -%}
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        new_object.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
+        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
         {% endfor -%}
-        new_object.save()
-    return redirect('render_{{ application_name }}_{{ page }}')
-
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_create_popup(request):
-    context = {}
-    {% for model in models_on_pages[page] -%}
-    context['{{ model }}_list'] = {{ model }}.objects.all()
-    {% endfor -%}
-    context['{{ section_component }}_create_popup'] = True
-    return render(request, '{{ application_name }}_{{ page }}.html', context)
-
-{% endif -%}
-
-{% if section_component.has_delete_operation %}
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_delete(request, instance_id):
-    if request.method == 'POST':
-        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-        instance.delete()
-        return redirect('render_{{ application_name }}_{{ page }}')
-{% endif -%}
+        {% if page.type == 'activity' %}
+        instance.save()
+        active_process_node = get_object_or_404(
+            ActiveProcessNode,
+            pk=self.kwargs.get('active_process_node_id'),
+        )
+        active_process_node.active_process.add_associated_instance(instance)
+        {% endif -%}
+        return super().form_valid(form)
+{% endif %}
 
 {% if section_component.has_update_operation %}
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_update(request, instance_id):
-    if request.method == 'POST':
-        instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
+class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    model = {{ section_component.primary_model }}
+    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    template_name = '{{ application_name }}_{{ page }}.html'
+    {% if page.type == 'activity' -%}
+
+    def get_success_url(self):
+        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+            'active_process_node_id': self.kwargs.get('active_process_node_id'),
+        })
+    {% else -%}
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+    {% endif %}
+
+    def form_valid(self, form):
+        instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if attribute.updatable and not attribute.derived -%}
+        {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        instance.{{ attribute }} = (request.POST.get('instance_{{ attribute }}') == 'on')
+        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
-        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
-        {% elif attribute.type == AttributeType.INTEGER -%}
-        instance.{{ attribute }} = request.POST.get('instance_{{ attribute }}')
+        if not instance.{{ attribute }}:
+            instance.{{ attribute }} = None
         {% endif -%}
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=request.POST.get('instance_{{ parent_model }}_id'))
+        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
         {% endfor -%}
-        instance.save()
-        return redirect('render_{{ application_name }}_{{ page }}')
-
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_update_popup(request, instance_id):
-    context = {}
-    {% for model in models_on_pages[page] -%}
-    context['{{ model }}_list'] = {{ model }}.objects.all()
-    {% endfor -%}
-    context['update_instance'] = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-    return render(request, '{{ application_name }}_{{ page }}.html', context)
-
-
+        return super().form_valid(form)
 {% endif -%}
 
-{% for custom_method in section_component.custom_methods -%}
-{% if custom_method.body_is_valid -%}
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def {{ page }}_{{ section_component }}_{{ custom_method }}(request, instance_id):
-    instance = get_object_or_404({{ section_component.primary_model }}, pk=instance_id)
-    instance.{{ custom_method.call_name }}()
-    context = {}
-    {% for model in models_on_pages[page] -%}
-    context['{{ model }}_list'] = {{ model }}.objects.all()
-    {% endfor -%}
-    return render(request, '{{ application_name }}_{{ page }}.html', context)
+{% if section_component.has_delete_operation -%}
+class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    model = {{ section_component.primary_model }}
+    template_name = '{{ application_name }}_{{ page }}.html'
+    {% if page.type == 'activity' -%}
+
+    def get_success_url(self):
+        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+            'active_process_node_id': self.kwargs.get('active_process_node_id'),
+        })
+    {% else -%}
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+    {% endif -%}
+
+    {% if page.type == 'activity' %}
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        active_process_node = get_object_or_404(
+            ActiveProcessNode,
+            pk=self.kwargs.get('active_process_node_id'),
+        )
+        active_process_node.active_process.remove_associated_instance(instance)
+        return super().delete(request, *args, **kwargs)
+
+    {% endif -%}
 {% endif -%}
 {% endfor -%}
+{% endfor -%}
 
-{% endfor %}
-{% endfor %}
-
+{# List views #}
 {% for page in pages %}
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def render_{{ application_name }}_{{ page }}(request):
-    context = {}
-    {% for model in models_on_pages[page] -%}
-    context['{{ model }}_list'] = {{ model }}.objects.all()
-    {% endfor -%}
-    return render(request, '{{ application_name }}_{{ page }}.html', context)
-{% endfor %}
+class {{ application_name }}_{{ page }}_ListView(GenericListView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    template_name='{{ application_name }}_{{ page }}.html'
+    model = {{ models_on_pages[page]['primary_models'][0] }}
+    context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
 
-{% if authentication_present -%}
-@user_passes_test(login_check)
-{% endif -%}
-def homerender(request):
-    context = {}
-    context['user'] = request.user
-    return render(request, '{{ application_name }}_home.html', context)
+    {% if page.type == 'activity' -%}
+    def get_queryset(self):
+        return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+    {% endif -%}
+
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        {% for model in models_on_pages[page]['parent_models'] -%}
+        context['parent_{{model}}_list'] = {{model}}.objects.all()
+        {% endfor -%}
+        {% if page.type == 'activity' -%}
+        {% if models_on_pages[page]['primary_models'] | length > 1 -%}
+        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
+        context['{{ primary_model }}_list'] = self.active_process_node.active_process.{{ primary_model.lower() }}s
+        {% endfor -%}
+        {% endif -%}
+        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
+        {% endif -%}
+        {% if page.type != 'activity' -%}
+        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
+        context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
+        {% endfor %}
+        {% endif %}
+        return context
+
+    {% endif -%}
+{% endfor -%}
+
+
+{# Home render view #}
+class HomeRenderView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    template_name = '{{ application_name }}_home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        context['active_process_nodes'] = ActiveProcessNode.objects.filter(
+            user=self.request.user,
+            active_process__completed=False,
+        )
+        context['available_processes'] = Process.get_available_processes(self.request.user)
+        return context

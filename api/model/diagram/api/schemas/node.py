@@ -2,7 +2,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from ninja import ModelSchema, Schema
-from diagram.models import Node
+from diagram.models import Node, Classifier as ClassifierModel
 from metadata.specification import Classifier
 
 
@@ -75,6 +75,38 @@ class RelationUsageResponse(Schema):
     usages: List[DiagramUsageItem]
 
 
+class ExportClassifier(ModelSchema):
+    class Meta:
+        model = ClassifierModel
+        fields = "__all__"
+
+
+class ImportClassifier(Schema):
+    id: str
+    system: str
+    data: dict
+
+
+class ExportNode(ModelSchema):
+    cls_data: ExportClassifier
+
+    class Meta:
+        model = Node
+        fields = "__all__"
+
+    @staticmethod
+    def resolve_cls_data(obj):
+        return obj.cls
+
+
+class ImportNode(Schema):
+    id: str
+    cls_data: ImportClassifier
+    diagram: str
+    cls: str
+    data: NodeData
+
+
 __all__ = [
     "CreateNode",
     "PatchNode",
@@ -83,4 +115,6 @@ __all__ = [
     "DiagramUsageItem",
     "ClassifierUsageResponse",
     "RelationUsageResponse",
+    "ExportNode",
+    "ImportNode",
 ]

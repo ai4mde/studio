@@ -24,7 +24,7 @@ const isConnectionValid = (diagramType: string, o: any): boolean => {
 };
 
 export const NewConnectionModal: React.FC = () => {
-    const { nodes, diagram, type } = useDiagramStore();
+    const { nodes, diagram, type, relatedDiagrams } = useDiagramStore();
     const { source, target, close } = useNewConnectionModal();
 
     // TODO: Figure out a way to do better form building
@@ -112,6 +112,8 @@ export const NewConnectionModal: React.FC = () => {
                             {type == "activity" ? (
                                 <ActivityConnectionFields
                                     object={object}
+                                    sourceNode={sourceNode}
+                                    classDiagrams={relatedDiagrams.filter((d) => d.type == "classes")}
                                     setObject={setObject}
                                 />
                             ): null}

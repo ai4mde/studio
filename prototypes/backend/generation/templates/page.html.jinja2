@@ -1,12 +1,18 @@
-{% raw %}{%{% endraw %} extends "{{ page.application }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
 
+
 <div>
+    {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
     {%- for section_component in page.section_components %}
 
-    <h2>{{ section_component.display_name }}</h2>
+    {% if page.type != 'activity' %}<h2>{{ section_component.display_name }}</h2>{% endif %}
 
-    <p>{{ section_component.text }}</p>
+    {% if page.type == 'activity' %}
+        <p>{{ loop.index }}. {{ section_component.text}}</p>
+    {% else  %}
+        <p>{{ section_component.text}}</p>
+    {% endif %}
 
     {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
     <table>
@@ -27,22 +33,22 @@
             {#- UPDATE FORM #}
             {% if section_component.has_update_operation -%}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id{% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
                 {% if attribute.updatable and not attribute.derived %}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.INTEGER %}
-                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
                     {%- elif attribute.type == AttributeType.BOOLEAN %}
-                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
+                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
                     
                     {%- elif attribute.type == AttributeType.ENUM %}
-                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <select name="{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -68,8 +74,8 @@
                 {% endfor %}
                 {% for parent_model in section_component.parent_models %}
                 <td style="text-align:center;">
-                    <select name="instance_{{ parent_model }}_id">
-                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
+                    <select name="{{ parent_model }}">
+                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
@@ -79,7 +85,7 @@
                     <input type="submit" value="Save">
                 </td>
                 <td>
-                    <a href="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}">Cancel</a>
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
                 </td>
             </form>
             {% raw %}{% else %}{% endraw %}
@@ -114,8 +120,8 @@
             {#- UPDATE BUTTON -#}
             {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_update_popup' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
-                    {% raw %}{% csrf_token %}{% endraw %}
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+                    <input type="hidden" name="instance_id_{{ section_component.primary_model }}"  value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;" />
                         <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -132,7 +138,7 @@
             {#- DELETE BUTTON #}
             {% if section_component.has_delete_operation -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
                     {% raw %}{% csrf_token %}{% endraw %}
                     <label style="cursor:pointer;">
                         <input type="submit" style="display:none;"/>
@@ -151,9 +157,9 @@
             {#- CUSTOM METHOD BUTTONS#}
             {% for custom_method in section_component.custom_methods -%}
             <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_{{ custom_method }}' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
-                    {% raw %}{% csrf_token %}{% endraw %}
-                        <input type="submit" value="{{ custom_method }}"/>
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
+                    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
+                    <input type="submit" value="{{ custom_method }}"/>
                 </form>
             </td>
             {% endfor -%}
@@ -162,9 +168,9 @@
 
         {# CREATE FORM -#}
         {% if section_component.has_create_operation -%}
-        {% raw %}{%{% endraw %} if {{ section_component }}_create_popup {% raw %}%}{% endraw %}
+        {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
         <tr>
-            <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post">
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes -%}
                 {% if attribute.derived -%}
@@ -172,13 +178,13 @@
                 {% else -%}
                 <td style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.INTEGER -%}
-                    <input type="number" name="instance_{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
-                    <input type="checkbox" name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
                     {% elif attribute.type == AttributeType.ENUM -%}
-                    <select name="instance_{{ attribute }}" id="{{ attribute }}">
+                    <select name="{{ attribute }}" id="{{ attribute }}">
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
@@ -190,8 +196,8 @@
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>
-                    <select name="instance_{{ parent_model }}_id">
-                        {% raw %}{%{% endraw %} for i in {{ parent_model }}_list {% raw %}%}{% endraw %}
+                    <select name="{{ parent_model }}">
+                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
                     </select>
@@ -201,7 +207,7 @@
                     <input type="submit" value="Save">
                 </td>
                 <td>
-                    <a href="{% raw %}{%{% endraw %} url 'render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}">Cancel</a>
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
                 </td>
             </form>
         </tr>
@@ -211,9 +217,9 @@
 
     {#- CREATE BUTTON #}
     {% if section_component.has_create_operation -%}
-    {% raw %}{%{% endraw %} if not {{ section_component }}_create_popup {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ page }}_{{ section_component }}_create_popup' {% raw %}%}{% endraw %}" method="post">
-        {% raw %}{% csrf_token %}{% endraw %}
+    {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
+        <input type="hidden", name="create_{{ section_component }}" value="true">
         <label style="cursor:pointer;">
             <input type="submit" style="display:none;"/>
             <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -225,6 +231,17 @@
     {%- endif %}
 
     {% endfor %}
+
+    {% if page.type == 'activity' %}
+    <div style="position: fixed; bottom: 20px; right: 20px;">
+        <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" class="complete-activity-button">
+                Complete task
+            </button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 
 {% raw %}{% endblock %}{% endraw %}

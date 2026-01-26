@@ -14,6 +14,7 @@ def generate_urls(application_component: ApplicationComponent, system_id: str) -
         "project_name": project_name,
         "application_name": application_name,
         "pages": pages_in_app,
+        "settings": application_component.settings,
     }
 
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

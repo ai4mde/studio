@@ -3,7 +3,10 @@ from uuid import UUID
 
 from ninja import ModelSchema, Schema
 
-from metadata.models import System
+from metadata.api.schemas.interface import ExportInterface, ImportInterface
+from metadata.models import System, Interface
+from diagram.api.schemas.diagram import ExportDiagram, ImportDiagram
+from diagram.models import Diagram
 
 
 class FlatDiagram(Schema):
@@ -48,3 +51,28 @@ class UpdateSystem(ModelSchema):
     class Meta:
         model = System
         fields = ["name", "description"]
+
+
+class ExportSystem(ModelSchema):
+    interfaces: List[ExportInterface] = []
+    diagrams: List[ExportDiagram] = []
+
+    class Meta:
+        model = System
+        exclude = ["project"]
+
+    @staticmethod
+    def resolve_interfaces(obj):
+        return Interface.objects.filter(system=obj).all()
+
+    @staticmethod
+    def resolve_diagrams(obj):
+        return Diagram.objects.filter(system=obj).all()
+
+
+class ImportSystem(Schema):
+    id: str
+    name: str
+    description: Optional[str] = ""
+    interfaces: List[ImportInterface]
+    diagrams: List[ImportDiagram]

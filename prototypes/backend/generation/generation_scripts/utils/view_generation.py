@@ -11,6 +11,9 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/views.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name_sanitization(project_name) + "/" + app_name_sanitization(application_name)+ "/views.py"
 
+    TEMPLATE_PATH_SHARED = "/usr/src/prototypes/backend/generation/templates/shared_views.py.jinja2"
+    OUTPUT_FILE_PATH_SHARED = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name_sanitization(project_name) + "/shared_models/views.py"
+
     models_on_pages = retrieve_models_on_pages(application_component)
     
     data = {
@@ -21,7 +24,12 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
         "authentication_present": application_component.authentication_present
     }
 
-    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
-        return True
-    
-    raise Exception("Failed to generate " + project_name + "/views.py")
+    data_shared = {
+        "authentication_present": application_component.authentication_present,
+    }
+
+    if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        raise Exception("Failed to generate " + project_name + "/views.py")
+    if not generate_output_file(TEMPLATE_PATH_SHARED, OUTPUT_FILE_PATH_SHARED, data_shared):
+        raise Exception("Failed to generate " + project_name + "/shared_models/views.py")
+    return True

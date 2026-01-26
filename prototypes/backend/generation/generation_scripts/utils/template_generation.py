@@ -18,7 +18,8 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
         "logo": logo,
         "pages": application_component.pages,
         "categories": categories,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
+        "settings": application_component.settings,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
@@ -33,13 +34,43 @@ def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     
     data = {
         "application_name": application_name,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True
     
     return False
     
+
+def generate_action_log_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    application_name = app_name_sanitization(application_component.name)
+
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/workflow_engine/action_log.html.jinja2"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_action_log.html"
+
+    data = {
+        "application_name": application_name,
+    }
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        return True
+    
+    return False
+
+
+def generate_change_user_assignment(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+    application_name = app_name_sanitization(application_component.name)
+
+    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/workflow_engine/change_user_assignment.html.jinja2"
+    OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_change_user_assignment.html"
+
+    data = {
+        "application_name": application_name,
+    }
+    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        return True
+    
+    return False
+
 
 def generate_templates(application_component: ApplicationComponent, system_id: str) -> bool:
     project_name = project_name_sanitization(application_component.project)
@@ -60,6 +91,12 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
         raise Exception("Failed to generate home page")
     
+    if application_component.settings and application_component.settings.manager_access:
+        if not generate_action_log_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+            raise Exception("Failed to generate action log page")
+        if not generate_change_user_assignment(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+            raise Exception("Failed to generate change user assignment page")
+
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"
         data = {

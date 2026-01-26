@@ -1,27 +1,27 @@
 from django.urls import path
 from . import views
 
+from workflow_engine.views import ActionLogView, ChangeUserAssignmentView, ChangeUserAssignmentUpdateView
+
+app_name="{{ application_name }}"
 urlpatterns = [
-    path("", views.homerender, name="{{ application_name }}-homerender"),
+    path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
+    {% if settings.manager_access -%}
+    path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name }}_action_log"),
+    path('render_change_user_assignment/', ChangeUserAssignmentView.as_view(template_name='{{ application_name }}_change_user_assignment.html'), name="{{ application_name }}_change_user_assignment"),
+    {% endif -%}
     {% for page in pages -%}
-    path("render_{{ application_name }}_{{ page }}", views.render_{{ application_name }}_{{ page }}, name="render_{{ application_name }}_{{ page }}"),
+    path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
-    path('{{ page }}_{{ section_component }}_create/', views.{{ page }}_{{ section_component }}_create, name='{{ page }}_{{ section_component }}_create'),
-    path('{{ page }}_{{ section_component }}_create_popup/', views.{{ page }}_{{ section_component }}_create_popup, name='{{ page }}_{{ section_component }}_create_popup'),
+    path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
     {% endif -%}
     {% if section_component.has_update_operation -%}
-    path('{{ page }}_{{ section_component }}_update/<int:instance_id>/', views.{{ page }}_{{ section_component }}_update, name='{{ page }}_{{ section_component }}_update'),
-    path('{{ page }}_{{ section_component }}_update_popup/<int:instance_id>/', views.{{ page }}_{{ section_component }}_update_popup, name='{{ page }}_{{ section_component }}_update_popup'),
+    path('{{ page }}_{{ section_component }}_update{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
     {% endif -%}
     {% if section_component.has_delete_operation -%}
-    path('{{ page }}_{{ section_component }}_delete/<int:instance_id>/', views.{{ page }}_{{ section_component }}_delete, name='{{ page }}_{{ section_component }}_delete'),
+    path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
     {% endif -%}
-    {% for custom_method in section_component.custom_methods -%}
-    {% if custom_method.body_is_valid %}
-    path('{{ page }}_{{ section_component }}_{{ custom_method }}/<int:instance_id>', views.{{ page }}_{{ section_component }}_{{ custom_method }}, name='{{ page }}_{{ section_component }}_{{ custom_method }}'),
-    {% endif -%}
-    {% endfor -%}
     {% endfor -%}
     {% endfor -%}
 ]

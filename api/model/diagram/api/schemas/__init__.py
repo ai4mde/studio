@@ -4,6 +4,7 @@ from diagram.api.schemas.diagram import (
     ReadDiagram,
     UpdateDiagram,
     FullDiagram,
+    ExportDiagram,
 )
 
 from diagram.api.schemas.node import (
@@ -21,6 +22,7 @@ from diagram.api.schemas.edge import (
     ListEdges,
     EdgeSchema,
     UpdateEdge,
+    PatchEdge,
 )
 
 __all__ = [
@@ -37,7 +39,9 @@ __all__ = [
     "ClassifierUsageResponse",
     "RelationUsageResponse",
     "CreateEdge",
+    "PatchEdge",
     "ListEdges",
     "EdgeSchema",
     "UpdateEdge",
+    "ExportDiagram",
 ]

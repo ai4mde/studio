@@ -1,8 +1,9 @@
 from typing import Literal
-from pydantic import BaseModel
+
+from metadata.specification.base import RelationBase
 
 
-class UsecaseRelation(BaseModel):
+class UsecaseRelation(RelationBase):
     type: Literal["interaction", "extension", "inclusion"] = "interaction"
 
 

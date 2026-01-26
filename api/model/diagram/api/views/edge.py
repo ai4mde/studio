@@ -4,12 +4,14 @@ from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
 
 from ninja import Router
+from pydantic import BaseModel
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateEdge, EdgeSchema, UpdateEdge, DiagramUsageItem, RelationUsageResponse
-from diagram.models import Node, Edge
+from diagram.api.schemas import CreateEdge, EdgeSchema, UpdateEdge, DiagramUsageItem, RelationUsageResponse, PatchEdge
+from diagram.models import Node, Edge, Edge
 from diagram.api.utils.edge import fetch_and_update_edges, remove_edge_from_diagram, delete_relation_everywhere
+from metadata.specification import Relation
 
 
 edge = Router()
@@ -89,6 +91,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
     if data.rel is not None:
         current = edge_obj.rel.data or {}
         merged = {**current, **data.rel}
+        PatchModel.model_validate({"rel": merged})
         new_type = merged.get("type", current.get("type"))
 
         # default fallback if type is missing
@@ -101,6 +104,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
             mult = merged.get("multiplicity") or {}
 
             cleaned = {
+                **merged,
                 "type": new_type,
                 "label": merged.get("label", ""),
                 "labels": {
@@ -115,12 +119,14 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
         elif new_type == "dependency":
             cleaned = {
+                **merged,
                 "type": "dependency",
                 "label": merged.get("label", ""),
             }
 
         elif new_type == "generalization":
             cleaned = {
+                **merged,
                 "type": "generalization",
             }
 
@@ -132,7 +138,7 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
     if data.data is not None:
         current_data = edge_obj.data or {}
-        updated_data = {**current_data, **data.data}
+        updated_data = {**current_data, **data.data.model_dump()}
         edge_obj.data = updated_data
         edge_obj.save()
 
@@ -157,6 +163,13 @@ def hard_delete_relation(request: HttpRequest, edge_id: str):
         return 404, "Diagram not found"
 
     return delete_relation_everywhere(diagram=diagram, edge_id=edge_id)
+
+
+
+
+
+class PatchModel(BaseModel):
+    rel: Relation
 
 
 @edge.get("/{uuid:edge_id}/", response=EdgeSchema)

@@ -24,8 +24,9 @@ RUN poetry install --no-dev --no-root --no-interaction --no-ansi
 FROM python:3.12.1
 WORKDIR /usr/src/app
 
+RUN apt-get update && apt-get install -y cron
 COPY --from=venv /.venv /usr/src/.venv
 COPY . /usr/src/prototypes
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-CMD [ "python", "-u", "/usr/src/prototypes/backend/api.py" ]
+CMD ["/usr/src/prototypes/entrypoint.sh" ]
