@@ -54,19 +54,23 @@ def create_release(request, system_id: str, name: str, release_notes: Optional[s
 
 
 @releases.post("/{uuid:release_id}/load/")
-def load_release(request, release_id):
-    release = Release.objects.get(id=release_id)
+def load_release(request, release_id, system_id: str | None = None):
+    release = Release.objects.filter(id=release_id).first()
     if not release:
         return 404, "Release not found"
     
-    system = release.system
-    if not system:
+    target_system = (
+        System.objects.filter(id=system_id).first()
+        if system_id
+        else release.system
+    )
+    if not target_system:
         return 404, "System not found"
     
-    if not load_diagrams(system=system, release=release):
+    if not load_diagrams(system=target_system, release=release):
         return 422
     
-    if not load_interfaces(system=system, release=release):
+    if not load_interfaces(system=target_system, release=release):
         return 422
     
     return 200

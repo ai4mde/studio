@@ -1,5 +1,6 @@
 from typing import Dict, Any
 import logging
+import uuid
 
 from django.db import transaction
 
@@ -160,25 +161,97 @@ def load_edges(system: System, diagram: Dict[str, Any]):
 def load_diagrams(system: System, release: Release) -> bool:
     try:
         with transaction.atomic():
-            Node.objects.filter(diagram__system=system).delete()
             Edge.objects.filter(diagram__system=system).delete()
+            Node.objects.filter(diagram__system=system).delete()
             Diagram.objects.filter(system=system).delete()
-            Classifier.objects.filter(system=system).delete()
             Relation.objects.filter(system=system).delete()
+            Classifier.objects.filter(system=system).delete()
+
+            # If loading to a different system than the original, remap IDs
+
+            incoming_diagram_ids = [d["id"] for d in release.diagrams]
+            collision = Diagram.objects.filter(id__in=incoming_diagram_ids).exclude(system=system).exists()
+            remap = (str(system.id) != str(release.system_id)) or collision
+
+            cls_id_map: dict[str, str] = {}
+            node_id_map: dict[str, str] = {}
+            rel_id_map: dict[str, str] = {}
+            diagram_id_map: dict[str, str] = {}
+
+            def map_id(old: str, m: dict[str, str]) -> str:
+                if not remap:
+                    return old
+                if old not in m:
+                    m[old] = str(uuid.uuid4())
+                return m[old]
         
             for diagram in release.diagrams:
                 dtype_raw = diagram.get("type")
                 dtype = DIAGRAM_TYPE_MAP.get(dtype_raw, dtype_raw)
 
+                old_diagram_id = diagram["id"]
+                new_diagram_id = map_id(old_diagram_id, diagram_id_map)
+                
                 Diagram.objects.create(
-                    id = diagram["id"],
+                    id = new_diagram_id,
                     type = dtype,
                     name = diagram["name"],
                     description = diagram.get("description", "") or "",
                     system = system,
                 )
-                load_nodes(system, diagram)
-                load_edges(system, diagram)
+                # nodes + classifiers
+                for n in diagram.get("nodes", []):
+                    old_cls_id = n["cls"]["id"]
+                    new_cls_id = map_id(old_cls_id, cls_id_map)
+
+                    Classifier.objects.update_or_create(
+                        id=new_cls_id,
+                        defaults={
+                            "project": system.project,
+                            "system": system,
+                            "data": n["cls"]["data"],
+                        },
+                    )
+
+                    old_node_id = n["id"]
+                    new_node_id = map_id(old_node_id, node_id_map)
+
+                    Node.objects.create(
+                        id=new_node_id,
+                        diagram_id=new_diagram_id,
+                        cls_id=new_cls_id,
+                        data=n.get("data", {}) or {},
+                    )
+
+                # edges + relations
+                for e in diagram.get("edges", []):
+                    old_rel_id = e["rel"]["id"]
+                    new_rel_id = map_id(old_rel_id, rel_id_map)
+
+                    old_source_node = e["source_ptr"]
+                    old_target_node = e["target_ptr"]
+                    new_source_node = map_id(old_source_node, node_id_map)
+                    new_target_node = map_id(old_target_node, node_id_map)
+
+                    source_node = Node.objects.get(id=new_source_node)
+                    target_node = Node.objects.get(id=new_target_node)
+
+                    Relation.objects.update_or_create(
+                        id=new_rel_id,
+                        defaults={
+                            "system": system,
+                            "data": e["rel"]["data"],
+                            "source": source_node.cls,
+                            "target": target_node.cls,
+                        },
+                    )
+
+                    Edge.objects.create(
+                        id=str(uuid.uuid4()) if remap else e["id"],
+                        diagram_id=new_diagram_id,
+                        rel_id=new_rel_id,
+                        data=e.get("data", {}) or {},
+                    )
 
         return True
     except:
