@@ -83,6 +83,25 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         {x: tx, y: ty},
     ]
 
+    // Find longest segment
+    let maxLen = -1;
+    let labelX = (sx + tx) / 2;
+    let labelY = (sy + ty) / 2;
+
+    for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.hypot(dx, dy);
+
+        if (len > maxLen) {
+            maxLen = len;
+            labelX = (a.x + b.x) / 2;
+            labelY = (a.y + b.y) / 2;
+        }
+    }
+
     const midIndex = Math.floor((points.length - 1) / 2);
     const p1 = points[midIndex];
     const p2 = points[midIndex + 1] || points[midIndex];
@@ -120,8 +139,8 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="middle"
-                x={(sx + tx) / 2}
-                y={(sy + ty) / 2}
+                x={labelX}
+                y={labelY}
                 fontSize="12"
             >
                 {data?.type === "extension" ? "<<extends>>" : data?.type === "inclusion" ? "<<includes>>" : data?.label ?? ""}
