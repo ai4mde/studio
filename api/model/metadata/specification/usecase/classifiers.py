@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from typing import Union, Literal
-from metadata.specification.kernel import NamedElement, NamespacedElement
+from metadata.specification.kernel import NamedElement, NamespacedElement, ParentNode
 
 
-class Actor(NamedElement, BaseModel):
+class Actor(NamedElement, ParentNode, BaseModel):
     type: Literal["actor"] = "actor"
 
 
-class Usecase(NamedElement, NamespacedElement, BaseModel):
+class Usecase(NamedElement, NamespacedElement, ParentNode, BaseModel):
     type: Literal["usecase"] = "usecase"
     precondition: str = ""
     postcondition: str = ""
@@ -29,7 +29,13 @@ class Usecase(NamedElement, NamespacedElement, BaseModel):
     )  # TODO: Links to application model, i.e. list of { id: '', type: 'action', ... }
 
 
-UsecaseClassifier = Union[Actor, Usecase]
+class SystemBoundary(NamedElement, BaseModel):
+    type: Literal["system_boundary"] = "system_boundary"
+    height: int = 1000
+    width: int = 1000
+
+
+UsecaseClassifier = Union[Actor, Usecase, SystemBoundary]
 
 __all__ = [
     "UsecaseClassifier",

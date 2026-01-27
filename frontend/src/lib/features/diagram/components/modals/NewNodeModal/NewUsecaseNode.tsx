@@ -3,10 +3,11 @@ import React from "react";
 
 type Props = {
     object: any;
+    systemBoundaryExists: boolean;
     setObject: (o: any) => void;
 };
 
-export const NewUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
+export const NewUsecaseNode: React.FC<Props> = ({ object, systemBoundaryExists, setObject }) => {
     return (
         <>
             <FormControl size="sm" className="w-full">
@@ -26,6 +27,11 @@ export const NewUsecaseNode: React.FC<Props> = ({ object, setObject }) => {
                     <Option value="usecase" label="Use Case">
                         Use Case
                     </Option>
+                    {!systemBoundaryExists && (
+                        <Option value="system_boundary" label="System Boundary">
+                            System Boundary
+                        </Option>
+                    )}
                 </Select>
             </FormControl>
             <FormControl size="sm" className="w-full">
