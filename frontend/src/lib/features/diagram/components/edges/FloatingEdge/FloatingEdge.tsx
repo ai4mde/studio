@@ -108,8 +108,30 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     const midX = (p1.x + p2.x) / 2;
     const midY = (p1.y + p2.y) / 2;
 
+    const handleEdgeClick = (event: React.MouseEvent<SVGPathElement>) => {
+        const position = reactFlowInstance.screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+        });
+
+        partialUpdateEdge(diagram, id, {
+            rel: {
+            position_handlers: [...positionHandlers, { x: position.x, y: position.y }],
+            },
+        });
+    };
+
     return (
         <>
+            <path
+                d={edgePath}
+                stroke="transparent"
+                strokeWidth={10}
+                fill="none"
+                style={{ pointerEvents: "stroke" }}
+                onClick={handleEdgeClick}
+            />
+
             <path
                 id={id}
                 stroke="black"
@@ -121,20 +143,6 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 markerEnd={markerEnd}
                 markerStart={markerStart}
                 style={style}
-                onClick={(event) => {
-                    const position = reactFlowInstance.screenToFlowPosition({
-                        x: event.clientX,
-                        y: event.clientY,
-                    });
-                    partialUpdateEdge(diagram, id, {
-                        rel: {
-                            position_handlers: [
-                                ...positionHandlers,
-                                { x: position.x, y: position.y },
-                            ],
-                        },
-                    });
-                }}
             />
             <text
                 style={{ userSelect: "none" }}
