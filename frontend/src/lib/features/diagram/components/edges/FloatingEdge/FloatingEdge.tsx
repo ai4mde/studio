@@ -265,7 +265,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             <circle
                 cx={startX}
                 cy={startY}
-                r={6}
+                r={4}
                 fill="black"
                 style={{ pointerEvents: "auto", cursor: "grab" }}
                 onMouseDown={startEndpointDrag("source")}
@@ -273,7 +273,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             <circle
                 cx={endX}
                 cy={endY}
-                r={6}
+                r={4}
                 fill="black"
                 style={{ pointerEvents: "auto", cursor: "grab" }}
                 onMouseDown={startEndpointDrag("target")}
@@ -283,7 +283,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                     key={`handler-${id}-${index}`}
                     cx={handler.x}
                     cy={handler.y}
-                    r={5}
+                    r={4}
                     fill="black"
                     style={{ pointerEvents: "auto" }}
                     onMouseDown={(event) => {
