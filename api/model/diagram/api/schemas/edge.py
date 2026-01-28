@@ -6,8 +6,16 @@ from diagram.models import Edge, Relation as RelationModel
 from metadata.specification import Relation
 
 
+class Point(Schema):
+    x: float
+    y: float
+
+
 class EdgeData(Schema):
     style: Optional[str] = None
+    position_handlers: Optional[List[Point]] = None
+    source_offset: Optional[Point] = None
+    target_offset: Optional[Point] = None
 
 
 class CreateEdge(Schema):

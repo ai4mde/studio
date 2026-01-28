@@ -33,19 +33,29 @@ const FloatingEdge: React.FC<EdgeProps> = ({
 
     const { diagram } = useDiagramStore();
     const reactFlowInstance = useReactFlow();
-    const positionHandlers = (data?.position_handlers ?? []) as PositionHandler[];
+    const edgeData = (data?.edge_data ?? {}) as any;
+    const positionHandlers = (edgeData.position_handlers ?? []) as PositionHandler[];
+    const sourceOffset = (edgeData.source_offset ?? { x: 0, y: 0 }) as PositionHandler;
+    const targetOffset = (edgeData.target_offset ?? { x: 0, y: 0 }) as PositionHandler;
+
     const edgeSegmentsCount = positionHandlers.length + 1;
     const edgeSegmentsArray = [];
 
     const { sx, sy, tx, ty } = getEdgeParams(sourceNode, targetNode);
+
+    const startX = sx + sourceOffset.x;
+    const startY = sy + sourceOffset.y;
+    const endX = tx + targetOffset.x;
+    const endY = ty + targetOffset.y;
+
 
     // Generate edge segments
     for (let i = 0; i < edgeSegmentsCount; i++) {
         let segmentSourceX, segmentSourceY, segmentTargetX, segmentTargetY;
 
         if (i === 0) {
-            segmentSourceX = sx;
-            segmentSourceY = sy;
+            segmentSourceX = startX;
+            segmentSourceY = startY;
         } else {
             const handler = positionHandlers[i - 1];
             segmentSourceX = handler.x;
@@ -53,8 +63,8 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         }
 
         if (i === edgeSegmentsCount - 1) {
-            segmentTargetX = tx;
-            segmentTargetY = ty;
+            segmentTargetX = endX;
+            segmentTargetY = endY;
         } else {
             const handler = positionHandlers[i];
             segmentTargetX = handler.x;
@@ -73,14 +83,14 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     const edgePath = edgeSegmentsArray.join(" ");
 
     const shift = {
-        x: sx < tx ? 18 : -10,
-        y: sy < ty ? -10 : 18,
+        x: startX < endX ? 18 : -10,
+        y: startY < endY ? -10 : 18,
     };
 
     const points = [
-        {x: sx, y: sy},
+        { x: startX, y: startY },
         ...positionHandlers,
-        {x: tx, y: ty},
+        { x: endX, y: endY },
     ]
 
     // Find longest segment
@@ -115,11 +125,57 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         });
 
         partialUpdateEdge(diagram, id, {
-            rel: {
-            position_handlers: [...positionHandlers, { x: position.x, y: position.y }],
+            data: {
+                position_handlers: [
+                    ...positionHandlers,
+                    { x: position.x, y: position.y },
+                ],
             },
         });
     };
+
+    const startEndpointDrag =
+        (which: "source" | "target") =>
+            (event: React.MouseEvent<SVGCircleElement>) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const base = which === "source" ? { x: sx, y: sy } : { x: tx, y: ty };
+
+                const onMouseMove = (moveEvent: MouseEvent) => {
+                    const pos = reactFlowInstance.screenToFlowPosition({
+                        x: moveEvent.clientX,
+                        y: moveEvent.clientY,
+                    });
+
+                    const circle = event.target as SVGCircleElement;
+                    circle.setAttribute("cx", String(pos.x));
+                    circle.setAttribute("cy", String(pos.y));
+                };
+
+                const onMouseUp = (upEvent: MouseEvent) => {
+                    window.removeEventListener("mousemove", onMouseMove);
+                    window.removeEventListener("mouseup", onMouseUp);
+
+                    const pos = reactFlowInstance.screenToFlowPosition({
+                        x: upEvent.clientX,
+                        y: upEvent.clientY,
+                    });
+
+                    const newOffset = { x: pos.x - base.x, y: pos.y - base.y };
+
+                    partialUpdateEdge(diagram, id, {
+                        data:
+                            which === "source"
+                                ? { source_offset: newOffset }
+                                : { target_offset: newOffset },
+                    });
+                };
+
+                window.addEventListener("mousemove", onMouseMove);
+                window.addEventListener("mouseup", onMouseUp);
+            };
+
 
     return (
         <>
@@ -164,15 +220,15 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                     {data.condition.isElse
                         ? "[Else]"
                         : data.condition.aggregator
-                        ? `${data.condition.aggregator}(${data.condition.target_class_name}.${data.condition.target_attribute}) ${data.condition.operator} ${data.condition.threshold}`
-                        : `${data.condition.target_class_name}.${data.condition.target_attribute} ${data.condition.operator} ${data.condition.threshold}`}
+                            ? `${data.condition.aggregator}(${data.condition.target_class_name}.${data.condition.target_attribute}) ${data.condition.operator} ${data.condition.threshold}`
+                            : `${data.condition.target_class_name}.${data.condition.target_attribute} ${data.condition.operator} ${data.condition.threshold}`}
                 </text>
             )}
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="middle"
-                x={sx + shift.x}
-                y={sy + shift.y}
+                x={startX + shift.x}
+                y={startY + shift.y}
                 fontSize="12"
             >
                 {data?.multiplicity?.source ?? ""}
@@ -181,8 +237,8 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="middle"
-                x={tx - shift.x}
-                y={ty + shift.y}
+                x={endX - shift.x}
+                y={endY + shift.y}
                 fontSize="12"
             >
                 {data?.multiplicity?.target ?? ""}
@@ -206,6 +262,22 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             >
                 {data?.labels?.target ?? ""}
             </text>
+            <circle
+                cx={startX}
+                cy={startY}
+                r={6}
+                fill="black"
+                style={{ pointerEvents: "auto", cursor: "grab" }}
+                onMouseDown={startEndpointDrag("source")}
+            />
+            <circle
+                cx={endX}
+                cy={endY}
+                r={6}
+                fill="black"
+                style={{ pointerEvents: "auto", cursor: "grab" }}
+                onMouseDown={startEndpointDrag("target")}
+            />
             {positionHandlers.map((handler, index) => (
                 <circle
                     key={`handler-${id}-${index}`}
@@ -215,48 +287,48 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                     fill="black"
                     style={{ pointerEvents: "auto" }}
                     onMouseDown={(event) => {
-                    event.preventDefault();
-                    const onMouseMove = (moveEvent: MouseEvent) => {
-                        const position = reactFlowInstance.screenToFlowPosition({
-                        x: moveEvent.clientX,
-                        y: moveEvent.clientY,
-                        });
-    
-                        // Update the handler's position in the array
-                        positionHandlers[index] = { x: position.x, y: position.y };
-    
-                        // Update the edge with the new position
-                        const circleElement = event.target as SVGCircleElement;
-                        circleElement.setAttribute("cx", position.x.toString());
-                        circleElement.setAttribute("cy", position.y.toString());
-                    }
-    
-                    const onMouseUp = () => {
-                        // Remove event listeners when the mouse is released
-                        window.removeEventListener("mousemove", onMouseMove);
-                        window.removeEventListener("mouseup", onMouseUp);
-    
-                        // Update the edge with the new position
-                        partialUpdateEdge(diagram, id, {
-                        rel: {
-                            position_handlers: positionHandlers,
-                        },
-                        });
-                    };
-    
-                    // Attach event listeners for dragging
-                    window.addEventListener("mousemove", onMouseMove);
-                    window.addEventListener("mouseup", onMouseUp);
+                        event.preventDefault();
+                        const onMouseMove = (moveEvent: MouseEvent) => {
+                            const position = reactFlowInstance.screenToFlowPosition({
+                                x: moveEvent.clientX,
+                                y: moveEvent.clientY,
+                            });
+
+                            // Update the handler's position in the array
+                            positionHandlers[index] = { x: position.x, y: position.y };
+
+                            // Update the edge with the new position
+                            const circleElement = event.target as SVGCircleElement;
+                            circleElement.setAttribute("cx", position.x.toString());
+                            circleElement.setAttribute("cy", position.y.toString());
+                        }
+
+                        const onMouseUp = () => {
+                            // Remove event listeners when the mouse is released
+                            window.removeEventListener("mousemove", onMouseMove);
+                            window.removeEventListener("mouseup", onMouseUp);
+
+                            // Update the edge with the new position
+                            partialUpdateEdge(diagram, id, {
+                                data: {
+                                    position_handlers: positionHandlers,
+                                },
+                            });
+                        };
+
+                        // Attach event listeners for dragging
+                        window.addEventListener("mousemove", onMouseMove);
+                        window.addEventListener("mouseup", onMouseUp);
                     }}
                     onContextMenu={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const updatedPositionHandlers = positionHandlers.filter((_, i) => i !== index);
-                    partialUpdateEdge(diagram, id, {
-                        rel: {
-                        position_handlers: updatedPositionHandlers,
-                        },
-                    });
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const updatedPositionHandlers = positionHandlers.filter((_, i) => i !== index);
+                        partialUpdateEdge(diagram, id, {
+                            data: {
+                                position_handlers: updatedPositionHandlers,
+                            },
+                        });
                     }}
                 />
             ))}
