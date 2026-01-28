@@ -17,10 +17,10 @@ urlpatterns = [
     path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
     {% endif -%}
     {% if section_component.has_update_operation -%}
-    path('{{ page }}_{{ section_component }}_update{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
+    path('{{ page }}_{{ section_component }}_update{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
     {% endif -%}
     {% if section_component.has_delete_operation -%}
-    path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
+    path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
     {% endif -%}
     {% endfor -%}
     {% endfor -%}
