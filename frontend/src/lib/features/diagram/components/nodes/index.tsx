@@ -18,6 +18,7 @@ import {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SystemBoundaryNode,
 } from "./usecase";
 
 export {
@@ -32,6 +33,7 @@ export {
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
+    SystemBoundaryNode,
 };
 
 export default {
@@ -54,4 +56,5 @@ export default {
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
+    SystemBoundaryNode,
 };

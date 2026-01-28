@@ -6,7 +6,7 @@ import { useNodeContextMenu } from "$diagram/stores/contextMenus";
 import { useEditNodeModal, useConfirmDeleteClassifierModal } from "$diagram/stores/modals";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
-import { Copy, Edit, GitBranchPlus, Trash, UploadCloud, PlusCircle } from "lucide-react";
+import { Copy, Edit, GitBranchPlus, Trash, UploadCloud, PlusCircle, MinusCircle } from "lucide-react";
 import React, { MouseEventHandler, useState, useRef, useEffect } from "react";
 import { useStoreApi } from "reactflow";
 import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmationModal/DeleteConfirmationModal";
@@ -26,6 +26,7 @@ const NodeContextMenu: React.FC = () => {
     const [showSwimlanes, setShowSwimlanes] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const swimlaneGroup = nodes.filter((n) => n.data.type === 'swimlanegroup')[0];
+    const systemBoundary = nodes.filter((n) => n.data.type === 'system_boundary')[0];
 
     useEffect(() => {
             let cancelled = false;
@@ -129,38 +130,65 @@ const NodeContextMenu: React.FC = () => {
         setShowSwimlanes(false);
     }
 
-    const addToSwimlane = (nodeId: string, actorNodeId: string) => {
-        const currentNode = nodes.find((n) => n.id === nodeId);
-        const removeAction = currentNode?.data.actorNode === actorNodeId
+    const updateParenting = (
+      nodeId: string,
+      opts: {
+        remove: boolean;
+        parentId: string | null;
+        clsPatch: Record<string, any>;
+      }
+    ) => {
+      const currentNode = nodes.find((n) => n.id === nodeId)
+      if (!currentNode) return;
 
-        let newPosition = currentNode?.position
-        if (!removeAction && swimlaneGroup && currentNode) {
-            newPosition = {
-                x: currentNode.position.x - swimlaneGroup.position.x,
-                y: currentNode.position.y - swimlaneGroup.position.y
-            };
-        }
-        if (removeAction && swimlaneGroup && currentNode) {
-            newPosition = {
-                x: currentNode.position.x + swimlaneGroup.position.x,
-                y: currentNode.position.y + swimlaneGroup.position.y
-            };
-        }
+      let newPosition = currentNode.position;
 
-        partialUpdateNode(diagram, nodeId, {
-            cls: {
-                actorNode: removeAction ? null : actorNodeId,
-            },
-            data: {
-                position: newPosition,
-            }
-        });
-        queryClient.refetchQueries({
-            queryKey: [`diagram`],
-        });
-        close();
+      if (opts.parentId) {
+        const parentNode = nodes.find((n) => n.id === opts.parentId);
+        if (parentNode) {
+          newPosition = opts.remove
+            ? {
+                x: currentNode.position.x + parentNode.position.x,
+                y: currentNode.position.y + parentNode.position.y,
+              }
+            : {
+                x: currentNode.position.x - parentNode.position.x,
+                y: currentNode.position.y - parentNode.position.y,
+              };
+        }
+      }
+
+      partialUpdateNode(diagram, nodeId, {
+        cls: opts.clsPatch,
+        data: {
+          position: newPosition,
+        },
+      });
+      queryClient.refetchQueries({
+        queryKey: [`diagram`],
+      });
+      close();
     }
 
+    const addToSwimlane = (nodeId: string, actorNodeId: string) => {
+      const currentNode = nodes.find((n) => n.id === nodeId);
+      const remove = currentNode?.data.actorNode === actorNodeId;
+
+      updateParenting(nodeId, {
+        remove,
+        parentId: swimlaneGroup?.id ?? null, // or swimlaneGroupUUID if that's your parent id
+        clsPatch: { actorNode: remove ? null : actorNodeId },
+      });
+    };
+
+    const addToParentNode = (nodeId: string, remove: boolean, parentNodeId: string) => {
+      updateParenting(nodeId, {
+        remove,
+        parentId: parentNodeId,
+        clsPatch: { parentNode: remove ? null : parentNodeId },
+      });
+    };
+  
     return (
         <>
             <ContextMenu x={x} y={y}>
@@ -217,7 +245,7 @@ const NodeContextMenu: React.FC = () => {
                         >
                          <button>
                              <span>Add to swimlane</span>
-                             <PlusCircle size={14} />
+                             <MinusCircle size={14} />
                          </button>
                          {showSwimlanes && swimlaneButtonRef.current && (
                              <ContextMenu
@@ -241,6 +269,21 @@ const NodeContextMenu: React.FC = () => {
                              </ContextMenu>
                          )}
                      </li>
+                    )}
+                    {['usecase', 'actor'].includes(node.data.type) && systemBoundary && (
+                      <li>
+                        <button onClick={() => addToParentNode(
+                              node.id,
+                              node.data?.parentNode ? true: false,
+                              systemBoundary ? systemBoundary.id : ''
+                            )}
+                          >
+                            <span>
+                              {node.data?.parentNode ? 'Remove from System' : 'Add to System'}
+                            </span>
+                            {node.data?.parentNode ? <MinusCircle size={14} /> : <PlusCircle size={14} />}
+                        </button>
+                      </li>
                     )}
                     <hr className="my-1" />
                     <li>

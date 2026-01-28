@@ -53,10 +53,10 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     systemName: e.system_name,
                     systemId: e.system_id,
                 },
-                parentNode: e?.cls?.actorNode ? swimlaneGroupUUID : null,
+                parentNode: e?.cls?.parentNode ?? (e?.cls?.actorNode ? swimlaneGroupUUID : null), // TODO swimlanes should also use parentNode, this might, however, also require changes in prototype generation
                 extend: e?.cls?.actorNode ? 'parent' : null,
                 connectable: e?.cls?.type === 'swimlanegroup' ? false : true,
-                zIndex: e?.cls?.type === "swimlanegroup" ? -1: 1,
+                zIndex: e?.cls?.type === "swimlanegroup" || e?.cls.type == "system_boundary" ? -1: 1,
             })),
         }))
     },
