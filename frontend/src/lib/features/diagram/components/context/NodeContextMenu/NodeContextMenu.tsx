@@ -13,9 +13,9 @@ import DeleteConfirmationModal from "$diagram/components/modals/DeleteConfirmati
 
 const NodeContextMenu: React.FC = () => {
     const { x, y, node, close } = useNodeContextMenu();
-    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
+    const { diagram, type, nodes, relatedDiagrams } = useDiagramStore();
     const { setState, getState } = useStoreApi();
-    
+
     const [canRemove, setCanRemove] = useState(true);
     const [checkingUsage, setCheckingUsage] = useState(false);
 
@@ -28,30 +28,30 @@ const NodeContextMenu: React.FC = () => {
     const swimlaneGroup = nodes.filter((n) => n.data.type === 'swimlanegroup')[0];
 
     useEffect(() => {
-            let cancelled = false;
-    
-            const run = async () => {
-                if (!node) return;
-                setCheckingUsage(true);
-    
-                try {
-                    const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,);
-                    const usages = res.data?.usages ?? [];
-                    const allowRemove = usages.length > 0;
-                    if (!cancelled) setCanRemove(allowRemove);
-                } catch {
-                    if (!cancelled) setCanRemove(true);
-                } finally {
-                    if (!cancelled) setCheckingUsage(false);
-                }
-            };
-    
-            run();
-            return () => {
-                cancelled = true;
-            };
-        }, [node?.id, diagram]);
-    
+        let cancelled = false;
+
+        const run = async () => {
+            if (!node) return;
+            setCheckingUsage(true);
+
+            try {
+                const res = await authAxios.get(`/v1/diagram/${diagram}/node/${node.id}/classifier-usage/`,);
+                const usages = res.data?.usages ?? [];
+                const allowRemove = usages.length > 0;
+                if (!cancelled) setCanRemove(allowRemove);
+            } catch {
+                if (!cancelled) setCanRemove(true);
+            } finally {
+                if (!cancelled) setCheckingUsage(false);
+            }
+        };
+
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [node?.id, diagram]);
+
 
     const onEdit = () => {
         node && editNode.open(node.id);
@@ -172,22 +172,26 @@ const NodeContextMenu: React.FC = () => {
                         </button>
                     </li>
                     <hr className="my-1" />
-                    <li>
-                        <button
-                            onClick={onRemove}
-                            disabled={!canRemove || checkingUsage}
-                        >
-                            <span>Remove from Diagram</span>
-                            <Trash size={14} />
-                        </button>
-                    </li>
-                    <li>
-                        <button onClick={onDeleteCompletely}>
-                            <span>Delete Completely</span>
-                            <Trash size={14} />
-                        </button>
-                    </li>
-                    {node.data.type !== 'swimlanegroup' && (
+                    {node.data.type !== 'swimlanegroup' && type == 'classes' && (
+                        <>
+                            <li>
+                                <button
+                                    onClick={onRemove}
+                                    disabled={!canRemove || checkingUsage}
+                                >
+                                    <span>Remove from Diagram</span>
+                                    <Trash size={14} />
+                                </button>
+                            </li>
+                            <li>
+                                <button onClick={onDeleteCompletely}>
+                                    <span>Delete Completely</span>
+                                    <Trash size={14} />
+                                </button>
+                            </li>
+                        </>
+                    )}
+                    {node.data.type !== 'swimlanegroup' && type !== 'classes' && (
                         <li>
                             <button onClick={() => onDelete()}>
                                 <span>Delete</span>
@@ -209,38 +213,38 @@ const NodeContextMenu: React.FC = () => {
                         </button>
                     </li>
                     {['action', 'control', 'object'].includes(node.data.type) && (
-                         <li
+                        <li
                             ref={swimlaneButtonRef}
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
                             style={{ position: 'relative' }}
                         >
-                         <button>
-                             <span>Add to swimlane</span>
-                             <PlusCircle size={14} />
-                         </button>
-                         {showSwimlanes && swimlaneButtonRef.current && (
-                             <ContextMenu
-                                 x={swimlaneButtonRef.current.getBoundingClientRect().right}
-                                 y={swimlaneButtonRef.current.getBoundingClientRect().top}
-                             >
-                                 <>
-                                    {swimlaneGroup?.data.swimlanes
-                                        .filter((swimlane) => swimlane.actorNodeName !== 'Unknown actor')
-                                        .map((swimlane, index) => (
-                                        <li key={index}>
-                                            <button
-                                                onClick={() => addToSwimlane(node.id, swimlane.actorNode)}
-                                                className={node?.data.actorNode === swimlane.actorNode ? 'bg-blue-600 text-gray-50' : ''}
-                                            >
-                                                <span>{swimlane.actorNodeName}</span>
-                                            </button>
-                                        </li>
-                                    ))}
-                                 </>
-                             </ContextMenu>
-                         )}
-                     </li>
+                            <button>
+                                <span>Add to swimlane</span>
+                                <PlusCircle size={14} />
+                            </button>
+                            {showSwimlanes && swimlaneButtonRef.current && (
+                                <ContextMenu
+                                    x={swimlaneButtonRef.current.getBoundingClientRect().right}
+                                    y={swimlaneButtonRef.current.getBoundingClientRect().top}
+                                >
+                                    <>
+                                        {swimlaneGroup?.data.swimlanes
+                                            .filter((swimlane) => swimlane.actorNodeName !== 'Unknown actor')
+                                            .map((swimlane, index) => (
+                                                <li key={index}>
+                                                    <button
+                                                        onClick={() => addToSwimlane(node.id, swimlane.actorNode)}
+                                                        className={node?.data.actorNode === swimlane.actorNode ? 'bg-blue-600 text-gray-50' : ''}
+                                                    >
+                                                        <span>{swimlane.actorNodeName}</span>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                    </>
+                                </ContextMenu>
+                            )}
+                        </li>
                     )}
                     <hr className="my-1" />
                     <li>
