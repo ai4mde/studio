@@ -5,6 +5,7 @@ import { ScenarioNode } from "./ScenarioNode";
 import { SystemNode } from "./SystemNode";
 import { TriggerNode } from "./TriggerNode";
 import { UsecaseNode } from "./UsecaseNode";
+import { SystemBoundaryNode } from "./SystemBoundaryNode";
 
 export {
     ActorNode,
@@ -14,6 +15,7 @@ export {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SystemBoundaryNode,
 };
 
 export default {
@@ -24,4 +26,5 @@ export default {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SystemBoundaryNode,
 };

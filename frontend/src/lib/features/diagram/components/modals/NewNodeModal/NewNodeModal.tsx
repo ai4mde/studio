@@ -96,6 +96,7 @@ export const NewNodeModal: React.FC = () => {
 
 
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
+    const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
     const nodeRef = React.useRef(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -200,6 +201,7 @@ export const NewNodeModal: React.FC = () => {
                             {type == "usecase" && (
                                 <NewUsecaseNode
                                     object={object}
+                                    systemBoundaryExists={systemBoundaryExists}
                                     setObject={setObject}
                                 />
                             )}

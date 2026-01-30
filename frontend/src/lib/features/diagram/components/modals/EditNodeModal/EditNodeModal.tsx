@@ -177,6 +177,12 @@ export const EditNodeModal: React.FC = () => {
                                         </>
 
                                     )}
+                                    {node.type == "system_boundary" && (
+                                      <>
+                                        <EditDimensions dimension='height' node={node} />
+                                        <EditDimensions dimension='width' node={node} />
+                                      </>
+                                    )}
                                 </div>
                             </div>
                             <div className="bg-white p-3 text-xs">
