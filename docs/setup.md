@@ -10,16 +10,18 @@
   AI4MDE &middot; <b>Installation Guide</b>
 </h1>
 
-> ☝️ If you are working on <b>Windows</b>, please work from WSL 2.1.5 or higher ([instalaltion guide](https://learn.microsoft.com/en-us/windows/wsl/install)),
+> ☝️ If you are working on <b>Windows</b>, please work from WSL 2.1.5 or higher ([installation guide](https://learn.microsoft.com/en-us/windows/wsl/install)),
 > and set up Docker Desktop accordingly ([instructions](https://docs.docker.com/desktop/features/wsl/)).
 
 > ☝️ If you are working on a <b>Linux</b> distribution, you may use a regular terminal. Make sure you have installed Docker Engine
 > ([guides](https://docs.docker.com/engine/install/)) or Docker Desktop ([guides](https://docs.docker.com/desktop/setup/install/linux/)).
 
-> ☝️ If you are working on <b>macOS</b>, you may should be able to use a regular terminal. Make sure you have installed or Docker Desktop
-> ([guides](https://docs.docker.com/desktop/setup/install/mac-install/)).
+> ☝️ If you are working on <b>macOS</b>, you should be able to use a regular terminal. Make sure you have installed or Docker Desktop
+> ([installation guide](https://docs.docker.com/desktop/setup/install/mac-install/)).
 
-> ☝️ If you are using Docker Desktop, make sure this is running on your device before using the commands below in your terminal.
+> Make sure Git is installed on your device ([instructions](https://github.com/git-guides/install-git)).
+
+> If you are using Docker Desktop, make sure this is running on your device before using the commands below in your terminal.
 
 With your environment correctly set up, you can get started from a Linux, macOS or WSL terminal:
 
@@ -30,19 +32,25 @@ docker compose version
 
 # Clone the repository
 git clone https://github.com/ai4mde/studio.git
-
-# Go to the root directory
 cd studio
 ```
 
-Before the environment can be built, you need to provide your secret OpenAI and Groq API keys in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for this step.
+Before the environment can be built, you need to provide your secret OpenAI and Groq API keys in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order to run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for this step.
+
+Also, take note of the username and password stored in files `config/api.env` and `config/prototypes.env`. These are your credentials for logging into AI4MDE, and any potential web application prototypes you might generate with it, respectively: <b>DJANGO_SUPERUSER_USERNAME=admin</b> and <b>DJANGO_SUPERUSER_PASSWORD=sequoias</b>. You may update your credentials in these files if you wish.
 
 ```bash
-# Build all the necessary images (only required on first install or dependency change)
-docker compose build
+# Configure secrets (required file; values optional if you won't use LLM features)
+cp config/secrets.env.example config/secrets.env
+# edit config/secrets.env
+# edit config/api.env
+# edit config/prototypes.env
 
-# Start all the containers (add -d flag to start in background)
-docker compose up
+# Build and Start all the containers (add -d flag to start in background)
+docker compose up -d -- build
+
+# To stop the containers, you can use
+docker compose down
 ```
 
 This will start multiple services in the background and set everything up (for development). As soon as that's done, you can find the following services on your machine's network:
