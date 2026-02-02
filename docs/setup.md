@@ -11,14 +11,12 @@
 </h1>
 
 Depending on your operating system, you should set up your envirnoment to meet the following requirements:
-- For <b>Windows</b>, please work from <b>WSL 2.1.5</b> or higher ([installation guide](https://learn.microsoft.com/en-us/windows/wsl/install)),
-and set up <b>Docker Desktop</b> accordingly ([instructions](https://docs.docker.com/desktop/features/wsl/)).
-- For a <b>Linux</b> distribution, you may use a regular terminal. Make sure you have installed <b>Docker Engine</b>
-([guides](https://docs.docker.com/engine/install/)) or <b>Docker Desktop</b> ([guides](https://docs.docker.com/desktop/setup/install/linux/)).
-- For <b>macOS</b>, you should be able to use a regular terminal. Make sure you have installed or <b>Docker Desktop</b>
-([installation guide](https://docs.docker.com/desktop/setup/install/mac-install/)).
+- For <b>Windows</b>, please work from [WSL 2.1.5](https://learn.microsoft.com/en-us/windows/wsl/install) or higher,
+and set up <b>Docker Desktop</b> according to these [instructions](https://docs.docker.com/desktop/features/wsl/).
+- For a <b>Linux</b> distribution, you may use a regular terminal. Make sure you have installed [Docker Engine](https://docs.docker.com/engine/install/) or [Docker Desktop](https://docs.docker.com/desktop/setup/install/linux/).
+- For <b>macOS</b>, you should be able to use a regular terminal. Make sure you have installed or [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-Make sure <b>Git</b> is installed on your device ([instructions](https://github.com/git-guides/install-git)).
+Make sure [Git](https://github.com/git-guides/install-git) is installed on your device.
 
 > ☝️ If you are using <b>Docker Desktop</b>, make sure it is running on your device before using the commands below in your terminal.
 
