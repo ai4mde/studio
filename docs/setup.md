@@ -10,15 +10,14 @@
   AI4MDE &middot; <b>Installation Guide</b>
 </h1>
 
-> ☝️ If you are working on <b>Windows</b>, please work from WSL 2.1.5 or higher (instalaltion guide [here](https://learn.microsoft.com/en-us/windows/wsl/install)),
-> and set up Docker Desktop accordingly (instructions [here](https://docs.docker.com/desktop/features/wsl/)).
+> ☝️ If you are working on <b>Windows</b>, please work from WSL 2.1.5 or higher ([instalaltion guide](https://learn.microsoft.com/en-us/windows/wsl/install)),
+> and set up Docker Desktop accordingly ([instructions](https://docs.docker.com/desktop/features/wsl/)).
 
-> ☝️ If you are working on a <b>Linux</b> distribution, you may use a regular terminal.
-> Make sure you have installed Docker Engine (guides [here](https://docs.docker.com/engine/install/))
-> or Docker Desktop (guides [here](https://docs.docker.com/desktop/setup/install/linux/)).
+> ☝️ If you are working on a <b>Linux</b> distribution, you may use a regular terminal. Make sure you have installed Docker Engine
+> ([guides](https://docs.docker.com/engine/install/)) or Docker Desktop ([guides](https://docs.docker.com/desktop/setup/install/linux/)).
 
-> ☝️ If you are working on <b>macOS</b>, you may should be able to use a regular terminal.
-> Make sure you have installed or Docker Desktop (guides [here](https://docs.docker.com/desktop/setup/install/mac-install/)).
+> ☝️ If you are working on <b>macOS</b>, you may should be able to use a regular terminal. Make sure you have installed or Docker Desktop
+> ([guides](https://docs.docker.com/desktop/setup/install/mac-install/)).
 
 > ☝️ If you are using Docker Desktop, make sure this is running on your device before using the commands below in your terminal.
 
