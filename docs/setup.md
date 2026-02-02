@@ -10,37 +10,35 @@
   AI4MDE &middot; <b>Installation Guide</b>
 </h1>
 
-Get up and running with the AI4MDE studio and API in no time:
+> ☝️ If you are working on <b>Windows</b>, please work from WSL 2.1.5 or higher (instalaltion guide [here](https://learn.microsoft.com/en-us/windows/wsl/install)),
+> and set up Docker Desktop accordingly (instructions [here](https://docs.docker.com/desktop/features/wsl/)).
 
-```
-git clone https://github.com/ai4mde/studio.git
-cd frontend
-docker-compose up -d
-```
+> ☝️ If you are working on a <b>Linux</b> distribution, you may use a regular terminal.
+> Make sure you have installed Docker Engine (guides [here](https://docs.docker.com/engine/install/))
+> or Docker Desktop (guides [here](https://docs.docker.com/desktop/setup/install/linux/)).
 
-Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
+> ☝️ If you are working on <b>macOS</b>, you may should be able to use a regular terminal.
+> Make sure you have installed or Docker Desktop (guides [here](https://docs.docker.com/desktop/setup/install/mac-install/)).
 
-<br/>
+> ☝️ If you are using Docker Desktop, make sure this is running on your device before using the commands below in your terminal.
 
-## Installation
-
-> ☝️ This project is assumes you run a GNU/Linux system.
-> If you find yourself on Windows, please work from WSL2.
-> You should be fine on macOS. If you're just running without
-> contributing, ignore the above.
-
-The easiest way to get started is through a container runtime and the docker compose file at the root. If these terms are unfamiliar to you, start with installing a container runtime.
-
-Before the environment can be built, secret API keys need to be specified in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`.
-
-With everything ready and this repository cloned, you can get started from a shell:
+With your environment correctly set up, you can get started from a Linux, macOS or WSL terminal:
 
 ```bash
-# Ensure that you have the correct tools installed, you might have to restart
-# your shell
+# Ensure that you have the Docker installed
 docker -v
 docker compose version
 
+# Clone the repository
+git clone https://github.com/ai4mde/studio.git
+
+# Go to the root directory
+cd studio
+```
+
+Before the environment can be built, you need to provide your secret OpenAI and Groq API keys in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for this step.
+
+```bash
 # Build all the necessary images (only required on first install or dependency change)
 docker compose build
 
