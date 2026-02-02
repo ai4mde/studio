@@ -27,7 +27,7 @@ Why you would do this, how imported nodes are marked.
 <b>Removing and Deleting</b>
 Difference between remove and delete (node vs. classifier, case of imports).
 
-<h3>Relations and Edges</hr>
+<h3>Relations and Edges</h3>
 edge vs. relation
 <b>Creating and Editing</b>
 How to create (connect option), types of connections, parameters, how to reposition edges using dog ears, how do delete dog earshow to edit.
