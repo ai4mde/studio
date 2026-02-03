@@ -20,36 +20,32 @@ Once you have your project and system, you can get started working on a diagram.
 
 <h3>Nodes</h3>
 <b>Creating and Editing</b>
-Nodes are the buidling blocks of class diagrams. By right clicking your modelling area, you have the option to create a new node representing a Class, Enum, Signal or Application. You will have to name your node. If you are creating an Enum, you can also use the create menu to specify your literals. By right clicking a node, you then have the option to edit it. This allows you to:
+<p>Nodes are the buidling blocks of class diagrams. By right-clicking your modelling area, you have the option to create a new node representing a Class, Enum, Signal or Application. You will have to name your node. If you are creating an Enum, you can also use the create menu to specify your literals. By right clicking a node, you then have the option to edit it. This allows you to:</p>
 <ul>
   <li>rename the node</li>
   <li>edit attributes and methods for classes</li>
   <li>edit literals for enums</li>
 </ul>
 <b>Importing Nodes from Other Systems</b>
-In the class diagram, you have the option to import nodes from other diagrams, and even from other systems within your project. The origin system is marked when it is different than the current one. Sometimes you are importing a node that in other diagrams has some preexisting edges connecting it to nodes that already exist in your current diagram. If that happens, these edges will be added to your current diagram as well.
+<p>In the class diagram, you have the option to import nodes from other diagrams, and even from other systems within your project. The origin system is marked when it is different than the current one. Sometimes you are importing a node that in other diagrams has some preexisting edges connecting it to nodes that already exist in your current diagram. If that happens, these edges will be added to your current diagram as well.</p>
 <b>Removing and Deleting</b>
-You have two options in terms of removing a node:
+<p>You have two options in terms of removing a node:</p>
 <ul>
-  <li>Remove from Diagram: only deleted the node and its edges in the current diagram.</li>
+  <li>Remove from Diagram: only deletes the node and its edges in the current diagram.</li>
   <li>Delete Completely: removes the node and its edges in any diagram in your project.</li>
 </ul>
+<p>This distinction is important when you have imported a node to multiple systems, and allows you to decide whether you want to delete it only from the current diagram or from everywhere in your project.</p>
 
-<h3>Relations and Edges</h3>
-edge vs. relation
+<h3>Edges</h3>
 <b>Creating and Editing</b>
-How to create (connect option), types of connections, parameters, how to reposition edges using dog ears, how do delete dog earshow to edit.
+<p>You can create an edge by right-clicking on a source node and then selecting the `Connect` option, then selecting the target node. You can create different types of edges: Association, Generalization, Composition, Dependency. In the edge creation menu, you have the option of setting a label, as well as any eventual source/target label or multiplicity. You can right-click an edge and then select `Edit` in order to change all of these properties.</p>
+
+<p>You may be in the situation of having to reposition edges in order to avoid overlaps that can make the label, multiplicityes or edge type indistinguishable. You can drag the circular endpoints to reposition the edge. You can also add bending points by double-clicking a specific spot on the edge. These points are also draggable. If you wish to delete a bending point, you can do so by right-clicking it.</p>
+How to create (connect option), types of connections, parameters, how to reposition edges using dog ears, how do delete dog ears how to edit.
 <b>Removing and Deleting</b>
-Difference between remove and delete (edge vs. relation).
-
-<h1 align="center">
-  <b>Collaboration</b>
-</h1>
-
-Exporting and importing systems possible via JSON files.
-
-<h3>Exporting A System</h3>
-From diagrams screen (not sure if this will work, check), from versions screen.
-
-<h3>Importing A System</h3>
-From projects screen(not sure if this will work, check), from versions screen.
+<p>When removing an edge, you have similar options as for a node:</p>
+<ul>
+  <li>Remove from Diagram: only removes the edge from the current diagram.</li>
+  <li>Delete Completely: removes the edge from any diagram in your project.</li>
+</ul>
+<p>Once again, this distinction is important when you have imported the same nodes to multiple systems, which can lead to imported edges that reoccur in multiple diagrams.</p>
