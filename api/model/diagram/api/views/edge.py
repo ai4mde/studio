@@ -138,7 +138,8 @@ def update_edge(request: HttpRequest, edge_id: UUID, data: UpdateEdge):
 
     if data.data is not None:
         current_data = edge_obj.data or {}
-        updated_data = {**current_data, **data.data.model_dump()}
+        patch = data.data.model_dump(exclude_unset=True, exclude_none=True)
+        updated_data = {**current_data, **patch}
         edge_obj.data = updated_data
         edge_obj.save()
 
@@ -163,9 +164,6 @@ def hard_delete_relation(request: HttpRequest, edge_id: str):
         return 404, "Diagram not found"
 
     return delete_relation_everywhere(diagram=diagram, edge_id=edge_id)
-
-
-
 
 
 class PatchModel(BaseModel):

@@ -69,7 +69,10 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                 markerStart: `${e?.rel?.type}-start`,
                 source: e?.source_ptr,
                 target: e?.target_ptr,
-                data: e?.rel,
+                data: {
+                    ...(e?.rel ?? {}),
+                    edge_data: (e?.data ?? {}),
+                },
             })),
         })),
     relatedDiagramsFromAPI: (rds) => {
