@@ -36,6 +36,8 @@ Once you have your project and system, you can get started working on a diagram.
 </ul>
 <p>This distinction is important when you have imported a node to multiple systems, and allows you to decide whether you want to delete it only from the current diagram or from everywhere in your project.</p>
 
+<br/>
+
 <h3>Edges</h3>
 <b>Creating and Editing</b>
 <p>You can create an edge by right-clicking on a source node and then selecting the <b>Connect</b> option, then selecting the target node. You can create different types of edges: <b>Association</b>, <b>Generalization</b>, <b>Composition</b>, <b>Dependency</b>. In the edge creation menu, you have the option of setting a label, as well as any eventual source/target label or multiplicity. You can right-click an edge and then select <b>Edit</b> in order to change all of these properties.</p>

@@ -34,18 +34,18 @@ cd studio
 cp config/secrets.env.example config/secrets.env
 # If you want, you can edit config/secrets.env, config/api.env, or config/prototypes.env at this point
 
-# Build and Start all the containers (add -d flag to start in background)
+# Build and start all the containers (add -d flag to start in background)
 docker compose up -d --build
 
 # To stop the containers, you can use
 docker compose down
 ```
 
-Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
+Now visit [http://ai4mde.localhost](http://ai4mde.localhost).
 The login credentials can be found in `config/api.env`.
 
-For explanations on using the diagram modelling features, see [docs/users-guide.md](./docs/users-guide.md).
+- For explanations on using the diagram modelling features, see [docs/users-guide.md](./docs/users-guide.md).
 
-For an overview of the technical architecture, see [docs/architecture.md](./docs/architecture.md)
+- For an overview of the technical architecture, see [docs/architecture.md](./docs/architecture.md).
 
-You can report issues using our [bug reporting board](https://github.com/orgs/ai4mde/projects/12). This is public for viewing, but requires us to add you as a collaborator in order to post a new issue. Please, contact someone from the course support team in order to be added.
+- You can report issues using our [bug reporting board](https://github.com/orgs/ai4mde/projects/12). This is public for viewing, but requires us to add you as a collaborator in order to post a new issue. Please, contact someone from the course support team in order to be added.

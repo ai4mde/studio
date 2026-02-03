@@ -53,6 +53,6 @@ docker compose down
 This will start multiple services in the background and set everything up (for development). As soon as that's done, you can find the following services on your machine's network:
 
 - [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `/frontend`. As a non-contributing user, this is where you can interact with the AI4MDE tool. Use the credentials from `config/api.env` to log in.
-- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `/api`
-- [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) - Running prototype in `/prototypes/generated_prototypes`
-- [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) - Prototype management API from `/prototypes/backend`
+- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `/api`.
+- [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) - Running prototype in `/prototypes/generated_prototypes`.
+- [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) - Prototype management API from `/prototypes/backend`.
