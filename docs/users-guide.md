@@ -10,7 +10,7 @@
   <b>Working with Diagrams</b>
 </h1>
 
-You can create diagrams from scratch in the `Projects` section accessible from the sidebar menu. Here, you first create and name your project. A project can have many systems, and a system can have many diagrams. For example, you might want to create a project called "Airline", which is split over several systems such as "Logistics", "Payments", "Marketing", "Maintenance", etc. Each of these systems might contain one or several class, use case or activity diagrams. These diagrams may or may not have common elements, like the class "Airplane" appearing in class diagrams in both the "Logistics" and the "Maintenance" systems.
+You can create diagrams from scratch in the `Projects` section accessible from the sidebar menu. Here, you first create and name your project. A project can have many systems, and a system can have many diagrams. For example, you might want to create a project called `Airline`, which is split over several systems such as `Logistics`, `Payments`, `Marketing`, `Maintenance`, etc. Each of these systems might contain one or several class, use case or activity diagrams. These diagrams may or may not have common elements, like the class `Airplane` appearing in class diagrams in both the `Logistics` and the `Maintenance` systems.
 
 Once you have your project and system, you can get started working on a diagram.
 
@@ -18,14 +18,22 @@ Once you have your project and system, you can get started working on a diagram.
   <b>Class Diagrams</b>
 </h2>
 
-<h3>Classifiers and Nodes</h3>
-node vs. classifier
+<h3>Nodes</h3>
 <b>Creating and Editing</b>
-How to create, types of classes, parameters, how to edit.
-<b>Importing nodes from other systems</b>
-Why you would do this, how imported nodes are marked.
+Nodes are the buidling blocks of class diagrams. By right clicking your modelling area, you have the option to create a new node representing a Class, Enum, Signal or Application. You will have to name your node. If you are creating an Enum, you can also use the create menu to specify your literals. By right clicking a node, you then have the option to edit it. This allows you to:
+<ul>
+  <li>rename the node</li>
+  <li>edit attributes and methods for classes</li>
+  <li>edit literals for enums</li>
+</ul>
+<b>Importing Nodes from Other Systems</b>
+In the class diagram, you have the option to import nodes from other diagrams, and even from other systems within your project. The origin system is marked when it is different than the current one. Sometimes you are importing a node that in other diagrams has some preexisting edges connecting it to nodes that already exist in your current diagram. If that happens, these edges will be added to your current diagram as well.
 <b>Removing and Deleting</b>
-Difference between remove and delete (node vs. classifier, case of imports).
+You have two options in terms of removing a node:
+<ul>
+  <li>Remove from Diagram: only deleted the node and its edges in the current diagram.</li>
+  <li>Delete Completely: removes the node and its edges in any diagram in your project.</li>
+</ul>
 
 <h3>Relations and Edges</h3>
 edge vs. relation
