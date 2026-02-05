@@ -3,6 +3,8 @@ import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHe
 import React, { useEffect, useState } from "react";
 import { RelatedNode } from "$diagram/types/diagramState"
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
+import { useDiagramStore } from "$diagram/stores";
+import { useSystemClassClassifiers } from "../ImportNodeModal/queries/importNode";
 
 type Props = {
     object: any;
@@ -13,20 +15,35 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, classes, setObject }) => {
-
+export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors, swimlaneGroupExists, classes, setObject }) => {
     const DEFAULTS: Record<string, Partial<typeof object>> = {
         swimlane: {
-            type: "swimlane",
+            role: "swimlane",
             height: 1000,
             width: 300,
             horizontal: false,
         },
         action: {
-            type: "action",
+            role: "action",
             isAutomatic: false,
         },
+        control: {
+            role: "control",
+        },
+        object: {
+            role: "object",
+            class: null,
+            state: null,
+        },
     };
+
+    const systemId = useDiagramStore((s) => s.systemId);
+    const nodes = useDiagramStore((s) => s.nodes);
+
+    const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
+    const [selectedClassifier, setSelectedClassifier] = useState<string | null>(null);
+
+    const normalize = (v: unknown) => (v ?? "").toString().toLowerCase();
 
     useEffect(() => {
         if (object.role && DEFAULTS[object.role]) {
@@ -43,6 +60,16 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             });
         }
     }, [object.role, setObject]);
+
+    useEffect(() => {
+        if (
+            selectedClassifier &&
+            !classifiers.some((c) => c.id === selectedClassifier)
+        ) {
+            setSelectedClassifier(null);
+            setObject((o: any) => ({ ...o, id: undefined }));
+        }
+    }, [classifiers, selectedClassifier, setObject]);
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
@@ -74,45 +101,26 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     <Option value="object">Object</Option>
                 </Select>
             </FormControl>
-            <FormControl size="sm" className="w-full">
-                <FormLabel>Type</FormLabel>
-                <Select
-                    value={object.type || ""}
-                    placeholder="Select a type..."
-                    onChange={(_, e) =>
-                        setObject((o: any) => ({ ...o, type: e }))
-                    }
-                >
-                    {object.role == "swimlane" && (
-                        <>
-                            <Option value="swimlane">Swimlane</Option>
-                        </>
-                    )}
-                    {object.role == "action" && (
-                        <>
-                            <Option value="action">Action</Option>
-                        </>
-                    )}
-                    {object.role == "control" && (
-                        <>
-                            <Option value="decision">Decision</Option>
-                            <Option value="final">Final</Option>
-                            <Option value="fork">Fork</Option>
-                            <Option value="initial">Initial</Option>
-                            <Option value="join">Join</Option>
-                            <Option value="merge">Merge</Option>
-                        </>
-                    )}
-                    {object.role == "object" && (
-                        <>
-                            <Option value="class" disabled>Class</Option>
-                            <Option value="buffer" disabled>Buffer</Option>
-                            <Option value="pin" disabled>Pin</Option>
-                        </>
-                    )}
-                </Select>
-            </FormControl>
-            {(object.type == "action") && (
+            {(object.role == "control") && (
+                <FormControl size="sm" className="w-full">
+                    <FormLabel>Type</FormLabel>
+                    <Select
+                        value={object.type || ""}
+                        placeholder="Select a type..."
+                        onChange={(_, e) =>
+                            setObject((o: any) => ({ ...o, type: e }))
+                        }
+                    >
+                        <Option value="decision">Decision</Option>
+                        <Option value="final">Final</Option>
+                        <Option value="fork">Fork</Option>
+                        <Option value="initial">Initial</Option>
+                        <Option value="join">Join</Option>
+                        <Option value="merge">Merge</Option>
+                    </Select>
+                </FormControl>
+            )}
+            {(object.role == "action") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Name</FormLabel>
@@ -165,14 +173,14 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     />
                 </>
             )}
-            {(object.type == "swimlane") && (
+            {(object.role == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Actors</FormLabel>
                         <Select
                             multiple
                             placeholder="Select actors..."
-                            onChange={(_, newValue) =>{
+                            onChange={(_, newValue) => {
                                 const selectedNodes = uniqueActors.filter((node) => newValue.includes(node.id))
                                 setObject((o: any) => ({
                                     ...o,
@@ -202,7 +210,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 <Input
                                     value={object.height || 1000}
                                     type="number"
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         setObject((o: any) => ({
                                             ...o,
                                             height: e.target.value,
@@ -216,7 +224,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 <Input
                                     value={object.width || 300}
                                     type="number"
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         setObject((o: any) => ({
                                             ...o,
                                             width: e.target.value,
@@ -239,6 +247,41 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                             </FormControl>
                         </>
                     )}
+                </>
+            )}
+            {(object.role == "object") && (
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Class</FormLabel>
+                        <Select
+                            placeholder={
+                                !isSuccess
+                                    ? "Loading..."
+                                    : classifiers.length === 0
+                                        ? "You have no Class Diagrams with nodes"
+                                        : "Choose from Class Diagrams"
+                            }
+                            value={selectedClassifier}
+                            onChange={(event, newValue) => {
+                                setSelectedClassifier(newValue);
+                                setObject((o: any) => ({ ...o, class: newValue }))
+                            }}
+                            disabled={!isSuccess || classifiers.length === 0}
+                            required
+                        >
+                            {isSuccess && (
+                                classifiers.map((e) => {
+                                    return (
+                                        <Option key={e.id} value={e.id} sx={{ "--Option-decoratorChildHeight": "0px", }}>{e.data.name} ({e.data.type})
+                                            <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">
+                                                {e.system_name}
+                                            </span>
+                                        </Option>
+                                    )
+                                }
+                                ))}
+                        </Select>
+                    </FormControl>
                 </>
             )}
         </>
