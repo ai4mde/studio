@@ -32,7 +32,7 @@ git clone https://github.com/ai4mde/studio.git
 cd studio
 ```
 
-Before the environment can be built, you need to provide your secret OpenAI and Groq API keys in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order to run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for this step.
+Before the environment can be built, you need to provide your secret LLM API key (e.g. OpenAI) in the file `/config/secrets.env` using the [Groq LLM API manager](https://console.groq.com/keys). An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order to run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for editing the file.
 
 > ☝️ Also, take note of the username and password stored in files `config/api.env` and `config/prototypes.env`. These are your credentials for logging into AI4MDE, and any potential web application prototypes you might generate with it, respectively: `DJANGO_SUPERUSER_USERNAME = admin` and `DJANGO_SUPERUSER_PASSWORD = sequoias`. You may update your credentials in these files if you wish.
 

@@ -30,9 +30,8 @@ docker compose version
 git clone https://github.com/ai4mde/studio.git
 cd studio
 
-# Create secrets file
+# Create secrets file for storing LLM API credentials (you can leave this file unchanged for now)
 cp config/secrets.env.example config/secrets.env
-# If you want, you can edit config/secrets.env, config/api.env, or config/prototypes.env at this point
 
 # Build and start all the containers (add -d flag to start in background)
 docker compose up -d --build
@@ -42,7 +41,7 @@ docker compose down
 ```
 
 Now visit [http://ai4mde.localhost](http://ai4mde.localhost).
-The login credentials can be found in `config/api.env`.
+<b>The login credentials can be found in `config/api.env`.</b>
 
 - For explanations on using the diagram modelling features, see [docs/users-guide.md](./docs/users-guide.md).
 
