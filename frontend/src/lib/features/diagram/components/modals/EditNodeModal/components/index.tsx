@@ -3,12 +3,22 @@ import EditMethods from "./EditMethods/EditMethods";
 import EditName from "./EditName/EditName";
 import EditLiterals from "./EditLiterals/EditLiterals";
 import EditApplication from "./EditApplication/EditApplication";
+import EditSchedule from "./EditSchedule/EditSchedule";
+import EditDimensions from "./EditDimensions/EditDimensions";
+import EditBoolean from "./EditBoolean/EditBoolean";
+import EditSwimlane from "./EditSwimlane/EditSwimlane";
+import EditCode from "./EditCode/EditCode";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode };
 export default {
     EditAttributes,
     EditMethods,
     EditName,
     EditLiterals,
     EditApplication,
+    EditSchedule,
+    EditDimensions,
+    EditBoolean,
+    EditSwimlane,
+    EditCode
 };

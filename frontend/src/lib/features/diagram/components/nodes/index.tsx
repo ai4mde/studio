@@ -7,6 +7,7 @@ import {
     InitialNode,
     JoinNode,
     MergeNode,
+    SwimlaneGroupNode,
 } from "./activity";
 import { ClassNode, EnumNode, SignalNode } from "./class";
 import {
@@ -17,6 +18,7 @@ import {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SystemBoundaryNode,
 } from "./usecase";
 
 export {
@@ -29,7 +31,9 @@ export {
     PreconditionNode,
     ScenarioNode, SignalNode, SystemNode,
     TriggerNode,
-    UsecaseNode
+    UsecaseNode,
+    SwimlaneGroupNode,
+    SystemBoundaryNode,
 };
 
 export default {
@@ -51,4 +55,6 @@ export default {
     SystemNode,
     TriggerNode,
     UsecaseNode,
+    SwimlaneGroupNode,
+    SystemBoundaryNode,
 };

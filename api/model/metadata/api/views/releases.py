@@ -1,12 +1,18 @@
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 from metadata.api.schemas import ReadRelease, UpdateRelease
 from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
 from metadata.models import Release, System
-from ninja import Router
+from ninja import Router, Schema
 import json
 
 releases = Router()
+
+class ImportReleaseBody(Schema):
+    diagrams: List[Dict[str, Any]]
+    interfaces: List[Dict[str, Any]]
+    useAuthentication: Optional[bool] = None
+    release_notes: Optional[List[str]] = None
 
 
 @releases.get("/system/{uuid:system_id}/", response=List[ReadRelease])
@@ -48,25 +54,46 @@ def create_release(request, system_id: str, name: str, release_notes: Optional[s
 
 
 @releases.post("/{uuid:release_id}/load/")
-def load_release(request, release_id):
-    release = Release.objects.get(id=release_id)
+def load_release(request, release_id, system_id: str | None = None):
+    release = Release.objects.filter(id=release_id).first()
     if not release:
         return 404, "Release not found"
     
-    system = release.system
-    if not system:
+    target_system = (
+        System.objects.filter(id=system_id).first()
+        if system_id
+        else release.system
+    )
+    if not target_system:
         return 404, "System not found"
     
-    if not load_diagrams(system=system, release=release):
+    if not load_diagrams(system=target_system, release=release):
         return 422
     
-    if not load_interfaces(system=system, release=release):
+    if not load_interfaces(system=target_system, release=release):
         return 422
     
     return 200
     
     
-
+@releases.post("/import", response=ReadRelease)
+def import_release(request, system_id: str, name: str, payload: ImportReleaseBody):
+    system = System.objects.filter(id=system_id).first()
+    if not system:
+        return 404, "System not found"
+    if not name:
+        return 422, "Name is required"
+    
+    release = Release.objects.create(
+        name=name,
+        project=system.project,
+        system=system,
+        diagrams=payload.diagrams,
+        metadata={},
+        release_notes=payload.release_notes or [],
+        interfaces=payload.interfaces,
+    )
+    return release
 
 
 

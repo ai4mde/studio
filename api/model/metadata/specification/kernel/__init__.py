@@ -27,6 +27,10 @@ class NamespacedElement(BaseModel):
     namespace: str = ""
 
 
+class ParentNode(BaseModel):
+    parentNode: Optional[str] = None
+
+
 class Operation(BaseModel):
     name: str
     description: str = ""

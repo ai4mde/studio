@@ -1,3 +1,5 @@
+from django.db.models import Count, Q
+
 from diagram.models import Diagram, Edge, Node
 from metadata.models import Relation
 import metadata.specification as spec
@@ -12,22 +14,54 @@ def create_edge(diagram: Diagram, data: spec.Relation, source: Node, target: Nod
         target=target.cls,
     )
 
-    # Create the edge
+    # Create the edge in the current diagram
     edge = Edge.objects.create(
         diagram=diagram,
         rel=relation,
         data={},
     )
 
-    return edge
+    # Create in other diagrams in the same project that have both classifiers
+    other_diagrams = (
+        Diagram.objects
+        .filter(system__project=diagram.system.project)
+        .exclude(id=diagram.id)
+        .annotate(
+            has_both=Count(
+                "nodes",
+                filter=Q(nodes__cls=source.cls) | Q(nodes__cls=target.cls),
+                distinct=True,
+            )
+        )
+        .filter(has_both=2)
+    )
+
+    for d in other_diagrams:
+        Edge.objects.get_or_create(diagram=d, rel=relation, defaults={"data": {}})
+
+    return Edge.objects.get(diagram=diagram, rel=relation)
 
 
-def delete_edge(diagram: Diagram, edge_id: str):
+def remove_edge_from_diagram(diagram: Diagram, edge_id: str):
     edge = diagram.edges.filter(id=edge_id).first()
-    relation = edge.rel
+
+    if edge is None:
+        return False
+    
     edge.delete()
-    if not Edge.objects.filter(rel = relation).exists():
-        relation.delete()
+    return True
+
+
+def delete_relation_everywhere(diagram: Diagram, edge_id: str):
+    edge = diagram.edges.select_related("rel").filter(id=edge_id).first()
+    if edge is None:
+        return False
+    
+    relation = edge.rel
+    
+    Edge.objects.filter(rel=relation).delete()
+    relation.delete()
+
     return True
 
 
@@ -64,4 +98,4 @@ def fetch_and_update_edges(diagram: Diagram):
     return diagram.edges.all()
 
 
-__all__ = ["create_edge", "delete_edge", "fetch_and_update_edges"]
+__all__ = ["create_edge", "remove_edge_from_diagram", "delete_relation_everywhere", "fetch_and_update_edges"]

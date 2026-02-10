@@ -1,4 +1,5 @@
-from ninja import Router
+from ninja import Router, Query
+from pydantic import BaseModel
 from django.http import HttpRequest
 
 from metadata.api.schemas import MetaClassifiersSchema
@@ -9,6 +10,29 @@ from metadata.models import System, Classifier
 classifiers = Router()
 
 
+class ClassifierExistsResponse(BaseModel):
+    exists: bool
+
+
+@classifiers.get("/exists/", response=ClassifierExistsResponse)
+def classifier_exists(request: HttpRequest, name: str = Query(...), ctype: str | None = Query(None)):
+    if not request.resolver_match:
+        return 500, "Resolver match not found"
+
+    system_id = request.resolver_match.kwargs.get("system_id")
+    system = System.objects.get(id=system_id)
+
+    normalized = (name or "").strip()
+    if not normalized:
+        return {"exists": False}
+
+    q = system.classifiers.filter(data__name__iexact=normalized)
+    if ctype:
+        q = q.filter(data__type=ctype.strip())
+        
+    return {"exists": q.exists()}
+
+
 @classifiers.get("/", response=MetaClassifiersSchema)
 def get_classifiers(request: HttpRequest):
     if not request.resolver_match:
@@ -16,12 +40,13 @@ def get_classifiers(request: HttpRequest):
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
+    project = system.project
 
-    if not system:
-        return 404, "System not found"
+    if not project:
+        return {"classifiers": []}
 
     return {
-        "classifiers": system.classifiers.all(),
+        "classifiers": project.classifiers.all(),
     }
 
 

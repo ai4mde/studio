@@ -1,14 +1,18 @@
 import { deleteEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useEditConnectionModal } from "$diagram/stores/modals";
-import schema from "$diagram/types/edge.schema.json";
-import { FormControl, FormLabel, Input, Option, Select } from "@mui/joy";
 import Button from "@mui/joy/Button";
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Draggable from "react-draggable";
 import style from "./editconnectionmodal.module.css";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { authAxios } from "$lib/features/auth/state/auth";
+
+import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
+import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
+import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
 
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
@@ -19,19 +23,23 @@ export const EditConnectionModal: React.FC = () => {
         [modalState.edge, edges],
     );
 
-    const [object, setObject] = useState<any>(edge?.data);
+    const [object, setObject] = useState<any>(edge?.data ?? {});
 
-    const connectionTypes = useMemo(() => {
-        return schema.definitions.Edge.anyOf.filter(
-            (e) => e.properties.diagram.const == type,
-        );
-    }, [type]);
+    useEffect(() => {
+        setObject(edge?.data ?? {});
+    }, [edge]);
 
-    const selectedType = useMemo(() => {
-        return schema.definitions.Edge.anyOf.find(
-            (e) => e.properties.type && e.properties.type.const == object.type,
-        );
-    }, [object, object.type, type]);
+    const queryClient = useQueryClient();
+
+    const updateEdge = useMutation({
+        mutationFn: async () => {
+            await authAxios.patch(
+                `/v1/diagram/${diagram}/edge/${edge?.id}/`,
+                { rel: object },
+            );
+            queryClient.invalidateQueries({ queryKey: ["diagram"] });
+        },
+    });
 
     const onDelete = () => {
         modalState?.edge && deleteEdge(diagram, modalState.edge);
@@ -39,7 +47,9 @@ export const EditConnectionModal: React.FC = () => {
 
     useEffect(() => {
         const down = (e: KeyboardEvent) => {
-            e.key === "Escape" && close();
+            if (e.key === "Escape") {
+                modalState.close();
+            }
         };
 
         document.addEventListener("keydown", down);
@@ -47,6 +57,20 @@ export const EditConnectionModal: React.FC = () => {
     });
 
     const nodeRef = React.useRef(null);
+
+    const isValid = () => {
+        if (!object?.type) return false;
+
+        if (type === "classes" || type === "class") {
+            return isClassConnectionValid(object);
+        }
+
+        return true;
+    };
+
+    if (!edge) {
+        return <></>;
+    }
 
     return edge ? (
         createPortal(
@@ -66,78 +90,38 @@ export const EditConnectionModal: React.FC = () => {
                                     <X size={20} />
                                 </button>
                             </div>
-                            <div className="h-full overflow-y-scroll bg-white">
+
+                            <div className="h-full overfull-y-scroll bg-white">
                                 <div className={style.body}>
-                                    <FormControl size="sm">
-                                        <FormLabel>Type</FormLabel>
-                                        <Select
-                                            placeholder="Select a connection type"
-                                            onChange={(_, value) => {
-                                                setObject((obj: any) => {
-                                                    return {
-                                                        ...obj,
-                                                        type: value,
-                                                    };
-                                                });
-                                            }}
-                                        >
-                                            {connectionTypes.map(
-                                                (type, idx) =>
-                                                    type.properties.type
-                                                        ?.const && (
-                                                        <Option
-                                                            key={idx}
-                                                            value={
-                                                                type.properties
-                                                                    .type?.const
-                                                            }
-                                                        >
-                                                            {
-                                                                type.properties
-                                                                    .type?.const
-                                                            }
-                                                        </Option>
-                                                    ),
-                                            )}
-                                        </Select>
-                                    </FormControl>
-                                    {selectedType &&
-                                        Object.keys(
-                                            selectedType.properties,
-                                        ).includes("labels") && (
-                                            <div className="flex w-full flex-row items-center justify-between gap-2">
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Label From
-                                                    </FormLabel>
-                                                    <Input></Input>
-                                                </FormControl>
-                                                <FormControl size="sm">
-                                                    <FormLabel>To</FormLabel>
-                                                    <Input></Input>
-                                                </FormControl>
-                                            </div>
-                                        )}
-                                    {selectedType &&
-                                        Object.keys(
-                                            selectedType.properties,
-                                        ).includes("multiplicity") && (
-                                            <div className="flex w-full flex-row items-center justify-between gap-2">
-                                                <FormControl size="sm">
-                                                    <FormLabel>
-                                                        Multiplicity From
-                                                    </FormLabel>
-                                                    <Input></Input>
-                                                </FormControl>
-                                                <FormControl size="sm">
-                                                    <FormLabel>To</FormLabel>
-                                                    <Input></Input>
-                                                </FormControl>
-                                            </div>
-                                        )}
+                                    {type === "classes" && (
+                                        <ClassConnectionFields
+                                            object={object}
+                                            setObject={setObject}
+                                        />
+                                    )}
+                                    {type === "activity" && (
+                                        <ActivityConnectionFields
+                                            object={object}
+                                            setObject={setObject}
+                                        />
+                                    )}
+                                    {type === "usecase" && (
+                                        <UseCaseConnectionFields
+                                            object={object}
+                                            setObject={setObject}
+                                        />
+                                    )}
                                 </div>
                             </div>
+
                             <div className={style.actions}>
+                                <Button
+                                    size="sm"
+                                    onClick={() => isValid() && updateEdge.mutate()}
+                                    disabled={!isValid() || updateEdge.isPending}
+                                >
+                                    Save
+                                </Button>
                                 <Button
                                     color="danger"
                                     size="sm"

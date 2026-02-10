@@ -1,0 +1,10 @@
+.editschedule {
+    @apply flex flex-row gap-1 text-xs items-stretch w-full;
+    @apply bg-slate-100;
+}
+.editschedule.dirty {
+    @apply bg-indigo-100 text-indigo-600;
+}
+.save {
+    @apply bg-indigo-400 hover:bg-indigo-300 p-2 text-white disabled:bg-slate-300 disabled:hover:bg-slate-300;
+}

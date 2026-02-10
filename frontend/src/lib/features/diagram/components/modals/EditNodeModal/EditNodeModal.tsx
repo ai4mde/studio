@@ -15,12 +15,18 @@ import {
     EditLiterals,
     EditMethods,
     EditName,
+    EditSchedule,
+    EditDimensions,
+    EditBoolean,
+    EditSwimlane,
+    EditCode
 } from "./components";
 import style from "./editnodemodal.module.css";
 
+
 export const EditNodeModal: React.FC = () => {
     const modalState = useEditNodeModal();
-    const { diagram, nodes } = useDiagramStore();
+    const { diagram, nodes, relatedDiagrams } = useDiagramStore();
 
     const node = useMemo(
         () => nodes.find((e) => e.id == modalState.node),
@@ -107,6 +113,75 @@ export const EditNodeModal: React.FC = () => {
                                     )}
                                     {node.type == "application" && (
                                         <EditApplication node={node} />
+                                    )}
+                                    {node.type == 'swimlanegroup' && (
+                                        <>
+                                            <EditDimensions dimension='height' node={node} />
+                                            <EditDimensions dimension='width' node={node} />
+                                            <EditBoolean
+                                                attribute="horizontal"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Horizontal",
+                                                    falseText: "Vertical",
+                                                }}
+                                            />
+                                            <EditSwimlane node={node} />
+                                        </>
+                                    )}
+                                    {node.type == "action" && (
+                                        <>
+                                            <EditBoolean
+                                                attribute="isAutomatic"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Automatic",
+                                                    falseText: "UI task",
+                                                }}
+                                            />
+                                            {node.data?.isAutomatic && (
+                                                <EditCode
+                                                    node={node}
+                                                    attribute="customCode"
+                                                    classes={
+                                                        relatedDiagrams
+                                                            .filter((diagram) => diagram.type === 'classes')
+                                                            .flatMap((diagram) => diagram.nodes.filter((node) => node.type === "class").map((node) => node.name))
+                                                    }
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                    {(node.type == "join" || node.type == "fork") && (
+                                        <>
+                                            <EditDimensions dimension='height' node={node} />
+                                            <EditDimensions dimension='width' node={node} />
+                                        </>
+                                    )}
+                                    {node.type == "initial" && (
+                                        <>
+                                            <EditBoolean
+                                                attribute="scheduled"
+                                                node={node}
+                                                helperText={{
+                                                    trueText: "Scheduled",
+                                                    falseText: "Not Scheduled",
+                                                }}
+                                            />
+                                            {node.data?.scheduled && (
+                                                <EditSchedule
+                                                    node={node}
+                                                    attribute="schedule"
+                                                />
+                                            )}
+                                        </>
+
+                                    )}
+                                    {node.type == "system_boundary" && (
+                                      <>
+                                        <EditDimensions dimension='height' node={node} />
+                                        <EditDimensions dimension='width' node={node} />
+                                      </>
                                     )}
                                 </div>
                             </div>

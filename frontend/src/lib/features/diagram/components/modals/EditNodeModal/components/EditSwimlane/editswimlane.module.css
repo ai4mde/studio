@@ -1,0 +1,19 @@
+.swimlaneOrder {
+    @apply flex flex-col gap-2 font-mono w-full;
+}
+
+.swimlaneOrderTitle {
+    @apply w-full border-b border-solid border-gray-400 py-1 text-xs font-mono;
+}
+
+.swimlaneItem {
+    @apply flex items-center justify-between p-2 mb-2 bg-gray-100 border border-solid border-gray-300 rounded cursor-move transition-colors;
+}
+
+.swimlaneItem:hover {
+    @apply bg-gray-200;
+}
+
+.swimlaneItem:active {
+    @apply cursor-grabbing;
+}

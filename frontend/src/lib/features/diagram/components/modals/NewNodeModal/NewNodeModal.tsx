@@ -1,4 +1,4 @@
-import { addNode } from "$diagram/mutations/diagram";
+import { addNode, partialUpdateNode } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewNodeModal } from "$diagram/stores/modals";
 import Button from "@mui/joy/Button";
@@ -11,9 +11,10 @@ import { NewActivityNode } from "./NewActivityNode";
 import { NewClassNode } from "./NewClassNode";
 import { NewUsecaseNode } from "./NewUsecaseNode";
 import style from "./newnodemodal.module.css";
+import { authAxios } from "$lib/features/auth/state/auth";
 
 export const NewNodeModal: React.FC = () => {
-    const { diagram, type } = useDiagramStore();
+    const { diagram, type, nodes, uniqueActors, relatedDiagrams, systemId } = useDiagramStore();
     const { close } = useNewNodeModal();
 
     // TODO: Figure out a way to do better form building
@@ -22,6 +23,10 @@ export const NewNodeModal: React.FC = () => {
     // definition from ngUML.backend/model/specification
     // here. (ngUML.backend/issues/110)
     const [object, setObject] = useState<any>({});
+    const [nameError, setNameError] = useState<string>("");
+    const [checkingName, setCheckingName] = useState(false);
+    const [lastCheckedName, setLastCheckedName] = useState("");
+
     const queryClient = useQueryClient();
 
     useEffect(() => {
@@ -33,7 +38,119 @@ export const NewNodeModal: React.FC = () => {
         return () => document.removeEventListener("keydown", down);
     });
 
+    useEffect(() => {
+        // Only validate "normal" nodes that have a name
+        if (object?.type === "swimlane") {
+            setNameError("");
+            setCheckingName(false);
+            return;
+        }
+
+        const name = (object?.name ?? "").trim();
+        const ctype = object?.type;
+
+        // No name yet -> no error, button should be enabled (assuming object.type exists)
+        if (!name || !systemId || !ctype) {
+            setNameError("");
+            setCheckingName(false);
+            return;
+        }
+
+        // Optional: avoid re-checking the exact same name repeatedly
+        if (name === lastCheckedName) return;
+
+        let cancelled = false;
+        setCheckingName(true);
+
+        const t = window.setTimeout(async () => {
+            try {
+                const res = await authAxios.get(
+                    `/v1/metadata/systems/${systemId}/classifiers/exists/`,
+                    { params: { name, ctype } },
+                );
+
+                if (cancelled) return;
+
+                setLastCheckedName(name);
+
+                if (res.data?.exists) {
+                    setNameError(`A classifier named "${name}" already exists in this system.`);
+                } else {
+                    setNameError("");
+                }
+            } catch {
+                if (!cancelled) {
+                    // fail open: don’t block creation on temporary network error
+                    setNameError("");
+                }
+            } finally {
+                if (!cancelled) setCheckingName(false);
+            }
+        }, 250); // debounce
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(t);
+        };
+    }, [object?.name, object?.type, systemId]);
+
+
+    const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
+    const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
     const nodeRef = React.useRef(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (checkingName) return;
+        if (nameError) return;
+
+        setNameError("");
+
+        if (object.type !== 'swimlane') {
+            if (object?.name && systemId) {
+                const res = await authAxios.get(
+                    `/v1/metadata/systems/${systemId}/classifiers/exists/`,
+                    { params: { name: object.name, ctype: object.type } },
+                );
+
+                if (res.data?.exists) {
+                    setNameError(`A classifier named "${object.name}" already exists in this system.`);
+                    return;
+                }
+            }
+
+            addNode(diagram, object);
+        } else {
+            const { height, width, horizontal, swimlanes } = object;
+            if (swimlaneGroup) {
+                partialUpdateNode(
+                    diagram,
+                    swimlaneGroup.id,
+                    {
+                        cls: {
+                            swimlanes: [...swimlaneGroup.data.swimlanes, ...swimlanes],
+                        }
+                    }
+                )
+            } else {
+                addNode(
+                    diagram,
+                    {
+                        type: 'swimlanegroup',
+                        role: 'swimlane',
+                        swimlanes: swimlanes,
+                        height,
+                        width,
+                        horizontal
+                    }
+                );
+            }
+        }
+        queryClient.refetchQueries({
+            queryKey: ["diagram"],
+        });
+        close();
+    };
 
     return createPortal(
         <div className={style.modal}>
@@ -42,14 +159,7 @@ export const NewNodeModal: React.FC = () => {
                     <form
                         ref={nodeRef}
                         className={style.main}
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            addNode(diagram, object);
-                            queryClient.refetchQueries({
-                                queryKey: ["diagram"],
-                            });
-                            close();
-                        }}
+                        onSubmit={handleSubmit}
                     >
                         <div className={style.head}>
                             <span className="p-2 px-3">
@@ -58,6 +168,7 @@ export const NewNodeModal: React.FC = () => {
                             <button
                                 className="m-1 mx-2 rounded-sm"
                                 onClick={close}
+                                type="button"
                             >
                                 <X size={20} />
                             </button>
@@ -66,7 +177,19 @@ export const NewNodeModal: React.FC = () => {
                             {type == "activity" && (
                                 <NewActivityNode
                                     object={object}
+                                    uniqueActors={uniqueActors}
+                                    existingActors={
+                                        swimlaneGroup
+                                            ? swimlaneGroup.data.swimlanes.map((swimlane) => swimlane.actorNodeName || "")
+                                            : []
+                                    }
+                                    swimlaneGroupExists={!!swimlaneGroup}
                                     setObject={setObject}
+                                    classes={
+                                        relatedDiagrams
+                                            .filter((diagram) => diagram.type === 'classes')
+                                            .flatMap((diagram) => diagram.nodes.map((node) => node.name))
+                                    }
                                 />
                             )}
                             {type == "classes" && (
@@ -78,18 +201,27 @@ export const NewNodeModal: React.FC = () => {
                             {type == "usecase" && (
                                 <NewUsecaseNode
                                     object={object}
+                                    systemBoundaryExists={systemBoundaryExists}
                                     setObject={setObject}
                                 />
                             )}
                         </div>
                         <div className={style.actions}>
+                            <div style={{ minHeight: 18 }}>
+                                {nameError && (
+                                    <div style={{ fontSize: 12, color: "#b42318" }}>
+                                        {nameError}
+                                    </div>
+                                )}
+                            </div>
+
                             <Button
                                 color="primary"
                                 size="sm"
-                                disabled={!object.type}
+                                disabled={!object.type || !!nameError || checkingName}
                                 type="submit"
                             >
-                                Add
+                                {checkingName ? "Checking..." : "Add"}
                             </Button>
                         </div>
                     </form>

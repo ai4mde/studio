@@ -34,6 +34,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-draggable": "^4.4.6",
+    "react-js-cron": "^5.2.0",
     "react-router": "^6.21.2",
     "react-router-dom": "^6.21.2",
     "react-select": "^5.8.0",

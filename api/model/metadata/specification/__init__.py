@@ -1,4 +1,5 @@
-from typing import Annotated, Union
+from uuid import UUID
+from typing import Annotated, Union, Optional
 from ninja import ModelSchema
 from pydantic.fields import Field
 from .activity import ActivityClassifier, ActivityRelation
@@ -19,10 +20,20 @@ Classifier = Annotated[
 
 class ClassifierSchema(ModelSchema):
     data: Classifier
+    system_id: Optional[UUID] = None
+    system_name: Optional[str] = None
 
     class Meta:
         model = models.Classifier
         fields = ["id", "data"]
+
+    @staticmethod
+    def resolve_system_id(obj):
+        return obj.system_id
+
+    @staticmethod
+    def resolve_system_name(obj):
+        return getattr(obj.system, "name", None)
 
 
 Relation = Annotated[

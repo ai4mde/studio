@@ -1,0 +1,35 @@
+.modal {
+    @apply fixed inset-0 flex items-center justify-center pointer-events-auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.wrapper {
+    @apply relative z-10;
+}
+
+.main {
+    @apply flex flex-col shadow-sm border border-solid border-gray-200 pointer-events-auto bg-white;
+    width: 20rem;
+    max-width: 90%;
+    border-radius: 0.5rem;
+}
+
+.head {
+    @apply w-full select-none;
+    @apply border-b border-solid border-gray-100 bg-white;
+    @apply flex items-center text-sm flex-row gap-4 justify-between;
+    padding: 0.5rem 1rem;
+}
+
+.body {
+    @apply w-full py-2 px-3 bg-white text-sm flex flex-col gap-2 items-start;
+    padding: 1rem;
+}
+
+.actions {
+    @apply w-full select-none;
+    @apply border-t border-solid border-gray-100 bg-gray-100;
+    @apply flex items-center text-sm flex-row gap-2 py-2 px-3 justify-end;
+    padding: 0.5rem 1rem;
+}

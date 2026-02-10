@@ -5,6 +5,7 @@ import os
 import time
 import socket
 import signal
+import sys
 
 app = Flask(__name__)
 
@@ -43,8 +44,8 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
         process = subprocess.Popen(
             ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
             cwd=prototype_path,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
+            stdout=sys.stdout,
+            stderr=sys.stderr,
         )
         time.sleep(2)
         if process.poll() is not None:
@@ -139,4 +140,4 @@ def remove_prototype():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8010), debug=True)
+    app.run(host='127.0.0.1', port=os.environ.get('PORT', 8010), debug=False)

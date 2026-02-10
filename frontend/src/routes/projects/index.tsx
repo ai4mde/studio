@@ -6,8 +6,8 @@ import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { Box, Plus, X } from "lucide-react";
-import React, { useState } from "react";
+import { Box, Plus, X, Upload } from "lucide-react";
+import React, { useState, useRef } from "react";
 
 type ProjectOut = {
     id: string;
@@ -19,6 +19,23 @@ const ProjectsIndex: React.FC = () => {
     const [, setCreate] = useAtom(createProjectAtom);
     const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState("");
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    }
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        const text = await file.text();
+        try {
+            const json = JSON.parse(text);
+            await authAxios.post("/v1/metadata/systems/import/", json);
+        } catch (err) {
+            console.error("Import failed", err);
+        }
+    };
 
     const { isLoading, isSuccess, data } = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -49,6 +66,13 @@ const ProjectsIndex: React.FC = () => {
     return (
         <>
             <CreateProject />
+            <input
+                type="file"
+                accept="application/json"
+                style={{ display: "none" }}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
             <div
                 className="w-full h-full grid grid-cols-12 items-center"
                 style={{
@@ -109,6 +133,12 @@ const ProjectsIndex: React.FC = () => {
                                 className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
                             >
                                 <Plus />
+                            </button>
+                            <button
+                                onClick={handleUploadClick}
+                                className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
+                            >
+                                <Upload />
                             </button>
                         </div>
                     </div>
