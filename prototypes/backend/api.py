@@ -140,4 +140,4 @@ def remove_prototype():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=os.environ.get('PORT', 8010), debug=True)
+    app.run(host='127.0.0.1', port=os.environ.get('PORT', 8010), debug=False)
