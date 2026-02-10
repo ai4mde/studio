@@ -10,47 +10,49 @@
   AI4MDE &middot; <b>Installation Guide</b>
 </h1>
 
-Get up and running with the AI4MDE studio and API in no time:
+Depending on your operating system, you should set up your envirnoment to meet the following requirements:
+- For <b>Windows</b>, please work from [WSL 2.1.5](https://learn.microsoft.com/en-us/windows/wsl/install) or higher,
+and set up <b>Docker Desktop</b> according to these [instructions](https://docs.docker.com/desktop/features/wsl/).
+- For a <b>Linux</b> distribution, you may use a regular terminal. Set up [Docker Engine](https://docs.docker.com/engine/install/) or [Docker Desktop](https://docs.docker.com/desktop/setup/install/linux/), as well.
+- For <b>macOS</b>, you should also be able to use a regular terminal. Make sure to install [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/).
 
-```
-git clone https://github.com/ai4mde/studio.git
-cd frontend
-docker-compose up -d
-```
+Check that [Git](https://github.com/git-guides/install-git) is installed on your device.
 
-Now visit [http://ai4mde.localhost](http://ai4mde.localhost)
+> ☝️ If you are using <b>Docker Desktop</b>, make sure it is running on your device before using the commands below in your terminal.
 
-<br/>
-
-## Installation
-
-> ☝️ This project is assumes you run a GNU/Linux system.
-> If you find yourself on Windows, please work from WSL2.
-> You should be fine on macOS. If you're just running without
-> contributing, ignore the above.
-
-The easiest way to get started is through a container runtime and the docker compose file at the root. If these terms are unfamiliar to you, start with installing a container runtime.
-
-Before the environment can be built, secret API keys need to be specified in `/config/secrets.env`. An example of such a file can be seen in `/config/secrets.env.example`.
-
-With everything ready and this repository cloned, you can get started from a shell:
+With these requirements met, you can get started from a Linux, macOS or WSL terminal:
 
 ```bash
-# Ensure that you have the correct tools installed, you might have to restart
-# your shell
+# Ensure that you have the Docker installed
 docker -v
 docker compose version
 
-# Build all the necessary images (only required on first install or dependency change)
-docker compose build
+# Clone the repository
+git clone https://github.com/ai4mde/studio.git
+cd studio
+```
 
-# Start all the containers (add -d flag to start in background)
-docker compose up
+Before the environment can be built, you need to provide your secret LLM API key (e.g. OpenAI) in a new file `/config/secrets.env` using the [Groq LLM API manager](https://console.groq.com/keys). An example of such a file can be seen in `/config/secrets.env.example`. You have to perform this step in order to run the software, however you may leave the values empty if you are not interested in using the LLM features. Feel free to use the terminal or any code/text editor for editing the file.
+
+> ☝️ Also, take note of the username and password stored in files `config/api.env` and `config/prototypes.env`. These are your credentials for logging into AI4MDE, and any potential web application prototypes you might generate with it, respectively: `DJANGO_SUPERUSER_USERNAME = admin` and `DJANGO_SUPERUSER_PASSWORD = sequoias`. You may update your credentials in these files if you wish.
+
+```bash
+# Configure secrets (required file; values optional if you won't use LLM features)
+cp config/secrets.env.example config/secrets.env
+# edit config/secrets.env
+# edit config/api.env
+# edit config/prototypes.env
+
+# Build and Start all the containers (add -d flag to start in background)
+docker compose up -d --build
+
+# To stop the containers, you can use
+docker compose down
 ```
 
 This will start multiple services in the background and set everything up (for development). As soon as that's done, you can find the following services on your machine's network:
 
-- [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `/frontend`
-- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `/api`
-- [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) - Running prototype in `/prototypes/generated_prototypes`
-- [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) - Prototype management API from `/prototypes/backend`
+- [ai4mde.localhost](http://ai4mde.localhost) - Frontend, from `/frontend`. As a non-contributing user, this is where you can interact with the AI4MDE tool. Use the credentials from `config/api.env` to log in.
+- [api.ai4mde.localhost](http://api.ai4mde.localhost) - API from `/api`.
+- [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost) - Running prototype in `/prototypes/generated_prototypes`.
+- [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost) - Prototype management API from `/prototypes/backend`.
