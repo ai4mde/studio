@@ -282,6 +282,17 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 ))}
                         </Select>
                     </FormControl>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>State</FormLabel>
+                        <Input
+                            onChange={(e) =>
+                                setObject((o: any) => ({
+                                    ...o,
+                                    state: e.target.value,
+                                }))
+                            }
+                        />
+                    </FormControl>
                 </>
             )}
         </>

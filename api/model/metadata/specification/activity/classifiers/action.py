@@ -12,7 +12,7 @@ class ActionClasses(BaseModel):
 class Action(NamedElement, NamespacedElement, BaseModel):
     type: Literal["action"] = "action"
     role: Literal["action"] = "action"
-    isAutomatic: bool
+    isAutomatic: bool = False
     customCode: Optional[str] = None
     localPrecondition: Optional[str] = ""
     localPostcondition: Optional[str] = ""
@@ -27,10 +27,18 @@ class Action(NamedElement, NamespacedElement, BaseModel):
     actorNodeName: Optional[str] = None
 
     @model_validator(mode="after")
-    def set_actor_node_name(cls, values):
-        if values.actorNode:
-            values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
-        return values
+    def set_actor_node_name(self):
+        if not getattr(self, "actorNode", None):
+            self.actorNodeName = "Unknown actor"
+            return self
+
+        node = Node.objects.filter(id=self.actorNode).only("cls").first()
+        if not node:
+            self.actorNodeName = "Unknown actor"
+            return self
+
+        self.actorNodeName = node.cls.data.get("name", "Unknown actor") if node.cls else "Unknown actor"
+        return self
 
 
 ActionClassifier = Action
