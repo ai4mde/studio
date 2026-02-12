@@ -18,37 +18,33 @@ type Props = {
 export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors, swimlaneGroupExists, classes, setObject }) => {
     const DEFAULTS: Record<string, Partial<typeof object>> = {
         swimlane: {
-            role: "swimlane",
+            type: "swimlane",
             height: 1000,
             width: 300,
             horizontal: false,
         },
         action: {
-            role: "action",
+            type: "action",
             isAutomatic: false,
         },
         control: {
-            role: "control",
+            type: "control",
+            subtype: null,
         },
         object: {
-            role: "object",
+            type: "object",
             class: null,
             state: null,
         },
     };
 
     const systemId = useDiagramStore((s) => s.systemId);
-    const nodes = useDiagramStore((s) => s.nodes);
-
     const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
-    const [selectedClassifier, setSelectedClassifier] = useState<string | null>(null);
-
-    const normalize = (v: unknown) => (v ?? "").toString().toLowerCase();
 
     useEffect(() => {
-        if (object.role && DEFAULTS[object.role]) {
+        if (object.type && DEFAULTS[object.type]) {
             setObject((o: any) => {
-                const defaults = DEFAULTS[object.role];
+                const defaults = DEFAULTS[object.type];
                 // Only set default for keys that are undefined
                 const newObject = { ...o };
                 for (const key in defaults) {
@@ -59,17 +55,16 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 return newObject;
             });
         }
-    }, [object.role, setObject]);
+    }, [object.type, setObject]);
 
     useEffect(() => {
         if (
-            selectedClassifier &&
-            !classifiers.some((c) => c.id === selectedClassifier)
+            object.class &&
+            !classifiers.some((c) => c.id === object.class)
         ) {
-            setSelectedClassifier(null);
-            setObject((o: any) => ({ ...o, id: undefined }));
+            setObject((o: any) => ({ ...o, class: null }));
         }
-    }, [classifiers, selectedClassifier, setObject]);
+    }, [classifiers, object.class, setObject]);
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
@@ -87,11 +82,11 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
     return (
         <>
             <FormControl size="sm" className="w-full">
-                <FormLabel>Role</FormLabel>
+                <FormLabel>Type</FormLabel>
                 <Select
-                    value={object.role || ""}
+                    value={object.type || ""}
                     onChange={(_, e) =>
-                        setObject((o: any) => ({ ...o, role: e }))
+                        setObject((o: any) => ({ ...o, type: e }))
                     }
                     placeholder="Select a role..."
                 >
@@ -101,14 +96,14 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     <Option value="object">Object</Option>
                 </Select>
             </FormControl>
-            {(object.role == "control") && (
+            {(object.type == "control") && (
                 <FormControl size="sm" className="w-full">
-                    <FormLabel>Type</FormLabel>
+                    <FormLabel>Subtype</FormLabel>
                     <Select
-                        value={object.type || ""}
+                        value={object.subtype || ""}
                         placeholder="Select a type..."
                         onChange={(_, e) =>
-                            setObject((o: any) => ({ ...o, type: e }))
+                            setObject((o: any) => ({ ...o, subtype: e }))
                         }
                     >
                         <Option value="decision">Decision</Option>
@@ -120,7 +115,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     </Select>
                 </FormControl>
             )}
-            {(object.role == "action") && (
+            {(object.type == "action") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Name</FormLabel>
@@ -173,7 +168,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     />
                 </>
             )}
-            {(object.role == "swimlane") && (
+            {(object.type == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Actors</FormLabel>
@@ -185,7 +180,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 setObject((o: any) => ({
                                     ...o,
                                     swimlanes: selectedNodes.map((node) => ({
-                                        role: "swimlane",
                                         type: "swimlane",
                                         actorNode: node.id,
                                         actorNodeName: node.name,
@@ -249,7 +243,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     )}
                 </>
             )}
-            {(object.role == "object") && (
+            {(object.type == "object") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Class</FormLabel>
@@ -261,9 +255,8 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                         ? "You have no Class Diagrams with nodes"
                                         : "Choose from Class Diagrams"
                             }
-                            value={selectedClassifier}
-                            onChange={(event, newValue) => {
-                                setSelectedClassifier(newValue);
+                            value={object.class ?? null}
+                            onChange={(_, newValue) => {
                                 setObject((o: any) => ({ ...o, class: newValue }))
                             }}
                             disabled={!isSuccess || classifiers.length === 0}

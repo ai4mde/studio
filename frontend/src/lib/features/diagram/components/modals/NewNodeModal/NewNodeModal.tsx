@@ -98,6 +98,9 @@ export const NewNodeModal: React.FC = () => {
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
     const nodeRef = React.useRef(null);
+    const missingControlSubtype = object.type === "control" && !object.subtype;
+    const missingSwimlaneActor = object.type === "swimlane" && (!object.swimlanes || object.swimlanes.length === 0);
+    const missingObjectClass = object.type === "object" && !object.class;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -105,6 +108,10 @@ export const NewNodeModal: React.FC = () => {
         if (nameError) return;
 
         setNameError("");
+
+        if (object.type === "swimlane" && (!object.swimlanes || object.swimlanes.length === 0)) return;
+        if (object.type === "object" && !object.class) return;
+        if (object.type === "control" && !object.subtype) return;
 
         if (object.type !== 'swimlane') {
             if (object?.name && systemId) {
@@ -218,7 +225,7 @@ export const NewNodeModal: React.FC = () => {
                             <Button
                                 color="primary"
                                 size="sm"
-                                disabled={!object.type || !!nameError || checkingName}
+                                disabled={!object.type || missingControlSubtype || missingSwimlaneActor || missingObjectClass || !!nameError || checkingName}
                                 type="submit"
                             >
                                 {checkingName ? "Checking..." : "Add"}
