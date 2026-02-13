@@ -3,9 +3,11 @@ from ninja import Router, Schema
 from metadata.specification import Classifier, Relation
 
 from .views import diagrams
+from .views import c4gen
 
 diagram_router = Router()
 diagram_router.add_router("", diagrams, tags=["diagrams"])
+diagram_router.add_router("", c4gen, tags=["diagrams", "c4gen"])
 
 
 class SimpleNodeSchema(Schema):

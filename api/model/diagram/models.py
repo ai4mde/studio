@@ -130,11 +130,16 @@ class Diagram(models.Model):
 
     def auto_layout(self):
         graph = nx.Graph()
-        
-        for node in self.nodes.all():
-            graph.add_node(node.id)
-        for edge in self.edges.all():
-            graph.add_edge(edge.source.id, edge.target.id)
+
+        if len(self.nodes.all()) == 0:
+            return
+        try:
+            for node in self.nodes.all():
+                graph.add_node(node.id)
+            for edge in self.edges.all():
+                graph.add_edge(edge.source.id, edge.target.id)
+        except Exception as e:
+            return
 
         # We use the networkx spring_layout algorithm for autolayouting a diagram
         # scale=500 seems to do the job, but can be adjusted as needed

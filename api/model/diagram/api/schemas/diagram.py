@@ -1,6 +1,6 @@
 from uuid import UUID
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from ninja import ModelSchema, Schema
 
@@ -143,14 +143,10 @@ class ExportDiagram(ModelSchema):
         return obj.edges.all()
 
 
-class ImportDiagram(Schema):
-    id: str
-    type: DiagramType
-    name: str
-    description: Optional[str] = None
-    system: str
-    nodes: list[ImportNode]
-    edges: list[ImportEdge]
+class ImportC4Diagram(Schema):
+    system: str  # UUID of the target system
+    diagram_name: str
+    c4_model: Any
 
 
 __all__ = [
@@ -160,5 +156,6 @@ __all__ = [
     "UpdateDiagram",
     "FullDiagram",
     "ExportDiagram",
-    "ImportDiagram",
+    "C4Model",
+    "ImportC4Diagram",
 ]
