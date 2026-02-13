@@ -36,6 +36,7 @@ const SystemDiagrams: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
     const [showDeleteDiagramModal, setShowDeleteDiagramModal] = useState(false);
     const [diagramToDelete, setDiagramToDelete] = useState("");
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const system = useQuery<SystemOut>({
         queryKey: [`system`, `${systemId}`],
@@ -55,6 +56,31 @@ const SystemDiagrams: React.FC = () => {
             queryClient.refetchQueries({
                 queryKey: [`system`, `${systemId}`],
             });
+        },
+    });
+
+    const importC4Diagram = useMutation({
+        mutationFn: async (data: { name: string; c4Model: any }) => {
+            const payload = {
+                system: systemId,
+                diagram_name: data.name,
+                c4_model: data.c4Model,
+            };
+            try {
+                const response = await authAxios.post(`/v1/diagram/import-c4`, payload);
+                return response.data;
+            } catch (error) {
+                throw error;
+            }
+        },
+        onSuccess: () => {
+            console.log("C4 import successful");
+            queryClient.refetchQueries({
+                queryKey: [`system`, `${systemId}`],
+            });
+        },
+        onError: (error) => {
+            console.error("C4 import mutation error:", error);
         },
     });
 
@@ -127,6 +153,36 @@ const SystemDiagrams: React.FC = () => {
         setShowDeleteDiagramModal(true);
         setDiagramToDelete(diagramId);
     }
+
+    const handleC4FileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        try {
+            const fileContent = await file.text();
+            const parsedModel = JSON.parse(fileContent);
+            const diagramName = file.name.replace('.json', '');
+            
+            // Extract only the relevant C4 model keys
+            const c4Model = {
+                containers: parsedModel.containers || [],
+                components: parsedModel.components || [],
+                relations: parsedModel.relations || [],
+            };
+            
+            await importC4Diagram.mutateAsync({
+                name: diagramName,
+                c4Model: c4Model,
+            });
+        } catch (error) {
+            console.error('Error uploading C4 model:', error);
+        }
+
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }
     
     return (
         <>
@@ -191,7 +247,20 @@ const SystemDiagrams: React.FC = () => {
                                 <Download size={16}/>
                                 <h2 className="text-base">Export System</h2>
                             </button>
-                            
+                            <button
+                                className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <Plus size={16}/>
+                                <h2 className="text-base">Import C4 Model</h2>
+                            </button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".json"
+                                onChange={handleC4FileUpload}
+                                style={{ display: 'none' }}
+                            />
                         </div>
                     </>
                 )}

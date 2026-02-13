@@ -18,6 +18,8 @@ import {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    C4ContainerNode,
+    C4ComponentNode
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -47,6 +49,8 @@ export const nodeTypes: NodeTypes = {
     default: Node,
     swimlanegroup: SwimlaneGroupNode,
     system_boundary: SystemBoundaryNode,
+    c4container: C4ContainerNode,
+    c4component: C4ComponentNode,
 };
 
 export const PreviewNode: React.FC<NodeProps> = (node) => {
