@@ -19,7 +19,8 @@ import {
     EditDimensions,
     EditBoolean,
     EditSwimlane,
-    EditCode
+    EditCode,
+    EditBackgroundColor
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -184,6 +185,9 @@ export const EditNodeModal: React.FC = () => {
                                       </>
                                     )}
                                 </div>
+                            </div>
+                            <div className="bg-white border-t p-3">
+                                <EditBackgroundColor node={node} />
                             </div>
                             <div className="bg-white p-3 text-xs">
                                 <details>
