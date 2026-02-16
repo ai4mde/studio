@@ -20,7 +20,9 @@ import {
     EditBoolean,
     EditSwimlane,
     EditCode,
-    EditBackgroundColor
+    EditBackgroundColor,
+    EditLabel,
+    EditTechnologies
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -182,6 +184,17 @@ export const EditNodeModal: React.FC = () => {
                                       <>
                                         <EditDimensions dimension='height' node={node} />
                                         <EditDimensions dimension='width' node={node} />
+                                      </>
+                                    )}
+                                    {node.type == "c4container" && (
+                                      <>
+                                      <EditLabel node={node} />
+                                      <EditTechnologies node={node} />
+                                      </>
+                                    )}
+                                    {node.type == "c4component" && (
+                                      <>
+                                      <EditLabel node={node} />
                                       </>
                                     )}
                                 </div>
