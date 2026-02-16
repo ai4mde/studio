@@ -29,7 +29,7 @@ export const SystemBoundaryNode: React.FC<NodeProps> = (node) => {
         <NodeWrapper node={node} selected={node.selected}>
             <div style={boundaryStyle}>
                 <div style={headerStyle}>
-                    {node.data?.name}
+                    {node.data?.system_name ?? node.data?.name}
                 </div>
                 <div style={bodyStyle} />
             </div>

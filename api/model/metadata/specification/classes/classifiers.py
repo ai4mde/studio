@@ -60,4 +60,16 @@ class Signal(NamedElement, NamespacedElement, BaseModel):
     type: Literal["signal"] = "signal"
 
 
-ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal]
+class System(NamedElement, BaseModel):
+    type: Literal["system"] = "system"
+
+
+class Container(NamedElement, BaseModel):
+    type: Literal["container"] = "container"
+
+
+class Component(NamedElement, BaseModel):
+    type: Literal["component"] = "component" 
+
+
+ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal, System, Container, Component]

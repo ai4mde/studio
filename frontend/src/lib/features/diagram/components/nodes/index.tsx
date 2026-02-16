@@ -9,7 +9,7 @@ import {
     MergeNode,
     SwimlaneGroupNode,
 } from "./activity";
-import { ClassNode, EnumNode, SignalNode } from "./class";
+import { ClassNode, EnumNode, ClassifierNode } from "./class";
 import {
     ActorNode,
     PostconditionNode,
@@ -29,7 +29,7 @@ export {
     JoinNode,
     MergeNode, PostconditionNode,
     PreconditionNode,
-    ScenarioNode, SignalNode, SystemNode,
+    ScenarioNode, ClassifierNode, SystemNode,
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
@@ -39,7 +39,7 @@ export {
 export default {
     ClassNode,
     EnumNode,
-    SignalNode,
+    ClassifierNode,
     DecisionNode,
     FinalNode,
     ForkNode,
