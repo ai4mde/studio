@@ -3,8 +3,6 @@ import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHe
 import React, { useEffect, useState } from "react";
 import { RelatedNode } from "$diagram/types/diagramState"
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
-import { useDiagramStore } from "$diagram/stores";
-import { useSystemClassClassifiers } from "../ImportNodeModal/queries/importNode";
 
 type Props = {
     object: any;
@@ -38,9 +36,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         },
     };
 
-    const systemId = useDiagramStore((s) => s.systemId);
-    const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
-
     useEffect(() => {
         if (object.type && DEFAULTS[object.type]) {
             setObject((o: any) => {
@@ -56,15 +51,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             });
         }
     }, [object.type, setObject]);
-
-    useEffect(() => {
-        if (
-            object.class &&
-            !classifiers.some((c) => c.id === object.class)
-        ) {
-            setObject((o: any) => ({ ...o, class: null }));
-        }
-    }, [classifiers, object.class, setObject]);
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
@@ -241,51 +227,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                             </FormControl>
                         </>
                     )}
-                </>
-            )}
-            {(object.type == "object") && (
-                <>
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>Class</FormLabel>
-                        <Select
-                            placeholder={
-                                !isSuccess
-                                    ? "Loading..."
-                                    : classifiers.length === 0
-                                        ? "You have no Class Diagrams with nodes"
-                                        : "Choose from Class Diagrams"
-                            }
-                            value={object.class ?? null}
-                            onChange={(_, newValue) => {
-                                setObject((o: any) => ({ ...o, class: newValue }))
-                            }}
-                            disabled={!isSuccess || classifiers.length === 0}
-                            required
-                        >
-                            {isSuccess && (
-                                classifiers.map((e) => {
-                                    return (
-                                        <Option key={e.id} value={e.id} sx={{ "--Option-decoratorChildHeight": "0px", }}>{e.data.name} ({e.data.type})
-                                            <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">
-                                                {e.system_name}
-                                            </span>
-                                        </Option>
-                                    )
-                                }
-                                ))}
-                        </Select>
-                    </FormControl>
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>State</FormLabel>
-                        <Input
-                            onChange={(e) =>
-                                setObject((o: any) => ({
-                                    ...o,
-                                    state: e.target.value,
-                                }))
-                            }
-                        />
-                    </FormControl>
                 </>
             )}
         </>

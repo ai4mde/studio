@@ -2,6 +2,9 @@ import { FormControl, FormLabel, Input, Option, Select, Switch } from "@mui/joy"
 import React, { useEffect } from "react";
 import { Node } from "reactflow";
 import { RelatedDiagram } from "$diagram/types/diagramState";
+import { useDiagramStore } from "$diagram/stores";
+import { useSystemClassClassifiers } from "../ImportNodeModal/queries/importNode";
+
 
 type Props = {
     object: any;
@@ -16,23 +19,26 @@ export const ActivityConnectionFields: React.FC<Props> = ({
     classDiagrams,
     setObject,
 }) => {
+    const systemId = useDiagramStore((s) => s.systemId);
+    const [classifiers, isSuccess] = useSystemClassClassifiers(systemId);
+
     // Set some defaults on the edge
-    useEffect(
-        () => 
-            setObject((o: any) => ({
-                isDirected: o.isDirected ?? true,
-                type: o.type ?? "controlflow",
-                condition: sourceNode.type == "decision"
-                    ? { isElse: true }
+    useEffect(() => {
+        setObject((o: any) => ({
+            ...o,
+            isDirected: o.isDirected ?? true,
+            type: o.type ?? undefined, // start unselected if you want
+            condition:
+                sourceNode?.type === "decision"
+                    ? (o.condition ?? { isElse: true })
                     : o?.condition,
-                ...o,
-            })),
-        [],
-    );
+        }));
+    }, [setObject, sourceNode?.type]);
+
 
     const operators = [
         { name: "==", label: "==", supportedTypes: ["int", "str", "bool"] },
-        { name: "!=", label: "!=",  supportedTypes: ["int", "str", "bool"] },
+        { name: "!=", label: "!=", supportedTypes: ["int", "str", "bool"] },
         { name: "<", label: "<", supportedTypes: ["int"] },
         { name: "<=", label: "<=", supportedTypes: ["int"] },
         { name: ">", label: ">", supportedTypes: ["int"] },
@@ -44,7 +50,7 @@ export const ActivityConnectionFields: React.FC<Props> = ({
         { name: "avg", label: "AVG", supportedTypes: ["int"] },
         { name: "min", label: "MIN", supportedTypes: ["int"] },
         { name: "max", label: "MAX", supportedTypes: ["int"] },
-        { name: "count", label: "COUNT", supportedTypes: []},
+        { name: "count", label: "COUNT", supportedTypes: [] },
     ]
 
 
@@ -73,14 +79,11 @@ export const ActivityConnectionFields: React.FC<Props> = ({
             <FormControl size="sm" className="w-full">
                 <FormLabel>Type</FormLabel>
                 <Select
-                    value={object.type || "controlflow"}
-                    onChange={(_, v) =>
-                        setObject((o: any) => ({
-                            ...o,
-                            type: v,
-                        }))
-                    }
+                    value={object.type ?? null}
+                    placeholder="Select connection type..."
+                    onChange={(_, v) => setObject((o: any) => ({ ...o, type: v }))}
                 >
+
                     <Option value="controlflow" label="ControlFlow">
                         ControlFlow
                     </Option>
@@ -116,238 +119,50 @@ export const ActivityConnectionFields: React.FC<Props> = ({
             </FormControl>
 
             {object.type === "objectflow" && (
-                <FormControl size="sm" className="w-full">
-                    <FormLabel>Class</FormLabel>
-                    <Input
-                        value={object.cls ?? ""}
-                        onChange={(e) =>
-                            setObject((o: any) => ({
-                                ...o,
-                                cls: e.target.value,
-                            }))
-                        }
-                    />
-                </FormControl>
-            )}
-
-            {object.type == "controlflow" && sourceNode.type == "decision" && (
                 <>
                     <FormControl size="sm" className="w-full">
-                        <FormLabel>Else Condition</FormLabel>
-                        <Switch
-                            checked={object.condition?.isElse}
-                            onChange={(e) =>
-                                setObject((o: any) => ({
-                                    ...o,
-                                    condition: e.target.checked
-                                        ? { 
-                                            isElse: true,
-                                            target_class: "",
-                                            target_attribute: "",
-                                            target_attribute_type: "",
-                                            operator: "",
-                                            aggregator: "",
-                                            threshold: "",
-                                        }
-                                        : {
-                                            ...o.condition,
-                                            isElse: false,
-                                        }
-                                }))
+                        <FormLabel>Class</FormLabel>
+                        <Select
+                            placeholder={
+                                !isSuccess
+                                    ? "Loading..."
+                                    : classifiers.length === 0
+                                        ? "You have no Class Diagrams with nodes"
+                                        : "Choose from Class Diagrams"
                             }
-                            sx={{ alignSelf: "flex-start" }}
+                            value={object.cls ?? null}
+                            onChange={(_, newValue) =>
+                                setObject((o: any) => ({ ...o, cls: newValue }))
+                            }
+                            disabled={!isSuccess || classifiers.length === 0}
+                            required
+                        >
+                            {isSuccess &&
+                                classifiers.map((c) => (
+                                    <Option key={c.id} value={c.id}>
+                                        {c.data.name} ({c.data.type})
+                                        <span className="ml-2 px-2 py-0.5 rounded-md text-xs fond-medium bg-gray-200 text-gray-700">
+                                            {c.system_name}
+                                        </span>
+                                    </Option>
+                                ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>State</FormLabel>
+                        <Input
+                            value={object.state ?? ""}
+                            onChange={(e) =>
+                                setObject((o: any) => ({ ...o, state: e.target.value }))
+                            }
                         />
                     </FormControl>
-                    
-                    {!object.condition?.isElse && (
-                        <>
-                            <FormControl size="sm" className="w-full">
-                                <FormLabel>Class</FormLabel>
-                                <Select
-                                    value={object.condition?.target_class || ""}
-                                    onChange={(_, v) =>
-                                        setObject((o: any) => ({
-                                            ...o,
-                                            condition: {
-                                                ...o.condition,
-                                                target_class: v,
-                                                target_attribute: "",
-                                                target_attribute_type: "",
-                                            },
-                                        }))
-                                    }
-                                >
-                                    {classDiagrams
-                                        ?.flatMap((diagram) =>
-                                            diagram.nodes.map((node) => ({
-                                                id: node.id,
-                                                name: node.name,
-                                            }))
-                                        )
-                                        .map((node) => (
-                                            <Option key={node.id} value={node.id}>
-                                                {node.name}
-                                            </Option>
-                                        ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl size="sm" className="w-full">
-                                <FormLabel>Aggregate function</FormLabel>
-                                <Select
-                                    value={object.condition?.aggregator || ""}
-                                    onChange={(_, v) =>
-                                        setObject((o: any) => ({
-                                            ...o,
-                                            condition: {
-                                                ...o.condition,
-                                                aggregator: v,
-                                                target_attribute: "",
-                                                target_attribute_type: "",
-                                                threshold: "",
-                                            },
-                                        }))
-                                    }
-                                >
-                                    <Option value="">None</Option>
-                                    {aggregators
-                                        .map((op) => (
-                                            <Option key={op.name} value={op.name}>
-                                                {op.label}
-                                            </Option>
-                                        ))}
-                                </Select>
-                            </FormControl>
-                            <FormControl size="sm" className="w-full">
-                                <FormLabel>Operator</FormLabel>
-                                <Select
-                                    value={object.condition?.operator || ""}
-                                    onChange={(_, v) =>
-                                        setObject((o: any) => ({
-                                            ...o,
-                                            condition: {
-                                                ...o.condition,
-                                                operator: v,
-                                                target_attribute: "",
-                                                target_attribute_type: "",
-                                                threshold: "",
-                                            },
-                                        }))
-                                    }
-                                >
-                                    {operators
-                                        .map((op) => (
-                                            <Option key={op.name} value={op.name}>
-                                                {op.label}
-                                            </Option>
-                                        ))}
-                                </Select>
-                            </FormControl>
-                            {object.condition?.operator && object.condition?.aggregator != 'count' && (
-                                <FormControl size="sm" className="w-full">
-                                    <FormLabel>Target Attribute</FormLabel>
-                                    <Select
-                                        value={object.condition?.target_attribute || ""}
-                                        onChange={(_, v) => {
-                                            const selectedAttribute = classDiagrams
-                                                ?.flatMap((diagram) =>
-                                                    diagram.nodes
-                                                        .filter((node) => node.id === object.condition?.target_class)
-                                                        .flatMap((node) => node.classAttributes)
-                                                )
-                                                .find((attr) => attr.name === v);
-                                            
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    target_attribute: selectedAttribute?.name || "",
-                                                    target_attribute_type: selectedAttribute?.type || "",
-                                                    threshold: "",
-                                                },
-                                            }));
-                                        }}
-                                    >
-                                        {classDiagrams
-                                            ?.flatMap((diagram) =>
-                                                diagram.nodes
-                                                    .filter((node) => node.id === object.condition?.target_class)
-                                                    .flatMap((node) =>
-                                                        node.classAttributes.filter(
-                                                            (attr) =>
-                                                                getOverlappingSupportedTypes().includes(attr.type)
-                                                        )
-                                                        .map((attr)=> ({
-                                                            name: attr.name,
-                                                            type: attr.type,
-                                                        }))
-                                                    )
-                                            )
-                                            .map((attr) => (
-                                                <Option key={attr.name} value={attr.name}>
-                                                    {attr.name} ({attr.type})
-                                                </Option>
-                                            ))}
-                                    </Select>
-                                </FormControl>
-                            )}
-                            {(object.condition?.target_attribute || (object.condition?.operator && object.condition?.aggregator === 'count')) && (
-                                <FormControl size="sm" className="w-full">
-                                <FormLabel>Condition value</FormLabel>
-                                {(object.condition?.target_attribute_type === "int" || object.condition?.aggregator === "count") && (
-                                <Input
-                                        type="number"
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(e) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: e.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                )}
-                                {object.condition?.target_attribute_type === "str" && (
-                                    <Input
-                                        type="text"
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(e) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: e.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                )}
-                                {object.condition?.target_attribute_type === "bool" && (
-                                    <Select
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(_, v) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: v,
-                                                },
-                                            }))
-                                        }
-                                    >
-                                        <Option value="true">True</Option>
-                                        <Option value="false">False</Option>
-                                    </Select>
-                                )}
-                                </FormControl>
-                            )}
-                        </>
-                    )}
                 </>
             )}
 
-            {object.type == "controlflow" && sourceNode.type == "decision" && (
+
+            {object.type === "controlflow" && sourceNode?.type === "decision" && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Else Condition</FormLabel>
@@ -357,7 +172,7 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                                 setObject((o: any) => ({
                                     ...o,
                                     condition: e.target.checked
-                                        ? { 
+                                        ? {
                                             isElse: true,
                                             target_class: "",
                                             target_attribute: "",
@@ -375,7 +190,7 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                             sx={{ alignSelf: "flex-start" }}
                         />
                     </FormControl>
-                    
+
                     {!object.condition?.isElse && (
                         <>
                             <FormControl size="sm" className="w-full">
@@ -472,7 +287,7 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                                                         .flatMap((node) => node.classAttributes)
                                                 )
                                                 .find((attr) => attr.name === v);
-                                            
+
                                             setObject((o: any) => ({
                                                 ...o,
                                                 condition: {
@@ -493,10 +308,10 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                                                             (attr) =>
                                                                 getOverlappingSupportedTypes().includes(attr.type)
                                                         )
-                                                        .map((attr)=> ({
-                                                            name: attr.name,
-                                                            type: attr.type,
-                                                        }))
+                                                            .map((attr) => ({
+                                                                name: attr.name,
+                                                                type: attr.type,
+                                                            }))
                                                     )
                                             )
                                             .map((attr) => (
@@ -509,54 +324,54 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                             )}
                             {(object.condition?.target_attribute || (object.condition?.operator && object.condition?.aggregator === 'count')) && (
                                 <FormControl size="sm" className="w-full">
-                                <FormLabel>Condition value</FormLabel>
-                                {(object.condition?.target_attribute_type === "int" || object.condition?.aggregator === "count") && (
-                                <Input
-                                        type="number"
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(e) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: e.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                )}
-                                {object.condition?.target_attribute_type === "str" && (
-                                    <Input
-                                        type="text"
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(e) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: e.target.value,
-                                                },
-                                            }))
-                                        }
-                                    />
-                                )}
-                                {object.condition?.target_attribute_type === "bool" && (
-                                    <Select
-                                        value={object.condition?.threshold || ""}
-                                        onChange={(_, v) =>
-                                            setObject((o: any) => ({
-                                                ...o,
-                                                condition: {
-                                                    ...o.condition,
-                                                    threshold: v,
-                                                },
-                                            }))
-                                        }
-                                    >
-                                        <Option value="true">True</Option>
-                                        <Option value="false">False</Option>
-                                    </Select>
-                                )}
+                                    <FormLabel>Condition value</FormLabel>
+                                    {(object.condition?.target_attribute_type === "int" || object.condition?.aggregator === "count") && (
+                                        <Input
+                                            type="number"
+                                            value={object.condition?.threshold || ""}
+                                            onChange={(e) =>
+                                                setObject((o: any) => ({
+                                                    ...o,
+                                                    condition: {
+                                                        ...o.condition,
+                                                        threshold: e.target.value,
+                                                    },
+                                                }))
+                                            }
+                                        />
+                                    )}
+                                    {object.condition?.target_attribute_type === "str" && (
+                                        <Input
+                                            type="text"
+                                            value={object.condition?.threshold || ""}
+                                            onChange={(e) =>
+                                                setObject((o: any) => ({
+                                                    ...o,
+                                                    condition: {
+                                                        ...o.condition,
+                                                        threshold: e.target.value,
+                                                    },
+                                                }))
+                                            }
+                                        />
+                                    )}
+                                    {object.condition?.target_attribute_type === "bool" && (
+                                        <Select
+                                            value={object.condition?.threshold || ""}
+                                            onChange={(_, v) =>
+                                                setObject((o: any) => ({
+                                                    ...o,
+                                                    condition: {
+                                                        ...o.condition,
+                                                        threshold: v,
+                                                    },
+                                                }))
+                                            }
+                                        >
+                                            <Option value="true">True</Option>
+                                            <Option value="false">False</Option>
+                                        </Select>
+                                    )}
                                 </FormControl>
                             )}
                         </>
