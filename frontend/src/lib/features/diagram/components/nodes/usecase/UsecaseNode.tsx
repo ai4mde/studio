@@ -9,7 +9,7 @@ export const UsecaseNode: React.FC<NodeProps> = (node) => {
                 style={{
                     borderRadius: "50% / 50%",
                 }}
-                className="border border-solid border-black bg-white"
+                className="border border-solid border-black"
             >
                 <div className="p-6">{node?.data?.name}</div>
             </div>

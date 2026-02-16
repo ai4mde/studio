@@ -36,6 +36,7 @@ export const applyNodeChanges = (
                 partialUpdateNode(diagram, node.id, {
                     data: {
                         position: node.position,
+                        background_color_hex: node.data?.background_color_hex,
                     },
                 });
             return false;

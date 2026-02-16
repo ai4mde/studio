@@ -11,6 +11,7 @@ const NodeWrapper: React.FC<{
     const { connecting } = useDiagramStore();
 
     const nodeName = node.type.charAt(0)?.toUpperCase() + node.type.slice(1);
+    const backgroundColor = node.data?.background_color_hex || "#FFFFFF";
 
     if (node.data?._preview) {
         return <div className="relative z-0">{children}</div>;
@@ -59,7 +60,12 @@ const NodeWrapper: React.FC<{
                     }}
                     position={Position.Top}
                 />
-                <div className="relative z-0">{children}</div>
+                <div 
+                    className="relative z-0"
+                    style={{ backgroundColor }}
+                >
+                    {children}
+                </div>
             </div>
         </Tooltip>
     );
