@@ -130,10 +130,16 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                                         ? "You have no Class Diagrams with nodes"
                                         : "Choose from Class Diagrams"
                             }
-                            value={object.cls ?? null}
-                            onChange={(_, newValue) =>
-                                setObject((o: any) => ({ ...o, cls: newValue }))
-                            }
+                            // store the *id* in a separate field used only by the UI selection
+                            value={object.clsId ?? null}
+                            onChange={(_, clsId) => {
+                                const selected = classifiers.find((c) => c.id === clsId);
+                                setObject((o: any) => ({
+                                    ...o,
+                                    clsId,                      // keep id if you want
+                                    cls: selected?.data?.name ?? "", // <-- send name
+                                }));
+                            }}
                             disabled={!isSuccess || classifiers.length === 0}
                             required
                         >
@@ -153,14 +159,11 @@ export const ActivityConnectionFields: React.FC<Props> = ({
                         <FormLabel>State</FormLabel>
                         <Input
                             value={object.state ?? ""}
-                            onChange={(e) =>
-                                setObject((o: any) => ({ ...o, state: e.target.value }))
-                            }
+                            onChange={(e) => setObject((o: any) => ({ ...o, state: e.target.value }))}
                         />
                     </FormControl>
                 </>
             )}
-
 
             {object.type === "controlflow" && sourceNode?.type === "decision" && (
                 <>
