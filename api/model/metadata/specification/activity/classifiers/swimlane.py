@@ -6,7 +6,6 @@ from diagram.models import Node
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
-    role: Literal["swimlane"] = "swimlane"
     actorNode: str
     actorNodeName: str = "Unknown actor"
 
@@ -21,7 +20,6 @@ class SwimLane(BaseModel):
 
 class SwimLaneGroup(BaseModel):
     type: Literal["swimlanegroup"] = "swimlanegroup"
-    role: Literal["swimlane"] = "swimlane"
     height: int = 1000
     width: int = 300
     horizontal: bool = False

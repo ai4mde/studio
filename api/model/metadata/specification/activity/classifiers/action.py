@@ -11,7 +11,6 @@ class ActionClasses(BaseModel):
 
 class Action(NamedElement, NamespacedElement, BaseModel):
     type: Literal["action"] = "action"
-    role: Literal["action"] = "action"
     isAutomatic: bool
     customCode: Optional[str] = None
     localPrecondition: Optional[str] = ""
@@ -31,7 +30,6 @@ class Action(NamedElement, NamespacedElement, BaseModel):
         if values.actorNode:
             values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
         return values
-
 
 ActionClassifier = Action
 

@@ -5,10 +5,10 @@ from pydantic import BaseModel, model_validator
 from diagram.models import Node
 from metadata.specification.kernel import NamedElement, NamespacedElement
 
-class Object(NamedElement, NamespacedElement, BaseModel):
-    type: Literal["object"] = "object"
-    cls: UUID
-    state: Optional[str] = None
+class Event(NamedElement, NamespacedElement, BaseModel):
+    type: Literal["event"] = "event"
+    signal: UUID
+    subtype: Literal["sent"] = "sent"
     actorNode: Optional[str] = None
     actorNodeName: Optional[str] = None
 
@@ -18,6 +18,6 @@ class Object(NamedElement, NamespacedElement, BaseModel):
             values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
         return values
     
-ObjectClassifier = Object
+EventClassifier = Event
 
-__all__ = ["ObjectClassifier"]
+__all__ = ["EventClassifier"]

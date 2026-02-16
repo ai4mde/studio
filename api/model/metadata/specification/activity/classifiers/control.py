@@ -59,7 +59,7 @@ ControlClassifier = Annotated[
         Merge,
     ],
     Field(
-        discriminator="type",
+        discriminator="subtype",
     ),
 ]
 

@@ -73,3 +73,17 @@ export const useSystemUsecaseClassifiers = (
     const t = classifier.data?.type;
     return t === "actor" || t === "usecase";
   });
+
+export const useSystemObjectClassifiers = (
+  systemId: string | null | undefined,
+) =>
+  useFilteredSystemClassifiers(systemId, (classifier) => {
+    return classifier.data?.type === "class";
+  });
+
+export const useSystemSignalClassifiers = (
+  systemId: string | null | undefined,
+) =>
+  useFilteredSystemClassifiers(systemId, (classifier) => {
+    return classifier.data?.type === "signal";
+  });
