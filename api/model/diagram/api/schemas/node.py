@@ -13,11 +13,13 @@ class NodePosition(Schema):
 
 class NodeData(Schema):
     position: NodePosition
+    background_color_hex: Optional[str] = None
 
 
 class CreateNode(Schema):
     id: Optional[UUID] = None
     cls: Classifier
+    background_color_hex: Optional[str] = None
 
 
 class NodeSchema(ModelSchema):

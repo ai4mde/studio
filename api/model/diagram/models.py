@@ -1,8 +1,20 @@
+from typing import Optional
 import uuid
 
 from django.db import models
 from metadata.models import Classifier, Relation, System
 import networkx as nx
+
+
+def get_default_background_color_hex(classifier_type: str) -> Optional[str]:
+    # TODO:
+    # - Add more default colors for different classifier types
+    # - Put this in a configuration file
+    default_colors = {
+        "c4container": "#438DD5",
+        "c4component": "#85BBF0",
+    }
+    return default_colors.get(classifier_type, None)
 
 
 class Diagram(models.Model):
@@ -97,11 +109,17 @@ class Diagram(models.Model):
             id_map[old_id] = str(cls_obj.id)
 
         # One node per (diagram, classifier)
-        Node.objects.get_or_create(
+        default_bg_color = get_default_background_color_hex(classifier.get("data", {}).get("type", None))
+        node, created = Node.objects.get_or_create(
             diagram=self,
             cls=cls_obj,
-            defaults={"data": {"position": {"x": 0, "y": 0}}}
+            defaults={"data": {"position": {"x": 0, "y": 0}, "background_color_hex": default_bg_color}}
         )
+        
+        # Ensure background_color_hex is set even if node already existed
+        if not node.data.get("background_color_hex"):
+            node.data["background_color_hex"] = default_bg_color
+            node.save()
 
         return str(cls_obj.id)
 
