@@ -61,11 +61,11 @@ class Signal(NamedElement, NamespacedElement, BaseModel):
 
 class C4Container(NamedElement, NamespacedElement, BaseModel):
     type: Literal["c4container"] = "c4container"
-    label: str
-    technologies: List[str]
+    label: str = ""
+    technologies: List[str] = []
 
 class C4Component(NamedElement, NamespacedElement, BaseModel):
     type: Literal["c4component"] = "c4component"
-    label: str
+    label: str = ""
 
 ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal, C4Container, C4Component]
