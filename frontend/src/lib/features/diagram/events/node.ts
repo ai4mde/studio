@@ -37,6 +37,7 @@ export const applyNodeChanges = (
                     data: {
                         position: node.position,
                         background_color_hex: node.data?.background_color_hex,
+                        text_color_hex: node.data?.text_color_hex,
                     },
                 });
             return false;

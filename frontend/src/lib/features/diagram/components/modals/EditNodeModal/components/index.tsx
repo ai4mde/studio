@@ -8,11 +8,12 @@ import EditDimensions from "./EditDimensions/EditDimensions";
 import EditBoolean from "./EditBoolean/EditBoolean";
 import EditSwimlane from "./EditSwimlane/EditSwimlane";
 import EditCode from "./EditCode/EditCode";
-import EditBackgroundColor from "./EditBackgroundColor";
+import EditBackgroundColor from "./EditColors/EditBackgroundColor";
+import EditTextColor from "./EditColors/EditTextColor";
 import EditLabel from "./EditLabel/EditLabel";
 import EditTechnologies from "./EditTechnologies/EditTechnologies";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditBackgroundColor, EditLabel, EditTechnologies };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditBackgroundColor, EditTextColor, EditLabel, EditTechnologies };
 export default {
     EditAttributes,
     EditMethods,
@@ -25,6 +26,7 @@ export default {
     EditSwimlane,
     EditCode,
     EditBackgroundColor,
+    EditTextColor,
     EditLabel,
     EditTechnologies
 };

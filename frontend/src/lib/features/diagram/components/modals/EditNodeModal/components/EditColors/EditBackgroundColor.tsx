@@ -31,6 +31,7 @@ export const EditBackgroundColor: React.FC<EditBackgroundColorProps> = ({ node }
             data: {
                 position: node.position || { x: 0, y: 0 },
                 background_color_hex: color,
+                text_color_hex: node.data?.text_color_hex || "#000000",
             },
         });
     };

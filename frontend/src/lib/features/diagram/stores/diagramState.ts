@@ -53,6 +53,7 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     systemName: e.system_name,
                     systemId: e.system_id,
                     background_color_hex: e.data?.background_color_hex,
+                    text_color_hex: e.data?.text_color_hex,
                 },
                 parentNode: e?.cls?.parentNode ?? (e?.cls?.actorNode ? swimlaneGroupUUID : null), // TODO swimlanes should also use parentNode, this might, however, also require changes in prototype generation
                 extend: e?.cls?.actorNode ? 'parent' : null,

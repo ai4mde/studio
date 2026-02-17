@@ -12,6 +12,7 @@ const NodeWrapper: React.FC<{
 
     const nodeName = node.type.charAt(0)?.toUpperCase() + node.type.slice(1);
     const backgroundColor = node.data?.background_color_hex || "#FFFFFF";
+    const textColor = node.data?.text_color_hex || "#000000";
 
     if (node.data?._preview) {
         return <div className="relative z-0">{children}</div>;
@@ -62,7 +63,7 @@ const NodeWrapper: React.FC<{
                 />
                 <div 
                     className="relative z-0"
-                    style={{ backgroundColor }}
+                    style={{ backgroundColor, color: textColor }}
                 >
                     {children}
                 </div>

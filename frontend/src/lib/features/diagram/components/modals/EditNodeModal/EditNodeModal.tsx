@@ -21,6 +21,7 @@ import {
     EditSwimlane,
     EditCode,
     EditBackgroundColor,
+    EditTextColor,
     EditLabel,
     EditTechnologies
 } from "./components";
@@ -201,6 +202,9 @@ export const EditNodeModal: React.FC = () => {
                             </div>
                             <div className="bg-white border-t p-3">
                                 <EditBackgroundColor node={node} />
+                            </div>
+                            <div className="bg-white border-t p-3">
+                                <EditTextColor node={node} />
                             </div>
                             <div className="bg-white p-3 text-xs">
                                 <details>
