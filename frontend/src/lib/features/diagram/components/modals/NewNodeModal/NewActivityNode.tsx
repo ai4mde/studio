@@ -1,6 +1,6 @@
 
 import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { useDiagramStore } from "$diagram/stores";
 import { RelatedNode } from "$diagram/types/diagramState"
@@ -65,10 +65,33 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
     const onChangeType = (newType: string | null) => {
         setObject((o: any) => {
             const next: any = { ...(DEFAULTS[newType ?? ""] ?? {}) };
-            next.name = "";
+
+            // Only clear name where the user types it
+            if (newType === "action") next.name = "";
+            // For object/event, we’ll set name when cls/signal is chosen
+            if (newType === "object") next.name = "";
+            if (newType === "event") next.name = "";
+
             return next;
         });
     };
+
+    const objectClsNameById = React.useMemo(() => {
+        const m = new Map<string, string>();
+        for (const c of objectClassifiers ?? []) {
+            if (c?.id && c?.data?.name) m.set(c.id, c.data.name);
+        }
+        return m;
+    }, [objectClassifiers]);
+
+    const signalNameById = React.useMemo(() => {
+        const m = new Map<string, string>();
+        for (const s of signalClassifiers ?? []) {
+            if (s?.id && s?.data?.name) m.set(s.id, s.data.name);
+        }
+        return m;
+    }, [signalClassifiers]);
+
 
     return (
         <>
@@ -182,20 +205,15 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             {object.type === "object" && (
                 <>
                     <FormControl size="sm" className="w-full">
-                        <FormLabel>Name</FormLabel>
-                        <Input
-                            value={object.name || ""}
-                            onChange={(e) => setObject((o: any) => ({ ...o, name: e.target.value }))}
-                            placeholder="Name of the object..."
-                        />
-                    </FormControl>
-
-                    <FormControl size="sm" className="w-full">
-                        <FormLabel>Class (cls)</FormLabel>
+                        <FormLabel>Class</FormLabel>
                         <Select
                             placeholder={!objectClassifiersSuccess ? "Loading..." : "Choose a class..."}
                             value={object.cls ?? null}
-                            onChange={(_, v) => setObject((o: any) => ({ ...o, cls: v }))}
+                            onChange={(_, v) => setObject((o: any) => ({
+                                ...o,
+                                cls: v,
+                                name: v ? objectClsNameById.get(v) ?? "" : "",
+                            }))}
                             disabled={!objectClassifiersSuccess}
                             required
                         >
@@ -222,20 +240,15 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
             {object.type === "event" && (
                 <>
                     <FormControl size="sm" className="w-full">
-                        <FormLabel>Name</FormLabel>
-                        <Input
-                            value={object.name || ""}
-                            onChange={(e) => setObject((o: any) => ({ ...o, name: e.target.value }))}
-                            placeholder="Name of the event..."
-                        />
-                    </FormControl>
-
-                    <FormControl size="sm" className="w-full">
                         <FormLabel>Signal</FormLabel>
                         <Select
                             placeholder={!signalClassifiersSuccess ? "Loading..." : "Choose a signal..."}
                             value={object.signal ?? null}
-                            onChange={(_, v) => setObject((o: any) => ({ ...o, signal: v }))}
+                            onChange={(_, v) => setObject((o: any) => ({
+                                ...o,
+                                signal: v,
+                                name: v ? signalNameById.get(v) ?? "" : "",
+                            }))}
                             disabled={!signalClassifiersSuccess}
                             required
                         >

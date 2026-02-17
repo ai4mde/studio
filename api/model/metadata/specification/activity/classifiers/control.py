@@ -4,37 +4,37 @@ from typing import Annotated, Union, Literal
 
 
 class Decision(BaseModel):
-    type: Literal["decision"] = "decision"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["decision"] = "decision"
     decisionInput: str = ""
     decisionInputFlow: str = ""
     page: str = ""  # TODO: In reality a page is more complex than just a string
 
 
 class Final(BaseModel):
-    type: Literal["final"] = "final"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["final"] = "final"
     activity_scope: Literal["flow", "activity"] = "activity"
 
 
 class Fork(BaseModel):
-    type: Literal["fork"] = "fork"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["fork"] = "fork"
     height: int = 8
     width: int = 56
 
 
 class Initial(BaseModel):
-    type: Literal["initial"] = "initial"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["initial"] = "initial"
     activity_scope: Literal["flow", "activity"] = "activity"
     scheduled: bool = False
     schedule: str = ""
 
 
 class Join(BaseModel):
-    type: Literal["join"] = "join"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["join"] = "join"
     join_spec: str = ""
     height: int = 8
     width: int = 56
@@ -42,8 +42,8 @@ class Join(BaseModel):
 
 
 class Merge(BaseModel):
-    type: Literal["merge"] = "merge"
-    role: Literal["control"] = "control"
+    type: Literal["control"] = "control"
+    subtype: Literal["merge"] = "merge"
     merge_spec: str = ""
     is_combine_duplicate: bool = False
     page: str = ""  # TODO: In reality a page is more complex than just a string
