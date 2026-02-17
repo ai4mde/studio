@@ -17,6 +17,16 @@ def get_default_background_color_hex(classifier_type: str) -> Optional[str]:
     return default_colors.get(classifier_type, None)
 
 
+def get_default_text_color_hex(classifier_type: str) -> Optional[str]:
+    # TODO:
+    # - Add more default colors for different classifier types
+    # - Put this in a configuration file
+    default_colors = {
+        "c4container": "#FFFFFF",
+        "c4component": "#FFFFFF",
+    }
+    return default_colors.get(classifier_type, None)
+
 class Diagram(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     type = models.CharField()
@@ -110,15 +120,17 @@ class Diagram(models.Model):
 
         # One node per (diagram, classifier)
         default_bg_color = get_default_background_color_hex(classifier.get("data", {}).get("type", None))
+        default_text_color = get_default_text_color_hex(classifier.get("data", {}).get("type", None))
         node, created = Node.objects.get_or_create(
             diagram=self,
             cls=cls_obj,
-            defaults={"data": {"position": {"x": 0, "y": 0}, "background_color_hex": default_bg_color}}
+            defaults={"data": {"position": {"x": 0, "y": 0}, "background_color_hex": default_bg_color, "text_color_hex": default_text_color}}
         )
         
         # Ensure background_color_hex is set even if node already existed
         if not node.data.get("background_color_hex"):
             node.data["background_color_hex"] = default_bg_color
+            node.data["text_color_hex"] = default_text_color
             node.save()
 
         return str(cls_obj.id)

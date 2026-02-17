@@ -1,6 +1,6 @@
 from typing import Optional
 from django.db import transaction
-from diagram.models import Diagram, Node, Edge, get_default_background_color_hex
+from diagram.models import Diagram, Node, Edge, get_default_background_color_hex, get_default_text_color_hex
 from metadata.models import Classifier, Relation
 import metadata.specification as spec
 from diagram.api.utils.edge import remove_edge_from_diagram, delete_relation_everywhere
@@ -21,6 +21,7 @@ def create_node(diagram: Diagram, data: spec.Classifier):
                 "y": 0,
             },
             "background_color_hex": get_default_background_color_hex(data.type),
+            "text_color_hex": get_default_text_color_hex(data.type),
         }
     )
     return node
@@ -40,6 +41,7 @@ def import_node(diagram: Diagram, id: str):
                 "y": 0,
             },
             "background_color_hex": get_default_background_color_hex(classifier.data.get("type", None)),
+            "text_color_hex": get_default_text_color_hex(classifier.data.get("type", None)),
         }
     )
     return node
