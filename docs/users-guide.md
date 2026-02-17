@@ -51,3 +51,23 @@ Once you have your project and system, you can get started working on a diagram.
   <li><b>Delete Completely</b>: removes the edge from any diagram in your project.</li>
 </ul>
 <p>Once again, this distinction is important when you have imported the same nodes to multiple systems, which can lead to imported edges that reoccur in multiple diagrams.</p>
+
+
+<h2 align="center">
+  <b>Use Case Diagrams</b>
+</h2>
+
+<h3>Nodes</h3>
+Similarly to the class diagram, you can right-click anywhere to have the option to <b>Create a Node</b>. You can then select between several types:
+<ul>
+  <li><b>Actor</b> nodes</li>
+  <li><b>Use Case</b> nodes</li>
+  <li>One <b>System Boundary</b> per diagram. After adding it, you have the option to add other nodes to the system by right-clicking them. This means that their position respective to the system boundary is fixed. If you move the system boundary, the added nodes will move with it. You can also remove nodes from the system in the same way.</li>
+</ul>
+
+> ☝️ <b>Important note</b>: Do not delete the system boundary if some nodes are still added to it, as this is currently not handled well and the diagram will be lost.
+
+<h3>Edges</h3>
+To create an edge, right-click on a source node and select <b>Connect</b>. Then select between the following edge types:<b>Interaction</b>, <b>Extension</b>, <b>Inclusion</b>, and <b>Generalization</b>.
+
+> Node imports are not yet available in Use Case diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
