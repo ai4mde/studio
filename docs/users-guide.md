@@ -68,6 +68,6 @@ Similarly to the class diagram, you can right-click anywhere to have the option 
 > ☝️ <b>Important note</b>: Do not delete the system boundary if some nodes are still added to it, as this is currently not handled well and the diagram will be lost.
 
 <h3>Edges</h3>
-To create an edge, right-click on a source node and select <b>Connect</b>. Then select between the following edge types: <b>Interaction</b>, <b>Extension</b>, <b>Inclusion</b>, and <b>Generalization</b>.
+<p>To create an edge, right-click on a source node and select <b>Connect</b>. Then select between the following edge types: <b>Interaction</b>, <b>Extension</b>, <b>Inclusion</b>, and <b>Generalization</b>.</p>
 
 > ☝️ Node imports are not yet available in Use Case diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
