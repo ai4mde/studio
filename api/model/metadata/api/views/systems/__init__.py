@@ -10,6 +10,7 @@ from .meta import meta
 from .classifiers import classifiers, classes, actors
 from .relations import relations, classifier_relations
 from .node import nodes
+from .settings import settings
 
 from ninja import Router, Schema
 
@@ -42,8 +43,11 @@ def create_system(request, system: CreateSystem):
 
 @systems.put("/{uuid:id}", response=ReadSystem)
 def update_system(request, id, payload: UpdateSystem):
-    print(payload)
-    return None
+    system = System.objects.get(id=id)
+    system.name = payload.name
+    system.description = payload.description
+    system.save()
+    return system
 
 
 @systems.delete("/{uuid:id}/")
@@ -148,6 +152,7 @@ systems.add_router("/{uuid:system_id}/actors", actors, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/relations", relations, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/classifier-relations", classifier_relations, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/nodes", nodes, tags=["metadata"])
+systems.add_router("/{uuid:system_id}/settings", settings, tags=["settings"])
 
 
 __all__ = ["systems"]

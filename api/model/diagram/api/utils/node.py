@@ -20,8 +20,8 @@ def create_node(diagram: Diagram, data: spec.Classifier):
                 "x": 0,
                 "y": 0,
             },
-            "background_color_hex": get_default_background_color_hex(data.type),
-            "text_color_hex": get_default_text_color_hex(data.type),
+            "background_color_hex": get_default_background_color_hex(diagram.system, data.type),
+            "text_color_hex": get_default_text_color_hex(diagram.system, data.type),
         }
     )
     return node
@@ -40,8 +40,8 @@ def import_node(diagram: Diagram, id: str):
                 "x": 0,
                 "y": 0,
             },
-            "background_color_hex": get_default_background_color_hex(classifier.data.get("type", None)),
-            "text_color_hex": get_default_text_color_hex(classifier.data.get("type", None)),
+            "background_color_hex": get_default_background_color_hex(diagram.system, classifier.data.get("type", None)),
+            "text_color_hex": get_default_text_color_hex(diagram.system, classifier.data.get("type", None)),
         }
     )
     return node

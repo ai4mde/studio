@@ -1,9 +1,10 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import SystemLayout from "$lib/features/browser/components/systems/SystemLayout";
 import { queryClient } from "$lib/shared/hooks/queryClient";
+import ColorPaletteModal from "$lib/features/metadata/components/ColorPaletteModal";
 import { LinearProgress, Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Component, Network, Plus, User, Workflow, Blocks, X, Download } from "lucide-react";
+import { Component, Network, Plus, User, Workflow, Blocks, X, Download, Palette } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import { ShowMetadata } from "$metadata/components/ShowMetadata";
@@ -34,6 +35,7 @@ type NewDiagram = {
 const SystemDiagrams: React.FC = () => {
     const { systemId } = useParams();
     const [showModal, setShowModal] = useState(false);
+    const [showColorPaletteModal, setShowColorPaletteModal] = useState(false);
     const [showDeleteDiagramModal, setShowDeleteDiagramModal] = useState(false);
     const [diagramToDelete, setDiagramToDelete] = useState("");
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -254,6 +256,13 @@ const SystemDiagrams: React.FC = () => {
                                 <Plus size={16}/>
                                 <h2 className="text-base">Import C4 Model</h2>
                             </button>
+                            <button
+                                className="flex h-full w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
+                                onClick={() => setShowColorPaletteModal(true)}
+                            >
+                                <Palette size={16}/>
+                                <h2 className="text-base">Edit Color Palette</h2>
+                            </button>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -309,6 +318,11 @@ const SystemDiagrams: React.FC = () => {
                     </div>
                 </ModalDialog>
             </Modal>
+            <ColorPaletteModal
+                systemId={systemId!}
+                open={showColorPaletteModal}
+                onClose={() => setShowColorPaletteModal(false)}
+            />
         </>
     );
 };

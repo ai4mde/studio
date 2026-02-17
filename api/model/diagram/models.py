@@ -3,29 +3,18 @@ import uuid
 
 from django.db import models
 from metadata.models import Classifier, Relation, System
+from metadata.utils import get_classifier_background_color, get_classifier_text_color
 import networkx as nx
 
 
-def get_default_background_color_hex(classifier_type: str) -> Optional[str]:
-    # TODO:
-    # - Add more default colors for different classifier types
-    # - Put this in a configuration file
-    default_colors = {
-        "c4container": "#438DD5",
-        "c4component": "#85BBF0",
-    }
-    return default_colors.get(classifier_type, None)
+def get_default_background_color_hex(system: 'System', classifier_type: str) -> str:
+    """Get default background color from system settings. Uses black for unknown types."""
+    return get_classifier_background_color(system.settings, classifier_type)
 
 
-def get_default_text_color_hex(classifier_type: str) -> Optional[str]:
-    # TODO:
-    # - Add more default colors for different classifier types
-    # - Put this in a configuration file
-    default_colors = {
-        "c4container": "#FFFFFF",
-        "c4component": "#FFFFFF",
-    }
-    return default_colors.get(classifier_type, None)
+def get_default_text_color_hex(system: 'System', classifier_type: str) -> str:
+    """Get default text color from system settings. Uses white for unknown types."""
+    return get_classifier_text_color(system.settings, classifier_type)
 
 class Diagram(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -119,8 +108,9 @@ class Diagram(models.Model):
             id_map[old_id] = str(cls_obj.id)
 
         # One node per (diagram, classifier)
-        default_bg_color = get_default_background_color_hex(classifier.get("data", {}).get("type", None))
-        default_text_color = get_default_text_color_hex(classifier.get("data", {}).get("type", None))
+        classifier_type = classifier.get("data", {}).get("type", None)
+        default_bg_color = get_default_background_color_hex(self.system, classifier_type)
+        default_text_color = get_default_text_color_hex(self.system, classifier_type)
         node, created = Node.objects.get_or_create(
             diagram=self,
             cls=cls_obj,
