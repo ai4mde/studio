@@ -47,6 +47,14 @@ def remove_node(diagram: Diagram, node_id: str):
     if node is None:
         return False
 
+    # Make sure that any nodes that use this node as their parent are updated to have no parent
+    child_nodes = diagram.nodes.filter(
+        cls__data__parentNode=str(node_id)
+    )
+    for child in child_nodes:
+        child.cls.data["parentNode"] = None
+        child.cls.save()
+
     linked_edges = diagram.edges.filter(rel__source=node.cls) | diagram.edges.filter(rel__target=node.cls)
     for linked_edge in linked_edges:
         remove_edge_from_diagram(diagram, linked_edge.id)
