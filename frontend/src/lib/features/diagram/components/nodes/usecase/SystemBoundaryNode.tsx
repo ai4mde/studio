@@ -18,7 +18,7 @@ export const SystemBoundaryNode: React.FC<NodeProps> = (node) => {
         padding: "8px",
         fontWeight: "bold",
         fontSize: "24px",
-        textAlign: "right",
+        textAlign: "center",
     };
 
     const bodyStyle: CSSProperties = {
