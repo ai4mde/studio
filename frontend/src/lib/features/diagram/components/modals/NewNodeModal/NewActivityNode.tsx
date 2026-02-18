@@ -35,14 +35,17 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         },
         control: {
             type: "control",
+            nodeType: "decision",
             subtype: "decision",
         },
         object: {
             type: "object",
+            nodeType: "default",
         },
         event: {
             type: "event",
-            subtype: "sent",
+            nodeType: "default",
+            subtype: "raised",
         },
     };
 
@@ -123,7 +126,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 setObject((o: any) => ({
                                     ...o,
                                     subtype: sub,
-                                    variantType: sub,
+                                    nodeType: sub,
                                 }));
                             } else {
                                 setObject((o: any) => ({ ...o, subtype: sub }));
@@ -209,11 +212,15 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                         <Select
                             placeholder={!objectClassifiersSuccess ? "Loading..." : "Choose a class..."}
                             value={object.cls ?? null}
-                            onChange={(_, v) => setObject((o: any) => ({
-                                ...o,
-                                cls: v,
-                                name: v ? objectClsNameById.get(v) ?? "" : "",
-                            }))}
+                            onChange={(_, v) => {
+                                const id = v ? String(v) : null;
+                                const selected = objectClassifiers.find(c => c.id === id);
+                                setObject(o => ({
+                                    ...o,
+                                    cls: id,
+                                    name: selected?.data?.name ?? "",
+                                }));
+                            }}
                             disabled={!objectClassifiersSuccess}
                             required
                         >
@@ -244,11 +251,15 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                         <Select
                             placeholder={!signalClassifiersSuccess ? "Loading..." : "Choose a signal..."}
                             value={object.signal ?? null}
-                            onChange={(_, v) => setObject((o: any) => ({
-                                ...o,
-                                signal: v,
-                                name: v ? signalNameById.get(v) ?? "" : "",
-                            }))}
+                            onChange={(_, v) => {
+                                const id = v ? String(v) : null;
+                                const selected = signalClassifiers.find(c => c.id === id);
+                                setObject(o => ({
+                                    ...o,
+                                    signal: id,
+                                    name: selected?.data?.name ?? "",
+                                }));
+                            }}
                             disabled={!signalClassifiersSuccess}
                             required
                         >
@@ -275,7 +286,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 setObject((o: any) => ({
                                     ...o,
                                     swimlanes: selectedNodes.map((node) => ({
-                                        role: "swimlane",
                                         type: "swimlane",
                                         actorNode: node.id,
                                         actorNodeName: node.name,
