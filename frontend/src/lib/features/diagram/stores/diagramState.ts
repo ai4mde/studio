@@ -43,7 +43,9 @@ export const useDiagramStore = create<DiagramState>((set) => ({
         set(() => ({
             nodes: nds.map((e) => ({
                 id: e?.id,
-                type: e?.cls?.nodeType ?? e?.cls?.type,
+                type:
+                    e?.cls?.nodeType ??
+                    (e?.cls?.type === "control" ? e?.cls?.subtype : e?.cls?.type),
                 position: {
                     x: e.data?.position?.x ?? 0,
                     y: e.data?.position?.y ?? 0,

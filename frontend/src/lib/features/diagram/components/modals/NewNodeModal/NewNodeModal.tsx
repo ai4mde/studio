@@ -182,9 +182,7 @@ export const NewNodeModal: React.FC = () => {
     const missingEventSignal = isEvent && !object?.signal;
 
     // Control/Event: subtype required
-    const missingSubtype =
-        (object?.type === "control" && !object?.subtype) ||
-        (isEvent && !object?.subtype);
+    const missingSubtype = object?.role === "control" && !object?.subtype;
 
     return createPortal(
         <div className={style.modal}>

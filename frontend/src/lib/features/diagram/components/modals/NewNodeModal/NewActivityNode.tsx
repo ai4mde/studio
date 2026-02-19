@@ -1,11 +1,12 @@
 
 import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useDiagramStore } from "$diagram/stores";
 import { RelatedNode } from "$diagram/types/diagramState"
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
 import { useSystemObjectClassifiers, useSystemSignalClassifiers } from "../ImportNodeModal/queries/importNode";
+import { useAuthEffect } from "$auth/hooks/authEffect";
 
 type Props = {
     object: any;
@@ -24,33 +25,38 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
 
     const DEFAULTS: Record<string, any> = {
         swimlane: {
+            role: "swimlane",
             type: "swimlane",
             height: 1000,
             width: 300,
             horizontal: false,
         },
         action: {
+            role: "action",
             type: "action",
             isAutomatic: false,
         },
         control: {
+            role: "control",
             type: "control",
-            nodeType: "decision",
             subtype: "decision",
+            nodeType: "decision",
         },
         object: {
+            role: "object",
             type: "object",
-            nodeType: "default",
+            name: "", // derived from selected class
         },
         event: {
+            role: "event",
             type: "event",
-            nodeType: "default",
             subtype: "raised",
+            name: "", // derived from selected signal
         },
     };
 
-    const isControl = object.type === "control";
-    const isEvent = object.type === "event";
+    const isControl = object.role === "control";
+    const isEvent = object.role === "event";
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
@@ -65,19 +71,32 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         handleCloseCodeEditor();
     }
 
-    const onChangeType = (newType: string | null) => {
-        setObject((o: any) => {
-            const next: any = { ...(DEFAULTS[newType ?? ""] ?? {}) };
+    const onChangeRole = (newRole: string | null) => {
+        if (!newRole) return;
 
-            // Only clear name where the user types it
-            if (newType === "action") next.name = "";
-            // For object/event, we’ll set name when cls/signal is chosen
-            if (newType === "object") next.name = "";
-            if (newType === "event") next.name = "";
+        setObject(() => {
+            const next = { ...(DEFAULTS[newRole] ?? {}) };
+
+            // Keep name only where chosen by user
+            if (newRole !== "action") delete next.name;
 
             return next;
         });
-    };
+    }
+
+    useEffect(() => {
+        if (!object.role) return;
+        const d = DEFAULTS[object.role];
+        if (!d) return;
+
+        setObject((o: any) => {
+            const next = { ...o };
+            for (const k of Object.keys(d)) {
+                if (next[k] === undefined) next[k] = d[k];
+            }
+            return next;
+        });
+    }, [object.role, setObject]);
 
     const objectClsNameById = React.useMemo(() => {
         const m = new Map<string, string>();
@@ -99,10 +118,10 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
     return (
         <>
             <FormControl size="sm" className="w-full">
-                <FormLabel>Type</FormLabel>
+                <FormLabel>Role</FormLabel>
                 <Select
-                    value={object.type || ""}
-                    onChange={(_, v) => onChangeType(v)}
+                    value={object.role || ""}
+                    onChange={(_, r) => onChangeRole(r)}
                     placeholder="Select a role..."
                 >
                     <Option value="swimlane">Swimlane</Option>
@@ -113,41 +132,27 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 </Select>
             </FormControl>
 
-            {(isControl || isEvent) && (
+            {object.role === "control" && (
                 <FormControl size="sm" className="w-full">
-                    <FormLabel>Subtype</FormLabel>
+                    <FormLabel>Control Type</FormLabel>
                     <Select
-                        value={object.subtype || ""}
-                        placeholder="Select a subtype..."
-                        onChange={(_, sub) => {
-                            if (!sub) return;
-
-                            if (isControl) {
-                                setObject((o: any) => ({
-                                    ...o,
-                                    subtype: sub,
-                                    nodeType: sub,
-                                }));
-                            } else {
-                                setObject((o: any) => ({ ...o, subtype: sub }));
-                            }
+                        value={object.subtype || "decision"}
+                        onChange={(_, t) => {
+                            if (!t) return;
+                            setObject((o: any) => ({
+                                ...o,
+                                type: "control",
+                                subtype: t,
+                                nodeType: t,
+                            }));
                         }}
                     >
-                        {isControl ? (
-                            <>
-                                <Option value="decision">Decision</Option>
-                                <Option value="final">Final</Option>
-                                <Option value="fork">Fork</Option>
-                                <Option value="initial">Initial</Option>
-                                <Option value="join">Join</Option>
-                                <Option value="merge">Merge</Option>
-                            </>
-                        ) : (
-                            <>
-                                <Option value="sent">Sent</Option>
-                                <Option value="received">Received</Option>
-                            </>
-                        )}
+                        <Option value="decision">Decision</Option>
+                        <Option value="final">Final</Option>
+                        <Option value="fork">Fork</Option>
+                        <Option value="initial">Initial</Option>
+                        <Option value="join">Join</Option>
+                        <Option value="merge">Merge</Option>
                     </Select>
                 </FormControl>
             )}
@@ -205,7 +210,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 </>
             )}
 
-            {object.type === "object" && (
+            {object.role === "object" && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Class</FormLabel>
@@ -244,7 +249,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 </>
             )}
 
-            {object.type === "event" && (
+            {object.role === "event" && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Signal</FormLabel>
