@@ -1,6 +1,7 @@
 import {
     ActionNode,
     ObjectNode,
+    EventNode,
     DecisionNode,
     FinalNode,
     ForkNode,
@@ -23,7 +24,13 @@ import {
 
 export {
     ActionNode,
-    ActorNode, ObjectNode, ClassNode, DecisionNode, EnumNode, FinalNode,
+    ActorNode,
+    ObjectNode,
+    EventNode,
+    ClassNode,
+    DecisionNode,
+    EnumNode,
+    FinalNode,
     ForkNode,
     InitialNode,
     JoinNode,
@@ -47,6 +54,7 @@ export default {
     JoinNode,
     MergeNode,
     ObjectNode,
+    EventNode,
     ActionNode,
     ActorNode,
     PostconditionNode,

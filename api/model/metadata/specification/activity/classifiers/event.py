@@ -8,7 +8,7 @@ from metadata.specification.kernel import NamedElement, NamespacedElement
 class Event(NamedElement, NamespacedElement, BaseModel):
     type: Literal["event"] = "event"
     signal: UUID
-    subtype: Literal["sent"] = "sent"
+    subtype: Literal["raised"] = "raised"
     actorNode: Optional[str] = None
     actorNodeName: Optional[str] = None
 
