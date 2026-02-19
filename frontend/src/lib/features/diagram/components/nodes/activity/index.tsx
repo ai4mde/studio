@@ -4,7 +4,7 @@ import { ForkNode } from "./control";
 import { InitialNode } from "./control";
 import { JoinNode } from "./control";
 import { MergeNode } from "./control";
-import { BufferNode } from "./object";
+import { ObjectNode } from "./ObjectNode";
 import { ActionNode } from "./ActionNode";
 import { SwimlaneGroupNode } from "./SwimlaneGroupNode";
 
@@ -15,7 +15,7 @@ export {
     InitialNode,
     JoinNode,
     MergeNode,
-    BufferNode,
+    ObjectNode,
     ActionNode,
     SwimlaneGroupNode,
 };
@@ -27,7 +27,7 @@ export default {
     InitialNode,
     JoinNode,
     MergeNode,
-    BufferNode,
+    ObjectNode,
     ActionNode,
     SwimlaneGroupNode,
 };
