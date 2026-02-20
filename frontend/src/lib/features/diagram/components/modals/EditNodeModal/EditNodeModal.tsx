@@ -19,7 +19,9 @@ import {
     EditDimensions,
     EditBoolean,
     EditSwimlane,
-    EditCode
+    EditCode,
+    EditObject,
+    EditEvent
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -99,7 +101,7 @@ export const EditNodeModal: React.FC = () => {
                             </div>
                             <div className="h-full overflow-y-scroll bg-white">
                                 <div className={style.body}>
-                                    {node.data?.name && (
+                                    {node.data?.name && node.type !== "object" && node.type !== "event" && (
                                         <EditName node={node} />
                                     )}
                                     {node.type == "class" && (
@@ -177,6 +179,8 @@ export const EditNodeModal: React.FC = () => {
                                         </>
 
                                     )}
+                                    {node.type === "object" && <EditObject node={node} />}
+                                    {node.type === "event" && <EditEvent node={node} />}
                                     {node.type == "system_boundary" && (
                                       <>
                                         <EditDimensions dimension='height' node={node} />
