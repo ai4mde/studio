@@ -14,10 +14,19 @@ import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields
 import style from "./newconnectionmodal.module.css";
 
 const isConnectionValid = (diagramType: string, o: any): boolean => {
-    if (!o?.type) return false;
-
+    // classes: must have valid type etc
     if (diagramType === "classes" || diagramType === "class") {
         return isClassConnectionValid(o);
+    }
+
+    // usecase: require type
+    if (diagramType === "usecase") {
+        return !!o?.type;
+    }
+
+    // activity: type is implicit (controlflow), so don't require it here
+    if (diagramType === "activity") {
+        return true;
     }
 
     return true;
@@ -64,7 +73,13 @@ export const NewConnectionModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            diagram && source && object && target && addEdge(diagram, object, source, target);
+                            const rel =
+                                type === "activity"
+                                    ? { ...object, type: object?.type ?? "controlflow" }
+                                    : object;
+
+                            diagram && source && rel && target && addEdge(diagram, rel, source, target);
+
                             queryClient.refetchQueries({
                                 queryKey: ["diagram"],
                             });
@@ -116,7 +131,7 @@ export const NewConnectionModal: React.FC = () => {
                                     classDiagrams={relatedDiagrams.filter((d) => d.type == "classes")}
                                     setObject={setObject}
                                 />
-                            ): null}
+                            ) : null}
                             {type == "usecase" ? (
                                 <UseCaseConnectionFields
                                     object={object}

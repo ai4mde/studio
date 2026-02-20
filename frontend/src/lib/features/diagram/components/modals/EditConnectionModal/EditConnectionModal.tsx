@@ -33,9 +33,14 @@ export const EditConnectionModal: React.FC = () => {
 
     const updateEdge = useMutation({
         mutationFn: async () => {
+            const rel =
+                type === "activity"
+                    ? { ...object, type: "controlflow", isDirected: object?.isDirected ?? true }
+                    : object;
+
             await authAxios.patch(
                 `/v1/diagram/${diagram}/edge/${edge?.id}/`,
-                { rel: object },
+                { rel },
             );
             queryClient.invalidateQueries({ queryKey: ["diagram"] });
         },
@@ -59,12 +64,22 @@ export const EditConnectionModal: React.FC = () => {
     const nodeRef = React.useRef(null);
 
     const isValid = () => {
-        if (!object?.type) return false;
-
+        // Classes: must pass class validation (requires type)
         if (type === "classes" || type === "class") {
             return isClassConnectionValid(object);
         }
 
+        // Usecase: type is required
+        if (type === "usecase") {
+            return !!object?.type;
+        }
+
+        // Activity: type is implicit, no dropdown, always valid
+        if (type === "activity") {
+            return true;
+        }
+
+        // Default fallback
         return true;
     };
 

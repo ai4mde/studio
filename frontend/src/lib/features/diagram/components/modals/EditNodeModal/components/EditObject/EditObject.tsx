@@ -5,7 +5,7 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import { useDiagramStore } from "$diagram/stores";
 import { useSystemObjectClassifiers } from "$diagram/components/modals/ImportNodeModal/queries/importNode";
 import { Save } from "lucide-react";
-import style from "../EditName/editname.module.css"; // <-- adjust path to your editname.module.css
+import style from "../EditName/editname.module.css";
 
 type Props = { node: any };
 
