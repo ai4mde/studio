@@ -7,6 +7,7 @@ from metadata.specification.kernel import NamedElement, NamespacedElement
 
 class Object(NamedElement, NamespacedElement, BaseModel):
     type: Literal["object"] = "object"
+    role: Literal["object"] = "object"
     cls: UUID
     state: Optional[str] = None
     actorNode: Optional[str] = None

@@ -11,6 +11,7 @@ class ActionClasses(BaseModel):
 
 class Action(NamedElement, NamespacedElement, BaseModel):
     type: Literal["action"] = "action"
+    role: Literal["action"] = "action"
     isAutomatic: bool
     customCode: Optional[str] = None
     localPrecondition: Optional[str] = ""

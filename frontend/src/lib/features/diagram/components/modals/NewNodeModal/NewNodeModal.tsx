@@ -181,8 +181,8 @@ export const NewNodeModal: React.FC = () => {
     const missingObjectCls = isObject && !object?.cls;
     const missingEventSignal = isEvent && !object?.signal;
 
-    // Control/Event: subtype required
-    const missingSubtype = object?.role === "control" && !object?.subtype;
+    // Control: type required
+    const missingType = object?.role === "control" && !object?.type;
 
     return createPortal(
         <div className={style.modal}>
@@ -258,7 +258,7 @@ export const NewNodeModal: React.FC = () => {
                                     missingSwimlaneActors ||
                                     missingObjectCls ||
                                     missingEventSignal ||
-                                    missingSubtype
+                                    missingType
                                 }
                                 type="submit"
                             >

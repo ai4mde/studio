@@ -38,9 +38,10 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         },
         control: {
             role: "control",
-            type: "control",
-            subtype: "decision",
-            nodeType: "decision",
+            type: "decision",
+            decisionInput: "",
+            decisionInputFlow: "",
+            page: "",
         },
         object: {
             role: "object",
@@ -50,7 +51,6 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         event: {
             role: "event",
             type: "event",
-            subtype: "raised",
             name: "", // derived from selected signal
         },
     };
@@ -136,14 +136,12 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 <FormControl size="sm" className="w-full">
                     <FormLabel>Control Type</FormLabel>
                     <Select
-                        value={object.subtype || "decision"}
+                        value={object.type || "decision"}
                         onChange={(_, t) => {
                             if (!t) return;
                             setObject((o: any) => ({
                                 ...o,
-                                type: "control",
-                                subtype: t,
-                                nodeType: t,
+                                type: "decision",
                             }));
                         }}
                     >
@@ -156,7 +154,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     </Select>
                 </FormControl>
             )}
-            {(object.type == "action") && (
+            {(object.role == "action") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Name</FormLabel>
@@ -279,7 +277,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                 </>
             )}
 
-            {(object.type == "swimlane") && (
+            {(object.role == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Actors</FormLabel>

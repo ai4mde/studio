@@ -6,6 +6,7 @@ from diagram.models import Node
 
 class SwimLane(BaseModel):
     type: Literal["swimlane"] = "swimlane"
+    role: Literal["swimlane"] = "swimlane"
     actorNode: str
     actorNodeName: str = "Unknown actor"
 
