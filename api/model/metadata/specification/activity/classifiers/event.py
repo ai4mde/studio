@@ -1,22 +1,36 @@
 from uuid import UUID
 from typing import Literal, Optional
 from pydantic import BaseModel, model_validator
+from django.core.exceptions import ObjectDoesNotExist
 
-from diagram.models import Node
+from metadata.models import Classifier
 from metadata.specification.kernel import NamedElement, NamespacedElement
 
 class Event(NamedElement, NamespacedElement, BaseModel):
     type: Literal["event"] = "event"
     role: Literal["event"] = "event"
     signal: UUID
-    actorNode: Optional[str] = None
-    actorNodeName: Optional[str] = None
+    signalName: Optional[str] = None
 
     @model_validator(mode="after")
-    def set_actor_node_name(cls, values):
-        if values.actorNode:
-            values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
-        return values
+    def set_signal_name(self):
+        if not self.signal:
+            return self
+
+        try:
+            classifier = Classifier.objects.get(pk=self.signal)
+
+            self.signalName = (
+                getattr(classifier, "name", None)
+                or getattr(classifier, "key", None)
+                or classifier.data.get("name")
+                or "Unknown signal"
+            )
+
+        except ObjectDoesNotExist:
+            self.signalName = "Unknown signal"
+
+        return self
     
 EventClassifier = Event
 

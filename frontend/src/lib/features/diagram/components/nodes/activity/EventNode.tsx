@@ -3,7 +3,7 @@ import { NodeProps } from "reactflow";
 import NodeWrapper from "../shared/NodeWrapper";
 
 export const EventNode: React.FC<NodeProps> = (node) => {
-    const name = node.data?.name ?? "Event";
+    const name = node.data?.signalName ?? "Event";
 
     return (
         <NodeWrapper node={node} selected={node.selected}>

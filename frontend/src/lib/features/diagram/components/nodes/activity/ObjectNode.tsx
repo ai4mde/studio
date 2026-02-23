@@ -3,7 +3,7 @@ import { NodeProps } from "reactflow";
 import NodeWrapper from "../shared/NodeWrapper";
 
 export const ObjectNode: React.FC<NodeProps> = (node) => {
-    const name = node.data?.name ?? "Object";
+    const name = node.data?.clsName ?? "Object";
     const state = node.data?.state;
 
     return (
