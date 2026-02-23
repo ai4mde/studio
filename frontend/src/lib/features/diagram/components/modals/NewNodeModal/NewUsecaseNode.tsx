@@ -11,7 +11,6 @@ type Props = {
 };
 
 export const NewUsecaseNode: React.FC<Props> = ({ object, systemBoundaryExists, systemNodes, setObject }) => {
-    console.log(systemNodes)
     return (
         <>
             <FormControl size="sm" className="w-full">

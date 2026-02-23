@@ -10,6 +10,7 @@ import Draggable from "react-draggable";
 import { NewActivityNode } from "./NewActivityNode";
 import { NewClassNode } from "./NewClassNode";
 import { NewUsecaseNode } from "./NewUsecaseNode";
+import { NewComponentNode } from "./NewComponentNode"
 import style from "./newnodemodal.module.css";
 import { authAxios } from "$lib/features/auth/state/auth";
 
@@ -206,6 +207,12 @@ export const NewNodeModal: React.FC = () => {
                                     object={object}
                                     systemBoundaryExists={systemBoundaryExists}
                                     systemNodes={systemNodes}
+                                    setObject={setObject}
+                                />
+                            )}
+                            {type == "component" && (
+                                <NewComponentNode
+                                    object={object}
                                     setObject={setObject}
                                 />
                             )}

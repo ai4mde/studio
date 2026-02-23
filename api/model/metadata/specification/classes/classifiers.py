@@ -71,5 +71,19 @@ class Container(NamedElement, BaseModel):
 class Component(NamedElement, BaseModel):
     type: Literal["component"] = "component" 
 
+class Interface(NamedElement, BaseModel):
+    type: Literal['interface']
 
-ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal, System, Container, Component]
+
+ClassClassifier = Union[
+    Application,
+    Page,
+    Section,
+    Class,
+    Enum,
+    Signal,
+    System,
+    Container,
+    Component,
+    Interface,
+]

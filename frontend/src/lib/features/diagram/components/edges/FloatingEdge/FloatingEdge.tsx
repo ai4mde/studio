@@ -26,7 +26,6 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     const targetNode = useStore(
         useCallback((store) => store.nodeInternals.get(target), [target]),
     );
-
     if (!sourceNode || !targetNode) {
         return null;
     }
@@ -47,7 +46,6 @@ const FloatingEdge: React.FC<EdgeProps> = ({
     const startY = sy + sourceOffset.y;
     const endX = tx + targetOffset.x;
     const endY = ty + targetOffset.y;
-
 
     // Generate edge segments
     for (let i = 0; i < edgeSegmentsCount; i++) {
@@ -93,6 +91,9 @@ const FloatingEdge: React.FC<EdgeProps> = ({
         { x: endX, y: endY },
     ]
 
+    let longestDx = 0;
+    let longestDy = 0;
+
     // Find longest segment
     let maxLen = -1;
     let labelX = (sx + tx) / 2;
@@ -109,8 +110,69 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             maxLen = len;
             labelX = (a.x + b.x) / 2;
             labelY = (a.y + b.y) / 2;
+            longestDx = dx;
+            longestDy = dy;
         }
     }
+
+    const isInterface = data?.type === "interface";
+    const gapLen = 22; // Length of the gap for interface edge
+
+    // Ball and socket are placed along the longest segment, so we need the direction of that segment
+    const segLen = Math.hypot(longestDx, longestDy);
+    const ux = longestDx / segLen;
+    const uy = longestDy / segLen;
+
+    // Overall direction from source to targe5t
+    const overallDx = endX - startX;
+    const overallDy = endY - startY;
+
+    // If the longest segment points "backwards" flip it
+    const dot = ux * overallDx + uy * overallDy;
+    const dirX = dot >= 0 ? ux : -ux;
+    const dirY = dot >= 0 ? uy : -uy;
+    const perX = -dirY;
+    const perY = dirX;
+
+    // Parameters for the interface symbol
+    const ballR = 8;
+    const socketR = ballR + 3;
+    const symbolGap = 1;
+
+    // Push the ball along the edge direction towards the soource
+    const ballCx = labelX - dirX * symbolGap;
+    const ballCy = labelY - dirY * symbolGap;
+
+    // Push the socket along the edge direction towards the target
+    const socketCx = labelX + dirX * symbolGap;
+    const socketCy = labelY + dirY * symbolGap;
+
+    // Calculate the position of the endpoints of the socket circle
+    const socketAx = socketCx + perX * socketR;
+    const socketAy = socketCy + perY * socketR;
+    const socketBx = socketCx - perX * socketR;
+    const socketBy = socketCy - perY * socketR;
+
+    // Hide the edge line under the symbol by drawing white lines over it
+    const gapX1 = labelX - ux  * (gapLen / 2);
+    const gapY1 = labelY - uy  * (gapLen / 2);
+    const gapX2 = labelX + ux  * (gapLen / 2);
+    const gapY2 = labelY + uy  * (gapLen / 2);
+
+    // Label placement for provided/required itnerface names
+    const labelOffsetAlong = 14;
+    const labelOffsetPerp = 12;
+
+    // Put both labels on the same side of the edge, depending on the overall direction
+    const providedLabelX = ballCx - dirX * labelOffsetAlong + perX * labelOffsetPerp;
+    const providedLabelY = ballCy - dirY * labelOffsetAlong + perY * labelOffsetPerp;
+
+    const requiredLabelX = socketCx + dirX * labelOffsetAlong + perX * labelOffsetPerp;
+    const requiredLabelY = socketCy + dirY * labelOffsetAlong + perY * labelOffsetPerp;
+
+    // Allign text so it grows away from the symbol
+    const providedAnchor: "start" | "end" = dirX > 0 ? "end": "start";
+    const requiredAnchor: "start" | "end" = dirX > 0 ? "start": "end";
 
     const midIndex = Math.floor((points.length - 1) / 2);
     const p1 = points[midIndex];
@@ -176,6 +238,33 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                 window.addEventListener("mouseup", onMouseUp);
             };
 
+    const socketSweep = (
+        cx: number, cy: number,
+        ax: number, ay: number,
+        bx: number, by: number,
+        dirX: number, dirY: number
+        ) => {
+        // Get correct orientation for the socket arc
+        const a = Math.atan2(ay - cy, ax - cx);
+        const b = Math.atan2(by - cy, bx - cx);
+
+        const mid = (sweep: 0 | 1) => {
+            let d = sweep ? (b - a) : (a - b);
+            while (d < 0) d += Math.PI * 2;
+            while (d > Math.PI * 2) d -= Math.PI * 2;
+            const m = sweep ? (a + d / 2) : (a - d / 2);
+            return { x: cx + Math.cos(m), y: cy + Math.sin(m) };
+        };
+
+        const m0 = mid(0);
+        const m1 = mid(1);
+
+        const dot0 = (m0.x - cx) * dirX + (m0.y - cy) * dirY;
+        const dot1 = (m1.x - cx) * dirX + (m1.y - cy) * dirY;
+
+        return (dot1 > dot0 ? 1 : 0) as 0 | 1;
+        };
+
 
     return (
         <>
@@ -224,6 +313,71 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                             : `${data.condition.target_class_name}.${data.condition.target_attribute} ${data.condition.operator} ${data.condition.threshold}`}
                 </text>
             )}
+            {isInterface && (() => {
+                const sweep = socketSweep(
+                    socketCx, socketCy,
+                    socketAx, socketAy,
+                    socketBx, socketBy,
+                    dirX, dirY
+                );
+
+                return (
+                    <>  
+                        {/* Draw a white line to hide the edge under the socket */}
+                        <path
+                            d={`M ${gapX1} ${gapY1} L ${gapX2} ${gapY2}`}
+                            stroke="white"
+                            strokeWidth={6}
+                            strokeLinecap="round"
+                            fill="none"
+                            pointerEvents="none"
+                        />
+                        {/* Provided interface (ball) */}
+                        <circle
+                            cx={ballCx}
+                            cy={ballCy}
+                            r={ballR}
+                            fill="white"
+                            stroke="black"
+                            strokeWidth={1.5}
+                            pointerEvents="none"
+                        />
+                        {/* Required interface (socket) */}
+                        <path
+                            d={`M ${socketAx} ${socketAy} A ${ballR} ${ballR} 0 0 ${sweep} ${socketBx} ${socketBy}`}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth={1.5}
+                            strokeLinecap="round"
+                            pointerEvents="none"
+                        />
+
+                        {/* Labels for the interfaces */}
+                        <text
+                            x={providedLabelX}
+                            y={providedLabelY}
+                            textAnchor={providedAnchor}
+                            dominantBaseline="middle"
+                            fontSize="12"
+                            style={{ userSelect: "none" }}
+                            pointerEvents="none"
+                        >
+                            {data.provided_name}
+                        </text>
+                        <text
+                            x={requiredLabelX}
+                            y={requiredLabelY}
+                            textAnchor={requiredAnchor}
+                            dominantBaseline="middle"
+                            fontSize="12"
+                            style={{ userSelect: "none" }}
+                            pointerEvents="none"
+                        >
+                            {data.required_name}
+                        </text>
+                    </>
+                );
+            })()}
             <text
                 style={{ userSelect: "none" }}
                 textAnchor="middle"

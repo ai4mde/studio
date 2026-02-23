@@ -32,6 +32,7 @@ export const nodeTypes: NodeTypes = {
     container: ClassifierNode,
     component: ClassifierNode,
     system: ClassifierNode,
+    interface: ClassifierNode,
     action: ActionNode,
     initial: InitialNode,
     decision: DecisionNode,

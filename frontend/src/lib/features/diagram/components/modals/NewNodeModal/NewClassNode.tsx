@@ -42,6 +42,7 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                     <Option value="container">Container</Option>
                     <Option value="component">Component</Option>
                     <Option value="application">Application</Option>
+                    <Option value="interface">Interface</Option>
                 </Select>
             </FormControl>
             <FormControl size="sm" className="w-full">
