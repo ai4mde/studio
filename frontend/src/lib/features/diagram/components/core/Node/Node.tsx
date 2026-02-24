@@ -18,6 +18,8 @@ import {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    ObjectNode,
+    EventNode,
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -37,6 +39,8 @@ export const nodeTypes: NodeTypes = {
     fork: ForkNode,
     join: JoinNode,
     final: FinalNode,
+    object: ObjectNode,
+    event: EventNode,
     actor: ActorNode,
     postcondition: PostconditionNode,
     precondition: PreconditionNode,
