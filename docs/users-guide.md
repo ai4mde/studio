@@ -110,16 +110,16 @@ When connecting from a Decision node, you can select between two options:
 See this example of how to create a loan approval decision flow.
 
 <p align="center">
-  <span style="display: inline-flex; gap: 20px; align-items: center;">
+  <span style="display: inline-flex; gap: 20px;">
     <img
       src="./img/decision_flow1.png"
       alt="Decision flow step 1"
-      style="height: 260px; width: auto;"
+      style="width: 25%; height: auto;"
     />
     <img
       src="./img/decision_flow2.png"
       alt="Decision flow step 2"
-      style="height: 260px; width: auto;"
+      style="width: 65%; height: auto;"
     />
   </span>
 </p>
