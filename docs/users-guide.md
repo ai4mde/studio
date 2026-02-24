@@ -89,25 +89,14 @@ To create a node, right-click anywhere on the canvas and select <b>Create Node</
       <li><b>Automatic</b>: executed automatically in the background. You can define custom code for this behavior.</li>
     </ul>
   The Execution Type does not affect diagram logic, only the generated prototype.</li> 
-  <li> <b>Control nodes</b> Control nodes manage the flow of execution. Available types include:
-    <ul>
-      <li>Initial</li>
-      <li>Final</li>
-      <li>Fork</li>
-      <li>Decision</li>
-      <li>Join</li>
-      <li>Merge</li>
-    </ul>
-  </li>
+  <li> <b>Control nodes</b> Control nodes manage the flow of execution. Available types include: <b>Initial</b>, <b>Final</b>, <b>Fork</b>, <b>Decision</b>, <b>Join</b>, and <b>Merge</b>.</li>
   <li> <b>Object</b> Object nodes represent instances of Classes defined in your Class diagrams. When creating an Object node, you must select a Class. You may optionally specify a State. If no Class diagrams or Classes exist yet, the selection list will be empty. </li>
   <li> <b>Event</b> Event nodes represent Signals defined in your Class diagrams. When creating an Event node, you must select an existing Signal. If no Signals exist yet, the list will be empty. </li>
 </ul>
 
 <h3>Edges</h3>
 
-To create an edge, right-click a source node and select <b>Connect</b>, then choose the target node.
-
-For most edges, you can configure the <b>Guard</b> and <b>Weight</b>.
+To create an edge, right-click a source node and select <b>Connect</b>, then choose the target node. For most edges, you can configure the <b>Guard</b> and <b>Weight</b>.
 
 <h3>Decision Nodes and Conditional Flows</h3>
 

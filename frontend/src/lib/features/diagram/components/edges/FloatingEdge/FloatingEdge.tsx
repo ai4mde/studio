@@ -211,7 +211,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             </text>
             {data?.condition && (
                 <text
-                    style={{ userSelect: "none", fill: "red" }}
+                    style={{ userSelect: "none"}}
                     textAnchor="middle"
                     x={midX}
                     y={midY + 18}
@@ -226,7 +226,7 @@ const FloatingEdge: React.FC<EdgeProps> = ({
             )}
             {data?.guard && String(data.guard).trim() !== "" && !data?.condition && (
                 <text
-                    style={{ userSelect: "none", fill: "red" }}
+                    style={{ userSelect: "none"}}
                     textAnchor="middle"
                     x={midX}
                     y={midY + 18}

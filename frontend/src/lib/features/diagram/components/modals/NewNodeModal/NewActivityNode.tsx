@@ -141,7 +141,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                             if (!t) return;
                             setObject((o: any) => ({
                                 ...o,
-                                type: "decision",
+                                type: String(t),
                             }));
                         }}
                     >
