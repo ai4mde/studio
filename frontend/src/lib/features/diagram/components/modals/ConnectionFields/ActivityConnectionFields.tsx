@@ -1,13 +1,15 @@
 import { FormControl, FormLabel, Input, Select, Option, Switch } from "@mui/joy";
 import React, { useEffect } from "react";
+import type { Node as RFNode } from "reactflow";
 
 import { RelatedDiagram } from "$diagram/types/diagramState";
 
 type Props = {
   object: any;
-  sourceNode?: Node;
+  sourceNode?: RFNode;
   classDiagrams?: RelatedDiagram[];
   setObject: (o: any) => void;
+  hideGuard?: boolean;
 };
 
 export const ActivityConnectionFields: React.FC<Props> = ({
@@ -15,14 +17,14 @@ export const ActivityConnectionFields: React.FC<Props> = ({
   sourceNode,
   classDiagrams,
   setObject,
+  hideGuard,
 }) => {
-  // Set some defaults on the edge
   useEffect(
     () =>
       setObject((o: any) => ({
         isDirected: o.isDirected ?? true,
         type: o.type ?? "controlflow",
-        condition: sourceNode.type == "decision"
+        condition: sourceNode?.type == "decision"
           ? { isElse: true }
           : o?.condition,
         ...o,
@@ -68,21 +70,25 @@ export const ActivityConnectionFields: React.FC<Props> = ({
     console.log(object.condition);
   }, [object.condition]);
 
+  const shouldHideGuard = hideGuard === true || sourceNode?.type === "decision" || !!object?.condition;
+
   return (
     <>
-      <FormControl size="sm" className="w-full">
-        <FormLabel>Guard</FormLabel>
-        <Input
-          value={object.guard ?? ""}
-          onChange={(e) =>
-            setObject((o: any) => ({
-              ...o,
-              guard: e.target.value,
-              type: "controlflow",
-            }))
-          }
-        />
-      </FormControl>
+      {!shouldHideGuard && (
+        <FormControl size="sm" className="w-full">
+          <FormLabel>Guard</FormLabel>
+          <Input
+            value={object.guard ?? ""}
+            onChange={(e) =>
+              setObject((o: any) => ({
+                ...o,
+                guard: e.target.value,
+                type: "controlflow",
+              }))
+            }
+          />
+        </FormControl>
+      )}
 
       <FormControl size="sm" className="w-full">
         <FormLabel>Weight</FormLabel>
@@ -98,7 +104,7 @@ export const ActivityConnectionFields: React.FC<Props> = ({
         />
       </FormControl>
 
-      {object.type == "controlflow" && sourceNode.type == "decision" && (
+      {object.type == "controlflow" && sourceNode?.type == "decision" && (
         <>
           <FormControl size="sm" className="w-full">
             <FormLabel>Else Condition</FormLabel>

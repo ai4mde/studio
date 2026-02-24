@@ -1,4 +1,5 @@
 import { PreviewNode } from "$diagram/components/core/Node/Node";
+import type { Node as RFNode } from "reactflow";
 import { addEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";

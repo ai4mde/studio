@@ -214,14 +214,25 @@ const FloatingEdge: React.FC<EdgeProps> = ({
                     style={{ userSelect: "none", fill: "red" }}
                     textAnchor="middle"
                     x={midX}
-                    y={midY + 15}
-                    fontSize="20"
+                    y={midY + 18}
+                    fontSize="18"
                 >
                     {data.condition.isElse
                         ? "[Else]"
                         : data.condition.aggregator
                             ? `${data.condition.aggregator}(${data.condition.target_class_name}.${data.condition.target_attribute}) ${data.condition.operator} ${data.condition.threshold}`
                             : `${data.condition.target_class_name}.${data.condition.target_attribute} ${data.condition.operator} ${data.condition.threshold}`}
+                </text>
+            )}
+            {data?.guard && String(data.guard).trim() !== "" && !data?.condition && (
+                <text
+                    style={{ userSelect: "none", fill: "red" }}
+                    textAnchor="middle"
+                    x={midX}
+                    y={midY + 18}
+                    fontSize="18"
+                >
+                    [{String(data.guard).trim()}]
                 </text>
             )}
             <text

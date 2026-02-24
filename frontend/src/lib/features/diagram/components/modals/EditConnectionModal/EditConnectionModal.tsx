@@ -118,6 +118,7 @@ export const EditConnectionModal: React.FC = () => {
                                         <ActivityConnectionFields
                                             object={object}
                                             setObject={setObject}
+                                            hideGuard={!!object?.condition}
                                         />
                                     )}
                                     {type === "usecase" && (
