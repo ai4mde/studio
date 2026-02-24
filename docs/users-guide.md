@@ -107,6 +107,22 @@ When connecting from a Decision node, you can select between two options:
 <ul> <li><b>Condition</b> allows you to set a condition for the parsing of this edge based on a value of a selected attribute of a chosen Class node from your system. In the Class field, you can select one of these existing classes. If there are no Class diagrams or Class nodes in your system yet, this list will be empty. With the Aggregate Function option, you can choose whether you want to aggregate all the instances of this class that will exist in your future prototype, for example by considering the SUM, AVG, MIN, MAX, or COUNT of the values for the selected attribute. This attribute can then be set using the Target Attribute field, that shows a list of all the attributes of the selected Class node. With the Operator field, you can choose the operator used in your condition: ==, !=, <, <=, >, or >=. Some of these operators, such as <, <=, >, and >=, can only be used with numeric target attributes. Finally you can set the Condition Value field, which corresponds to the value that your experssion will be compared with, be it a string or numeric type.</li>
 <li><b>Else Condition</b> means that this edge is parsed whenever none of the conditions of the other edges originating from the same Decision node are met.</li> </ul>
 
-See this example of how to create a Loan Approval Decision Flow. TODO
+See this example of how to create a loan approval decision flow.
+
+<p align="center">
+    <img
+        src="./img/decision_flow1.png"
+        alt="AI4MDE studio"
+        width="64"
+    />
+</p>
+
+<p align="center">
+    <img
+        src="./img/decision_flow2.png"
+        alt="AI4MDE studio"
+        width="64"
+    />
+</p>
 
 > ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
