@@ -110,17 +110,18 @@ When connecting from a Decision node, you can select between two options:
 See this example of how to create a loan approval decision flow.
 
 <p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center;">
     <img
-        src="./img/decision_flow1.png"
-        alt="AI4MDE studio"
+      src="./img/decision_flow1.png"
+      alt="Decision flow step 1"
+      style="height: 260px; width: auto;"
     />
-</p>
-
-<p align="center">
     <img
-        src="./img/decision_flow2.png"
-        alt="AI4MDE studio"
+      src="./img/decision_flow2.png"
+      alt="Decision flow step 2"
+      style="height: 260px; width: auto;"
     />
+  </span>
 </p>
 
 > ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
