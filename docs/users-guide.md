@@ -65,9 +65,55 @@ Similarly to the class diagram, you can right-click anywhere to have the option 
   <li>One <b>System Boundary</b> per diagram. After adding it, you have the option to add other nodes to the system by right-clicking them. This means that their position respective to the system boundary is fixed. If you move the system boundary, the added nodes will move with it. You can also remove nodes from the system in the same way.</li>
 </ul>
 
-> ☝️ <b>Important note</b>: Do not delete the system boundary if some nodes are still added to it, as this is currently not handled well and the diagram will be lost.
-
 <h3>Edges</h3>
 <p>To create an edge, right-click on a source node and select <b>Connect</b>. Then select between the following edge types: <b>Interaction</b>, <b>Extension</b>, <b>Inclusion</b>, and <b>Generalization</b>.</p>
 
 > ☝️ Node imports are not yet available in Use Case diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
+
+
+<h2 align="center">
+  <b>Activity Diagrams</b>
+</h2>
+
+Activity diagrams are a central component of AI4MDE. They describe the dynamic behavior of your system and directly influence how web application prototypes are generated. The following sections explain the main elements used to create activity diagrams.
+
+<h3>Nodes</h3>
+
+To create a node, right-click anywhere on the canvas and select <b>Create Node</b>. You can choose from the following types:
+
+<ul>
+  <li> <b>Swimlane</b> Swimlanes organize Action nodes according to the Actor responsible for performing them. When creating a Swimlane, you must select an Actor from the Actors defined in your Use Case diagrams. If no Actors exist yet, this list will be empty. </li>
+  <li> <b>Action</b> Action nodes represent tasks performed within the workflow. When creating an Action, you must provide a name. You can also configure its <b>Execution Type</b>, which affects prototype generation:
+    <ul>
+      <li><b>UI Task</b>: performed manually by the user associated with the Swimlane.</li>
+      <li><b>Automatic</b>: executed automatically in the background. You can define custom code for this behavior.</li>
+    </ul>
+  The Execution Type does not affect diagram logic, only the generated prototype.</li> 
+  <li> <b>Control nodes</b> Control nodes manage the flow of execution. Available types include: <b>Initial</b>, <b>Final</b>, <b>Fork</b>, <b>Decision</b>, <b>Join</b>, and <b>Merge</b>.</li>
+  <li> <b>Object</b> Object nodes represent instances of Classes defined in your Class diagrams. When creating an Object node, you must select a Class. You may optionally specify a State. If no Class diagrams or Classes exist yet, the selection list will be empty. </li>
+  <li> <b>Event</b> Event nodes represent Signals defined in your Class diagrams. When creating an Event node, you must select an existing Signal. If no Signals exist yet, the list will be empty. </li>
+</ul>
+
+<h3>Edges</h3>
+
+To create an edge, right-click a source node and select <b>Connect</b>, then choose the target node. For most edges, you can configure the <b>Guard</b> and <b>Weight</b>.
+
+<h3>Decision Nodes and Conditional Flows</h3>
+
+Edges originating from a <b>Decision</b> node use structured conditions instead of simple guards. These conditions determine which path is taken at runtime.
+
+When connecting from a Decision node, you can select between two options:
+
+<ul> <li><b>Condition</b> allows you to set a condition for the parsing of this edge based on a value of a selected attribute of a chosen Class node from your system. In the <b>Class</b> field, you can select one of these existing classes. If there are no Class diagrams or Class nodes in your system yet, this list will be empty. With the <b>Aggregate Function</b> option, you can choose whether you want to aggregate all the instances of this class that will exist in your future prototype, for example by considering the <b>SUM</b>, <b>AVG</b>, <b>MIN</b>, <b>MAX</b>, or <b>COUNT</b> of the values for the selected attribute. This attribute can then be set using the <b>Target Attribute</b> field, that shows a list of all the attributes of the selected Class node. With the <b>Operator</b> field, you can choose the operator used in your condition: <b>==</b>, <b>!=</b>, <b><</b>, <b><=</b>, <b>></b>, or <b>>=</b>. Some of these operators, such as <, <=, >, and >=, can only be used with numeric target attributes. Finally you can set the <b>Condition Value</b> field, which corresponds to the value that your expression will be compared to, be it a string or numeric type.</li>
+<li><b>Else Condition</b> means that this edge is parsed whenever none of the conditions of the other edges originating from the same Decision node are met.</li> </ul>
+
+See this example of how to create a loan approval decision flow.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/decision_flow1.png" style="width: 30%; height: auto;">
+    <img src="./img/decision_flow2.png" style="width: 60%; height: auto;">
+  </span>
+</p>
+
+> ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
