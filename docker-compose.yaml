@@ -19,10 +19,10 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   postgres:
-    image: postgres
+    image: postgres:18
     env_file: config/postgres.env
     volumes:
-      - pgsql-data:/var/lib/postgresql/data
+      - pgsql-data:/var/lib/postgresql
     ports:
       - 5432:5432
     networks:
