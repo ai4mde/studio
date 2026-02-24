@@ -111,8 +111,8 @@ See this example of how to create a loan approval decision flow.
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/decision_flow1.png" style="width: 25%; height: auto;">
-    <img src="./img/decision_flow2.png" style="width: 65%; height: auto;">
+    <img src="./img/decision_flow1.png" style="width: 30%; height: auto;">
+    <img src="./img/decision_flow2.png" style="width: 60%; height: auto;">
   </span>
 </p>
 
