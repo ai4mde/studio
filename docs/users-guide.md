@@ -113,7 +113,6 @@ See this example of how to create a loan approval decision flow.
     <img
         src="./img/decision_flow1.png"
         alt="AI4MDE studio"
-        width="64"
     />
 </p>
 
@@ -121,7 +120,6 @@ See this example of how to create a loan approval decision flow.
     <img
         src="./img/decision_flow2.png"
         alt="AI4MDE studio"
-        width="64"
     />
 </p>
 
