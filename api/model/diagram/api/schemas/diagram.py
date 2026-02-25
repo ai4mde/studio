@@ -65,9 +65,10 @@ class RelatedNode(ModelSchema):
     actorNode: Optional[str]
     classAttributes: Optional[List[RelatedClassAttribute]] = None
 
+
     class Meta:
         model = Node
-        fields = ["id"]
+        fields = ["id", "cls"]
     
     @staticmethod
     def resolve_name(obj):

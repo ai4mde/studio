@@ -12,6 +12,7 @@ import Draggable from "react-draggable";
 import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
+import { ComponentConnectionFields } from "../ConnectionFields/ComponentConnectionFields";
 import style from "./newconnectionmodal.module.css";
 
 const isConnectionValid = (diagramType: string, o: any): boolean => {
@@ -136,6 +137,16 @@ export const NewConnectionModal: React.FC = () => {
                             {type == "usecase" ? (
                                 <UseCaseConnectionFields
                                     object={object}
+                                    setObject={setObject}
+                                />
+                            ) : null}
+                            {type == "component" ? (
+                                <ComponentConnectionFields
+                                    object={object}
+                                    interfaceNodes={relatedDiagrams
+                                        .flatMap((d) => d.nodes)
+                                        .filter((n) => n.type === "interface")
+                                    }
                                     setObject={setObject}
                                 />
                             ) : null}

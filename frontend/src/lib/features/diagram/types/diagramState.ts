@@ -9,6 +9,7 @@ export type RelatedNode = {
     id: string;
     name: string;
     type: string;
+    cls: string;
     actorNode?: string;
     classAttributes?: classAttribute[];
 }
