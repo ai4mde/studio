@@ -8,13 +8,13 @@ import networkx as nx
 
 
 def get_default_background_color_hex(system: 'System', classifier_type: str) -> str:
-    """Get default background color from system settings. Uses black for unknown types."""
-    return get_classifier_background_color(system.settings, classifier_type)
+    """Get default background color from project settings. Uses black for unknown types."""
+    return get_classifier_background_color(system.project.settings, classifier_type)
 
 
 def get_default_text_color_hex(system: 'System', classifier_type: str) -> str:
-    """Get default text color from system settings. Uses white for unknown types."""
-    return get_classifier_text_color(system.settings, classifier_type)
+    """Get default text color from project settings. Uses white for unknown types."""
+    return get_classifier_text_color(system.project.settings, classifier_type)
 
 class Diagram(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)

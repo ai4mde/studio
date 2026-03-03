@@ -8,6 +8,11 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    settings = models.JSONField(default=dict, blank=True, null=True)
+
+    def get_default_colors(self):
+        """Get default classifier colors from project settings."""
+        return get_default_colors_util(self.settings)
 
 
 class System(models.Model):
@@ -15,12 +20,10 @@ class System(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
-    color_palette = models.JSONField(default=dict, blank=True, null=True)
-    settings = models.JSONField(default=dict, blank=True, null=True)
 
     def get_default_colors(self):
-        """Get default classifier colors from system settings."""
-        return get_default_colors_util(self.settings)
+        """Get default classifier colors from project settings."""
+        return self.project.get_default_colors()
 
 
 class Release(models.Model):

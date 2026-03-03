@@ -24,11 +24,10 @@ class SystemDiagrams(Schema):
 
 class ReadSystem(ModelSchema):
     diagrams_by_type: Optional[SystemDiagrams] = None
-    settings: Optional[dict] = None
 
     class Meta:
         model = System
-        fields = ["id", "name", "description", "project", "settings"]
+        fields = ["id", "name", "description", "project"]
 
     @staticmethod
     def resolve_diagrams_by_type(obj):

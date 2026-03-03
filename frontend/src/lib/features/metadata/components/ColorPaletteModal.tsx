@@ -19,7 +19,7 @@ interface SystemSettings {
 }
 
 interface ColorPaletteModalProps {
-  systemId: string;
+  projectId: string;
   open: boolean;
   onClose: () => void;
 }
@@ -45,7 +45,7 @@ const CLASSIFIER_GROUPS = [
 ];
 
 const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
-  systemId,
+  projectId,
   open,
   onClose,
 }) => {
@@ -56,10 +56,10 @@ const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
 
   // Fetch current settings
   const { data: settings, isLoading } = useQuery<SystemSettings>({
-    queryKey: ["system", "settings", systemId],
+    queryKey: ["project", "settings", projectId],
     queryFn: async () => {
       const response = await authAxios.get(
-        `/v1/metadata/systems/${systemId}/settings/`
+        `/v1/metadata/projects/${projectId}/settings/`
       );
       return response.data;
     },
@@ -70,7 +70,7 @@ const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
   const updateSettings = useMutation({
     mutationFn: async (newColors: ClassifierColors) => {
       await authAxios.put(
-        `/v1/metadata/systems/${systemId}/settings/`,
+        `/v1/metadata/projects/${projectId}/settings/`,
         {
           classifier_colors: newColors,
         }
@@ -78,10 +78,10 @@ const ColorPaletteModal: React.FC<ColorPaletteModalProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["system", "settings", systemId],
+        queryKey: ["project", "settings", projectId],
       });
       queryClient.invalidateQueries({
-        queryKey: ["system", systemId],
+        queryKey: ["project", projectId],
       });
     },
   });
