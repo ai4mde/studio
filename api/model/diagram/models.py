@@ -108,20 +108,12 @@ class Diagram(models.Model):
             id_map[old_id] = str(cls_obj.id)
 
         # One node per (diagram, classifier)
-        classifier_type = classifier.get("data", {}).get("type", None)
-        default_bg_color = get_default_background_color_hex(self.system, classifier_type)
-        default_text_color = get_default_text_color_hex(self.system, classifier_type)
+        # Only store position; colors will be derived from project settings or overrides
         node, created = Node.objects.get_or_create(
             diagram=self,
             cls=cls_obj,
-            defaults={"data": {"position": {"x": 0, "y": 0}, "background_color_hex": default_bg_color, "text_color_hex": default_text_color}}
+            defaults={"data": {"position": {"x": 0, "y": 0}}}
         )
-        
-        # Ensure background_color_hex is set even if node already existed
-        if not node.data.get("background_color_hex"):
-            node.data["background_color_hex"] = default_bg_color
-            node.data["text_color_hex"] = default_text_color
-            node.save()
 
         return str(cls_obj.id)
 

@@ -9,12 +9,23 @@ interface EditBackgroundColorProps {
 }
 
 export const EditBackgroundColor: React.FC<EditBackgroundColorProps> = ({ node }) => {
-    const { diagram } = useDiagramStore();
-    const [color, setColor] = useState(node.data?.background_color_hex || "#FFFFFF");
+    const { diagram, projectSettings } = useDiagramStore();
+    
+    const getEffectiveColor = () => {
+        if (node.data?.background_color_hex_override) {
+            return node.data.background_color_hex_override;
+        }
+        if (projectSettings?.classifier_colors?.[node.data?.type]) {
+            return projectSettings.classifier_colors[node.data.type].background_hex;
+        }
+        return "#FFFFFF";
+    };
+    
+    const [color, setColor] = useState(getEffectiveColor());
     
     const dirty = useMemo(
-        () => color !== (node.data?.background_color_hex || "#FFFFFF"),
-        [color, node.data?.background_color_hex],
+        () => color !== getEffectiveColor(),
+        [color, node.data?.background_color_hex_override, projectSettings],
     );
 
     const handleColorChange = (newColor: string) => {
@@ -30,8 +41,18 @@ export const EditBackgroundColor: React.FC<EditBackgroundColorProps> = ({ node }
         partialUpdateNode(diagram, node.id, {
             data: {
                 position: node.position || { x: 0, y: 0 },
-                background_color_hex: color,
-                text_color_hex: node.data?.text_color_hex || "#000000",
+                background_color_hex_override: color || undefined,
+                text_color_hex_override: node.data?.text_color_hex_override,
+            },
+        });
+    };
+
+    const handleRestore = () => {
+        partialUpdateNode(diagram, node.id, {
+            data: {
+                position: node.position || { x: 0, y: 0 },
+                background_color_hex_override: undefined,
+                text_color_hex_override: node.data?.text_color_hex_override,
             },
         });
     };
@@ -76,6 +97,15 @@ export const EditBackgroundColor: React.FC<EditBackgroundColorProps> = ({ node }
                     onClick={handleSave}
                 >
                     Save
+                </Button>
+                <Button
+                    disabled={!node.data?.background_color_hex_override}
+                    color="neutral"
+                    variant="outlined"
+                    size="sm"
+                    onClick={handleRestore}
+                >
+                    Set Default
                 </Button>
             </Stack>
         </Stack>

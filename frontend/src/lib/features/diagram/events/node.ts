@@ -36,8 +36,8 @@ export const applyNodeChanges = (
                 partialUpdateNode(diagram, node.id, {
                     data: {
                         position: node.position,
-                        background_color_hex: node.data?.background_color_hex,
-                        text_color_hex: node.data?.text_color_hex,
+                        background_color_hex_override: node.data?.background_color_hex_override,
+                        text_color_hex_override: node.data?.text_color_hex_override,
                     },
                 });
             return false;

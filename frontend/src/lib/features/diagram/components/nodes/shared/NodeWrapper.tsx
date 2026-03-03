@@ -8,11 +8,25 @@ const NodeWrapper: React.FC<{
     selected?: boolean;
     node: NodeProps;
 }> = ({ node, children, selected }) => {
-    const { connecting } = useDiagramStore();
+    const { connecting, projectSettings } = useDiagramStore();
 
     const nodeName = node.type.charAt(0)?.toUpperCase() + node.type.slice(1);
-    const backgroundColor = node.data?.background_color_hex || "#FFFFFF";
-    const textColor = node.data?.text_color_hex || "#000000";
+    
+    // Color hierarchy: override > project settings > defaults
+    let backgroundColor = "#FFFFFF";
+    let textColor = "#000000";
+    
+    if (node.data?.background_color_hex_override) {
+        backgroundColor = node.data.background_color_hex_override;
+    } else if (projectSettings?.classifier_colors?.[node.data?.type]) {
+        backgroundColor = projectSettings.classifier_colors[node.data.type].background_hex;
+    }
+    
+    if (node.data?.text_color_hex_override) {
+        textColor = node.data.text_color_hex_override;
+    } else if (projectSettings?.classifier_colors?.[node.data?.type]) {
+        textColor = projectSettings.classifier_colors[node.data.type].text_hex;
+    }
 
     if (node.data?._preview) {
         return <div className="relative z-0">{children}</div>;

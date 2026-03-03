@@ -17,6 +17,9 @@ export const useDiagramStore = create<DiagramState>((set) => ({
     project: "",
     setProject: (val) => set(() => ({ project: val })),
 
+    projectSettings: null,
+    setProjectSettings: (settings) => set(() => ({ projectSettings: settings })),
+
     systemId: "",
     systemName: "",
     system: "",
@@ -52,8 +55,8 @@ export const useDiagramStore = create<DiagramState>((set) => ({
                     ...e.cls,
                     systemName: e.system_name,
                     systemId: e.system_id,
-                    background_color_hex: e.data?.background_color_hex,
-                    text_color_hex: e.data?.text_color_hex,
+                    background_color_hex_override: e.data?.background_color_hex_override,
+                    text_color_hex_override: e.data?.text_color_hex_override,
                 },
                 parentNode: e?.cls?.parentNode ?? (e?.cls?.actorNode ? swimlaneGroupUUID : null), // TODO swimlanes should also use parentNode, this might, however, also require changes in prototype generation
                 extend: e?.cls?.actorNode ? 'parent' : null,

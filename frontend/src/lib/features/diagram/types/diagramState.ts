@@ -21,6 +21,15 @@ export type RelatedDiagram = {
 }
 
 
+export type ProjectSettings = {
+    classifier_colors: {
+        [classifierType: string]: {
+            background_hex: string;
+            text_hex: string;
+        };
+    };
+};
+
 export type DiagramState = {
     diagram: string;
     setDiagramID: (id: string) => void;
@@ -30,6 +39,9 @@ export type DiagramState = {
 
     project: string;
     setProject: (project: string) => void;
+
+    projectSettings: ProjectSettings | null;
+    setProjectSettings: (settings: ProjectSettings | null) => void;
 
     system: string;
     systemId: string;

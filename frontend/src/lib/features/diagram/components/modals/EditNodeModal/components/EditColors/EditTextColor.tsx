@@ -9,12 +9,23 @@ interface EditTextColorProps {
 }
 
 export const EditTextColor: React.FC<EditTextColorProps> = ({ node }) => {
-    const { diagram } = useDiagramStore();
-    const [color, setColor] = useState(node.data?.text_color_hex || "#000000");
+    const { diagram, projectSettings } = useDiagramStore();
+    
+    const getEffectiveColor = () => {
+        if (node.data?.text_color_hex_override) {
+            return node.data.text_color_hex_override;
+        }
+        if (projectSettings?.classifier_colors?.[node.data?.type]) {
+            return projectSettings.classifier_colors[node.data.type].text_hex;
+        }
+        return "#000000";
+    };
+    
+    const [color, setColor] = useState(getEffectiveColor());
     
     const dirty = useMemo(
-        () => color !== (node.data?.text_color_hex || "#000000"),
-        [color, node.data?.text_color_hex],
+        () => color !== getEffectiveColor(),
+        [color, node.data?.text_color_hex_override, projectSettings],
     );
 
     const handleColorChange = (newColor: string) => {
@@ -30,8 +41,18 @@ export const EditTextColor: React.FC<EditTextColorProps> = ({ node }) => {
         partialUpdateNode(diagram, node.id, {
             data: {
                 position: node.position || { x: 0, y: 0 },
-                background_color_hex: node.data?.background_color_hex || "#ffffff",
-                text_color_hex: color,
+                background_color_hex_override: node.data?.background_color_hex_override,
+                text_color_hex_override: color || undefined,
+            },
+        });
+    };
+
+    const handleRestore = () => {
+        partialUpdateNode(diagram, node.id, {
+            data: {
+                position: node.position || { x: 0, y: 0 },
+                background_color_hex_override: node.data?.background_color_hex_override,
+                text_color_hex_override: undefined,
             },
         });
     };
@@ -76,6 +97,15 @@ export const EditTextColor: React.FC<EditTextColorProps> = ({ node }) => {
                     onClick={handleSave}
                 >
                     Save
+                </Button>
+                <Button
+                    disabled={!node.data?.text_color_hex_override}
+                    color="neutral"
+                    variant="outlined"
+                    size="sm"
+                    onClick={handleRestore}
+                >
+                    Set Default
                 </Button>
             </Stack>
         </Stack>
