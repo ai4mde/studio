@@ -3,100 +3,38 @@ import json
 from .handler import call_openai
 
 
-# Empty AI4MDE import schema (structure only). Derived from AI4MDE export format.
-# No instance data—used so the LLM outputs import-compatible JSON.
+# Clean activity graph schema (structure only) for the LLM.
 EMPTY_JSON_SCHEMA = {
-    "interfaces": [],
-    "diagrams": [
-        {
-            "nodes": [
-                {
-                    "cls_data": {
-                        "id": "",
-                        "project": "",
-                        "system": "",
-                        "data": {
-                            "role": "",
-                            "type": "",
-                            "activity_scope": "",
-                            "name": "",
-                            "body": "",
-                            "localPrecondition": "",
-                            "localPostcondition": ""
-                        }
-                    },
-                    "id": "",
-                    "diagram": "",
-                    "cls": "",
-                    "data": {"position": {"x": 0, "y": 0}}
-                }
-            ],
-            "edges": [
-                {
-                    "rel_data": {
-                        "id": "",
-                        "data": {
-                            "type": "controlflow",
-                            "guard": "",
-                            "weight": "",
-                            "condition": None,
-                            "is_directed": True,
-                            "position_handlers": []
-                        },
-                        "system": "",
-                        "source": "",
-                        "target": ""
-                    },
-                    "id": "",
-                    "diagram": "",
-                    "rel": "",
-                    "data": {}
-                }
-            ],
-            "id": "",
-            "type": "activity",
-            "name": "",
-            "description": "",
-            "system": ""
-        }
-    ],
-    "id": "",
-    "name": "",
-    "description": ""
+    "nodes": [],
+    "edges": [],
 }
 
 
 PROMPT_TEMPLATE = (
-    "You are helping a business analyst capture a process as a UML Activity Diagram in a format "
-    "that can be imported into an AI4MDE system.\n"
+    "You are helping a business analyst describe a process as a UML Activity Diagram.\n"
     "\n"
-    "Read the process description below and model it as an activity diagram:\n"
-    "- Identify the main actions and model them as action nodes (role \"action\", type \"action\").\n"
-    "- Use one initial node (role \"control\", type \"initial\") and one or more final nodes "
-    "(role \"control\", type \"final\") to show start and end.\n"
-    "- Add decision/merge (type \"decision\", \"merge\") where the text describes choices or branching.\n"
-    "- Use fork/join (type \"fork\", \"join\") when tasks happen in parallel.\n"
-    "- Use object nodes (role \"object\", type \"object\") when the focus is on data or artifacts.\n"
+    "Your job is to read the process description and build a simple activity graph:\n"
+    "- Identify the main steps and represent them as action nodes.\n"
+    "- Add decision points wherever the text describes choices or conditional branches.\n"
+    "- Use parallel branches when the description clearly mentions tasks happening at the same time.\n"
+    "- Make sure there is a clear starting point and at least one clear end point.\n"
     "\n"
     "Process description:\n"
     "{process_text}\n"
     "\n"
-    "You must return a single JSON object that conforms to this structure (structure only, no real data):\n"
+    "You must return a single JSON object that represents ONLY this clean activity graph.\n"
+    "Use this overall structure (structure only, no real data):\n"
     "{empty_schema}\n"
     "\n"
-    "Structure rules:\n"
-    "- Top level: \"interfaces\" (empty array), \"diagrams\" (array with one diagram object), "
-    "\"id\", \"name\", \"description\".\n"
-    "- Each diagram has \"nodes\", \"edges\", \"id\", \"type\" (\"activity\"), \"name\", \"description\", \"system\".\n"
-    "- Each node has \"cls_data\" (with \"id\", \"project\", \"system\", \"data\"), \"id\", \"diagram\", \"cls\" "
-    "(same as cls_data.id), \"data\" with \"position\" (\"x\", \"y\"). In cls_data.data: \"role\" "
-    "(\"control\" or \"action\" or \"object\"), \"type\" (initial, action, final, decision, merge, fork, join, object). "
-    "For action nodes include \"name\", \"body\", \"localPrecondition\", \"localPostcondition\"; "
-    "for control nodes include \"activity_scope\" (e.g. \"activity\") where relevant.\n"
-    "- Each edge has \"rel_data\" (with \"id\", \"data\" containing \"type\" (\"controlflow\" or \"objectflow\"), "
-    "\"guard\", \"weight\", \"condition\", \"is_directed\" true, \"position_handlers\" []), \"system\", "
-    "\"source\" and \"target\" (must be the cls_data.id of the source and target nodes). Also \"id\", \"diagram\", \"rel\", \"data\" ({}).\n"
-    "- Use unique string IDs (e.g. UUIDs) for every \"id\", \"cls\", \"rel\", \"source\", \"target\", \"diagram\", \"system\", \"project\".\n"
+    "Modeling rules:\n"
+    "- The top-level object has two arrays: \"nodes\" and \"edges\".\n"
+    "- Each node has at least: \"id\" (string) and \"type\" (string).\n"
+    "- Use simple node ids like \"n1\", \"n2\", \"n3\" (do NOT use UUIDs).\n"
+    "- Allowed node types are: initial, action, decision, merge, fork, join, final, object.\n"
+    "- For every action node (type \"action\"), include a human-readable \"name\" field.\n"
+    "- Each edge object has at least: \"source\" (node id) and \"target\" (node id).\n"
+    "- You MAY optionally add \"type\" (e.g. \"controlflow\" or \"objectflow\") "
+    "and \"condition\" (string) for edges, but they are not required.\n"
     "\n"
     "Output rules (strict):\n"
     "- Output ONLY a single valid JSON object.\n"
@@ -108,7 +46,7 @@ PROMPT_TEMPLATE = (
 
 def generate_activity_model(process_text: str) -> dict:
     """
-    Call the LLM to generate a clean activity model JSON structure.
+    Call the LLM to generate a clean activity graph JSON structure.
     """
     prompt = PROMPT_TEMPLATE.format(
         process_text=process_text,
@@ -122,18 +60,32 @@ def generate_activity_model(process_text: str) -> dict:
     except json.JSONDecodeError:
         raise Exception("LLM output is not valid JSON.")
 
-    if not isinstance(parsed, dict) or "diagrams" not in parsed:
+    # Basic structural validation of the clean graph.
+    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
         raise Exception("LLM output does not follow required schema.")
-    diagrams = parsed.get("diagrams") or []
-    if not diagrams or "nodes" not in diagrams[0] or "edges" not in diagrams[0]:
+    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
         raise Exception("LLM output does not follow required schema.")
+
+    for node in parsed["nodes"]:
+        if not isinstance(node, dict):
+            raise Exception("LLM output does not follow required schema.")
+        if "id" not in node or "type" not in node:
+            raise Exception("LLM output does not follow required schema.")
+        if node.get("type") == "action" and "name" not in node:
+            raise Exception("LLM output does not follow required schema.")
+
+    for edge in parsed["edges"]:
+        if not isinstance(edge, dict):
+            raise Exception("LLM output does not follow required schema.")
+        if "source" not in edge or "target" not in edge:
+            raise Exception("LLM output does not follow required schema.")
 
     return parsed
 
 
 def export_activity_model(model: dict) -> None:
     """
-    Pretty-print an activity model and save it to a JSON file
+    Pretty-print an activity model (clean or AI4MDE) and save it to a JSON file
     in the current working directory.
     """
     print(json.dumps(model, indent=2))

@@ -12,89 +12,118 @@ def _derive_role(node_type: str) -> str:
     return "action"
 
 
-def convert_to_ai4mde(clean_model: Dict[str, Any], system_id: str, diagram_id: str) -> Dict[str, Any]:
+def convert_to_ai4mde(
+    clean_model: Dict[str, Any],
+    system_id: str,
+    diagram_id: str,
+    name: str = "GeneratedActivity",
+    description: str = "",
+) -> Dict[str, Any]:
     """
     Convert a clean activity JSON model into an AI4MDE export-compatible structure.
     """
     nodes: List[Dict[str, Any]] = []
     edges: List[Dict[str, Any]] = []
-    node_id_map: Dict[str, str] = {}
+
+    # Map from clean node id (e.g. "n1") to classifier id (cls_data.id)
+    classifier_id_by_clean_id: Dict[str, str] = {}
+
+    project_id = str(uuid.uuid4())
 
     for node in clean_model.get("nodes", []):
-        original_id = str(node.get("id", uuid.uuid4()))
-        new_node_id = str(uuid.uuid4())
+        original_id = str(node.get("id"))
         cls_id = str(uuid.uuid4())
+        node_id = str(uuid.uuid4())
 
         node_type = str(node.get("type", "action"))
-        name = node.get("name")
+        node_name = node.get("name")
         role = _derive_role(node_type)
 
-        cls_data: Dict[str, Any] = {
+        cls_data_payload: Dict[str, Any] = {
             "id": cls_id,
+            "project": project_id,
+            "system": system_id,
             "data": {
-                "type": node_type,
                 "role": role,
+                "type": node_type,
             },
         }
-        if name is not None:
-            cls_data["data"]["name"] = name
+
+        if node_type in {"initial", "final"}:
+            cls_data_payload["data"]["activity_scope"] = "activity"
+
+        if node_type == "action":
+            cls_data_payload["data"]["name"] = node_name or ""
+            cls_data_payload["data"]["body"] = ""
+            cls_data_payload["data"]["localPrecondition"] = ""
+            cls_data_payload["data"]["localPostcondition"] = ""
 
         node_payload: Dict[str, Any] = {
-            "id": new_node_id,
-            "diagram_id": diagram_id,
-            "system_id": system_id,
-            "position": {"x": 0, "y": 0},
-            "cls": cls_data,
+            "cls_data": cls_data_payload,
+            "id": node_id,
+            "diagram": diagram_id,
+            "cls": cls_id,
+            "data": {
+                "position": {
+                    "x": 0,
+                    "y": 0,
+                }
+            },
         }
 
-        node_id_map[original_id] = new_node_id
+        classifier_id_by_clean_id[original_id] = cls_id
         nodes.append(node_payload)
 
     for edge in clean_model.get("edges", []):
         rel_id = str(uuid.uuid4())
         edge_id = str(uuid.uuid4())
 
-        edge_type = edge.get("type")
+        edge_type = edge.get("type") or "controlflow"
         condition = edge.get("condition")
 
-        rel_data: Dict[str, Any] = {
-            "id": rel_id,
-            "data": {},
-        }
-        if edge_type is not None:
-            rel_data["data"]["type"] = edge_type
-        if condition is not None:
-            rel_data["data"]["condition"] = condition
+        source_original = str(edge.get("source"))
+        target_original = str(edge.get("target"))
 
-        source_original = edge.get("source")
-        target_original = edge.get("target")
+        rel_data_payload: Dict[str, Any] = {
+            "id": rel_id,
+            "data": {
+                "type": edge_type,
+                "guard": "",
+                "weight": "",
+                "condition": condition,
+                "is_directed": True,
+                "position_handlers": [],
+            },
+            "system": system_id,
+            "source": classifier_id_by_clean_id.get(source_original),
+            "target": classifier_id_by_clean_id.get(target_original),
+        }
 
         edge_payload: Dict[str, Any] = {
+            "rel_data": rel_data_payload,
             "id": edge_id,
-            "diagram_id": diagram_id,
-            "system_id": system_id,
-            "source": node_id_map.get(str(source_original)),
-            "target": node_id_map.get(str(target_original)),
-            "is_directed": True,
-            "guard": "",
-            "weight": "",
-            "position_handlers": [],
-            "rel": rel_data,
+            "diagram": diagram_id,
+            "rel": rel_id,
+            "data": {},
         }
 
         edges.append(edge_payload)
 
     return {
+        "interfaces": [],
         "diagrams": [
             {
-                "id": diagram_id,
-                "type": "activity",
-                "system": system_id,
-                "name": "Generated Diagram",
-                "description": "",
                 "nodes": nodes,
                 "edges": edges,
+                "id": diagram_id,
+                "type": "activity",
+                "name": name,
+                "description": description,
+                "system": system_id,
             }
-        ]
+        ],
+        "id": system_id,
+        "name": name,
+        "description": description,
     }
 
