@@ -10,11 +10,18 @@ def generate_urls(application_component: ApplicationComponent, system_id: str) -
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/urls.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name_sanitization(project_name) + "/" + app_name_sanitization(application_name)+ "/urls.py"
 
+    # Collect all unique model names for OOUI detail URLs
+    all_models = set()
+    for page in pages_in_app:
+        for section_component in page.section_components:
+            all_models.add(section_component.primary_model)
+
     data = {
         "project_name": project_name,
         "application_name": application_name,
         "pages": pages_in_app,
         "settings": application_component.settings,
+        "all_models": list(all_models),
     }
 
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

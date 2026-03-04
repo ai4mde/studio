@@ -10,6 +10,10 @@ urlpatterns = [
     path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name }}_action_log"),
     path('render_change_user_assignment/', ChangeUserAssignmentView.as_view(template_name='{{ application_name }}_change_user_assignment.html'), name="{{ application_name }}_change_user_assignment"),
     {% endif -%}
+    {# Detail URLs for OOUI #}
+    {% for model_name in all_models -%}
+    path('{{ model_name|lower }}/detail/<int:pk>/', views.{{ model_name }}_DetailView.as_view(), name='{{ model_name|lower }}_detail'),
+    {% endfor -%}
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
     {% for section_component in page.section_components -%}

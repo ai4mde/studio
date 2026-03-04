@@ -97,3 +97,29 @@ class GenericUpdateView(GenericViewMixin, UpdateView):
 
 class GenericDeleteView(GenericViewMixin, DeleteView):
     success_url = None
+
+
+from django.views.generic import DetailView
+
+class GenericDetailView(GenericViewMixin, DetailView):
+    """OOUI Detail View - displays single object with related objects."""
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        obj = self.get_object()
+        
+        # Find related objects (reverse foreign keys)
+        related_objects = {}
+        for rel in obj._meta.get_fields():
+            if rel.one_to_many or rel.one_to_one:
+                if hasattr(rel, 'related_model') and rel.related_model:
+                    accessor_name = rel.get_accessor_name()
+                    if hasattr(obj, accessor_name):
+                        related_manager = getattr(obj, accessor_name)
+                        if hasattr(related_manager, 'all'):
+                            related_list = list(related_manager.all()[:10])
+                            if related_list:
+                                related_objects[accessor_name] = related_list
+        
+        context['related_objects'] = related_objects
+        return context

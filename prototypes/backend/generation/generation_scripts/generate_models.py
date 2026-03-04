@@ -69,6 +69,10 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
             att_type = AttributeType.INTEGER
         elif attribute["type"] == "enum":
             att_type = AttributeType.ENUM
+        elif attribute["type"] == "date":
+            att_type = AttributeType.DATE
+        elif attribute["type"] == "datetime":
+            att_type = AttributeType.DATETIME
             if "enum" not in attribute:
                 enum_literals = []
             elif not attribute["enum"]:

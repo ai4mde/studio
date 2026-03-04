@@ -27,6 +27,8 @@ class AttributeType(Enum):
     ENUM = 4
     FOREIGN_MODEL = 5
     NONE = 6
+    DATE = 7
+    DATETIME = 8
 
 
 class Cardinality(Enum):

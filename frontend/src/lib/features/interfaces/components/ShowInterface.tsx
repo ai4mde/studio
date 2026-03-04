@@ -16,6 +16,7 @@ import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { Styling } from './Styling';
 import { Settings } from './Settings';
+import AIGeneration from './AIGeneration';
 
 
 type Props = {
@@ -24,12 +25,28 @@ type Props = {
 };
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
-    const { data, isSuccess } = useInterface(app_comp);
+    const { data, isSuccess, refetch } = useInterface(app_comp);
     const navigate = useNavigate();
     const { systemId } = useParams();
     const [isSaving, setIsSaving] = useState(false);
     //const actorId = data?.actor || '';
     //const [actor, isSuccessActor] = useActor(systemId, actorId);
+
+    // Refresh data and update localStorage
+    const handleAIUpdate = async () => {
+        const result = await refetch();
+        if (result.data?.data) {
+            // data might be string or object
+            const newData = typeof result.data.data === 'string' 
+                ? JSON.parse(result.data.data) 
+                : result.data.data;
+            localStorage.setItem('styling', JSON.stringify(newData.styling || {}));
+            localStorage.setItem('categories', JSON.stringify(newData.categories || []));
+            localStorage.setItem('pages', JSON.stringify(newData.pages || []));
+            localStorage.setItem('sections', JSON.stringify(newData.sections || []));
+            localStorage.setItem('settings', JSON.stringify(newData.settings || {}));
+        }
+    };
 
     const handleDelete = async () => {
         try {
@@ -84,6 +101,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             </span>
                         </span>
                         <div className="flex gap-4 ml-auto">
+                            <AIGeneration interfaceId={app_comp} onUpdate={handleAIUpdate} />
                             <button
                                 onClick={handleSave}
                                 className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center justify-center"
@@ -92,14 +110,11 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                                 {isSaving ? <CircularProgress /> : <Save />}
                             </button>
                             <button
-                                className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                                onClick={handleDelete}
+                                className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 flex items-center justify-center gap-2"
                             >
-                                <div>
-                                    <button onClick={handleDelete} className="flex items-center gap-2">
-                                        <Trash />
-                                        Delete Interface
-                                    </button>
-                                </div>
+                                <Trash />
+                                Delete Interface
                             </button>
                         </div>
                     </div>

@@ -44,6 +44,12 @@
                     {%- elif attribute.type == AttributeType.INTEGER %}
                     <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
                     
+                    {%- elif attribute.type == AttributeType.DATE %}
+                    <input type="date" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}">
+                    
+                    {%- elif attribute.type == AttributeType.DATETIME %}
+                    <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d\TH:i' {% raw %}}}{% endraw %}">
+                    
                     {%- elif attribute.type == AttributeType.BOOLEAN %}
                     <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
                     
@@ -61,6 +67,12 @@
                 <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
                 
                 {% elif attribute.type == AttributeType.INTEGER %}
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+
+                {% elif attribute.type == AttributeType.DATE %}
+                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+
+                {% elif attribute.type == AttributeType.DATETIME %}
                 <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
                 {% elif attribute.type == AttributeType.BOOLEAN %}
@@ -93,10 +105,23 @@
             
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
-            {% if attribute.type == AttributeType.STRING -%}
+            {% if loop.first -%}
+            {# First attribute as clickable link to detail page #}
+            <td style="text-align:center;">
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ section_component.primary_model|lower }}_detail' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" class="object-link">
+                    {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}
+                </a>
+            </td>
+            {%- elif attribute.type == AttributeType.STRING %}
             <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
             {%- elif attribute.type == AttributeType.INTEGER %}
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            
+            {%- elif attribute.type == AttributeType.DATE %}
+            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            
+            {%- elif attribute.type == AttributeType.DATETIME %}
             <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
             
             {%- elif attribute.type == AttributeType.BOOLEAN %}
@@ -181,6 +206,10 @@
                     <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
                     {% elif attribute.type == AttributeType.INTEGER -%}
                     <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
+                    {% elif attribute.type == AttributeType.DATE -%}
+                    <input type="date" name="{{ attribute }}" id="{{ attribute }}">
+                    {% elif attribute.type == AttributeType.DATETIME -%}
+                    <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}">
                     {% elif attribute.type == AttributeType.BOOLEAN -%}
                     <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
                     {% elif attribute.type == AttributeType.ENUM -%}
@@ -196,7 +225,8 @@
                 {% endfor -%}
                 {% for parent_model in section_component.parent_models -%}
                 <td>
-                    <select name="{{ parent_model }}">
+                    <select name="{{ parent_model }}" required>
+                        <option value="">-- Select {{ parent_model }} --</option>
                         {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}

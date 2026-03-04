@@ -16,12 +16,19 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
 
     models_on_pages = retrieve_models_on_pages(application_component)
     
+    # Collect all unique model names for OOUI detail views
+    all_models = set()
+    for page in pages_in_app:
+        for section_component in page.section_components:
+            all_models.add(section_component.primary_model)
+    
     data = {
         "project_name": project_name,
         "application_name": application_name,
         "pages": pages_in_app,
         "models_on_pages": models_on_pages,
-        "authentication_present": application_component.authentication_present
+        "authentication_present": application_component.authentication_present,
+        "all_models": list(all_models),
     }
 
     data_shared = {
