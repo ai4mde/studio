@@ -5,6 +5,7 @@ from pydantic.fields import Field
 from .activity import ActivityClassifier, ActivityRelation
 from .classes import ClassClassifier, ClassRelation
 from .usecase import UsecaseClassifier, UsecaseRelation
+from .component import ComponentRelation
 
 import metadata.models as models
 
@@ -41,6 +42,7 @@ Relation = Annotated[
         ActivityRelation,
         ClassRelation,
         UsecaseRelation,
+        ComponentRelation,
     ],
     Field(discriminator="type"),
 ]
