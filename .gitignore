@@ -1,0 +1,6 @@
+# Python virtual environments (Poetry, venv, etc.)
+.venv
+.venv-*
+venv/
+env/
+ENV/
