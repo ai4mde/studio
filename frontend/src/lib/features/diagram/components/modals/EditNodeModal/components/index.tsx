@@ -10,8 +10,9 @@ import EditSwimlane from "./EditSwimlane/EditSwimlane";
 import EditCode from "./EditCode/EditCode";
 import EditObject from "./EditObject/EditObject";
 import EditEvent from "./EditEvent/EditEvent";
+import EditInternals from "./EditInternals/EditInternals";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditObject, EditEvent };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditObject, EditEvent, EditInternals };
 export default {
     EditAttributes,
     EditMethods,
@@ -24,5 +25,6 @@ export default {
     EditSwimlane,
     EditCode,
     EditObject,
-    EditEvent
+    EditEvent,
+    EditInternals
 };
