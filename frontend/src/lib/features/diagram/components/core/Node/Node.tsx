@@ -19,6 +19,7 @@ import {
     SystemBoundaryNode,
     ObjectNode,
     EventNode,
+    ComponentNode,
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -31,9 +32,9 @@ export const nodeTypes: NodeTypes = {
     class: ClassNode,
     enum: EnumNode,
     signal: ClassifierNode,
-    container: ClassifierNode,
-    component: ClassifierNode,
-    system: ClassifierNode,
+    container: ComponentNode,
+    component: ComponentNode,
+    system: ComponentNode,
     interface: ClassifierNode,
     action: ActionNode,
     initial: InitialNode,
