@@ -141,5 +141,4 @@ In order to add further internal nodes for a Component Diagram node, right-click
 </p>
 
 <h3>Edges</h3>
-<p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>.</p>
-<p>In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <p>Required</p>, and <b>Provider</b>. The two can be the same or different interfaces.</p>
+<p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>. In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <b>Required</b>, and <b>Provider</b>. The two can be the same or different Interface nodes.</p>
