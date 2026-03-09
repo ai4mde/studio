@@ -26,6 +26,9 @@ export const ComponentConnectionFields: React.FC<Props> = ({ object, interfaceNo
                     <Option value='interface' label='interface'>
                         Interface
                     </Option>
+                    <Option value='dependency' label='dependency'>
+                        Dependency
+                    </Option>
                 </Select>
             </FormControl>
             {object.type === 'interface' && (
@@ -45,7 +48,6 @@ export const ComponentConnectionFields: React.FC<Props> = ({ object, interfaceNo
                             }
                         >
                             {interfaceNodes
-                                .filter(n => n.id !== object.provided)
                                 .map(n => (
                                     <Option key={n.id} value={n.id}>
                                         {n.name}
@@ -66,7 +68,6 @@ export const ComponentConnectionFields: React.FC<Props> = ({ object, interfaceNo
                             }
                         >
                             {interfaceNodes
-                                .filter(n => n.id !== object.required)
                                 .map(n => (
                                     <Option key={n.id} value={n.id}>
                                         {n.name}
