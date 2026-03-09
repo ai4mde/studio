@@ -135,7 +135,7 @@ In order to add further internal nodes for a Component Diagram node, right-click
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/parent.png" style="width: 45%; height: auto;">
-    <img src="./img/internals.png" style="width: 45%; height: auto;">
+    <img src="./img/parent.png" style="height: 300px; width: auto;">
+    <img src="./img/internals.png" style="height: 300px; width: auto;">
   </span>
 </p>
