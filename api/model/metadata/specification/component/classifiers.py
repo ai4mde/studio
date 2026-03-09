@@ -36,13 +36,8 @@ class Component(InternalsElement, NamedElement, BaseModel):
     type: Literal["component"] = "component"
 
 
-class Interface(NamedElement, BaseModel):
-    type: Literal["interface"] = "interface"
-
-
 ComponentClassifier = Union[
     System,
     Container,
     Component,
-    Interface,
 ]
