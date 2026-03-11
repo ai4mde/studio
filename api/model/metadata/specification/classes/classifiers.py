@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal, List, Union
 
 from metadata.specification.kernel import (
@@ -59,9 +59,21 @@ class Enum(NamedElement, NamespacedElement, BaseModel):
 class Signal(NamedElement, NamespacedElement, BaseModel):
     type: Literal["signal"] = "signal"
 
-    
+
+class System(NamedElement, BaseModel):
+    type: Literal["system"] = "system"
+
+
+class Container(NamedElement, BaseModel):
+    type: Literal["container"] = "container"
+
+
+class Component(NamedElement, BaseModel):
+    type: Literal["component"] = "component" 
+
 class Interface(NamedElement, BaseModel):
     type: Literal['interface']
+
 
 ClassClassifier = Union[
     Application,
@@ -70,5 +82,8 @@ ClassClassifier = Union[
     Class,
     Enum,
     Signal,
+    System,
+    Container,
+    Component,
     Interface,
 ]
