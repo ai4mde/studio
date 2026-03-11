@@ -21,8 +21,7 @@ import {
     EditSwimlane,
     EditCode,
     EditObject,
-    EditEvent,
-    EditInternals,
+    EditEvent
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -78,10 +77,6 @@ export const EditNodeModal: React.FC = () => {
     };
 
     const nodeRef = React.useRef(null);
-
-    console.log("EditNodeModal node:", node);
-    console.log("EditNodeModal node.type:", node?.type);
-    console.log("EditNodeModal node.data:", node?.data);
 
     return node ? (
         createPortal(
@@ -187,13 +182,10 @@ export const EditNodeModal: React.FC = () => {
                                     {node.type === "object" && <EditObject node={node} />}
                                     {node.type === "event" && <EditEvent node={node} />}
                                     {node.type == "system_boundary" && (
-                                        <>
-                                            <EditDimensions dimension='height' node={node} />
-                                            <EditDimensions dimension='width' node={node} />
-                                        </>
-                                    )}
-                                    {(node.type === "system" || node.type === "container" || node.type === "component") && (
-                                        <EditInternals node={node} />
+                                      <>
+                                        <EditDimensions dimension='height' node={node} />
+                                        <EditDimensions dimension='width' node={node} />
+                                      </>
                                     )}
                                 </div>
                             </div>

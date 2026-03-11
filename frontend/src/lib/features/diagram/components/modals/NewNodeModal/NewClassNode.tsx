@@ -38,11 +38,7 @@ export const NewClassNode: React.FC<Props> = ({ object, setObject }) => {
                     <Option value="class">Class</Option>
                     <Option value="enum">Enum</Option>
                     <Option value="signal">Signal</Option>
-                    <Option value="system">System</Option>
-                    <Option value="container">Container</Option>
-                    <Option value="component">Component</Option>
                     <Option value="application">Application</Option>
-                    <Option value="interface">Interface</Option>
                 </Select>
             </FormControl>
             <FormControl size="sm" className="w-full">

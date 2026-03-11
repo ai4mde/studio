@@ -12,14 +12,14 @@ import {
     PostconditionNode,
     PreconditionNode,
     ScenarioNode,
-    ClassifierNode,
+    SignalNode,
+    SystemNode,
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
     ObjectNode,
     EventNode,
-    ComponentNode,
 } from "$diagram/components/nodes";
 import React from "react";
 import { NodeProps, NodeTypes } from "reactflow";
@@ -31,11 +31,7 @@ export const Node: React.FC<NodeProps> = () => {
 export const nodeTypes: NodeTypes = {
     class: ClassNode,
     enum: EnumNode,
-    signal: ClassifierNode,
-    container: ComponentNode,
-    component: ComponentNode,
-    system: ComponentNode,
-    interface: ClassifierNode,
+    signal: SignalNode,
     action: ActionNode,
     initial: InitialNode,
     decision: DecisionNode,
@@ -49,6 +45,7 @@ export const nodeTypes: NodeTypes = {
     postcondition: PostconditionNode,
     precondition: PreconditionNode,
     scenario: ScenarioNode,
+    system: SystemNode,
     trigger: TriggerNode,
     usecase: UsecaseNode,
     default: Node,

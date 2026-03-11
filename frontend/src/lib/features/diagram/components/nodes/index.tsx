@@ -10,7 +10,7 @@ import {
     MergeNode,
     SwimlaneGroupNode,
 } from "./activity";
-import { ClassNode, EnumNode, ClassifierNode } from "./class";
+import { ClassNode, EnumNode, SignalNode } from "./class";
 import {
     ActorNode,
     PostconditionNode,
@@ -21,7 +21,6 @@ import {
     UsecaseNode,
     SystemBoundaryNode,
 } from "./usecase";
-import ComponentNode from "./component/ComponentNode";
 
 export {
     ActionNode,
@@ -37,18 +36,17 @@ export {
     JoinNode,
     MergeNode, PostconditionNode,
     PreconditionNode,
-    ScenarioNode, ClassifierNode, SystemNode,
+    ScenarioNode, SignalNode, SystemNode,
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
-    ComponentNode
 };
 
 export default {
     ClassNode,
     EnumNode,
-    ClassifierNode,
+    SignalNode,
     DecisionNode,
     FinalNode,
     ForkNode,
@@ -67,5 +65,4 @@ export default {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
-    ComponentNode,
 };

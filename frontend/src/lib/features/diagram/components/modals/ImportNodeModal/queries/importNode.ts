@@ -87,16 +87,3 @@ export const useSystemSignalClassifiers = (
   useFilteredSystemClassifiers(systemId, (classifier) => {
     return classifier.data?.type === "signal";
   });
-
-export const useSystemInternalTypeClassifiers = (
-  systemId: string | null | undefined,
-) =>
-  useFilteredSystemClassifiers(systemId, (classifier) => {
-    const t = classifier.data?.type;
-    return (
-      t === "class" ||
-      t === "system" ||
-      t === "container" ||
-      t === "component"
-    );
-  });
