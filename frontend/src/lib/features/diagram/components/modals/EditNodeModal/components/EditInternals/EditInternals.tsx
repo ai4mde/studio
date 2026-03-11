@@ -39,7 +39,6 @@ const EditInternals: React.FC<Props> = ({ node }) => {
           del={() => {
             setInternals((s: any[]) => s.filter((_, i) => i !== idx));
           }}
-          node={node}
         />
       ))}
 
