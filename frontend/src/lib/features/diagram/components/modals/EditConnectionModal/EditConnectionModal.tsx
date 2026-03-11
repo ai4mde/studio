@@ -13,10 +13,11 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
+import ComponentConnectionFields from "../ConnectionFields/ComponentConnectionFields";
 
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
-    const { diagram, edges, type } = useDiagramStore();
+    const { diagram, edges, type, relatedDiagrams } = useDiagramStore();
 
     const edge = useMemo(
         () => edges.find((e) => e.id == modalState.edge),
@@ -126,6 +127,17 @@ export const EditConnectionModal: React.FC = () => {
                                             object={object}
                                             setObject={setObject}
                                         />
+                                    )}
+                                    {type === "component" && (
+                                        <ComponentConnectionFields
+                                            object={object}
+                                            interfaceNodes={relatedDiagrams
+                                                .flatMap((d) => d.nodes)
+                                                .filter((n) => n.type === "interface")
+                                            }
+                                            setObject={setObject}
+                                        />
+
                                     )}
                                 </div>
                             </div>
