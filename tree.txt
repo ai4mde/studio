@@ -1,0 +1,887 @@
+/home/irina/MDSE/studio
+├── LICENSE
+├── README.md
+├── api
+│   ├── Dockerfile
+│   ├── entrypoint.sh
+│   ├── model
+│   │   ├── diagram
+│   │   │   ├── __init__.py
+│   │   │   ├── admin.py
+│   │   │   ├── api
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── schemas
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── diagram.py
+│   │   │   │   │   ├── edge.py
+│   │   │   │   │   └── node.py
+│   │   │   │   ├── utils
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── edge.py
+│   │   │   │   │   └── node.py
+│   │   │   │   └── views
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── diagram.py
+│   │   │   │       ├── edge.py
+│   │   │   │       ├── llm_generation
+│   │   │   │       │   ├── __init__.py
+│   │   │   │       │   ├── generation.py
+│   │   │   │       │   └── prompts
+│   │   │   │       │       ├── generate_attribute.txt
+│   │   │   │       │       └── generate_method.txt
+│   │   │   │       ├── node.py
+│   │   │   │       └── system.py
+│   │   │   ├── apps.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_alter_diagram_id_alter_diagram_system_and_more.py
+│   │   │   │   ├── 0003_alter_edge_rel_alter_node_cls.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── tests.py
+│   │   │   └── views.py
+│   │   ├── generator
+│   │   │   ├── __init__.py
+│   │   │   ├── admin.py
+│   │   │   ├── api
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── schemas
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── prototype.py
+│   │   │   │   └── views
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── prototypes.py
+│   │   │   ├── apps.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_rename_container_port_prototype_port_and_more.py
+│   │   │   │   ├── 0003_prototype_metadata.py
+│   │   │   │   ├── 0004_remove_prototype_port_remove_prototype_running_and_more.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── tests.py
+│   │   │   └── views.py
+│   │   ├── llm
+│   │   │   ├── __init__.py
+│   │   │   ├── handler.py
+│   │   │   └── prompts
+│   │   │       ├── __init__.py
+│   │   │       ├── diagram.py
+│   │   │       ├── generator.py
+│   │   │       ├── metadata.py
+│   │   │       └── prose.py
+│   │   ├── manage.py
+│   │   ├── metadata
+│   │   │   ├── __init__.py
+│   │   │   ├── admin.py
+│   │   │   ├── api
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── schemas
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── interface.py
+│   │   │   │   │   ├── meta.py
+│   │   │   │   │   ├── project.py
+│   │   │   │   │   ├── release.py
+│   │   │   │   │   └── system.py
+│   │   │   │   └── views
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── defaulting.py
+│   │   │   │       ├── interfaces.py
+│   │   │   │       ├── projects.py
+│   │   │   │       ├── releases.py
+│   │   │   │       ├── systems
+│   │   │   │       │   ├── __init__.py
+│   │   │   │       │   ├── classifiers.py
+│   │   │   │       │   ├── meta.py
+│   │   │   │       │   ├── node.py
+│   │   │   │       │   └── relations.py
+│   │   │   │       └── utils
+│   │   │   │           └── releases.py
+│   │   │   ├── apps.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_relation_system_alter_classifier_id_alter_project_id_and_more.py
+│   │   │   │   ├── 0003_remove_classifier_type_remove_relation_type.py
+│   │   │   │   ├── 0004_alter_classifier_system.py
+│   │   │   │   ├── 0005_interface.py
+│   │   │   │   ├── 0006_interface_data.py
+│   │   │   │   ├── 0007_interface_actor.py
+│   │   │   │   ├── 0008_release.py
+│   │   │   │   ├── 0009_release_created_at.py
+│   │   │   │   ├── 0010_release_release_notes.py
+│   │   │   │   ├── 0011_classifier_project_alter_classifier_system.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── specification
+│   │   │   │   ├── README.md
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── activity
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── classifiers
+│   │   │   │   │   │   ├── __init__.py
+│   │   │   │   │   │   ├── action.py
+│   │   │   │   │   │   ├── control.py
+│   │   │   │   │   │   ├── event.py
+│   │   │   │   │   │   ├── object.py
+│   │   │   │   │   │   └── swimlane.py
+│   │   │   │   │   └── relations.py
+│   │   │   │   ├── applications
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── classifiers.py
+│   │   │   │   ├── base
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── relations.py
+│   │   │   │   ├── classes
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── classifiers.py
+│   │   │   │   │   └── relations.py
+│   │   │   │   ├── component
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   ├── classifiers.py
+│   │   │   │   │   └── relations.py
+│   │   │   │   ├── kernel
+│   │   │   │   │   └── __init__.py
+│   │   │   │   └── usecase
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── classifiers.py
+│   │   │   │       └── relations.py
+│   │   │   ├── tests.py
+│   │   │   └── views.py
+│   │   ├── model
+│   │   │   ├── __init__.py
+│   │   │   ├── api.py
+│   │   │   ├── asgi.py
+│   │   │   ├── auth.py
+│   │   │   ├── management
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── commands
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── create_admin.py
+│   │   │   │       └── wait_for_db.py
+│   │   │   ├── settings.py
+│   │   │   ├── urls.py
+│   │   │   └── wsgi.py
+│   │   ├── prompt
+│   │   │   ├── __init__.py
+│   │   │   ├── admin.py
+│   │   │   ├── api
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── schemas
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── prompt.py
+│   │   │   │   └── views
+│   │   │   │       ├── __init__.py
+│   │   │   │       └── prompt.py
+│   │   │   ├── apps.py
+│   │   │   ├── chatbots
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── changes.py
+│   │   │   ├── consumers
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── chatbot.py
+│   │   │   ├── migrations
+│   │   │   │   └── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── tests.py
+│   │   │   └── views.py
+│   │   └── prose
+│   │       ├── __init__.py
+│   │       ├── admin.py
+│   │       ├── api
+│   │       │   ├── __init__.py
+│   │       │   ├── schemas
+│   │       │   │   ├── __init__.py
+│   │       │   │   └── pipelines.py
+│   │       │   └── views
+│   │       │       ├── __init__.py
+│   │       │       ├── pipelines.py
+│   │       │       └── utils.py
+│   │       ├── apps.py
+│   │       ├── migrations
+│   │       │   ├── 0001_initial.py
+│   │       │   ├── 0002_pipeline_step.py
+│   │       │   ├── 0003_alter_pipeline_step.py
+│   │       │   └── __init__.py
+│   │       ├── models.py
+│   │       ├── tests.py
+│   │       └── views.py
+│   ├── poetry.lock
+│   └── pyproject.toml
+├── config
+│   ├── api.env
+│   ├── docs.env
+│   ├── frontend.env
+│   ├── postgres.env
+│   ├── prototypes.env
+│   ├── secrets.env
+│   └── secrets.env.example
+├── docker-compose.yaml
+├── docs
+│   ├── architecture.md
+│   ├── developers-guide.md
+│   ├── img
+│   │   ├── decision_flow1.png
+│   │   └── decision_flow2.png
+│   ├── metadata.md
+│   ├── setup.md
+│   └── users-guide.md
+├── frontend
+│   ├── Dockerfile
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon.ico
+│   │   ├── icon-192-maskable.png
+│   │   ├── icon-192.png
+│   │   ├── icon-512-maskable.png
+│   │   ├── icon-512.png
+│   │   └── manifest.json
+│   ├── src
+│   │   ├── index.css
+│   │   ├── lib
+│   │   │   ├── features
+│   │   │   │   ├── ai
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── AddToDiagram.tsx
+│   │   │   │   │   │   ├── ListPipelines.tsx
+│   │   │   │   │   │   ├── RunModel.tsx
+│   │   │   │   │   │   ├── SelectModel.tsx
+│   │   │   │   │   │   ├── Steps.tsx
+│   │   │   │   │   │   └── UploadRequirements.tsx
+│   │   │   │   │   ├── models.ts
+│   │   │   │   │   ├── queries.ts
+│   │   │   │   │   └── types.ts
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── ForgotPassword.tsx
+│   │   │   │   │   │   ├── LoginScreen.tsx
+│   │   │   │   │   │   ├── LoginUser.tsx
+│   │   │   │   │   │   └── RegisterUser.tsx
+│   │   │   │   │   ├── hooks
+│   │   │   │   │   │   └── authEffect.tsx
+│   │   │   │   │   └── state
+│   │   │   │   │       ├── auth.ts
+│   │   │   │   │       └── login.ts
+│   │   │   │   ├── browser
+│   │   │   │   │   ├── atoms.ts
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── projects
+│   │   │   │   │   │   │   └── CreateProject.tsx
+│   │   │   │   │   │   └── systems
+│   │   │   │   │   │       ├── CreateSystem.tsx
+│   │   │   │   │   │       ├── ListSystem.tsx
+│   │   │   │   │   │       └── SystemLayout.tsx
+│   │   │   │   │   ├── mutations.tsx
+│   │   │   │   │   ├── queries.ts
+│   │   │   │   │   ├── schemas.ts
+│   │   │   │   │   └── tests
+│   │   │   │   │       └── projects
+│   │   │   │   │           └── CreateProject.test.tsx
+│   │   │   │   ├── chatbot
+│   │   │   │   │   ├── atoms.tsx
+│   │   │   │   │   └── components
+│   │   │   │   │       ├── ChatbotWindow
+│   │   │   │   │       │   └── ChatbotWindow.tsx
+│   │   │   │   │       └── index.tsx
+│   │   │   │   ├── diagram
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── context
+│   │   │   │   │   │   │   ├── ContextMenu
+│   │   │   │   │   │   │   │   ├── ContextMenu.tsx
+│   │   │   │   │   │   │   │   └── contextmenu.module.css
+│   │   │   │   │   │   │   ├── ContextMenus
+│   │   │   │   │   │   │   │   └── ContextMenus.tsx
+│   │   │   │   │   │   │   ├── EdgeContextMenu
+│   │   │   │   │   │   │   │   ├── EdgeContextMenu.tsx
+│   │   │   │   │   │   │   │   └── edgecontextmenu.module.css
+│   │   │   │   │   │   │   ├── NodeContextMenu
+│   │   │   │   │   │   │   │   ├── NodeContextMenu.tsx
+│   │   │   │   │   │   │   │   └── nodecontextmenu.module.css
+│   │   │   │   │   │   │   ├── PaneContextMenu
+│   │   │   │   │   │   │   │   ├── PaneContextMenu.tsx
+│   │   │   │   │   │   │   │   └── panecontextmenu.module.css
+│   │   │   │   │   │   │   ├── SelectionContextMenu
+│   │   │   │   │   │   │   │   ├── SelectionContextMenu.tsx
+│   │   │   │   │   │   │   │   └── selectioncontextmenu.module.css
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── core
+│   │   │   │   │   │   │   ├── Diagram
+│   │   │   │   │   │   │   │   └── Diagram.tsx
+│   │   │   │   │   │   │   ├── Node
+│   │   │   │   │   │   │   │   └── Node.tsx
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── edges
+│   │   │   │   │   │   │   ├── FloatingConnectionLine
+│   │   │   │   │   │   │   │   ├── FloatingConnectionLine.tsx
+│   │   │   │   │   │   │   │   └── floatingconnectionline.module.css
+│   │   │   │   │   │   │   ├── FloatingEdge
+│   │   │   │   │   │   │   │   └── FloatingEdge.tsx
+│   │   │   │   │   │   │   ├── Markers
+│   │   │   │   │   │   │   │   └── Markers.tsx
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── listeners
+│   │   │   │   │   │   │   ├── Listeners
+│   │   │   │   │   │   │   │   └── Listeners.tsx
+│   │   │   │   │   │   │   ├── LockListener
+│   │   │   │   │   │   │   │   └── LockListener.tsx
+│   │   │   │   │   │   │   ├── SelectionListener
+│   │   │   │   │   │   │   │   └── SelectionListener.tsx
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── modals
+│   │   │   │   │   │   │   ├── ConfirmDeleteClassifierModal
+│   │   │   │   │   │   │   │   └── ConfirmDeleteClassifierModal.tsx
+│   │   │   │   │   │   │   ├── ConfirmDeleteModal
+│   │   │   │   │   │   │   │   ├── ConfirmDeleteModal.tsx
+│   │   │   │   │   │   │   │   └── DiagramUsageList.tsx
+│   │   │   │   │   │   │   ├── ConfirmDeleteRelationModal
+│   │   │   │   │   │   │   │   └── ConfirmDeleteRelationModal.tsx
+│   │   │   │   │   │   │   ├── ConnectionFields
+│   │   │   │   │   │   │   │   ├── ActivityConnectionFields.tsx
+│   │   │   │   │   │   │   │   ├── ClassConnectionFields.tsx
+│   │   │   │   │   │   │   │   ├── ComponentConnectionFields.tsx
+│   │   │   │   │   │   │   │   └── UseCaseConnectionFields.tsx
+│   │   │   │   │   │   │   ├── DeleteConfirmationModal
+│   │   │   │   │   │   │   │   ├── DeleteConfirmationModal.tsx
+│   │   │   │   │   │   │   │   └── deleteconfirmationmodal.module.css
+│   │   │   │   │   │   │   ├── EditConnectionModal
+│   │   │   │   │   │   │   │   ├── EditConnectionModal.tsx
+│   │   │   │   │   │   │   │   └── editconnectionmodal.module.css
+│   │   │   │   │   │   │   ├── EditNodeModal
+│   │   │   │   │   │   │   │   ├── EditNodeModal.tsx
+│   │   │   │   │   │   │   │   ├── components
+│   │   │   │   │   │   │   │   │   ├── EditApplication
+│   │   │   │   │   │   │   │   │   │   ├── EditApplication.tsx
+│   │   │   │   │   │   │   │   │   │   └── editapplication.module.css
+│   │   │   │   │   │   │   │   │   ├── EditAttributes
+│   │   │   │   │   │   │   │   │   │   ├── EditAttribute.tsx
+│   │   │   │   │   │   │   │   │   │   ├── EditAttributes.tsx
+│   │   │   │   │   │   │   │   │   │   └── editattributes.module.css
+│   │   │   │   │   │   │   │   │   ├── EditBoolean
+│   │   │   │   │   │   │   │   │   │   ├── EditBoolean.tsx
+│   │   │   │   │   │   │   │   │   │   └── editboolean.module.css
+│   │   │   │   │   │   │   │   │   ├── EditCode
+│   │   │   │   │   │   │   │   │   │   └── EditCode.tsx
+│   │   │   │   │   │   │   │   │   ├── EditDimensions
+│   │   │   │   │   │   │   │   │   │   ├── EditDimensions.tsx
+│   │   │   │   │   │   │   │   │   │   └── editdimensions.module.css
+│   │   │   │   │   │   │   │   │   ├── EditEvent
+│   │   │   │   │   │   │   │   │   │   └── EditEvent.tsx
+│   │   │   │   │   │   │   │   │   ├── EditInternals
+│   │   │   │   │   │   │   │   │   │   ├── EditInternal.tsx
+│   │   │   │   │   │   │   │   │   │   └── EditInternals.tsx
+│   │   │   │   │   │   │   │   │   ├── EditLiterals
+│   │   │   │   │   │   │   │   │   │   ├── EditLiteral.tsx
+│   │   │   │   │   │   │   │   │   │   ├── EditLiterals.tsx
+│   │   │   │   │   │   │   │   │   │   └── editliterals.module.css
+│   │   │   │   │   │   │   │   │   ├── EditMethods
+│   │   │   │   │   │   │   │   │   │   ├── EditMethod.tsx
+│   │   │   │   │   │   │   │   │   │   ├── EditMethods.tsx
+│   │   │   │   │   │   │   │   │   │   └── editmethods.module.css
+│   │   │   │   │   │   │   │   │   ├── EditName
+│   │   │   │   │   │   │   │   │   │   ├── EditName.tsx
+│   │   │   │   │   │   │   │   │   │   └── editname.module.css
+│   │   │   │   │   │   │   │   │   ├── EditObject
+│   │   │   │   │   │   │   │   │   │   └── EditObject.tsx
+│   │   │   │   │   │   │   │   │   ├── EditSchedule
+│   │   │   │   │   │   │   │   │   │   ├── EditSchedule.tsx
+│   │   │   │   │   │   │   │   │   │   └── editschedule.module.css
+│   │   │   │   │   │   │   │   │   ├── EditSwimlane
+│   │   │   │   │   │   │   │   │   │   ├── EditSwimlane.tsx
+│   │   │   │   │   │   │   │   │   │   └── editswimlane.module.css
+│   │   │   │   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   │   │   │   └── editnodemodal.module.css
+│   │   │   │   │   │   │   ├── ImportNodeModal
+│   │   │   │   │   │   │   │   ├── ImportActivityNode.tsx
+│   │   │   │   │   │   │   │   ├── ImportClassNode.tsx
+│   │   │   │   │   │   │   │   ├── ImportNodeModal.tsx
+│   │   │   │   │   │   │   │   ├── ImportUsecaseNode.tsx
+│   │   │   │   │   │   │   │   ├── importnodemodal.module.css
+│   │   │   │   │   │   │   │   └── queries
+│   │   │   │   │   │   │   │       └── importNode.ts
+│   │   │   │   │   │   │   ├── Modals
+│   │   │   │   │   │   │   │   └── Modals.tsx
+│   │   │   │   │   │   │   ├── NewConnectionModal
+│   │   │   │   │   │   │   │   ├── NewActivityConnection.tsx
+│   │   │   │   │   │   │   │   ├── NewClassConnection.tsx
+│   │   │   │   │   │   │   │   ├── NewConnectionModal.tsx
+│   │   │   │   │   │   │   │   ├── NewUsecaseConnection.tsx
+│   │   │   │   │   │   │   │   └── newconnectionmodal.module.css
+│   │   │   │   │   │   │   ├── NewNodeModal
+│   │   │   │   │   │   │   │   ├── NewActivityNode.tsx
+│   │   │   │   │   │   │   │   ├── NewClassNode.tsx
+│   │   │   │   │   │   │   │   ├── NewComponentNode.tsx
+│   │   │   │   │   │   │   │   ├── NewNodeModal.tsx
+│   │   │   │   │   │   │   │   ├── NewUsecaseNode.tsx
+│   │   │   │   │   │   │   │   └── newnodemodal.module.css
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── nodes
+│   │   │   │   │   │   │   ├── activity
+│   │   │   │   │   │   │   │   ├── ActionNode.tsx
+│   │   │   │   │   │   │   │   ├── EventNode.tsx
+│   │   │   │   │   │   │   │   ├── ObjectNode.tsx
+│   │   │   │   │   │   │   │   ├── SwimlaneGroupNode.tsx
+│   │   │   │   │   │   │   │   ├── control
+│   │   │   │   │   │   │   │   │   ├── DecisionNode.tsx
+│   │   │   │   │   │   │   │   │   ├── FinalNode.tsx
+│   │   │   │   │   │   │   │   │   ├── ForkNode.tsx
+│   │   │   │   │   │   │   │   │   ├── InitialNode.tsx
+│   │   │   │   │   │   │   │   │   ├── JoinNode.tsx
+│   │   │   │   │   │   │   │   │   ├── MergeNode.tsx
+│   │   │   │   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   │   │   ├── class
+│   │   │   │   │   │   │   │   ├── ClassNode
+│   │   │   │   │   │   │   │   │   └── ClassNode.tsx
+│   │   │   │   │   │   │   │   ├── ClassifierNode
+│   │   │   │   │   │   │   │   │   └── ClassifierNode.tsx
+│   │   │   │   │   │   │   │   ├── EnumNode
+│   │   │   │   │   │   │   │   │   └── EnumNode.tsx
+│   │   │   │   │   │   │   │   └── index.tsx
+│   │   │   │   │   │   │   ├── index.tsx
+│   │   │   │   │   │   │   ├── shared
+│   │   │   │   │   │   │   │   └── NodeWrapper.tsx
+│   │   │   │   │   │   │   └── usecase
+│   │   │   │   │   │   │       ├── ActorNode.tsx
+│   │   │   │   │   │   │       ├── PostconditionNode.tsx
+│   │   │   │   │   │   │       ├── PreconditionNode.tsx
+│   │   │   │   │   │   │       ├── ScenarioNode.tsx
+│   │   │   │   │   │   │       ├── SystemBoundaryNode.tsx
+│   │   │   │   │   │   │       ├── SystemNode.tsx
+│   │   │   │   │   │   │       ├── TriggerNode.tsx
+│   │   │   │   │   │   │       ├── UsecaseNode.tsx
+│   │   │   │   │   │   │       └── index.tsx
+│   │   │   │   │   │   ├── prompt
+│   │   │   │   │   │   │   ├── CommandMenu
+│   │   │   │   │   │   │   │   ├── CommandMenu.tsx
+│   │   │   │   │   │   │   │   └── commandmenu.module.css
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── screens
+│   │   │   │   │   │   │   ├── Screens
+│   │   │   │   │   │   │   │   └── Screens.tsx
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   ├── toolbar
+│   │   │   │   │   │   │   ├── DiagramControls
+│   │   │   │   │   │   │   │   ├── DiagramControls.tsx
+│   │   │   │   │   │   │   │   └── diagramcontrols.module.css
+│   │   │   │   │   │   │   ├── DiagramLock
+│   │   │   │   │   │   │   │   └── DiagramLock.tsx
+│   │   │   │   │   │   │   ├── DiagramName
+│   │   │   │   │   │   │   │   └── DiagramName.tsx
+│   │   │   │   │   │   │   └── index.ts
+│   │   │   │   │   │   └── utils
+│   │   │   │   │   │       ├── floatingEdge.ts
+│   │   │   │   │   │       └── index.ts
+│   │   │   │   │   ├── events
+│   │   │   │   │   │   ├── connect.ts
+│   │   │   │   │   │   ├── edge.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── node.ts
+│   │   │   │   │   │   ├── pane.ts
+│   │   │   │   │   │   ├── selection.ts
+│   │   │   │   │   │   └── shared.ts
+│   │   │   │   │   ├── mutations
+│   │   │   │   │   │   ├── diagram.ts
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   ├── queries
+│   │   │   │   │   │   ├── diagram.ts
+│   │   │   │   │   │   └── index.ts
+│   │   │   │   │   ├── stores
+│   │   │   │   │   │   ├── contextMenus.ts
+│   │   │   │   │   │   ├── diagramState.ts
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   └── modals.ts
+│   │   │   │   │   └── types
+│   │   │   │   │       ├── contextMenus.ts
+│   │   │   │   │       ├── diagramState.ts
+│   │   │   │   │       ├── diagramUsage.ts
+│   │   │   │   │       ├── edge.schema.json
+│   │   │   │   │       ├── modals.ts
+│   │   │   │   │       ├── node.schema.json
+│   │   │   │   │       └── spec.ts
+│   │   │   │   ├── interfaces
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── Categories.tsx
+│   │   │   │   │   │   ├── CreateInterface.tsx
+│   │   │   │   │   │   ├── Pages.tsx
+│   │   │   │   │   │   ├── Sections.tsx
+│   │   │   │   │   │   ├── Settings.tsx
+│   │   │   │   │   │   ├── ShowInterface.tsx
+│   │   │   │   │   │   ├── ShowInterfaces.tsx
+│   │   │   │   │   │   ├── Styling.tsx
+│   │   │   │   │   │   └── useLocalStorage.tsx
+│   │   │   │   │   └── queries.ts
+│   │   │   │   ├── metadata
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   └── ShowMetadata.tsx
+│   │   │   │   │   └── queries.ts
+│   │   │   │   ├── prototypes
+│   │   │   │   │   ├── atoms.ts
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   ├── CreatePrototype.tsx
+│   │   │   │   │   │   └── ShowPrototypes.tsx
+│   │   │   │   │   ├── mutations.ts
+│   │   │   │   │   └── queries.ts
+│   │   │   │   └── releases
+│   │   │   │       ├── components
+│   │   │   │       │   └── ShowReleases.tsx
+│   │   │   │       └── queries.tsx
+│   │   │   ├── hooks
+│   │   │   └── shared
+│   │   │       ├── components
+│   │   │       │   ├── Layout
+│   │   │       │   │   ├── Layout.tsx
+│   │   │       │   │   └── style.module.css
+│   │   │       │   ├── Logo
+│   │   │       │   │   └── Logo.tsx
+│   │   │       │   ├── Modals
+│   │   │       │   │   ├── CodeEditorModal.tsx
+│   │   │       │   │   └── Modals.tsx
+│   │   │       │   ├── Navigation
+│   │   │       │   │   ├── Navigation.tsx
+│   │   │       │   │   └── navigation.module.css
+│   │   │       │   ├── TopNavigation.tsx
+│   │   │       │   └── index.tsx
+│   │   │       ├── globals.ts
+│   │   │       ├── hooks
+│   │   │       │   ├── navigationPortal.tsx
+│   │   │       │   └── queryClient.ts
+│   │   │       └── state
+│   │   ├── main.tsx
+│   │   ├── routes
+│   │   │   ├── [...all].tsx
+│   │   │   ├── build
+│   │   │   │   ├── [pipelineId]
+│   │   │   │   │   └── index.tsx
+│   │   │   │   └── index.tsx
+│   │   │   ├── diagram
+│   │   │   │   ├── [diagramId]
+│   │   │   │   │   └── index.tsx
+│   │   │   │   └── index.tsx
+│   │   │   ├── index.tsx
+│   │   │   ├── projects
+│   │   │   │   ├── [projectId]
+│   │   │   │   │   ├── [...all].tsx
+│   │   │   │   │   └── index.tsx
+│   │   │   │   └── index.tsx
+│   │   │   └── systems
+│   │   │       ├── [systemId]
+│   │   │       │   ├── [...all].tsx
+│   │   │       │   ├── index.tsx
+│   │   │       │   ├── interfaces
+│   │   │       │   │   ├── [interfaceId]
+│   │   │       │   │   │   └── index.tsx
+│   │   │       │   │   └── index.tsx
+│   │   │       │   ├── prototypes
+│   │   │       │   │   └── index.tsx
+│   │   │       │   └── versions
+│   │   │       │       └── index.tsx
+│   │   │       └── index.tsx
+│   │   └── vite-env.d.ts
+│   ├── tailwind.config.js
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   └── vitest.config.ts
+├── prototypes
+│   ├── Dockerfile
+│   ├── backend
+│   │   ├── api.py
+│   │   └── generation
+│   │       ├── copy_database.sh
+│   │       ├── generation_scripts
+│   │       │   ├── __pycache__
+│   │       │   │   └── generate_models.cpython-312.pyc
+│   │       │   ├── generate_application.py
+│   │       │   ├── generate_authentication.py
+│   │       │   ├── generate_models.py
+│   │       │   ├── generate_noauth_home.py
+│   │       │   ├── generate_workflow_engine.py
+│   │       │   ├── get_globals.py
+│   │       │   └── utils
+│   │       │       ├── __init__.py
+│   │       │       ├── __pycache__
+│   │       │       │   ├── __init__.cpython-312.pyc
+│   │       │       │   ├── file_generation.cpython-312.pyc
+│   │       │       │   ├── loading_json_utils.cpython-312.pyc
+│   │       │       │   ├── sanitization.cpython-312.pyc
+│   │       │       │   ├── styling_generation.cpython-312.pyc
+│   │       │       │   ├── template_generation.cpython-312.pyc
+│   │       │       │   ├── url_generation.cpython-312.pyc
+│   │       │       │   └── view_generation.cpython-312.pyc
+│   │       │       ├── authentication
+│   │       │       │   ├── __pycache__
+│   │       │       │   │   ├── auth_styling_generation.cpython-312.pyc
+│   │       │       │   │   ├── auth_template_generation.cpython-312.pyc
+│   │       │       │   │   ├── auth_url_generation.cpython-312.pyc
+│   │       │       │   │   └── auth_view_generation.cpython-312.pyc
+│   │       │       │   ├── auth_styling_generation.py
+│   │       │       │   ├── auth_template_generation.py
+│   │       │       │   ├── auth_url_generation.py
+│   │       │       │   └── auth_view_generation.py
+│   │       │       ├── definitions
+│   │       │       │   ├── __pycache__
+│   │       │       │   │   ├── application_component.cpython-312.pyc
+│   │       │       │   │   ├── category.cpython-312.pyc
+│   │       │       │   │   ├── model.cpython-312.pyc
+│   │       │       │   │   ├── page.cpython-312.pyc
+│   │       │       │   │   ├── section_component.cpython-312.pyc
+│   │       │       │   │   ├── settings.cpython-312.pyc
+│   │       │       │   │   └── styling.cpython-312.pyc
+│   │       │       │   ├── application_component.py
+│   │       │       │   ├── category.py
+│   │       │       │   ├── model.py
+│   │       │       │   ├── page.py
+│   │       │       │   ├── section_component.py
+│   │       │       │   ├── settings.py
+│   │       │       │   └── styling.py
+│   │       │       ├── file_generation.py
+│   │       │       ├── loading_json_utils.py
+│   │       │       ├── sanitization.py
+│   │       │       ├── styling_generation.py
+│   │       │       ├── template_generation.py
+│   │       │       ├── url_generation.py
+│   │       │       ├── view_generation.py
+│   │       │       └── workflow_engine
+│   │       │           ├── __pycache__
+│   │       │           │   ├── cron_generation.cpython-312.pyc
+│   │       │           │   ├── data_generation.cpython-312.pyc
+│   │       │           │   ├── models_generation.cpython-312.pyc
+│   │       │           │   └── view_generation.cpython-312.pyc
+│   │       │           ├── cron_generation.py
+│   │       │           ├── data_generation.py
+│   │       │           ├── models_generation.py
+│   │       │           └── view_generation.py
+│   │       ├── generator.sh
+│   │       ├── remover.sh
+│   │       ├── templates
+│   │       │   ├── authentication
+│   │       │   │   ├── auth_base.html.jinja2
+│   │       │   │   ├── auth_index.html.jinja2
+│   │       │   │   ├── auth_style.css.jinja2
+│   │       │   │   ├── auth_urls.py.jinja2
+│   │       │   │   ├── auth_views.py.jinja2
+│   │       │   │   ├── noauth_index.html.jinja2
+│   │       │   │   ├── noauth_urls.py.jinja2
+│   │       │   │   └── noauth_views.py.jinja2
+│   │       │   ├── base.html.jinja2
+│   │       │   ├── home.html.jinja2
+│   │       │   ├── models.py.jinja2
+│   │       │   ├── page.html.jinja2
+│   │       │   ├── shared_views.py.jinja2
+│   │       │   ├── style.css.jinja2
+│   │       │   ├── urls.py.jinja2
+│   │       │   ├── views.py.jinja2
+│   │       │   └── workflow_engine
+│   │       │       ├── action_log.html.jinja2
+│   │       │       ├── change_user_assignment.html.jinja2
+│   │       │       ├── cron_jobs.py.jinja2
+│   │       │       ├── models.py.jinja2
+│   │       │       └── views.py.jinja2
+│   │       └── workflow_engine
+│   │           ├── 0002_populate_workflow_engine.py
+│   │           ├── models.py
+│   │           └── urls.py
+│   ├── entrypoint.sh
+│   ├── generated_prototypes
+│   │   └── 8ac86bfe-ec5d-4b2e-b381-d84392dc9f08
+│   │       └── p
+│   │           ├── Applicant
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── static
+│   │           │   │   └── Applicant
+│   │           │   │       └── Applicant_style.css
+│   │           │   ├── templates
+│   │           │   │   ├── Applicant_Additional_documents.html
+│   │           │   │   ├── Applicant_Fill_in_application.html
+│   │           │   │   ├── Applicant_base.html
+│   │           │   │   └── Applicant_home.html
+│   │           │   ├── tests.py
+│   │           │   ├── urls.py
+│   │           │   └── views.py
+│   │           ├── Document_analyst
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── static
+│   │           │   │   └── Document_analyst
+│   │           │   │       └── Document_analyst_style.css
+│   │           │   ├── templates
+│   │           │   │   ├── Document_analyst_Analyze_documents.html
+│   │           │   │   ├── Document_analyst_base.html
+│   │           │   │   └── Document_analyst_home.html
+│   │           │   ├── tests.py
+│   │           │   ├── urls.py
+│   │           │   └── views.py
+│   │           ├── Loan_Officer
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── static
+│   │           │   │   └── Loan_Officer
+│   │           │   │       └── Loan_Officer_style.css
+│   │           │   ├── templates
+│   │           │   │   ├── Loan_Officer_Decide_on_application.html
+│   │           │   │   ├── Loan_Officer_action_log.html
+│   │           │   │   ├── Loan_Officer_base.html
+│   │           │   │   ├── Loan_Officer_change_user_assignment.html
+│   │           │   │   └── Loan_Officer_home.html
+│   │           │   ├── tests.py
+│   │           │   ├── urls.py
+│   │           │   └── views.py
+│   │           ├── System
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── static
+│   │           │   │   └── System
+│   │           │   │       └── System_style.css
+│   │           │   ├── templates
+│   │           │   │   ├── System_base.html
+│   │           │   │   └── System_home.html
+│   │           │   ├── tests.py
+│   │           │   ├── urls.py
+│   │           │   └── views.py
+│   │           ├── __pycache__
+│   │           │   └── manage.cpython-312.pyc
+│   │           ├── authentication
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── static
+│   │           │   │   └── authentication
+│   │           │   │       └── authentication_style.css
+│   │           │   ├── templates
+│   │           │   │   ├── authentication_base.html
+│   │           │   │   └── authentication_index.html
+│   │           │   ├── tests.py
+│   │           │   ├── urls.py
+│   │           │   └── views.py
+│   │           ├── db.sqlite3
+│   │           ├── manage.py
+│   │           ├── p
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── settings.cpython-312.pyc
+│   │           │   │   ├── urls.cpython-312.pyc
+│   │           │   │   └── wsgi.cpython-312.pyc
+│   │           │   ├── asgi.py
+│   │           │   ├── settings.py
+│   │           │   ├── urls.py
+│   │           │   └── wsgi.py
+│   │           ├── shared_models
+│   │           │   ├── __init__.py
+│   │           │   ├── __pycache__
+│   │           │   │   ├── __init__.cpython-312.pyc
+│   │           │   │   ├── admin.cpython-312.pyc
+│   │           │   │   ├── apps.cpython-312.pyc
+│   │           │   │   ├── models.cpython-312.pyc
+│   │           │   │   └── views.cpython-312.pyc
+│   │           │   ├── admin.py
+│   │           │   ├── apps.py
+│   │           │   ├── migrations
+│   │           │   │   ├── 0001_initial.py
+│   │           │   │   ├── __init__.py
+│   │           │   │   └── __pycache__
+│   │           │   │       ├── 0001_initial.cpython-312.pyc
+│   │           │   │       └── __init__.cpython-312.pyc
+│   │           │   ├── models.py
+│   │           │   ├── tests.py
+│   │           │   └── views.py
+│   │           └── workflow_engine
+│   │               ├── __init__.py
+│   │               ├── __pycache__
+│   │               │   ├── __init__.cpython-312.pyc
+│   │               │   ├── admin.cpython-312.pyc
+│   │               │   ├── apps.cpython-312.pyc
+│   │               │   ├── custom_code.cpython-312.pyc
+│   │               │   ├── models.cpython-312.pyc
+│   │               │   ├── urls.cpython-312.pyc
+│   │               │   └── views.cpython-312.pyc
+│   │               ├── admin.py
+│   │               ├── apps.py
+│   │               ├── custom_code.py
+│   │               ├── migrations
+│   │               │   ├── 0001_initial.py
+│   │               │   ├── 0002_populate_workflow_engine.py
+│   │               │   ├── __init__.py
+│   │               │   ├── __pycache__
+│   │               │   │   ├── 0001_initial.cpython-312.pyc
+│   │               │   │   ├── 0002_populate_workflow_engine.cpython-312.pyc
+│   │               │   │   └── __init__.cpython-312.pyc
+│   │               │   └── workflow_engine_data.json
+│   │               ├── models.py
+│   │               ├── tests.py
+│   │               ├── urls.py
+│   │               └── views.py
+│   ├── poetry.lock
+│   └── pyproject.toml
+├── pyrightconfig.json
+└── tree.txt
+
+238 directories, 647 files
