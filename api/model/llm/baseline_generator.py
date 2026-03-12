@@ -3,7 +3,7 @@ import json
 from .handler import call_openai
 
 
-# Clean activity graph schema (structure only) for the LLM.
+# Clean activity diagram schema (structure only) for the LLM.
 EMPTY_JSON_SCHEMA = {
     "nodes": [],
     "edges": [],
@@ -92,4 +92,3 @@ def export_activity_model(model: dict) -> None:
 
     with open("activity_model.json", "w", encoding="utf-8") as f:
         json.dump(model, f, indent=2, ensure_ascii=False)
-
