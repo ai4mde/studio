@@ -69,24 +69,24 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
             att_type = AttributeType.INTEGER
         elif attribute["type"] == "enum":
             att_type = AttributeType.ENUM
-        elif attribute["type"] == "date":
-            att_type = AttributeType.DATE
-        elif attribute["type"] == "datetime":
-            att_type = AttributeType.DATETIME
             if "enum" not in attribute:
                 enum_literals = []
             elif not attribute["enum"]:
                 enum_literals = []
             else:
                 enum_literals = get_enum_literals(metadata, attribute["enum"])
+        elif attribute["type"] == "date":
+            att_type = AttributeType.DATE
+        elif attribute["type"] == "datetime":
+            att_type = AttributeType.DATETIME
         
         att = Attribute(
             name = attribute_name_sanitization(attribute["name"]),
             type = att_type,
             enum_literals = enum_literals,
             cardinality = None,
-            derived = attribute["derived"],
-            body = attribute["body"]
+            derived = attribute.get("derived", False),
+            body = attribute.get("body")
         )
         out.append(att)
 
@@ -96,7 +96,7 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
 def retrieve_model_custom_methods(node: str) -> List[CustomMethod]:
     """Function that parses the custom methods of a class node from JSON to a Python objects"""
     out = []
-    for custom_method in node["cls"]["methods"]:
+    for custom_method in node["cls"].get("methods", []):
         mtd = CustomMethod(
             name = custom_method_name_sanitization(custom_method["name"]),
             body = custom_method["body"]
@@ -126,8 +126,8 @@ def retrieve_models(metadata: str) -> List[Model]:
                         custom_methods = retrieve_model_custom_methods(node)
                     )
                     out.append(cls)
-    except:
-        raise Exception("Failed to retrieve models from metadata: parsing error")
+    except Exception as e:
+        raise Exception(f"Failed to retrieve models from metadata: {e}")
     
     return out
 

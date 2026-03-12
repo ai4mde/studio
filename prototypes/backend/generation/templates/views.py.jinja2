@@ -141,6 +141,7 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
 
 {# List views #}
 {% for page in pages %}
+{% if models_on_pages[page]['primary_models'] %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
@@ -176,6 +177,13 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return context
 
     {% endif -%}
+{% else %}
+class {{ application_name }}_{{ page }}_ListView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    template_name='{{ application_name }}_{{ page }}.html'
+{% endif %}
 {% endfor -%}
 
 

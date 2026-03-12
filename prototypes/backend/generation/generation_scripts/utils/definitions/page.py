@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional
 from utils.definitions.category import Category
 from utils.definitions.section_component import SectionComponent
-from utils.sanitization import page_name_sanitization, category_name_sanitization
+from utils.sanitization import page_name_sanitization, category_name_sanitization, app_name_sanitization
 
 class Page():
     '''Definition of a Page object. A Page object maps to a HTML template
@@ -19,7 +19,7 @@ class Page():
         self.name = page_name_sanitization(name)
         self.display_name = name
         self.id = id
-        self.application = application
+        self.application = app_name_sanitization(application)
         self.category = category_name_sanitization(category)
         self.activity_name = activity_name
         self.type = type

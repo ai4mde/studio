@@ -215,6 +215,10 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     if not section:
                         continue
 
+                    # Skip sections with no class (dashboard/activity pages)
+                    if not section.get("class"):
+                        continue
+
                     sec = SectionComponent(
                         id = section["id"],
                         name = section["name"],
@@ -286,13 +290,31 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 category = None
                 if page["category"] != None:
                     category = page["category"]["value"]["name"]
+                # Handle action field: can be dict {"label": ..., "value": ...} or plain string UUID
+                action_raw = page.get('action')
+                if isinstance(action_raw, dict):
+                    activity_name_val = action_raw.get('label')
+                elif isinstance(action_raw, str):
+                    activity_name_val = action_raw  # UUID string fallback
+                else:
+                    activity_name_val = None
+                
+                # Handle type field: can be dict {"label": ..., "value": ...} or plain string
+                type_raw = page.get('type')
+                if isinstance(type_raw, dict):
+                    type_val = type_raw.get('value', 'normal')
+                elif isinstance(type_raw, str):
+                    type_val = type_raw
+                else:
+                    type_val = 'normal'
+                
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
                     application = application_component["label"],
                     category = category,
-                    activity_name = page['action']['label'] if page.get('action') else None,
-                    type = page["type"]['value'] if page.get('type') else 'normal',
+                    activity_name = activity_name_val,
+                    type = type_val,
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
                 )
                 out.append(pg)
@@ -311,9 +333,11 @@ def retrieve_models_on_pages(application_component: ApplicationComponent) -> dic
         if page not in out:
             out[page] = {'primary_models': [], 'parent_models': []}
         for section_component in page.section_components:
-            out[page]['primary_models'].append(section_component.primary_model)
+            if section_component.primary_model is not None:
+                out[page]['primary_models'].append(section_component.primary_model)
             for parent_model in section_component.parent_models:
-                out[page]['parent_models'].append(parent_model)
+                if parent_model is not None:
+                    out[page]['parent_models'].append(parent_model)
     return out
 
 

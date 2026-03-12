@@ -1,7 +1,8 @@
 from typing import List, Optional, Dict, Any
 
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
-from metadata.models import System, Interface, Classifier
+from metadata.models import System, Interface, Classifier, Relation
+from diagram.models import Node
 from django.http import HttpRequest
 from metadata.api.views.defaulting import create_default_interface
 from llm.handler import llm_handler
@@ -10,6 +11,7 @@ from metadata.api.views.preview_generator import generate_preview_html
 from ninja import Router, Schema
 from ninja.errors import HttpError
 import json
+import re
 
 interfaces = Router()
 
@@ -174,12 +176,13 @@ def generate_pages(request, interface_id, body: GeneratePagesRequest):
     return interface
 
 
-def _get_system_metadata(system: System):
-    """Extract classes, use cases, and activities from system."""
-    # Classes
+def _get_system_metadata_full(system: System, actor_name: str = None):
+    """Extract classes, use cases, activities, and relationships from system (unfiltered)."""
+    # ── Classes ──
     classes = list(system.classifiers.filter(data__type='class'))
     classes_str = ""
     classifier_data = []
+    class_id_to_name = {}  # UUID -> name lookup
     for cls in classes:
         name = cls.data.get('name', 'Unknown')
         attrs = cls.data.get('attributes', [])
@@ -189,24 +192,268 @@ def _get_system_metadata(system: System):
             'id': str(cls.id),
             'data': cls.data,
         })
+        class_id_to_name[str(cls.id)] = name
     
-    # Use cases
+    # ── Class Relationships (composition/association/multiplicity) ──
+    relations = list(system.relations.filter(
+        data__type__in=['composition', 'association', 'generalization']
+    ).select_related('source', 'target'))
+    
+    relationships_str = ""
+    composition_groups = {}  # parent_class -> [child_classes]
+    for rel in relations:
+        source_name = rel.source.data.get('name', '?')
+        target_name = rel.target.data.get('name', '?')
+        rel_type = rel.data.get('type', 'association')
+        mult = rel.data.get('multiplicity', {})
+        src_mult = mult.get('source', '*') if mult else '*'
+        tgt_mult = mult.get('target', '*') if mult else '*'
+        
+        relationships_str += f"- {source_name} --[{rel_type}]--> {target_name} ({src_mult}..{tgt_mult})\n"
+        
+        # Track composition groups for OOUI page grouping
+        if rel_type == 'composition':
+            parent = source_name
+            child = target_name
+            if parent not in composition_groups:
+                composition_groups[parent] = []
+            composition_groups[parent].append(child)
+    
+    if not relationships_str:
+        relationships_str = "No relationships defined."
+    
+    # ── Use Cases (full content, not just names) ──
+    actors = list(system.classifiers.filter(data__type='actor'))
     use_cases = list(system.classifiers.filter(data__type='usecase'))
-    usecases_str = ""
-    for uc in use_cases:
-        name = uc.data.get('name', 'Unknown')
-        usecases_str += f"- {name}\n"
     
-    # Activities (from activity diagrams if available)
-    activities_str = "No activity workflows defined."
-    # TODO: Extract activity model data when available
+    # Build actor->usecase links from relations
+    uc_relations = list(system.relations.filter(data__type='interaction'))
+    actor_usecases = {}  # actor_name -> [usecase_names]
+    for rel in uc_relations:
+        src_name = rel.source.data.get('name', '')
+        tgt_name = rel.target.data.get('name', '')
+        src_type = rel.source.data.get('type', '')
+        tgt_type = rel.target.data.get('type', '')
+        
+        if src_type == 'actor' and tgt_type == 'usecase':
+            actor_usecases.setdefault(src_name, []).append(tgt_name)
+        elif tgt_type == 'actor' and src_type == 'usecase':
+            actor_usecases.setdefault(tgt_name, []).append(src_name)
+    
+    usecases_str = ""
+    # If actor_name is provided, only show that actor's use cases
+    actors_to_show = actors
+    if actor_name:
+        actors_to_show = [a for a in actors if a.data.get('name', '') == actor_name]
+    
+    for actor in actors_to_show:
+        a_name = actor.data.get('name', 'Unknown')
+        actor_ucs = actor_usecases.get(a_name, [])
+        if actor_ucs:
+            usecases_str += f"Actor '{a_name}' can:\n"
+            for uc_name in actor_ucs:
+                # Find full use case data
+                uc_data = next((uc.data for uc in use_cases if uc.data.get('name') == uc_name), {})
+                precondition = uc_data.get('precondition', '')
+                postcondition = uc_data.get('postcondition', '')
+                usecases_str += f"  - {uc_name}"
+                if precondition:
+                    usecases_str += f" [pre: {precondition}]"
+                if postcondition:
+                    usecases_str += f" [post: {postcondition}]"
+                usecases_str += "\n"
+        else:
+            usecases_str += f"Actor '{a_name}' (no use cases linked)\n"
+    
+    if not actor_name:
+        # Also list unlinked use cases when showing all actors
+        linked_ucs = set(uc for ucs in actor_usecases.values() for uc in ucs)
+        for uc in use_cases:
+            uc_name = uc.data.get('name', '')
+            if uc_name not in linked_ucs:
+                usecases_str += f"  - {uc_name} (not linked to an actor)\n"
+    
+    # ── Activity Diagrams (swimlanes, UI tasks, automatic tasks) ──
+    swimlanes = list(system.classifiers.filter(data__type='swimlane'))
+    actions = list(system.classifiers.filter(data__type='action'))
+    
+    activities_str = ""
+    
+    # Map swimlane actor names
+    swimlane_info = {}
+    for sw in swimlanes:
+        sw_name = sw.data.get('name', '')
+        sw_actor = sw.data.get('actorNodeName', '') or sw.data.get('name', '')
+        swimlane_info[str(sw.id)] = sw_actor
+        swimlane_info[sw_name] = sw_actor
+    
+    # Activity action data for prompt and page generation
+    activity_actions = []  # for returning to caller
+    
+    ui_tasks = []
+    auto_tasks = []
+    for action in actions:
+        action_name = action.data.get('name', 'Unknown')
+        is_automatic = action.data.get('isAutomatic', False)
+        action_actor = action.data.get('actorNodeName', '')
+        
+        # Resolve actorNodeName from actorNode if missing
+        if not action_actor and action.data.get('actorNode'):
+            try:
+                node = Node.objects.get(id=action.data['actorNode'])
+                action_actor = node.cls.data.get('name', '') if node.cls else ''
+            except Node.DoesNotExist:
+                action_actor = ''
+        
+        # If filtering by actor, skip actions not belonging to this actor
+        if actor_name and action_actor and action_actor != actor_name:
+            continue
+        
+        # Get input/output classes
+        action_classes = action.data.get('classes', {})
+        input_classes = action_classes.get('input', []) if isinstance(action_classes, dict) else []
+        output_classes = action_classes.get('output', []) if isinstance(action_classes, dict) else []
+        
+        # Resolve class names from UUIDs
+        input_names = [class_id_to_name.get(cid, cid) for cid in input_classes]
+        output_names = [class_id_to_name.get(cid, cid) for cid in output_classes]
+        
+        action_info = {
+            'id': str(action.id),
+            'name': action_name,
+            'actor': action_actor,
+            'is_automatic': is_automatic,
+            'input_classes': input_names,
+            'output_classes': output_names,
+        }
+        activity_actions.append(action_info)
+        
+        if is_automatic:
+            auto_tasks.append(f"  - [AUTO] {action_name} (actor: {action_actor}, uses: {', '.join(input_names + output_names) or 'none'})")
+        else:
+            ui_tasks.append(f"  - [UI] {action_name} (actor: {action_actor}, uses: {', '.join(input_names + output_names) or 'none'})")
+    
+    if ui_tasks or auto_tasks:
+        activities_str = "UI Tasks (require interface pages):\n"
+        activities_str += '\n'.join(ui_tasks) if ui_tasks else "  (none)\n"
+        activities_str += "\nAutomatic Tasks (no interface needed):\n"
+        activities_str += '\n'.join(auto_tasks) if auto_tasks else "  (none)\n"
+    else:
+        activities_str = "No activity workflows defined."
     
     return {
         "classes_str": classes_str or "No classes defined.",
+        "relationships_str": relationships_str,
         "usecases_str": usecases_str or "No use cases defined.",
         "activities_str": activities_str,
         "classifier_data": classifier_data,
+        "composition_groups": composition_groups,
+        "activity_actions": activity_actions,
+        "relevant_class_ids": None,  # will be set below if actor filtering
     }
+
+
+def _get_system_metadata(system: System, actor_name: str = None):
+    """Extract classes, use cases, activities, and relationships from system.
+    If actor_name is provided, filter use cases and activities to only those relevant to that actor."""
+    result = _get_system_metadata_full(system, actor_name)
+    
+    if not actor_name:
+        return result  # no filtering needed
+    
+    # ── Compute relevant classes for this actor ──
+    relevant_class_names = set()
+    class_name_to_id = {}
+    class_id_to_name = {}
+    for cls in result["classifier_data"]:
+        name = cls['data'].get('name', '')
+        cid = cls['id']
+        class_name_to_id[name] = cid
+        class_name_to_id[name.lower()] = cid
+        class_id_to_name[cid] = name
+    
+    # 1. From activity actions: input/output classes
+    for action in result["activity_actions"]:
+        for cls_name in action.get('input_classes', []) + action.get('output_classes', []):
+            relevant_class_names.add(cls_name)
+    
+    # 2. From use cases: match use case names to class names (like defaulting.py)
+    # Pre-compute actor's use cases from interaction relations
+    actor_ucs = set()
+    for rel in system.relations.filter(data__type='interaction').select_related('source', 'target'):
+        src = rel.source.data
+        tgt = rel.target.data
+        if src.get('type') == 'actor' and src.get('name') == actor_name:
+            actor_ucs.add(tgt.get('name', '').lower())
+        elif tgt.get('type') == 'actor' and tgt.get('name') == actor_name:
+            actor_ucs.add(src.get('name', '').lower())
+    
+    for uc in system.classifiers.filter(data__type='usecase'):
+        uc_name = uc.data.get('name', '').lower()
+        if uc_name in actor_ucs:
+            uc_words = set(uc_name.split())
+            # Match class by splitting CamelCase into words
+            for cls in result["classifier_data"]:
+                cls_name = cls['data'].get('name', '')
+                cls_words = {w.lower() for w in re.findall(r'[A-Z][a-z]*|[a-z]+', cls_name) if len(w) > 2}
+                if cls_words & uc_words:
+                    relevant_class_names.add(cls_name)
+    
+    # 3. Expand with composition and association-connected classes
+    # Build association groups alongside composition
+    association_groups = {}  # class_name -> [connected_class_names]
+    for rel in system.relations.filter(
+        data__type__in=['composition', 'association']
+    ).select_related('source', 'target'):
+        src_name = rel.source.data.get('name', '')
+        tgt_name = rel.target.data.get('name', '')
+        rel_type = rel.data.get('type', '')
+        if rel_type == 'association':
+            association_groups.setdefault(src_name, []).append(tgt_name)
+            association_groups.setdefault(tgt_name, []).append(src_name)
+    
+    composition = result["composition_groups"]
+    changed = True
+    while changed:
+        changed = False
+        for parent, children in composition.items():
+            if parent in relevant_class_names:
+                for child in children:
+                    if child not in relevant_class_names:
+                        relevant_class_names.add(child)
+                        changed = True
+            for child in children:
+                if child in relevant_class_names and parent not in relevant_class_names:
+                    relevant_class_names.add(parent)
+                    changed = True
+        # Also expand via associations
+        for cls_name, connected in association_groups.items():
+            if cls_name in relevant_class_names:
+                for c in connected:
+                    if c not in relevant_class_names:
+                        relevant_class_names.add(c)
+                        changed = True
+    
+    # If no relevant classes found (e.g. no use cases/activities reference classes), keep all
+    if not relevant_class_names:
+        return result
+    
+    # Filter classifier_data and rebuild classes_str
+    filtered_classifiers = []
+    filtered_classes_str = ""
+    for cls in result["classifier_data"]:
+        name = cls['data'].get('name', '')
+        if name in relevant_class_names:
+            filtered_classifiers.append(cls)
+            attrs = cls['data'].get('attributes', [])
+            attr_names = [a['name'] for a in attrs]
+            filtered_classes_str += f"- {name}: [{', '.join(attr_names)}]\n"
+    
+    result["classifier_data"] = filtered_classifiers
+    result["classes_str"] = filtered_classes_str or "No classes defined."
+    result["relevant_class_ids"] = {class_name_to_id.get(n) for n in relevant_class_names if class_name_to_id.get(n)}
+    
+    return result
 
 
 @interfaces.post("/{uuid:interface_id}/generate_candidates/")
@@ -220,7 +467,12 @@ def generate_candidates(request, interface_id, body: GenerateCandidatesRequest):
     interface = Interface.objects.get(id=interface_id)
     system = interface.system
     
-    metadata = _get_system_metadata(system)
+    # Get actor name to filter activities/use cases for this interface
+    iface_actor_name = None
+    if interface.actor:
+        iface_actor_name = interface.actor.data.get('name')
+    
+    metadata = _get_system_metadata(system, actor_name=iface_actor_name)
     
     if not metadata["classifier_data"]:
         raise HttpError(400, "No classes found in system. Create classes first.")
@@ -232,6 +484,7 @@ def generate_candidates(request, interface_id, body: GenerateCandidatesRequest):
             body.model,
             input_data={
                 "classes": metadata["classes_str"],
+                "relationships": metadata["relationships_str"],
                 "use_cases": metadata["usecases_str"],
                 "activities": metadata["activities_str"],
                 "requirements": body.requirements or "Generate a standard CRUD interface for all classes.",
@@ -248,8 +501,13 @@ def generate_candidates(request, interface_id, body: GenerateCandidatesRequest):
     print(response)
     print("=" * 50)
     
-    # Parse candidates
-    candidates = parse_interface_candidates(response, metadata["classifier_data"])
+    # Parse candidates with extra context for OOUI grouping and activity pages
+    candidates = parse_interface_candidates(
+        response, 
+        metadata["classifier_data"],
+        composition_groups=metadata.get("composition_groups", {}),
+        activity_actions=metadata.get("activity_actions", []),
+    )
     
     if not candidates:
         raise HttpError(422, "Failed to parse any UI candidates from LLM response")
@@ -347,7 +605,38 @@ def refine_interface(request, interface_id, body: RefineInterfaceRequest):
         raise HttpError(400, "Maximum 3 refinements reached. Please edit the code manually for further changes.")
     
     # Get classifier data for validation
-    metadata = _get_system_metadata(system)
+    iface_actor_name = None
+    if interface.actor:
+        iface_actor_name = interface.actor.data.get('name')
+    metadata = _get_system_metadata(system, actor_name=iface_actor_name)
+    
+    # Build a human-readable summary of current state for LLM
+    current_data = interface.data
+    
+    # Extract current styling
+    current_styling = json.dumps(current_data.get('styling', {}), indent=2)
+    
+    # Extract current pages as readable summary
+    current_pages_list = []
+    for section in current_data.get('sections', []):
+        model_name = section.get('model_name', '')
+        page_name = section.get('name', '')
+        ops = section.get('operations', {})
+        attrs = [a['name'] for a in section.get('attributes', [])]
+        if model_name:  # Model-bound pages
+            current_pages_list.append(
+                f"- {page_name} (model: {model_name}, ops: {ops}, attrs: {attrs})"
+            )
+    current_pages_str = '\n'.join(current_pages_list) if current_pages_list else 'Default CRUD for all models'
+    
+    # Extract additional pages
+    additional_pages_list = []
+    for section in current_data.get('sections', []):
+        if not section.get('model_name') and section.get('page_type'):
+            additional_pages_list.append(
+                f"- {section.get('name', '')} (type: {section.get('page_type', 'custom')})"
+            )
+    additional_pages_str = '\n'.join(additional_pages_list) if additional_pages_list else 'None'
     
     # Call LLM for refinement
     try:
@@ -355,7 +644,10 @@ def refine_interface(request, interface_id, body: RefineInterfaceRequest):
             "PROSE_REFINE_INTERFACE",
             body.model,
             input_data={
-                "current_interface": json.dumps(interface.data, indent=2),
+                "classes": metadata["classes_str"],
+                "current_styling": current_styling,
+                "current_pages": current_pages_str,
+                "current_additional_pages": additional_pages_str,
                 "refinement_prompt": body.refinement_prompt,
             },
         )
@@ -371,13 +663,45 @@ def refine_interface(request, interface_id, body: RefineInterfaceRequest):
     print("=" * 50)
     
     # Parse refined interface
-    refined_data = parse_refined_interface(response, metadata["classifier_data"])
+    refined_data = parse_refined_interface(
+        response, 
+        metadata["classifier_data"],
+        composition_groups=metadata.get("composition_groups", {}),
+        activity_actions=metadata.get("activity_actions", []),
+    )
     
     if not refined_data:
-        raise HttpError(422, "Failed to parse refined interface from LLM response")
+        # Retry once - LLM responses can be inconsistent
+        print("[refine] First parse failed, retrying LLM call...")
+        try:
+            response = llm_handler(
+                "PROSE_REFINE_INTERFACE",
+                body.model,
+                input_data={
+                    "classes": metadata["classes_str"],
+                    "current_styling": current_styling,
+                    "current_pages": current_pages_str,
+                    "current_additional_pages": additional_pages_str,
+                    "refinement_prompt": body.refinement_prompt,
+                },
+            )
+            refined_data = parse_refined_interface(
+                response, 
+                metadata["classifier_data"],
+                composition_groups=metadata.get("composition_groups", {}),
+                activity_actions=metadata.get("activity_actions", []),
+            )
+        except Exception:
+            pass
+    
+    if not refined_data:
+        raise HttpError(422, "Failed to parse refined interface from LLM response. Try again or rephrase your request.")
     
     # Update refinement counter
     refined_data["_refinement_count"] = refinement_count + 1
+    
+    # Preserve HTML preview capability
+    refined_data["_last_refinement"] = body.refinement_prompt
     
     # Save
     interface.data = refined_data
