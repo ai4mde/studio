@@ -2,8 +2,8 @@ import os
 from typing import Dict, Any
 from groq import Groq
 from openai import OpenAI
-from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
-from llm.prompts.prose import PROSE_GENERATE_METADATA
+from .prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
+from .prompts.prose import PROSE_GENERATE_METADATA
 
 
 def remove_reply_markdown(reply: str) -> str:
