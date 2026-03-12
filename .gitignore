@@ -4,3 +4,4 @@
 venv/
 env/
 ENV/
+.DS_Store
