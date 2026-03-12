@@ -334,7 +334,7 @@ def _lighten(color: str) -> str:
         g = min(255, int(color[3:5], 16) + 40)
         b = min(255, int(color[5:7], 16) + 40)
         return f"#{r:02x}{g:02x}{b:02x}"
-    except:
+    except (ValueError, TypeError):
         return '#f0f0f0'
 
 
