@@ -105,120 +105,104 @@ def parse_pages_response(response: str, classifiers: list):
         return None
 
     pages_csv = tables[0].strip()
-    
-    # Check if header row exists, if not add it
     lines = pages_csv.split('\n')
     if lines and 'page_name' not in lines[0].lower():
-        # No header detected, add one
         pages_csv = '"page_name","category","class_name","operations","attributes"\n' + pages_csv
-    
-    reader = csv.DictReader(StringIO(pages_csv))
 
+    reader = csv.DictReader(StringIO(pages_csv))
     sections = []
     pages = []
     categories_seen = {}
 
-    # Build lookup: class name -> classifier (both exact and lowercase)
     class_lookup = {}
     for cls in classifiers:
         name = cls.get('data', {}).get('name', '')
         if name:
-            class_lookup[name] = cls  # Exact match
-            class_lookup[name.lower()] = cls  # Lowercase match
+            class_lookup[name] = cls
+            class_lookup[name.lower()] = cls
+
+    def parse_row(row, class_lookup, categories_seen):
+        page_name = row.get('page_name', '').strip().strip('"')
+        category_name = row.get('category', '').strip().strip('"')
+        class_name = row.get('class_name', '').strip().strip('"')
+        ops_str = row.get('operations', '[]').strip().strip('"').strip('[]')
+        attrs_str = row.get('attributes', '[]').strip().strip('"').strip('[]')
+        if not page_name or not class_name:
+            return None, None, None
+        cls = class_lookup.get(class_name) or class_lookup.get(class_name.lower())
+        if not cls:
+            print(f"[parse_pages] Warning: class '{class_name}' not found in classifiers")
+            return None, None, None
+        class_id = str(cls['id'])
+        ops_list = [op.strip().lower() for op in ops_str.split(',') if op.strip()]
+        operations = {
+            "create": "create" in ops_list,
+            "update": "update" in ops_list,
+            "delete": "delete" in ops_list,
+        }
+        attrs_list = [a.strip() for a in attrs_str.split(',') if a.strip()]
+        attributes = []
+        if cls and 'attributes' in cls.get('data', {}):
+            for attr in cls['data']['attributes']:
+                if attr['name'] in attrs_list:
+                    attributes.append({
+                        "name": attr['name'],
+                        "type": attr.get('type', 'str'),
+                        "derived": attr.get('derived', False),
+                        "enum": attr.get('enum'),
+                        "body": attr.get('body'),
+                        "description": attr.get('description'),
+                    })
+        section_id = str(uuid4())
+        section = {
+            "id": section_id,
+            "name": page_name,
+            "text": "",
+            "class": class_id,
+            "model_name": class_name,
+            "attributes": attributes,
+            "operations": operations,
+        }
+        if category_name and category_name not in categories_seen:
+            cat_id = str(uuid4())
+            categories_seen[category_name] = {
+                "id": cat_id,
+                "name": category_name,
+            }
+        page_id = str(uuid4())
+        page = {
+            "id": page_id,
+            "name": page_name,
+            "type": {"label": "Normal", "value": "normal"},
+            "action": None,
+            "category": {
+                "label": category_name,
+                "value": {
+                    "id": categories_seen.get(category_name, {}).get("id", str(uuid4())),
+                    "name": category_name,
+                }
+            },
+            "sections": [
+                {
+                    "label": page_name,
+                    "value": section_id,
+                }
+            ],
+        }
+        return section, page, class_name
 
     for row in reader:
         try:
-            page_name = row.get('page_name', '').strip().strip('"')
-            category_name = row.get('category', '').strip().strip('"')
-            class_name = row.get('class_name', '').strip().strip('"')
-            ops_str = row.get('operations', '[]').strip().strip('"').strip('[]')
-            attrs_str = row.get('attributes', '[]').strip().strip('"').strip('[]')
-            
-            # Skip empty rows
-            if not page_name or not class_name:
-                continue
-
-            # Find the matching class (try exact, then lowercase)
-            cls = class_lookup.get(class_name) or class_lookup.get(class_name.lower())
-            if not cls:
-                print(f"[parse_pages] Warning: class '{class_name}' not found in classifiers")
-                continue
-            class_id = str(cls['id'])
-
-            # Parse operations
-            ops_list = [op.strip().lower() for op in ops_str.split(',') if op.strip()]
-            operations = {
-                "create": "create" in ops_list,
-                "update": "update" in ops_list,
-                "delete": "delete" in ops_list,
-            }
-
-            # Parse attributes
-            attrs_list = [a.strip() for a in attrs_str.split(',') if a.strip()]
-            attributes = []
-            if cls and 'attributes' in cls.get('data', {}):
-                for attr in cls['data']['attributes']:
-                    if attr['name'] in attrs_list:
-                        attributes.append({
-                            "name": attr['name'],
-                            "type": attr.get('type', 'str'),
-                            "derived": attr.get('derived', False),
-                            "enum": attr.get('enum'),
-                            "body": attr.get('body'),
-                            "description": attr.get('description'),
-                        })
-
-            # Create section (OOUI: binds to a Class)
-            section_id = str(uuid4())
-            section = {
-                "id": section_id,
-                "name": page_name,
-                "text": "",
-                "class": class_id,
-                "model_name": class_name,
-                "attributes": attributes,
-                "operations": operations,
-            }
-            sections.append(section)
-
-            # Handle category
-            if category_name and category_name not in categories_seen:
-                cat_id = str(uuid4())
-                categories_seen[category_name] = {
-                    "id": cat_id,
-                    "name": category_name,
-                }
-
-            # Create page
-            page_id = str(uuid4())
-            page = {
-                "id": page_id,
-                "name": page_name,
-                "type": {"label": "Normal", "value": "normal"},
-                "action": None,
-                "category": {
-                    "label": category_name,
-                    "value": {
-                        "id": categories_seen.get(category_name, {}).get("id", str(uuid4())),
-                        "name": category_name,
-                    }
-                },
-                "sections": [
-                    {
-                        "label": page_name,
-                        "value": section_id,
-                    }
-                ],
-            }
-            pages.append(page)
-            print(f"[parse_pages] Parsed: {page_name} -> {class_name}")
-
+            section, page, class_name = parse_row(row, class_lookup, categories_seen)
+            if section and page:
+                sections.append(section)
+                pages.append(page)
+                print(f"[parse_pages] Parsed: {section['name']} -> {class_name}")
         except Exception as e:
             print(f"[parse_pages] Error parsing row: {e}")
             pass
 
     print(f"[parse_pages] Total parsed: {len(sections)} sections, {len(pages)} pages")
-    # Default styling
     styling = {
         "radius": 0,
         "textColor": "#000000",
@@ -226,7 +210,6 @@ def parse_pages_response(response: str, classifiers: list):
         "selectedStyle": "modern",
         "backgroundColor": "#FFFFFF",
     }
-
     return {
         "sections": sections,
         "pages": pages,

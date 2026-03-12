@@ -13,8 +13,10 @@ from ninja.errors import HttpError
 import json
 import re
 
-# Constant for repeated error message
+
+# Constants
 LLM_EMPTY_RESPONSE_MSG = "LLM returned empty response"
+LLM_MODEL_NAME = "llama-3.3-70b-versatile"
 
 interfaces = Router()
 
@@ -24,13 +26,13 @@ _candidates_cache: Dict[str, List[Dict]] = {}
 
 class GeneratePagesRequest(Schema):
     requirements: str
-    model: str = "llama-3.3-70b-versatile"
+    model: str = LLM_MODEL_NAME
 
 
 class GenerateCandidatesRequest(Schema):
     """Request for AI-driven multi-candidate UI generation."""
     requirements: str = ""
-    model: str = "llama-3.3-70b-versatile"
+    model: str = LLM_MODEL_NAME
 
 
 class SelectCandidateRequest(Schema):
@@ -41,7 +43,7 @@ class SelectCandidateRequest(Schema):
 class RefineInterfaceRequest(Schema):
     """Human-in-the-loop refinement request."""
     refinement_prompt: str
-    model: str = "llama-3.3-70b-versatile"
+    model: str = LLM_MODEL_NAME
 
 
 @interfaces.get("/", response=List[ReadInterface])
@@ -346,9 +348,180 @@ def _get_system_metadata_full(system: System, actor_name: str = None):
         "activity_actions": activity_actions,
         "relevant_class_ids": None,
     }
+# Helper functions for system metadata parsing
+def parse_classes(classes):
+    classes_str = ""
+    classifier_data = []
+    class_id_to_name = {}
+    for cls in classes:
+        name = cls.data.get('name', 'Unknown')
+        attrs = cls.data.get('attributes', [])
+        attr_details = []
+        for a in attrs:
+            attr_type = a.get('type', 'str')
+            attr_name = a['name']
+            is_derived = a.get('derived', False)
+            if is_derived:
+                attr_details.append(f"{attr_name}(derived:{attr_type})")
+            else:
+                attr_details.append(f"{attr_name}:{attr_type}")
+        classes_str += f"- {name}: [{', '.join(attr_details)}]\n"
+        classifier_data.append({'id': str(cls.id), 'data': cls.data})
+        class_id_to_name[str(cls.id)] = name
+    return classes_str, classifier_data, class_id_to_name
+
+def parse_relationships(relations):
+    relationships_str = ""
+    composition_groups = {}
+    for rel in relations:
+        source_name = rel.source.data.get('name', '?')
+        target_name = rel.target.data.get('name', '?')
+        rel_type = rel.data.get('type', 'association')
+        mult = rel.data.get('multiplicity', {})
+        src_mult = mult.get('source', '*') if mult else '*'
+        tgt_mult = mult.get('target', '*') if mult else '*'
+        relationships_str += f"- {source_name} --[{rel_type}]--> {target_name} ({src_mult}..{tgt_mult})\n"
+        if rel_type == 'composition':
+            parent = source_name
+            child = target_name
+            if parent not in composition_groups:
+                composition_groups[parent] = []
+            composition_groups[parent].append(child)
+    if not relationships_str:
+        relationships_str = "No relationships defined."
+    return relationships_str, composition_groups
+
+def parse_usecases(actors, use_cases, uc_relations, actor_name):
+    actor_usecases = {}
+    for rel in uc_relations:
+        src_name = rel.source.data.get('name', '')
+        tgt_name = rel.target.data.get('name', '')
+        src_type = rel.source.data.get('type', '')
+        tgt_type = rel.target.data.get('type', '')
+        if src_type == 'actor' and tgt_type == 'usecase':
+            actor_usecases.setdefault(src_name, []).append(tgt_name)
+        elif tgt_type == 'actor' and src_type == 'usecase':
+            actor_usecases.setdefault(tgt_name, []).append(src_name)
+    usecases_str = ""
+    if actor_name:
+        actors_to_show = [a for a in actors if a.data.get('name', '') == actor_name]
+        other_actors = [a for a in actors if a.data.get('name', '') != actor_name]
+    else:
+        actors_to_show = actors
+        other_actors = []
+    for actor in actors_to_show:
+        a_name = actor.data.get('name', 'Unknown')
+        actor_ucs = actor_usecases.get(a_name, [])
+        if actor_ucs:
+            usecases_str += f"THIS ACTOR '{a_name}' can perform:\n"
+            for uc_name in actor_ucs:
+                uc_data = next((uc.data for uc in use_cases if uc.data.get('name') == uc_name), {})
+                precondition = uc_data.get('precondition', '')
+                postcondition = uc_data.get('postcondition', '')
+                usecases_str += f"  → {uc_name}"
+                if precondition:
+                    usecases_str += f" [pre: {precondition}]"
+                if postcondition:
+                    usecases_str += f" [post: {postcondition}]"
+                usecases_str += "\n"
+        else:
+            usecases_str += f"THIS ACTOR '{a_name}' (no use cases linked)\n"
+    if other_actors:
+        usecases_str += "\nOTHER ACTORS (for context - attributes owned by these actors should be readonly or hidden):\n"
+        for actor in other_actors:
+            a_name = actor.data.get('name', 'Unknown')
+            actor_ucs = actor_usecases.get(a_name, [])
+            if actor_ucs:
+                usecases_str += f"  {a_name}: {', '.join(actor_ucs)}\n"
+    if not actor_name:
+        linked_ucs = set(uc for ucs in actor_usecases.values() for uc in ucs)
+        for uc in use_cases:
+            uc_name = uc.data.get('name', '')
+            if uc_name not in linked_ucs:
+                usecases_str += f"  - {uc_name} (not linked to an actor)\n"
+    return usecases_str
+
+def parse_activities(swimlanes, actions, actor_name, class_id_to_name):
+    swimlane_info = {}
+    for sw in swimlanes:
+        sw_name = sw.data.get('name', '')
+        sw_actor = sw.data.get('actorNodeName', '') or sw.data.get('name', '')
+        swimlane_info[str(sw.id)] = sw_actor
+        swimlane_info[sw_name] = sw_actor
+
+    def process_action(action, actor_name, class_id_to_name):
+        action_name = action.data.get('name', 'Unknown')
+        is_automatic = action.data.get('isAutomatic', False)
+        action_actor = action.data.get('actorNodeName', '')
+        if not action_actor and action.data.get('actorNode'):
+            try:
+                node = Node.objects.get(id=action.data['actorNode'])
+                action_actor = node.cls.data.get('name', '') if node.cls else ''
+            except Node.DoesNotExist:
+                action_actor = ''
+        if actor_name and action_actor and action_actor != actor_name:
+            return None, None
+        action_classes = action.data.get('classes', {})
+        input_classes = action_classes.get('input', []) if isinstance(action_classes, dict) else []
+        output_classes = action_classes.get('output', []) if isinstance(action_classes, dict) else []
+        input_names = [class_id_to_name.get(cid, cid) for cid in input_classes]
+        output_names = [class_id_to_name.get(cid, cid) for cid in output_classes]
+        action_info = {
+            'id': str(action.id),
+            'name': action_name,
+            'actor': action_actor,
+            'is_automatic': is_automatic,
+            'input_classes': input_names,
+            'output_classes': output_names,
+        }
+        task_str = f"  - [{'AUTO' if is_automatic else 'UI'}] {action_name} (actor: {action_actor}, uses: {', '.join(input_names + output_names) or 'none'})"
+        return action_info, task_str
+
+    activity_actions = []
+    ui_tasks = []
+    auto_tasks = []
+    for action in actions:
+        action_info, task_str = process_action(action, actor_name, class_id_to_name)
+        if action_info is None:
+            continue
+        activity_actions.append(action_info)
+        if action_info['is_automatic']:
+            auto_tasks.append(task_str)
+        else:
+            ui_tasks.append(task_str)
+
+    if ui_tasks or auto_tasks:
+        activities_str = "UI Tasks (require interface pages):\n"
+        activities_str += '\n'.join(ui_tasks) if ui_tasks else "  (none)\n"
+        activities_str += "\nAutomatic Tasks (no interface needed):\n"
+        activities_str += '\n'.join(auto_tasks) if auto_tasks else "  (none)\n"
+    else:
+        activities_str = "No activity workflows defined."
+    return activities_str, activity_actions
 
 
 def _get_system_metadata(system: System, actor_name: str = None):
+    def expand_relevant_classes(relevant_class_names, composition, association_groups):
+        changed = True
+        while changed:
+            changed = False
+            for parent, children in composition.items():
+                if parent in relevant_class_names:
+                    for child in children:
+                        if child not in relevant_class_names:
+                            relevant_class_names.add(child)
+                            changed = True
+                for child in children:
+                    if child in relevant_class_names and parent not in relevant_class_names:
+                        relevant_class_names.add(parent)
+                        changed = True
+            for cls_name, connected in association_groups.items():
+                if cls_name in relevant_class_names:
+                    for c in connected:
+                        if c not in relevant_class_names:
+                            relevant_class_names.add(c)
+                            changed = True
+        return relevant_class_names
     """Extract classes, use cases, activities, and relationships from system.
     If actor_name is provided, filter use cases and activities to only those relevant to that actor."""
     result = _get_system_metadata_full(system, actor_name)
@@ -395,44 +568,21 @@ def _get_system_metadata(system: System, actor_name: str = None):
                     relevant_class_names.add(cls_name)
     
     # 3. Expand with composition and association-connected classes
-    # Build association groups alongside composition
-    association_groups = {}  # class_name -> [connected_class_names]
-    for rel in system.relations.filter(
-        data__type__in=['composition', 'association']
-    ).select_related('source', 'target'):
+    association_groups = {}
+    for rel in system.relations.filter(data__type__in=['composition', 'association']).select_related('source', 'target'):
         src_name = rel.source.data.get('name', '')
         tgt_name = rel.target.data.get('name', '')
         rel_type = rel.data.get('type', '')
         if rel_type == 'association':
             association_groups.setdefault(src_name, []).append(tgt_name)
             association_groups.setdefault(tgt_name, []).append(src_name)
-    
     composition = result["composition_groups"]
-    changed = True
-    while changed:
-        changed = False
-        for parent, children in composition.items():
-            if parent in relevant_class_names:
-                for child in children:
-                    if child not in relevant_class_names:
-                        relevant_class_names.add(child)
-                        changed = True
-            for child in children:
-                if child in relevant_class_names and parent not in relevant_class_names:
-                    relevant_class_names.add(parent)
-                    changed = True
-        # Also expand via associations
-        for cls_name, connected in association_groups.items():
-            if cls_name in relevant_class_names:
-                for c in connected:
-                    if c not in relevant_class_names:
-                        relevant_class_names.add(c)
-                        changed = True
-    
+    relevant_class_names = expand_relevant_classes(relevant_class_names, composition, association_groups)
+
     # If no relevant classes found (e.g. no use cases/activities reference classes), keep all
     if not relevant_class_names:
         return result
-    
+
     # Filter classifier_data and rebuild classes_str
     filtered_classifiers = []
     filtered_classes_str = ""
@@ -443,11 +593,11 @@ def _get_system_metadata(system: System, actor_name: str = None):
             attrs = cls['data'].get('attributes', [])
             attr_names = [a['name'] for a in attrs]
             filtered_classes_str += f"- {name}: [{', '.join(attr_names)}]\n"
-    
+
     result["classifier_data"] = filtered_classifiers
     result["classes_str"] = filtered_classes_str or "No classes defined."
     result["relevant_class_ids"] = {class_name_to_id.get(n) for n in relevant_class_names if class_name_to_id.get(n)}
-    
+
     return result
 
 

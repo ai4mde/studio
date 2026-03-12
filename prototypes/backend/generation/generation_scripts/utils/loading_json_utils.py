@@ -10,6 +10,56 @@ from utils.definitions.settings import Settings
 import json
 from uuid import uuid4
 
+#  Helper for parsing attributes
+def parse_attributes(cls, metadata):
+    attributes = []
+    type_map = {
+        "str": AttributeType.STRING,
+        "int": AttributeType.INTEGER,
+        "bool": AttributeType.BOOLEAN,
+        "enum": AttributeType.ENUM,
+        "date": AttributeType.DATE,
+        "datetime": AttributeType.DATETIME,
+    }
+    for attr in cls.get("attributes", []):
+        attr_type = type_map.get(attr.get("type"), AttributeType.STRING)
+        enum_literals = get_enum_literals(metadata, attr["enum"]) if attr_type == AttributeType.ENUM and attr.get("enum") else None
+        attributes.append({
+            "name": attribute_name_sanitization(attr["name"]),
+            "type": attr_type,
+            "enum_literals": enum_literals,
+            "derived": attr.get("derived", False),
+        })
+    return attributes
+
+# Helper for finding parent models
+def find_parent_models(node_id, model_name, diagram, class_ptr_to_name):
+    parent_models = set()
+    for edge in diagram.get("edges", []):
+        rel_type = edge.get("rel", {}).get("type")
+        if rel_type != "association":
+            continue
+        if edge.get("source_ptr") == node_id:
+            cardinality = define_cardinality(
+                edge["rel"]["multiplicity"]["source"],
+                edge["rel"]["multiplicity"]["target"],
+                node_is_source=True
+            )
+            if cardinality in SOURCE_ACCEPTABLE_CARDINALITIES:
+                target_name = class_ptr_to_name.get(edge.get("target_ptr"))
+                if target_name and target_name != model_name:
+                    parent_models.add(target_name)
+        if edge.get("target_ptr") == node_id:
+            cardinality = define_cardinality(
+                edge["rel"]["multiplicity"]["source"],
+                edge["rel"]["multiplicity"]["target"],
+                node_is_source=False
+            )
+            if cardinality in TARGET_ACCEPTABLE_CARDINALITIES:
+                source_name = class_ptr_to_name.get(edge.get("source_ptr"))
+                if source_name and source_name != model_name:
+                    parent_models.add(source_name)
+    return list(parent_models)
 
 def get_apps(metadata: str) -> str:
     '''Returns a string with all application component names, and spaces inbetween'''
@@ -474,73 +524,25 @@ def retrieve_all_models_from_metadata(metadata: str) -> List[Dict]:
     Returns list of dicts with model info: name, attributes, foreign_keys, etc.'''
     if metadata in ["", None]:
         return []
-    
-    def parse_attributes(cls, metadata):
-        attributes = []
-        type_map = {
-            "str": AttributeType.STRING,
-            "int": AttributeType.INTEGER,
-            "bool": AttributeType.BOOLEAN,
-            "enum": AttributeType.ENUM,
-            "date": AttributeType.DATE,
-            "datetime": AttributeType.DATETIME,
-        }
-        for attr in cls.get("attributes", []):
-            attr_type = type_map.get(attr.get("type"), AttributeType.STRING)
-            enum_literals = get_enum_literals(metadata, attr["enum"]) if attr_type == AttributeType.ENUM and attr.get("enum") else None
-            attributes.append({
-                "name": attribute_name_sanitization(attr["name"]),
-                "type": attr_type,
-                "enum_literals": enum_literals,
-                "derived": attr.get("derived", False),
-            })
-        return attributes
-
-    def find_parent_models(node_id, model_name, diagram, class_ptr_to_name):
-        parent_models = []
-        for edge in diagram.get("edges", []):
-            if edge.get("rel", {}).get("type") != "association":
-                continue
-            # If this model is source and points to another (many-to-one)
-            if edge.get("source_ptr") == node_id:
-                cardinality = define_cardinality(
-                    edge["rel"]["multiplicity"]["source"],
-                    edge["rel"]["multiplicity"]["target"],
-                    node_is_source=True
-                )
-                if cardinality in SOURCE_ACCEPTABLE_CARDINALITIES:
-                    target_name = class_ptr_to_name.get(edge.get("target_ptr"))
-                    if target_name and target_name != model_name:
-                        parent_models.append(target_name)
-            # If this model is target
-            if edge.get("target_ptr") == node_id:
-                cardinality = define_cardinality(
-                    edge["rel"]["multiplicity"]["source"],
-                    edge["rel"]["multiplicity"]["target"],
-                    node_is_source=False
-                )
-                if cardinality in TARGET_ACCEPTABLE_CARDINALITIES:
-                    source_name = class_ptr_to_name.get(edge.get("source_ptr"))
-                    if source_name and source_name != model_name:
-                        parent_models.append(source_name)
-        return list(set(parent_models))
 
     models = []
     try:
         metadata_json = json.loads(metadata)
-        for diagram in metadata_json.get("diagrams", []):
+        diagrams = metadata_json.get("diagrams", [])
+        for diagram in diagrams:
             if diagram.get("type") != "classes":
                 continue
-            # Build a map of class_ptr -> model_name for FK resolution
             class_ptr_to_name = {}
             for node in diagram.get("nodes", []):
-                if node.get("cls", {}).get("type") == "class":
-                    class_ptr_to_name[node.get("cls_ptr")] = model_name_sanitization(node["cls"]["name"])
-                    class_ptr_to_name[node.get("id")] = model_name_sanitization(node["cls"]["name"])
+                cls = node.get("cls", {})
+                if cls.get("type") == "class":
+                    sanitized_name = model_name_sanitization(cls["name"])
+                    class_ptr_to_name[node.get("cls_ptr")] = sanitized_name
+                    class_ptr_to_name[node.get("id")] = sanitized_name
             for node in diagram.get("nodes", []):
-                if node.get("cls", {}).get("type") != "class":
+                cls = node.get("cls", {})
+                if cls.get("type") != "class":
                     continue
-                cls = node["cls"]
                 model_name = model_name_sanitization(cls["name"])
                 attributes = parse_attributes(cls, metadata)
                 parent_models = find_parent_models(node.get("id"), model_name, diagram, class_ptr_to_name)
