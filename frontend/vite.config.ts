@@ -7,7 +7,11 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    resolve: {
+        dedupe: ["react", "react-dom"],
+    },
     optimizeDeps: {
+        include: ["react", "react-dom"],
         exclude: ["@codemirror/state"],
     },
 

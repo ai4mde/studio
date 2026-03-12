@@ -4,12 +4,62 @@ from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod
 from utils.definitions.page import Page
 from utils.definitions.category import Category
-from utils.definitions.model import AttributeType, Model, Cardinality, define_cardinality
-from utils.definitions.styling import Styling, StyleType
+from utils.definitions.model import AttributeType, Model, Attribute, Cardinality, define_cardinality
+from utils.definitions.styling import Styling, StyleType, LayoutType
 from utils.definitions.settings import Settings
 import json
 from uuid import uuid4
 
+#  Helper for parsing attributes
+def parse_attributes(cls, metadata):
+    attributes = []
+    type_map = {
+        "str": AttributeType.STRING,
+        "int": AttributeType.INTEGER,
+        "bool": AttributeType.BOOLEAN,
+        "enum": AttributeType.ENUM,
+        "date": AttributeType.DATE,
+        "datetime": AttributeType.DATETIME,
+    }
+    for attr in cls.get("attributes", []):
+        attr_type = type_map.get(attr.get("type"), AttributeType.STRING)
+        enum_literals = get_enum_literals(metadata, attr["enum"]) if attr_type == AttributeType.ENUM and attr.get("enum") else None
+        attributes.append({
+            "name": attribute_name_sanitization(attr["name"]),
+            "type": attr_type,
+            "enum_literals": enum_literals,
+            "derived": attr.get("derived", False),
+        })
+    return attributes
+
+# Helper for finding parent models
+def find_parent_models(node_id, model_name, diagram, class_ptr_to_name):
+    parent_models = set()
+    for edge in diagram.get("edges", []):
+        rel_type = edge.get("rel", {}).get("type")
+        if rel_type != "association":
+            continue
+        if edge.get("source_ptr") == node_id:
+            cardinality = define_cardinality(
+                edge["rel"]["multiplicity"]["source"],
+                edge["rel"]["multiplicity"]["target"],
+                node_is_source=True
+            )
+            if cardinality in SOURCE_ACCEPTABLE_CARDINALITIES:
+                target_name = class_ptr_to_name.get(edge.get("target_ptr"))
+                if target_name and target_name != model_name:
+                    parent_models.add(target_name)
+        if edge.get("target_ptr") == node_id:
+            cardinality = define_cardinality(
+                edge["rel"]["multiplicity"]["source"],
+                edge["rel"]["multiplicity"]["target"],
+                node_is_source=False
+            )
+            if cardinality in TARGET_ACCEPTABLE_CARDINALITIES:
+                source_name = class_ptr_to_name.get(edge.get("source_ptr"))
+                if source_name and source_name != model_name:
+                    parent_models.add(source_name)
+    return list(parent_models)
 
 def get_apps(metadata: str) -> str:
     '''Returns a string with all application component names, and spaces inbetween'''
@@ -152,6 +202,10 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         elif attribute["type"] == "enum":
             attribute_type  = AttributeType.ENUM
             enum_literals = get_enum_literals(metadata, attribute["enum"])
+        elif attribute["type"] == "date":
+            attribute_type  = AttributeType.DATE
+        elif attribute["type"] == "datetime":
+            attribute_type  = AttributeType.DATETIME
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attribute["name"]),
@@ -209,6 +263,10 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                             section = application_section
                     
                     if not section:
+                        continue
+
+                    # Skip sections with no class (dashboard/activity pages)
+                    if not section.get("class"):
                         continue
 
                     sec = SectionComponent(
@@ -282,13 +340,31 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 category = None
                 if page["category"] != None:
                     category = page["category"]["value"]["name"]
+                # Handle action field: can be dict {"label": ..., "value": ...} or plain string UUID
+                action_raw = page.get('action')
+                if isinstance(action_raw, dict):
+                    activity_name_val = action_raw.get('label')
+                elif isinstance(action_raw, str):
+                    activity_name_val = action_raw  # UUID string fallback
+                else:
+                    activity_name_val = None
+                
+                # Handle type field: can be dict {"label": ..., "value": ...} or plain string
+                type_raw = page.get('type')
+                if isinstance(type_raw, dict):
+                    type_val = type_raw.get('value', 'normal')
+                elif isinstance(type_raw, str):
+                    type_val = type_raw
+                else:
+                    type_val = 'normal'
+                
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
                     application = application_component["label"],
                     category = category,
-                    activity_name = page['action']['label'] if page.get('action') else None,
-                    type = page["type"]['value'] if page.get('type') else 'normal',
+                    activity_name = activity_name_val,
+                    type = type_val,
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
                 )
                 out.append(pg)
@@ -307,9 +383,11 @@ def retrieve_models_on_pages(application_component: ApplicationComponent) -> dic
         if page not in out:
             out[page] = {'primary_models': [], 'parent_models': []}
         for section_component in page.section_components:
-            out[page]['primary_models'].append(section_component.primary_model)
+            if section_component.primary_model is not None:
+                out[page]['primary_models'].append(section_component.primary_model)
             for parent_model in section_component.parent_models:
-                out[page]['parent_models'].append(parent_model)
+                if parent_model is not None:
+                    out[page]['parent_models'].append(parent_model)
     return out
 
 
@@ -318,6 +396,7 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
         raise Exception("Failed to retrieve styling from metadata: metadata is empty")
     
     style_type = None
+    layout_type = None
     radius = None
     background_color = None
     accent_color = None
@@ -340,6 +419,18 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
             elif styling["selectedStyle"] == "modern":
                 style_type = StyleType.MODERN
 
+            # Parse layoutType
+            layout_str = styling.get("layoutType", "sidebar")
+            layout_map = {
+                "sidebar": LayoutType.SIDEBAR,
+                "topnav": LayoutType.TOPNAV,
+                "dashboard": LayoutType.DASHBOARD,
+                "split": LayoutType.SPLIT,
+                "wizard": LayoutType.WIZARD,
+                "minimal": LayoutType.MINIMAL,
+            }
+            layout_type = layout_map.get(layout_str, LayoutType.SIDEBAR)
+
             if "radius" not in styling:
                 radius = 10
             else:
@@ -359,6 +450,7 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
 
             return Styling(
                 style_type = style_type,
+                layout_type = layout_type,
                 radius = radius,
                 text_color = text_color,
                 accent_color = accent_color,
@@ -403,11 +495,15 @@ def retrieve_manager_roles(metadata: str) -> List[str]:
 
 def get_application_component(project_name: str, application_name: str, metadata: str, authentication_present: bool) -> ApplicationComponent:
     '''Function that builds an ApplicationComponent object for application_name
-    from metadata.'''
+    from metadata. Supports automatic OOUI page generation when no pages are defined.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
     styling = retrieve_styling(application_name=application_name, metadata=metadata)
+
+    # OOUI: If no pages defined, auto-generate from models
+    if not pages:
+        pages = auto_generate_pages_from_models(application_name=application_name, metadata=metadata)
 
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
@@ -419,3 +515,120 @@ def get_application_component(project_name: str, application_name: str, metadata
         styling = styling,
         authentication_present = authentication_present
     )
+
+
+# ============== OOUI Generic Page Auto-Generation ==============
+
+def retrieve_all_models_from_metadata(metadata: str) -> List[Dict]:
+    '''Retrieve all class models from metadata diagrams for OOUI auto-generation.
+    Returns list of dicts with model info: name, attributes, foreign_keys, etc.'''
+    if metadata in ["", None]:
+        return []
+
+    models = []
+    try:
+        metadata_json = json.loads(metadata)
+        diagrams = metadata_json.get("diagrams", [])
+        for diagram in diagrams:
+            if diagram.get("type") != "classes":
+                continue
+            class_ptr_to_name = {}
+            for node in diagram.get("nodes", []):
+                cls = node.get("cls", {})
+                if cls.get("type") == "class":
+                    sanitized_name = model_name_sanitization(cls["name"])
+                    class_ptr_to_name[node.get("cls_ptr")] = sanitized_name
+                    class_ptr_to_name[node.get("id")] = sanitized_name
+            for node in diagram.get("nodes", []):
+                cls = node.get("cls", {})
+                if cls.get("type") != "class":
+                    continue
+                model_name = model_name_sanitization(cls["name"])
+                attributes = parse_attributes(cls, metadata)
+                parent_models = find_parent_models(node.get("id"), model_name, diagram, class_ptr_to_name)
+                models.append({
+                    "name": model_name,
+                    "attributes": attributes,
+                    "parent_models": parent_models,
+                    "class_ptr": node.get("cls_ptr"),
+                })
+    except Exception as e:
+        print(f"Warning: Failed to retrieve models for OOUI: {e}")
+        return []
+    return models
+
+
+def auto_generate_pages_from_models(application_name: str, metadata: str) -> List[Page]:
+    '''OOUI: Auto-generate pages based on models when no explicit pages are defined.
+    Each model gets a List page with full CRUD operations.
+    Human-in-the-loop: If pages are defined in metadata, they take priority (handled in caller).'''
+    
+    models = retrieve_all_models_from_metadata(metadata)
+    if not models:
+        return []
+    
+    pages = []
+    for model in models:
+        model_name = model["name"]
+        
+        # Create SectionAttributes from model attributes
+        section_attributes = []
+        for attr in model["attributes"]:
+            section_attr = SectionAttribute(
+                name=attr["name"],
+                type=attr["type"],
+                enum_literals=attr.get("enum_literals"),
+                updatable=not attr.get("derived", False),
+                derived=attr.get("derived", False),
+            )
+            section_attributes.append(section_attr)
+        
+        # Create SectionComponent for this model (CRUD enabled by default)
+        section = SectionComponent(
+            id=str(uuid4()),
+            name=model_name,
+            application=application_name,
+            page=model_name,
+            primary_model=model_name,
+            parent_models=model.get("parent_models", []),
+            attributes=section_attributes,
+            text=f"Manage {model_name} records",
+            has_create_operation=True,
+            has_delete_operation=True,
+            has_update_operation=True,
+            custom_methods=[],
+        )
+        
+        # Create Page for this model
+        page = Page(
+            id=str(uuid4()),
+            name=model_name,
+            application=application_name,
+            category=None,  # Auto-generated pages have no category
+            activity_name=None,
+            type='normal',
+            section_components=[section],
+        )
+        pages.append(page)
+    
+    return pages
+
+
+def auto_select_layout(models: List[Dict]) -> LayoutType:
+    '''OOUI: Auto-select best layout based on model characteristics.'''
+    model_count = len(models)
+    
+    # Simple heuristics for layout selection
+    if model_count <= 2:
+        return LayoutType.MINIMAL
+    elif model_count >= 8:
+        return LayoutType.SIDEBAR
+    elif model_count >= 5:
+        return LayoutType.TOPNAV
+    
+    # Check for hierarchical relationships
+    has_hierarchy = any(len(m.get("parent_models", [])) > 0 for m in models)
+    if has_hierarchy:
+        return LayoutType.SPLIT
+    
+    return LayoutType.SIDEBAR  # Default

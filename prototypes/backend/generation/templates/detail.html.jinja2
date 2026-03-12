@@ -1,0 +1,209 @@
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block content %}{% endraw %}
+
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold">{{ model_name }} Details</h2>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="text-accent hover:underline">← Back to List</a>
+    </div>
+
+    <div class="bg-white rounded-custom p-6 shadow-sm mb-6">
+        <h3 class="text-lg font-medium mb-4 pb-3 border-b border-gray-200">{% raw %}{{ object }}{% endraw %}</h3>
+        
+        <table class="w-full">
+            <tbody>
+                {% for attribute in attributes -%}
+                {% if not attribute.derived -%}
+                <tr class="border-b border-gray-100">
+                    <th class="py-3 pr-4 text-left text-sm font-medium text-gray-500 w-1/3">{{ attribute.name }}</th>
+                    {% if attribute.type == AttributeType.BOOLEAN -%}
+                    <td class="py-3"><input type="checkbox" {% raw %}{%{% endraw %} if object.{{ attribute.name }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="rounded"></td>
+                    {% else -%}
+                    <td class="py-3 text-sm">{% raw %}{{ object.{% endraw %}{{ attribute.name }}{% raw %} }}{% endraw %}</td>
+                    {% endif -%}
+                </tr>
+                {% endif -%}
+                {% endfor %}
+                
+                {# Parent model links #}
+                {% for parent_model in parent_models -%}
+                <tr class="border-b border-gray-100">
+                    <th class="py-3 pr-4 text-left text-sm font-medium text-gray-500 w-1/3">{{ parent_model }}</th>
+                    <td class="py-3 text-sm">
+                        {% raw %}{%{% endraw %} if object.{{ parent_model }} {% raw %}%}{% endraw %}
+                        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ parent_model|lower }}_detail' object.{{ parent_model }}.id {% raw %}%}{% endraw %}" class="text-accent hover:underline font-medium">
+                            {{ "{{ object." ~ parent_model ~ " }}" }}
+                        </a>
+                        {% raw %}{% else %}{% endraw %}
+                        <span class="text-gray-400">-</span>
+                        {% raw %}{% endif %}{% endraw %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Related Objects Section #}
+    {% raw %}{% if related_objects %}{% endraw %}
+    <div class="bg-white rounded-custom p-6 shadow-sm mb-6">
+        <h3 class="text-base font-semibold mb-4">Related Objects</h3>
+        {% raw %}{% for relation_name, objects in related_objects.items %}{% endraw %}
+        {% raw %}{% if objects %}{% endraw %}
+        <div class="mb-4 last:mb-0">
+            <h4 class="text-sm font-medium text-gray-600 mb-2">{% raw %}{{ relation_name|title }}{% endraw %}</h4>
+            <ul class="space-y-1">
+                {% raw %}{% for rel_obj in objects %}{% endraw %}
+                <li>
+                    <a href="{% raw %}{{ rel_obj.get_absolute_url }}{% endraw %}" class="text-sm text-accent hover:underline">{% raw %}{{ rel_obj }}{% endraw %}</a>
+                </li>
+                {% raw %}{% endfor %}{% endraw %}
+            </ul>
+        </div>
+        {% raw %}{% endif %}{% endraw %}
+        {% raw %}{% endfor %}{% endraw %}
+    </div>
+    {% raw %}{% endif %}{% endraw %}
+
+    <div class="flex gap-3">
+        {% if has_update_operation -%}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}?instance_id_{{ model_name }}={% raw %}{{ object.id }}{% endraw %}" class="px-4 py-2 bg-accent text-white rounded-custom text-sm hover:opacity-90 transition-opacity">Edit</a>
+        {% endif -%}
+        {% if has_delete_operation -%}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' object.id {% raw %}%}{% endraw %}" method="post" class="inline">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-custom text-sm hover:opacity-90 transition-opacity" onclick="return confirm('Are you sure you want to delete this {{ model_name }}?')">Delete</button>
+        </form>
+        {% endif -%}
+    </div>
+</div>
+
+<style>
+.detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.back-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.detail-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-card h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detail-table th,
+.detail-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-table th {
+    width: 30%;
+    font-weight: 600;
+    color: #555;
+}
+
+.related-link {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.related-link:hover {
+    text-decoration: underline;
+}
+
+.related-objects {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.related-objects h3 {
+    margin-top: 0;
+}
+
+.related-section {
+    margin-bottom: 15px;
+}
+
+.related-section h4 {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.related-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.related-list li {
+    padding: 5px 0;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-edit {
+    background: #007bff;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #0056b3;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+</style>
+
+{% raw %}{% endblock %}{% endraw %}

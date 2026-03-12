@@ -19,7 +19,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   postgres:
-    image: postgres
+    image: postgres:17
     env_file: config/postgres.env
     volumes:
       - pgsql-data:/var/lib/postgresql/data
@@ -54,6 +54,7 @@ services:
       - ai4mde_traefik
     volumes:
       - ./prototypes:/usr/src/prototypes
+      - ./prototypes/generated_prototypes:/usr/src/prototypes/generated_prototypes
     labels:
       - "traefik.enable=true"
 

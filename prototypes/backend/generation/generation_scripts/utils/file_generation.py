@@ -8,7 +8,7 @@ from utils.definitions.section_component import SectionComponent, SectionCustomM
 from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.application_component import ApplicationComponent
-from utils.definitions.styling import Styling, StyleType
+from utils.definitions.styling import Styling, StyleType, LayoutType
 from utils.definitions.settings import Settings
 
 
@@ -21,6 +21,7 @@ def add_jinja_globals(template: Template) -> Template:
     
     template.globals['Styling'] = Styling
     template.globals['StyleType'] = StyleType
+    template.globals['LayoutType'] = LayoutType
     template.globals['Attribute'] = Attribute
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent

@@ -26,8 +26,15 @@ class User(AbstractUser):
 {% endif %}
 
 {% for model in models -%}
+{#- Check if model has any attributes that will produce actual output -#}
+{%- set has_real_attrs = [] -%}
+{%- for attr in model.attributes -%}
+    {%- if attr.name not in ['username', 'password'] and not (attr.derived and not attr.body) -%}
+        {%- set _ = has_real_attrs.append(1) -%}
+    {%- endif -%}
+{%- endfor -%}
 class {{ model.name }}(models.Model):
-    {% if model.attributes -%}
+    {% if model.attributes and has_real_attrs -%}
     {% for attribute in model.attributes -%}
     {% if attribute.derived and attribute.body %}
     @property
@@ -36,6 +43,10 @@ class {{ model.name }}(models.Model):
     {{ attribute.name }} = models.BooleanField(default=False, blank=True)
     {% elif attribute.type == AttributeType.INTEGER -%}
     {{ attribute.name }} = models.IntegerField(default=0, null=True, blank=True)
+    {% elif attribute.type == AttributeType.DATE -%}
+    {{ attribute.name }} = models.DateField(null=True, blank=True)
+    {% elif attribute.type == AttributeType.DATETIME -%}
+    {{ attribute.name }} = models.DateTimeField(null=True, blank=True)
     {% elif attribute.name == "username" or attribute.name == "password" -%}
     {% elif attribute.type == AttributeType.STRING -%}
     {{ attribute.name }} = models.CharField(max_length=255, default='', null=True, blank=True)
@@ -62,14 +73,26 @@ class {{ model.name }}(models.Model):
 
     {% elif attribute.type == AttributeType.ENUM %}
     class {{ attribute.name|capitalize }}(models.TextChoices):
+        {% if attribute.enum_literals -%}
         {% for literal in attribute.enum_literals -%}
         {{ literal }} = '{{ literal }}', '{{ literal }}'
-        {% endfor %}
+        {% endfor -%}
+        {% else -%}
+        pass
+        {% endif %}
+    {% if attribute.enum_literals -%}
     {{ attribute.name|lower }} = models.CharField(
         max_length=512,
         choices={{ attribute.name|capitalize }}.choices,
         default={{ attribute.name|capitalize }}.choices[0][0]
     )
+    {% else -%}
+    {{ attribute.name|lower }} = models.CharField(
+        max_length=512,
+        choices={{ attribute.name|capitalize }}.choices,
+        default=''
+    )
+    {% endif %}
     {% endif -%}
     {% endfor -%}
     {% else -%}

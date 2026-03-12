@@ -1,60 +1,253 @@
 {% raw %}{% load static %}{% endraw %}
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{{ application_name }}</title>
-            <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ application_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '{{ styling.accent_color }}',
+                        'accent-light': '{{ styling.accent_color }}22',
+                        'bg-main': '{{ styling.background_color }}',
+                        'text-main': '{{ styling.text_color }}',
+                    },
+                    borderRadius: {
+                        'custom': '{{ styling.radius }}px',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href='{% raw %}{%{% endraw %} static "{{ application_name }}/{{ application_name }}_style.css" {% raw %}%}{% endraw %}'>
+</head>
+<body class="bg-bg-main text-text-main min-h-screen font-sans">
 
-    <body>
-        <div class="header">
-            <div class="logo">
-                <img src='{{ logo }}'>
-            </div>
-            <h1>{{ application_name | capitalize }}</h1>
+{# ========== SIDEBAR LAYOUT ========== #}
+{% if styling.layout_type == LayoutType.SIDEBAR %}
+<div class="flex min-h-screen">
+    <aside class="w-56 bg-white border-r border-gray-200 fixed h-full overflow-y-auto">
+        <h1 class="px-4 py-4 text-base font-semibold text-accent border-b border-gray-200">{{ application_name | capitalize }}</h1>
+        {% for category in categories %}
+        <div class="px-4 pt-4 pb-1 text-[10px] font-semibold uppercase text-gray-400">{{ category }}</div>
+        {% for page in pages %}
+        {% if page.type == 'normal' and page.category == category.name %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">{{ page.display_name }}</a>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+        {% for page in pages %}
+        {% if page.category in ["", none] and page.type != 'activity' %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">{{ page.display_name }}</a>
+        {% endif %}
+        {% endfor %}
+        {% if authentication_present -%}{% raw %}<a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">Logout</a>{% endraw %}{% else -%}{% raw %}<a href="{% url 'noauth_home-homerender' %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">Other Application</a>{% endraw %}{% endif -%}
+    </aside>
+    <main class="flex-1 ml-56 p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold">{% raw %}{% block title %}{% endblock %}{% endraw %}</h2>
+            <div class="flex gap-2">{% raw %}{% block actions %}{% endblock %}{% endraw %}</div>
         </div>
-            <div class="menu">
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
-                {% if settings.manager_access %}
-                <b>Manager</b>
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}">Activity log</a>
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}">User assignment</a>
-                {% endif %}
-                {% for category in categories %}
-                <b>{{ category }}</b>
-                {% for page in pages %}
-                {% if page.type == 'normal'%}
-                {% if page.category == category.name %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
-                    }}</a>
-                {% endif %}
-                {% endif %}
-                {% endfor %}
-                {% endfor %}
+        <div class="bg-white rounded-custom p-5 shadow-sm">
+            {% raw %}{% block content %}{% endblock %}{% endraw %}
+        </div>
+    </main>
+</div>
 
-                <br>
-
-                {% for page in pages %}
-                {% if page.category in ["", none] and page.type != 'activity' %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
-                    }}</a>
-                {% endif %}
-                {% endfor %}
-
-                {% if authentication_present -%}
-                {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}
-                {% else -%}
-                {% raw %}<a href="{% url 'noauth_home-homerender' %}">Other Application</a>{% endraw %}
-                {% endif -%}
-            </div>
-    
-    <div class="content">
-        {% raw %}
-        {% block content %}
-
-        {% endblock %}
-        {% endraw %}
+{# ========== TOPNAV LAYOUT ========== #}
+{% elif styling.layout_type == LayoutType.TOPNAV %}
+<nav class="bg-accent px-5 h-14 flex items-center shadow-md">
+    <div class="text-lg font-bold text-white mr-8">{{ application_name | capitalize }}</div>
+    {% for category in categories %}
+    <div class="relative group">
+        <a href="#" class="text-white/90 px-4 py-4 text-sm border-b-[3px] border-transparent hover:bg-black/10 hover:border-b-white">{{ category }} ▾</a>
+        <div class="hidden group-hover:block absolute top-full left-0 bg-white min-w-[160px] shadow-lg z-50">
+            {% for page in pages %}
+            {% if page.type == 'normal' and page.category == category.name %}
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-3 text-text-main text-sm hover:bg-gray-100">{{ page.display_name }}</a>
+            {% endif %}
+            {% endfor %}
+        </div>
     </div>
-    </body>
+    {% endfor %}
+    <div class="ml-auto">
+    {% if authentication_present -%}{% raw %}<a href="{% url 'logout' %}" class="text-white/90 px-4 py-4 text-sm hover:bg-black/10">Logout</a>{% endraw %}{% else -%}{% raw %}<a href="{% url 'noauth_home-homerender' %}" class="text-white/90 px-4 py-4 text-sm hover:bg-black/10">Other</a>{% endraw %}{% endif -%}
+    </div>
+</nav>
+<div class="max-w-5xl mx-auto px-4 py-6">
+    <div class="text-xs text-gray-500 mb-4">{% raw %}{% block breadcrumb %}Home{% endblock %}{% endraw %}</div>
+    <h2 class="text-2xl font-normal mb-4 pb-2 border-b-2 border-accent">{% raw %}{% block title %}{% endblock %}{% endraw %}</h2>
+    <div class="bg-white p-3 border border-gray-300 border-b-0 flex gap-2">{% raw %}{% block toolbar %}{% endblock %}{% endraw %}</div>
+    <div class="bg-white border border-gray-300 p-5">{% raw %}{% block content %}{% endblock %}{% endraw %}</div>
+</div>
+
+{# ========== DASHBOARD LAYOUT ========== #}
+{% elif styling.layout_type == LayoutType.DASHBOARD %}
+<div class="grid grid-cols-[64px_1fr] min-h-screen">
+    <nav class="bg-slate-900 py-4 flex flex-col items-center gap-2">
+        <div class="w-9 h-9 bg-accent rounded-[10px] flex items-center justify-center font-bold text-slate-900 text-sm mb-4">{{ application_name[:2] | upper }}</div>
+        {% for category in categories %}
+        {% for page in pages %}
+        {% if page.type == 'normal' and page.category == category.name %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" title="{{ page.display_name }}" class="w-10 h-10 flex items-center justify-center text-slate-500 rounded-[10px] text-base hover:bg-bg-main hover:text-accent transition-colors">{{ page.display_name[:1] | upper }}</a>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+        {% if authentication_present -%}{% raw %}<a href="{% url 'logout' %}" title="Logout" class="w-10 h-10 flex items-center justify-center text-slate-500 rounded-[10px] text-base hover:bg-bg-main hover:text-accent transition-colors mt-auto">⏻</a>{% endraw %}{% endif -%}
+    </nav>
+    <main class="p-5">
+        <div class="flex justify-between items-center mb-5">
+            <h1 class="text-xl font-semibold">{% raw %}{% block title %}{% endblock %}{% endraw %}</h1>
+            <input type="text" class="bg-slate-700 border-none px-4 py-2 rounded-custom text-text-main w-64 text-sm placeholder:text-slate-400" placeholder="Search...">
+        </div>
+        <div class="grid grid-cols-4 gap-4 mb-5">{% raw %}{% block stats %}{% endblock %}{% endraw %}</div>
+        <div class="grid grid-cols-[2fr_1fr] gap-4">
+            <div class="bg-slate-700 rounded-custom p-4">
+                <h3 class="text-sm mb-4 flex justify-between">{% raw %}{% block widget_title %}Data{% endblock %}{% endraw %} <span class="text-xs text-accent cursor-pointer">View all</span></h3>
+                {% raw %}{% block content %}{% endblock %}{% endraw %}
+            </div>
+            <div class="bg-slate-700 rounded-custom p-4">
+                <h3 class="text-sm mb-4">Activity</h3>
+                {% raw %}{% block sidebar %}{% endblock %}{% endraw %}
+            </div>
+        </div>
+    </main>
+</div>
+
+{# ========== SPLIT LAYOUT ========== #}
+{% elif styling.layout_type == LayoutType.SPLIT %}
+<header class="bg-accent text-white px-5 py-3 flex items-center justify-between">
+    <h1 class="text-base font-semibold">{{ application_name | capitalize }}</h1>
+    <input type="text" placeholder="Search..." class="bg-white/20 border-none px-3 py-1.5 rounded-custom text-white text-xs w-48 placeholder:text-white/70">
+</header>
+<div class="grid grid-cols-[300px_1fr] h-[calc(100vh-48px)]">
+    <aside class="bg-white border-r border-gray-200 overflow-y-auto">
+        <div class="px-4 py-3 border-b border-gray-200 text-xs font-semibold text-gray-500 flex justify-between">
+            <span>{% raw %}{% block list_title %}Items{% endblock %}{% endraw %}</span>
+            <span>{% raw %}{% block list_count %}{% endblock %}{% endraw %}</span>
+        </div>
+        {% raw %}{% block list_items %}{% endraw %}
+        {% for category in categories %}
+        {% for page in pages %}
+        {% if page.type == 'normal' and page.category == category.name %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 text-text-main no-underline hover:bg-gray-50">
+            <div class="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-xs font-semibold">{{ page.display_name[:1] | upper }}</div>
+            <div><h4 class="text-sm m-0">{{ page.display_name }}</h4><p class="text-[11px] text-gray-500 m-0">{{ category }}</p></div>
+        </a>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+        {% raw %}{% endblock %}{% endraw %}
+    </aside>
+    <main class="p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-lg font-medium">{% raw %}{% block title %}{% endblock %}{% endraw %}</h2>
+            <div class="flex gap-2">{% raw %}{% block actions %}{% endblock %}{% endraw %}</div>
+        </div>
+        <div class="bg-white rounded-custom p-5 shadow-sm mb-4">
+            <h3 class="text-sm text-gray-500 mb-3">{% raw %}{% block card_title %}Details{% endblock %}{% endraw %}</h3>
+            {% raw %}{% block content %}{% endblock %}{% endraw %}
+        </div>
+    </main>
+</div>
+
+{# ========== WIZARD LAYOUT ========== #}
+{% elif styling.layout_type == LayoutType.WIZARD %}
+<header class="bg-white px-6 py-4 border-b border-sky-100 flex items-center gap-3">
+    <div class="text-2xl text-accent">◊</div>
+    <h1 class="text-lg text-accent font-medium">{{ application_name | capitalize }}</h1>
+</header>
+<div class="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 py-8">
+    <div class="flex justify-center mb-8">
+        {% raw %}{% block steps %}
+        <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-semibold">✓</div>
+            <span class="ml-2 text-xs text-text-main font-semibold">Start</span>
+        </div>
+        <div class="flex items-center">
+            <div class="w-16 h-0.5 bg-accent mx-2"></div>
+            <div class="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-sm font-semibold">2</div>
+            <span class="ml-2 text-xs text-text-main font-semibold">Details</span>
+        </div>
+        <div class="flex items-center">
+            <div class="w-16 h-0.5 bg-sky-100 mx-2"></div>
+            <div class="w-8 h-8 rounded-full bg-sky-100 text-accent flex items-center justify-center text-sm font-semibold">3</div>
+            <span class="ml-2 text-xs text-gray-500">Confirm</span>
+        </div>
+        {% endblock %}{% endraw %}
+    </div>
+    <div class="bg-white rounded-custom p-8 flex-1 shadow-sm">
+        <h2 class="text-xl mb-2">{% raw %}{% block title %}{% endblock %}{% endraw %}</h2>
+        <p class="text-gray-500 text-sm mb-6">{% raw %}{% block subtitle %}{% endblock %}{% endraw %}</p>
+        {% raw %}{% block content %}{% endblock %}{% endraw %}
+        <div class="flex justify-between mt-6 pt-6 border-t border-gray-200">
+            {% raw %}{% block footer %}
+            <button class="px-5 py-2.5 rounded-custom text-sm font-medium bg-white border border-gray-300 text-text-main cursor-pointer">Back</button>
+            <button class="px-5 py-2.5 rounded-custom text-sm font-medium bg-accent text-white border-none cursor-pointer">Continue</button>
+            {% endblock %}{% endraw %}
+        </div>
+    </div>
+</div>
+
+{# ========== MINIMAL LAYOUT ========== #}
+{% elif styling.layout_type == LayoutType.MINIMAL %}
+<div class="max-w-4xl mx-auto px-6 py-10">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-light mb-2">{{ application_name | capitalize }}</h1>
+        <p class="text-gray-500 text-sm">{% raw %}{% block subtitle %}Manage your data{% endblock %}{% endraw %}</p>
+    </div>
+    <div class="flex justify-center gap-1 mb-6">
+        <div class="inline-flex bg-white p-1 rounded-custom">
+            {% for category in categories %}
+            {% for page in pages %}
+            {% if page.type == 'normal' and page.category == category.name %}
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="px-4 py-2 rounded-custom text-sm text-gray-500 no-underline hover:bg-pink-100 transition-colors">{{ page.display_name }}</a>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="bg-white rounded-custom p-6 shadow-sm">
+        <div class="text-base font-semibold mb-4 flex items-center gap-2 before:content-[''] before:w-1 before:h-4 before:bg-accent before:rounded-sm">{% raw %}{% block title %}{% endblock %}{% endraw %}</div>
+        {% raw %}{% block content %}{% endblock %}{% endraw %}
+        <div class="flex justify-end gap-2 mt-4">{% raw %}{% block actions %}{% endblock %}{% endraw %}</div>
+    </div>
+</div>
+
+{# ========== DEFAULT FALLBACK ========== #}
+{% else %}
+<header class="bg-accent p-4 text-center rounded-custom m-3">
+    <h1 class="text-2xl text-white m-0">{{ application_name | capitalize }}</h1>
+</header>
+<nav class="w-52 bg-accent p-4 rounded-custom fixed left-3 top-20 h-[calc(100vh-100px)] overflow-y-auto">
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">Home</a>
+    {% if settings.manager_access %}
+    <b class="block px-2 mt-4 text-xs opacity-70 text-white">Manager</b>
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">Activity log</a>
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">User assignment</a>
+    {% endif %}
+    {% for category in categories %}
+    <b class="block px-2 mt-4 text-xs opacity-70 text-white">{{ category }}</b>
+    {% for page in pages %}
+    {% if page.type == 'normal' and page.category == category.name %}
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">{{ page.display_name }}</a>
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    <br>
+    {% for page in pages %}
+    {% if page.category in ["", none] and page.type != 'activity' %}
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">{{ page.display_name }}</a>
+    {% endif %}
+    {% endfor %}
+    {% if authentication_present -%}{% raw %}<a href="{% url 'logout' %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">Logout</a>{% endraw %}{% else -%}{% raw %}<a href="{% url 'noauth_home-homerender' %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">Other Application</a>{% endraw %}{% endif -%}
+</nav>
+<main class="ml-60 p-5">{% raw %}{% block content %}{% endblock %}{% endraw %}</main>
+{% endif %}
+
+</body>
 </html>

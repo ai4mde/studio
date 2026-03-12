@@ -3,7 +3,7 @@ from typing import Dict, Any
 from groq import Groq
 from openai import OpenAI
 from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
-from llm.prompts.prose import PROSE_GENERATE_METADATA
+from llm.prompts.prose import PROSE_GENERATE_METADATA, PROSE_GENERATE_PAGES, PROSE_GENERATE_INTERFACE_CANDIDATES, PROSE_REFINE_INTERFACE
 
 
 def remove_reply_markdown(reply: str) -> str:
@@ -63,6 +63,12 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
         prompt = DIAGRAM_GENERATE_METHOD.format(data=input_data)
     elif prompt_name == "PROSE_GENERATE_METADATA":
         prompt = PROSE_GENERATE_METADATA.format(data=input_data)
+    elif prompt_name == "PROSE_GENERATE_PAGES":
+        prompt = PROSE_GENERATE_PAGES.format(data=input_data)
+    elif prompt_name == "PROSE_GENERATE_INTERFACE_CANDIDATES":
+        prompt = PROSE_GENERATE_INTERFACE_CANDIDATES.format(data=input_data)
+    elif prompt_name == "PROSE_REFINE_INTERFACE":
+        prompt = PROSE_REFINE_INTERFACE.format(data=input_data)
     else:
         raise Exception("Invalid prompt name")
     

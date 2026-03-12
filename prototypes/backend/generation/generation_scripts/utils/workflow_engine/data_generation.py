@@ -75,12 +75,33 @@ class ActivityDiagramParser:
     @cached_property
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID to a possible interface url"""
-        return {
-            page['action']['value']: f"/{app_name_sanitization(interface['value']['name'])}/render_{app_name_sanitization(interface['value']['name'])}_{page_name_sanitization(page['name'])}"
-            for interface in self.metadata['interfaces']
-            for page in interface['value']['data']['pages']
-            if page['type']['value'] != 'normal'
-        }
+        def get_type_val(page):
+            type_raw = page.get('type')
+            if isinstance(type_raw, dict):
+                return type_raw.get('value', 'normal')
+            return type_raw or 'normal'
+
+        def get_action_id(page):
+            action_raw = page.get('action')
+            if isinstance(action_raw, dict):
+                return action_raw.get('value')
+            elif isinstance(action_raw, str):
+                return action_raw
+            return None
+
+        result = {}
+        for interface in self.metadata['interfaces']:
+            interface_name = app_name_sanitization(interface['value']['name'])
+            for page in interface['value']['data']['pages']:
+                type_val = get_type_val(page)
+                if type_val == 'normal':
+                    continue
+                action_id = get_action_id(page)
+                if not action_id:
+                    continue
+                page_url = f"/{interface_name}/render_{interface_name}_{page_name_sanitization(page['name'])}"
+                result[action_id] = page_url
+        return result
 
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
         """Get the number of incoming edges for a node"""

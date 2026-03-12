@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView
 from shared_models.models import *
-from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
+from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView, GenericDetailView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 
 {# Create, Update, Delete views #}
@@ -15,7 +15,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes %}{% if attribute.name not in ['username', 'password'] and not attribute.derived and attribute.type != AttributeType.NONE %}'{{ attribute.name }}', {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -40,7 +40,16 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        parent_{{ parent_model }}_pk = self.request.POST.get('{{ parent_model }}')
+        if parent_{{ parent_model }}_pk:
+            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=parent_{{ parent_model }}_pk)
+        else:
+            # Check if the field allows null
+            field = self.model._meta.get_field('{{ parent_model }}')
+            if not field.null:
+                from django.contrib import messages
+                messages.error(self.request, '{{ parent_model }} is required.')
+                return self.form_invalid(form)
         {% endfor -%}
         {% if page.type == 'activity' %}
         instance.save()
@@ -59,7 +68,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes %}{% if attribute.name not in ['username', 'password'] and not attribute.derived and attribute.type != AttributeType.NONE %}'{{ attribute.name }}', {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -84,7 +93,16 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        parent_{{ parent_model }}_pk = self.request.POST.get('{{ parent_model }}')
+        if parent_{{ parent_model }}_pk:
+            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=parent_{{ parent_model }}_pk)
+        else:
+            # Check if the field allows null
+            field = self.model._meta.get_field('{{ parent_model }}')
+            if not field.null:
+                from django.contrib import messages
+                messages.error(self.request, '{{ parent_model }} is required.')
+                return self.form_invalid(form)
         {% endfor -%}
         return super().form_valid(form)
 {% endif -%}
@@ -123,6 +141,7 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
 
 {# List views #}
 {% for page in pages %}
+{% if models_on_pages[page]['primary_models'] %}
 class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if authentication_present -%}
     required_roles = ['{{ application_name }}']
@@ -158,8 +177,27 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return context
 
     {% endif -%}
+{% else %}
+class {{ application_name }}_{{ page }}_ListView(GenericTemplateView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    template_name='{{ application_name }}_{{ page }}.html'
+{% endif %}
 {% endfor -%}
 
+
+{# Detail views for OOUI #}
+{% for model_name in all_models -%}
+class {{ model_name }}_DetailView(GenericDetailView):
+    {% if authentication_present -%}
+    required_roles = ['{{ application_name }}']
+    {% endif -%}
+    model = {{ model_name }}
+    template_name = '{{ application_name }}_{{ model_name }}_detail.html'
+    context_object_name = 'object'
+
+{% endfor %}
 
 {# Home render view #}
 class HomeRenderView(GenericTemplateView):
