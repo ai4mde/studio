@@ -465,6 +465,18 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
         pages.append(page)
     
     # Auto-inject activity pages from activity_actions (not LLM-dependent)
+    # Collect activity action names so we can remove conflicting normal pages
+    activity_action_names = {a['name'] for a in activity_actions if not a.get('is_automatic')}
+    # Remove normal pages whose name matches an activity action (to avoid duplicate URLs)
+    conflicting_section_ids = set()
+    for page in pages[:]:
+        if page.get('type', {}).get('value') == 'normal' and page.get('name') in activity_action_names:
+            for sec_ref in page.get('sections', []):
+                conflicting_section_ids.add(sec_ref.get('value'))
+            pages.remove(page)
+    if conflicting_section_ids:
+        sections[:] = [s for s in sections if s.get('id') not in conflicting_section_ids]
+    
     for action in activity_actions:
         if action.get('is_automatic'):
             continue  # automatic tasks don't need UI pages

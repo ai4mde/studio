@@ -82,7 +82,7 @@ metadata = {
 PROTOTYPES_URL = "http://studio-prototypes:8010/generate"
 data = {
     "id": "regen-final",
-    "name": "applicants",
+    "name": "qew",
     "system": system_id,
     "metadata": json.dumps(metadata),
 }

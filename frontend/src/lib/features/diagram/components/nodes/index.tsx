@@ -21,6 +21,7 @@ import {
     UsecaseNode,
     SystemBoundaryNode,
 } from "./usecase";
+import ComponentNode from "./component/ComponentNode";
 
 export {
     ActionNode,
@@ -41,6 +42,7 @@ export {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    ComponentNode
 };
 
 export default {
@@ -65,4 +67,5 @@ export default {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    ComponentNode,
 };

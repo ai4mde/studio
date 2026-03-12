@@ -117,3 +117,28 @@ See this example of how to create a loan approval decision flow.
 </p>
 
 > ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
+
+
+<h2 align="center">
+  <b>Component Diagrams</b>
+</h2>
+
+<h3>Nodes</h3>
+
+The following node types are available:
+<ul>
+  <li><b>System</b></li>
+  <li><b>Container</b></li> 
+  <li><b>Component</b></li>
+</ul>
+In order to add further internal nodes for a Component Diagram node, right-click it and enter the <b>Edit</b> menu. Here, you can add, edit or remove internals. Internal elements have a user-defined name, and a type. The type can be any Class from the Class Diagrams in your current project, or any System, Container or Component from the Component Diagrams in your project. To further model the way in which these internals are connected to each other inside the parent node, you should create another Component Diagram with the name of the parent node and define the internal nodes and their connections there. See the example below.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/parent.png" style="height: 220px; width: auto;">
+    <img src="./img/internals.png" style="height: 220px; width: auto;">
+  </span>
+</p>
+
+<h3>Edges</h3>
+<p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>. In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <b>Required</b>, and <b>Provider</b>. The two can be the same or different Interface nodes.</p>
