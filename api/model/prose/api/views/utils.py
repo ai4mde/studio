@@ -375,6 +375,7 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
             category_name = override.get('category', 'Models')
             ops_list = override.get('operations', ['create', 'update', 'delete'])
             attrs_filter = override.get('attributes', None)  # None = show all
+            readonly_attrs_filter = override.get('readonly_attributes', [])  # readonly attrs
         else:
             page_name = cls_name
             # OOUI: Use composition grouping for category if available
@@ -386,6 +387,7 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
                 category_name = 'Models'
             ops_list = ['create', 'update', 'delete']
             attrs_filter = None
+            readonly_attrs_filter = []
         
         class_id = str(cls['id'])
         
@@ -398,6 +400,7 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
         
         # Build attributes (with validation)
         attributes = []
+        readonly_attributes = []
         cls_attrs = cls.get('data', {}).get('attributes', [])
         valid_attr_names = {attr['name'] for attr in cls_attrs}
         
@@ -411,17 +414,35 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
             if not attrs_filter:
                 attrs_filter = None
         
+        # Validate readonly_attrs_filter against actual class attributes
+        if readonly_attrs_filter:
+            invalid_readonly = [a for a in readonly_attrs_filter if a not in valid_attr_names]
+            if invalid_readonly:
+                print(f"[validation] WARNING: readonly_attrs {invalid_readonly} not found in class '{cls_name}', ignoring them")
+            readonly_attrs_filter = [a for a in readonly_attrs_filter if a in valid_attr_names]
+        
         for attr in cls_attrs:
-            # If attrs_filter is specified, only include those attrs
-            if attrs_filter is None or attr['name'] in attrs_filter:
-                attributes.append({
-                    "name": attr['name'],
-                    "type": attr.get('type', 'str'),
-                    "derived": attr.get('derived', False),
-                    "enum": attr.get('enum'),
-                    "body": attr.get('body'),
-                    "description": attr.get('description'),
-                })
+            attr_entry = {
+                "name": attr['name'],
+                "type": attr.get('type', 'str'),
+                "derived": attr.get('derived', False),
+                "enum": attr.get('enum'),
+                "body": attr.get('body'),
+                "description": attr.get('description'),
+            }
+            # Check if this attr is explicitly readonly
+            if readonly_attrs_filter and attr['name'] in readonly_attrs_filter:
+                readonly_attributes.append(attr_entry)
+            # Check if this attr is explicitly editable
+            elif attrs_filter and attr['name'] in attrs_filter:
+                attributes.append(attr_entry)
+            elif attrs_filter is None and not readonly_attrs_filter:
+                # No filter specified at all - all are editable by default
+                attributes.append(attr_entry)
+            elif attrs_filter is None and attr['name'] not in (readonly_attrs_filter or []):
+                # Only readonly specified, rest are editable
+                attributes.append(attr_entry)
+            # else: attribute is intentionally excluded (not in either list)
         
         # Create section
         section_id = str(uuid4())
@@ -432,6 +453,7 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
             "class": class_id,
             "model_name": cls_name,
             "attributes": attributes,
+            "readonly_attributes": readonly_attributes,
             "operations": operations,
         }
         sections.append(section)
@@ -527,27 +549,52 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
                 # Use override's activity_attributes or attributes to filter
                 override = overrides.get(cls_name) or overrides.get(cls_name.lower())
                 activity_attrs_filter = None
+                activity_readonly_filter = None
                 activity_ops_list = None
                 if override:
                     activity_attrs_filter = override.get('activity_attributes') or override.get('attributes')
+                    activity_readonly_filter = override.get('activity_readonly_attributes') or override.get('readonly_attributes')
                     activity_ops_list = override.get('activity_operations') or override.get('operations')
+                
+                # Validate activity_attrs_filter
+                valid_names = {a['name'] for a in cls_attrs}
                 if activity_attrs_filter:
-                    valid_names = {a['name'] for a in cls_attrs}
                     activity_attrs_filter = [a for a in activity_attrs_filter if a in valid_names]
                     if not activity_attrs_filter:
                         activity_attrs_filter = None
+                
+                # Validate activity_readonly_filter
+                if activity_readonly_filter:
+                    activity_readonly_filter = [a for a in activity_readonly_filter if a in valid_names]
 
+                # Build editable and readonly attributes
+                # Key change: For activity pages, show ALL class attributes
+                # - Attributes in activity_attrs_filter -> editable
+                # - Attributes in activity_readonly_filter -> readonly
+                # - Remaining attributes -> also readonly (so user can see all data)
                 attributes = []
+                readonly_attributes = []
                 for attr in cls_attrs:
-                    if activity_attrs_filter is None or attr['name'] in activity_attrs_filter:
-                        attributes.append({
-                            "name": attr['name'],
-                            "type": attr.get('type', 'str'),
-                            "derived": attr.get('derived', False),
-                            "enum": attr.get('enum'),
-                            "body": attr.get('body'),
-                            "description": attr.get('description'),
-                        })
+                    attr_entry = {
+                        "name": attr['name'],
+                        "type": attr.get('type', 'str'),
+                        "derived": attr.get('derived', False),
+                        "enum": attr.get('enum'),
+                        "body": attr.get('body'),
+                        "description": attr.get('description'),
+                    }
+                    # Check if this attr is explicitly editable
+                    if activity_attrs_filter and attr['name'] in activity_attrs_filter:
+                        attributes.append(attr_entry)
+                    # Check if this attr is explicitly readonly OR not in any filter (default to readonly)
+                    elif activity_readonly_filter and attr['name'] in activity_readonly_filter:
+                        readonly_attributes.append(attr_entry)
+                    elif activity_attrs_filter is None:
+                        # No filter specified - all are editable by default
+                        attributes.append(attr_entry)
+                    else:
+                        # Filter specified but attr not in it - make it readonly so user can still see
+                        readonly_attributes.append(attr_entry)
                 
                 # Build activity operations from override or default
                 if activity_ops_list is not None:
@@ -570,6 +617,7 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
                     "activity_name": action_name,
                     "activity_id": action_id,
                     "attributes": attributes,
+                    "readonly_attributes": readonly_attributes,
                     "operations": activity_operations,
                 }
                 sections.append(section)

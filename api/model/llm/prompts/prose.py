@@ -71,10 +71,18 @@ Generate pages for the following requirements:
 PROSE_GENERATE_INTERFACE_CANDIDATES = """
 You are an AI UI Designer for Model-Driven Engineering (MDE) with OOUI principles.
 
+═══════════════════════════════════════════════════════════════════════════════
+TARGET ACTOR: {data[actor_name]}
+═══════════════════════════════════════════════════════════════════════════════
+You are generating an interface SPECIFICALLY for the actor "{data[actor_name]}".
+This actor can ONLY see and edit data that belongs to their use cases.
+Other actors' data MUST be hidden or read-only.
+
 OOUI Baseline: By default, EVERY Model gets a CRUD page with ALL attributes.
 Your job is to:
 1. Design the visual STYLING and LAYOUT
-2. OPTIONALLY customize Model pages (rename, regroup, hide attributes, change operations)
+2. CRITICALLY: Filter attributes based on WHO OWNS them (see ATTRIBUTE OWNERSHIP below)
+3. Customize Model pages (rename, regroup, hide attributes, change operations)
 
 MANDATORY OOUI RULES (always apply, regardless of designer requirements):
 
@@ -137,8 +145,9 @@ CANDIDATE_1_START
       "class_name": "ClassName",
       "page_name": "Custom Page Name",
       "category": "Category Name",
-      "operations": ["create", "update", "delete"],
-      "attributes": ["attr1", "attr2"],
+      "operations": ["create", "update"],
+      "attributes": ["editable_attr1", "editable_attr2"],
+      "readonly_attributes": ["viewonly_attr1", "viewonly_attr2"],
       "hidden": false
     }}
   ]
@@ -146,55 +155,125 @@ CANDIDATE_1_START
 CANDIDATE_1_END
 
 PAGE OVERRIDE RULES:
-- "page_overrides" is OPTIONAL. If omitted, all Models get default CRUD pages.
-- Only include classes you want to CUSTOMIZE (rename, hide attrs, change ops).
-- Set "hidden": true to EXCLUDE a Model from the UI.
-- "attributes": list only the attrs to SHOW (omit = show all).
-- Models NOT in page_overrides get full CRUD with all attributes.
+- "page_overrides" is REQUIRED for EVERY class this actor interacts with.
+- Set "hidden": true ONLY for classes the actor should NOT see at all (unrelated classes).
+- "attributes": list ONLY the attrs this actor can EDIT (editable fields).
+- "readonly_attributes": list attrs this actor can VIEW but NOT EDIT.
+- IMPORTANT: An attribute should appear in EITHER "attributes" OR "readonly_attributes", NOT both.
+- IMPORTANT: For classes this actor interacts with, include ALL relevant attributes - either as editable OR readonly.
+- DO NOT exclude attributes that the actor needs to see - put them in "readonly_attributes" instead.
 
-ATTRIBUTE ACCESS CONTROL (CRITICAL — enforce based on use cases):
-- This interface is designed for ONE specific actor. Use cases tell you what this actor CAN do.
-- Each page_overrides entry MUST specify "attributes" to limit which fields this actor can see/edit.
-- Include ONLY attributes that are RELEVANT to the actor's role and use cases.
-- Attributes that should be DECIDED or SET by a DIFFERENT actor's use case must be EXCLUDED.
-  Example: If Loan Officer has "Decide on application", then "status" belongs to Loan Officer.
-  The Applicant should NOT see "status" on their LoanApplication page.
-- For read-only reference pages, set operations to [] or ["update"] with only viewable attributes.
-- Think about WHO OWNS each attribute based on the use case responsibilities.
+═══════════════════════════════════════════════════════════════════════════════
+ATTRIBUTE OWNERSHIP ANALYSIS (CRITICAL — MUST follow these rules precisely):
+═══════════════════════════════════════════════════════════════════════════════
 
-ACTIVITY PAGE ATTRIBUTE AND OPERATION HINTS:
-- Activity pages are auto-generated from the activity diagram.
-- The system uses page_overrides to filter activity page attributes AND operations too.
-- For each class, you MAY add:
-  "activity_attributes": list of attributes for this actor's activity tasks (defaults to "attributes" list).
-  "activity_operations": list of operations for activity tasks, e.g. ["update"] or ["create", "update"] (defaults to the normal "operations" list).
-- Think about what the activity DOES:
-  - "Fill in" / "Submit" → ["create", "update"]
-  - "Review" / "Decide" / "Analyze" → ["update"] (modify existing, no create/delete)
-  - "View" / "Check" → [] (read-only)
-  Example: Applicant's LoanApplication override:
-    "attributes": ["loan_amount"], "operations": ["create", "update"],
-    "activity_attributes": ["loan_amount"], "activity_operations": ["create", "update"]
+BEFORE generating, you MUST analyze each class's attributes and decide ownership:
+
+STEP 0: Identify the target actor's ROLE from their use cases:
+  - "Submit", "Apply", "Request", "Fill", "Enter" → This actor is a REQUESTER/APPLICANT
+  - "Review", "Approve", "Reject", "Decide", "Process" → This actor is a DECISION-MAKER
+  - "Manage", "Configure", "Admin" → This actor is an ADMINISTRATOR
+  - "View", "Check", "Monitor", "Analyze" → This actor is a VIEWER/ANALYST
+
+STEP 1: Categorize every attribute into ONE of these types:
+
+  TYPE A - SYSTEM-MANAGED (NEVER editable by any actor):
+    - id, uuid, created_at, updated_at, timestamps
+    - auto-calculated totals, counts, derived values (marked as "derived" in class)
+    - audit fields (created_by, modified_by)
+    → Rule: EXCLUDE from "attributes", may include in "readonly_attributes" if viewing needed
+
+  TYPE B - OWNER-CONTROLLED (only ONE actor creates/edits):
+    - Look at use case: WHO performs the action that SETS this value?
+    - Common patterns:
+      * If use case is "Submit X" or "Apply for X" → actor owns INPUT fields (name, amount, description, etc.)
+      * If use case is "Approve X" or "Review X" → actor owns DECISION fields (status, approved_amount, notes)
+    → Rule: ONLY the owner actor gets this in "attributes" with appropriate operations
+             Other actors: EXCLUDE or put in "readonly_attributes"
+
+  TYPE C - STATUS/DECISION FIELDS (set by decision-makers):
+    - Attributes with names like: status, state, result, decision, approved, rejected, rating, score
+    - Usually set by: Admin, Manager, Officer, Reviewer, Approver roles
+    → Rule: EXCLUDE for applicants/requesters. Include ONLY for decision actors.
+
+  TYPE D - SHARED REFERENCE (read-only for most):
+    - Reference data like name, description for linked objects
+    - Foreign key display fields
+    → Rule: Put in "readonly_attributes" for viewing, NOT in "attributes"
+
+STEP 2: For EACH use case the actor has, identify:
+  - What data does this use case CREATE? → actor owns those attributes (put in "attributes")
+  - What data does this use case READ? → put in "readonly_attributes"
+  - What data does this use case UPDATE? → check if actor is the owner
+  - What data does this use case DECIDE? → status/decision fields belong here
+
+STEP 3: Apply strict filtering:
+  ✗ WRONG: Giving Applicant access to edit "status" or "decision" fields
+  ✗ WRONG: Giving Reviewer ability to "create" when they only "review"
+  ✗ WRONG: Showing all attributes when actor only needs 2-3 fields
+  ✓ CORRECT: Applicant creates/updates ONLY their own data fields
+  ✓ CORRECT: Reviewer gets "update" only for decision fields, rest readonly
+  ✓ CORRECT: Operator views many fields but edits only process-related ones
+
+EXAMPLE - Loan System:
+  LoanApplication class has: [applicant_name, loan_amount, purpose, status, officer_notes, approved_amount]
+  
+  For Applicant interface:
+    "attributes": ["applicant_name", "loan_amount", "purpose"],  // owns these
+    "readonly_attributes": ["status"],  // can see but not change
+    "operations": ["create", "update"]
+    // officer_notes, approved_amount: EXCLUDED - not their data
+  
+  For Loan Officer interface:
+    "attributes": ["status", "officer_notes", "approved_amount"],  // decides these
+    "readonly_attributes": ["applicant_name", "loan_amount", "purpose"],  // reviews
+    "operations": ["update"]  // no create - applicant creates
+    
+  For Admin interface:
+    "attributes": ["status"],  // can override
+    "readonly_attributes": ["applicant_name", "loan_amount", "purpose", "officer_notes", "approved_amount"],
+    "operations": ["update", "delete"]
+
+═══════════════════════════════════════════════════════════════════════════════
+ACTIVITY PAGE FILTERING:
+═══════════════════════════════════════════════════════════════════════════════
+- Activity pages auto-generate from activity diagrams.
+- Use "activity_attributes" and "activity_operations" to filter what shows in workflow tasks.
+- Match the activity action type:
+  - "Fill in" / "Submit" / "Enter" → ["create", "update"] + input fields only
+  - "Review" / "Decide" / "Approve" / "Reject" → ["update"] + decision fields only
+  - "View" / "Check" / "Verify" → [] (read-only) + relevant display fields
 
 NOTE: Activity workflow pages are automatically generated by the system based on UML activity diagrams.
 You do NOT need to create activity pages. Focus only on styling, layout, and Model page customization.
 
 Make each candidate VISUALLY DISTINCT!
 
-Available classes:
+═══════════════════════════════════════════════════════════════════════════════
+GENERATING INTERFACE FOR ACTOR: {data[actor_name]}
+═══════════════════════════════════════════════════════════════════════════════
+
+Available classes (format: attr_name:type, derived attrs marked):
 {data[classes]}
 
 Class relationships:
 {data[relationships]}
 
-Available use cases:
+This actor's use cases (CRITICAL - determines attribute ownership):
 {data[use_cases]}
 
-Activity workflows:
+Activity workflows for this actor:
 {data[activities]}
 
 Designer requirements:
 '{data[requirements]}'
+
+FINAL CHECKLIST before generating each candidate:
+□ Did I identify what ROLE this actor has? (requester/decision-maker/admin/viewer)
+□ For each class, did I put ONLY this actor's owned attributes in "attributes"?
+□ Did I put OTHER actors' attributes in "readonly_attributes" or exclude them?
+□ Did I exclude system/derived fields from editable attributes?
+□ Do the operations match the actor's role? (requesters create, reviewers only update)
 """
 
 
@@ -222,6 +301,7 @@ IMPORTANT:
 - class_name in page_overrides MUST match one of the Available Models above EXACTLY.
 - If user only changes styling, omit page_overrides and additional_pages.
 - If user only changes pages, keep the same styling values.
+- Use "attributes" for editable fields and "readonly_attributes" for view-only fields.
 
 Output the COMPLETE refined interface in JSON format:
 
@@ -241,8 +321,9 @@ REFINED_START
       "class_name": "ExactModelName",
       "page_name": "Custom Name",
       "category": "Category",
-      "operations": ["create", "update", "delete"],
-      "attributes": ["attr1", "attr2"],
+      "operations": ["create", "update"],
+      "attributes": ["editable_attr1", "editable_attr2"],
+      "readonly_attributes": ["viewonly_attr1", "viewonly_attr2"],
       "hidden": false
     }}
   ],

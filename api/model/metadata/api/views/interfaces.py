@@ -186,8 +186,17 @@ def _get_system_metadata_full(system: System, actor_name: str = None):
     for cls in classes:
         name = cls.data.get('name', 'Unknown')
         attrs = cls.data.get('attributes', [])
-        attr_names = [a['name'] for a in attrs]
-        classes_str += f"- {name}: [{', '.join(attr_names)}]\n"
+        # Include type info to help LLM identify system fields vs user fields
+        attr_details = []
+        for a in attrs:
+            attr_type = a.get('type', 'str')
+            attr_name = a['name']
+            is_derived = a.get('derived', False)
+            if is_derived:
+                attr_details.append(f"{attr_name}(derived:{attr_type})")
+            else:
+                attr_details.append(f"{attr_name}:{attr_type}")
+        classes_str += f"- {name}: [{', '.join(attr_details)}]\n"
         classifier_data.append({
             'id': str(cls.id),
             'data': cls.data,
@@ -241,29 +250,42 @@ def _get_system_metadata_full(system: System, actor_name: str = None):
             actor_usecases.setdefault(tgt_name, []).append(src_name)
     
     usecases_str = ""
-    # If actor_name is provided, only show that actor's use cases
-    actors_to_show = actors
+    # If actor_name is provided, show that actor's use cases prominently, then others for context
     if actor_name:
         actors_to_show = [a for a in actors if a.data.get('name', '') == actor_name]
+        other_actors = [a for a in actors if a.data.get('name', '') != actor_name]
+    else:
+        actors_to_show = actors
+        other_actors = []
     
+    # First, show the target actor's use cases clearly
     for actor in actors_to_show:
         a_name = actor.data.get('name', 'Unknown')
         actor_ucs = actor_usecases.get(a_name, [])
         if actor_ucs:
-            usecases_str += f"Actor '{a_name}' can:\n"
+            usecases_str += f"THIS ACTOR '{a_name}' can perform:\n"
             for uc_name in actor_ucs:
                 # Find full use case data
                 uc_data = next((uc.data for uc in use_cases if uc.data.get('name') == uc_name), {})
                 precondition = uc_data.get('precondition', '')
                 postcondition = uc_data.get('postcondition', '')
-                usecases_str += f"  - {uc_name}"
+                usecases_str += f"  → {uc_name}"
                 if precondition:
                     usecases_str += f" [pre: {precondition}]"
                 if postcondition:
                     usecases_str += f" [post: {postcondition}]"
                 usecases_str += "\n"
         else:
-            usecases_str += f"Actor '{a_name}' (no use cases linked)\n"
+            usecases_str += f"THIS ACTOR '{a_name}' (no use cases linked)\n"
+    
+    # Then, show OTHER actors' use cases for context (so LLM knows what NOT to include)
+    if other_actors:
+        usecases_str += "\nOTHER ACTORS (for context - attributes owned by these actors should be readonly or hidden):\n"
+        for actor in other_actors:
+            a_name = actor.data.get('name', 'Unknown')
+            actor_ucs = actor_usecases.get(a_name, [])
+            if actor_ucs:
+                usecases_str += f"  {a_name}: {', '.join(actor_ucs)}\n"
     
     if not actor_name:
         # Also list unlinked use cases when showing all actors
@@ -483,6 +505,7 @@ def generate_candidates(request, interface_id, body: GenerateCandidatesRequest):
             "PROSE_GENERATE_INTERFACE_CANDIDATES",
             body.model,
             input_data={
+                "actor_name": iface_actor_name or "Unknown Actor",
                 "classes": metadata["classes_str"],
                 "relationships": metadata["relationships_str"],
                 "use_cases": metadata["usecases_str"],
