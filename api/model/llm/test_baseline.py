@@ -13,7 +13,7 @@ def main() -> None:
     If confirmed, the warehouse prepares the shipment and sends a confirmation email.
     """
 
-    # 1) Baseline: clean activity graph
+    # 1) Baseline: clean activity diagram
     clean_model = generate_activity_model(process_text)
     print("=== CLEAN MODEL ===")
     print(json.dumps(clean_model, indent=2))
@@ -25,7 +25,7 @@ def main() -> None:
 
     system_id = str(uuid.uuid4())
     diagram_id = str(uuid.uuid4())
-    # 2) Convert clean graph → AI4MDE JSON
+    # 2) Convert clean diagram → AI4MDE JSON
     ai4mde_model = convert_to_ai4mde(
         clean_model,
         system_id=system_id,
