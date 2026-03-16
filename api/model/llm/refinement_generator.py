@@ -4,10 +4,11 @@ Takes the original process description, current model, and a designer's refineme
 instruction; produces an updated AI4MDE system JSON for re-rendering.
 """
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from .handler import call_openai
 from .converter import convert_to_ai4mde
+from .prompt_builder import build_activity_prompt
 
 
 def _is_clean_format(model: dict) -> bool:
@@ -82,38 +83,57 @@ def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
     return system_id, diagram_id, name, description
 
 
-REFINEMENT_PROMPT_TEMPLATE = (
-    "You are helping a business analyst refine a UML Activity Diagram.\n"
-    "\n"
-    "You have:\n"
-    "1. The original process description.\n"
-    "2. The current activity model (as a JSON graph).\n"
-    "3. A refinement instruction from the designer.\n"
-    "\n"
-    "Your job is to apply the refinement instruction to the current model and produce an UPDATED "
-    "activity graph. Return only the updated graph—add, remove, or modify nodes and edges as requested.\n"
-    "\n"
-    "Original process description:\n"
-    "{process_text}\n"
-    "\n"
-    "Current activity model (JSON):\n"
-    "{current_model_json}\n"
-    "\n"
-    "Refinement instruction:\n"
-    "{refinement_instruction}\n"
-    "\n"
-    "You must return a single JSON object with the updated activity graph using this structure:\n"
-    "- Top-level object has two arrays: \"nodes\" and \"edges\".\n"
-    "- Each node has: \"id\" (string), \"type\" (string). For action nodes, include \"name\".\n"
-    "- Use simple node ids like \"n1\", \"n2\", \"n3\" (do NOT use UUIDs).\n"
-    "- Allowed node types: initial, action, decision, merge, fork, join, final, object.\n"
-    "- Each edge has: \"source\" (node id), \"target\" (node id). Optionally \"type\" and \"condition\".\n"
-    "\n"
-    "Output rules (strict):\n"
-    "- Output ONLY a single valid JSON object.\n"
-    "- Do NOT include any explanations, prose, or reasoning.\n"
-    "- Do NOT include markdown, code fences, or comments.\n"
-)
+def model_activity(
+    process_text: str,
+    current_model: Optional[dict] = None,
+    instruction: Optional[str] = None,
+) -> dict:
+    """
+    Core modelling operation for activity diagrams.
+
+    If current_model is None, this behaves as initial generation from the
+    process description. If a current_model is provided, it behaves as a
+    refinement/update step guided by the instruction.
+
+    Returns a clean activity graph in {\"nodes\": [...], \"edges\": [...]} form.
+    """
+    clean_current: Optional[dict] = None
+    if current_model is not None:
+        clean_current = _get_clean_model(current_model)
+
+    prompt = build_activity_prompt(
+        process_text=process_text,
+        current_model=clean_current,
+        refinement_instruction=instruction,
+    )
+
+    raw_output = call_openai("gpt-4o-mini", prompt)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        raise ValueError("LLM activity modelling output is not valid JSON.")
+
+    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
+        raise ValueError("LLM refinement output does not follow required schema.")
+    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
+        raise ValueError("LLM refinement output does not follow required schema.")
+
+    for node in parsed["nodes"]:
+        if not isinstance(node, dict):
+            raise ValueError("LLM activity modelling output does not follow required schema.")
+        if "id" not in node or "type" not in node:
+            raise ValueError("LLM activity modelling output does not follow required schema.")
+        if node.get("type") == "action" and "name" not in node:
+            raise ValueError("LLM activity modelling output: action nodes must have a name.")
+
+    for edge in parsed["edges"]:
+        if not isinstance(edge, dict):
+            raise ValueError("LLM activity modelling output does not follow required schema.")
+        if "source" not in edge or "target" not in edge:
+            raise ValueError("LLM activity modelling output does not follow required schema.")
+
+    return parsed
 
 
 def refine_activity_model(
@@ -125,8 +145,9 @@ def refine_activity_model(
     Refine an activity model based on designer feedback.
 
     Takes the original process description, current model (clean or AI4MDE format),
-    and a refinement instruction. Calls the LLM to produce an updated activity graph,
-    then converts it to full AI4MDE system JSON (project, system, diagram, metadata).
+    and a refinement instruction. Calls the core modelling operation to produce an
+    updated clean activity graph, then converts it to full AI4MDE system JSON
+    (project, system, diagram, metadata).
 
     The returned JSON can be used to re-render the diagram in the system.
 
@@ -138,40 +159,11 @@ def refine_activity_model(
     Returns:
         Complete AI4MDE system JSON with interfaces, diagrams (nodes + edges), id, name, description.
     """
-    clean_current = _get_clean_model(current_model)
-    current_json_str = json.dumps(clean_current, indent=2)
-
-    prompt = REFINEMENT_PROMPT_TEMPLATE.format(
+    clean_graph = model_activity(
         process_text=process_text,
-        current_model_json=current_json_str,
-        refinement_instruction=refinement_instruction,
+        current_model=current_model,
+        instruction=refinement_instruction,
     )
-
-    raw_output = call_openai("gpt-4o-mini", prompt)
-
-    try:
-        parsed = json.loads(raw_output)
-    except json.JSONDecodeError:
-        raise ValueError("LLM refinement output is not valid JSON.")
-
-    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
-        raise ValueError("LLM refinement output does not follow required schema.")
-    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
-        raise ValueError("LLM refinement output does not follow required schema.")
-
-    for node in parsed["nodes"]:
-        if not isinstance(node, dict):
-            raise ValueError("LLM refinement output does not follow required schema.")
-        if "id" not in node or "type" not in node:
-            raise ValueError("LLM refinement output does not follow required schema.")
-        if node.get("type") == "action" and "name" not in node:
-            raise ValueError("LLM refinement output: action nodes must have a name.")
-
-    for edge in parsed["edges"]:
-        if not isinstance(edge, dict):
-            raise ValueError("LLM refinement output does not follow required schema.")
-        if "source" not in edge or "target" not in edge:
-            raise ValueError("LLM refinement output does not follow required schema.")
 
     # Preserve metadata from current model if it's AI4MDE; otherwise use defaults
     if _is_clean_format(current_model):
@@ -183,7 +175,7 @@ def refine_activity_model(
         system_id, diagram_id, name, description = _get_ai4mde_metadata(current_model)
 
     return convert_to_ai4mde(
-        clean_model=parsed,
+        clean_model=clean_graph,
         system_id=system_id,
         diagram_id=diagram_id,
         name=name,
