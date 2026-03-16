@@ -21,8 +21,8 @@ def main() -> None:
         clean_model,
         system_id=str(uuid.uuid4()),
         diagram_id=str(uuid.uuid4()),
-        name="Generated Activity Diagram",
-        description="Baseline AI4MDE output",
+        name="Generated Activity Diagram for refinement test",
+        description="Baseline AI4MDE output for refinement test",
     )
 
     # 3) Refine the AI4MDE model
