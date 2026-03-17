@@ -32,7 +32,6 @@ class Action(NamedElement, NamespacedElement, BaseModel):
             values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
         return values
 
-
 ActionClassifier = Action
 
 __all__ = [

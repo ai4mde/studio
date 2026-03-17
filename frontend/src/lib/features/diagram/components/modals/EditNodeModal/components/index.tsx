@@ -12,8 +12,11 @@ import EditBackgroundColor from "./EditColors/EditBackgroundColor";
 import EditTextColor from "./EditColors/EditTextColor";
 import EditLabel from "./EditLabel/EditLabel";
 import EditTechnologies from "./EditTechnologies/EditTechnologies";
+import EditObject from "./EditObject/EditObject";
+import EditEvent from "./EditEvent/EditEvent";
+import EditInternals from "./EditInternals/EditInternals";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditBackgroundColor, EditTextColor, EditLabel, EditTechnologies };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditObject, EditEvent, EditInternals, EditBackgroundColor, EditTextColor, EditLabel, EditTechnologies };
 export default {
     EditAttributes,
     EditMethods,
@@ -28,5 +31,8 @@ export default {
     EditBackgroundColor,
     EditTextColor,
     EditLabel,
-    EditTechnologies
+    EditTechnologies,
+    EditObject,
+    EditEvent,
+    EditInternals
 };

@@ -6,33 +6,32 @@ from django.core.exceptions import ObjectDoesNotExist
 from metadata.models import Classifier
 from metadata.specification.kernel import NamedElement, NamespacedElement
 
-class Object(NamedElement, NamespacedElement, BaseModel):
-    type: Literal["object"] = "object"
-    role: Literal["object"] = "object"
-    cls: UUID
-    clsName: Optional[str] = None
-    state: Optional[str] = None
+class Event(NamedElement, NamespacedElement, BaseModel):
+    type: Literal["event"] = "event"
+    role: Literal["event"] = "event"
+    signal: UUID
+    signalName: Optional[str] = None
 
     @model_validator(mode="after")
-    def set_cls_name(self):
-        if not self.cls:
+    def set_signal_name(self):
+        if not self.signal:
             return self
 
         try:
-            classifier = Classifier.objects.get(pk=self.cls)
-            # adjust depending on your Classifier schema:
-            self.clsName = (
+            classifier = Classifier.objects.get(pk=self.signal)
+
+            self.signalName = (
                 getattr(classifier, "name", None)
                 or getattr(classifier, "key", None)
                 or classifier.data.get("name")
-                or "Unknown class"
+                or "Unknown signal"
             )
 
         except ObjectDoesNotExist:
-            self.clsName = "Unknown class"
+            self.signalName = "Unknown signal"
 
         return self
     
-ObjectClassifier = Object
+EventClassifier = Event
 
-__all__ = ["ObjectClassifier"]
+__all__ = ["EventClassifier"]

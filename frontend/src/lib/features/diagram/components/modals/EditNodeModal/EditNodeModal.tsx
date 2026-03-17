@@ -23,7 +23,10 @@ import {
     EditBackgroundColor,
     EditTextColor,
     EditLabel,
-    EditTechnologies
+    EditTechnologies,
+    EditObject,
+    EditEvent,
+    EditInternals,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -80,6 +83,10 @@ export const EditNodeModal: React.FC = () => {
 
     const nodeRef = React.useRef(null);
 
+    console.log("EditNodeModal node:", node);
+    console.log("EditNodeModal node.type:", node?.type);
+    console.log("EditNodeModal node.data:", node?.data);
+
     return node ? (
         createPortal(
             <div className={style.modal}>
@@ -103,7 +110,7 @@ export const EditNodeModal: React.FC = () => {
                             </div>
                             <div className="h-full overflow-y-scroll bg-white">
                                 <div className={style.body}>
-                                    {node.data?.name && (
+                                    {node.data?.name && node.type !== "object" && node.type !== "event" && (
                                         <EditName node={node} />
                                     )}
                                     {node.type == "class" && (
@@ -181,11 +188,16 @@ export const EditNodeModal: React.FC = () => {
                                         </>
 
                                     )}
+                                    {node.type === "object" && <EditObject node={node} />}
+                                    {node.type === "event" && <EditEvent node={node} />}
                                     {node.type == "system_boundary" && (
-                                      <>
-                                        <EditDimensions dimension='height' node={node} />
-                                        <EditDimensions dimension='width' node={node} />
-                                      </>
+                                        <>
+                                            <EditDimensions dimension='height' node={node} />
+                                            <EditDimensions dimension='width' node={node} />
+                                        </>
+                                    )}
+                                    {(node.type === "system" || node.type === "container" || node.type === "component") && (
+                                        <EditInternals node={node} />
                                     )}
                                     {node.type == "c4container" && (
                                       <>

@@ -64,7 +64,7 @@ def classifier_usage(request: HttpRequest, node_id: str):
         return 404, "Node not found"
 
     cls = node.cls
-    cls_name = (cls.data or {}).get("name", cls.id)
+    cls_name = (cls.data or {}).get("name", str(cls.id))
     nodes = (
         Node.objects
         .select_related("diagram", "diagram__system")

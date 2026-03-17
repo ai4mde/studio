@@ -21,7 +21,6 @@ class SwimLane(BaseModel):
 
 class SwimLaneGroup(BaseModel):
     type: Literal["swimlanegroup"] = "swimlanegroup"
-    role: Literal["swimlane"] = "swimlane"
     height: int = 1000
     width: int = 300
     horizontal: bool = False

@@ -10,10 +10,20 @@ import Draggable from "react-draggable";
 import { NewActivityNode } from "./NewActivityNode";
 import { NewClassNode } from "./NewClassNode";
 import { NewUsecaseNode } from "./NewUsecaseNode";
+import { NewComponentNode } from "./NewComponentNode"
 import style from "./newnodemodal.module.css";
 import { authAxios } from "$lib/features/auth/state/auth";
 
 export const NewNodeModal: React.FC = () => {
+    const UNIQUE_NAME_TYPES = new Set([
+        "class",
+        "enum",
+        "signal",
+        "action",
+        "actor",
+        "usecase",
+    ]);
+
     const { diagram, type, nodes, uniqueActors, relatedDiagrams, systemId } = useDiagramStore();
     const { close } = useNewNodeModal();
 
@@ -39,8 +49,9 @@ export const NewNodeModal: React.FC = () => {
     });
 
     useEffect(() => {
-        // Only validate "normal" nodes that have a name
-        if (object?.type === "swimlane") {
+        const isNameType = UNIQUE_NAME_TYPES.has(object?.type);
+
+        if (!isNameType) {
             setNameError("");
             setCheckingName(false);
             return;
@@ -94,9 +105,11 @@ export const NewNodeModal: React.FC = () => {
         };
     }, [object?.name, object?.type, systemId]);
 
-
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
+    const systemNodes = relatedDiagrams
+        .flatMap(diagram => diagram.nodes ?? [])
+        .filter(node => node?.type === "system");
     const nodeRef = React.useRef(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -106,51 +119,74 @@ export const NewNodeModal: React.FC = () => {
 
         setNameError("");
 
-        if (object.type !== 'swimlane') {
-            if (object?.name && systemId) {
+        // 1) Swimlane special case: create/update swimlanegroup
+        if (object.type === "swimlane") {
+            const { height, width, horizontal, swimlanes } = object;
+
+            if (!swimlanes || swimlanes.length === 0) return;
+
+            if (swimlaneGroup) {
+                partialUpdateNode(diagram, swimlaneGroup.id, {
+                    cls: {
+                        swimlanes: [...swimlaneGroup.data.swimlanes, ...swimlanes],
+                    },
+                });
+            } else {
+                addNode(diagram, {
+                    type: "swimlanegroup",
+                    swimlanes,
+                    height,
+                    width,
+                    horizontal,
+                });
+            }
+
+            queryClient.refetchQueries({ queryKey: ["diagram"] });
+            close();
+            return;
+        }
+
+        // 2) Optional uniqueness check (only for types that must be unique)
+        if (UNIQUE_NAME_TYPES.has(object?.type)) {
+            const name = (object?.name ?? "").trim();
+            if (name && systemId) {
                 const res = await authAxios.get(
                     `/v1/metadata/systems/${systemId}/classifiers/exists/`,
-                    { params: { name: object.name, ctype: object.type } },
+                    { params: { name, ctype: object.type } },
                 );
 
                 if (res.data?.exists) {
-                    setNameError(`A classifier named "${object.name}" already exists in this system.`);
+                    setNameError(`A ${object.type} named "${name}" already exists in this system.`);
                     return;
                 }
             }
-
-            addNode(diagram, object);
-        } else {
-            const { height, width, horizontal, swimlanes } = object;
-            if (swimlaneGroup) {
-                partialUpdateNode(
-                    diagram,
-                    swimlaneGroup.id,
-                    {
-                        cls: {
-                            swimlanes: [...swimlaneGroup.data.swimlanes, ...swimlanes],
-                        }
-                    }
-                )
-            } else {
-                addNode(
-                    diagram,
-                    {
-                        type: 'swimlanegroup',
-                        role: 'swimlane',
-                        swimlanes: swimlanes,
-                        height,
-                        width,
-                        horizontal
-                    }
-                );
-            }
         }
-        queryClient.refetchQueries({
-            queryKey: ["diagram"],
-        });
+
+        // 3) Create all non-swimlane nodes (object/event allowed to repeat)
+        addNode(diagram, object);
+
+        queryClient.refetchQueries({ queryKey: ["diagram"] });
         close();
     };
+
+    const isAction = object?.type === "action";
+    const isSwimlane = object?.type === "swimlane";
+    const isObject = object?.type === "object";
+    const isEvent = object?.type === "event";
+
+    // Action nodes: name required
+    const missingActionName = isAction && !(object?.name ?? "").trim();
+
+    // Swimlane: actor required
+    const missingSwimlaneActors =
+        isSwimlane && (!object?.swimlanes || object.swimlanes.length === 0);
+
+    // Object/Event: cls/signal required
+    const missingObjectCls = isObject && !object?.cls;
+    const missingEventSignal = isEvent && !object?.signal;
+
+    // Control: type required
+    const missingType = object?.role === "control" && !object?.type;
 
     return createPortal(
         <div className={style.modal}>
@@ -202,6 +238,13 @@ export const NewNodeModal: React.FC = () => {
                                 <NewUsecaseNode
                                     object={object}
                                     systemBoundaryExists={systemBoundaryExists}
+                                    systemNodes={systemNodes}
+                                    setObject={setObject}
+                                />
+                            )}
+                            {type == "component" && (
+                                <NewComponentNode
+                                    object={object}
                                     setObject={setObject}
                                 />
                             )}
@@ -218,7 +261,16 @@ export const NewNodeModal: React.FC = () => {
                             <Button
                                 color="primary"
                                 size="sm"
-                                disabled={!object.type || !!nameError || checkingName}
+                                disabled={
+                                    !object.type ||
+                                    !!nameError ||
+                                    checkingName ||
+                                    missingActionName ||
+                                    missingSwimlaneActors ||
+                                    missingObjectCls ||
+                                    missingEventSignal ||
+                                    missingType
+                                }
                                 type="submit"
                             >
                                 {checkingName ? "Checking..." : "Add"}

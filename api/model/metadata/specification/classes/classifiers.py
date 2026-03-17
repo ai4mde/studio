@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Literal, List, Union
 
 from metadata.specification.kernel import (
@@ -68,4 +68,17 @@ class C4Component(NamedElement, NamespacedElement, BaseModel):
     type: Literal["c4component"] = "c4component"
     label: str = ""
 
-ClassClassifier = Union[Application, Page, Section, Class, Enum, Signal, C4Container, C4Component]
+class Interface(NamedElement, BaseModel):
+    type: Literal['interface']
+
+ClassClassifier = Union[
+    Application,
+    Page,
+    Section,
+    Class,
+    Enum,
+    Signal,
+    Interface,
+    C4Container,
+    C4Component
+]

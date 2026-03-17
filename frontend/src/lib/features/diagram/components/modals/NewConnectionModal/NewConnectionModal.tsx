@@ -1,4 +1,5 @@
 import { PreviewNode } from "$diagram/components/core/Node/Node";
+import type { Node as RFNode } from "reactflow";
 import { addEdge } from "$diagram/mutations/diagram";
 import { useDiagramStore } from "$diagram/stores";
 import { useNewConnectionModal } from "$diagram/stores/modals";
@@ -11,13 +12,23 @@ import Draggable from "react-draggable";
 import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
+import { ComponentConnectionFields } from "../ConnectionFields/ComponentConnectionFields";
 import style from "./newconnectionmodal.module.css";
 
 const isConnectionValid = (diagramType: string, o: any): boolean => {
-    if (!o?.type) return false;
-
+    // classes: must have valid type etc
     if (diagramType === "classes" || diagramType === "class") {
         return isClassConnectionValid(o);
+    }
+
+    // usecase: require type
+    if (diagramType === "usecase") {
+        return !!o?.type;
+    }
+
+    // activity: type is implicit (controlflow), so don't require it here
+    if (diagramType === "activity") {
+        return true;
     }
 
     return true;
@@ -64,7 +75,13 @@ export const NewConnectionModal: React.FC = () => {
                         className={style.main}
                         onSubmit={(e) => {
                             e.preventDefault();
-                            diagram && source && object && target && addEdge(diagram, object, source, target);
+                            const rel =
+                                type === "activity"
+                                    ? { ...object, type: object?.type ?? "controlflow" }
+                                    : object;
+
+                            diagram && source && rel && target && addEdge(diagram, rel, source, target);
+
                             queryClient.refetchQueries({
                                 queryKey: ["diagram"],
                             });
@@ -116,10 +133,20 @@ export const NewConnectionModal: React.FC = () => {
                                     classDiagrams={relatedDiagrams.filter((d) => d.type == "classes")}
                                     setObject={setObject}
                                 />
-                            ): null}
+                            ) : null}
                             {type == "usecase" ? (
                                 <UseCaseConnectionFields
                                     object={object}
+                                    setObject={setObject}
+                                />
+                            ) : null}
+                            {type == "component" ? (
+                                <ComponentConnectionFields
+                                    object={object}
+                                    interfaceNodes={relatedDiagrams
+                                        .flatMap((d) => d.nodes)
+                                        .filter((n) => n.type === "interface")
+                                    }
                                     setObject={setObject}
                                 />
                             ) : null}

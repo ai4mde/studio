@@ -1,8 +1,12 @@
 
 import { Checkbox, FormControl, FormLabel, Input, Option, Select, Switch, FormHelperText, Button } from "@mui/joy";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+
+import { useDiagramStore } from "$diagram/stores";
 import { RelatedNode } from "$diagram/types/diagramState"
 import CodeEditorModal from "$lib/shared/components/Modals/CodeEditorModal";
+import { useSystemObjectClassifiers, useSystemSignalClassifiers } from "../ImportNodeModal/queries/importNode";
+import { useAuthEffect } from "$auth/hooks/authEffect";
 
 type Props = {
     object: any;
@@ -13,36 +17,46 @@ type Props = {
     setObject: (o: any) => void;
 };
 
-export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors,  swimlaneGroupExists, classes, setObject }) => {
+export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existingActors, swimlaneGroupExists, classes, setObject }) => {
+    const systemId = useDiagramStore((s) => s.systemId);
 
-    const DEFAULTS: Record<string, Partial<typeof object>> = {
+    const [objectClassifiers, objectClassifiersSuccess] = useSystemObjectClassifiers(systemId);
+    const [signalClassifiers, signalClassifiersSuccess] = useSystemSignalClassifiers(systemId);
+
+    const DEFAULTS: Record<string, any> = {
         swimlane: {
+            role: "swimlane",
             type: "swimlane",
             height: 1000,
             width: 300,
             horizontal: false,
         },
         action: {
+            role: "action",
             type: "action",
             isAutomatic: false,
         },
+        control: {
+            role: "control",
+            type: "decision",
+            decisionInput: "",
+            decisionInputFlow: "",
+            page: "",
+        },
+        object: {
+            role: "object",
+            type: "object",
+            name: "", // derived from selected class
+        },
+        event: {
+            role: "event",
+            type: "event",
+            name: "", // derived from selected signal
+        },
     };
 
-    useEffect(() => {
-        if (object.role && DEFAULTS[object.role]) {
-            setObject((o: any) => {
-                const defaults = DEFAULTS[object.role];
-                // Only set default for keys that are undefined
-                const newObject = { ...o };
-                for (const key in defaults) {
-                    if (newObject[key] === undefined) {
-                        newObject[key] = defaults[key];
-                    }
-                }
-                return newObject;
-            });
-        }
-    }, [object.role, setObject]);
+    const isControl = object.role === "control";
+    const isEvent = object.role === "event";
 
     const [isCodeEditorOpen, setIsCodeEditorOpen] = useState(false);
 
@@ -57,62 +71,90 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
         handleCloseCodeEditor();
     }
 
+    const onChangeRole = (newRole: string | null) => {
+        if (!newRole) return;
+
+        setObject(() => {
+            const next = { ...(DEFAULTS[newRole] ?? {}) };
+
+            // Keep name only where chosen by user
+            if (newRole !== "action") delete next.name;
+
+            return next;
+        });
+    }
+
+    useEffect(() => {
+        if (!object.role) return;
+        const d = DEFAULTS[object.role];
+        if (!d) return;
+
+        setObject((o: any) => {
+            const next = { ...o };
+            for (const k of Object.keys(d)) {
+                if (next[k] === undefined) next[k] = d[k];
+            }
+            return next;
+        });
+    }, [object.role, setObject]);
+
+    const objectClsNameById = React.useMemo(() => {
+        const m = new Map<string, string>();
+        for (const c of objectClassifiers ?? []) {
+            if (c?.id && c?.data?.name) m.set(c.id, c.data.name);
+        }
+        return m;
+    }, [objectClassifiers]);
+
+    const signalNameById = React.useMemo(() => {
+        const m = new Map<string, string>();
+        for (const s of signalClassifiers ?? []) {
+            if (s?.id && s?.data?.name) m.set(s.id, s.data.name);
+        }
+        return m;
+    }, [signalClassifiers]);
+
+
     return (
         <>
             <FormControl size="sm" className="w-full">
                 <FormLabel>Role</FormLabel>
                 <Select
                     value={object.role || ""}
-                    onChange={(_, e) =>
-                        setObject((o: any) => ({ ...o, role: e }))
-                    }
+                    onChange={(_, r) => onChangeRole(r)}
                     placeholder="Select a role..."
                 >
                     <Option value="swimlane">Swimlane</Option>
                     <Option value="action">Action</Option>
                     <Option value="control">Control</Option>
                     <Option value="object">Object</Option>
+                    <Option value="event">Event</Option>
                 </Select>
             </FormControl>
-            <FormControl size="sm" className="w-full">
-                <FormLabel>Type</FormLabel>
-                <Select
-                    value={object.type || ""}
-                    placeholder="Select a type..."
-                    onChange={(_, e) =>
-                        setObject((o: any) => ({ ...o, type: e }))
-                    }
-                >
-                    {object.role == "swimlane" && (
-                        <>
-                            <Option value="swimlane">Swimlane</Option>
-                        </>
-                    )}
-                    {object.role == "action" && (
-                        <>
-                            <Option value="action">Action</Option>
-                        </>
-                    )}
-                    {object.role == "control" && (
-                        <>
-                            <Option value="decision">Decision</Option>
-                            <Option value="final">Final</Option>
-                            <Option value="fork">Fork</Option>
-                            <Option value="initial">Initial</Option>
-                            <Option value="join">Join</Option>
-                            <Option value="merge">Merge</Option>
-                        </>
-                    )}
-                    {object.role == "object" && (
-                        <>
-                            <Option value="class" disabled>Class</Option>
-                            <Option value="buffer" disabled>Buffer</Option>
-                            <Option value="pin" disabled>Pin</Option>
-                        </>
-                    )}
-                </Select>
-            </FormControl>
-            {(object.type == "action") && (
+
+            {object.role === "control" && (
+                <FormControl size="sm" className="w-full">
+                    <FormLabel>Control Type</FormLabel>
+                    <Select
+                        value={object.type || "decision"}
+                        onChange={(_, t) => {
+                            if (!t) return;
+                            setObject((o: any) => ({
+                                ...o,
+                                type: String(t),
+                            }));
+                        }}
+                    >
+                        <Option value="decision">Decision</Option>
+                        <Option value="final">Final</Option>
+                        <Option value="fork">Fork</Option>
+                        <Option value="initial">Initial</Option>
+                        <Option value="join">Join</Option>
+                        <Option value="merge">Merge</Option>
+                    </Select>
+                </FormControl>
+            )}
+            {(object.role == "action") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Name</FormLabel>
@@ -165,19 +207,88 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                     />
                 </>
             )}
-            {(object.type == "swimlane") && (
+
+            {object.role === "object" && (
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Class</FormLabel>
+                        <Select
+                            placeholder={!objectClassifiersSuccess ? "Loading..." : "Choose a class..."}
+                            value={object.cls ?? null}
+                            onChange={(_, v) => {
+                                const id = v ? String(v) : null;
+                                const selected = objectClassifiers.find(c => c.id === id);
+                                setObject(o => ({
+                                    ...o,
+                                    cls: id,
+                                    name: selected?.data?.name ?? "",
+                                }));
+                            }}
+                            disabled={!objectClassifiersSuccess}
+                            required
+                        >
+                            {objectClassifiersSuccess &&
+                                objectClassifiers.map((c) => (
+                                    <Option key={c.id} value={c.id}>
+                                        {c.data?.name} ({c.data?.type})
+                                    </Option>
+                                ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>State (optional)</FormLabel>
+                        <Input
+                            value={object.state || ""}
+                            onChange={(e) => setObject((o: any) => ({ ...o, state: e.target.value }))}
+                            placeholder="e.g. pending, approved..."
+                        />
+                    </FormControl>
+                </>
+            )}
+
+            {object.role === "event" && (
+                <>
+                    <FormControl size="sm" className="w-full">
+                        <FormLabel>Signal</FormLabel>
+                        <Select
+                            placeholder={!signalClassifiersSuccess ? "Loading..." : "Choose a signal..."}
+                            value={object.signal ?? null}
+                            onChange={(_, v) => {
+                                const id = v ? String(v) : null;
+                                const selected = signalClassifiers.find(c => c.id === id);
+                                setObject(o => ({
+                                    ...o,
+                                    signal: id,
+                                    name: selected?.data?.name ?? "",
+                                }));
+                            }}
+                            disabled={!signalClassifiersSuccess}
+                            required
+                        >
+                            {signalClassifiersSuccess &&
+                                signalClassifiers.map((s) => (
+                                    <Option key={s.id} value={s.id}>
+                                        {s.data?.name} ({s.data?.type})
+                                    </Option>
+                                ))}
+                        </Select>
+                    </FormControl>
+                </>
+            )}
+
+            {(object.role == "swimlane") && (
                 <>
                     <FormControl size="sm" className="w-full">
                         <FormLabel>Actors</FormLabel>
                         <Select
                             multiple
                             placeholder="Select actors..."
-                            onChange={(_, newValue) =>{
+                            onChange={(_, newValue) => {
                                 const selectedNodes = uniqueActors.filter((node) => newValue.includes(node.id))
                                 setObject((o: any) => ({
                                     ...o,
                                     swimlanes: selectedNodes.map((node) => ({
-                                        role: "swimlane",
                                         type: "swimlane",
                                         actorNode: node.id,
                                         actorNodeName: node.name,
@@ -202,7 +313,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 <Input
                                     value={object.height || 1000}
                                     type="number"
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         setObject((o: any) => ({
                                             ...o,
                                             height: e.target.value,
@@ -216,7 +327,7 @@ export const NewActivityNode: React.FC<Props> = ({ object, uniqueActors, existin
                                 <Input
                                     value={object.width || 300}
                                     type="number"
-                                    onChange={(e) => 
+                                    onChange={(e) =>
                                         setObject((o: any) => ({
                                             ...o,
                                             width: e.target.value,

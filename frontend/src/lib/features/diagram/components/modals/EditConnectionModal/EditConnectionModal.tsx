@@ -13,10 +13,11 @@ import { authAxios } from "$lib/features/auth/state/auth";
 import ClassConnectionFields, { isClassConnectionValid } from "../ConnectionFields/ClassConnectionFields";
 import ActivityConnectionFields from "../ConnectionFields/ActivityConnectionFields";
 import UseCaseConnectionFields from "../ConnectionFields/UseCaseConnectionFields";
+import ComponentConnectionFields from "../ConnectionFields/ComponentConnectionFields";
 
 export const EditConnectionModal: React.FC = () => {
     const modalState = useEditConnectionModal();
-    const { diagram, edges, type } = useDiagramStore();
+    const { diagram, edges, type, relatedDiagrams } = useDiagramStore();
 
     const edge = useMemo(
         () => edges.find((e) => e.id == modalState.edge),
@@ -33,9 +34,14 @@ export const EditConnectionModal: React.FC = () => {
 
     const updateEdge = useMutation({
         mutationFn: async () => {
+            const rel =
+                type === "activity"
+                    ? { ...object, type: "controlflow", isDirected: object?.isDirected ?? true }
+                    : object;
+
             await authAxios.patch(
                 `/v1/diagram/${diagram}/edge/${edge?.id}/`,
-                { rel: object },
+                { rel },
             );
             queryClient.invalidateQueries({ queryKey: ["diagram"] });
         },
@@ -59,12 +65,22 @@ export const EditConnectionModal: React.FC = () => {
     const nodeRef = React.useRef(null);
 
     const isValid = () => {
-        if (!object?.type) return false;
-
+        // Classes: must pass class validation (requires type)
         if (type === "classes" || type === "class") {
             return isClassConnectionValid(object);
         }
 
+        // Usecase: type is required
+        if (type === "usecase") {
+            return !!object?.type;
+        }
+
+        // Activity: type is implicit, no dropdown, always valid
+        if (type === "activity") {
+            return true;
+        }
+
+        // Default fallback
         return true;
     };
 
@@ -103,6 +119,7 @@ export const EditConnectionModal: React.FC = () => {
                                         <ActivityConnectionFields
                                             object={object}
                                             setObject={setObject}
+                                            hideGuard={!!object?.condition}
                                         />
                                     )}
                                     {type === "usecase" && (
@@ -110,6 +127,17 @@ export const EditConnectionModal: React.FC = () => {
                                             object={object}
                                             setObject={setObject}
                                         />
+                                    )}
+                                    {type === "component" && (
+                                        <ComponentConnectionFields
+                                            object={object}
+                                            interfaceNodes={relatedDiagrams
+                                                .flatMap((d) => d.nodes)
+                                                .filter((n) => n.type === "interface")
+                                            }
+                                            setObject={setObject}
+                                        />
+
                                     )}
                                 </div>
                             </div>

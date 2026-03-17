@@ -1,6 +1,7 @@
 import {
     ActionNode,
-    BufferNode,
+    ObjectNode,
+    EventNode,
     DecisionNode,
     FinalNode,
     ForkNode,
@@ -9,7 +10,7 @@ import {
     MergeNode,
     SwimlaneGroupNode,
 } from "./activity";
-import { ClassNode, EnumNode, SignalNode, C4ContainerNode, C4ComponentNode } from "./class";
+import { ClassNode, EnumNode, ClassifierNode, C4ContainerNode, C4ComponentNode } from "./class";
 import {
     ActorNode,
     PostconditionNode,
@@ -20,35 +21,44 @@ import {
     UsecaseNode,
     SystemBoundaryNode
 } from "./usecase";
+import ComponentNode from "./component/ComponentNode";
 
 export {
     ActionNode,
-    ActorNode, BufferNode, ClassNode, DecisionNode, EnumNode, FinalNode,
+    ActorNode,
+    ObjectNode,
+    EventNode,
+    ClassNode,
+    DecisionNode,
+    EnumNode,
+    FinalNode,
     ForkNode,
     InitialNode,
     JoinNode,
     MergeNode, PostconditionNode,
     PreconditionNode,
-    ScenarioNode, SignalNode, SystemNode,
+    ScenarioNode, ClassifierNode, SystemNode,
     TriggerNode,
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
     C4ContainerNode,
     C4ComponentNode,
+    ComponentNode
 };
 
 export default {
     ClassNode,
     EnumNode,
-    SignalNode,
+    ClassifierNode,
     DecisionNode,
     FinalNode,
     ForkNode,
     InitialNode,
     JoinNode,
     MergeNode,
-    BufferNode,
+    ObjectNode,
+    EventNode,
     ActionNode,
     ActorNode,
     PostconditionNode,
@@ -60,5 +70,6 @@ export default {
     SwimlaneGroupNode,
     SystemBoundaryNode,
     C4ContainerNode,
-    C4ComponentNode
+    C4ComponentNode,
+    ComponentNode,
 };

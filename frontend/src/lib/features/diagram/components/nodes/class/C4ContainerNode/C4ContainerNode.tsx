@@ -20,7 +20,7 @@ const C4ContainerNode: React.FC<NodeProps> = (node) => {
         <NodeWrapper node={node} selected={node.selected}>
             <div className="font-mono border border-solid border-black flex flex-col">
                 <div className="flex flex-col items-center gap-1 py-2 px-3">
-                    <span className="text-xs">{`<<container>>`}</span>
+                    <span className="text-xs">{`<<c4container>>`}</span>
                     <span className="font-bold">{node.data?.name}</span>
                     {node.data?.technologies?.length > 0 && (
                         <span className="text-xs">[{node.data?.technologies?.map((t: any) => t).join(", ")}]</span>

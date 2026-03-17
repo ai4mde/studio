@@ -32,7 +32,7 @@ const DEFAULT_COLOR: ClassifierColor = {
 const CLASSIFIER_GROUPS = [
   {
     name: "Class Diagram",
-    types: ["class", "enum", "signal", "c4container", "c4component"],
+    types: ["class", "enum", "signal", "container", "component", "interface", "c4container", "c4component"],
   },
   {
     name: "Use Case Diagram",
