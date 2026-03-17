@@ -288,3 +288,18 @@ class ClassAttribute(MultiClassifierExtensionBase):
         else:
             if self.enum is not None:
                 raise ValidationError("Only enum attributes can reference an enum classifier")
+
+# TODO add when component nodes are merged
+# class SystemBoundaryExtension(SingleClassifierExtensionBase):
+#     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SYSTEM_BOUNDARY,)
+#     system = models.ForeignKey(
+#         Classifier,
+#         on_delete=models.CASCADE,
+#         related_name="system_link",
+#         limit_choices_to={"type": ClassifierType.SYSTEM},
+#     )
+
+class ActionExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ACTION,)
+    is_automatic = models.BooleanField(default=False)
+    customCode = models.TextField(blank=True, null=True)
