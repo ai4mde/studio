@@ -10,6 +10,7 @@ import Draggable from "react-draggable";
 import { NewActivityNode } from "./NewActivityNode";
 import { NewClassNode } from "./NewClassNode";
 import { NewUsecaseNode } from "./NewUsecaseNode";
+import { NewComponentNode } from "./NewComponentNode"
 import style from "./newnodemodal.module.css";
 import { authAxios } from "$lib/features/auth/state/auth";
 
@@ -106,6 +107,9 @@ export const NewNodeModal: React.FC = () => {
 
     const swimlaneGroup = nodes.find((node) => node.type === 'swimlanegroup');
     const systemBoundaryExists = nodes.some((node) => node.type === 'system_boundary');
+    const systemNodes = relatedDiagrams
+        .flatMap(diagram => diagram.nodes ?? [])
+        .filter(node => node?.type === "system");
     const nodeRef = React.useRef(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -234,6 +238,13 @@ export const NewNodeModal: React.FC = () => {
                                 <NewUsecaseNode
                                     object={object}
                                     systemBoundaryExists={systemBoundaryExists}
+                                    systemNodes={systemNodes}
+                                    setObject={setObject}
+                                />
+                            )}
+                            {type == "component" && (
+                                <NewComponentNode
+                                    object={object}
                                     setObject={setObject}
                                 />
                             )}
