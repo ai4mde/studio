@@ -7,6 +7,7 @@ from diagram.api.schemas import (
     FullDiagram,
     ReadDiagram,
     UpdateDiagram,
+    ImportC4Diagram,
 )
 from diagram.models import Diagram
 from diagram.api.utils import create_node, create_edge
@@ -69,7 +70,7 @@ def import_diagram(request, body: ImportDiagram):
     print("imported diagram")
 
     return diagram
-
+            
 
 @diagrams.patch("/{uuid:diagram_id}/", response=ReadDiagram)
 def update_diagram(request, diagram_id, payload: UpdateDiagram):

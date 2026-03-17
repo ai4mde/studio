@@ -10,7 +10,7 @@ import {
     MergeNode,
     SwimlaneGroupNode,
 } from "./activity";
-import { ClassNode, EnumNode, ClassifierNode } from "./class";
+import { ClassNode, EnumNode, ClassifierNode, C4ContainerNode, C4ComponentNode } from "./class";
 import {
     ActorNode,
     PostconditionNode,
@@ -19,7 +19,7 @@ import {
     SystemNode,
     TriggerNode,
     UsecaseNode,
-    SystemBoundaryNode,
+    SystemBoundaryNode
 } from "./usecase";
 import ComponentNode from "./component/ComponentNode";
 
@@ -42,6 +42,8 @@ export {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    C4ContainerNode,
+    C4ComponentNode,
     ComponentNode
 };
 
@@ -67,5 +69,7 @@ export default {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    C4ContainerNode,
+    C4ComponentNode,
     ComponentNode,
 };

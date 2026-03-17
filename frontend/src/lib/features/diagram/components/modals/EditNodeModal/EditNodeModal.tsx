@@ -20,6 +20,10 @@ import {
     EditBoolean,
     EditSwimlane,
     EditCode,
+    EditBackgroundColor,
+    EditTextColor,
+    EditLabel,
+    EditTechnologies,
     EditObject,
     EditEvent,
     EditInternals,
@@ -195,7 +199,24 @@ export const EditNodeModal: React.FC = () => {
                                     {(node.type === "system" || node.type === "container" || node.type === "component") && (
                                         <EditInternals node={node} />
                                     )}
+                                    {node.type == "c4container" && (
+                                      <>
+                                      <EditLabel node={node} />
+                                      <EditTechnologies node={node} />
+                                      </>
+                                    )}
+                                    {node.type == "c4component" && (
+                                      <>
+                                      <EditLabel node={node} />
+                                      </>
+                                    )}
                                 </div>
+                            </div>
+                            <div className="bg-white border-t p-3">
+                                <EditBackgroundColor node={node} />
+                            </div>
+                            <div className="bg-white border-t p-3">
+                                <EditTextColor node={node} />
                             </div>
                             <div className="bg-white p-3 text-xs">
                                 <details>

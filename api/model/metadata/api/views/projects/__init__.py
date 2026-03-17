@@ -3,6 +3,7 @@ from typing import List
 from metadata.api.schemas import CreateProject, ReadProject, UpdateProject
 from metadata.models import Project
 from ninja import Router
+from .settings import settings
 
 projects = Router()
 
@@ -41,6 +42,6 @@ def delete_project(request, project_id):
     except Exception as e:
         raise Exception("Failed to delete project, error: " + e)
     return True
-    
 
-__all__ = ["projects"]
+
+projects.add_router("/{uuid:project_id}/settings", settings, tags=["settings"])

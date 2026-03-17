@@ -17,6 +17,8 @@ import {
     UsecaseNode,
     SwimlaneGroupNode,
     SystemBoundaryNode,
+    C4ContainerNode,
+    C4ComponentNode,
     ObjectNode,
     EventNode,
     ComponentNode,
@@ -54,6 +56,8 @@ export const nodeTypes: NodeTypes = {
     default: Node,
     swimlanegroup: SwimlaneGroupNode,
     system_boundary: SystemBoundaryNode,
+    c4container: C4ContainerNode,
+    c4component: C4ComponentNode,
 };
 
 export const PreviewNode: React.FC<NodeProps> = (node) => {

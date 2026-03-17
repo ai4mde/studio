@@ -1,12 +1,18 @@
 import uuid
 
 from django.db import models
+from metadata.utils import get_default_colors as get_default_colors_util
 
 
 class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=255)
     description = models.TextField()
+    settings = models.JSONField(default=dict, blank=True, null=True)
+
+    def get_default_colors(self):
+        """Get default classifier colors from project settings."""
+        return get_default_colors_util(self.settings)
 
 
 class System(models.Model):
@@ -14,6 +20,10 @@ class System(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = models.TextField()
+
+    def get_default_colors(self):
+        """Get default classifier colors from project settings."""
+        return self.project.get_default_colors()
 
 
 class Release(models.Model):

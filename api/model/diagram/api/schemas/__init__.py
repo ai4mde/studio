@@ -5,6 +5,7 @@ from diagram.api.schemas.diagram import (
     UpdateDiagram,
     FullDiagram,
     ExportDiagram,
+    ImportC4Diagram,
 )
 
 from diagram.api.schemas.node import (
@@ -44,4 +45,5 @@ __all__ = [
     "EdgeSchema",
     "UpdateEdge",
     "ExportDiagram",
+    "ImportC4Diagram",
 ]

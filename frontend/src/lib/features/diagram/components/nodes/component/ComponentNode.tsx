@@ -15,7 +15,7 @@ const ComponentNode: React.FC<NodeProps> = (node) => {
 
   return (
     <NodeWrapper node={node} selected={node.selected}>
-      <div className="flex flex-col border border-solid border-black bg-white text-center font-mono">
+      <div className="flex flex-col border border-solid border-current text-center font-mono">
         <div className="flex flex-col items-center gap-1 px-6 py-2">
           <span className="text-xs">{`<<${node.data?.type}>>`}</span>
           <span className="font-bold">
@@ -28,7 +28,7 @@ const ComponentNode: React.FC<NodeProps> = (node) => {
           </span>
         </div>
 
-        <div className="flex flex-col border-t border-solid border-black p-1">
+        <div className="flex flex-col border-t border-solid border-current p-1">
           {node.data?.internals?.map((internal: any, idx: number) => (
             <div
               key={`internal-${node.id}-${idx}`}

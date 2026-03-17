@@ -70,6 +70,20 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
         }
     }, [isSuccess]);
 
+    // Load project settings when project is available
+    useEffect(() => {
+        if (isSuccess && data && data.project) {
+            authAxios
+                .get(`/v1/metadata/projects/${data.project}/settings/`)
+                .then((response) => {
+                    diagramStore.setProjectSettings(response.data);
+                })
+                .catch((error) => {
+                    console.error('Failed to load project settings:', error);
+                });
+        }
+    }, [isSuccess, data]);
+
     // If our data changes, force-update the state of the nodes or edges
     useEffect(
         () => diagramStore.nodesFromAPI(data?.nodes ?? []),
