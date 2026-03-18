@@ -1,7 +1,9 @@
 import json
+from typing import List
 
 from .handler import call_openai
 from .prompt_builder import build_activity_prompt
+
 
 def generate_activity_model(process_text: str) -> dict:
     """
@@ -38,6 +40,22 @@ def generate_activity_model(process_text: str) -> dict:
             raise Exception("LLM output does not follow required schema.")
 
     return parsed
+
+
+def generate_multiple_models(process_text: str, n: int = 3) -> List[dict]:
+    """
+    Generate up to ``n`` independent candidate activity models for the same process description.
+
+    Each candidate is a clean activity graph in ``{"nodes": [...], "edges": [...]}`` form,
+    produced by a separate call to ``generate_activity_model``.
+    """
+    if n <= 0:
+        return []
+
+    candidates: List[dict] = []
+    for _ in range(n):
+        candidates.append(generate_activity_model(process_text))
+    return candidates
 
 
 def export_activity_model(model: dict) -> None:
