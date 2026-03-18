@@ -61,7 +61,7 @@ def build_activity_prompt(
         return header + body + "\n"
 
     # Refinement / update mode
-    # Ensure we always pass a serializable clean model here.
+    # Ensure always pass a serializable clean model here.
     current_model_json = json.dumps(
         current_model or EMPTY_JSON_SCHEMA, indent=2)
     instruction_text = refinement_instruction or "Update and improve the model as needed."
