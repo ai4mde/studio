@@ -89,13 +89,17 @@ def model_activity(
     instruction: Optional[str] = None,
 ) -> dict:
     """
-    Core modelling operation for activity diagrams.
+    Single core for activity-diagram LLM modelling.
 
-    If current_model is None, this behaves as initial generation from the
-    process description. If a current_model is provided, it behaves as a
-    refinement/update step guided by the instruction.
+    This is the only function that builds the activity prompt, calls the LLM,
+    parses JSON, and validates the clean graph. All generation, refinement, and
+    multi-candidate flows should go through here (multi-candidate = repeated calls).
 
-    Returns a clean activity graph in {\"nodes\": [...], \"edges\": [...]} form.
+    If current_model is None, behaves as initial generation from the process
+    description. If current_model is provided, behaves as refinement guided by
+    instruction.
+
+    Returns exactly one clean activity graph: {\"nodes\": [...], \"edges\": [...]}.
     """
     clean_current: Optional[dict] = None
     if current_model is not None:
