@@ -1,61 +1,33 @@
 import json
 from typing import List
 
-from .handler import call_openai
-from .prompt_builder import build_activity_prompt
+from .refinement_generator import model_activity
 
 
 def generate_activity_model(process_text: str) -> dict:
     """
-    Call the LLM to generate a clean activity graph JSON structure.
+    Generate one clean activity graph from natural-language process text.
+
+    Delegates to the unified core ``model_activity`` (prompt → LLM → validate).
     """
-    # Use unified activity prompt in "initial generation" mode
-    prompt = build_activity_prompt(process_text=process_text)
-
-    raw_output = call_openai("gpt-4o-mini", prompt)
-
-    try:
-        parsed = json.loads(raw_output)
-    except json.JSONDecodeError:
-        raise Exception("LLM output is not valid JSON.")
-
-    # Basic structural validation of the clean graph.
-    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
-        raise Exception("LLM output does not follow required schema.")
-    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
-        raise Exception("LLM output does not follow required schema.")
-
-    for node in parsed["nodes"]:
-        if not isinstance(node, dict):
-            raise Exception("LLM output does not follow required schema.")
-        if "id" not in node or "type" not in node:
-            raise Exception("LLM output does not follow required schema.")
-        if node.get("type") == "action" and "name" not in node:
-            raise Exception("LLM output does not follow required schema.")
-
-    for edge in parsed["edges"]:
-        if not isinstance(edge, dict):
-            raise Exception("LLM output does not follow required schema.")
-        if "source" not in edge or "target" not in edge:
-            raise Exception("LLM output does not follow required schema.")
-
-    return parsed
+    return model_activity(process_text=process_text)
 
 
-def generate_multiple_models(process_text: str, n: int = 3) -> List[dict]:
+def generate_multiple_models(process_text: str, num_models: int = 3) -> List[dict]:
     """
-    Generate up to ``n`` independent candidate activity models for the same process description.
+    Produce several independent candidate models for the same process description.
 
-    Each candidate is a clean activity graph in ``{"nodes": [...], "edges": [...]}`` form,
-    produced by a separate call to ``generate_activity_model``.
+    Each candidate is one clean ``{"nodes": [...], "edges": [...]}`` graph from a
+    separate ``model_activity`` call (no batching).
     """
-    if n <= 0:
+    if num_models <= 0:
         return []
 
-    candidates: List[dict] = []
-    for _ in range(n):
-        candidates.append(generate_activity_model(process_text))
-    return candidates
+    models: List[dict] = []
+    for _ in range(num_models):
+        model = model_activity(process_text=process_text)
+        models.append(model)
+    return models
 
 
 def export_activity_model(model: dict) -> None:
