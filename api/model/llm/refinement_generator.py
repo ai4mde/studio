@@ -1,7 +1,12 @@
 """
-Refinement module for iterative activity model refinement.
-Takes the original process description, current model, and a designer's refinement
-instruction; produces an updated AI4MDE system JSON for re-rendering.
+Activity modelling pipeline: single LLM core plus AI4MDE export for refinement.
+
+- ``model_activity`` is the only entry that builds the activity prompt, calls the
+  LLM, parses JSON, and validates the clean graph (generation and refinement are
+  the same operation; inputs differ).
+- ``refine_activity_model`` wraps ``model_activity`` and ``convert_to_ai4mde`` for
+  product use. Multi-candidate generation lives in ``multi_generator`` (loop),
+  not in ``baseline_generator``.
 """
 import json
 from typing import Dict, Any, Optional
@@ -119,9 +124,9 @@ def model_activity(
         raise ValueError("LLM activity modelling output is not valid JSON.")
 
     if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
-        raise ValueError("LLM refinement output does not follow required schema.")
+        raise ValueError("LLM activity modelling output does not follow required schema.")
     if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
-        raise ValueError("LLM refinement output does not follow required schema.")
+        raise ValueError("LLM activity modelling output does not follow required schema.")
 
     for node in parsed["nodes"]:
         if not isinstance(node, dict):
