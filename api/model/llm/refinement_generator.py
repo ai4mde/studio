@@ -1,12 +1,35 @@
 """
-Activity modelling pipeline: single LLM core plus AI4MDE export for refinement.
+Activity modelling pipeline.
 
-- ``model_activity`` is the only entry that builds the activity prompt, calls the
-  LLM, parses JSON, and validates the clean graph (generation and refinement are
-  the same operation; inputs differ).
-- ``refine_activity_model`` wraps ``model_activity`` and ``convert_to_ai4mde`` for
-  product use. Multi-candidate generation lives in ``multi_generator`` (loop),
-  not in ``baseline_generator``.
+This module follows a single-core LLM design:
+all activity models (generation and refinement) are handled
+through the same core function, with different inputs.
+
+Core entry point
+----------------
+`model_activity` is the only function responsible for:
+- building the LLM prompt
+- calling the LLM
+- parsing the returned JSON
+- validating the resulting activity graph
+
+Note:
+Generation and refinement share the same pipeline.
+The only difference lies in the input provided.
+
+Refinement wrapper
+------------------
+`refine_activity_model` is a thin wrapper around `model_activity`.
+It additionally converts the output into AI4MDE format
+for downstream/product usage.
+
+Multi-candidate generation
+--------------------------
+Multi-candidate generation is implemented in `multi_generator`
+using a loop over `model_activity`.
+
+It is intentionally NOT part of `baseline_generator`,
+in order to keep the core pipeline simple and modular.
 """
 import json
 from typing import Dict, Any, Optional
@@ -84,7 +107,8 @@ def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
     name = str(ai4mde.get("name", "GeneratedActivity"))
     description = str(ai4mde.get("description", ""))
     diagrams = ai4mde.get("diagrams") or []
-    diagram_id = str(diagrams[0].get("id", "diagram1")) if diagrams else "diagram1"
+    diagram_id = str(diagrams[0].get("id", "diagram1")
+                     ) if diagrams else "diagram1"
     return system_id, diagram_id, name, description
 
 
@@ -94,18 +118,49 @@ def model_activity(
     instruction: Optional[str] = None,
 ) -> dict:
     """
-    Single core for activity-diagram LLM modelling.
+Core function for activity-diagram LLM modelling.
 
-    This is the only function that builds the activity prompt, calls the LLM,
-    parses JSON, and validates the clean graph. All generation, refinement, and
-    multi-candidate flows should go through here (multi-candidate = repeated calls).
+Overview
+--------
+`model_activity` is the single entry point for all activity modelling flows.
+It is responsible for:
+- building the LLM prompt
+- calling the LLM
+- parsing the returned JSON
+- validating the resulting activity graph
 
-    If current_model is None, behaves as initial generation from the process
-    description. If current_model is provided, behaves as refinement guided by
-    instruction.
+All generation, refinement, and multi-candidate flows should go through this function.
 
-    Returns exactly one clean activity graph: {\"nodes\": [...], \"edges\": [...]}.
-    """
+Behavior
+--------
+- If `current_model` is None:
+  Performs initial generation from the process description.
+
+- If `current_model` is provided:
+  Performs refinement of the existing model, optionally guided by `instruction`.
+
+Multi-candidate generation is implemented as repeated calls to this function.
+
+Parameters
+----------
+process_text : str
+    Natural language description of the process.
+
+current_model : dict, optional
+    Existing activity graph to refine.
+
+instruction : str, optional
+    Additional guidance for refinement.
+
+Returns
+-------
+dict
+    A single validated activity graph with the structure:
+    {
+        "nodes": [...],
+        "edges": [...]
+    }
+"""
     clean_current: Optional[dict] = None
     if current_model is not None:
         clean_current = _get_clean_model(current_model)
@@ -124,23 +179,30 @@ def model_activity(
         raise ValueError("LLM activity modelling output is not valid JSON.")
 
     if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
-        raise ValueError("LLM activity modelling output does not follow required schema.")
+        raise ValueError(
+            "LLM activity modelling output does not follow required schema.")
     if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
-        raise ValueError("LLM activity modelling output does not follow required schema.")
+        raise ValueError(
+            "LLM activity modelling output does not follow required schema.")
 
     for node in parsed["nodes"]:
         if not isinstance(node, dict):
-            raise ValueError("LLM activity modelling output does not follow required schema.")
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
         if "id" not in node or "type" not in node:
-            raise ValueError("LLM activity modelling output does not follow required schema.")
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
         if node.get("type") == "action" and "name" not in node:
-            raise ValueError("LLM activity modelling output: action nodes must have a name.")
+            raise ValueError(
+                "LLM activity modelling output: action nodes must have a name.")
 
     for edge in parsed["edges"]:
         if not isinstance(edge, dict):
-            raise ValueError("LLM activity modelling output does not follow required schema.")
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
         if "source" not in edge or "target" not in edge:
-            raise ValueError("LLM activity modelling output does not follow required schema.")
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
 
     return parsed
 
@@ -151,23 +213,44 @@ def refine_activity_model(
     refinement_instruction: str,
 ) -> dict:
     """
-    Refine an activity model based on designer feedback.
+Refine an existing activity model based on designer feedback.
 
-    Takes the original process description, current model (clean or AI4MDE format),
-    and a refinement instruction. Calls the core modelling operation to produce an
-    updated clean activity graph, then converts it to full AI4MDE system JSON
-    (project, system, diagram, metadata).
+Overview
+--------
+`refine_activity_model` is a wrapper around `model_activity`.
+It performs refinement of an existing activity graph and converts
+the result into AI4MDE system format for downstream usage.
 
-    The returned JSON can be used to re-render the diagram in the system.
+Behavior
+--------
+- Takes the original process description and a current activity model
+  (either clean format or AI4MDE JSON).
+- Applies the refinement instruction via the core modelling pipeline.
+- Produces an updated clean activity graph.
+- Converts the result into full AI4MDE system JSON
+  (including project, system, diagram, and metadata).
 
-    Args:
-        process_text: The original process description.
-        current_model: Current activity model (clean format or AI4MDE JSON).
-        refinement_instruction: Designer's instruction for how to update the model.
+The returned JSON can be used directly to re-render the diagram in the system.
 
-    Returns:
-        Complete AI4MDE system JSON with interfaces, diagrams (nodes + edges), id, name, description.
-    """
+Parameters
+----------
+process_text : str
+    Original process description.
+
+current_model : dict
+    Existing activity model (clean graph or AI4MDE JSON).
+
+refinement_instruction : str
+    Instruction specifying how the model should be updated.
+
+Returns
+-------
+dict
+    Complete AI4MDE system JSON, including:
+    - interfaces
+    - diagrams (nodes and edges)
+    - id, name, description
+"""
     clean_graph = model_activity(
         process_text=process_text,
         current_model=current_model,
@@ -181,7 +264,8 @@ def refine_activity_model(
         name = "GeneratedActivity"
         description = ""
     else:
-        system_id, diagram_id, name, description = _get_ai4mde_metadata(current_model)
+        system_id, diagram_id, name, description = _get_ai4mde_metadata(
+            current_model)
 
     return convert_to_ai4mde(
         clean_model=clean_graph,
