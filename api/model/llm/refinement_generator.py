@@ -23,16 +23,17 @@ Refinement wrapper
 It additionally converts the output into AI4MDE format
 for downstream/product usage.
 
-Multi-candidate generation
---------------------------
-Multi-candidate generation is implemented in `multi_generator`
-using a loop over `model_activity`.
+Initial candidates (refinement pipeline)
+----------------------------------------
+`generate_initial_candidates` is the first step of the AI-assisted refinement
+workflow: it produces several independent clean graphs by calling
+`model_activity(process_text=...)` repeatedly. It does not convert to AI4MDE;
+that happens after a candidate is chosen, via `refine_activity_model`.
 
-It is intentionally NOT part of `baseline_generator`,
-in order to keep the core pipeline simple and modular.
+Baseline (single model) stays in `baseline_generator` only.
 """
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 from .handler import call_openai
 from .converter import convert_to_ai4mde
@@ -205,6 +206,38 @@ dict
                 "LLM activity modelling output does not follow required schema.")
 
     return parsed
+
+
+def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
+    """
+    Produce multiple independent clean activity graphs for the same process text.
+
+    This is the initial step of the AI-assisted refinement pipeline: several
+    candidates are generated so a user (or UI) can pick one before iterative
+    refinement. It replaces the previous standalone ``multi_generator`` module.
+
+    Each candidate is produced by a separate call to ``model_activity`` with only
+    ``process_text`` (generation mode). No AI4MDE conversion is performed here.
+
+    Parameters
+    ----------
+    process_text : str
+        Natural language description of the process.
+    n : int, default 3
+        Number of candidate models to generate. If ``n <= 0``, returns an empty list.
+
+    Returns
+    -------
+    list of dict
+        Each element is a clean graph ``{"nodes": [...], "edges": [...]}``.
+    """
+    if n <= 0:
+        return []
+
+    models: List[dict] = []
+    for _ in range(n):
+        models.append(model_activity(process_text=process_text))
+    return models
 
 
 def refine_activity_model(
