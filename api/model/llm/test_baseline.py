@@ -1,38 +1,23 @@
+# Manual / integration-style tests call the real LLM (see tests marked below).
+# Fast checks: prompt rendering only (no API key required).
+#
+# Run real LLM baseline test (from api/model, with OPENAI_API_KEY):
+#   pytest llm/test_baseline.py -v -s -k manual_baseline
+#
+# Outputs: llm/integration_debug_output/baseline_*.json
+
+import json
+import os
 import sys
-import types
+import uuid
 from pathlib import Path
+
+import pytest
 
 MODEL_ROOT = Path(__file__).resolve().parents[1]
 if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
-
-def _install_llm_dependency_stubs() -> None:
-    """Allow importing llm modules in test envs without SDK deps installed."""
-    if "openai" not in sys.modules:
-        openai_stub = types.ModuleType("openai")
-
-        class OpenAI:  # pragma: no cover - import shim only
-            def __init__(self, *args, **kwargs):
-                self.chat = types.SimpleNamespace(completions=None)
-
-        openai_stub.OpenAI = OpenAI
-        sys.modules["openai"] = openai_stub
-
-    if "groq" not in sys.modules:
-        groq_stub = types.ModuleType("groq")
-
-        class Groq:  # pragma: no cover - import shim only
-            def __init__(self, *args, **kwargs):
-                self.chat = types.SimpleNamespace(completions=None)
-
-        groq_stub.Groq = Groq
-        sys.modules["groq"] = groq_stub
-
-
-_install_llm_dependency_stubs()
-
-from llm import baseline_generator
 from llm.prompt_builder import build_activity_prompt
 
 
@@ -48,28 +33,41 @@ def test_build_activity_prompt_generation_mode() -> None:
     assert "Output ONLY a single valid JSON object." in prompt
 
 
-def test_generate_activity_model_calls_model_activity(monkeypatch) -> None:
-    expected = {
-        "nodes": [{"id": "n1", "type": "initial"}],
-        "edges": [],
-    }
-    captured = {}
+@pytest.mark.skipif(
+    not os.environ.get("OPENAI_API_KEY"),
+    reason="OPENAI_API_KEY not set; skip real LLM baseline test",
+)
+def test_manual_baseline_generate_and_export() -> None:
+    """Real LLM: single baseline model + optional AI4MDE export for import debugging."""
+    pytest.importorskip("openai")
+    pytest.importorskip("groq")
 
-    def fake_model_activity(process_text: str, current_model=None, instruction=None):
-        captured["process_text"] = process_text
-        captured["current_model"] = current_model
-        captured["instruction"] = instruction
-        return expected
+    from llm.baseline_generator import generate_activity_model
+    from llm.converter import convert_to_ai4mde
 
-    monkeypatch.setattr(baseline_generator, "model_activity", fake_model_activity)
+    process_text = "Receive order, process order, send confirmation"
+    clean = generate_activity_model(process_text)
 
-    result = baseline_generator.generate_activity_model("Order process text")
+    assert "nodes" in clean and isinstance(clean["nodes"], list)
+    assert "edges" in clean and isinstance(clean["edges"], list)
 
-    assert result == expected
-    assert isinstance(result.get("nodes"), list)
-    assert isinstance(result.get("edges"), list)
-    assert captured == {
-        "process_text": "Order process text",
-        "current_model": None,
-        "instruction": None,
-    }
+    out_dir = Path(__file__).resolve().parent / "integration_debug_output"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    clean_path = out_dir / "baseline_clean_model.json"
+    print("\n=== baseline_clean_model.json ===")
+    print(json.dumps(clean, indent=2))
+    with clean_path.open("w", encoding="utf-8") as f:
+        json.dump(clean, f, indent=2, ensure_ascii=False)
+
+    ai4mde = convert_to_ai4mde(
+        clean,
+        system_id=str(uuid.uuid4()),
+        diagram_id=str(uuid.uuid4()),
+        name="BaselineIntegrationTest",
+        description="From test_manual_baseline_generate_and_export",
+    )
+    ai_path = out_dir / "baseline_ai4mde_model.json"
+    with ai_path.open("w", encoding="utf-8") as f:
+        json.dump(ai4mde, f, indent=2, ensure_ascii=False)
+    print(f"\nWrote {ai_path}")
