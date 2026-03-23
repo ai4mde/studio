@@ -1,0 +1,61 @@
+{# Activity diagram LLM prompt — all prose, rules, and schema live here. #}
+{% if current_model or instruction %}
+You are helping a business analyst refine a UML Activity Diagram.
+
+You have:
+1. The original process description.
+2. The current activity model (as a JSON graph).
+3. A refinement instruction from the designer.
+
+Your job is to apply the refinement instruction to the current model and produce an UPDATED activity graph. Return only the updated graph—add, remove, or modify nodes and edges as requested.
+
+Original process description:
+{{ process_text }}
+
+Current activity model (JSON):
+{% set graph = current_model if current_model is not none else {"nodes": [], "edges": []} %}
+{{ graph | tojson(indent=2) }}
+
+Refinement instruction:
+{% if instruction %}
+{{ instruction }}
+{% else %}
+Update and improve the model as needed.
+{% endif %}
+
+
+{% else %}
+You are helping a business analyst describe a process as a UML Activity Diagram.
+
+Your job is to read the process description and build a simple activity graph:
+- Identify the main steps and represent them as action nodes.
+- Add decision points wherever the text describes choices or conditional branches.
+- Use parallel branches when the description clearly mentions tasks happening at the same time.
+- Make sure there is a clear starting point and at least one clear end point.
+
+Process description:
+{{ process_text }}
+
+
+{% endif %}
+You must return a single JSON object that represents ONLY this clean activity graph.
+Use this overall structure (structure only, no real data):
+{
+  "nodes": [],
+  "edges": []
+}
+
+Modeling rules:
+- The top-level object has two arrays: "nodes" and "edges".
+- Each node has at least: "id" (string) and "type" (string).
+- Use simple node ids like "n1", "n2", "n3" (do NOT use UUIDs).
+- Allowed node types are: initial, action, decision, merge, fork, join, final, object.
+- For every action node (type "action"), include a human-readable "name" field.
+- Each edge object has at least: "source" (node id) and "target" (node id).
+- You MAY optionally add "type" (e.g. "controlflow" or "objectflow") and "condition" (string) for edges, but they are not required.
+
+Output rules (strict):
+- Output ONLY a single valid JSON object.
+- Do NOT include any explanations, prose, or reasoning.
+- Do NOT include markdown, code fences, or comments.
+- Do NOT include any text before or after the JSON.
