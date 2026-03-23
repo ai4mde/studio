@@ -1,8 +1,16 @@
 """
-Baseline (single-shot) activity generation: one call to ``model_activity`` per request.
+Baseline activity generation (single-shot).
 
-Used for the baseline experimental condition: one model only, no multi-candidate
-and no LLM refinement loop here — multi-candidate lives in ``multi_generator``.
+Overview
+--------
+This module provides a minimal generation pipeline that produces a single activity model per request using `model_activity`.
+
+It is used for baseline experimental settings:
+- one model only
+- no multi-candidate generation
+- no refinement loop
+
+Multi-candidate generation is implemented separately in `multi_generator`.
 """
 import json
 
@@ -11,17 +19,27 @@ from .refinement_generator import model_activity
 
 def generate_activity_model(process_text: str) -> dict:
     """
-    Generate one clean activity graph from natural-language process text.
+    Generate one clean activity diagram from natural-language process text.
 
-    Delegates to the unified core ``model_activity`` (prompt → LLM → validate).
+    Parameters
+    ----------
+    process_text : str
+        Natural language description of the process.
+
+    Returns
+    -------
+    dict
+        A validated activity diagram with nodes and edges.
+        ``model_activity`` (prompt → LLM → validate).
     """
     return model_activity(process_text=process_text)
 
 
 def export_activity_model(model: dict) -> None:
     """
-    Pretty-print an activity model (clean or AI4MDE) and save it to a JSON file
-    in the current working directory.
+    Export an activity model to a JSON file.
+
+    Pretty-prints the model (clean or AI4MDE format) and saves it as `activity_model.json` in the current working directory.
     """
     print(json.dumps(model, indent=2))
 
