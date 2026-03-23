@@ -25,14 +25,20 @@ for downstream/product usage.
 
 Initial candidates (refinement pipeline)
 ----------------------------------------
-`generate_initial_candidates` is the first step of the AI-assisted refinement
-workflow: it produces several independent clean graphs by calling
-`model_activity(process_text=...)` repeatedly. It does not convert to AI4MDE;
-that happens after a candidate is chosen, via `refine_activity_model`.
+`generate_initial_candidates` produces several independent clean graphs via
+repeated `model_activity(process_text=...)`.
+
+`generate_candidates_with_conversion` runs that step then converts **every**
+candidate to AI4MDE **before** user selection, so the UI can render all options.
+Each candidate gets fresh ``system_id`` / ``diagram_id`` UUIDs to avoid clashes.
+
+After selection, use `refine_activity_model` for iterative refinement (pass the
+chosen AI4MDE or clean model).
 
 Baseline (single model) stays in `baseline_generator` only.
 """
 import json
+import uuid
 from typing import Any, Dict, List, Optional
 
 from .handler import call_openai
@@ -238,6 +244,53 @@ def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
     for _ in range(n):
         models.append(model_activity(process_text=process_text))
     return models
+
+
+def generate_candidates_with_conversion(
+    process_text: str,
+    n: int = 3,
+    *,
+    name_prefix: str = "Activity candidate",
+    description_template: str = "Generated candidate {index} for interactive selection",
+) -> List[Dict[str, Any]]:
+    """
+    Generate N clean activity candidates and convert each to AI4MDE before selection.
+
+    Intended for AI-assisted flows where the frontend displays diagrams in
+    AI4MDE form: all candidates are converted up front so the user can compare
+    visualizations, then pick one for refinement.
+
+    Parameters
+    ----------
+    process_text : str
+        Natural language process description.
+    n : int, default 3
+        Number of candidates. If ``n <= 0``, returns an empty list.
+    name_prefix : str, optional
+        Base name for each system's ``name`` field (index appended).
+    description_template : str, optional
+        ``description`` for each AI4MDE payload; ``{index}`` is replaced with 1-based index.
+
+    Returns
+    -------
+    list of dict
+        Each element is ``{"clean": <nodes/edges dict>, "ai4mde": <AI4MDE system JSON>}``.
+        Each ``ai4mde`` uses a new ``system_id`` and ``diagram_id`` (UUIDs).
+    """
+    cleans = generate_initial_candidates(process_text, n=n)
+    results: List[Dict[str, Any]] = []
+    for i, clean in enumerate(cleans, start=1):
+        system_id = str(uuid.uuid4())
+        diagram_id = str(uuid.uuid4())
+        ai4mde = convert_to_ai4mde(
+            clean_model=clean,
+            system_id=system_id,
+            diagram_id=diagram_id,
+            name=f"{name_prefix} {i}",
+            description=description_template.format(index=i),
+        )
+        results.append({"clean": clean, "ai4mde": ai4mde})
+    return results
 
 
 def refine_activity_model(
