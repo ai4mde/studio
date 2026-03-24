@@ -175,6 +175,16 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
 
+# ---------------------------------------------------------------------------
+# Merged from repository root (studio/.gitignore). These patterns apply only
+# under prototypes/ (and subfolders). See api/.gitignore and frontend/.gitignore
+# for other subtrees.
+# ---------------------------------------------------------------------------
+# Poetry / tools often use .venv-<name> (template "### Environments ###" above has .venv)
+.venv-*
+# macOS
+.DS_Store
+
 generated_prototypes/
 vscode/
 tests/runtime.json
