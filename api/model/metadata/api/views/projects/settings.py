@@ -27,9 +27,10 @@ def get_project_settings(request: HttpRequest):
         return 500, "Resolver match not found"
 
     project_id = request.resolver_match.kwargs.get("project_id")
-    project = Project.objects.get(id=project_id)
     
-    if not project:
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
         return 404, "Project not found"
     
     colors = project.get_default_colors()
@@ -43,9 +44,10 @@ def update_project_settings(request: HttpRequest, payload: UpdateProjectSettings
         return 500, "Resolver match not found"
 
     project_id = request.resolver_match.kwargs.get("project_id")
-    project = Project.objects.get(id=project_id)
     
-    if not project:
+    try:
+        project = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
         return 404, "Project not found"
     
     # Update settings with new classifier colors
