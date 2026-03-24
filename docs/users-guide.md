@@ -6,8 +6,10 @@
     />
 </p>
 
+<br />
+
 <h1 align="center">
-  <b>Working with Diagrams</b>
+  <b>1. Working with Diagrams</b>
 </h1>
 
 You can create diagrams from scratch in the `Projects` section accessible from the sidebar menu. Here, you first create and name your project. A project can have many systems, and a system can have many diagrams. For example, you might want to create a project called `Airline`, which is split over several systems such as `Logistics`, `Payments`, `Marketing`, `Maintenance`, etc. Each of these systems might contain one or several class, use case or activity diagrams. These diagrams may or may not have common elements, like the class `Airplane` appearing in class diagrams in both the `Logistics` and the `Maintenance` systems.
@@ -15,7 +17,7 @@ You can create diagrams from scratch in the `Projects` section accessible from t
 Once you have your project and system, you can get started working on a diagram.
 
 <h2 align="center">
-  <b>Class Diagrams</b>
+  <b>1.1. Class Diagrams</b>
 </h2>
 
 <h3>Nodes</h3>
@@ -52,9 +54,10 @@ Once you have your project and system, you can get started working on a diagram.
 </ul>
 <p>Once again, this distinction is important when you have imported the same nodes to multiple systems, which can lead to imported edges that reoccur in multiple diagrams.</p>
 
+<br />
 
 <h2 align="center">
-  <b>Use Case Diagrams</b>
+  <b>1.2. Use Case Diagrams</b>
 </h2>
 
 <h3>Nodes</h3>
@@ -70,9 +73,10 @@ Similarly to the class diagram, you can right-click anywhere to have the option 
 
 > ☝️ Node imports are not yet available in Use Case diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
 
+<br />
 
 <h2 align="center">
-  <b>Activity Diagrams</b>
+  <b>1.3. Activity Diagrams</b>
 </h2>
 
 Activity diagrams are a central component of AI4MDE. They describe the dynamic behavior of your system and directly influence how web application prototypes are generated. The following sections explain the main elements used to create activity diagrams.
@@ -118,9 +122,10 @@ See this example of how to create a loan approval decision flow.
 
 > ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
 
+<br />
 
 <h2 align="center">
-  <b>Component Diagrams</b>
+  <b>1.4. Component Diagrams</b>
 </h2>
 
 <h3>Nodes</h3>
@@ -142,3 +147,71 @@ In order to add further internal nodes for a Component Diagram node, right-click
 
 <h3>Edges</h3>
 <p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>. In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <b>Required</b>, and <b>Provider</b>. The two can be the same or different Interface nodes.</p>
+
+<br />
+
+<h1 align="center">
+  <b>2. Version Control</b>
+</h1>
+
+<h2>Versions Tab</h2>
+
+You can access the <b>Versions</b> tab under every system. This is where you can store snapshots of your system, allowing you to load older or newer versions of it. To save a version of your system as it currently is, click on <b>New version</b>, and add a name, and any important version notes. Then, click on the <b>Version</b> button. You will see a new entry in the Versions tab. For any of your versions, you have the following buttons:
+<ul>
+  <li><b>Version Notes</b> - displays the notes you added when creating the version.</li>
+  <li><b>Diagrams</b> - displays the JSON data referring to the diagrams in your system.</li>
+  <li><b>Interfaces</b> - displays the JSON data referring to the interfaces in your system.</li>
+  <li><b>Download</b> - allows you to export the entire system version as a JSON file. You can then share this with other team mates.</li>
+  <li><b>Load</b> - allows you to load this version of the system. <b>Note:</b> loading a version of a system overwrites all the diagrams and interfaces!</li>
+  <li><b>Delete</b> - allows you to remove a version.</li>
+</ul>
+
+<h2>Sharing Versions</h2>
+
+As stated above, the <b>Download</b> button allows you to export a version of your system as a JSON file. You can then share this file with other team mates. If you receive a JSON version from someone, you can load it into a system locally, by using the same <b>Versions</b> tab. This can either be done in a new empty system or in an already existing one that you want to update. You will still have to click on the <b>New version</b> button, but this time select the <b>Use file</b> option, and select the respective JSON file you want to use from your device's file system. You then have to press <b>Load</b>. Below is a visual guide on how to export and import versions.
+
+> ☝️ <b>Attention!</b> Exporting versions to other teammates currently does not preserve links between different systems. For example, if your class diagrams contain nodes imported from other systems, when a teammate imports your system's version, they will show up as simple, non-imported nodes.
+
+<h3>Export Version</h3>
+<b>Step 1.</b> In your system's <b>Versions</b> tab, click on <b>New version</b>.
+<p align="center">
+    <img
+        src="./img/export1.png"
+    />
+</p>
+
+<b>Step 2.</b> Choose a name for your version, and then click on <b>New version</b>.
+<p align="center">
+    <img
+        src="./img/export2.png"
+    />
+</p>
+
+<b>Step 3.</b> You can use the <b>Download</b> button to export your system as a JSON file.
+<p align="center">
+    <img
+        src="./img/export3.png"
+    />
+</p>
+
+<b>Step 4.</b> You can share the JSON file with your teammates.
+
+<h3>Import Version</h3>
+<b>Step 1.</b> In your system's <b>Versions</b> tab, click on <b>New version</b>.
+<p align="center">
+    <img
+        src="./img/import1.png"
+    />
+</p>
+<b>Step 2.</b> Choose a name for your version. Select the <b>Use file</b> option. <b>Browse</b> through your local file system and choose the JSON file you received from your teammate. Then click on <b>New version</b>.
+<p align="center">
+    <img
+        src="./img/import2.png"
+    />
+</p>
+<b>Step 3.</b> Press <b>Load</b> to load the version you just imported.
+<p align="center">
+    <img
+        src="./img/import3.png"
+    />
+</p>
