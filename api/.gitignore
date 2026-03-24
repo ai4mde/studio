@@ -134,6 +134,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv-*
 env/
 venv/
 ENV/
@@ -265,3 +266,6 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,django
+
+# LLM pytest automation (test_baseline / test_refinement JSON exports)
+model/llm/outputs/
