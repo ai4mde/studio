@@ -102,7 +102,7 @@ def import_c4_diagram(request, body: ImportC4Diagram):
     """
     system = System.objects.get(id=body.system)
     containers = body.c4_model.get("containers", [])
-    components = body.c4_model.get("components", [])
+    components = body.c4_model.get("components", {})
     relations = body.c4_model.get("relations", [])
     id_map = {}
     container_diagram = build_container_diagram(system, body.diagram_name + " - Containers", containers, relations, id_map)
