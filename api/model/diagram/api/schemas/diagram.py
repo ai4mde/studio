@@ -5,8 +5,8 @@ from typing import List, Optional, Any
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode, ImportNode
-from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+from .node import CreateNode, NodeSchema, ExportNode
+from .edge import CreateEdge, EdgeSchema, ExportEdge
 
 
 class DiagramType(str, Enum):
@@ -157,6 +157,5 @@ __all__ = [
     "UpdateDiagram",
     "FullDiagram",
     "ExportDiagram",
-    "C4Model",
     "ImportC4Diagram",
 ]
