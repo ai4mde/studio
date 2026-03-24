@@ -10,8 +10,9 @@ It is used for baseline experimental settings:
 - no multi-candidate generation
 - no refinement loop
 
-Multi-candidate generation for the AI-assisted path lives in
-``refinement_generator.generate_initial_candidates``.
+For multiple options before selection, call
+``refinement_generator.generate_initial_candidates`` (N repeated
+``model_activity`` calls — not a separate generator module).
 """
 import json
 

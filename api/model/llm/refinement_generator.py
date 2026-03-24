@@ -23,12 +23,15 @@ Refinement wrapper
 It additionally converts the output into AI4MDE format
 for downstream/product usage.
 
-Initial candidates (refinement pipeline)
-----------------------------------------
-`generate_initial_candidates` produces several independent clean graphs via
-repeated `model_activity(process_text=...)`.
+Multiple candidates (not a separate pipeline stage)
+---------------------------------------------------
+``generate_initial_candidates`` returns N clean graphs by calling
+``model_activity(process_text=...)`` **N times** — same core operation as
+single-shot generation; there is no extra “multi-generation” layer beyond
+those repeated calls. No refinement and no AI4MDE conversion here.
 
-`generate_candidates_with_conversion` runs that step then converts **every**
+``generate_candidates_with_conversion`` calls ``generate_initial_candidates``
+then converts **every**
 candidate to AI4MDE **before** user selection, so the UI can render all options.
 Each candidate gets fresh ``system_id`` / ``diagram_id`` UUIDs to avoid clashes.
 
@@ -216,21 +219,21 @@ dict
 
 def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
     """
-    Produce multiple independent clean activity graphs for the same process text.
+    Return N independent clean activity graphs for the same ``process_text``.
 
-    This is the initial step of the AI-assisted refinement pipeline: several
-    candidates are generated so a user (or UI) can pick one before iterative
-    refinement. It replaces the previous standalone ``multi_generator`` module.
+    Implementation is **only** repeated calls to ``model_activity(process_text=...)``
+    (generation mode). Multi-candidate output is not a separate pipeline: it is
+    the same core function executed N times so a human (or UI) can choose one
+    candidate before refinement.
 
-    Each candidate is produced by a separate call to ``model_activity`` with only
-    ``process_text`` (generation mode). No AI4MDE conversion is performed here.
+    Does **not** refine models, convert to AI4MDE, or call ``refine_activity_model``.
 
     Parameters
     ----------
     process_text : str
         Natural language description of the process.
     n : int, default 3
-        Number of candidate models to generate. If ``n <= 0``, returns an empty list.
+        How many times to run generation. If ``n <= 0``, returns an empty list.
 
     Returns
     -------
@@ -299,7 +302,7 @@ def refine_activity_model(
     refinement_instruction: str,
 ) -> dict:
     """
-Refine an existing activity model based on designer feedback.
+Refine **one** activity model per call (after human selection of a single candidate).
 
 Overview
 --------
