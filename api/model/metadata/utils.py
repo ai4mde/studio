@@ -40,7 +40,7 @@ def get_classifier_colors(settings: Dict[str, Any] | None, classifier_type: str)
     """
     Get colors for a specific classifier type from project settings.
     
-    Uses black background and white text as fallback for unknown types.
+    Uses white background and black text as fallback for unknown types.
     
     Args:
         settings: The project settings dictionary (can be None or empty)
@@ -77,7 +77,7 @@ def get_classifier_text_color(settings: Dict[str, Any] | None, classifier_type: 
         classifier_type: The classifier type to get the color for
         
     Returns:
-        Hex color string (defaults to white for unknown types)
+        Hex color string (defaults to black for unknown types)
     """
     colors = get_classifier_colors(settings, classifier_type)
     return colors.get('text_hex', DEFAULT_FALLBACK_COLORS['text_hex'])
