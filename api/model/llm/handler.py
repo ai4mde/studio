@@ -1,7 +1,8 @@
 import os
-from typing import Dict, Any
-from groq import Groq
+from typing import Any, Dict
+
 from openai import OpenAI
+
 from .prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
 from .prompts.prose import PROSE_GENERATE_METADATA
 
@@ -9,54 +10,50 @@ from .prompts.prose import PROSE_GENERATE_METADATA
 def remove_reply_markdown(reply: str) -> str:
     lines = reply.splitlines()
     if len(lines) > 2:
-        return '\n'.join(lines[1:-1])
+        return "\n".join(lines[1:-1])
     return ""
+
+
+def _resolve_openai_chat_model(model: str) -> str:
+    """
+    All chat completions use OpenAI. Legacy Groq-style ids (llama, mixtral, …)
+    are mapped to a default OpenAI model.
+    """
+    m = (model or "").strip()
+    if m.startswith("gpt-") or m.startswith("o1") or m.startswith("o3"):
+        return m
+    return "gpt-4o-mini"
 
 
 def call_openai(model: str, prompt: str) -> str:
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
     )
+    openai_model = _resolve_openai_chat_model(model)
 
-    try: 
+    try:
         chat_completion = client.chat.completions.create(
-            messages = [
+            messages=[
                 {
                     "role": "user",
                     "content": prompt,
                 }
             ],
-            model = model,
+            model=openai_model,
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
         raise Exception("Failed to call LLM, error " + str(e))
 
 
-def call_groq(model: str, prompt: str) -> str:
-    client = Groq(
-        api_key=os.environ.get("GROQ_API_KEY"),
-    )
-    try: 
-        chat_completion = client.chat.completions.create(
-        messages = [
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-            model = model,
-        )
-        return chat_completion.choices[0].message.content
-    except Exception as e:
-        raise Exception("Failed to call LLM, error " + str(e))
-
-
-def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_data: Dict[str, Any] = {}) -> str:
-
+def llm_handler(
+    prompt_name: str,
+    model: str = "gpt-4o-mini",
+    input_data: Dict[str, Any] | None = None,
+) -> str:
     if not input_data:
         raise Exception("No input data given")
-    
+
     if prompt_name == "DIAGRAM_GENERATE_ATTRIBUTE":
         prompt = DIAGRAM_GENERATE_ATTRIBUTE.format(data=input_data)
     elif prompt_name == "DIAGRAM_GENERATE_METHOD":
@@ -65,8 +62,5 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
         prompt = PROSE_GENERATE_METADATA.format(data=input_data)
     else:
         raise Exception("Invalid prompt name")
-    
-    if model == 'gpt-4o':
-        return call_openai(model = model, prompt = prompt)
-    else:
-        return call_groq(model = model, prompt = prompt)
+
+    return call_openai(model=model, prompt=prompt)
