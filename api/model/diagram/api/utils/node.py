@@ -1,3 +1,4 @@
+from typing import Optional
 from django.db import transaction
 from diagram.models import Diagram, Node, Edge
 from metadata.models import Classifier, Relation
@@ -18,8 +19,8 @@ def create_node(diagram: Diagram, data: spec.Classifier):
             "position": {
                 "x": 0,
                 "y": 0,
-            }
-        },
+            },
+        }
     )
     return node
 
@@ -36,8 +37,8 @@ def import_node(diagram: Diagram, id: str):
             "position": {
                 "x": 0,
                 "y": 0,
-            }
-        },
+            },
+        }
     )
     return node
 

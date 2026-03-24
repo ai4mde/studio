@@ -1,12 +1,12 @@
 from uuid import UUID
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Any
 
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode, ImportNode
-from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+from .node import NodeSchema, ExportNode, ImportNode
+from .edge import EdgeSchema, ExportEdge, ImportEdge
 
 
 class DiagramType(str, Enum):
@@ -122,9 +122,14 @@ class FullDiagram(ReadDiagram):
         return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
 
 
-class ImportDiagram(CreateDiagram):
-    nodes: List[CreateNode]
-    edges: List[CreateEdge]
+class ImportDiagram(Schema):
+    id: str
+    type: DiagramType
+    name: str
+    description: Optional[str] = None
+    system: str
+    nodes: list[ImportNode]
+    edges: list[ImportEdge]
 
 
 class ExportDiagram(ModelSchema):
@@ -144,14 +149,10 @@ class ExportDiagram(ModelSchema):
         return obj.edges.all()
 
 
-class ImportDiagram(Schema):
-    id: str
-    type: DiagramType
-    name: str
-    description: Optional[str] = None
-    system: str
-    nodes: list[ImportNode]
-    edges: list[ImportEdge]
+class ImportC4Diagram(Schema):
+    system: str  # UUID of the target system
+    diagram_name: str
+    c4_model: Any
 
 
 __all__ = [
@@ -161,5 +162,5 @@ __all__ = [
     "UpdateDiagram",
     "FullDiagram",
     "ExportDiagram",
-    "ImportDiagram",
+    "ImportC4Diagram",
 ]

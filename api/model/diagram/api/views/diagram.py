@@ -13,7 +13,6 @@ from diagram.api.utils import create_node, create_edge
 from metadata.models import System
 from django.db import transaction
 from ninja import Router
-import networkx as nx
 
 from .node import node
 from .edge import edge
@@ -69,7 +68,7 @@ def import_diagram(request, body: ImportDiagram):
     print("imported diagram")
 
     return diagram
-
+            
 
 @diagrams.patch("/{uuid:diagram_id}/", response=ReadDiagram)
 def update_diagram(request, diagram_id, payload: UpdateDiagram):

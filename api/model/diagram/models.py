@@ -1,9 +1,20 @@
+from typing import Optional
 import uuid
 
 from django.db import models
 from metadata.models import Classifier, Relation, System
+from metadata.utils import get_classifier_background_color, get_classifier_text_color
 import networkx as nx
 
+
+def get_default_background_color_hex(system: 'System', classifier_type: str) -> str:
+    """Get default background color from project settings. Uses black for unknown types."""
+    return get_classifier_background_color(system.project.settings, classifier_type)
+
+
+def get_default_text_color_hex(system: 'System', classifier_type: str) -> str:
+    """Get default text color from project settings. Uses white for unknown types."""
+    return get_classifier_text_color(system.project.settings, classifier_type)
 
 class Diagram(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -97,7 +108,8 @@ class Diagram(models.Model):
             id_map[old_id] = str(cls_obj.id)
 
         # One node per (diagram, classifier)
-        Node.objects.get_or_create(
+        # Only store position; colors will be derived from project settings or overrides
+        node, created = Node.objects.get_or_create(
             diagram=self,
             cls=cls_obj,
             defaults={"data": {"position": {"x": 0, "y": 0}}}
@@ -130,11 +142,16 @@ class Diagram(models.Model):
 
     def auto_layout(self):
         graph = nx.Graph()
-        
-        for node in self.nodes.all():
-            graph.add_node(node.id)
-        for edge in self.edges.all():
-            graph.add_edge(edge.source.id, edge.target.id)
+
+        if len(self.nodes.all()) == 0:
+            return
+        try:
+            for node in self.nodes.all():
+                graph.add_node(node.id)
+            for edge in self.edges.all():
+                graph.add_edge(edge.source.id, edge.target.id)
+        except Exception as e:
+            return
 
         # We use the networkx spring_layout algorithm for autolayouting a diagram
         # scale=500 seems to do the job, but can be adjusted as needed

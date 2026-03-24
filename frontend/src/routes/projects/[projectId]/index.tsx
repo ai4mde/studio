@@ -1,11 +1,12 @@
 import { authAxios } from "$lib/features/auth/state/auth";
 import CreateSystem from "$lib/features/browser/components/systems/CreateSystem";
 import ListSystem from "$lib/features/browser/components/systems/ListSystem";
+import ColorPaletteModal from "$lib/features/metadata/components/ColorPaletteModal";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
 import { LinearProgress } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
-import { GalleryVertical, User } from "lucide-react";
-import React from "react";
+import { GalleryVertical, User, Settings } from "lucide-react";
+import React, { useState } from "react";
 import { useParams } from "react-router";
 
 type ProjectOut = {
@@ -16,6 +17,7 @@ type ProjectOut = {
 
 const ViewProject: React.FC = () => {
     const { projectId } = useParams();
+    const [showColorPaletteModal, setShowColorPaletteModal] = useState(false);
 
     const project = useQuery<ProjectOut>({
         queryKey: ["project", `${projectId}`],
@@ -74,11 +76,21 @@ const ViewProject: React.FC = () => {
                     )}
 
                     <div className="flex w-full flex-col gap-3">
-                        <span className="flex flex-row items-center gap-2">
-                            <GalleryVertical size={24} />
-                            <h1 className="text-lg">
-                                Systems - {name} ({id?.split("-").slice(-1)})
-                            </h1>
+                        <span className="flex flex-row items-center gap-2 justify-between w-full">
+                            <div className="flex flex-row items-center gap-2">
+                                <GalleryVertical size={24} />
+                                <h1 className="text-lg">
+                                    Systems - {name} ({id?.split("-").slice(-1)})
+                                </h1>
+                            </div>
+                            <button
+                                onClick={() => setShowColorPaletteModal(true)}
+                                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-200 rounded-md transition-colors flex-shrink-0"
+                                title="Project Settings"
+                            >
+                                <Settings size={20} />
+                                <span className="text-sm">Project Settings</span>
+                            </button>
                         </span>
                         <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2 ">
                             {projectId && <ListSystem project={projectId} />}
@@ -87,6 +99,11 @@ const ViewProject: React.FC = () => {
                 </div>
                 <div className="col-span-12 flex flex-row">AI4MDE</div>
             </div>
+            <ColorPaletteModal
+                projectId={projectId!}
+                open={showColorPaletteModal}
+                onClose={() => setShowColorPaletteModal(false)}
+            />
         </>
     );
 };

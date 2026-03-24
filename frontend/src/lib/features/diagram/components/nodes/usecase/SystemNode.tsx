@@ -5,7 +5,7 @@ import NodeWrapper from "../shared/NodeWrapper";
 export const SystemNode: React.FC<NodeProps> = (node) => {
     return (
         <NodeWrapper node={node} selected={node.selected}>
-            <div className="p-1 bg-white">{node.id.split("-").slice(-1)}</div>
+            <div className="p-1">{node.id.split("-").slice(-1)}</div>
         </NodeWrapper>
     );
 };
