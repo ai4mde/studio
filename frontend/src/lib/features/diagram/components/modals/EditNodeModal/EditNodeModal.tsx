@@ -113,19 +113,19 @@ export const EditNodeModal: React.FC = () => {
                                     {node.data?.name && node.type !== "object" && node.type !== "event" && (
                                         <EditName node={node} />
                                     )}
-                                    {node.type == "class" && (
+                                    {node.type === "class" && (
                                         <EditAttributes node={node} />
                                     )}
-                                    {node.type == "class" && (
+                                    {node.type === "class" && (
                                         <EditMethods node={node} />
                                     )}
-                                    {node.type == "enum" && (
+                                    {node.type === "enum" && (
                                         <EditLiterals node={node} />
                                     )}
-                                    {node.type == "application" && (
+                                    {node.type === "application" && (
                                         <EditApplication node={node} />
                                     )}
-                                    {node.type == 'swimlanegroup' && (
+                                    {node.type === 'swimlanegroup' && (
                                         <>
                                             <EditDimensions dimension='height' node={node} />
                                             <EditDimensions dimension='width' node={node} />
@@ -140,7 +140,7 @@ export const EditNodeModal: React.FC = () => {
                                             <EditSwimlane node={node} />
                                         </>
                                     )}
-                                    {node.type == "action" && (
+                                    {node.type === "action" && (
                                         <>
                                             <EditBoolean
                                                 attribute="isAutomatic"
@@ -163,13 +163,13 @@ export const EditNodeModal: React.FC = () => {
                                             )}
                                         </>
                                     )}
-                                    {(node.type == "join" || node.type == "fork") && (
+                                    {(node.type === "join" || node.type === "fork") && (
                                         <>
                                             <EditDimensions dimension='height' node={node} />
                                             <EditDimensions dimension='width' node={node} />
                                         </>
                                     )}
-                                    {node.type == "initial" && (
+                                    {node.type === "initial" && (
                                         <>
                                             <EditBoolean
                                                 attribute="scheduled"
@@ -190,7 +190,7 @@ export const EditNodeModal: React.FC = () => {
                                     )}
                                     {node.type === "object" && <EditObject node={node} />}
                                     {node.type === "event" && <EditEvent node={node} />}
-                                    {node.type == "system_boundary" && (
+                                    {node.type === "system_boundary" && (
                                         <>
                                             <EditDimensions dimension='height' node={node} />
                                             <EditDimensions dimension='width' node={node} />
@@ -199,13 +199,13 @@ export const EditNodeModal: React.FC = () => {
                                     {(node.type === "system" || node.type === "container" || node.type === "component") && (
                                         <EditInternals node={node} />
                                     )}
-                                    {node.type == "c4container" && (
+                                    {node.type === "c4container" && (
                                       <>
                                       <EditLabel node={node} />
                                       <EditTechnologies node={node} />
                                       </>
                                     )}
-                                    {node.type == "c4component" && (
+                                    {node.type === "c4component" && (
                                       <>
                                       <EditLabel node={node} />
                                       </>
