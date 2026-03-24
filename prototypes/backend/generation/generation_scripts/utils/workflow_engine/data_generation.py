@@ -227,8 +227,21 @@ class ActivityDiagramParser:
                         isinstance(entry.get("next"), int) or entry.get("next") == "END"
                     ) for entry in next_value
                 ):
-                    next_value = [entry.get("next") for entry in next_value] if len(next_value) > 1 else next_value[0]["next"]
-            
+                    print(next_value, flush=True)
+                    next_value = (
+                        [entry.get("next") for entry in next_value]
+                        if len(next_value) > 1 
+                        else (
+                            next_value[0]["next"]
+                            if len(next_value) == 1
+                            else []
+                        )
+                    )
+
+            # This is a branch consisting only of ignored nodes, we can skip it
+            if isinstance(next_value, list) and not next_value:
+                continue
+
             rule_entry = {"next": next_value}
             if next_node_obj.type == "join":
                 rule_entry["check"] = self.join_nodes[next_node]['id']
