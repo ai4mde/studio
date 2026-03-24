@@ -45,7 +45,6 @@ class ClassifierType(models.TextChoices):
 
     # Activity
     SWIMLANE = "swimlane", "Swimlane"
-    SWIMLANE_GROUP = "swimlane_group", "Swimlane Group"
     ACTION = "action", "Action"
     DECISION = "decision", "Decision"
     FINAL = "final", "Final"

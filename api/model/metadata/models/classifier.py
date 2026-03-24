@@ -265,7 +265,7 @@ class ClassAttribute(MultiClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.CLASS,)
 
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=32, choices=AttributeType.choices)
+    attribute_type = models.CharField(max_length=32, choices=AttributeType.choices)
     derived=models.BooleanField(default=False)
     description = models.CharField(max_length=255, blank=True, null=True)
 
@@ -280,7 +280,7 @@ class ClassAttribute(MultiClassifierExtensionBase):
     def clean(self):
         super().clean()
 
-        if self.type == AttributeType.ENUM:
+        if self.attribute_type == AttributeType.ENUM:
             if self.enum is None:
                 raise ValidationError("Enum attribute must reference an enum classifier")
             if self.enum.type != ClassifierType.ENUMERATION:
@@ -288,6 +288,9 @@ class ClassAttribute(MultiClassifierExtensionBase):
         else:
             if self.enum is not None:
                 raise ValidationError("Only enum attributes can reference an enum classifier")
+
+# TODO Add classifierOperation what is this?
+# Also where is a derived attribute stored?
 
 # TODO add when component nodes are merged
 # class SystemBoundaryExtension(SingleClassifierExtensionBase):
@@ -299,7 +302,72 @@ class ClassAttribute(MultiClassifierExtensionBase):
 #         limit_choices_to={"type": ClassifierType.SYSTEM},
 #     )
 
+
 class ActionExtension(SingleClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ACTION,)
     is_automatic = models.BooleanField(default=False)
     customCode = models.TextField(blank=True, null=True)
+
+
+class ObjectExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.OBJECT,)
+    state = models.CharField(max_length=255, blank=True, null=True)
+    object = models.ForeignKey(
+        Classifier,
+        on_delete=models.CASCADE,
+        related_name="objects",
+        limit_choices_to={"type": ClassifierType.CLASS} # Does this work as I think it does? Check documentation
+    )
+
+
+class EventExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.EVENT,)
+    signal = models.ForeignKey(
+        Classifier,
+        on_delete=models.CASCADE,
+        related_name="events",
+        limit_choices_to={"type": ClassifierType.SIGNAL}
+    )
+
+
+class InitialExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.INITIAL,)
+    scheduled = models.BooleanField(default=False)
+    schedule = models.CharField(max_length=255, blank=True, null=True)
+
+    def clean(self):
+        super().clean()
+
+        if self.scheduled and not self.schedule:
+            raise ValidationError("Scheduled initial nodes must have a schedule defined")
+        if not self.scheduled and self.schedule:
+            raise ValidationError("No schedule should be defined when the initial node is not scheduled")
+
+
+class FinalExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.FINAL,)
+    activity_scope = models.CharField(max_length=8, choices=ActivityScope.choices)
+
+
+class SwimlaneExtension(SingleClassifierExtensionBase):
+    component = models.ForeignKey(
+        Classifier,
+        on_delete=models.SET_NULL,
+        related_name="swimlanes",
+        # limit_choices_to={"type": ClassifierType.Component} # TODO REBASE TO DEVELOP!!!
+        null=True,
+        blank=True,
+    )
+    actor = models.ForeignKey(
+        Classifier,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    parent = models.ForeignKey(
+        Classifier,
+        on_delete=models.SET_NULL, # TODO Check this further perhaps some custom logic
+        blank=True,
+        null=True,
+        limit_choices_to={"type": ClassifierType.SWIMLANE},
+    )
