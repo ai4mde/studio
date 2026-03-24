@@ -5,8 +5,8 @@ from typing import List, Optional, Any
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode
-from .edge import CreateEdge, EdgeSchema, ExportEdge
+from .node import NodeSchema, ExportNode, ImportNode
+from .edge import EdgeSchema, ExportEdge, ImportEdge
 
 
 class DiagramType(str, Enum):
@@ -122,9 +122,14 @@ class FullDiagram(ReadDiagram):
         return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
 
 
-class ImportDiagram(CreateDiagram):
-    nodes: List[CreateNode]
-    edges: List[CreateEdge]
+class ImportDiagram(Schema):
+    id: str
+    type: DiagramType
+    name: str
+    description: Optional[str] = None
+    system: str
+    nodes: list[ImportNode]
+    edges: list[ImportEdge]
 
 
 class ExportDiagram(ModelSchema):
