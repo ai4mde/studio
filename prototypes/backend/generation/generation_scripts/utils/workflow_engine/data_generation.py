@@ -227,7 +227,6 @@ class ActivityDiagramParser:
                         isinstance(entry.get("next"), int) or entry.get("next") == "END"
                     ) for entry in next_value
                 ):
-                    print(next_value, flush=True)
                     next_value = (
                         [entry.get("next") for entry in next_value]
                         if len(next_value) > 1 
