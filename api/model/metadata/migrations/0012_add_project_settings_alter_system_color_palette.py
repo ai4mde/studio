@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='system',
+            model_name='project',
             name='settings',
             field=models.JSONField(blank=True, default=dict, null=True),
         ),
