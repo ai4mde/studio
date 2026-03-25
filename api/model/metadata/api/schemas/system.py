@@ -3,10 +3,11 @@ from uuid import UUID
 
 from ninja import ModelSchema, Schema
 
-from metadata.api.schemas.interface import ExportInterface, ImportInterface
-from metadata.models import System, Interface
-from diagram.api.schemas.diagram import ExportDiagram, ImportDiagram
+from metadata.api.schemas.meta import ExportClassifier, ExportRelation, ImportClassifier, ImportRelation
+from metadata.models import System, Classifier, Relation, Interface
 from diagram.models import Diagram
+from diagram.api.schemas.diagram import ExportDiagram, ImportDiagram
+from metadata.api.schemas.interface import ExportInterface, ImportInterface
 
 
 class FlatDiagram(Schema):
@@ -54,25 +55,38 @@ class UpdateSystem(ModelSchema):
 
 
 class ExportSystem(ModelSchema):
-    interfaces: List[ExportInterface] = []
     diagrams: List[ExportDiagram] = []
+    classifiers: List[ExportClassifier] = []
+    relations: List[ExportRelation] = []
+    interfaces: List[ExportInterface] = []
 
     class Meta:
         model = System
-        exclude = ["project"]
-
-    @staticmethod
-    def resolve_interfaces(obj):
-        return Interface.objects.filter(system=obj).all()
+        fields = "__all__"
 
     @staticmethod
     def resolve_diagrams(obj):
-        return Diagram.objects.filter(system=obj).all()
+        return Diagram.objects.filter(system=obj)
+    
+    @staticmethod
+    def resolve_classifiers(obj):
+        return Classifier.objects.filter(system=obj)
+
+    @staticmethod
+    def resolve_relations(obj):
+        return Relation.objects.filter(system=obj)
+
+    @staticmethod
+    def resolve_interfaces(obj):
+        return Interface.objects.filter(system=obj)
 
 
 class ImportSystem(Schema):
     id: str
     name: str
-    description: Optional[str] = ""
-    interfaces: List[ImportInterface]
-    diagrams: List[ImportDiagram]
+    description: Optional[str] = None
+    project: str
+    diagrams: List[ImportDiagram] = []
+    classifiers: List[ImportClassifier] = []
+    relations: List[ImportRelation] = []
+    interfaces: List[ImportInterface] = []

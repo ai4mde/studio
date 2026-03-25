@@ -1,11 +1,11 @@
 import uuid
 
-from django.db import models
-from metadata.models import Classifier, Relation, System
+from django.db import models, transaction
+from metadata.models import Classifier, Relation, System, ImportMixin
 import networkx as nx
 
 
-class Diagram(models.Model):
+class Diagram(ImportMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     type = models.CharField()
     name = models.CharField()
@@ -164,14 +164,33 @@ class Diagram(models.Model):
 
         super().delete(*args, **kwargs)
 
+    @classmethod
+    @transaction.atomic
+    def import_from_json(cls, data):
+        diagram, _ = cls.upsert_from_json(data)
 
-class Node(models.Model):
+        node_ids = []
+        for node_data in data["nodes"]:
+            Node.import_from_json(node_data)
+            node_ids.append(node_data["id"])
+        cls.delete_missing(diagram.nodes, node_ids)
+
+        edge_ids = []
+        for edge_data in data["edges"]:
+            Edge.import_from_json(edge_data)
+            edge_ids.append(edge_data["id"])
+        cls.delete_missing(diagram.edges, edge_ids)
+
+        return diagram
+
+
+class Node(ImportMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="nodes")
     cls = models.ForeignKey(Classifier, on_delete=models.CASCADE)
     data = models.JSONField()
 
-class Edge(models.Model):
+class Edge(ImportMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     diagram = models.ForeignKey(Diagram, on_delete=models.CASCADE, related_name="edges")
     rel = models.ForeignKey(Relation, on_delete=models.CASCADE)

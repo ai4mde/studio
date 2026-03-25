@@ -31,7 +31,7 @@ const ProjectsIndex: React.FC = () => {
         const text = await file.text();
         try {
             const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/systems/import/", json);
+            await authAxios.post("/v1/metadata/projects/import/", json);
         } catch (err) {
             console.error("Import failed", err);
         }

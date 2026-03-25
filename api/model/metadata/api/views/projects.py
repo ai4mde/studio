@@ -1,8 +1,9 @@
 from typing import List
 
-from metadata.api.schemas import CreateProject, ReadProject, UpdateProject
+from metadata.api.schemas import CreateProject, ReadProject, UpdateProject, ExportProject, ImportProject
 from metadata.models import Project
 from ninja import Router
+from ninja.responses import Response
 
 projects = Router()
 
@@ -41,6 +42,36 @@ def delete_project(request, project_id):
     except Exception as e:
         raise Exception("Failed to delete project, error: " + e)
     return True
-    
+
+
+@projects.get("/export/{uuid:project_id}/", response=ExportProject)
+def export_project(request, project_id: str):
+    project = Project.objects.get(id=project_id)
+    if not project:
+        raise Exception("Project not found")
+    return project
+
+
+@projects.post("/import/")
+def import_project(request, payload: ImportProject):
+    try:
+        json_data = payload.dict()
+        project = Project.import_from_json(json_data)
+        return Response(
+            {
+                "status": "success",
+                "project_id": project.id,
+            },
+            status=200,
+        )
+    except Exception as e:
+        return Response(
+            {
+                "status": "error",
+                "message": str(e),
+            },
+            status=400,
+        )
+
 
 __all__ = ["projects"]
