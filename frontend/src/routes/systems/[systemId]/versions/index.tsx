@@ -13,7 +13,7 @@ const SystemInterfaces: React.FC = () => {
     return (
         <SystemLayout>
             <div className="flex h-full w-full flex-col gap-1 p-3">
-                <ShowReleases system={systemId} />
+                test
             </div>
         </SystemLayout>
     );

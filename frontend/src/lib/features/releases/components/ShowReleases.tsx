@@ -1,332 +1,95 @@
-import { authAxios } from "$lib/features/auth/state/auth";
-import { useSystemReleases } from "$lib/features/releases/queries";
-import { queryClient } from "$shared/hooks/queryClient";
-import { Button, CircularProgress, Divider, FormControl, FormLabel, Input, Modal, ModalClose, ModalDialog } from '@mui/joy';
-import { useMutation } from "@tanstack/react-query";
-import { Rocket, Trash, X } from "lucide-react";
+import { useProjectReleases } from "$lib/features/releases/queries";
+import { Button, Modal, ModalClose, ModalDialog, FormControl, FormLabel, Input, Divider } from "@mui/joy";
+import { X } from 'lucide-react';
 import React, { useState } from "react";
-import { useParams } from "react-router";
+import { authAxios } from "$lib/features/auth/state/auth";
+import { queryClient } from "$shared/hooks/queryClient";
+import { useMutation } from "@tanstack/react-query";
 
 
 
 type Props = {
-    system: string;
+    project: string;
 };
 
-interface Release {
-    id: string;
-    name: string;
+type ReleaseInput = {
+    name: string
+    project: string
+    release_notes: string[]
 }
 
-export const ShowReleases: React.FC<Props> = ({ system }) => {
-    const { systemId } = useParams();
-    const [releases, isSuccessReleases, ,] = useSystemReleases(systemId);
+export const ShowReleases: React.FC<Props> = ({ project }) => {
+    const [releases, isSuccessReleases, isLoadingReleases] = useProjectReleases(project);
+
+    const [releaseNotesData, setReleaseNotesData] = useState<string[] | null>(null);
+    const [showReleaseNotesModal, setShowReleaseNotesModal] = useState(false);
 
     const [showNewReleaseModal, setShowNewReleaseModal] = useState(false);
-    const [showLoadReleaseModal, setShowLoadReleaseModal] = useState(false);
-    const [loadReleaseObject, setLoadReleaseObject] = useState<Release | undefined>(undefined)
-    const [isLoading, setIsLoading] = useState(false);
-
-
-    const [diagramsData, setDiagramsData] = useState("")
-    const [showDiagramsDataModal, setShowDiagramsDataModal] = useState(false);
-    const showDiagrams = async (releaseId: string) => {
-        try {
-            const response = await authAxios.get(`/v1/metadata/releases/${releaseId}`);
-            setDiagramsData(response.data.diagrams);
-            setShowDiagramsDataModal(true);
-
-        } catch (error) {
-            console.error('Error making request:', error);
-        }
-    };
-
-    const [releaseNotesData, setReleaseNotesData] = useState([])
-    const [showReleaseNotesDataModal, setShowReleaseNotesDataModal] = useState(false);
-    const showReleaseNotes = async (releaseId: string) => {
-        try {
-            const response = await authAxios.get(`/v1/metadata/releases/${releaseId}`);
-            setReleaseNotesData(response.data.release_notes);
-            setShowReleaseNotesDataModal(true);
-
-        } catch (error) {
-            console.error('Error making request:', error);
-        }
-    };
-
-    const closeDiagramsDataModal = () => {
-        setDiagramsData("");
-        setShowDiagramsDataModal(false);
-    }
-
-    const [interfacesData, setInterfacesData] = useState("")
-    const [showInterfacesDataModal, setShowInterfacesDataModal] = useState(false);
-    const showInterfaces = async (releaseId: string) => {
-        try {
-            const response = await authAxios.get(`/v1/metadata/releases/${releaseId}`);
-            setInterfacesData(response.data.interfaces);
-            setShowInterfacesDataModal(true);
-
-        } catch (error) {
-            console.error('Error making request:', error);
-        }
-    };
-
-    const closeInterfacesDataModal = () => {
-        setInterfacesData("");
-        setShowInterfacesDataModal(false);
-    }
-    const closeReleaseNotesDataModal = () => {
-        setReleaseNotesData([]);
-        setShowReleaseNotesDataModal(false);
-    }
-
-    const downloadReleaseAsFile = async (release: { id: string; name: string; created_at: string }) => {
-        try {
-            // Load release metadata as object
-            const { data } = await authAxios.get(`/v1/metadata/releases/${release.id}`);
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-
-            // Format download filename
-            const releaseDate = new Date(release.created_at)
-            const formattedDate = releaseDate.toISOString().slice(0, 16).replace("T", "-");
-            const safeName = (release.name || "version").replace(/\s+/g, "_");
-            const filename = `${safeName}-${formattedDate}.json`;
-
-            // Download object as JSON file using a temporary <a> element
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            console.error("Failed to download version:", err);
-        }
-    };
-
-    const handleDelete = async (releaseId: string) => {
-        try {
-            const response = await authAxios.delete(`/v1/metadata/releases/${releaseId}`);
-            window.location.reload();
-        } catch (error) {
-            console.error('Error making request:', error);
-        }
-    };
-
-    const openLoadModal = async (release) => {
-        setLoadReleaseObject(release);
-        setShowLoadReleaseModal(true);
-    };
-
-
-    type ReleaseInput = {
-        name: string;
-        system: string;
-        releaseNotes: string[];
-    };
-
-    type ReleaseOutput = {
-        id: string;
-        name: string;
-        system: string;
-        releaseNotes: string[];
-    };
-    const { mutateAsync, isPending } = useMutation<
-        ReleaseOutput,
-        unknown,
-        ReleaseInput
-    >({
-        mutationFn: async (input) => {
-            const { name, system, releaseNotes } = input;
-            const { data } = await authAxios.post(`v1/metadata/releases/?system_id=${system}&name=${name}&release_notes=${JSON.stringify(releaseNotes)}`);
-            return data
-        },
-    });
-
-    const newRelease: React.FormEventHandler<HTMLFormElement> = async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.currentTarget);
-        const name = `${formData.get("name")}`;
-
-        try {
-            if (loadFromFile) {
-                if (!fileToImport) {
-                    setImportError("Please choose a JSON file.");
-                    return;
-                }
-                const text = await fileToImport.text();
-                let payload: any;
-                try {
-                    payload = JSON.parse(text);
-                } catch {
-                    setImportError("Invalid JSON file.");
-                    return;
-                }
-
-                await importRelease.mutateAsync({
-                    systemId: systemId || "",
-                    name,
-                    releaseNotes,
-                    payload,
-                });
-            } else {
-                await mutateAsync({
-                    name,
-                    system: systemId || "",
-                    releaseNotes,
-                });
-
-                authAxios.delete(`/v1/generator/prototypes/system/${systemId}/`);
-            }
-
-            queryClient.invalidateQueries({ queryKey: ["releases"] });
-            setShowNewReleaseModal(false);
-            setReleaseNotes([]);
-            setLoadFromFile(false);
-            setFileToImport(null);
-            setImportError(null);
-            window.location.reload();
-        } catch (err) {
-            console.error(err);
-            setImportError("Failed to create/import version. Check console for details.");
-        }
-    };
-
-    const [loadFromFile, setLoadFromFile] = useState(false);
-    const [fileToImport, setFileToImport] = useState<File | null>(null);
-    const [importError, setImportError] = useState<string | null>(null);
-    const importRelease = useMutation({
-        mutationFn: async (input: { systemId: string; name: string; releaseNotes: string[]; payload: any }) => {
-            const { systemId, name, releaseNotes, payload } = input;
-            const { data } = await authAxios.post(
-                `/v1/metadata/releases/import?system_id=${systemId}&name=${encodeURIComponent(name)}`,
-                { ...payload, release_notes: releaseNotes }
-            );
-            return data;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["releases"] });
-        },
-    });
-
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        setImportError(null);
-
-        if (!file) {
-            setFileToImport(null);
-            return;
-        }
-        
-        const looksJson = file.type === "application/json" || file.name.toLowerCase().endsWith(".json");
-
-        if (!looksJson) {
-            setFileToImport(null);
-            setImportError("Please choose a JSON file.")
-            return;
-        }
-
-        setFileToImport(file);
-    };
-
-    const handleLoad = async () => {
-        setIsLoading(true);
-        try {
-            await authAxios.post(`/v1/metadata/releases/${loadReleaseObject.id}/load/?system_id=${systemId}`);
-        } catch (error) {
-            console.error('Error making request:', error);
-        } finally {
-            setLoadReleaseObject(undefined);
-            setShowLoadReleaseModal(false);
-            setIsLoading(false);
-        }
-    };
-
-    const [releaseNotes, setReleaseNotes] = useState([]);
+    const [releaseNotes, setReleaseNotes] = useState<string[]>([]);
     const [newNote, setNewNote] = useState("");
 
+    const showReleaseNotes = (notes: string[]) => {
+        setReleaseNotesData(notes);
+        setShowReleaseNotesModal(true);
+    };
+
+    const closeReleaseNotes = () => {
+        setReleaseNotesData(null);
+        setShowReleaseNotesModal(false);
+    };
+
     const handleAddReleaseNote = () => {
-        if (newNote.trim()) {
-            setReleaseNotes([...releaseNotes, newNote]);
-            setNewNote("");
-        }
+        if (newNote.trim() === "") return;
+        setReleaseNotes([...releaseNotes, newNote.trim()]);
+        setNewNote("");
     };
 
     const handleDeleteReleaseNote = (index: number) => {
         setReleaseNotes(releaseNotes.filter((_, i) => i !== index));
-    };
+    }
 
-    return (
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async (releaseInput: ReleaseInput) => {
+            await authAxios.post(`/v1/metadata/releases/`, releaseInput);
+            queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+        },
+    });
+
+    // TODO: connect mutation to form
+
+    if (isLoadingReleases) {
+        return <p>Loading releases...</p>;
+    }
+
+        return (
         <>
             <table className="min-w-full bg-white text-left">
-                <thead className="text-sm w-full">
+                <thead>
                     <tr>
-                        <th className="py-2 px-4 text-left border-b border-stone-200 w-30">
-                            <span className="flex flex-row items-center gap-2">
-                                <Rocket size={24} />
-                                <h1 className="text-lg">Versions</h1>
-                            </span>
-                        </th>
-                        <th className="py-2 px-4 text-left border-b border-stone-200 w-52">Date</th>
-                        <th className="py-2 px-4 text-left border-b border-stone-200 w-52"></th>
+                        <th className="py-2 px-4 border-b">Name</th>
+                        <th className="py-2 px-4 border-b">Created at</th>
+                        <th className="py-2 px-4 border-b"></th>
                     </tr>
                 </thead>
-                <tbody className="max-h-96 overflow-y-auto">
-                    {isSuccessReleases && (
-                        [...releases].reverse().map((e, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                                <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    <h1 className="text-lg">{e.name}</h1>
-                                </td>
-                                <td className="py-2 px-4 text-left border-b border-gray-200">
-                                    <h1 className="text-lg">{e.created_at}</h1>
-                                </td>
-                                <td className="py-2 px-4 text-right border-b border-gray-200 w-full">
-                                    <div className="flex justify-end space-x-2">
-                                        <button
-                                            onClick={() => showReleaseNotes(e.id)}
-                                            className="w-[120px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
-                                        >
-                                            Version Notes
-                                        </button>
-                                        <button
-                                            onClick={() => showDiagrams(e.id)}
-                                            className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
-                                        >
-                                            Diagrams
-                                        </button>
-                                        <button
-                                            onClick={() => showInterfaces(e.id)}
-                                            className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
-                                        >
-                                            Interfaces
-                                        </button>
-                                        <button
-                                            onClick={() => downloadReleaseAsFile(e)}
-                                            className="w-[100px] h-[40px] bg-stone-200 rounded-md hover:bg-stone-300 flex items-center justify-center"
-                                        >
-                                            Download
-                                        </button>
-                                        <button
-                                            onClick={() => openLoadModal(e)}
-                                            className="w-[70px] h-[40px] bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center justify-center"
-                                        >
-                                            Load
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(e.id)}
-                                            className="w-[40px] h-[40px] bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center"
-                                        >
-                                            <Trash />
-                                        </button>
-                                    </div>
+                <tbody>
+                    {isSuccessReleases && releases.length > 0 ? (
+                        [...releases].reverse().map((release) => (
+                            <tr key={release.id}>
+                                <td className="py-2 px-4 border-b">{release.name}</td>
+                                <td className="py-2 px-4 border-b">{release.created_at}</td>
+                                <td className="py-2 px-4 border-b text-right">
+                                    <Button onClick={() => showReleaseNotes(release.release_notes)}>
+                                        Release Notes
+                                    </Button>
                                 </td>
                             </tr>
                         ))
+                    ) : (
+                        <tr>
+                            <td colSpan={3} className="py-4 px-4 text-center">
+                                No releases found
+                            </td>
+                        </tr>
                     )}
                 </tbody>
             </table>
@@ -336,62 +99,38 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
             >
                 New version
             </button>
-            <Modal
-                open={showDiagramsDataModal}
-                onClose={closeDiagramsDataModal}
-            >
-                <ModalDialog className="max-h-screen overflow-y-auto">
-                    <ModalClose
-                        sx={{
-                            position: "relative",
-                        }}
-                    />
-                    <div className="flex h-full w-full flex-col gap-1 p-3">
-                        <pre>{JSON.stringify(diagramsData, null, 2)}</pre>
+
+            <Modal open={showReleaseNotesModal} onClose={closeReleaseNotes}>
+                <ModalDialog>
+                    <ModalClose />
+                    <div className="flex flex-col gap-2 p-2">
+                        <h2 className="font-bold text-lg">Release Notes</h2>
+                        {releaseNotesData && releaseNotesData.length > 0 ? (
+                            releaseNotesData.map((note, index) => (
+                                <p key={index}>
+                                    {index + 1}. {note}
+                                </p>
+                            ))
+                        ) : (
+                            <p>No release notes available.</p>
+                        )}
                     </div>
                 </ModalDialog>
             </Modal>
+
             <Modal
-                open={showInterfacesDataModal}
-                onClose={closeInterfacesDataModal}
+                open={showNewReleaseModal}
+                onClose={() => {
+                    setShowNewReleaseModal(false);
+                    setReleaseNotes([]);
+                    setNewNote("");
+                }}
             >
-                <ModalDialog className="max-h-screen overflow-y-auto">
-                    <ModalClose
-                        sx={{
-                            position: "relative",
-                        }}
-                    />
-                    <div className="flex h-full w-full flex-col gap-1 p-3">
-                        <pre>{JSON.stringify(interfacesData, null, 2)}</pre>
-                    </div>
-                </ModalDialog>
-            </Modal>
-            <Modal
-                open={showReleaseNotesDataModal}
-                onClose={closeReleaseNotesDataModal}
-            >
-                <ModalDialog className="max-h-screen overflow-y-auto">
-                    <ModalClose
-                        sx={{
-                            position: "relative",
-                        }}
-                    />
-                    <div className="flex h-full w-full flex-col gap-1 p-3">
-                        <h1 className="font-bold">Version Notes:</h1>
-                        {releaseNotesData.map((e, index) => (
-                            <div className="flex flex-row gap-4">
-                                <p>{index + 1}. {e}</p>
-                            </div>
-                        ))}
-                    </div>
-                </ModalDialog>
-            </Modal>
-            <Modal open={showNewReleaseModal} onClose={() => { close(); setShowNewReleaseModal(false); setReleaseNotes([]); }}>
                 <ModalDialog>
                     <div className="flex w-full flex-row justify-between pb-1">
                         <div className="flex flex-col">
                             <h1 className="font-bold">New version</h1>
-                            <h3 className="text-sm">Release the current diagrams & metadata</h3>
+                            <h3 className="text-sm">Release the current project</h3>
                         </div>
                         <ModalClose
                             sx={{
@@ -401,119 +140,61 @@ export const ShowReleases: React.FC<Props> = ({ system }) => {
                             }}
                         />
                     </div>
+
                     <form
                         id="create-release"
                         className="flex min-w-96 flex-col space-y-8"
-                        onSubmit={newRelease}
                     >
                         <FormControl required>
                             <FormLabel>Name:</FormLabel>
                             <Input name="name" placeholder="v0.0.1" required />
                         </FormControl>
+
                         <FormControl>
-                            <FormLabel>Verison Notes:</FormLabel>
-                            {releaseNotes.map((e, index) => (
-                                <div className="flex flex-row gap-4">
-                                    <p>{index + 1}. {e}</p>
+                            <FormLabel>Version Notes:</FormLabel>
+
+                            {releaseNotes.map((note, index) => (
+                                <div key={index} className="flex flex-row gap-4">
+                                    <p>{index + 1}. {note}</p>
                                     <button
+                                        type="button"
                                         onClick={() => handleDeleteReleaseNote(index)}
                                     >
                                         <X />
                                     </button>
-
                                 </div>
                             ))}
+
                             <div className="flex flex-row gap-2 mt-2">
                                 <Input
                                     placeholder="Write version note..."
                                     value={newNote}
                                     onChange={(e) => setNewNote(e.target.value)}
                                 />
-                                <Button variant="outlined" onClick={handleAddReleaseNote}>Add</Button>
-                            </div>
-                        </FormControl>
-                        <FormControl>
-                            <div className="flex items-center justify-between">
-                                <FormLabel>Load from file instead</FormLabel>
                                 <Button
                                     type="button"
-                                    variant={loadFromFile ? "solid" : "outlined"}
-                                    onClick={() => setLoadFromFile(v => !v)}
-                                    size="sm"
+                                    variant="outlined"
+                                    onClick={handleAddReleaseNote}
                                 >
-                                    {loadFromFile ? "Using file" : "Use file"}
+                                    Add
                                 </Button>
                             </div>
                         </FormControl>
-
-                        {loadFromFile && (
-                            <div className="mt-2 space-y-2">
-                                <FormControl>
-                                    <FormLabel>Version JSON file</FormLabel>
-                                    <Input
-                                        slotProps= {{
-                                            input: {
-                                                type: "file",
-                                                accept: "application/json",
-                                                onChange: onFileChange,
-                                            },
-                                        }}
-                                    />
-                                </FormControl>
-                                {importError && <p className="text-red-600 text-sm">{importError}</p>}
-                            </div>
-                        )}
-
                     </form>
+
                     <Divider />
+
                     <div className="flex flex-row pt-1">
-                        <Button form="create-release" type="submit" disabled={isPending}>
-                            {isPending ?
-                                <div className="flex flex-row gap-2">
-                                    <CircularProgress className="animate-spin" />
-                                    <p>Releasing...</p>
-                                </div> : "Version"}
+                        <Button form="create-release" type="submit">
+                            Version
                         </Button>
                     </div>
-                    <h3 className="text-sm text-red-500">Warning: this will delete all prototypes of this system!</h3>
+
+                    <h3 className="text-sm text-red-500">
+                        Warning: this will delete all prototypes of this system!
+                    </h3>
                 </ModalDialog>
             </Modal>
-            {showLoadReleaseModal &&
-                <Modal open={showLoadReleaseModal} onClose={() => { close(); setShowLoadReleaseModal(false) }}>
-                    <ModalDialog>
-                        <div className="flex w-full flex-row justify-between pb-1">
-                            <div className="flex flex-col">
-                                <h1 className="font-bold">Load a version</h1>
-                                <h3 className="text-sm">The diagrams and interfaces from version <b>{loadReleaseObject.name}</b> will be loaded into your work environment</h3>
-                            </div>
-                            <ModalClose
-                                sx={{
-                                    position: "relative",
-                                    top: 0,
-                                    right: 0,
-                                }}
-                            />
-                        </div>
-                        <Divider />
-                        <div className="flex flex-col pt-1 w-16">
-                            <Button
-                                onClick={handleLoad}
-                                color="primary"
-                                variant="solid"
-                                disabled={isLoading} // Disable button if isLoading is true
-                            >
-                                {isLoading ? (
-                                    <div className="flex flex-row gap-2">
-                                        <CircularProgress className="animate-spin" />
-                                        <p>Loading...</p>
-                                    </div>
-                                ) : "Load"}
-                            </Button>
-                        </div>
-                        <h3 className="text-sm text-red-500">Warning: this will delete all current changes that have not been released!</h3>
-                    </ModalDialog>
-                </Modal>
-            }
         </>
     );
 };

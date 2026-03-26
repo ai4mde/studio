@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { Box, Plus, X, Upload } from "lucide-react";
 import React, { useState, useRef } from "react";
+import UploadFileModal from "$shared/components/Modals/FileUploadModal";
 
 type ProjectOut = {
     id: string;
@@ -19,23 +20,12 @@ const ProjectsIndex: React.FC = () => {
     const [, setCreate] = useAtom(createProjectAtom);
     const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
     const [projectToDelete, setProjectToDelete] = useState("");
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
-    }
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        const text = await file.text();
-        try {
-            const json = JSON.parse(text);
-            await authAxios.post("/v1/metadata/projects/import/", json);
-        } catch (err) {
-            console.error("Import failed", err);
-        }
-    };
 
     const { isLoading, isSuccess, data } = useQuery<ProjectOut[]>({
         queryKey: ["projects"],
@@ -43,6 +33,54 @@ const ProjectsIndex: React.FC = () => {
             return (await authAxios.get("/v1/metadata/projects/")).data;
         },
     });
+
+    const handleOpenUploadModal = () => {
+        setSelectedFile(null);
+        setShowUploadModal(true);
+    }
+
+    const handleCloseUploadModal = () => {
+        if (isUploading) return;
+        setSelectedFile(null);
+        setShowUploadModal(false);
+        setUploadError(null);
+    }
+
+    const onFileChange = (file: File | null) => {
+        setUploadError(null);
+        setSelectedFile(file);
+    }
+
+    const handleUploadProject = async() => {
+        if (!selectedFile) return;
+
+        setIsUploading(true);
+        setUploadError(null);
+
+        try {
+            const text = await selectedFile.text();
+            const json = JSON.parse(text);
+            await authAxios.post("/v1/metadata/projects/import/", json);
+
+            setSelectedFile(null);
+            setShowUploadModal(false);
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+
+        } catch (error: any) {
+            const data = error?.response?.data;
+
+            if (data?.code === "PROJECT_EXISTS") {
+                const projectName = data?.project_name ?? "Unknow project";
+                setUploadError(
+                    `Project "${projectName}" already exists. To create a new version of this project, go to the versioning tab of this project.`
+                );
+            } else {
+                setUploadError(data?.message ?? "An error occurred while uploading the project.");
+            }
+        } finally {
+            setIsUploading(false);
+        }
+    }
 
     const handleDeleteProject = async (projectId: string) => {
         try {
@@ -66,13 +104,6 @@ const ProjectsIndex: React.FC = () => {
     return (
         <>
             <CreateProject />
-            <input
-                type="file"
-                accept="application/json"
-                style={{ display: "none" }}
-                ref={fileInputRef}
-                onChange={handleFileChange}
-            />
             <div
                 className="w-full h-full grid grid-cols-12 items-center"
                 style={{
@@ -135,7 +166,7 @@ const ProjectsIndex: React.FC = () => {
                                 <Plus />
                             </button>
                             <button
-                                onClick={handleUploadClick}
+                                onClick={handleOpenUploadModal}
                                 className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
                             >
                                 <Upload />
@@ -145,6 +176,21 @@ const ProjectsIndex: React.FC = () => {
                 </div>
                 <div className="col-span-12 flex flex-row">AI4MDE</div>
             </div>
+
+            <UploadFileModal
+                open={showUploadModal}
+                onClose={handleCloseUploadModal}
+                file={selectedFile}
+                onFileChange={onFileChange}
+                onConfirm={handleUploadProject}
+                isUploading={isUploading}
+                error={uploadError}
+                accept=".json"
+                title="Import project"
+                description="Select a JSON file to import a project."
+                label="Upload project JSON"
+            />
+
             <Modal
                 open={showDeleteProjectModal}
                 onClose={() => setShowDeleteProjectModal(false)}

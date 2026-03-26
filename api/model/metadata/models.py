@@ -133,13 +133,10 @@ class System(ImportMixin):
 
 class Release(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    system = models.ForeignKey(System, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    diagrams = models.JSONField()
-    metadata = models.JSONField()
-    interfaces = models.JSONField()
+    project_data = models.JSONField(default=dict) # Contains the entire json blob of the project, systems, classifiers, relations etc.
     release_notes = models.JSONField()
 
 

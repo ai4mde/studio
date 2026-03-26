@@ -79,6 +79,18 @@ class ExportSystem(ModelSchema):
     @staticmethod
     def resolve_interfaces(obj):
         return Interface.objects.filter(system=obj)
+    
+
+class ExportSingleSystem(ExportSystem):
+    imported_classifiers: List[ExportClassifier] = []
+    
+    @staticmethod
+    def resolve_imported_classifier(obj):
+        return []
+    # Loop over the classifiers from each node
+    # If the classifier is not from the current system we are trying to export
+    # We know it is imported from another
+
 
 
 class ImportSystem(Schema):
