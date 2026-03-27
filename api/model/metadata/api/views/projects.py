@@ -1,5 +1,7 @@
 from typing import List
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from metadata.api.schemas import CreateProject, ReadProject, UpdateProject, ExportProject, ImportProject
 from metadata.models import Project
 from ninja import Router
@@ -39,8 +41,8 @@ def delete_project(request, project_id):
     try:
         project = Project.objects.get(id=project_id)
         project.delete()
-    except Exception as e:
-        raise Exception("Failed to delete project, error: " + e)
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist("Project not found")
     return True
 
 
@@ -48,7 +50,7 @@ def delete_project(request, project_id):
 def export_project(request, project_id: str):
     project = Project.objects.get(id=project_id)
     if not project:
-        raise Exception("Project not found")
+        raise ObjectDoesNotExist("Project not found")
     return project
 
 

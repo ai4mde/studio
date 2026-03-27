@@ -113,7 +113,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
       />
 
       <div
+        role='button'
+        tabIndex={0}
         onClick={handleOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            handleOpen();
+          }
+        }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

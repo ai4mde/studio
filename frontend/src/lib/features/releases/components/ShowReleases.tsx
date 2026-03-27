@@ -144,81 +144,69 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
         );
     };
 
+    const handleProjectRelease = async (name: string) => {
+        await createRelease.mutateAsync({ name, project, release_notes: releaseNotes });
+    };
+
+    const handleFileRelease = async (name: string) => {
+        if (!releaseFileToImport) {
+            setImportError("Please choose a JSON file.");
+            return false;
+        }
+        const parsed = await parseJsonFile(releaseFileToImport);
+        if (typeof parsed !== "object" || parsed === null || !("project_data" in parsed)) {
+            setImportError("Invalid release file format.");
+            return false;
+        }
+        const releaseFile = parsed as { project_data: unknown; release_notes?: string[] };
+        await importRelease.mutateAsync({
+            name,
+            project,
+            project_data: releaseFile.project_data,
+            release_notes: Array.isArray(releaseFile.release_notes) ? releaseFile.release_notes : [],
+        });
+        return true;
+    };
+
+    const handleSystemsRelease = async (name: string) => {
+        if (!systemsFileToImport) {
+            setImportError("Please choose a JSON file.");
+            return false;
+        }
+        const parsed = await parseJsonFile(systemsFileToImport);
+        if (!isRecordArray(parsed)) {
+            setImportError("Invalid systems file format. Expected a JSON array of systems.");
+            return false;
+        }
+        await importSystemsRelease.mutateAsync({
+            name,
+            project,
+            systems: parsed,
+            release_notes: releaseNotes,
+        });
+        return true;
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
         const formData = new FormData(e.currentTarget);
-        const name = String(formData.get("name") ?? "").trim();
-
+        const rawName = formData.get("name");
+        const name = typeof rawName === "string" ? rawName.trim() : "";
         if (!name) return;
-
         setImportError(null);
 
         try {
             if (mode === "project") {
-                await createRelease.mutateAsync({
-                    name,
-                    project,
-                    release_notes: releaseNotes,
-                });
+                await handleProjectRelease(name);
             } else if (mode === "file") {
-                if (!releaseFileToImport) {
-                    setImportError("Please choose a JSON file.");
-                    return;
-                }
-
-                const parsed = await parseJsonFile(releaseFileToImport);
-
-                if (
-                    typeof parsed !== "object" ||
-                    parsed === null ||
-                    !("project_data" in parsed)
-                ) {
-                    setImportError("Invalid release file format.");
-                    return;
-                }
-
-                const releaseFile = parsed as {
-                    project_data: unknown;
-                    release_notes?: string[];
-                };
-
-                await importRelease.mutateAsync({
-                    name,
-                    project,
-                    project_data: releaseFile.project_data,
-                    release_notes: Array.isArray(releaseFile.release_notes)
-                        ? releaseFile.release_notes
-                        : [],
-                });
+                if (!(await handleFileRelease(name))) return;
             } else if (mode === "systems") {
-                if (!systemsFileToImport) {
-                    setImportError("Please choose a JSON file.");
-                    return;
-                }
-
-                const parsed = await parseJsonFile(systemsFileToImport);
-
-                if (!isRecordArray(parsed)) {
-                    setImportError("Invalid systems file format. Expected a JSON array of systems.");
-                    return;
-                }
-
-                await importSystemsRelease.mutateAsync({
-                    name,
-                    project,
-                    systems: parsed,
-                    release_notes: releaseNotes,
-                });
+                if (!(await handleSystemsRelease(name))) return;
             }
-
             closeNewReleaseModal();
         } catch (error) {
-            if (error instanceof Error) {
-                setImportError(error.message);
-            } else {
-                setImportError("Failed to create or import release.");
-            }
+            if (error instanceof Error) setImportError(error.message);
+            else setImportError("Failed to create or import release.");
         }
     };
 
@@ -238,7 +226,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
 
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove();
         URL.revokeObjectURL(url);
     };
 
@@ -331,7 +319,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                         <h2 className="font-bold text-lg">Release Notes</h2>
                         {releaseNotesData && releaseNotesData.length > 0 ? (
                             releaseNotesData.map((note, index) => (
-                                <p key={index}>
+                                <p key={`${note}-${index}`}>
                                     {index + 1}. {note}
                                 </p>
                             ))
@@ -412,7 +400,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                                 <FormLabel>Version Notes:</FormLabel>
 
                                 {releaseNotes.map((note, index) => (
-                                    <div key={index} className="flex flex-row gap-4">
+                                    <div key={`${note}-${index}`} className="flex flex-row gap-4">
                                         <p>
                                             {index + 1}. {note}
                                         </p>

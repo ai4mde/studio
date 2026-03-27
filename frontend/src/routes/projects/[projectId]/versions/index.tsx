@@ -7,7 +7,7 @@ import { useParams } from "react-router";
 const ProjectReleases: React.FC = () => {
   const { projectId } = useParams();
   const project = useProject(projectId);
-  const { name, id } = project.data ?? {};
+  const { id } = project.data ?? {};
 
   return (
     <ProjectLayout>

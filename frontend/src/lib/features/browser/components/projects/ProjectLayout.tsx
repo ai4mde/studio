@@ -52,16 +52,18 @@ const ProjectLayout: React.FC<Props> = ({ children }) => {
             </div>
 
             <div className="col-span-12 h-full">
-                {!projectId ? (
-                <div className="flex h-full items-center justify-center">
-                    <h1 className="text-lg">Invalid project</h1>
-                </div>
-                ) : project.isLoading ? (
-                <div className="flex h-full items-center justify-center">
-                    <LinearProgress className="w-full" />
-                </div>
+                {projectId ? (
+                    project.isLoading ? (
+                        <div className="flex h-full items-center justify-center">
+                        <LinearProgress className="w-full" />
+                        </div>
+                    ) : (
+                        children
+                    )
                 ) : (
-                children
+                    <div className="flex h-full items-center justify-center">
+                        <h1 className="text-lg">Invalid project</h1>
+                    </div>
                 )}
             </div>
             <div className="col-span-12 flex flex-row">AI4MDE</div>

@@ -1,9 +1,7 @@
-import { authAxios } from "$lib/features/auth/state/auth";
 import CreateSystem from "$lib/features/browser/components/systems/CreateSystem";
 import ListSystem from "$lib/features/browser/components/systems/ListSystem";
 import ProjectLayout from "$browser/components/projects/ProjectLayout";
-import { LinearProgress } from "@mui/joy";
-import { GalleryVertical, Download } from "lucide-react";
+import { GalleryVertical } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 import { useProject } from "$browser/queries";

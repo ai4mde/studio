@@ -1,6 +1,7 @@
 from ninja import Router
 
 from typing import List, Optional
+from django.core.exceptions import ObjectDoesNotExist
 
 from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSingleSystem
 from metadata.models import Project, System
@@ -49,8 +50,8 @@ def delete_system(request, id):
     try:
         system = System.objects.get(id=id)
         system.delete()
-    except Exception as e:
-        raise Exception("Failed to delete system, error: " + str(e))
+    except ObjectDoesNotExist:
+        raise Exception("System not found")
     return True
 
 

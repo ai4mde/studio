@@ -28,7 +28,7 @@ const ProjectExports: React.FC = () => {
     const [exportType, setExportType] = useState<ExportType>("project");
     const [selectedSystemIds, setSelectedSystemIds] = useState<string[]>([]);
 
-    const { name: projectName, id } = project.data ?? {};
+    const { name: projectName } = project.data ?? {};
     const availableSystems = useMemo(() => systems.data ?? [], [systems.data]);
 
     const toggleSystem = (systemId: string) => {
@@ -50,7 +50,7 @@ const ProjectExports: React.FC = () => {
 
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        link.remove();
         URL.revokeObjectURL(url);
     };
 
