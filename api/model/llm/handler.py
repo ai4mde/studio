@@ -5,13 +5,6 @@ from openai import OpenAI
 from llm.templates.renderer import render_prompt
 
 
-def remove_reply_markdown(reply: str) -> str:
-    lines = reply.splitlines()
-    if len(lines) > 2:
-        return '\n'.join(lines[1:-1])
-    return ""
-
-
 def call_openai(model: str, prompt: str) -> str:
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),

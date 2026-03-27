@@ -1,3 +1,4 @@
+import json
 from typing import List
 from django.http import HttpRequest
 from django.core import serializers
@@ -15,9 +16,26 @@ from metadata.models import Classifier as MetaClassifier, Relation
 
 from diagram.models import Node, Edge, Diagram
 
-from llm.handler import llm_handler, remove_reply_markdown
+from llm.handler import llm_handler
+from llm.parsers.code_parser import CodeOutputParser
 
 node = Router()
+code_parser = CodeOutputParser(language="python", validate_syntax=True)
+
+
+def _format_code_parse_error(parse_result) -> str:
+    error = parse_result.error
+    return json.dumps(
+        {
+            "error": {
+                "code": error.code if error else "PARSE_ERROR",
+                "message": error.message if error else "Failed to parse generated code.",
+                "details": error.details if error else {},
+            },
+            "raw_response": parse_result.raw_response,
+            "extracted_code": parse_result.data.code if parse_result.data else None,
+        }
+    )
 
 
 @node.get("/", response=List[NodeSchema])
@@ -229,7 +247,11 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
                          model = model,
                          input_data = input_data)
 
-    return remove_reply_markdown(reply)
+    parse_result = code_parser.parse(reply)
+    if not parse_result.success or parse_result.data is None:
+        return 422, _format_code_parse_error(parse_result)
+
+    return parse_result.data.code
     
 
 @node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
@@ -259,6 +281,10 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
                          model = model,
                          input_data = input_data)
 
-    return remove_reply_markdown(reply)
+    parse_result = code_parser.parse(reply)
+    if not parse_result.success or parse_result.data is None:
+        return 422, _format_code_parse_error(parse_result)
+
+    return parse_result.data.code
     
 __all__ = ["node"]
