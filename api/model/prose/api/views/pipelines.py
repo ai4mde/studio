@@ -62,8 +62,19 @@ def run_model(request, pipeline_id: str, model="llama-3.3-70b-versatile"):
     response = llm_handler("PROSE_GENERATE_METADATA", model, input_data={"requirements": pipeline.requirements})
     if not response:
         return 503
-    print(response)
-    pipeline.output = parse_llm_response(response)
+    parse_result = parse_llm_response(response)
+    if parse_result.success and parse_result.data is not None:
+        pipeline.output = parse_result.data
+    else:
+        error = parse_result.error
+        pipeline.output = {
+            "error": {
+                "code": error.code if error else "PARSE_ERROR",
+                "message": error.message if error else "Failed to parse LLM response.",
+                "details": error.details if error else {},
+            },
+            "raw_response": parse_result.raw_response,
+        }
     pipeline.step = 5
     pipeline.save()
     return pipeline

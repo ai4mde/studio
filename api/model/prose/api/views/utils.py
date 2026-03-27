@@ -1,79 +1,100 @@
+from __future__ import annotations
 
-import re
-import csv
-from io import StringIO
 from uuid import uuid4
 
-def parse_relations(csv_table, classifiers):
-    relations = []
-    reader = csv.DictReader(StringIO(csv_table))
-    for row in reader:
-        try:
-            source_name = row['source_class_name']
-            target_name = row['target_class_name']
-            source_mult = row['source_multiplicity']
-            target_mult = row['target_multiplicity']
-            rel = {}
-            rel['id'] = uuid4().hex
-            print(rel)
-            for cls in classifiers:
-                if cls['data']['name'] == source_name:
-                    rel['source'] = cls['id']
-                if cls['data']['name'] == target_name:
-                    rel['target'] = cls['id']
-            rel['data'] = {"type": "association", "multiplicity": {"source": source_mult, "target": target_mult}, "derived": False, "label": " "}
-            relations.append(rel)
-            print(rel)
-        except:
-            pass
-    return relations
+from llm.parsers.base import ParseResult
+from llm.parsers.json_parser import JsonOutputParser
+from llm.parsers.schemas.prose_output import ProseGenerationOutput, ProseRelation
 
 
-def parse_classifiers(csv_table):
-    classifiers = []
-    reader = csv.DictReader(StringIO(csv_table))
-    
-    for row in reader:
-        try:
-            attributes = []
-            attr_str = row['attributes'].strip('[]')
-            if attr_str:
-                for attr in attr_str.split(','):
-                    type_name, attr_name = attr.strip().split(':')
-                    attributes.append({
-                        "name": attr_name.strip(),
-                        "type": type_name.strip(),
-                        "enum": None,
-                        "derived": False,
-                        "description": None,
-                        "body": None
-                    })
-            data = {
-                'name': row['class_name'],
-                'type': 'class',
-                "attributes": attributes,
+def _build_classifier_payload(parsed: ProseGenerationOutput) -> tuple[list[dict], dict[str, str]]:
+    classifiers: list[dict] = []
+    classifier_ids_by_name: dict[str, str] = {}
+
+    for cls in parsed.classifiers:
+        classifier_id = uuid4().hex
+        classifier_ids_by_name[cls.name] = classifier_id
+
+        classifiers.append(
+            {
+                "id": classifier_id,
+                "data": {
+                    "name": cls.name,
+                    "type": "class",
+                    "attributes": [attr.model_dump() for attr in cls.attributes],
+                },
             }
-            cls = {
-                'id': uuid4().hex,
-                'data': data,
+        )
+
+    return classifiers, classifier_ids_by_name
+
+
+def _relation_multiplicity(relation: ProseRelation) -> dict[str, str]:
+    if relation.multiplicity is None:
+        return {"source": "1", "target": "*"}
+    return {
+        "source": relation.multiplicity.source,
+        "target": relation.multiplicity.target,
+    }
+
+
+def _build_relation_payload(
+    relations: list[ProseRelation], classifier_ids_by_name: dict[str, str]
+) -> ParseResult[list[dict]]:
+    relation_payloads: list[dict] = []
+
+    for relation in relations:
+        source_id = classifier_ids_by_name.get(relation.source)
+        target_id = classifier_ids_by_name.get(relation.target)
+
+        if source_id is None or target_id is None:
+            return ParseResult.fail(
+                code="RELATION_ENDPOINT_NOT_FOUND",
+                message="Relation endpoint name does not match any classifier.",
+                raw_response="",
+                details={
+                    "source": relation.source,
+                    "target": relation.target,
+                },
+            )
+
+        relation_payloads.append(
+            {
+                "id": uuid4().hex,
+                "source": source_id,
+                "target": target_id,
+                "data": {
+                    "type": relation.type,
+                    "multiplicity": _relation_multiplicity(relation),
+                    "derived": False,
+                    "label": " ",
+                },
             }
-            classifiers.append(cls)
-        except:
-            pass
-    return classifiers
+        )
+
+    return ParseResult.ok(data=relation_payloads, raw_response="")
 
 
+def parse_llm_response(response: str) -> ParseResult[dict]:
+    parser = JsonOutputParser(schema=ProseGenerationOutput)
+    parsed_result = parser.parse(response)
 
-def parse_llm_response(response: str):
-    tables = re.findall(r'START\n(.*?)\nEND', response, re.DOTALL)
-    if len(tables) != 2:
-        return
-    classifiers_csv_table = tables[0]
-    relations_csv_table = tables[1]
-    classifiers = parse_classifiers(classifiers_csv_table)
-    relations = parse_relations(relations_csv_table, classifiers)
+    if not parsed_result.success or parsed_result.data is None:
+        return parsed_result
+
+    classifiers, classifier_ids_by_name = _build_classifier_payload(parsed_result.data)
+    relation_result = _build_relation_payload(parsed_result.data.relations, classifier_ids_by_name)
+
+    if not relation_result.success or relation_result.data is None:
+        return ParseResult.fail(
+            code=relation_result.error.code,
+            message=relation_result.error.message,
+            raw_response=response,
+            details=relation_result.error.details,
+        )
+
     output = {
         "classifiers": classifiers,
-        "relations": relations
+        "relations": relation_result.data,
     }
-    return output
+    return ParseResult.ok(data=output, raw_response=response)
