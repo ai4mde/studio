@@ -1,19 +1,30 @@
 import { useProjectReleases, type Release } from "$lib/features/releases/queries";
 import { Button, Modal, ModalClose, ModalDialog, FormControl, FormLabel, Input, Divider } from "@mui/joy";
-import { X } from 'lucide-react';
+import { X } from "lucide-react";
 import React, { useState } from "react";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
 import { useMutation } from "@tanstack/react-query";
+import FileUpload from "$shared/components/ui/FileUpload";
 
 type Props = {
     project: string;
 };
 
+type ReleaseMode = "project" | "file" | "systems";
+
 type ReleaseInput = {
-    name: string
-    project: string
-    release_notes: string[]
+    name: string;
+    project: string;
+    release_notes: string[];
+};
+
+type ImportReleaseInput = ReleaseInput & {
+    project_data: unknown;
+};
+
+type ImportSystemsReleaseInput = ReleaseInput & {
+    systems: unknown;
 };
 
 export const ShowReleases: React.FC<Props> = ({ project }) => {
@@ -25,6 +36,13 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     const [showNewReleaseModal, setShowNewReleaseModal] = useState(false);
     const [releaseNotes, setReleaseNotes] = useState<string[]>([]);
     const [newNote, setNewNote] = useState("");
+
+    const [mode, setMode] = useState<ReleaseMode>("project");
+
+    const [releaseFileToImport, setReleaseFileToImport] = useState<File | null>(null);
+    const [systemsFileToImport, setSystemsFileToImport] = useState<File | null>(null);
+    const [importError, setImportError] = useState<string | null>(null);
+
 
     const showReleaseNotes = (notes: string[]) => {
         setReleaseNotesData(notes);
@@ -50,14 +68,54 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
         setShowNewReleaseModal(false);
         setReleaseNotes([]);
         setNewNote("");
+        setMode("project");
+        setReleaseFileToImport(null);
+        setSystemsFileToImport(null);
+        setImportError(null);
     };
 
-    const { mutateAsync, isPending } = useMutation({
+    const handleReleaseFileChange = (file: File | null) => {
+        setReleaseFileToImport(file);
+        setImportError(null);
+    }
+
+    const handleSystemsFileChange = (file: File | null) => {
+        setSystemsFileToImport(file);
+        setImportError(null);
+    }
+
+    const createRelease = useMutation({
         mutationFn: async (releaseInput: ReleaseInput) => {
             await authAxios.post(`/v1/metadata/releases/`, releaseInput);
             await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
         },
     });
+
+    const importRelease = useMutation({
+        mutationFn: async (input: ImportReleaseInput) => {
+            await authAxios.post(`/v1/metadata/releases/import/${project}`, input);
+            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+        },
+    });
+
+    const importSystemsRelease = useMutation({
+        mutationFn: async (input: ImportSystemsReleaseInput) => {
+            await authAxios.post(`/v1/metadata/releases/import-systems/${project}`, input); // TODO change this
+            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+        },
+    });
+
+    const parseJsonFile = async (file: File): Promise<unknown> => {
+        const text = await file.text();
+
+        try {
+            return JSON.parse(text);
+        } catch {
+            throw new Error("Invalid JSON file.");
+        }
+    };
+
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -67,17 +125,73 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
 
         if (!name) return;
 
-        await mutateAsync({
-            name,
-            project,
-            release_notes: releaseNotes,
-        });
+        setImportError(null);
 
-        closeNewReleaseModal();
+        try {
+            if (mode === "project") {
+                await createRelease.mutateAsync({
+                    name,
+                    project,
+                    release_notes: releaseNotes,
+                });
+            } else if (mode === "file") {
+                if (!releaseFileToImport) {
+                    setImportError("Please choose a JSON file.");
+                    return;
+                }
+
+                const parsed = await parseJsonFile(releaseFileToImport);
+
+                if (
+                    typeof parsed !== "object" ||
+                    parsed === null ||
+                    !("project_data" in parsed)
+                ) {
+                    setImportError("Invalid release file format.");
+                    return;
+                }
+
+                const releaseFile = parsed as {
+                    project_data: unknown;
+                    release_notes?: string[];
+                };
+
+                await importRelease.mutateAsync({
+                    name,
+                    project,
+                    project_data: releaseFile.project_data,
+                    release_notes: Array.isArray(releaseFile.release_notes)
+                        ? releaseFile.release_notes
+                        : [],
+                });
+            } else if (mode === "systems") {
+                if (!systemsFileToImport) {
+                    setImportError("Please choose a JSON file.");
+                    return;
+                }
+
+                const parsed = await parseJsonFile(systemsFileToImport);
+
+                await importSystemsRelease.mutateAsync({
+                    name,
+                    project,
+                    systems: parsed,
+                    release_notes: releaseNotes,
+                });
+            }
+
+            closeNewReleaseModal();
+        } catch (error) {
+            if (error instanceof Error) {
+                setImportError(error.message);
+            } else {
+                setImportError("Failed to create or import release.");
+            }
+        }
     };
 
     const handleExportRelease = async (release: Release) => {
-        const response = await authAxios.get(`/v1/metadata/releases/${release.id}/export/`)
+        const response = await authAxios.get(`/v1/metadata/releases/${release.id}/export/`);
         const jsonStr = JSON.stringify(response.data, null, 2);
         const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -94,28 +208,24 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    }
+    };
 
     const handleDeleteRelease = async (releaseId: string) => {
         try {
             await authAxios.delete(`/v1/metadata/releases/${releaseId}/`);
             await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
-        } catch (error) {
-            alert("Failed to delete release")
-        }
-    }
+        } catch {}
+    };
 
     const handleLoadRelease = async (releaseId: string) => {
-        try {
-            await authAxios.post(`/v1/metadata/releases/${releaseId}/load/`);
-        } catch (error) {
-            alert("Failed to load release")
-        }
-    }
+        await authAxios.post(`/v1/metadata/releases/${releaseId}/load/`, { project });
+    };
 
     if (isLoadingReleases) {
         return <p>Loading releases...</p>;
     }
+
+    const isSubmitting = createRelease.isPending || importRelease.isPending || importSystemsRelease.isPending;
 
     return (
         <>
@@ -147,15 +257,15 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                                         </Button>
 
                                         <Button
-                                            color='primary'
-                                            variant='solid'
+                                            color="primary"
+                                            variant="solid"
                                             onClick={() => handleLoadRelease(release.id)}
                                         >
                                             Load
                                         </Button>
 
                                         <Button
-                                            color='danger'
+                                            color="danger"
                                             variant="solid"
                                             onClick={() => handleDeleteRelease(release.id)}
                                         >
@@ -200,15 +310,16 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                 </ModalDialog>
             </Modal>
 
-            <Modal
-                open={showNewReleaseModal}
-                onClose={closeNewReleaseModal}
-            >
+            <Modal open={showNewReleaseModal} onClose={closeNewReleaseModal}>
                 <ModalDialog>
                     <div className="flex w-full flex-row justify-between pb-1">
                         <div className="flex flex-col">
                             <h1 className="font-bold">New version</h1>
-                            <h3 className="text-sm">Release the current project</h3>
+                            <h3 className="text-sm">
+                                {mode === "project" && "Release the current project"}
+                                {mode === "file" && "Import a release from file"}
+                                {mode === "systems" && "Release current project and attach systems JSON"}
+                            </h3>
                         </div>
                         <ModalClose
                             sx={{
@@ -217,6 +328,41 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                                 right: 0,
                             }}
                         />
+                    </div>
+
+                    <div className="flex flex-row gap-2 pb-4">
+                        <Button
+                            type="button"
+                            variant={mode === "project" ? "solid" : "outlined"}
+                            onClick={() => {
+                                setMode("project");
+                                setImportError(null);
+                            }}
+                        >
+                            From project
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant={mode === "file" ? "solid" : "outlined"}
+                            onClick={() => {
+                                setMode("file");
+                                setImportError(null);
+                            }}
+                        >
+                            From file
+                        </Button>
+
+                        <Button
+                            type="button"
+                            variant={mode === "systems" ? "solid" : "outlined"}
+                            onClick={() => {
+                                setMode("systems");
+                                setImportError(null);
+                            }}
+                        >
+                            Add systems
+                        </Button>
                     </div>
 
                     <form
@@ -229,43 +375,73 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                             <Input name="name" placeholder="v0.0.1" required />
                         </FormControl>
 
-                        <FormControl>
-                            <FormLabel>Version Notes:</FormLabel>
+                        {mode !== "file" && (
+                            <FormControl>
+                                <FormLabel>Version Notes:</FormLabel>
 
-                            {releaseNotes.map((note, index) => (
-                                <div key={index} className="flex flex-row gap-4">
-                                    <p>{index + 1}. {note}</p>
-                                    <button
+                                {releaseNotes.map((note, index) => (
+                                    <div key={index} className="flex flex-row gap-4">
+                                        <p>
+                                            {index + 1}. {note}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteReleaseNote(index)}
+                                        >
+                                            <X />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <div className="mt-2 flex flex-row gap-2">
+                                    <Input
+                                        placeholder="Write version note..."
+                                        value={newNote}
+                                        onChange={(e) => setNewNote(e.target.value)}
+                                    />
+                                    <Button
                                         type="button"
-                                        onClick={() => handleDeleteReleaseNote(index)}
+                                        variant="outlined"
+                                        onClick={handleAddReleaseNote}
                                     >
-                                        <X />
-                                    </button>
+                                        Add
+                                    </Button>
                                 </div>
-                            ))}
+                            </FormControl>
+                        )}
 
-                            <div className="flex flex-row gap-2 mt-2">
-                                <Input
-                                    placeholder="Write version note..."
-                                    value={newNote}
-                                    onChange={(e) => setNewNote(e.target.value)}
+                        {mode === "file" && (
+                            <FormControl>
+                                <FormLabel>Release JSON file</FormLabel>
+                                <FileUpload
+                                    accept="application/json,.json"
+                                    file={releaseFileToImport}
+                                    onFileChange={handleReleaseFileChange}
+                                    label="Upload release file"
                                 />
-                                <Button
-                                    type="button"
-                                    variant="outlined"
-                                    onClick={handleAddReleaseNote}
-                                >
-                                    Add
-                                </Button>
-                            </div>
-                        </FormControl>
+                            </FormControl>
+                        )}
+
+                        {mode === "systems" && (
+                            <FormControl>
+                                <FormLabel>Systems JSON file</FormLabel>
+                                <FileUpload
+                                    accept="application/json,.json"
+                                    file={systemsFileToImport}
+                                    onFileChange={handleSystemsFileChange}
+                                    label="Upload systems file"
+                                />
+                            </FormControl>
+                        )}
+
+                        {importError && <p className="mt-2 text-sm text-red-500">{importError}</p>}
                     </form>
 
                     <Divider />
 
                     <div className="flex flex-row pt-1">
-                        <Button form="create-release" type="submit" loading={isPending}>
-                            Version
+                        <Button form="create-release" type="submit" loading={isSubmitting}>
+                            {mode === "file" ? "Import version" : "Create version"}
                         </Button>
                     </div>
 

@@ -13,6 +13,7 @@ class ReadRelease(ModelSchema):
 
 class ImportRelease(Schema):
     project: str
+    name: str
     project_data: ImportProject
     release_notes: Optional[List[str]] = None
 

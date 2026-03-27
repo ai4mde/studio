@@ -9,7 +9,7 @@ type FileUploadProps = {
   label?: string;
 };
 
-const ProjectFileUpload: React.FC<FileUploadProps> = ({
+const FileUpload: React.FC<FileUploadProps> = ({
   accept,
   disabled = false,
   file = null,
@@ -154,4 +154,4 @@ const ProjectFileUpload: React.FC<FileUploadProps> = ({
   );
 };
 
-export default ProjectFileUpload;
+export default FileUpload;

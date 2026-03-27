@@ -54,16 +54,16 @@ def load_release(request, release_id):
     return 200, "Release loaded successfully"
 
 
-@releases.post("/import", response=ReadRelease)
-def import_release(request, project_id: str, name: str, payload: ImportRelease):
-    if not name:
+@releases.post("/import/{uuid:project_id}")
+def import_release(request, project_id: str, payload: ImportRelease):
+    if not payload.name:
         return 422
 
     if payload.project != project_id:
         return 422, "Project ID in payload does not match URL"
 
     Release.objects.create(
-        name=name,
+        name=payload.name,
         project_id=project_id,
         project_data=payload.project_data.dict(),
         release_notes=payload.release_notes or [],

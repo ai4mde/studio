@@ -55,6 +55,11 @@ class UpdateSystem(ModelSchema):
 
 
 class ExportSystem(ModelSchema):
+    # To be used when exporting the entire system
+    # This is because if a classifier is imported into this system
+    # It will not be included in the list of classifiers
+    # And a Node will reference a classifier that is not included in the export
+    # Which will cause the import to fail
     diagrams: List[ExportDiagram] = []
     classifiers: List[ExportClassifier] = []
     relations: List[ExportRelation] = []
@@ -82,15 +87,23 @@ class ExportSystem(ModelSchema):
     
 
 class ExportSingleSystem(ExportSystem):
-    imported_classifiers: List[ExportClassifier] = []
+    imported_classifiers: List[ExportClassifier]
     
     @staticmethod
-    def resolve_imported_classifier(obj):
-        return []
-    # Loop over the classifiers from each node
-    # If the classifier is not from the current system we are trying to export
-    # We know it is imported from another
+    def resolve_imported_classifiers(obj):
+        imported = {}
 
+        diagrams = Diagram.objects.filter(system=obj).prefetch_related("nodes__cls")
+
+        for diagram in diagrams:
+            for node in diagram.nodes.all():
+                if node.cls and node.cls.system_id != obj.id:
+                    imported[node.cls.id] = node.cls
+        return list(imported.values())
+
+
+class ExportSystemBundle(Schema):
+    systems: List[ExportSingleSystem] = []
 
 
 class ImportSystem(Schema):

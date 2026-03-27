@@ -14,22 +14,6 @@ const ViewProject: React.FC = () => {
   const project = useProject(projectId);
   const { name, id } = project.data ?? {};
 
-  const handleExportProject = async () => {
-    const response = await authAxios.get(`/v1/metadata/projects/export/${projectId}/`);
-    const jsonStr = JSON.stringify(response.data, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `${project.data?.name ?? "project"}.json`;
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <ProjectLayout>
       <CreateSystem project={projectId} />
@@ -46,14 +30,6 @@ const ViewProject: React.FC = () => {
           <div className="flex flex-row flex-nowrap gap-2 rounded-md bg-stone-100 p-2">
             <ListSystem project={projectId} />
           </div>
-
-          <button
-            className="flex w-full items-center justify-center gap-1 rounded-md bg-stone-100 p-4 hover:bg-stone-200"
-            onClick={handleExportProject}
-          >
-            <Download size={16} />
-            <h2 className="text-base">Export Project</h2>
-          </button>
         </div>
       </div>
     </ProjectLayout>

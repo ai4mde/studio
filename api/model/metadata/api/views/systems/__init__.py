@@ -1,6 +1,9 @@
+from uuid import UUID
+from ninja import Router, Query
+
 from typing import List, Optional
 
-from metadata.api.schemas import CreateSystem, ExportSystem, ReadSystem, UpdateSystem
+from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSystemBundle
 from metadata.models import Project, System
 from .meta import meta
 from .classifiers import classifiers, classes, actors
@@ -48,7 +51,7 @@ def delete_system(request, id):
         system = System.objects.get(id=id)
         system.delete()
     except Exception as e:
-        raise Exception("Failed to delete system, error: " + e)
+        raise Exception("Failed to delete system, error: " + str(e))
     return True
 
 
@@ -57,13 +60,15 @@ class ImportResult(Schema):
     message: str
 
 
-@systems.get("/export/{uuid:system_id}/", response=ExportSystem)
-def export_system(request, system_id: str):
-    system = System.objects.get(id=system_id)
-    if not system:
-        raise Exception("System not found")
-    return system
-    
+@systems.get("/export/", response=ExportSystemBundle)
+def export_systems(request):
+    system_ids = request.GET.getlist("system_ids")
+    systems_qs = System.objects.filter(id__in=system_ids)
+
+    return {
+        "systems": systems_qs
+    }
+
 
 systems.add_router("/{uuid:system_id}/meta", meta, tags=["metadata"])
 systems.add_router("/{uuid:system_id}/classifiers", classifiers, tags=["metadata"])

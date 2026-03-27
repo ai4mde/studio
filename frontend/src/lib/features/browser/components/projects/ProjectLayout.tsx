@@ -2,7 +2,7 @@ import { useProject } from "$browser/queries";
 import { TopNavigation } from "$shared/components/TopNavigation";
 import React from "react";
 import { useParams } from "react-router";
-import { GalleryVertical, User, Rocket } from "lucide-react";
+import { GalleryVertical, User, Rocket, Download } from "lucide-react";
 import LinearProgress from "@mui/joy/LinearProgress/LinearProgress";
 
 type Props = {
@@ -39,6 +39,12 @@ const ProjectLayout: React.FC<Props> = ({ children }) => {
                             name: "Versions",
                             Icon: Rocket,
                             href: `/projects/${projectId}/versions`,
+                            strict: true,
+                        },
+                        {
+                            name: "Exports",
+                            Icon: Download,
+                            href: `/projects/${projectId}/exports`,
                             strict: true,
                         }
                     ]}
