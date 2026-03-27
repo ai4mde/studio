@@ -2,8 +2,7 @@ import os
 from typing import Dict, Any
 from groq import Groq
 from openai import OpenAI
-from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
-from llm.prompts.prose import PROSE_GENERATE_METADATA
+from llm.templates.renderer import render_prompt
 
 
 def remove_reply_markdown(reply: str) -> str:
@@ -56,14 +55,10 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
 
     if not input_data:
         raise Exception("No input data given")
-    
-    if prompt_name == "DIAGRAM_GENERATE_ATTRIBUTE":
-        prompt = DIAGRAM_GENERATE_ATTRIBUTE.format(data=input_data)
-    elif prompt_name == "DIAGRAM_GENERATE_METHOD":
-        prompt = DIAGRAM_GENERATE_METHOD.format(data=input_data)
-    elif prompt_name == "PROSE_GENERATE_METADATA":
-        prompt = PROSE_GENERATE_METADATA.format(data=input_data)
-    else:
+
+    try:
+        prompt = render_prompt(prompt_name=prompt_name, context=input_data)
+    except ValueError:
         raise Exception("Invalid prompt name")
     
     if model == 'gpt-4o':
