@@ -27,6 +27,7 @@ class ImportClassifier(Schema):
     id: str
     project: Optional[str] = None
     system: str
+    original_system_id: Optional[str] = None
     data: dict
 
 

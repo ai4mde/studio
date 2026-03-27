@@ -1,9 +1,8 @@
-from uuid import UUID
-from ninja import Router, Query
+from ninja import Router
 
 from typing import List, Optional
 
-from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSystemBundle
+from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSingleSystem
 from metadata.models import Project, System
 from .meta import meta
 from .classifiers import classifiers, classes, actors
@@ -60,14 +59,11 @@ class ImportResult(Schema):
     message: str
 
 
-@systems.get("/export/", response=ExportSystemBundle)
+@systems.get("/export/", response=List[ExportSingleSystem])
 def export_systems(request):
     system_ids = request.GET.getlist("system_ids")
     systems_qs = System.objects.filter(id__in=system_ids)
-
-    return {
-        "systems": systems_qs
-    }
+    return systems_qs
 
 
 systems.add_router("/{uuid:system_id}/meta", meta, tags=["metadata"])

@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from ninja import ModelSchema, Schema
 from metadata.models import Release
-from metadata.api.schemas import ImportProject
+from metadata.api.schemas import ImportProject, ImportSingleSystem
 
 
 class ReadRelease(ModelSchema):
@@ -17,6 +17,11 @@ class ImportRelease(Schema):
     project_data: ImportProject
     release_notes: Optional[List[str]] = None
 
+class ImportReleaseSystem(Schema):
+    project: str
+    name: str
+    systems: List[ImportSingleSystem] = []
+    release_notes: Optional[List[str]] = None
 
 class CreateRelease(Schema):
     project: str
@@ -30,4 +35,4 @@ class ExportRelease(ModelSchema):
         fields = ["project", "project_data", "release_notes"]
 
 
-__all__ = ["ReadRelease", "ImportRelease", "CreateRelease", "ExportRelease"]
+__all__ = ["ReadRelease", "ImportRelease", "CreateRelease", "ExportRelease", "ImportReleaseSystem"]

@@ -102,10 +102,6 @@ class ExportSingleSystem(ExportSystem):
         return list(imported.values())
 
 
-class ExportSystemBundle(Schema):
-    systems: List[ExportSingleSystem] = []
-
-
 class ImportSystem(Schema):
     id: str
     name: str
@@ -115,3 +111,7 @@ class ImportSystem(Schema):
     classifiers: List[ImportClassifier] = []
     relations: List[ImportRelation] = []
     interfaces: List[ImportInterface] = []
+
+
+class ImportSingleSystem(ImportSystem):
+    imported_classifiers: List[ImportClassifier]

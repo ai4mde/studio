@@ -24,7 +24,7 @@ type ImportReleaseInput = ReleaseInput & {
 };
 
 type ImportSystemsReleaseInput = ReleaseInput & {
-    systems: unknown;
+    systems: Record<string, unknown>[];
 };
 
 export const ShowReleases: React.FC<Props> = ({ project }) => {
@@ -42,7 +42,6 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     const [releaseFileToImport, setReleaseFileToImport] = useState<File | null>(null);
     const [systemsFileToImport, setSystemsFileToImport] = useState<File | null>(null);
     const [importError, setImportError] = useState<string | null>(null);
-
 
     const showReleaseNotes = (notes: string[]) => {
         setReleaseNotesData(notes);
@@ -77,31 +76,55 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
     const handleReleaseFileChange = (file: File | null) => {
         setReleaseFileToImport(file);
         setImportError(null);
-    }
+    };
 
     const handleSystemsFileChange = (file: File | null) => {
         setSystemsFileToImport(file);
         setImportError(null);
-    }
+    };
 
     const createRelease = useMutation({
         mutationFn: async (releaseInput: ReleaseInput) => {
-            await authAxios.post(`/v1/metadata/releases/`, releaseInput);
-            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            try {
+                await authAxios.post(`/v1/metadata/releases/`, releaseInput);
+                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            } catch (error: any) {
+                throw new Error(
+                    error.response?.data?.detail ||
+                    error.response?.data ||
+                    "Failed to create release."
+                );
+            }
         },
     });
 
     const importRelease = useMutation({
         mutationFn: async (input: ImportReleaseInput) => {
-            await authAxios.post(`/v1/metadata/releases/import/${project}`, input);
-            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            try {
+                await authAxios.post(`/v1/metadata/releases/import/${project}`, input);
+                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            } catch (error: any) {
+                throw new Error(
+                    error.response?.data?.detail ||
+                    error.response?.data ||
+                    "Failed to import release."
+                );
+            }
         },
     });
 
     const importSystemsRelease = useMutation({
         mutationFn: async (input: ImportSystemsReleaseInput) => {
-            await authAxios.post(`/v1/metadata/releases/import-systems/${project}`, input); // TODO change this
-            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            try {
+                await authAxios.post(`/v1/metadata/releases/import_systems/${project}/`, input);
+                await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            } catch (error: any) {
+                throw new Error(
+                    error.response?.data?.detail ||
+                    error.response?.data ||
+                    "Failed to import systems release."
+                );
+            }
         },
     });
 
@@ -115,7 +138,11 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
         }
     };
 
-
+    const isRecordArray = (value: unknown): value is Record<string, unknown>[] => {
+        return Array.isArray(value) && value.every(
+            (item) => typeof item === "object" && item !== null && !Array.isArray(item)
+        );
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -171,6 +198,11 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                 }
 
                 const parsed = await parseJsonFile(systemsFileToImport);
+
+                if (!isRecordArray(parsed)) {
+                    setImportError("Invalid systems file format. Expected a JSON array of systems.");
+                    return;
+                }
 
                 await importSystemsRelease.mutateAsync({
                     name,

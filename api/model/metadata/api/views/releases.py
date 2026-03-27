@@ -2,7 +2,7 @@ from typing import List, Optional, Any, Dict
 
 from django.shortcuts import get_object_or_404
 
-from metadata.api.schemas import ReadRelease, ImportRelease, ExportRelease, ExportProject, CreateRelease
+from metadata.api.schemas import ReadRelease, ImportRelease, ImportReleaseSystem, ExportProject, CreateRelease, ExportRelease
 from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
 from metadata.models import Release, Project
 from ninja import Router, Schema
@@ -70,6 +70,36 @@ def import_release(request, project_id: str, payload: ImportRelease):
     )
 
     return 200, "Release imported successfully"
+
+class ImportSystemsSuccess(Schema):
+    detail: str
+
+class ErrorResponse(Schema):
+    detail: str
+
+@releases.post(
+    "/import_systems/{uuid:project_id}/",
+    response={200: ImportSystemsSuccess, 422: ErrorResponse}
+)
+def import_systems(request, project_id: str, payload: ImportReleaseSystem):
+    project = get_object_or_404(Project, id=project_id)
+    try:
+        project.import_systems_from_json(
+            [system.model_dump() for system in payload.systems] # Make pylance happy
+        )
+    except Exception as e:
+        return 422, {"detail": f"Failed to import systems: {e}"}
+
+    project_schema = ExportProject.model_validate(project)
+
+    Release.objects.create(
+        name=payload.name,
+        project_id=project_id,
+        project_data=project_schema.model_dump(mode="json"),
+        release_notes=payload.release_notes or [],
+    )
+    return 200, {"detail": "Systems imported successfully"}
+
 
 @releases.get("/{uuid:release_id}/export/", response=ExportRelease)
 def export_release(request, release_id):
