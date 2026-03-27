@@ -49,4 +49,9 @@ class Migration(migrations.Migration):
                 to="metadata.project",
             ),
         ),
+        migrations.AddField(
+            model_name="classifier",
+            name="original_system_id",
+            field=models.UUIDField(blank=True, null=True),
+        ),
     ]
