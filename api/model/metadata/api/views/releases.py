@@ -77,17 +77,16 @@ def export_release(request, release_id):
     if not release.project_data:
         return 404, "Release does not contain project data"
     
-    return release.project_data
+    return release
 
-
-@releases.delete("/{uuid:release_id}")
+@releases.delete("/{uuid:release_id}/")
 def delete_release(request, release_id):
     try:
         release = Release.objects.get(id=release_id)
         release.delete()
     except Exception as e:
-        raise Exception("Failed to delete release, error: " + str(e))
-    return True
+        return 422, f"Failed to delete release: {e}"
+    return 200, "Release deleted successfully"
     
 
 __all__ = ["releases"]

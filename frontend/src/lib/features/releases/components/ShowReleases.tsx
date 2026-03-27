@@ -1,12 +1,10 @@
-import { useProjectReleases } from "$lib/features/releases/queries";
+import { useProjectReleases, type Release } from "$lib/features/releases/queries";
 import { Button, Modal, ModalClose, ModalDialog, FormControl, FormLabel, Input, Divider } from "@mui/joy";
 import { X } from 'lucide-react';
 import React, { useState } from "react";
 import { authAxios } from "$lib/features/auth/state/auth";
 import { queryClient } from "$shared/hooks/queryClient";
 import { useMutation } from "@tanstack/react-query";
-
-
 
 type Props = {
     project: string;
@@ -16,7 +14,7 @@ type ReleaseInput = {
     name: string
     project: string
     release_notes: string[]
-}
+};
 
 export const ShowReleases: React.FC<Props> = ({ project }) => {
     const [releases, isSuccessReleases, isLoadingReleases] = useProjectReleases(project);
@@ -46,22 +44,80 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
 
     const handleDeleteReleaseNote = (index: number) => {
         setReleaseNotes(releaseNotes.filter((_, i) => i !== index));
-    }
+    };
+
+    const closeNewReleaseModal = () => {
+        setShowNewReleaseModal(false);
+        setReleaseNotes([]);
+        setNewNote("");
+    };
 
     const { mutateAsync, isPending } = useMutation({
         mutationFn: async (releaseInput: ReleaseInput) => {
             await authAxios.post(`/v1/metadata/releases/`, releaseInput);
-            queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
         },
     });
 
-    // TODO: connect mutation to form
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+        const name = String(formData.get("name") ?? "").trim();
+
+        if (!name) return;
+
+        await mutateAsync({
+            name,
+            project,
+            release_notes: releaseNotes,
+        });
+
+        closeNewReleaseModal();
+    };
+
+    const handleExportRelease = async (release: Release) => {
+        const response = await authAxios.get(`/v1/metadata/releases/${release.id}/export/`)
+        const jsonStr = JSON.stringify(response.data, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        const releaseDate = new Date(release.created_at);
+        const formattedDate = releaseDate.toISOString().slice(0, 16).replace("T", "-");
+        const safeName = (release.name || "version").replace(/\s+/g, "_");
+
+        link.href = url;
+        link.download = `${safeName}-${formattedDate}.json`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    const handleDeleteRelease = async (releaseId: string) => {
+        try {
+            await authAxios.delete(`/v1/metadata/releases/${releaseId}/`);
+            await queryClient.invalidateQueries({ queryKey: ["project", project, "releases"] });
+        } catch (error) {
+            alert("Failed to delete release")
+        }
+    }
+
+    const handleLoadRelease = async (releaseId: string) => {
+        try {
+            await authAxios.post(`/v1/metadata/releases/${releaseId}/load/`);
+        } catch (error) {
+            alert("Failed to load release")
+        }
+    }
 
     if (isLoadingReleases) {
         return <p>Loading releases...</p>;
     }
 
-        return (
+    return (
         <>
             <table className="min-w-full bg-white text-left">
                 <thead>
@@ -78,9 +134,34 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                                 <td className="py-2 px-4 border-b">{release.name}</td>
                                 <td className="py-2 px-4 border-b">{release.created_at}</td>
                                 <td className="py-2 px-4 border-b text-right">
-                                    <Button onClick={() => showReleaseNotes(release.release_notes)}>
-                                        Release Notes
-                                    </Button>
+                                    <div className="flex justify-end gap-2">
+                                        <Button onClick={() => showReleaseNotes(release.release_notes)}>
+                                            Release Notes
+                                        </Button>
+
+                                        <Button
+                                            variant="outlined"
+                                            onClick={() => handleExportRelease(release)}
+                                        >
+                                            Download
+                                        </Button>
+
+                                        <Button
+                                            color='primary'
+                                            variant='solid'
+                                            onClick={() => handleLoadRelease(release.id)}
+                                        >
+                                            Load
+                                        </Button>
+
+                                        <Button
+                                            color='danger'
+                                            variant="solid"
+                                            onClick={() => handleDeleteRelease(release.id)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                         ))
@@ -93,6 +174,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                     )}
                 </tbody>
             </table>
+
             <button
                 className="flex flex-col gap-2 p-4 rounded-md bg-stone-100 hover:bg-stone-200 h-fill items-center justify-center"
                 onClick={() => setShowNewReleaseModal(true)}
@@ -120,11 +202,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
 
             <Modal
                 open={showNewReleaseModal}
-                onClose={() => {
-                    setShowNewReleaseModal(false);
-                    setReleaseNotes([]);
-                    setNewNote("");
-                }}
+                onClose={closeNewReleaseModal}
             >
                 <ModalDialog>
                     <div className="flex w-full flex-row justify-between pb-1">
@@ -144,6 +222,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                     <form
                         id="create-release"
                         className="flex min-w-96 flex-col space-y-8"
+                        onSubmit={handleSubmit}
                     >
                         <FormControl required>
                             <FormLabel>Name:</FormLabel>
@@ -185,7 +264,7 @@ export const ShowReleases: React.FC<Props> = ({ project }) => {
                     <Divider />
 
                     <div className="flex flex-row pt-1">
-                        <Button form="create-release" type="submit">
+                        <Button form="create-release" type="submit" loading={isPending}>
                             Version
                         </Button>
                     </div>

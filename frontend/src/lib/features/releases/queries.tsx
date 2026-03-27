@@ -2,7 +2,7 @@ import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
 
 
-type Release = {
+export type Release = {
     id: string;
     name: string;
     created_at: string;
