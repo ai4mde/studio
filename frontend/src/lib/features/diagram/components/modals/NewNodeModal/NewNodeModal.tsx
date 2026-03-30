@@ -224,7 +224,8 @@ export const NewNodeModal: React.FC = () => {
                                     classes={
                                         relatedDiagrams
                                             .filter((diagram) => diagram.type === 'classes')
-                                            .flatMap((diagram) => diagram.nodes.map((node) => node.name))
+                                            .flatMap((diagram) => diagram.nodes.filter((node) => node.type === "class"))
+                                            .map((node) => node.name)
                                     }
                                 />
                             )}
