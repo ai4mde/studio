@@ -1,8 +1,11 @@
 from typing import List
 
-from metadata.api.schemas import CreateProject, ReadProject, UpdateProject
+from django.core.exceptions import ObjectDoesNotExist
+
+from metadata.api.schemas import CreateProject, ReadProject, UpdateProject, ExportProject, ImportProject
 from metadata.models import Project
 from ninja import Router
+from ninja.responses import Response
 
 projects = Router()
 
@@ -38,9 +41,52 @@ def delete_project(request, project_id):
     try:
         project = Project.objects.get(id=project_id)
         project.delete()
-    except Exception as e:
-        raise Exception("Failed to delete project, error: " + e)
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist("Project not found")
     return True
-    
+
+
+@projects.get("/export/{uuid:project_id}/", response=ExportProject)
+def export_project(request, project_id: str):
+    project = Project.objects.get(id=project_id)
+    if not project:
+        raise ObjectDoesNotExist("Project not found")
+    return project
+
+
+@projects.post("/import/")
+def import_project(request, payload: ImportProject, force: bool = False):
+    try:
+        json_data = payload.dict()
+        
+        existing_project = Project.objects.filter(id=json_data.get("id")).first()
+        if existing_project and not force:
+            return Response(
+                {
+                    "status": "error",
+                    "code": "PROJECT_EXISTS",
+                    "project_id": existing_project.id,
+                    "project_name": existing_project.name,
+                },
+                status=409,
+            )
+
+        project = Project.import_from_json(json_data)
+        return Response(
+            {
+                "status": "success",
+                "project_id": project.id,
+            },
+            status=200,
+        )
+    except Exception as e:
+        return Response(
+            {
+                "status": "error",
+                "message": str(e),
+            },
+            status=400,
+        )
+
 
 __all__ = ["projects"]

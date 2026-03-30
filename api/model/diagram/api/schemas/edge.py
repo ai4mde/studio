@@ -74,30 +74,11 @@ class PatchEdge(Schema):
 class ListEdges(Schema):
     nodes: List[EdgeSchema] = []
 
-class ExportRelation(ModelSchema):
-    class Meta:
-        model = RelationModel
-        fields = "__all__"
-
-
-class ImportRelation(Schema):
-    id: str
-    data: dict
-    system: str
-    source: str
-    target: str
-
 
 class ExportEdge(ModelSchema):
-    rel_data: ExportRelation
-
     class Meta:
         model = Edge
         fields = "__all__"
-    
-    @staticmethod
-    def resolve_rel_data(obj):
-        return obj.rel
 
 
 class ImportEdge(Schema):
@@ -105,7 +86,6 @@ class ImportEdge(Schema):
     diagram: str
     rel: str
     data: dict
-    rel_data: ImportRelation
 
 
 __all__ = [
