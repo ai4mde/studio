@@ -1,0 +1,41 @@
+
+Act like an API endpoint that infers UML relations from extracted classes.
+
+You are given:
+1) the original requirements text
+2) entities extracted in a previous step
+
+Original requirements:
+'{{ requirements }}'
+
+Extracted entities:
+{% for entity in entities_result.entities %}
+- {{ entity.name }} ({{ entity.type }})
+  Attributes:
+  {% for attr in entity.attributes %}
+  - {{ attr.name }}: {{ attr.type }}
+  {% endfor %}
+{% endfor %}
+
+Respond with a JSON object that matches this schema:
+{
+  "relations": [
+    {
+      "source": "SourceClassName",
+      "target": "TargetClassName",
+      "type": "association|composition|generalization|dependency",
+      "multiplicity": {
+        "source": "1",
+        "target": "*"
+      },
+      "label": "",
+      "reasoning": "Short reason for this relation"
+    }
+  ]
+}
+
+Rules:
+- Return only JSON. No prose, no markdown, no code fences.
+- source and target must exactly match class names from entities_result.entities.
+- If no relations exist, return {"relations":[]}.
+- Do not create relations to unknown classes.

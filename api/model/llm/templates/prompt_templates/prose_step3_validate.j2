@@ -1,0 +1,72 @@
+
+Act like an API endpoint that validates and corrects a UML class model.
+
+You are given:
+1) original requirements
+2) extracted entities
+3) inferred relations
+
+Original requirements:
+'{{ requirements }}'
+
+Entities:
+{% for entity in entities_result.entities %}
+- {{ entity.name }} ({{ entity.type }})
+  Attributes:
+  {% for attr in entity.attributes %}
+  - {{ attr.name }}: {{ attr.type }}
+  {% endfor %}
+{% endfor %}
+
+Relations:
+{% for relation in relations_result.relations %}
+- {{ relation.source }} -> {{ relation.target }} ({{ relation.type }})
+  multiplicity: {{ relation.multiplicity.source if relation.multiplicity else "1" }} .. {{ relation.multiplicity.target if relation.multiplicity else "*" }}
+{% endfor %}
+
+Check for missing entities, redundant entities, missing relations, and obvious multiplicity/type issues.
+Return a corrected final model.
+
+Respond with a JSON object that matches this schema:
+{
+  "issues_found": [
+    {
+      "issue_type": "missing_relation",
+      "description": "What was wrong",
+      "suggestion": "Suggested fix"
+    }
+  ],
+  "corrected_entities": [
+    {
+      "name": "ClassName",
+      "type": "class",
+      "attributes": [
+        {
+          "name": "attribute_name",
+          "type": "str|int|bool|datetime|enum",
+          "enum": null,
+          "derived": false,
+          "description": null,
+          "body": null
+        }
+      ]
+    }
+  ],
+  "corrected_relations": [
+    {
+      "source": "SourceClassName",
+      "target": "TargetClassName",
+      "type": "association|composition|generalization|dependency",
+      "multiplicity": {
+        "source": "1",
+        "target": "*"
+      },
+      "label": ""
+    }
+  ]
+}
+
+Rules:
+- Return only JSON. No prose, no markdown, no code fences.
+- corrected_relations endpoints must match corrected_entities names.
+- If no issues are found, return the same model with issues_found as [].
