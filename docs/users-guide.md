@@ -142,3 +142,19 @@ In order to add further internal nodes for a Component Diagram node, right-click
 
 <h3>Edges</h3>
 <p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>. In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <b>Required</b>, and <b>Provider</b>. The two can be the same or different Interface nodes.</p>
+
+<h1 align="center">
+  <b>Project and System Versioning</b>
+</h1>
+
+You can save snapshots of your project under the <b>Versions</b> tab. This is a place to store and manage checkpoints in your project's history.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version1.png">
+  </span>
+</p>
+
+For any existing version, you can read its <b>Release Notes</b>, <b>Download</b> it as a JSON file, <b>Load</b> its full state to your project or <b>Delete</b> it.
+
+To create a new version, click on the <b>New version</b> button.
