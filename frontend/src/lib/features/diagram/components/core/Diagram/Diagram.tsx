@@ -65,7 +65,6 @@ const Diagram: React.FC<Props> = ({ diagram }) => {
             diagramStore.setProject(data.project);
 
             const systemId = data.system_id;
-            const systemName = data.system_name; // TODO variable not used?
             diagramStore.setSystem(systemId);
         }
     }, [isSuccess]);
