@@ -23,6 +23,18 @@ TEMPLATE_REGISTRY = {
         prompt_name="PROSE_GENERATE_METADATA",
         filename="prose_generate_metadata.j2",
     ),
+    "PROSE_STEP1_EXTRACT_ENTITIES": TemplateEntry(
+        prompt_name="PROSE_STEP1_EXTRACT_ENTITIES",
+        filename="prose_step1_extract_entities.j2",
+    ),
+    "PROSE_STEP2_INFER_RELATIONS": TemplateEntry(
+        prompt_name="PROSE_STEP2_INFER_RELATIONS",
+        filename="prose_step2_infer_relations.j2",
+    ),
+    "PROSE_STEP3_VALIDATE": TemplateEntry(
+        prompt_name="PROSE_STEP3_VALIDATE",
+        filename="prose_step3_validate.j2",
+    ),
 }
 
 
