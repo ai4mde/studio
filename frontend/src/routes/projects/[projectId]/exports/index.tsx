@@ -130,6 +130,18 @@ const ProjectExports: React.FC = () => {
                                             <Typography level="body-sm">
                                                 Includes everything in this project.
                                             </Typography>
+                                            <Typography
+                                                level="body-sm"
+                                                color="danger"
+                                                sx={{
+                                                    mt: 1.25,
+                                                    px: 1,
+                                                    py: 0.75,
+                                                    borderRadius: "sm",
+                                                }}
+                                            >
+                                                Warning: This export cannot be used to import a new version. Instead it should be used when importing an entire new project.
+                                            </Typography>
                                         </Box>
                                     </Stack>
                                 </CardContent>
