@@ -4,7 +4,7 @@ from django.http import HttpRequest
 from django.core import serializers
 from django.db.models import Q
 
-from ninja import Router, Schema
+from ninja import Router
 from pydantic import BaseModel
 
 import diagram.api.utils as utils
