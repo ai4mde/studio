@@ -19,6 +19,14 @@ TEMPLATE_REGISTRY = {
         prompt_name="DIAGRAM_GENERATE_METHOD",
         filename="diagram_generate_method.j2",
     ),
+    "DIAGRAM_GENERATE_ATTRIBUTE_RAG": TemplateEntry(
+        prompt_name="DIAGRAM_GENERATE_ATTRIBUTE_RAG",
+        filename="diagram_generate_attribute_rag.j2",
+    ),
+    "DIAGRAM_GENERATE_METHOD_RAG": TemplateEntry(
+        prompt_name="DIAGRAM_GENERATE_METHOD_RAG",
+        filename="diagram_generate_method_rag.j2",
+    ),
     "PROSE_GENERATE_METADATA": TemplateEntry(
         prompt_name="PROSE_GENERATE_METADATA",
         filename="prose_generate_metadata.j2",

@@ -1,0 +1,42 @@
+
+You are a software engineer that is going to implement a derived attribute for a Django Model using Django {{ django_version }}.
+This generation is grounded in UML class metadata and retrieved related-class context.
+
+Target classifier metadata:
+{{ classifier_metadata }}
+
+Retrieved context:
+Target class: {{ retrieved_context.target_class_name }}
+
+Target class attributes:
+{% for attr in retrieved_context.target_class_attributes[:20] %}
+- {{ attr.name }}: {{ attr.type }}
+{% endfor %}
+
+Related classes (1-hop):
+{% for related in retrieved_context.related_classes[:12] %}
+- {{ related.class_name }}
+  relation: {{ related.direction }} {{ related.relation_type }}
+  multiplicity: {{ related.multiplicity_source or "?" }} -> {{ related.multiplicity_target or "?" }}
+  attributes:
+  {% for attr in related.attributes[:10] %}
+  - {{ attr.name }}: {{ attr.type }}
+  {% endfor %}
+{% endfor %}
+
+Existing methods in scope:
+{% for method in retrieved_context.existing_methods[:20] %}
+- {{ method.class_name }}.{{ method.method_name }}() : {{ method.return_type or "unknown" }}
+  description: {{ method.description }}
+{% endfor %}
+
+Your sole role is to implement a derived attribute in Django for the target model.
+
+Implement a derived attribute for this model using Django {{ django_version }} that does the following:
+name: "{{ attribute_name }}"
+return type: {{ attribute_return_type }}
+description: "{{ attribute_description }}"
+
+'self' must be the only function argument that is used. If other arguments are needed, they must be retrieved from model attributes or related models.
+
+Only show the generated attribute (python function, header & body) in your response, nothing else (no class definitions, comments, explanations, or markdown fences).

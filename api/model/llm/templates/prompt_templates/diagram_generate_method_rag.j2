@@ -1,0 +1,40 @@
+
+You are a software engineer that is going to implement a custom method for a Django Model using Django {{ django_version }}.
+This generation is grounded in UML class metadata and retrieved related-class context.
+
+Target classifier metadata:
+{{ classifier_metadata }}
+
+Retrieved context:
+Target class: {{ retrieved_context.target_class_name }}
+
+Target class attributes:
+{% for attr in retrieved_context.target_class_attributes[:20] %}
+- {{ attr.name }}: {{ attr.type }}
+{% endfor %}
+
+Related classes (1-hop):
+{% for related in retrieved_context.related_classes[:12] %}
+- {{ related.class_name }}
+  relation: {{ related.direction }} {{ related.relation_type }}
+  multiplicity: {{ related.multiplicity_source or "?" }} -> {{ related.multiplicity_target or "?" }}
+  attributes:
+  {% for attr in related.attributes[:10] %}
+  - {{ attr.name }}: {{ attr.type }}
+  {% endfor %}
+{% endfor %}
+
+Existing methods in scope:
+{% for method in retrieved_context.existing_methods[:20] %}
+- {{ method.class_name }}.{{ method.method_name }}() : {{ method.return_type or "unknown" }}
+  description: {{ method.description }}
+{% endfor %}
+
+These attributes are already generated in the Django model using a mapping algorithm.
+Your sole role is to implement a custom method in Django for this model.
+
+Implement a custom method for this model using Django {{ django_version }} that does the following:
+name: "{{ method_name }}"
+description: "{{ method_description }}"
+
+Only show the generated method (python function, header & body) in your response, nothing else (no class definitions, comments, explanations, or markdown fences).
