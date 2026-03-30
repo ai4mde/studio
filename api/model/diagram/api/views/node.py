@@ -9,15 +9,16 @@ from pydantic import BaseModel
 
 import diagram.api.utils as utils
 
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram, DiagramUsageItem, ClassifierUsageResponse
+from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, DiagramUsageItem, ClassifierUsageResponse
 
 from metadata.specification import Classifier
 from metadata.models import Classifier as MetaClassifier, Relation
 
-from diagram.models import Node, Edge, Diagram
+from diagram.models import Node, Edge
 
 from llm.handler import llm_handler
 from llm.parsers.code_parser import CodeOutputParser
+from llm.retrieval.domain_retriever import DomainRetriever
 
 node = Router()
 code_parser = CodeOutputParser(language="python", validate_syntax=True)
@@ -233,17 +234,17 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
     if node.cls.data["type"] != "class":
         return 422, "Node is not a class"
     
-    diagrams = Diagram.objects.filter(system=diagram.system)
-    diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
+    retriever = DomainRetriever(system=diagram.system)
+    retrieved_context = retriever.retrieve(node.cls).to_template_dict()
     input_data = {
         "django_version": "5.0.2", # TODO: put this in env
         "attribute_name": name,
         "attribute_return_type": type,
         "attribute_description": description, # TODO: prompt injection protection
         "classifier_metadata": serializers.serialize('json', [node.cls]),
-        "diagrams_metadata": diagram_data
+        "retrieved_context": retrieved_context,
     }
-    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_ATTRIBUTE", 
+    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_ATTRIBUTE_RAG", 
                          model = model,
                          input_data = input_data)
 
@@ -267,17 +268,17 @@ def generate_method(request: HttpRequest, node_id: str, name: str, description: 
     if node.cls.data["type"] != "class":
         return 422, "Node is not a class"
     
-    diagrams = Diagram.objects.filter(system=diagram.system)
-    diagram_data = [FullDiagram.from_orm(diagram) for diagram in diagrams]
+    retriever = DomainRetriever(system=diagram.system)
+    retrieved_context = retriever.retrieve(node.cls).to_template_dict()
     input_data = {
         "django_version": "5.0.2", # TODO: put this in env
         "method_name": name,
         "method_description": description, # TODO: prompt injection protection
         "classifier_metadata": serializers.serialize('json', [node.cls]),
-        "diagrams_metadata": diagram_data
+        "retrieved_context": retrieved_context,
     }
 
-    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_METHOD", 
+    reply = llm_handler(prompt_name = "DIAGRAM_GENERATE_METHOD_RAG", 
                          model = model,
                          input_data = input_data)
 
