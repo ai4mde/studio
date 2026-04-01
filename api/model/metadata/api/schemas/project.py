@@ -1,5 +1,8 @@
-from ninja import ModelSchema
-from metadata.models import Project
+from typing import List, Optional
+
+from ninja import ModelSchema, Schema
+from metadata.models import Project, System
+from metadata.api.schemas.system import ExportSystem, ImportSystem
 
 
 class ReadProject(ModelSchema):
@@ -26,4 +29,30 @@ class DeleteProject(ModelSchema):
         fields = ["id"]
 
 
-__all__ = ["ReadProject", "CreateProject", "UpdateProject", "DeleteProject"]
+class ExportProject(ModelSchema):
+    systems: List[ExportSystem] = []
+    
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    @staticmethod
+    def resolve_systems(obj):
+        return System.objects.filter(project=obj)
+
+
+class ImportProject(Schema):
+    id: str
+    name: str
+    description: Optional[str] = None
+    systems: List[ImportSystem]
+
+
+__all__ = [
+    "ReadProject",
+    "CreateProject",
+    "UpdateProject",
+    "DeleteProject",
+    "ExportProject",
+    "ImportProject",
+]

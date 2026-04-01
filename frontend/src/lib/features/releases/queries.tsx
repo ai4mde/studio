@@ -1,17 +1,24 @@
 import { authAxios } from "$auth/state/auth";
 import { useQuery } from "@tanstack/react-query";
 
-export const useSystemReleases = (systemId: string) => {
-    const queryResult = useQuery({
-        queryKey: ["system", systemId, "releases"],
+
+export type Release = {
+    id: string;
+    name: string;
+    created_at: string;
+    release_notes: string[]; 
+}
+
+export const useProjectReleases = (projectId: string) => {
+    const queryResult = useQuery<Release[]>({
+        queryKey: ["project", projectId, "releases"],
         queryFn: async () => {
-            const response = await authAxios.get(`/v1/metadata/releases/system/${systemId}/`, {
-                params: {
-                    system: systemId
-                }
-            });
+            const response = await authAxios.get(
+                `/v1/metadata/releases/project/${projectId}/`
+            );
             return response.data;
         },
+        enabled: !!projectId,
     });
 
     const releases = queryResult.data || [];
@@ -21,5 +28,5 @@ export const useSystemReleases = (systemId: string) => {
         queryResult.isSuccess,
         queryResult.isLoading,
         queryResult.error,
-    ];
+    ] as const;
 };

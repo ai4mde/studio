@@ -43,12 +43,6 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             Icon: Package,
                             href: `/systems/${systemId}/prototypes`,
                         },
-                        {
-                            name: "Versions",
-                            Icon: Rocket,
-                            href: `/systems/${systemId}/versions`,
-                            strict: true,
-                        },
                     ]}
                 />
             </div>
