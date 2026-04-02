@@ -91,6 +91,9 @@ class SectionComponent():
             has_delete_operation: bool = False,
             has_update_operation: bool = False,
             custom_methods = List[SectionCustomMethod],
+            create_action_node_id: Optional[str] = None,
+            update_action_node_id: Optional[str] = None,
+            delete_action_node_id: Optional[str] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -105,6 +108,10 @@ class SectionComponent():
         self.has_update_operation = has_update_operation
         self.custom_methods = custom_methods
         self.text = parse_section_text(text)
+        # OOUX: action node IDs that gate CTA availability in the workflow
+        self.create_action_node_id = create_action_node_id
+        self.update_action_node_id = update_action_node_id
+        self.delete_action_node_id = delete_action_node_id
 
     def __str__(self):
         return self.name

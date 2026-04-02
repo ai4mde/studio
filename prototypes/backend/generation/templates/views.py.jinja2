@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView, GenericDetailView
@@ -17,15 +17,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     model = {{ section_component.primary_model }}
     fields = [{% for attribute in section_component.attributes %}{% if attribute.name not in ['username', 'password'] and not attribute.derived and attribute.type != AttributeType.NONE %}'{{ attribute.name }}', {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
-    {% if page.type == 'activity' -%}
-
-    def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
-            'active_process_node_id': self.kwargs.get('active_process_node_id'),
-        })
-    {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
-    {% endif %}
 
     def form_valid(self, form):
         instance = form.save(commit=False)
@@ -51,14 +43,14 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
                 messages.error(self.request, '{{ parent_model }} is required.')
                 return self.form_invalid(form)
         {% endfor -%}
-        {% if page.type == 'activity' %}
         instance.save()
-        active_process_node = get_object_or_404(
-            ActiveProcessNode,
-            pk=self.kwargs.get('active_process_node_id'),
-        )
-        active_process_node.active_process.add_associated_instance(instance)
-        {% endif -%}
+        # OOUX: auto-associate instance with active workflow process if one exists for this user
+        _active_node = ActiveProcessNode.objects.filter(
+            user=self.request.user,
+            active_process__completed=False,
+        ).select_related('action_node').first()
+        if _active_node:
+            _active_node.active_process.add_associated_instance(instance)
         return super().form_valid(form)
 {% endif %}
 
@@ -70,15 +62,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     model = {{ section_component.primary_model }}
     fields = [{% for attribute in section_component.attributes %}{% if attribute.name not in ['username', 'password'] and not attribute.derived and attribute.type != AttributeType.NONE %}'{{ attribute.name }}', {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
-    {% if page.type == 'activity' -%}
-
-    def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
-            'active_process_node_id': self.kwargs.get('active_process_node_id'),
-        })
-    {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
-    {% endif %}
 
     def form_valid(self, form):
         instance = form.save(commit=False)
@@ -114,27 +98,7 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     {% endif -%}
     model = {{ section_component.primary_model }}
     template_name = '{{ application_name }}_{{ page }}.html'
-    {% if page.type == 'activity' -%}
-
-    def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
-            'active_process_node_id': self.kwargs.get('active_process_node_id'),
-        })
-    {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
-    {% endif -%}
-
-    {% if page.type == 'activity' %}
-    def delete(self, request, *args, **kwargs):
-        instance = self.get_object()
-        active_process_node = get_object_or_404(
-            ActiveProcessNode,
-            pk=self.kwargs.get('active_process_node_id'),
-        )
-        active_process_node.active_process.remove_associated_instance(instance)
-        return super().delete(request, *args, **kwargs)
-
-    {% endif -%}
 {% endif -%}
 {% endfor -%}
 {% endfor -%}
@@ -150,33 +114,23 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
 
-    {% if page.type == 'activity' -%}
-    def get_queryset(self):
-        return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
-    {% endif -%}
-
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
         context['parent_{{model}}_list'] = {{model}}.objects.all()
         {% endfor -%}
-        {% if page.type == 'activity' -%}
-        {% if models_on_pages[page]['primary_models'] | length > 1 -%}
-        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        context['{{ primary_model }}_list'] = self.active_process_node.active_process.{{ primary_model.lower() }}s
-        {% endfor -%}
-        {% endif -%}
-        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
-        {% endif -%}
-        {% if page.type != 'activity' -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
         context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
-        {% endfor %}
-        {% endif %}
+        {% endfor -%}
+        # OOUX: look up the current user's active workflow node (any process, any step)
+        _active_node = ActiveProcessNode.objects.filter(
+            user=self.request.user,
+            active_process__completed=False,
+        ).select_related('action_node').first()
+        context['current_action_node_id'] = _active_node.action_node.name if _active_node else None
+        context['active_process_node_id'] = _active_node.id if _active_node else None
         return context
 
-    {% endif -%}
 {% else %}
 class {{ application_name }}_{{ page }}_ListView(GenericTemplateView):
     {% if authentication_present -%}

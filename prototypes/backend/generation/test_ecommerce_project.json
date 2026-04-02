@@ -1,0 +1,290 @@
+{
+  "useAuthentication": true,
+  "diagrams": [
+    {
+      "id": "cd000000-0000-0000-0000-000000000001",
+      "type": "classes",
+      "name": "E-Commerce Class Diagram",
+      "description": "Core classes for the e-commerce prototype",
+      "nodes": [
+        {
+          "id": "cd000000-0000-0000-0000-000000000011",
+          "cls_ptr": "cd000000-0000-0000-0000-000000000021",
+          "cls": {
+            "id": "cd000000-0000-0000-0000-000000000021",
+            "type": "class",
+            "name": "Product",
+            "attributes": [
+              { "name": "name",  "type": "str",  "derived": false },
+              { "name": "price", "type": "int",  "derived": false },
+              { "name": "stock", "type": "int",  "derived": false }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "cd000000-0000-0000-0000-000000000012",
+          "cls_ptr": "cd000000-0000-0000-0000-000000000022",
+          "cls": {
+            "id": "cd000000-0000-0000-0000-000000000022",
+            "type": "class",
+            "name": "Order",
+            "attributes": [
+              { "name": "status", "type": "str", "derived": false },
+              { "name": "total",  "type": "int", "derived": false }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "cd000000-0000-0000-0000-000000000013",
+          "cls_ptr": "cd000000-0000-0000-0000-000000000023",
+          "cls": {
+            "id": "cd000000-0000-0000-0000-000000000023",
+            "type": "class",
+            "name": "Payment",
+            "attributes": [
+              { "name": "amount", "type": "int", "derived": false },
+              { "name": "method", "type": "str", "derived": false },
+              { "name": "status", "type": "str", "derived": false }
+            ]
+          },
+          "data": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "cd000000-0000-0000-0000-000000000031",
+          "source_ptr": "cd000000-0000-0000-0000-000000000012",
+          "target_ptr": "cd000000-0000-0000-0000-000000000013",
+          "rel": {
+            "type": "association",
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "uc000000-0000-0000-0000-000000000001",
+      "type": "usecase",
+      "name": "Customer Usecase Diagram",
+      "description": "Actor and use cases for the customer role",
+      "nodes": [
+        {
+          "id": "uc000000-0000-0000-0000-000000000011",
+          "cls_ptr": "uc000000-0000-0000-0000-000000000021",
+          "cls": {
+            "id": "uc000000-0000-0000-0000-000000000021",
+            "type": "actor",
+            "name": "Customer"
+          },
+          "data": {}
+        },
+        {
+          "id": "uc000000-0000-0000-0000-000000000012",
+          "cls_ptr": "uc000000-0000-0000-0000-000000000022",
+          "cls": {
+            "id": "uc000000-0000-0000-0000-000000000022",
+            "type": "usecase",
+            "name": "Browse Products"
+          },
+          "data": {}
+        },
+        {
+          "id": "uc000000-0000-0000-0000-000000000013",
+          "cls_ptr": "uc000000-0000-0000-0000-000000000023",
+          "cls": {
+            "id": "uc000000-0000-0000-0000-000000000023",
+            "type": "usecase",
+            "name": "Place Order"
+          },
+          "data": {}
+        }
+      ],
+      "edges": []
+    },
+    {
+      "id": "ac000000-0000-0000-0000-000000000001",
+      "type": "activity",
+      "name": "Checkout Workflow",
+      "description": "Workflow for completing the checkout process",
+      "nodes": [
+        {
+          "id": "ac000000-0000-0000-0000-000000000011",
+          "cls_ptr": "ac000000-0000-0000-0000-000000000021",
+          "cls": {
+            "id": "ac000000-0000-0000-0000-000000000021",
+            "type": "initial",
+            "scheduled": false
+          },
+          "data": {}
+        },
+        {
+          "id": "ac000000-0000-0000-0000-000000000012",
+          "cls_ptr": "ac000000-0000-0000-0000-000000000022",
+          "cls": {
+            "id": "ac000000-0000-0000-0000-000000000022",
+            "type": "action",
+            "name": "Checkout",
+            "isAutomatic": false,
+            "actorNode": "uc000000-0000-0000-0000-000000000011",
+            "classes": {
+              "input":  ["cd000000-0000-0000-0000-000000000022"],
+              "output": ["cd000000-0000-0000-0000-000000000023"]
+            }
+          },
+          "data": {}
+        },
+        {
+          "id": "ac000000-0000-0000-0000-000000000013",
+          "cls_ptr": "ac000000-0000-0000-0000-000000000023",
+          "cls": {
+            "id": "ac000000-0000-0000-0000-000000000023",
+            "type": "final"
+          },
+          "data": {}
+        }
+      ],
+      "edges": [
+        {
+          "id": "ac000000-0000-0000-0000-000000000031",
+          "source_ptr": "ac000000-0000-0000-0000-000000000011",
+          "target_ptr": "ac000000-0000-0000-0000-000000000012",
+          "rel": { "condition": null }
+        },
+        {
+          "id": "ac000000-0000-0000-0000-000000000032",
+          "source_ptr": "ac000000-0000-0000-0000-000000000012",
+          "target_ptr": "ac000000-0000-0000-0000-000000000013",
+          "rel": { "condition": null }
+        }
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "label": "Customer",
+      "value": {
+        "id": "if000000-0000-0000-0000-000000000001",
+        "name": "Customer",
+        "system": "sys00000-0000-0000-0000-000000000001",
+        "actor": "uc000000-0000-0000-0000-000000000021",
+        "data": {
+          "categories": [
+            { "id": "if000000-0000-0000-0000-000000000011", "name": "Shop" }
+          ],
+          "sections": [
+            {
+              "id": "if000000-0000-0000-0000-000000000021",
+              "name": "Product",
+              "text": "Browse available products",
+              "class": "cd000000-0000-0000-0000-000000000021",
+              "model_name": "Product",
+              "operations": { "create": false, "update": false, "delete": false },
+              "attributes": [
+                { "name": "name",  "type": "str", "derived": false },
+                { "name": "price", "type": "int", "derived": false },
+                { "name": "stock", "type": "int", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "id": "if000000-0000-0000-0000-000000000022",
+              "name": "Order",
+              "text": "View and manage orders",
+              "class": "cd000000-0000-0000-0000-000000000022",
+              "model_name": "Order",
+              "operations": { "create": true, "update": true, "delete": false },
+              "attributes": [
+                { "name": "status", "type": "str", "derived": false },
+                { "name": "total",  "type": "int", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "id": "if000000-0000-0000-0000-000000000023",
+              "name": "Payment",
+              "text": "Complete payment for your order",
+              "class": "cd000000-0000-0000-0000-000000000023",
+              "model_name": "Payment",
+              "operations": { "create": true, "update": false, "delete": false },
+              "attributes": [
+                { "name": "amount", "type": "int", "derived": false },
+                { "name": "method", "type": "str", "derived": false },
+                { "name": "status", "type": "str", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": "Checkout",
+              "update_action_node": null,
+              "delete_action_node": null
+            }
+          ],
+          "pages": [
+            {
+              "id": "if000000-0000-0000-0000-000000000031",
+              "name": "Products",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Shop",
+                "value": { "id": "if000000-0000-0000-0000-000000000011", "name": "Shop" }
+              },
+              "sections": [
+                { "label": "Product", "value": "if000000-0000-0000-0000-000000000021" }
+              ]
+            },
+            {
+              "id": "if000000-0000-0000-0000-000000000032",
+              "name": "Orders",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Shop",
+                "value": { "id": "if000000-0000-0000-0000-000000000011", "name": "Shop" }
+              },
+              "sections": [
+                { "label": "Order", "value": "if000000-0000-0000-0000-000000000022" }
+              ]
+            },
+            {
+              "id": "if000000-0000-0000-0000-000000000033",
+              "name": "Checkout",
+              "type": { "label": "Activity", "value": "activity" },
+              "action": {
+                "label": "Checkout",
+                "value": "ac000000-0000-0000-0000-000000000012"
+              },
+              "category": {
+                "label": "Shop",
+                "value": { "id": "if000000-0000-0000-0000-000000000011", "name": "Shop" }
+              },
+              "sections": [
+                { "label": "Payment", "value": "if000000-0000-0000-0000-000000000023" }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 8,
+            "textColor": "#111827",
+            "accentColor": "#3b82f6",
+            "backgroundColor": "#ffffff",
+            "selectedStyle": "modern",
+            "layoutType": "sidebar"
+          },
+          "settings": {
+            "managerAccess": false
+          }
+        }
+      }
+    }
+  ]
+}

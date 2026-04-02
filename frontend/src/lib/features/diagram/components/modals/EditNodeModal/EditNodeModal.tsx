@@ -23,6 +23,7 @@ import {
     EditObject,
     EditEvent,
     EditInternals,
+    EditActionClasses,
 } from "./components";
 import style from "./editnodemodal.module.css";
 
@@ -146,6 +147,7 @@ export const EditNodeModal: React.FC = () => {
                                                     falseText: "UI task",
                                                 }}
                                             />
+                                            <EditActionClasses node={node} />
                                             {node.data?.isAutomatic && (
                                                 <EditCode
                                                     node={node}

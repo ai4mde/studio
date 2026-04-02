@@ -9,7 +9,7 @@ import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
 import Multiselect from 'multiselect-react-dropdown';
 import React, { useState } from 'react';
 import { useParams } from "react-router";
-import { useClassAttributes, useClassCustomMethods, useSystemClasses } from "../queries";
+import { useClassAttributes, useClassCustomMethods, useSystemClasses, useSystemActions } from "../queries";
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
@@ -32,6 +32,11 @@ export const Sections: React.FC<Props> = () => {
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
     const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
+    const [actions, isSuccessActions] = useSystemActions(systemId, 'action');
+    const uiActions = actions.filter((a) => !a.cls?.isAutomatic);
+    const [createActionGate, setCreateActionGate] = useLocalStorage('createActionGate', null);
+    const [updateActionGate, setUpdateActionGate] = useLocalStorage('updateActionGate', null);
+    const [deleteActionGate, setDeleteActionGate] = useLocalStorage('deleteActionGate', null);
 
 
     const handleEdit = async (index: number) => {
@@ -64,6 +69,10 @@ export const Sections: React.FC<Props> = () => {
         } else {
             setSelectedCustomMethods([]);
         }
+
+        setCreateActionGate(data[index].create_action_node || null);
+        setUpdateActionGate(data[index].update_action_node || null);
+        setDeleteActionGate(data[index].delete_action_node || null);
 
         if (data[index].text) {
             setNewText(data[index].text);
@@ -186,6 +195,18 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const toggleGate = (sectionIndex: number, operation: 'create' | 'update' | 'delete', actionName: string) => {
+        const newData = [...data];
+        const key = `${operation}_action_node`;
+        const current = newData[sectionIndex][key];
+        const newValue = current === actionName ? null : actionName;
+        newData[sectionIndex][key] = newValue;
+        setData(newData);
+        if (operation === 'create') setCreateActionGate(newValue);
+        else if (operation === 'update') setUpdateActionGate(newValue);
+        else setDeleteActionGate(newValue);
+    };
+
     return (
         <>
             {isSuccess && (
@@ -269,6 +290,35 @@ export const Sections: React.FC<Props> = () => {
                                             </Chip>
                                         </div>
                                     </div>
+                                    {isSuccessActions && uiActions.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h3 className="text-xl font-bold">CTA Gates</h3>
+                                            <p className="text-xs text-gray-400">Restrict each CTA to a specific workflow step (optional)</p>
+                                            {(['create', 'update', 'delete'] as const).map((op) => {
+                                                const gateState = op === 'create' ? createActionGate : op === 'update' ? updateActionGate : deleteActionGate;
+                                                return (
+                                                    <div key={op} className="space-y-1">
+                                                        <span className="text-xs font-semibold capitalize text-gray-600">{op} gate</span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {uiActions.map((action) => {
+                                                                const name = action.cls?.name;
+                                                                return (
+                                                                    <Chip
+                                                                        key={action.id}
+                                                                        size="sm"
+                                                                        onClick={() => toggleGate(index, op, name)}
+                                                                        color={gateState === name ? 'primary' : 'neutral'}
+                                                                    >
+                                                                        {name}
+                                                                    </Chip>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                     <div className='space-y-1'>
                                         <h3 className="text-xl font-bold">Attributes</h3>
                                         <Multiselect

@@ -1,6 +1,5 @@
 
 import re
-import csv
 import json
 from io import StringIO
 from uuid import uuid4
@@ -16,103 +15,87 @@ def _strip_markdown_json(text: str) -> str:
     text = re.sub(r'```\s*$', '', text)
     return text.strip()
 
-def parse_relations(csv_table, classifiers):
-    relations = []
-    reader = csv.DictReader(StringIO(csv_table))
-    for row in reader:
-        try:
-            source_name = row['source_class_name']
-            target_name = row['target_class_name']
-            source_mult = row['source_multiplicity']
-            target_mult = row['target_multiplicity']
-            rel = {}
-            rel['id'] = uuid4().hex
-            print(rel)
-            for cls in classifiers:
-                if cls['data']['name'] == source_name:
-                    rel['source'] = cls['id']
-                if cls['data']['name'] == target_name:
-                    rel['target'] = cls['id']
-            rel['data'] = {"type": "association", "multiplicity": {"source": source_mult, "target": target_mult}, "derived": False, "label": " "}
-            relations.append(rel)
-            print(rel)
-        except:
-            pass
-    return relations
-
-
-def parse_classifiers(csv_table):
-    classifiers = []
-    reader = csv.DictReader(StringIO(csv_table))
-    
-    for row in reader:
-        try:
-            attributes = []
-            attr_str = row['attributes'].strip('[]')
-            if attr_str:
-                for attr in attr_str.split(','):
-                    type_name, attr_name = attr.strip().split(':')
-                    attributes.append({
-                        "name": attr_name.strip(),
-                        "type": type_name.strip(),
-                        "enum": None,
-                        "derived": False,
-                        "description": None,
-                        "body": None
-                    })
-            data = {
-                'name': row['class_name'],
-                'type': 'class',
-                "attributes": attributes,
-            }
-            cls = {
-                'id': uuid4().hex,
-                'data': data,
-            }
-            classifiers.append(cls)
-        except:
-            pass
-    return classifiers
-
-
 
 def parse_llm_response(response: str):
-    tables = re.findall(r'START\n(.*?)\nEND', response, re.DOTALL)
-    if len(tables) != 2:
-        return
-    classifiers_csv_table = tables[0]
-    relations_csv_table = tables[1]
-    classifiers = parse_classifiers(classifiers_csv_table)
-    relations = parse_relations(relations_csv_table, classifiers)
-    output = {
-        "classifiers": classifiers,
-        "relations": relations
-    }
-    return output
+    match = re.search(r'METADATA_START\s*(.*?)\s*METADATA_END', response, re.DOTALL)
+    if not match:
+        return None
+    json_text = _strip_markdown_json(match.group(1))
+    try:
+        data = json.loads(json_text)
+    except json.JSONDecodeError:
+        return None
+
+    classifiers = []
+    for cls_item in data.get("classes", []):
+        attributes = []
+        for attr in cls_item.get("attributes", []):
+            attributes.append({
+                "name": attr["name"],
+                "type": attr.get("type", "str"),
+                "enum": None,
+                "derived": False,
+                "description": None,
+                "body": None,
+            })
+        classifiers.append({
+            'id': uuid4().hex,
+            'data': {
+                'name': cls_item['name'],
+                'type': 'class',
+                'attributes': attributes,
+            },
+        })
+
+    cls_by_name = {cls['data']['name']: cls for cls in classifiers}
+    relations = []
+    for rel_item in data.get("relationships", []):
+        source_name = rel_item.get("source", "")
+        target_name = rel_item.get("target", "")
+        src_cls = cls_by_name.get(source_name)
+        tgt_cls = cls_by_name.get(target_name)
+        if not src_cls or not tgt_cls:
+            continue
+        relations.append({
+            'id': uuid4().hex,
+            'source': src_cls['id'],
+            'target': tgt_cls['id'],
+            'data': {
+                "type": "association",
+                "multiplicity": {
+                    "source": rel_item.get("source_multiplicity", "*"),
+                    "target": rel_item.get("target_multiplicity", "*"),
+                },
+                "derived": False,
+                "label": " ",
+            },
+        })
+
+    return {"classifiers": classifiers, "relations": relations}
 
 
 def parse_pages_response(response: str, classifiers: list):
     """
     Parse LLM response for page generation.
-    
-    Expected CSV format:
-    "page_name","category","class_name","operations","attributes"
-    
+
+    Expected JSON format wrapped in PAGES_START / PAGES_END markers:
+    {
+      "pages": [
+        {"page_name": "...", "category": "...", "class_name": "...",
+         "operations": ["create","update"], "attributes": ["name","price"]}
+      ]
+    }
+
     Returns Interface.data structure with sections, pages, categories, styling.
     """
-    tables = re.findall(r'START\n(.*?)\nEND', response, re.DOTALL)
-    if len(tables) < 1:
+    match = re.search(r'PAGES_START\s*(.*?)\s*PAGES_END', response, re.DOTALL)
+    if not match:
         return None
-
-    pages_csv = tables[0].strip()
-    lines = pages_csv.split('\n')
-    if lines and 'page_name' not in lines[0].lower():
-        pages_csv = '"page_name","category","class_name","operations","attributes"\n' + pages_csv
-
-    reader = csv.DictReader(StringIO(pages_csv))
-    sections = []
-    pages = []
-    categories_seen = {}
+    json_text = _strip_markdown_json(match.group(1))
+    try:
+        data = json.loads(json_text)
+    except json.JSONDecodeError:
+        return None
 
     class_lookup = {}
     for cls in classifiers:
@@ -121,12 +104,16 @@ def parse_pages_response(response: str, classifiers: list):
             class_lookup[name] = cls
             class_lookup[name.lower()] = cls
 
+    sections = []
+    pages = []
+    categories_seen = {}
+
     def parse_row(row, class_lookup, categories_seen):
-        page_name = row.get('page_name', '').strip().strip('"')
-        category_name = row.get('category', '').strip().strip('"')
-        class_name = row.get('class_name', '').strip().strip('"')
-        ops_str = row.get('operations', '[]').strip().strip('"').strip('[]')
-        attrs_str = row.get('attributes', '[]').strip().strip('"').strip('[]')
+        page_name = (row.get('page_name') or '').strip()
+        category_name = (row.get('category') or '').strip()
+        class_name = (row.get('class_name') or '').strip()
+        ops_raw = row.get('operations', [])
+        attrs_raw = row.get('attributes', [])
         if not page_name or not class_name:
             return None, None, None
         cls = class_lookup.get(class_name) or class_lookup.get(class_name.lower())
@@ -134,13 +121,13 @@ def parse_pages_response(response: str, classifiers: list):
             print(f"[parse_pages] Warning: class '{class_name}' not found in classifiers")
             return None, None, None
         class_id = str(cls['id'])
-        ops_list = [op.strip().lower() for op in ops_str.split(',') if op.strip()]
+        ops_list = [op.strip().lower() for op in ops_raw] if isinstance(ops_raw, list) else []
         operations = {
             "create": "create" in ops_list,
             "update": "update" in ops_list,
             "delete": "delete" in ops_list,
         }
-        attrs_list = [a.strip() for a in attrs_str.split(',') if a.strip()]
+        attrs_list = [a.strip() for a in attrs_raw] if isinstance(attrs_raw, list) else []
         attributes = []
         if cls and 'attributes' in cls.get('data', {}):
             for attr in cls['data']['attributes']:
@@ -164,9 +151,8 @@ def parse_pages_response(response: str, classifiers: list):
             "operations": operations,
         }
         if category_name and category_name not in categories_seen:
-            cat_id = str(uuid4())
             categories_seen[category_name] = {
-                "id": cat_id,
+                "id": str(uuid4()),
                 "name": category_name,
             }
         page_id = str(uuid4())
@@ -191,7 +177,7 @@ def parse_pages_response(response: str, classifiers: list):
         }
         return section, page, class_name
 
-    for row in reader:
+    for row in data.get("pages", []):
         try:
             section, page, class_name = parse_row(row, class_lookup, categories_seen)
             if section and page:
@@ -200,7 +186,6 @@ def parse_pages_response(response: str, classifiers: list):
                 print(f"[parse_pages] Parsed: {section['name']} -> {class_name}")
         except Exception as e:
             print(f"[parse_pages] Error parsing row: {e}")
-            pass
 
     print(f"[parse_pages] Total parsed: {len(sections)} sections, {len(pages)} pages")
     styling = {
@@ -427,6 +412,20 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
                 attributes.append(attr_entry)
             # else: attribute is intentionally excluded (not in either list)
         
+        # Resolve OOUX action node gates from override (by name, validated against activity_actions)
+        action_names = {a['name'] for a in activity_actions}
+        def _resolve_action_node(name):
+            if not name:
+                return None
+            if name in action_names:
+                return name
+            print(f"[validation] WARNING: action_node '{name}' not found in activity actions, ignoring")
+            return None
+
+        create_action_node = _resolve_action_node(override.get("create_action_node") if override else None)
+        update_action_node = _resolve_action_node(override.get("update_action_node") if override else None)
+        delete_action_node = _resolve_action_node(override.get("delete_action_node") if override else None)
+
         # Create section
         section_id = str(uuid4())
         section = {
@@ -438,6 +437,9 @@ def _convert_candidate_to_interface(candidate_data: dict, classifiers: list, com
             "attributes": attributes,
             "readonly_attributes": readonly_attributes,
             "operations": operations,
+            "create_action_node": create_action_node,
+            "update_action_node": update_action_node,
+            "delete_action_node": delete_action_node,
         }
         sections.append(section)
         

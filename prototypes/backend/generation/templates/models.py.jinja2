@@ -29,7 +29,7 @@ class User(AbstractUser):
 {#- Check if model has any attributes that will produce actual output -#}
 {%- set has_real_attrs = [] -%}
 {%- for attr in model.attributes -%}
-    {%- if attr.name not in ['username', 'password'] and not (attr.derived and not attr.body) -%}
+    {%- if attr.name not in ['username', 'password'] -%}
         {%- set _ = has_real_attrs.append(1) -%}
     {%- endif -%}
 {%- endfor -%}
@@ -39,6 +39,10 @@ class {{ model.name }}(models.Model):
     {% if attribute.derived and attribute.body %}
     @property
     {{ attribute.body | replace('\n','\n    ') }}
+    {% elif attribute.derived %}
+    @property
+    def {{ attribute.name }}(self):
+        raise NotImplementedError("Derived attribute '{{ attribute.name }}' has no computed body defined")
     {% elif attribute.type == AttributeType.BOOLEAN -%}
     {{ attribute.name }} = models.BooleanField(default=False, blank=True)
     {% elif attribute.type == AttributeType.INTEGER -%}

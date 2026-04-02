@@ -4,7 +4,7 @@ from utils.definitions.model import Model, Attribute, AttributeType, CustomMetho
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
-from utils.loading_json_utils import get_apps, get_enum_literals
+from utils.loading_json_utils import get_apps, get_enum_literals, get_actor_names
 
 
 def retrieve_class_name_by_id(node_id: str, diagram: str) -> str:
@@ -146,7 +146,8 @@ def main():
         "app_name": "shared_models",
         "models": retrieve_models(metadata),
         "authentication_present": sys.argv[3] == "True",
-        "user_types": application_names
+        # OOUX: user-type flags derived from each interface's actor node (falls back to interface label)
+        "user_types": get_actor_names(metadata) or application_names
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

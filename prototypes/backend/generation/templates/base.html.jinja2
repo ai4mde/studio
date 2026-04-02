@@ -35,13 +35,13 @@
         {% for category in categories %}
         <div class="px-4 pt-4 pb-1 text-[10px] font-semibold uppercase text-gray-400">{{ category }}</div>
         {% for page in pages %}
-        {% if page.type == 'normal' and page.category == category.name %}
+        {% if page.category == category.name %}
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">{{ page.display_name }}</a>
         {% endif %}
         {% endfor %}
         {% endfor %}
         {% for page in pages %}
-        {% if page.category in ["", none] and page.type != 'activity' %}
+        {% if page.category in ["", none] %}
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-2 text-sm text-text-main border-l-[3px] border-transparent hover:bg-accent-light hover:border-accent hover:text-accent transition-colors">{{ page.display_name }}</a>
         {% endif %}
         {% endfor %}
@@ -67,7 +67,7 @@
         <a href="#" class="text-white/90 px-4 py-4 text-sm border-b-[3px] border-transparent hover:bg-black/10 hover:border-b-white">{{ category }} ▾</a>
         <div class="hidden group-hover:block absolute top-full left-0 bg-white min-w-[160px] shadow-lg z-50">
             {% for page in pages %}
-            {% if page.type == 'normal' and page.category == category.name %}
+            {% if page.category == category.name %}
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-4 py-3 text-text-main text-sm hover:bg-gray-100">{{ page.display_name }}</a>
             {% endif %}
             {% endfor %}
@@ -92,7 +92,7 @@
         <div class="w-9 h-9 bg-accent rounded-[10px] flex items-center justify-center font-bold text-slate-900 text-sm mb-4">{{ application_name[:2] | upper }}</div>
         {% for category in categories %}
         {% for page in pages %}
-        {% if page.type == 'normal' and page.category == category.name %}
+        {% if page.category == category.name %}
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" title="{{ page.display_name }}" class="w-10 h-10 flex items-center justify-center text-slate-500 rounded-[10px] text-base hover:bg-bg-main hover:text-accent transition-colors">{{ page.display_name[:1] | upper }}</a>
         {% endif %}
         {% endfor %}
@@ -133,7 +133,7 @@
         {% raw %}{% block list_items %}{% endraw %}
         {% for category in categories %}
         {% for page in pages %}
-        {% if page.type == 'normal' and page.category == category.name %}
+        {% if page.category == category.name %}
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 text-text-main no-underline hover:bg-gray-50">
             <div class="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center text-xs font-semibold">{{ page.display_name[:1] | upper }}</div>
             <div><h4 class="text-sm m-0">{{ page.display_name }}</h4><p class="text-[11px] text-gray-500 m-0">{{ category }}</p></div>
@@ -204,7 +204,7 @@
         <div class="inline-flex bg-white p-1 rounded-custom">
             {% for category in categories %}
             {% for page in pages %}
-            {% if page.type == 'normal' and page.category == category.name %}
+            {% if page.category == category.name %}
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="px-4 py-2 rounded-custom text-sm text-gray-500 no-underline hover:bg-pink-100 transition-colors">{{ page.display_name }}</a>
             {% endif %}
             {% endfor %}
@@ -233,14 +233,14 @@
     {% for category in categories %}
     <b class="block px-2 mt-4 text-xs opacity-70 text-white">{{ category }}</b>
     {% for page in pages %}
-    {% if page.type == 'normal' and page.category == category.name %}
+    {% if page.category == category.name %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">{{ page.display_name }}</a>
     {% endif %}
     {% endfor %}
     {% endfor %}
     <br>
     {% for page in pages %}
-    {% if page.category in ["", none] and page.type != 'activity' %}
+    {% if page.category in ["", none] %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="block px-3 py-2 text-white no-underline rounded-custom mb-2 hover:bg-bg-main hover:text-text-main">{{ page.display_name }}</a>
     {% endif %}
     {% endfor %}

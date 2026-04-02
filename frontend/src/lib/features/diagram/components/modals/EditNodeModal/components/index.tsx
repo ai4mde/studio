@@ -11,8 +11,9 @@ import EditCode from "./EditCode/EditCode";
 import EditObject from "./EditObject/EditObject";
 import EditEvent from "./EditEvent/EditEvent";
 import EditInternals from "./EditInternals/EditInternals";
+import EditActionClasses from "./EditActionClasses/EditActionClasses";
 
-export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditObject, EditEvent, EditInternals };
+export { EditAttributes, EditMethods, EditName, EditLiterals, EditApplication, EditSchedule, EditDimensions, EditBoolean, EditSwimlane, EditCode, EditObject, EditEvent, EditInternals, EditActionClasses };
 export default {
     EditAttributes,
     EditMethods,
@@ -26,5 +27,6 @@ export default {
     EditCode,
     EditObject,
     EditEvent,
-    EditInternals
+    EditInternals,
+    EditActionClasses
 };

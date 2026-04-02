@@ -784,17 +784,22 @@ def refine_interface(request, interface_id, body: RefineInterfaceRequest):
     additional_pages_str = get_additional_page_summary(current_data.get('sections', []))
     
     # Call LLM for refinement
+    refine_input = {
+        "actor_name": iface_actor_name or "Unknown Actor",
+        "classes": metadata["classes_str"],
+        "relationships": metadata["relationships_str"],
+        "use_cases": metadata["usecases_str"],
+        "activities": metadata["activities_str"],
+        "current_styling": current_styling,
+        "current_pages": current_pages_str,
+        "current_additional_pages": additional_pages_str,
+        "refinement_prompt": body.refinement_prompt,
+    }
     try:
         response = llm_handler(
             "PROSE_REFINE_INTERFACE",
             body.model,
-            input_data={
-                "classes": metadata["classes_str"],
-                "current_styling": current_styling,
-                "current_pages": current_pages_str,
-                "current_additional_pages": additional_pages_str,
-                "refinement_prompt": body.refinement_prompt,
-            },
+            input_data=refine_input,
         )
     except Exception as e:
         raise HttpError(503, f"Failed to call LLM: {e}")
@@ -822,13 +827,7 @@ def refine_interface(request, interface_id, body: RefineInterfaceRequest):
             response = llm_handler(
                 "PROSE_REFINE_INTERFACE",
                 body.model,
-                input_data={
-                    "classes": metadata["classes_str"],
-                    "current_styling": current_styling,
-                    "current_pages": current_pages_str,
-                    "current_additional_pages": additional_pages_str,
-                    "refinement_prompt": body.refinement_prompt,
-                },
+                input_data=refine_input,
             )
             refined_data = parse_refined_interface(
                 response, 

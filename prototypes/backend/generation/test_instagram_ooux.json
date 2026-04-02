@@ -1,0 +1,351 @@
+{
+  "_comment": "OOUX Analysis: Instagram = objects (User, Post, Comment, Story, Message) + their CTAs. NO activity diagram because Instagram is a pure object-oriented product, not a process-oriented one. Every CTA operates directly on an object — there are no 'Submit / Next / Complete' workflow steps.",
+  "useAuthentication": true,
+  "diagrams": [
+    {
+      "id": "11000000-0000-0000-0000-000000000001",
+      "type": "classes",
+      "name": "Instagram Object Model",
+      "description": "5 core objects and their relationships. User is the hub — everything else belongs to or is authored by a User.",
+      "nodes": [
+        {
+          "id": "11000000-0000-0000-0000-000000000011",
+          "cls_ptr": "11000000-0000-0000-0000-000000000021",
+          "cls": {
+            "id": "11000000-0000-0000-0000-000000000021",
+            "type": "class",
+            "name": "User",
+            "attributes": [
+              { "name": "username",       "type": "str",      "derived": false },
+              { "name": "bio",            "type": "str",      "derived": false },
+              { "name": "website",        "type": "str",      "derived": false },
+              { "name": "follower_count", "type": "int",      "derived": true  },
+              { "name": "following_count","type": "int",      "derived": true  }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "11000000-0000-0000-0000-000000000012",
+          "cls_ptr": "11000000-0000-0000-0000-000000000022",
+          "cls": {
+            "id": "11000000-0000-0000-0000-000000000022",
+            "type": "class",
+            "name": "Post",
+            "attributes": [
+              { "name": "caption",    "type": "str",      "derived": false },
+              { "name": "image_url",  "type": "str",      "derived": false },
+              { "name": "like_count", "type": "int",      "derived": true  },
+              { "name": "created_at", "type": "datetime", "derived": false }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "11000000-0000-0000-0000-000000000013",
+          "cls_ptr": "11000000-0000-0000-0000-000000000023",
+          "cls": {
+            "id": "11000000-0000-0000-0000-000000000023",
+            "type": "class",
+            "name": "Comment",
+            "attributes": [
+              { "name": "text",       "type": "str",      "derived": false },
+              { "name": "like_count", "type": "int",      "derived": true  },
+              { "name": "created_at", "type": "datetime", "derived": false }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "11000000-0000-0000-0000-000000000014",
+          "cls_ptr": "11000000-0000-0000-0000-000000000024",
+          "cls": {
+            "id": "11000000-0000-0000-0000-000000000024",
+            "type": "class",
+            "name": "Story",
+            "attributes": [
+              { "name": "image_url",  "type": "str",      "derived": false },
+              { "name": "view_count", "type": "int",      "derived": true  },
+              { "name": "expires_at", "type": "datetime", "derived": false }
+            ]
+          },
+          "data": {}
+        },
+        {
+          "id": "11000000-0000-0000-0000-000000000015",
+          "cls_ptr": "11000000-0000-0000-0000-000000000025",
+          "cls": {
+            "id": "11000000-0000-0000-0000-000000000025",
+            "type": "class",
+            "name": "Message",
+            "attributes": [
+              { "name": "text",    "type": "str",      "derived": false },
+              { "name": "sent_at", "type": "datetime", "derived": false },
+              { "name": "is_read", "type": "bool",     "derived": false }
+            ]
+          },
+          "data": {}
+        }
+      ],
+      "edges": [
+        {
+          "_comment": "User (1) -> Post (*): Post.user = FK(User) — a User authors many Posts",
+          "id": "11000000-0000-0000-0000-000000000031",
+          "source_ptr": "11000000-0000-0000-0000-000000000011",
+          "target_ptr": "11000000-0000-0000-0000-000000000012",
+          "rel": { "type": "association", "multiplicity": { "source": "1", "target": "*" } }
+        },
+        {
+          "_comment": "Post (1) -> Comment (*): Comment.post = FK(Post) — a Post has many Comments",
+          "id": "11000000-0000-0000-0000-000000000032",
+          "source_ptr": "11000000-0000-0000-0000-000000000012",
+          "target_ptr": "11000000-0000-0000-0000-000000000013",
+          "rel": { "type": "association", "multiplicity": { "source": "1", "target": "*" } }
+        },
+        {
+          "_comment": "User (1) -> Comment (*): Comment.author = FK(User) — a User writes many Comments",
+          "id": "11000000-0000-0000-0000-000000000033",
+          "source_ptr": "11000000-0000-0000-0000-000000000011",
+          "target_ptr": "11000000-0000-0000-0000-000000000013",
+          "rel": { "type": "association", "multiplicity": { "source": "1", "target": "*" } }
+        },
+        {
+          "_comment": "User (1) -> Story (*): Story.user = FK(User) — a User publishes many Stories",
+          "id": "11000000-0000-0000-0000-000000000034",
+          "source_ptr": "11000000-0000-0000-0000-000000000011",
+          "target_ptr": "11000000-0000-0000-0000-000000000014",
+          "rel": { "type": "association", "multiplicity": { "source": "1", "target": "*" } }
+        },
+        {
+          "_comment": "User (1) -> Message (*): Message.sender = FK(User) — a User sends many Messages",
+          "id": "11000000-0000-0000-0000-000000000035",
+          "source_ptr": "11000000-0000-0000-0000-000000000011",
+          "target_ptr": "11000000-0000-0000-0000-000000000015",
+          "rel": { "type": "association", "multiplicity": { "source": "1", "target": "*" } }
+        }
+      ]
+    },
+    {
+      "id": "22000000-0000-0000-0000-000000000001",
+      "type": "usecase",
+      "name": "Instagram Actors",
+      "description": "User is the sole actor. They navigate freely between objects — not through a fixed process.",
+      "nodes": [
+        {
+          "id": "22000000-0000-0000-0000-000000000011",
+          "cls_ptr": "22000000-0000-0000-0000-000000000021",
+          "cls": { "id": "22000000-0000-0000-0000-000000000021", "type": "actor", "name": "User" },
+          "data": {}
+        },
+        {
+          "id": "22000000-0000-0000-0000-000000000012",
+          "cls_ptr": "22000000-0000-0000-0000-000000000022",
+          "cls": { "id": "22000000-0000-0000-0000-000000000022", "type": "usecase", "name": "Browse Feed" },
+          "data": {}
+        },
+        {
+          "id": "22000000-0000-0000-0000-000000000013",
+          "cls_ptr": "22000000-0000-0000-0000-000000000023",
+          "cls": { "id": "22000000-0000-0000-0000-000000000023", "type": "usecase", "name": "Share a Story" },
+          "data": {}
+        },
+        {
+          "id": "22000000-0000-0000-0000-000000000014",
+          "cls_ptr": "22000000-0000-0000-0000-000000000024",
+          "cls": { "id": "22000000-0000-0000-0000-000000000024", "type": "usecase", "name": "Send a Message" },
+          "data": {}
+        },
+        {
+          "id": "22000000-0000-0000-0000-000000000015",
+          "cls_ptr": "22000000-0000-0000-0000-000000000025",
+          "cls": { "id": "22000000-0000-0000-0000-000000000025", "type": "usecase", "name": "Edit Profile" },
+          "data": {}
+        }
+      ],
+      "edges": []
+    }
+  ],
+  "interfaces": [
+    {
+      "label": "User",
+      "value": {
+        "id": "33000000-0000-0000-0000-000000000001",
+        "name": "User",
+        "system": "33000000-0000-0000-0000-000000000099",
+        "actor": "22000000-0000-0000-0000-000000000021",
+        "data": {
+          "categories": [
+            { "id": "33000000-0000-0000-0000-000000000011", "name": "Explore" },
+            { "id": "33000000-0000-0000-0000-000000000012", "name": "Social"  },
+            { "id": "33000000-0000-0000-0000-000000000013", "name": "Messages" }
+          ],
+          "sections": [
+            {
+              "_comment": "OOUX object: User/Profile. CTA = edit own profile. No create (auth creates user), no delete.",
+              "id": "33000000-0000-0000-0000-000000000021",
+              "name": "Profile",
+              "text": "Your Instagram profile — who you are",
+              "class": "11000000-0000-0000-0000-000000000021",
+              "model_name": "User",
+              "operations": { "create": false, "update": true, "delete": false },
+              "attributes": [
+                { "name": "username",        "type": "str", "derived": false },
+                { "name": "bio",             "type": "str", "derived": false },
+                { "name": "website",         "type": "str", "derived": false },
+                { "name": "follower_count",  "type": "int", "derived": true  },
+                { "name": "following_count", "type": "int", "derived": true  }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "_comment": "OOUX object: Post. CTAs = share (create) + delete own post. Like/save are implicit.",
+              "id": "33000000-0000-0000-0000-000000000022",
+              "name": "Post",
+              "text": "Photos and videos shared by users",
+              "class": "11000000-0000-0000-0000-000000000022",
+              "model_name": "Post",
+              "operations": { "create": true, "update": false, "delete": true },
+              "attributes": [
+                { "name": "caption",    "type": "str",      "derived": false },
+                { "name": "image_url",  "type": "str",      "derived": false },
+                { "name": "like_count", "type": "int",      "derived": true  },
+                { "name": "created_at", "type": "datetime", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "_comment": "OOUX object: Comment. CTAs = comment (create) + delete own comment. No workflow gate.",
+              "id": "33000000-0000-0000-0000-000000000023",
+              "name": "Comment",
+              "text": "Comments on posts",
+              "class": "11000000-0000-0000-0000-000000000023",
+              "model_name": "Comment",
+              "operations": { "create": true, "update": false, "delete": true },
+              "attributes": [
+                { "name": "text",       "type": "str",      "derived": false },
+                { "name": "like_count", "type": "int",      "derived": true  },
+                { "name": "created_at", "type": "datetime", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "_comment": "OOUX object: Story. CTAs = post story (create) + delete. 24h expiry handled by expires_at.",
+              "id": "33000000-0000-0000-0000-000000000024",
+              "name": "Story",
+              "text": "24-hour ephemeral content",
+              "class": "11000000-0000-0000-0000-000000000024",
+              "model_name": "Story",
+              "operations": { "create": true, "update": false, "delete": true },
+              "attributes": [
+                { "name": "image_url",  "type": "str",      "derived": false },
+                { "name": "view_count", "type": "int",      "derived": true  },
+                { "name": "expires_at", "type": "datetime", "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            },
+            {
+              "_comment": "OOUX object: Message. CTA = send (create). No update — messages are immutable once sent.",
+              "id": "33000000-0000-0000-0000-000000000025",
+              "name": "Message",
+              "text": "Direct messages between users",
+              "class": "11000000-0000-0000-0000-000000000025",
+              "model_name": "Message",
+              "operations": { "create": true, "update": false, "delete": true },
+              "attributes": [
+                { "name": "text",    "type": "str",      "derived": false },
+                { "name": "sent_at", "type": "datetime", "derived": false },
+                { "name": "is_read", "type": "bool",     "derived": false }
+              ],
+              "readonly_attributes": [],
+              "create_action_node": null,
+              "update_action_node": null,
+              "delete_action_node": null
+            }
+          ],
+          "pages": [
+            {
+              "_comment": "🏠 Feed — centre object: Post + Comment. User scrolls posts, can like/comment inline.",
+              "id": "33000000-0000-0000-0000-000000000031",
+              "name": "Feed",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Explore",
+                "value": { "id": "33000000-0000-0000-0000-000000000011", "name": "Explore" }
+              },
+              "sections": [
+                { "label": "Post",    "value": "33000000-0000-0000-0000-000000000022" },
+                { "label": "Comment", "value": "33000000-0000-0000-0000-000000000023" }
+              ]
+            },
+            {
+              "_comment": "📖 Stories — centre object: Story. Ephemeral, non-permanent content.",
+              "id": "33000000-0000-0000-0000-000000000032",
+              "name": "Stories",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Explore",
+                "value": { "id": "33000000-0000-0000-0000-000000000011", "name": "Explore" }
+              },
+              "sections": [
+                { "label": "Story", "value": "33000000-0000-0000-0000-000000000024" }
+              ]
+            },
+            {
+              "_comment": "👤 Profile — centre object: User. Edit bio, website. follower_count shown read-only.",
+              "id": "33000000-0000-0000-0000-000000000033",
+              "name": "Profile",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Social",
+                "value": { "id": "33000000-0000-0000-0000-000000000012", "name": "Social" }
+              },
+              "sections": [
+                { "label": "Profile", "value": "33000000-0000-0000-0000-000000000021" }
+              ]
+            },
+            {
+              "_comment": "✉️ Inbox — centre object: Message. Send and receive direct messages.",
+              "id": "33000000-0000-0000-0000-000000000034",
+              "name": "Inbox",
+              "type": { "label": "Normal", "value": "normal" },
+              "action": null,
+              "category": {
+                "label": "Messages",
+                "value": { "id": "33000000-0000-0000-0000-000000000013", "name": "Messages" }
+              },
+              "sections": [
+                { "label": "Message", "value": "33000000-0000-0000-0000-000000000025" }
+              ]
+            }
+          ],
+          "styling": {
+            "radius": 16,
+            "textColor": "#111827",
+            "accentColor": "#e1306c",
+            "backgroundColor": "#fafafa",
+            "selectedStyle": "modern",
+            "layoutType": "topnav"
+          },
+          "settings": {
+            "managerAccess": false
+          }
+        }
+      }
+    }
+  ]
+}

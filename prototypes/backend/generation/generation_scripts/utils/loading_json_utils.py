@@ -74,6 +74,36 @@ def get_apps(metadata: str) -> str:
     return " ".join(apps)
 
 
+def get_actor_names(metadata: str) -> List[str]:
+    '''OOUX: Returns deduplicated user-role names derived from each interface\'s linked
+    actor node in the usecase diagram. Falls back to the interface label when the actor
+    UUID cannot be resolved. Deduplication means multiple interfaces sharing the same
+    actor produce only one user-type flag on the Django User model.'''
+    actor_names: List[str] = []
+    seen: set[str] = set()
+    try:
+        meta = json.loads(metadata)
+        # Map each usecase actor node cls_ptr -> sanitized actor name
+        actor_map: dict[str, str] = {}
+        for diagram in meta.get("diagrams", []):
+            if diagram["type"] != "usecase":
+                continue
+            for node in diagram.get("nodes", []):
+                if node["cls"]["type"] == "actor":
+                    actor_map[node["cls_ptr"]] = app_name_sanitization(node["cls"]["name"])
+        for interface in meta.get("interfaces", []):
+            actor_ptr = interface["value"].get("actor")
+            name = actor_map.get(actor_ptr) if actor_ptr else None
+            if not name:
+                name = app_name_sanitization(interface["label"])
+            if name not in seen:
+                seen.add(name)
+                actor_names.append(name)
+    except Exception:
+        pass
+    return actor_names
+
+
 def authentication_is_present(metadata: str) -> bool:
     '''Returns true if authentication is enabled in the metadata'''
 
@@ -188,7 +218,16 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         return []
     if "attributes" not in section:
         return []
-    
+
+    # Build the set of read-only attribute names from the optional readonly_attributes list.
+    # Each entry may be a dict (same shape as an attribute) or a plain name string.
+    readonly_names: set[str] = set()
+    for r in section.get("readonly_attributes", []):
+        if isinstance(r, dict):
+            readonly_names.add(attribute_name_sanitization(r["name"]))
+        elif isinstance(r, str):
+            readonly_names.add(attribute_name_sanitization(r))
+
     out = []
     for attribute in section["attributes"]:
         attribute_type = None
@@ -207,11 +246,12 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         elif attribute["type"] == "datetime":
             attribute_type  = AttributeType.DATETIME
 
+        sanitized_name = attribute_name_sanitization(attribute["name"])
         att = SectionAttribute(
-            name = attribute_name_sanitization(attribute["name"]),
+            name = sanitized_name,
             type = attribute_type,
             enum_literals = enum_literals,
-            updatable = True, # TODO: frontend management of updatable attributes
+            updatable = sanitized_name not in readonly_names,
             derived = attribute["derived"]
         )
         out.append(att)
@@ -281,7 +321,11 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"]
+                        text = section["text"],
+                        # OOUX: which action node enables each CTA (optional)
+                        create_action_node_id = section.get("create_action_node"),
+                        update_action_node_id = section.get("update_action_node"),
+                        delete_action_node_id = section.get("delete_action_node"),
                     )
                     out.append(sec)
             return out
@@ -317,7 +361,6 @@ def retrieve_categories(application_name: str, metadata: str) -> List[Category]:
         raise Exception("Failed to retrieve pages from metadata: parsing error")
 
     return out
-
 
 
 def retrieve_pages(application_name: str, metadata: str) -> List[Page]:

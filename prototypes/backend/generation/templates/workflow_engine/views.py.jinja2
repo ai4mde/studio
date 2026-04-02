@@ -13,7 +13,7 @@ class StartProcessView(GenericView):
     def post(self, request, process_id, *args, **kwargs):
         process = get_object_or_404(Process, id=process_id)
         active_process_node = process.start_process(request.user)
-        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        return redirect(active_process_node.action_node.url)
 
 
 class RedirectToProcessView(GenericView):
@@ -22,7 +22,7 @@ class RedirectToProcessView(GenericView):
     {% endif %}
     def post(self, request, active_process_node_id, *args, **kwargs):
         active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
-        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        return redirect(active_process_node.action_node.url)
 
 
 class CompleteProcessStepView(GenericView):
