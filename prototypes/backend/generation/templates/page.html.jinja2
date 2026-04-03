@@ -2,275 +2,298 @@
 {% raw %}{% block content %}{% endraw %}
 
 
-<div>
+<div class="space-y-10">
     {%- for section_component in page.section_components %}
 
-    <h2>{{ section_component.display_name }}</h2>
-    <p>{{ section_component.text}}</p>
-
-    {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
-    <table>
-
-        {#- COLUMN HEADERS #}
-        <tr>
-            {%- for attribute in section_component.attributes %}
-            <th>{{ attribute }}</th>
-            {%- endfor %}
-            {%- for parent_model in section_component.parent_models %}
-            <th>{{ parent_model }}</th>
-            {%- endfor %}
-        </tr>
-
-        {#- ROWS #}
-        {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
-        <tr>
-            {#- UPDATE FORM #}
-            {% if section_component.has_update_operation -%}
-            {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post">
-                {% raw %}{% csrf_token %}{% endraw %}
-                {% for attribute in section_component.attributes %}
-                {% if attribute.updatable and not attribute.derived %}
-                <td style="text-align:center;">
-                    {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
-                    
-                    {%- elif attribute.type == AttributeType.INTEGER %}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
-                    
-                    {%- elif attribute.type == AttributeType.DATE %}
-                    <input type="date" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}">
-                    
-                    {%- elif attribute.type == AttributeType.DATETIME %}
-                    <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d\TH:i' {% raw %}}}{% endraw %}">
-                    
-                    {%- elif attribute.type == AttributeType.BOOLEAN %}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
-                    
-                    {%- elif attribute.type == AttributeType.ENUM %}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
-                        {% for literal in attribute.enum_literals %}
-                            <option value="{{ literal }}">{{ literal }}</option>
-                        {% endfor %}
-                    </select>
-                    {%- endif %}
-                </td>
-
-                {% else %}
-                {% if attribute.type == AttributeType.STRING %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-                
-                {% elif attribute.type == AttributeType.INTEGER %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-                {% elif attribute.type == AttributeType.DATE %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-                {% elif attribute.type == AttributeType.DATETIME %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-                {% elif attribute.type == AttributeType.BOOLEAN %}
-                <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
-                
-                {% elif attribute.type == AttributeType.ENUM %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-                {% endif -%}
-                {% endif -%}
-                {% endfor %}
-                {% for parent_model in section_component.parent_models %}
-                <td style="text-align:center;">
-                    <select name="{{ parent_model }}">
-                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
-                        {% raw %}{% endfor %}{% endraw %}
-                    </select>
-                </td>
-                {% endfor %}
-                <td>
-                    <input type="submit" value="Save">
-                </td>
-                <td>
-                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}">Cancel</a>
-                </td>
+    <div>
+        {#- SECTION HEADER -#}
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-base font-semibold text-text-main">{{ section_component.display_name }}</h2>
+                {% if section_component.text %}<div class="text-sm text-gray-500 mt-0.5">{{ section_component.text }}</div>{% endif %}
+            </div>
+            {#- ADD BUTTON (shown when create form is NOT open) -#}
+            {% if section_component.has_create_operation -%}
+            {% if not section_component.create_action_node_id or current_action_node_id == section_component.create_action_node_id %}
+            {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
+                <input type="hidden" name="create_{{ section_component }}" value="true">
+                <button type="submit" class="btn text-sm px-3 py-1.5">+ Add {{ section_component.display_name }}</button>
             </form>
-            {% raw %}{% else %}{% endraw %}
-            {% endif -%}
-            
-            {#- ATTRIBUTE VALUES #}
-            {% for attribute in section_component.attributes -%}
-            {% if loop.first -%}
-            {# First attribute as clickable link to detail page #}
-            <td style="text-align:center;">
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ section_component.primary_model|lower }}_detail' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" class="object-link">
-                    {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}
-                </a>
-            </td>
-            {%- elif attribute.type == AttributeType.STRING %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-            {%- elif attribute.type == AttributeType.INTEGER %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-            
-            {%- elif attribute.type == AttributeType.DATE %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-            
-            {%- elif attribute.type == AttributeType.DATETIME %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-            
-            {%- elif attribute.type == AttributeType.BOOLEAN %}
-            <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
-            
-            {%- elif attribute.type == AttributeType.ENUM %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
-            {% endif -%}
-            {% endfor -%}
-            {% for parent_model in section_component.parent_models -%}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
-            {% endfor -%}
-            {% if section_component.has_update_operation -%}
             {% raw %}{% endif %}{% endraw %}
+            {%- endif %}
             {% endif -%}
+        </div>
 
-            {#- UPDATE #}
-            {% if section_component.has_update_operation -%}
-
-            {#- UPDATE BUTTON -#}
-            {% if not section_component.update_action_node_id or current_action_node_id == section_component.update_action_node_id %}
-            {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
-            <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
-                    <input type="hidden" name="instance_id_{{ section_component.primary_model }}"  value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
-                    <label style="cursor:pointer;">
-                        <input type="submit" style="display:none;" />
-                        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M21.2799 6.40005L11.7399 15.94C10.7899 16.89 7.96987 17.33 7.33987 16.7C6.70987 16.07 7.13987 13.25 8.08987 12.3L17.6399 2.75002C17.8754 2.49308 18.1605 2.28654 18.4781 2.14284C18.7956 1.99914 19.139 1.92124 19.4875 1.9139C19.8359 1.90657 20.1823 1.96991 20.5056 2.10012C20.8289 2.23033 21.1225 2.42473 21.3686 2.67153C21.6147 2.91833 21.8083 3.21243 21.9376 3.53609C22.0669 3.85976 22.1294 4.20626 22.1211 4.55471C22.1128 4.90316 22.0339 5.24635 21.8894 5.5635C21.7448 5.88065 21.5375 6.16524 21.2799 6.40005V6.40005Z" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M11 4H6C4.93913 4 3.92178 4.42142 3.17163 5.17157C2.42149 5.92172 2 6.93913 2 8V18C2 19.0609 2.42149 20.0783 3.17163 20.8284C3.92178 21.5786 4.93913 22 6 22H17C19.21 22 20 20.2 20 18V13" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </label>
-                </form>
-            </td>
-            
-            {% raw %}{% endif %}{% endraw %}
-            {% endif -%}
-            {% endif -%}
-
-            {#- DELETE BUTTON #}
-            {% if section_component.has_delete_operation -%}
-            {% if not section_component.delete_action_node_id or current_action_node_id == section_component.delete_action_node_id %}
-            <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
-                    {% raw %}{% csrf_token %}{% endraw %}
-                    <label style="cursor:pointer;">
-                        <input type="submit" style="display:none;"/>
-                        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14 12V17" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M4 7H20" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M6 10V18C6 19.6569 7.34315 21 9 21H15C16.6569 21 18 19.6569 18 18V10" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 5C9 3.89543 9.89543 3 11 3H13C14.1046 3 15 3.89543 15 5V7H9V5Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </label>
-                </form>
-            </td>
-            {% endif -%}
-            {% endif %}
-
-            {#- CUSTOM METHOD BUTTONS#}
-            {% for custom_method in section_component.custom_methods -%}
-            <td>
-                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
-                    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
-                    <input type="submit" value="{{ custom_method }}"/>
-                </form>
-            </td>
-            {% endfor -%}
-        </tr>
-        {% raw %}{% endfor %}{% endraw %}
-
-        {# CREATE FORM -#}
+        {#- CREATE FORM CARD -#}
         {% if section_component.has_create_operation -%}
         {% if not section_component.create_action_node_id or current_action_node_id == section_component.create_action_node_id %}
         {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
-        <tr>
+        <div class="bg-white rounded-custom border border-gray-200 p-5 mb-4 shadow-sm">
+            <h3 class="text-sm font-semibold mb-4 text-accent">New {{ section_component.display_name }}</h3>
             <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
-                {% for attribute in section_component.attributes -%}
-                {% if attribute.derived -%}
-                <td></td>
-                {% else -%}
-                <td style="text-align:center;">
-                    {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.INTEGER -%}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.DATE -%}
-                    <input type="date" name="{{ attribute }}" id="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.DATETIME -%}
-                    <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.BOOLEAN -%}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.ENUM -%}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
-                        {% for literal in attribute.enum_literals %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    {% for attribute in section_component.attributes -%}
+                    {% if not attribute.derived -%}
+                    <div class="field">
+                        <label for="{{ attribute }}_c">{{ attribute.name | replace('_', ' ') | title }}</label>
+                        {% if attribute.type == AttributeType.STRING -%}
+                        <input type="text" name="{{ attribute }}" id="{{ attribute }}_c" placeholder="{{ attribute.name | replace('_', ' ') | title }}">
+                        {%- elif attribute.type == AttributeType.INTEGER -%}
+                        <input type="number" name="{{ attribute }}" id="{{ attribute }}_c" placeholder="0">
+                        {%- elif attribute.type == AttributeType.DATE -%}
+                        <input type="date" name="{{ attribute }}" id="{{ attribute }}_c">
+                        {%- elif attribute.type == AttributeType.DATETIME -%}
+                        <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}_c">
+                        {%- elif attribute.type == AttributeType.BOOLEAN -%}
+                        <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}_c" class="mt-2">
+                        {%- elif attribute.type == AttributeType.ENUM -%}
+                        <select name="{{ attribute }}" id="{{ attribute }}_c">
+                            {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
-                        {% endfor %}
-                    </select>
-                    
+                            {% endfor %}
+                        </select>
+                        {%- endif %}
+                    </div>
                     {%- endif %}
-                </td>
-                {% endif -%}
-                {% endfor -%}
-                {% for parent_model in section_component.parent_models -%}
-                <td>
-                    <select name="{{ parent_model }}" required>
-                        <option value="">-- Select {{ parent_model }} --</option>
-                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
-                        {% raw %}{% endfor %}{% endraw %}
-                    </select>
-                </td>
-                {% endfor -%}
-                <td>
-                    <input type="submit" value="Save">
-                </td>
-                <td>
-                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}">Cancel</a>
-                </td>
+                    {%- endfor %}
+                    {% for parent_model in section_component.parent_models -%}
+                    <div class="field">
+                        <label>{{ parent_model }}</label>
+                        <select name="{{ parent_model }}" required>
+                            <option value="">— Select {{ parent_model }} —</option>
+                            {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                            {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                            {% raw %}{% endfor %}{% endraw %}
+                        </select>
+                    </div>
+                    {%- endfor %}
+                </div>
+                <div class="flex gap-2">
+                    <input type="submit" value="Save" class="btn">
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="btn btn-outline">Cancel</a>
+                </div>
             </form>
-        </tr>
+        </div>
         {% raw %}{% endif %}{% endraw %}
         {%- endif %}
         {% endif -%}
-    </table>
 
-    {#- CREATE BUTTON #}
-    {% if section_component.has_create_operation -%}
-    {% if not section_component.create_action_node_id or current_action_node_id == section_component.create_action_node_id %}
-    {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
-        <input type="hidden", name="create_{{ section_component }}" value="true">
-        <label style="cursor:pointer;">
-            <input type="submit" style="display:none;"/>
-            <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79086 21 3 19.2091 3 17V7C3 4.79086 4.79086 3 7 3H17C19.2091 3 21 4.79086 21 7V17C21 19.2091 19.2091 21 17 21Z" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-        </label>
-    </form>
-    {% raw %}{% endif %}{% endraw %}
-    {%- endif %}
-    {% endif -%}
+        {# ======================================================
+           Reusable macro: action buttons (edit / delete / custom)
+           ====================================================== #}
+        {%- macro action_buttons(primary_model, section_component, page, application_name) %}
+        <div class="flex items-center gap-3">
+            {% if section_component.has_update_operation -%}
+            {% if not section_component.update_action_node_id or current_action_node_id == section_component.update_action_node_id %}
+            {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
+                <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
+                <button type="submit" class="text-xs font-medium text-accent hover:underline">Edit</button>
+            </form>
+            {% raw %}{% endif %}{% endraw %}
+            {% endif -%}
+            {% endif -%}
+            {% if section_component.has_delete_operation -%}
+            {% if not section_component.delete_action_node_id or current_action_node_id == section_component.delete_action_node_id %}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+                {% raw %}{% csrf_token %}{% endraw %}
+                <button type="submit" class="text-xs font-medium text-red-500 hover:underline" onclick="return confirm('Delete this {{ section_component.display_name }}?')">Delete</button>
+            </form>
+            {% endif -%}
+            {% endif %}
+            {% for custom_method in section_component.custom_methods -%}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" method="get">
+                <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id {{ '}}' }}">
+                <button type="submit" class="text-xs font-medium text-accent hover:underline">{{ custom_method | replace('_', ' ') | title }}</button>
+            </form>
+            {% endfor -%}
+        </div>
+        {%- endmacro %}
+
+        {# ======================================================
+           Reusable macro: inline edit form cells
+           ====================================================== #}
+        {%- macro edit_form_cells(section_component, page, application_name) %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' update_instance.id{% raw %}%}{% endraw %}" method="post" style="display:contents;">
+            {% raw %}{% csrf_token %}{% endraw %}
+            {% for attribute in section_component.attributes %}
+            {% if attribute.updatable and not attribute.derived %}
+            <td>
+                {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                {%- elif attribute.type == AttributeType.DATE %}<input type="date" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}">
+                {%- elif attribute.type == AttributeType.DATETIME %}<input type="datetime-local" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d\TH:i' {% raw %}}}{% endraw %}">
+                {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
+                {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}">{% for literal in attribute.enum_literals %}<option value="{{ literal }}">{{ literal }}</option>{% endfor %}</select>
+                {%- endif %}
+            </td>
+            {% else %}
+            <td>
+                {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled>
+                {% else %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}{% endif %}
+            </td>
+            {% endif -%}
+            {% endfor %}
+            {% for parent_model in section_component.parent_models %}
+            <td><select name="{{ parent_model }}">
+                {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}{% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}{% raw %}{% endfor %}{% endraw %}
+            </select></td>
+            {% endfor %}
+            <td><div class="flex items-center gap-3">
+                <input type="submit" value="Save" class="btn text-xs px-2 py-1">
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="text-xs text-gray-500 hover:text-text-main">Cancel</a>
+            </div></td>
+        </form>
+        {%- endmacro %}
+
+        {# ========== TABLE MODE ========== #}
+        {% if styling.display_mode == DisplayMode.TABLE %}
+        <div class="bg-white rounded-custom shadow-sm overflow-hidden border border-gray-200">
+            <table>
+                <tr>
+                    {%- for attribute in section_component.attributes %}
+                    <th>{{ attribute.name | replace('_', ' ') | title }}</th>
+                    {%- endfor %}
+                    {%- for parent_model in section_component.parent_models %}
+                    <th>{{ parent_model }}</th>
+                    {%- endfor %}
+                    {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.custom_methods %}<th></th>{% endif %}
+                </tr>
+                {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+                <tr>
+                    {% if section_component.has_update_operation -%}
+                    {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
+                    {{ edit_form_cells(section_component, page, application_name) }}
+                    {% raw %}{% else %}{% endraw %}
+                    {% endif -%}
+                    {% for attribute in section_component.attributes -%}
+                    {% if loop.first -%}
+                    <td><a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ section_component.primary_model|lower }}_detail' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" class="font-medium text-accent hover:underline">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</a></td>
+                    {%- elif attribute.type == AttributeType.BOOLEAN %}
+                    <td><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
+                    {%- elif attribute.type == AttributeType.ENUM %}
+                    <td><span class="badge">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span></td>
+                    {%- else %}
+                    <td>{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                    {%- endif %}
+                    {%- endfor %}
+                    {% for parent_model in section_component.parent_models -%}
+                    <td>{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
+                    {% endfor -%}
+                    {% if section_component.has_update_operation -%}
+                    {% raw %}{% endif %}{% endraw %}
+                    {% endif -%}
+                    {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.custom_methods %}
+                    <td>{{ action_buttons(section_component.primary_model, section_component, page, application_name) }}</td>
+                    {% endif %}
+                </tr>
+                {% raw %}{% endfor %}{% endraw %}
+            </table>
+        </div>
+
+        {# ========== CARDS MODE ========== #}
+        {% elif styling.display_mode == DisplayMode.CARDS %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+            <div class="card-item bg-white rounded-custom border border-gray-200 shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                {#- Card title: first attribute as link -#}
+                {% for attribute in section_component.attributes -%}
+                {% if loop.first -%}
+                <div class="flex items-start justify-between">
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ section_component.primary_model|lower }}_detail' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" class="font-semibold text-base text-accent hover:underline leading-tight">
+                        {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}
+                    </a>
+                    {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.custom_methods %}
+                    <div class="shrink-0 ml-2">{{ action_buttons(section_component.primary_model, section_component, page, application_name) }}</div>
+                    {% endif %}
+                </div>
+                {%- endif %}
+                {%- endfor %}
+                {#- Remaining attributes as key-value rows -#}
+                <div class="space-y-1.5 text-sm">
+                    {% for attribute in section_component.attributes -%}
+                    {% if not loop.first -%}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-xs font-medium uppercase tracking-wide">{{ attribute.name | replace('_', ' ') | title }}</span>
+                        <span class="text-text-main font-medium">
+                            {% if attribute.type == AttributeType.BOOLEAN %}
+                            <input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled>
+                            {%- elif attribute.type == AttributeType.ENUM %}
+                            <span class="badge">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+                            {%- else %}
+                            {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}
+                            {%- endif %}
+                        </span>
+                    </div>
+                    {%- endif %}
+                    {%- endfor %}
+                    {% for parent_model in section_component.parent_models -%}
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-400 text-xs font-medium uppercase tracking-wide">{{ parent_model }}</span>
+                        <span class="text-text-main font-medium">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</span>
+                    </div>
+                    {%- endfor %}
+                </div>
+            </div>
+            {% raw %}{% endfor %}{% endraw %}
+        </div>
+
+        {# ========== LIST MODE ========== #}
+        {% elif styling.display_mode == DisplayMode.LIST %}
+        <div class="bg-white rounded-custom border border-gray-200 shadow-sm divide-y divide-gray-100">
+            {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+            <div class="flex items-center gap-4 px-5 py-3 hover:bg-gray-50 transition-colors group">
+                {#- Avatar circle with first letter -#}
+                {% for attribute in section_component.attributes -%}
+                {% if loop.first -%}
+                <div class="w-9 h-9 rounded-full bg-accent-light text-accent flex items-center justify-center text-sm font-bold shrink-0">
+                    {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|first|upper {% raw %}}}{% endraw %}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ section_component.primary_model|lower }}_detail' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" class="font-medium text-text-main hover:text-accent truncate block">
+                        {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}
+                    </a>
+                    {#- Subtitle: next 1-2 attributes inline -#}
+                    <p class="text-xs text-gray-400 truncate">
+                        {% for attr in section_component.attributes -%}
+                        {% if not loop.first and loop.index <= 3 -%}
+                        <span>{{ attr.name | replace('_', ' ') | title }}:
+                            {% if attr.type == AttributeType.BOOLEAN %}
+                            {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attr }} {% raw %}%}{% endraw %}Yes{% raw %}{% else %}{% endraw %}No{% raw %}{% endif %}{% endraw %}
+                            {%- elif attr.type == AttributeType.ENUM %}
+                            <span class="badge">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attr }} {% raw %}}}{% endraw %}</span>
+                            {%- else %}
+                            {% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attr }} {% raw %}}}{% endraw %}
+                            {%- endif %}
+                        </span>{% if not loop.last and loop.index <= 2 %} &middot; {% endif %}
+                        {%- endif %}
+                        {%- endfor %}
+                    </p>
+                </div>
+                {%- endif %}
+                {%- endfor %}
+                {#- Actions appear on hover -#}
+                {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.custom_methods %}
+                <div class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {{ action_buttons(section_component.primary_model, section_component, page, application_name) }}
+                </div>
+                {% endif %}
+            </div>
+            {% raw %}{% endfor %}{% endraw %}
+        </div>
+        {% endif %}{# end display_mode #}
+
+    </div>
 
     {% endfor %}
 
     {% raw %}{%{% endraw %} if active_process_node_id {% raw %}%}{% endraw %}
-    <div style="position: fixed; bottom: 20px; right: 20px;">
+    <div class="fixed bottom-6 right-6">
         <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
             {% raw %}{% csrf_token %}{% endraw %}
-            <button type="submit" class="complete-activity-button">
-                Complete task
-            </button>
+            <button type="submit" class="btn px-5 py-2.5 shadow-lg">Complete task</button>
         </form>
     </div>
     {% raw %}{% endif %}{% endraw %}

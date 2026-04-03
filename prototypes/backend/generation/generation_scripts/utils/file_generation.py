@@ -8,7 +8,7 @@ from utils.definitions.section_component import SectionComponent, SectionCustomM
 from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.application_component import ApplicationComponent
-from utils.definitions.styling import Styling, StyleType, LayoutType
+from utils.definitions.styling import Styling, StyleType, LayoutType, DisplayMode
 from utils.definitions.settings import Settings
 
 
@@ -22,6 +22,7 @@ def add_jinja_globals(template: Template) -> Template:
     template.globals['Styling'] = Styling
     template.globals['StyleType'] = StyleType
     template.globals['LayoutType'] = LayoutType
+    template.globals['DisplayMode'] = DisplayMode
     template.globals['Attribute'] = Attribute
     template.globals['AttributeType'] = AttributeType
     template.globals['SectionComponent'] = SectionComponent
@@ -49,6 +50,17 @@ def read_template_file(TEMPLATE_PATH: str) -> Template:
         template = add_jinja_globals(template)
     except jinja2.exceptions.TemplateNotFound:
         raise Exception("Could not load Jinja2 template: " + TEMPLATE_NAME)
+    return template
+
+
+def read_template_string(template_str: str) -> Template:
+    """
+    Compiles a Jinja2 template from a string and returns the template.
+    Used for LLM-generated custom page templates.
+    """
+    env = Environment()
+    template = env.from_string(template_str)
+    template = add_jinja_globals(template)
     return template
 
 

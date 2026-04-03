@@ -16,7 +16,7 @@ import re
 
 # Constants
 LLM_EMPTY_RESPONSE_MSG = "LLM returned empty response"
-LLM_MODEL_NAME = "llama-3.3-70b-versatile"
+LLM_MODEL_NAME = "gpt-4o"
 
 interfaces = Router()
 
@@ -868,6 +868,360 @@ def refinement_status(request, interface_id):
         "refinements_used": count,
         "refinements_remaining": max(0, 3 - count),
         "can_refine": count < 3,
+    }
+
+
+class GenerateLayoutRequest(Schema):
+    """Request for LLM-generated custom layout HTML."""
+    prompt: str
+    model: str = LLM_MODEL_NAME
+    background_color: str = "#FFFFFF"
+    text_color: str = "#000000"
+    accent_color: str = "#3B82F6"
+    radius: int = 8
+
+
+@interfaces.post("/{uuid:interface_id}/generate_layout/")
+def generate_layout(request, interface_id, body: GenerateLayoutRequest):
+    """
+    Generate a free-form layout HTML from a natural language prompt.
+    Stores the result in interface.data.styling.customHtml.
+    """
+    if not body.prompt.strip():
+        raise HttpError(400, "Prompt cannot be empty.")
+
+    try:
+        html = llm_handler(
+            "PROSE_GENERATE_CUSTOM_LAYOUT",
+            body.model,
+            input_data={
+                "prompt": body.prompt,
+                "background_color": body.background_color,
+                "text_color": body.text_color,
+                "accent_color": body.accent_color,
+                "radius": body.radius,
+            },
+        )
+    except Exception as e:
+        raise HttpError(503, f"Failed to call LLM: {e}")
+
+    if not html:
+        raise HttpError(503, LLM_EMPTY_RESPONSE_MSG)
+
+    # Strip any accidental markdown fences
+    html = re.sub(r'^```[a-z]*\s*', '', html.strip())
+    html = re.sub(r'```\s*$', '', html)
+
+    # Persist into the interface's styling.customHtml
+    interface = Interface.objects.get(id=interface_id)
+    data = dict(interface.data) if interface.data else {}
+    styling = dict(data.get("styling", {}))
+    styling["layoutType"] = "custom"
+    styling["customHtml"] = html.strip()
+    data["styling"] = styling
+    interface.data = data
+    interface.save()
+
+    return {"custom_html": html.strip()}
+
+
+class GenerateStyleRequest(Schema):
+    """Request for LLM-generated complete design style."""
+    prompt: str
+    model: str = LLM_MODEL_NAME
+
+
+class GenerateOOUIPageRequest(Schema):
+    """Request for fully free OOUI page template generation."""
+    prompt: str
+    model: str = LLM_MODEL_NAME
+
+
+def _build_model_context(interface_data: dict) -> str:
+    """Build a concise model-context string from interface.data for the OOUI page prompt."""
+    sections = interface_data.get("sections", [])
+    if not sections:
+        return "No models defined yet."
+    lines = []
+    for sec in sections:
+        name = sec.get("model_name") or sec.get("name", "Unknown")
+        attrs = sec.get("attributes", [])
+        ops = sec.get("operations", {})
+        attr_names = [a.get("name", "") for a in attrs if a.get("name")]
+        ops_list = [k for k, v in ops.items() if v]
+        lines.append(
+            f"- {name}: fields=[{', '.join(attr_names)}], operations=[{', '.join(ops_list)}]"
+        )
+    return "\n".join(lines)
+
+
+def _san(name: str) -> str:
+    """Replicate generator.sh name sanitization to compute exact Django variable/URL names."""
+    if not name:
+        return "object"
+    name = str(name).replace(' ', '_').replace('-', '_')
+    while '__' in name:
+        name = name.replace('__', '_')
+    result = re.sub(r'[^a-zA-Z0-9_]', '', name)
+    return result or 'object'
+
+
+def _build_page_contexts(interface) -> list:
+    """
+    Pre-compute, for every page in the interface, the exact Django template variable names,
+    URL names, field names, and operations. This lets the LLM write vanilla Django HTML
+    without knowledge of Jinja2 or the generation pipeline.
+    """
+    data = interface.data or {}
+    sections_by_id = {s["id"]: s for s in data.get("sections", [])}
+    pages = data.get("pages", [])
+    app_name = _san(interface.name)
+
+    # Classifier lookup by ID for model name resolution
+    cls_lookup = {}
+    try:
+        for c in interface.system.classifiers.all():
+            cls_lookup[str(c.id)] = c
+    except Exception:
+        pass
+
+    page_contexts = []
+    for page_data in pages:
+        page_name = _san(page_data.get("name", "page"))
+
+        sections_out = []
+        for sec_ref in page_data.get("sections", []):
+            sec_id = sec_ref.get("value") if isinstance(sec_ref, dict) else sec_ref
+            section = sections_by_id.get(str(sec_id))
+            if not section:
+                continue
+
+            class_id = section.get("class")
+            cls = cls_lookup.get(str(class_id)) if class_id else None
+            cls_data = cls.data if cls else {}
+            raw_model_name = (cls_data.get("name") or section.get("model_name") or section.get("name") or "Object")
+            model_name = _san(raw_model_name)
+            section_name = _san(section.get("name") or model_name)
+
+            attrs = []
+            for attr in section.get("attributes", []):
+                a_name = _san(attr.get("name", ""))
+                if not a_name:
+                    continue
+                a_type = attr.get("type", "str")
+                enum_choices = []
+                if a_type == "enum":
+                    enum_val = attr.get("enum") or {}
+                    enum_choices = enum_val.get("literals", []) if isinstance(enum_val, dict) else []
+                attrs.append({
+                    "name": a_name,
+                    "type": a_type,
+                    "derived": attr.get("derived", False),
+                    "enum_choices": enum_choices,
+                })
+
+            ops = section.get("operations", {})
+            sections_out.append({
+                "display_name": section.get("name") or raw_model_name,
+                "section_name": section_name,
+                "model_name": model_name,
+                "list_var": f"{model_name}_list",
+                "obj_var": model_name,
+                "attributes": attrs,
+                "has_create": bool(ops.get("create", False)),
+                "has_update": bool(ops.get("update", False)),
+                "has_delete": bool(ops.get("delete", False)),
+                "render_url": f"{app_name}:render_{app_name}_{page_name}",
+                "create_url": f"{app_name}:{page_name}_{section_name}_create",
+                "delete_url": f"{app_name}:{page_name}_{section_name}_delete",
+                "detail_url": f"{app_name}:{model_name.lower()}_detail",
+            })
+
+        if sections_out:
+            page_contexts.append({
+                "page_name": page_name,
+                "display_name": page_data.get("name", page_name),
+                "app_name": app_name,
+                "sections": sections_out,
+            })
+
+    return page_contexts
+
+
+def _format_pages_spec(page_contexts: list) -> str:
+    """Format page contexts into a human-readable spec string for the LLM prompt."""
+    lines = []
+    for pc in page_contexts:
+        lines.append(f"\n{'='*60}")
+        lines.append(f"PAGE: {pc['page_name']}  (label: \"{pc['display_name']}\")")
+        lines.append(f"  Base template: {{% extends \"{pc['app_name']}_base.html\" %}}")
+        lines.append(f"  Render URL:    {{% url '{pc['app_name']}:render_{pc['app_name']}_{pc['page_name']}' %}}")
+
+        for sec in pc["sections"]:
+            lines.append(f"\n  SECTION: {sec['display_name']}")
+            lines.append(f"    Model: {sec['model_name']}")
+            lines.append(f"    Loop over records:   {{% for {sec['obj_var']} in {sec['list_var']} %}}...{{% endfor %}}")
+            lines.append(f"    Detail link:  {{% url '{sec['detail_url']}' {sec['obj_var']}.id %}}")
+
+            if sec["attributes"]:
+                lines.append("    Fields (access as {{ obj.field }}):")
+                for a in sec["attributes"]:
+                    t = a["type"]
+                    extra = f"  choices: {a['enum_choices']}" if t == "enum" and a["enum_choices"] else ""
+                    ro = "  [read-only]" if a["derived"] else ""
+                    lines.append(f"      {{ {sec['obj_var']}.{a['name']} }}  — type: {t}{extra}{ro}")
+
+            if sec["has_create"]:
+                lines.append(f"    Create form:")
+                lines.append(f"      Toggle ON:  GET {{% url '{sec['render_url']}' %}}?create_{sec['section_name']}=true")
+                lines.append(f"      Check open: {{% if create_{sec['section_name']} %}}...{{% endif %}}")
+                lines.append(f"      POST to:    {{% url '{sec['create_url']}' %}}")
+
+            if sec["has_update"]:
+                lines.append(f"    Edit button (GET param):")
+                lines.append(f"      Send:  instance_id_{sec['model_name']}={{ {sec['obj_var']}.id }}")
+                lines.append(f"      Check: {{% if {sec['obj_var']} == update_instance %}}  (show edit form){{% endif %}}")
+
+            if sec["has_delete"]:
+                lines.append(f"    Delete form:  POST to {{% url '{sec['delete_url']}' {sec['obj_var']}.id %}}")
+
+    return "\n".join(lines)
+
+
+@interfaces.post("/{uuid:interface_id}/generate_style/")
+def generate_style(request, interface_id, body: GenerateStyleRequest):
+    """
+    Generate a complete design theme (colors, layout, font, CSS) from a natural language prompt.
+    Stores the result in interface.data.styling and returns the updated styling fields.
+    """
+    if not body.prompt.strip():
+        raise HttpError(400, "Prompt cannot be empty.")
+
+    try:
+        raw = llm_handler(
+            "PROSE_GENERATE_STYLE",
+            body.model,
+            input_data={"prompt": body.prompt},
+        )
+    except Exception as e:
+        raise HttpError(503, f"Failed to call LLM: {e}")
+
+    if not raw:
+        raise HttpError(503, LLM_EMPTY_RESPONSE_MSG)
+
+    # Extract JSON between STYLE_START and STYLE_END markers
+    match = re.search(r'STYLE_START\s*([\s\S]*?)\s*STYLE_END', raw)
+    if not match:
+        raise HttpError(503, "LLM response did not contain valid STYLE_START/STYLE_END markers.")
+
+    try:
+        style = json.loads(match.group(1))
+    except json.JSONDecodeError as e:
+        raise HttpError(503, f"LLM returned invalid JSON: {e}")
+
+    # Validate and sanitise fields
+    allowed_layouts = {"sidebar", "topnav", "dashboard", "split", "wizard", "minimal", "cards", "tabs", "drawer", "custom"}
+    layout_type = style.get("layout_type", "sidebar")
+    if layout_type not in allowed_layouts:
+        layout_type = "sidebar"
+
+    allowed_display_modes = {"table", "cards", "list"}
+    display_mode = style.get("display_mode", "table")
+    if display_mode not in allowed_display_modes:
+        display_mode = "table"
+
+    result = {
+        "accentColor":     style.get("accent_color", "#3B82F6"),
+        "backgroundColor": style.get("background_color", "#FFFFFF"),
+        "textColor":       style.get("text_color", "#000000"),
+        "radius":          int(style.get("radius", 8)),
+        "fontUrl":         style.get("font_url", ""),
+        "layoutType":      layout_type,
+        "displayMode":     display_mode,
+        "customCss":       style.get("custom_css", ""),
+    }
+
+    # Persist into the interface's styling
+    interface = Interface.objects.get(id=interface_id)
+    data = dict(interface.data) if interface.data else {}
+    styling = dict(data.get("styling", {}))
+    styling.update({
+        "accentColor":     result["accentColor"],
+        "backgroundColor": result["backgroundColor"],
+        "textColor":       result["textColor"],
+        "radius":          result["radius"],
+        "fontUrl":         result["fontUrl"],
+        "layoutType":      result["layoutType"],
+        "displayMode":     result["displayMode"],
+        "customCss":       result["customCss"],
+    })
+    data["styling"] = styling
+    interface.data = data
+    interface.save()
+
+    return result
+
+
+@interfaces.post("/{uuid:interface_id}/generate_ooui_page/")
+def generate_ooui_page(request, interface_id, body: GenerateOOUIPageRequest):
+    """
+    Generate per-page Django HTML templates from a designer prompt.
+    Python pre-computes exact variable/URL names so the LLM writes plain Django HTML
+    (no Jinja2 knowledge needed). Results stored as customDjangoTemplates in interface.data.
+    """
+    if not body.prompt.strip():
+        raise HttpError(400, "Prompt cannot be empty.")
+
+    interface = Interface.objects.get(id=interface_id)
+    page_contexts = _build_page_contexts(interface)
+
+    if not page_contexts:
+        raise HttpError(400, "No pages defined on this interface yet. Generate pages first.")
+
+    pages_spec = _format_pages_spec(page_contexts)
+
+    try:
+        raw = llm_handler(
+            "PROSE_GENERATE_DJANGO_TEMPLATE",
+            body.model,
+            input_data={
+                "pages_spec": pages_spec,
+                "prompt": body.prompt,
+            },
+        )
+    except Exception as e:
+        raise HttpError(503, f"Failed to call LLM: {e}")
+
+    if not raw:
+        raise HttpError(503, LLM_EMPTY_RESPONSE_MSG)
+
+    # Parse PAGE_START:name ... PAGE_END:name blocks
+    templates = {}
+    for match in re.finditer(r'PAGE_START:(\w+)\n([\s\S]*?)\nPAGE_END:\1', raw):
+        page_name = match.group(1)
+        html = match.group(2).strip()
+        # Strip accidental markdown fences
+        html = re.sub(r'^```[a-z]*\s*', '', html)
+        html = re.sub(r'```\s*$', '', html).strip()
+        templates[page_name] = html
+
+    if not templates:
+        raise HttpError(503, "LLM did not return any PAGE_START/PAGE_END blocks.")
+
+    # Persist customDjangoTemplates to interface.data.styling
+    data = dict(interface.data) if interface.data else {}
+    styling = dict(data.get("styling", {}))
+    styling["customDjangoTemplates"] = templates
+    # Clear legacy Jinja2 field if present (new approach supersedes it)
+    styling.pop("customPageJinja2", None)
+    data["styling"] = styling
+    interface.data = data
+    interface.save()
+
+    return {
+        "pages_generated": list(templates.keys()),
+        "count": len(templates),
+        "templates": templates,
     }
 
 

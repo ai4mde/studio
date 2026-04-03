@@ -49,7 +49,7 @@ export const useAuthStore = create(
                             set(() => ({
                                 isAuthenticated: true,
                                 bearerToken: data.token,
-                                expires: Date.now() + 1000 * 3600,
+                                expires: Date.now() + 1000 * 3600 * 23,
                                 user: {
                                     ...data,
                                 },
@@ -82,7 +82,14 @@ export const useAuthStore = create(
         },
         {
             name: "auth-storage",
-            storage: createJSONStorage(() => localStorage), // TODO: Make this localStorage
+            storage: createJSONStorage(() => localStorage),
+            onRehydrateStorage: () => (state) => {
+                if (state?.bearerToken && state?.expires && state.expires > Date.now()) {
+                    authAxios.defaults.headers.common = {
+                        Authorization: `Bearer ${state.bearerToken}`,
+                    };
+                }
+            },
         },
     ),
 );

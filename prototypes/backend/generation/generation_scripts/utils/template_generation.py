@@ -1,6 +1,6 @@
 from utils.definitions.application_component import ApplicationComponent
 from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
-from utils.file_generation import generate_output_file
+from utils.file_generation import generate_output_file, read_template_string, write_to_file
 from os import makedirs
 
 
@@ -147,8 +147,23 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
             "project_name": project_name,
             "application_name": application_name,
             "page": page,
+            "styling": application_component.styling,
         }
-        if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        custom_jinja2 = application_component.styling.custom_page_jinja2
+        page_key = page_name_sanitization(page.name)
+        custom_django = (
+            application_component.styling.custom_django_templates.get(page.name)
+            or application_component.styling.custom_django_templates.get(page_key)
+        )
+        if custom_django:
+            # LLM-generated plain Django HTML — write directly, no Jinja2 rendering
+            if not write_to_file(OUTPUT_FILE_PATH, custom_django):
+                raise Exception("Failed to write custom Django template: " + page.name)
+        elif custom_jinja2:
+            content = read_template_string(custom_jinja2).render(data)
+            if not write_to_file(OUTPUT_FILE_PATH, content):
+                raise Exception("Failed to generate custom OOUI template: " + page.name)
+        elif not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
             raise Exception("Failed to generate template: " + page.name)
     
     # Generate OOUI detail pages

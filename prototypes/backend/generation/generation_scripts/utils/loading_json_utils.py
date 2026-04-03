@@ -5,7 +5,7 @@ from utils.definitions.section_component import SectionComponent, SectionAttribu
 from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.model import AttributeType, Model, Attribute, Cardinality, define_cardinality
-from utils.definitions.styling import Styling, StyleType, LayoutType
+from utils.definitions.styling import Styling, StyleType, LayoutType, DisplayMode
 from utils.definitions.settings import Settings
 import json
 from uuid import uuid4
@@ -471,6 +471,10 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
                 "split": LayoutType.SPLIT,
                 "wizard": LayoutType.WIZARD,
                 "minimal": LayoutType.MINIMAL,
+                "cards": LayoutType.CARDS,
+                "tabs": LayoutType.TABS,
+                "drawer": LayoutType.DRAWER,
+                "custom": LayoutType.CUSTOM,
             }
             layout_type = layout_map.get(layout_str, LayoutType.SIDEBAR)
 
@@ -491,16 +495,37 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
             else:
                 text_color = styling["textColor"]
 
+            font_url = styling.get("fontUrl", "")
+            custom_css = styling.get("customCss", "")
+            custom_html = styling.get("customHtml", "")
+            custom_page_jinja2 = styling.get("customPageJinja2", "")
+            custom_django_templates = styling.get("customDjangoTemplates", {})
+
+            display_mode_str = styling.get("displayMode", "table")
+            display_mode_map = {
+                "table": DisplayMode.TABLE,
+                "cards": DisplayMode.CARDS,
+                "list":  DisplayMode.LIST,
+            }
+            display_mode = display_mode_map.get(display_mode_str, DisplayMode.TABLE)
+
             return Styling(
                 style_type = style_type,
                 layout_type = layout_type,
+                display_mode = display_mode,
                 radius = radius,
                 text_color = text_color,
                 accent_color = accent_color,
-                background_color = background_color
+                background_color = background_color,
+                font_url = font_url,
+                custom_css = custom_css,
+                custom_html = custom_html,
+                custom_page_jinja2 = custom_page_jinja2,
+                custom_django_templates = custom_django_templates,
             )
-    except:
-        return Styling()
+    except Exception as e:
+        print(f"[retrieve_styling] ERROR for app '{application_name}': {e}", flush=True)
+        raise
 
 def retrieve_settings(application_name: str, metadata: str) -> Settings:
     if metadata in ["", None]:

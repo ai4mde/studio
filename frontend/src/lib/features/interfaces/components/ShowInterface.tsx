@@ -8,7 +8,8 @@ import {
     TabPanel,
     Tabs,
 } from '@mui/joy';
-import { CircleUserRound, Save, Trash } from "lucide-react";
+import CryptoJS from 'crypto-js';
+import { CircleUserRound, Layers, Save, Trash } from "lucide-react";
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Categories } from './Categories';
@@ -29,6 +30,8 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const navigate = useNavigate();
     const { systemId } = useParams();
     const [isSaving, setIsSaving] = useState(false);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generateError, setGenerateError] = useState<string | null>(null);
     //const actorId = data?.actor || '';
     //const [actor, isSuccessActor] = useActor(systemId, actorId);
 
@@ -55,6 +58,47 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
             console.error('Error deleting interface:', error);
         }
         navigate(`/systems/${systemId}/interfaces`);
+    };
+
+    const handleGeneratePrototype = async () => {
+        if (!systemId || !data) return;
+        setIsGenerating(true);
+        setGenerateError(null);
+        try {
+            const [classifiers, relations, interfacesRes, diagramsRes] = await Promise.all([
+                authAxios.get(`v1/metadata/systems/${systemId}/classes/`),
+                authAxios.get(`v1/metadata/systems/${systemId}/classifier-relations/`),
+                authAxios.get(`v1/metadata/interfaces/`, { params: { system: systemId } }),
+                authAxios.get(`v1/diagram/system/${systemId}/`),
+            ]);
+
+            const allInterfaces: any[] = interfacesRes.data || [];
+            const interfaceNames = allInterfaces.map((e: any) => ({ name: e.name }));
+            const inputString = `${systemId}${JSON.stringify(classifiers.data)}${JSON.stringify(relations.data)}${JSON.stringify(interfaceNames)}`;
+            const databaseHash = CryptoJS.SHA256(inputString).toString(CryptoJS.enc.Hex);
+
+            const prototypeName = data.name.replace(/[^a-zA-Z0-9]/g, '');
+            const metadata = {
+                diagrams: diagramsRes.data || [],
+                interfaces: allInterfaces.map((e: any) => ({ label: e.name, value: e })),
+                useAuthentication: true,
+            };
+
+            await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
+                name: prototypeName,
+                description: `Prototype generated from interface ${data.name}`,
+                system_id: systemId,
+                metadata,
+                database_hash: databaseHash,
+            });
+
+            navigate(`/systems/${systemId}/prototypes`);
+        } catch (error) {
+            console.error('Error generating prototype:', error);
+            setGenerateError('Failed to generate prototype. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const handleSave = async () => {
@@ -103,6 +147,15 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         <div className="flex gap-4 ml-auto">
                             <AIGeneration interfaceId={app_comp} onUpdate={handleAIUpdate} />
                             <button
+                                onClick={handleGeneratePrototype}
+                                disabled={isGenerating}
+                                title={generateError || undefined}
+                                className="h-[40px] bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 flex items-center justify-center gap-2 disabled:opacity-60"
+                            >
+                                {isGenerating ? <CircularProgress className="animate-spin" /> : <Layers size={18} />}
+                                Generate Prototype
+                            </button>
+                            <button
                                 onClick={handleSave}
                                 className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center justify-center"
                                 disabled={isSaving}
@@ -140,7 +193,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Sections />
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Styling />
+                            <Styling interfaceId={app_comp} />
                         </TabPanel>
                         <TabPanel value={5}>
                             <Settings />

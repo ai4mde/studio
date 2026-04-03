@@ -62,6 +62,8 @@ input[type="submit"]:hover, button.btn:hover, .btn:hover {
     border-radius: 14px;
     font-size: 10px;
     font-weight: 600;
+    background: #f3f4f6;
+    color: #374151;
 }
 .b-c, .b-s { background: #dcfce7; color: #16a34a; }
 .b-u, .b-i { background: #dbeafe; color: #2563eb; }
@@ -100,3 +102,8 @@ a {
 a:hover {
     text-decoration: underline;
 }
+
+{% if styling.custom_css %}
+/* ========== DESIGNER CUSTOM CSS ========== */
+{{ styling.custom_css }}
+{% endif %}

@@ -3,7 +3,7 @@ from typing import Dict, Any
 from groq import Groq
 from openai import OpenAI
 from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
-from llm.prompts.prose import PROSE_GENERATE_METADATA, PROSE_GENERATE_PAGES, PROSE_GENERATE_INTERFACE_CANDIDATES, PROSE_REFINE_INTERFACE
+from llm.prompts.prose import PROSE_GENERATE_METADATA, PROSE_GENERATE_PAGES, PROSE_GENERATE_INTERFACE_CANDIDATES, PROSE_REFINE_INTERFACE, PROSE_GENERATE_CUSTOM_LAYOUT, PROSE_GENERATE_STYLE, PROSE_GENERATE_OOUI_PAGE, PROSE_GENERATE_DJANGO_TEMPLATE
 
 
 def remove_reply_markdown(reply: str) -> str:
@@ -69,6 +69,18 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
         prompt = PROSE_GENERATE_INTERFACE_CANDIDATES.format(data=input_data)
     elif prompt_name == "PROSE_REFINE_INTERFACE":
         prompt = PROSE_REFINE_INTERFACE.format(data=input_data)
+    elif prompt_name == "PROSE_GENERATE_CUSTOM_LAYOUT":
+        prompt = PROSE_GENERATE_CUSTOM_LAYOUT.format(data=input_data)
+    elif prompt_name == "PROSE_GENERATE_STYLE":
+        prompt = PROSE_GENERATE_STYLE.format(data=input_data)
+    elif prompt_name == "PROSE_GENERATE_OOUI_PAGE":
+        prompt = (PROSE_GENERATE_OOUI_PAGE
+                  .replace("{data[model_context]}", str(input_data.get("model_context", "")))
+                  .replace("{data[prompt]}", str(input_data.get("prompt", ""))))
+    elif prompt_name == "PROSE_GENERATE_DJANGO_TEMPLATE":
+        prompt = (PROSE_GENERATE_DJANGO_TEMPLATE
+                  .replace("{pages_spec}", str(input_data.get("pages_spec", "")))
+                  .replace("{prompt}", str(input_data.get("prompt", ""))))
     else:
         raise Exception("Invalid prompt name")
     

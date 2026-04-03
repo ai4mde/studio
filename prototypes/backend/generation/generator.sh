@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e  # Exit immediately if any command fails
 
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
