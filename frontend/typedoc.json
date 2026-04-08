@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "out": "../docs/frontend",
+  "tsconfig": "tsconfig.json",
+  "skipErrorChecking": true,
+  "disableSources": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": false,
+  "hideGenerator": false
+}

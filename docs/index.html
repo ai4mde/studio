@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Documentation</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 900px;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #94a3b8;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: 0.2s;
+      border: 1px solid #334155;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #60a5fa;
+    }
+
+    .title {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: #f8fafc;
+    }
+
+    .desc {
+      font-size: 0.9rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Project Documentation</h1>
+    <p>Unified documentation portal for backend, frontend, and guides.</p>
+
+    <div class="grid">
+
+      <a class="card" href="./backend/build/html/index.html">
+        <div class="title">Backend (Python / Django)</div>
+        <div class="desc">Sphinx-generated API and architecture docs</div>
+      </a>
+
+      <a class="card" href="./frontend/index.html">
+        <div class="title">Frontend (TypeScript / React)</div>
+        <div class="desc">TypeDoc-generated API reference</div>
+      </a>
+
+      <a class="card" href="./guides/build/html/index.html">
+        <div class="title">Guides</div>
+        <div class="desc">Markdown-based manuals and tutorials</div>
+      </a>
+
+    </div>
+  </div>
+</body>
+</html>
