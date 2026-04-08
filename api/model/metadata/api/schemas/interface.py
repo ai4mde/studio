@@ -36,11 +36,17 @@ class ExportInterface(ModelSchema):
 
 class ImportInterface(Schema):
     id: str
-    system: str
     name: str
-    description: Optional[str] = None
+    description: str
     actor: str
+    system: str
     data: dict
 
 
-__all__ = ["ReadInterface", "CreateInterface", "UpdateInterface", "DeleteInterface", "ExportInterface", "ImportInterface"]
+__all__ = [
+    "ReadInterface",
+    "CreateInterface",
+    "UpdateInterface",
+    "DeleteInterface",
+    "ExportInterface",
+]

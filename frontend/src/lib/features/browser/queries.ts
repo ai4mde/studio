@@ -8,6 +8,12 @@ export type SystemOut = {
     project?: string;
 };
 
+type ProjectOut = {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 export const useSystems = (projectId?: string) =>
     useQuery<SystemOut[]>({
         queryKey: ["systems", `${projectId}`],
@@ -31,6 +37,16 @@ export const useSystem = (systemId?: string) =>
                 .data;
         },
         enabled: !!systemId,
+    });
+
+export const useProject = (projectId? : string) => 
+    useQuery<ProjectOut>({
+        queryKey: ["project", `${projectId}`],
+        queryFn: async () => {
+            return (await authAxios.get(`/v1/metadata/projects/${projectId}`))
+                .data;
+        },
+        enabled: !!projectId,
     });
 
 export type InterfaceOut = {

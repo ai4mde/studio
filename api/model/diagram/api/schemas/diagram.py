@@ -146,12 +146,12 @@ class ExportDiagram(ModelSchema):
 
 class ImportDiagram(Schema):
     id: str
-    type: DiagramType
     name: str
     description: Optional[str] = None
+    type: DiagramType
     system: str
-    nodes: list[ImportNode]
-    edges: list[ImportEdge]
+    nodes: List[ImportNode] = []
+    edges: List[ImportEdge] = []
 
 
 __all__ = [
@@ -161,5 +161,4 @@ __all__ = [
     "UpdateDiagram",
     "FullDiagram",
     "ExportDiagram",
-    "ImportDiagram",
 ]
