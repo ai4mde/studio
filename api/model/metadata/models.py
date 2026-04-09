@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models, transaction
 
+# TODO ADD IMPORT LOGIC TO REFACTORED MODELS
 
 class ImportMixin(models.Model):
     class Meta:

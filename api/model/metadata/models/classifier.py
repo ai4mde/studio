@@ -9,6 +9,7 @@ from .types import (
     ActivityScope,
     AttributeType,
 )
+from .fields import TypedForeignKey
 
 
 class ClassifierManager(models.Manager['Classifier']):
@@ -45,25 +46,6 @@ class ClassifierManager(models.Manager['Classifier']):
         classifier.validate_completeness()
         return classifier
 
-    @transaction.atomic
-    def add_extensions(
-        self,
-        extension_data: dict[type["ClassifierExtensionBase"], dict | list[dict]],
-    ) -> None:
-        """
-            Add extensions to an existing classifier.
-        """
-        for model, data in extension_data.items():
-            if isinstance(data, list):
-                if not model.allows_multiple():
-                    raise ValidationError(
-                        f"{model.__name__} does not allow multiple instances, but a list was provided"
-                    )
-                for item in data:
-                    model.objects.create(classifier=self, **item)
-            else:
-                model.objects.create(classifier=self, **data)
-
 
 class Classifier(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -96,7 +78,6 @@ class Classifier(models.Model):
 
     REQUIRED_EXTENSIONS: dict[str, tuple[type["ClassifierExtensionBase"], ...]] = {}
 
-    # Just a copy, make sure to understand this to check if the logic checks out
     def validate_completeness(self) -> None:
         errors: dict[str, ValidationErrorMessageArg] = {}
         required = self.REQUIRED_EXTENSIONS.get(self.type, ())
@@ -104,18 +85,19 @@ class Classifier(models.Model):
         for model in required:
             accessor_name = model.get_classifier_accessor_name()
 
-            try:
+            if model.allows_multiple():
                 relation = getattr(self, accessor_name)
-            except model.DoesNotExist:
-                errors[accessor_name] = [
-                    f"{model.__name__} extension is required for classifier type '{self.type}'"
-                ]
-                continue
-
-            if hasattr(relation, "exists") and not relation.exists():
-                errors[accessor_name] = [
-                    f"At least one {model.__name__} extension is required for classifier type '{self.type}'"
-                ]
+                if not relation.exists():
+                    errors[accessor_name] = [
+                        f"At least one {model.__name__} extension is required for classifier type '{self.type}'"
+                    ]
+            else:
+                try:
+                    getattr(self, accessor_name)
+                except model.DoesNotExist:
+                    errors[accessor_name] = [
+                        f"{model.__name__} extension is required for classifier type '{self.type}'"
+                    ]
         
         if errors:
             raise ValidationError(errors)
@@ -131,6 +113,26 @@ class Classifier(models.Model):
     
     def __str__(self) -> str:
         return f"{self.type} in {self.project}"
+
+
+    @transaction.atomic
+    def add_extensions(
+        self,
+        extension_data: dict[type["ClassifierExtensionBase"], dict | list[dict]],
+    ) -> None:
+        """
+            Add extensions to an existing classifier.
+        """
+        for model, data in extension_data.items():
+            if isinstance(data, list):
+                if not model.allows_multiple():
+                    raise ValidationError(
+                        f"{model.__name__} does not allow multiple instances, but a list was provided"
+                    )
+                for item in data:
+                    model.objects.create(classifier=self, **item)
+            else:
+                model.objects.create(classifier=self, **data)
 
 
 class ClassifierExtensionBase(models.Model):
@@ -182,7 +184,7 @@ class ClassifierExtensionBase(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        self.clean()
+        self.full_clean()
         return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -242,7 +244,9 @@ class NamedElement(SingleClassifierExtensionBase):
         ClassifierType.ACTOR,
         ClassifierType.ACTION,
         ClassifierType.EVENT,
-        # TODO add component nodes when merged
+        ClassifierType.COMPONENT,
+        ClassifierType.CONTAINER,
+        ClassifierType.SYSTEM,
     )
 
 
@@ -289,43 +293,47 @@ class ClassAttribute(MultiClassifierExtensionBase):
             if self.enum is not None:
                 raise ValidationError("Only enum attributes can reference an enum classifier")
 
+
 # TODO Add classifierOperation what is this?
 # Also where is a derived attribute stored?
 
-# TODO add when component nodes are merged
-# class SystemBoundaryExtension(SingleClassifierExtensionBase):
-#     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SYSTEM_BOUNDARY,)
-#     system = models.ForeignKey(
-#         Classifier,
-#         on_delete=models.CASCADE,
-#         related_name="system_link",
-#         limit_choices_to={"type": ClassifierType.SYSTEM},
-#     )
+
+class SystemBoundaryExtension(SingleClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SYSTEM_BOUNDARY,)
+    system = TypedForeignKey( # type: ignore[call-arg]
+        Classifier,
+        on_delete=models.CASCADE,
+        related_name="boundaries",
+        limit_choices_to={"type": ClassifierType.SYSTEM},
+        allowed_types=(ClassifierType.SYSTEM,),
+    )
 
 
 class ActionExtension(SingleClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ACTION,)
     is_automatic = models.BooleanField(default=False)
-    customCode = models.TextField(blank=True, null=True)
+    custom_code = models.TextField(blank=True, null=True)
 
 
 class ObjectExtension(SingleClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.OBJECT,)
     state = models.CharField(max_length=255, blank=True, null=True)
-    object = models.ForeignKey(
+    object = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
         related_name="objects",
-        limit_choices_to={"type": ClassifierType.CLASS} # Does this work as I think it does? Check documentation
+        allowed_types=(ClassifierType.CLASS,),
+        limit_choices_to={"type": ClassifierType.CLASS}
     )
 
 
 class EventExtension(SingleClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.EVENT,)
-    signal = models.ForeignKey(
+    signal = TypedForeignKey( # type: ignore[call-arg] (Django doesn't understand the addition of allowed types to the field, but it works as intended)
         Classifier,
         on_delete=models.CASCADE,
         related_name="events",
+        allowed_types=(ClassifierType.SIGNAL,),
         limit_choices_to={"type": ClassifierType.SIGNAL}
     )
 
@@ -350,24 +358,49 @@ class FinalExtension(SingleClassifierExtensionBase):
 
 
 class SwimlaneExtension(SingleClassifierExtensionBase):
-    component = models.ForeignKey(
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SWIMLANE,)
+
+    component = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.SET_NULL,
         related_name="swimlanes",
-        # limit_choices_to={"type": ClassifierType.Component} # TODO REBASE TO DEVELOP!!!
+        allowed_types=(ClassifierType.COMPONENT,),
+        limit_choices_to={"type": ClassifierType.COMPONENT},
         null=True,
         blank=True,
     )
-    actor = models.ForeignKey(
+    actor = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
+        related_name="swimlanes",
+        allowed_types=(ClassifierType.ACTOR,),
+        limit_choices_to={"type": ClassifierType.ACTOR},
         null=True,
         blank=True,
     )
-    parent = models.ForeignKey(
+    parent = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
-        on_delete=models.SET_NULL, # TODO Check this further perhaps some custom logic
+        on_delete=models.PROTECT, 
+        related_name="child_swimlanes",
+        allowed_types=(ClassifierType.SWIMLANE,),
+        limit_choices_to={"type": ClassifierType.SWIMLANE},
         blank=True,
         null=True,
-        limit_choices_to={"type": ClassifierType.SWIMLANE},
     )
+
+    @property
+    def is_leaf(self) -> bool:
+        return not self.child_swimlanes.exists()
+
+    def clean(self):
+        super().clean()
+
+        if self.is_leaf:
+            if self.actor is None:
+                raise ValidationError("Leaf swimlanes must have an actor")
+            if self.component is not None:
+                raise ValidationError("Leaf swimlanes cannot have a component")
+        else:
+            if self.actor is not None:
+                raise ValidationError("Non-leaf swimlanes cannot have an actor")
+

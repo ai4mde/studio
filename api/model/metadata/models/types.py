@@ -56,10 +56,10 @@ class ClassifierType(models.TextChoices):
     EVENT = "event", "Event"
 
 
-    # Component/C4
-    # SYSTEM = "system", "System"
-    # CONTAINER = "container", "Container"
-    # COMPONENT = "component", "Component"
+    # Component
+    SYSTEM = "system", "System"
+    CONTAINER = "container", "Container"
+    COMPONENT = "component", "Component"
 
 
 class ActivityScope(models.TextChoices):
