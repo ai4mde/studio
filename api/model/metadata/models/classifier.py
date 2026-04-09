@@ -9,7 +9,7 @@ from .types import (
     ActivityScope,
     AttributeType,
 )
-from .fields import TypedForeignKey
+from .fields import PythonCodeField, TypedForeignKey
 
 
 class ClassifierManager(models.Manager['Classifier']):
@@ -272,6 +272,7 @@ class ClassAttribute(MultiClassifierExtensionBase):
     attribute_type = models.CharField(max_length=32, choices=AttributeType.choices)
     derived=models.BooleanField(default=False)
     description = models.CharField(max_length=255, blank=True, null=True)
+    body = PythonCodeField(blank=True, null=True)
 
     enum = models.ForeignKey(
         Classifier,
@@ -294,8 +295,11 @@ class ClassAttribute(MultiClassifierExtensionBase):
                 raise ValidationError("Only enum attributes can reference an enum classifier")
 
 
-# TODO Add classifierOperation what is this?
-# Also where is a derived attribute stored?
+class ClassMethod(MultiClassifierExtensionBase):
+    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.CLASS,)
+
+    name = models.CharField(max_length=255)
+    body = PythonCodeField(blank=True, null=True)
 
 
 class SystemBoundaryExtension(SingleClassifierExtensionBase):
@@ -312,7 +316,7 @@ class SystemBoundaryExtension(SingleClassifierExtensionBase):
 class ActionExtension(SingleClassifierExtensionBase):
     ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ACTION,)
     is_automatic = models.BooleanField(default=False)
-    custom_code = models.TextField(blank=True, null=True)
+    custom_code = PythonCodeField(blank=True, null=True)
 
 
 class ObjectExtension(SingleClassifierExtensionBase):

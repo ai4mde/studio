@@ -1,3 +1,4 @@
+import ast
 from django.db import models
 from django.core.exceptions import ValidationError
 
@@ -31,5 +32,22 @@ class TypedForeignKey(models.ForeignKey):
             raise ValidationError(
                 f"{self.name} must reference type(s) {self.allowed_types}, got '{value_type}'"
             )
+
+        return value
+
+
+class PythonCodeField(models.TextField):
+
+    def clean(self, value, model_instance):
+        value = super().clean(value, model_instance)
+
+        if not value:
+            return value
+
+        # Check syntax of the provided Python code
+        try:
+            ast.parse(value)
+        except SyntaxError as e:
+            raise ValidationError(f"Invalid Python code: {e}")
 
         return value
