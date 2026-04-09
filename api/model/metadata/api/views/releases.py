@@ -1,26 +1,22 @@
 from typing import List, Optional, Any, Dict
 
-from metadata.api.schemas import ReadRelease, UpdateRelease
+from django.shortcuts import get_object_or_404
+
+from metadata.api.schemas import ReadRelease, ImportRelease, ImportReleaseSystem, ExportProject, CreateRelease, ExportRelease
 from metadata.api.views.utils.releases import serialize_interfaces, serialize_diagrams, load_interfaces, load_diagrams
-from metadata.models import Release, System
+from metadata.models import Release, Project
 from ninja import Router, Schema
 import json
 
 releases = Router()
 
-class ImportReleaseBody(Schema):
-    diagrams: List[Dict[str, Any]]
-    interfaces: List[Dict[str, Any]]
-    useAuthentication: Optional[bool] = None
-    release_notes: Optional[List[str]] = None
 
-
-@releases.get("/system/{uuid:system_id}/", response=List[ReadRelease])
-def list_releases(request, system_id):
-    system = System.objects.get(id=system_id)
-    if not system:
-        return 404, "System not found"
-    return Release.objects.filter(system=system).order_by('created_at')
+@releases.get("/project/{uuid:project_id}/", response=List[ReadRelease])
+def list_releases(request, project_id):
+    project = Project.objects.get(id=project_id)
+    if not project:
+        return 404, "Project not found"
+    return Release.objects.filter(project=project).order_by('created_at')
 
 
 @releases.get("/{uuid:release_id}", response=ReadRelease)
@@ -32,86 +28,95 @@ def read_release(request, release_id):
 
 
 @releases.post("/", response=ReadRelease)
-def create_release(request, system_id: str, name: str, release_notes: Optional[str] = None):
-    system = System.objects.get(id=system_id)
-    if not name:
-        return 422
-    if not system:
-        return 404, "System not found"
-    
-    serialized_interfaces = serialize_interfaces(system=system)
-    serialized_diagrams = serialize_diagrams(system=system)
-    
+def create_release(request, payload: CreateRelease):
+    project = get_object_or_404(Project, id=payload.project)
+    project_schema = ExportProject.model_validate(project)
+
     return Release.objects.create(
-        name=name,
-        project=system.project,
-        system=system,
-        diagrams=serialized_diagrams,
-        metadata={},
-        release_notes=json.loads(release_notes or ""),
-        interfaces=serialized_interfaces,
+        name=payload.name,
+        project=project,
+        project_data=project_schema.model_dump(mode="json"),
+        release_notes=payload.release_notes,
     )
 
 
 @releases.post("/{uuid:release_id}/load/")
-def load_release(request, release_id, system_id: str | None = None):
-    release = Release.objects.filter(id=release_id).first()
-    if not release:
-        return 404, "Release not found"
+def load_release(request, release_id):
+    release = get_object_or_404(Release, id=release_id)
     
-    target_system = (
-        System.objects.filter(id=system_id).first()
-        if system_id
-        else release.system
-    )
-    if not target_system:
-        return 404, "System not found"
-    
-    if not load_diagrams(system=target_system, release=release):
+    if not release.project_data:
+        return 404, "Release does not contain project data"
+
+    try:
+        Project.import_from_json(release.project_data)
+    except Exception as e:
+        return 422, f"Failed to import project data: {e}"
+    return 200, "Release loaded successfully"
+
+
+@releases.post("/import/{uuid:project_id}")
+def import_release(request, project_id: str, payload: ImportRelease):
+    if not payload.name:
         return 422
-    
-    if not load_interfaces(system=target_system, release=release):
-        return 422
-    
-    return 200
-    
-    
-@releases.post("/import", response=ReadRelease)
-def import_release(request, system_id: str, name: str, payload: ImportReleaseBody):
-    system = System.objects.filter(id=system_id).first()
-    if not system:
-        return 404, "System not found"
-    if not name:
-        return 422, "Name is required"
-    
-    release = Release.objects.create(
-        name=name,
-        project=system.project,
-        system=system,
-        diagrams=payload.diagrams,
-        metadata={},
+
+    if payload.project != project_id:
+        return 422, "Project ID in payload does not match URL"
+
+    Release.objects.create(
+        name=payload.name,
+        project_id=project_id,
+        project_data=payload.project_data.dict(),
         release_notes=payload.release_notes or [],
-        interfaces=payload.interfaces,
     )
+
+    return 200, "Release imported successfully"
+
+class ImportSystemsSuccess(Schema):
+    detail: str
+
+class ErrorResponse(Schema):
+    detail: str
+
+@releases.post(
+    "/import_systems/{uuid:project_id}/",
+    response={200: ImportSystemsSuccess, 422: ErrorResponse}
+)
+def import_systems(request, project_id: str, payload: ImportReleaseSystem):
+    project = get_object_or_404(Project, id=project_id)
+    try:
+        project.import_systems_from_json(
+            [system.model_dump() for system in payload.systems] # Make pylance happy
+        )
+    except Exception as e:
+        return 422, {"detail": f"Failed to import systems: {e}"}
+
+    project_schema = ExportProject.model_validate(project)
+
+    Release.objects.create(
+        name=payload.name,
+        project_id=project_id,
+        project_data=project_schema.model_dump(mode="json"),
+        release_notes=payload.release_notes or [],
+    )
+    return 200, {"detail": "Systems imported successfully"}
+
+
+@releases.get("/{uuid:release_id}/export/", response=ExportRelease)
+def export_release(request, release_id):
+    release = get_object_or_404(Release, id=release_id)
+    if not release.project_data:
+        return 404, "Release does not contain project data"
+    
     return release
 
-
-
-@releases.put("/{uuid:release_id}/", response=ReadRelease)
-def update_release(request, release_id, payload: UpdateRelease):
-    print(release_id)
-    print(payload)
-    return None
-
-
-@releases.delete("/{uuid:release_id}")
+@releases.delete("/{uuid:release_id}/")
 def delete_release(request, release_id):
     try:
         release = Release.objects.get(id=release_id)
         release.delete()
     except Exception as e:
-        raise Exception("Failed to delete release, error: " + e)
-    return True
+        return 422, f"Failed to delete release: {e}"
+    return 200, "Release deleted successfully"
     
 
 __all__ = ["releases"]

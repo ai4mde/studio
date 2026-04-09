@@ -117,3 +117,98 @@ See this example of how to create a loan approval decision flow.
 </p>
 
 > ☝️ Node imports are not yet available in Activity diagrams. Because of this, there is no distinction between deletion and removal for nodes and edges, you only have the <b>Delete</b> option.
+
+
+<h2 align="center">
+  <b>Component Diagrams</b>
+</h2>
+
+<h3>Nodes</h3>
+
+The following node types are available:
+<ul>
+  <li><b>System</b></li>
+  <li><b>Container</b></li> 
+  <li><b>Component</b></li>
+</ul>
+In order to add further internal nodes for a Component Diagram node, right-click it and enter the <b>Edit</b> menu. Here, you can add, edit or remove internals. Internal elements have a user-defined name, and a type. The type can be any Class from the Class Diagrams in your current project, or any System, Container or Component from the Component Diagrams in your project. To further model the way in which these internals are connected to each other inside the parent node, you should create another Component Diagram with the name of the parent node and define the internal nodes and their connections there. See the example below.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/parent.png" style="height: 220px; width: auto;">
+    <img src="./img/internals.png" style="height: 220px; width: auto;">
+  </span>
+</p>
+
+<h3>Edges</h3>
+<p>You can create edges of the types <b>Interface</b>, and <b>Dependency</b>. In the case of <b>Interface</b> connections, you have to select Interface nodes from the Class Diagrams in your project to serve as <b>Required</b>, and <b>Provider</b>. The two can be the same or different Interface nodes.</p>
+
+</br>
+
+<h1 align="center">
+  <b>Project and System Versioning</b>
+</h1>
+
+<h3>The Versions Tab</h3>
+
+You can save snapshots of your project under the <b>Versions</b> tab. This is a place to store and manage checkpoints in your project's history.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version1.png" style="height: 330px; width: auto;">
+  </span>
+</p>
+
+For any existing version, you can read its <b>Release Notes</b>, <b>Download</b> it as a JSON file, <b>Load</b> its full state to your project or <b>Delete</b> it.
+
+To create a new version, click on the <b>New version</b> button. Select the <b>From project</b> option, choose a name, and, optionally, write some notes about the version (press <b>Add</b> to add individual notes). Then, press <b>Create version</b>. You will see a new row in the list of available versions.
+
+> ☝️ Caution: Creating a new version deletes your existing prototypes.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version2.png" style="height: 400px; width: auto;">
+  </span>
+</p>
+
+<h3>The Exports Tab</h3>
+
+You can use this tab to export projects or systems. You have two options:
+<ol>
+  <li><b>Export full project</b>: includes everything in your project.</li>
+  <li><b>Export selected systems</b>: allows you to choose one or more systems from your project to export.</li>
+</ol>
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version3.png" style="height: 450px; width: auto;">
+  </span>
+</p>
+
+By pressing the <b>Export</b> button, you will download your selection in the form of a JSON file. You can share the file with your teammates, and they can use it to import your project/system(s) in their AI4MDE instance by following the instructions in the next section.
+
+<h3>Importing from a JSON File</h3>
+
+To import an entirely new project, go to the <b>Projects</b> page, and use the <b>Upload</b> button. Provide the JSON file of the project (obtained from the <b>Export</b> tab, with the <b>Export full project</b> option), and press <b>Upload</b>.
+
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version6.png" style="height: 200px; width: auto;">
+  </span>
+</p>
+
+To import a version or system from a JSON file into an existing project, go to that project's <b>Versions</b> tab and press <b>New version</b>. You can make use of the following options:
+<ul>
+  <li><b>From file</b>: use this when importing from a JSON file containing a version of a project that already exists in your AI4MDE instance, such as one obtained by you or your colleague from pressing the <b>Download</b> button next to a version in the <b>Versions</b> tab. Any existing systems in your project will be overwritten with the ones in this version.</li>
+  <li><b>Add systems</b>: use this when importing from a JSON file containing one or several systems, such as one obtained from the <b>Export</b> tab, with the <b>Export selected systems</b> option. When using this option, your current systems will be kept in your project, and the systems from the JSON file will appear as new systems alongside them.</li>
+</ul>
+
+In both cases, you will need to choose a version name, and upload the JSON file in question, then press <b>Create version</b>.
+
+<p align="center">
+  <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
+    <img src="./img/version4.png" style="height: 500px;">
+    <img src="./img/version5.png" style="height: 500px;">
+  </span>
+</p>
