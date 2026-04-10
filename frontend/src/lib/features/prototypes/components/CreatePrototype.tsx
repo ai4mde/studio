@@ -171,9 +171,7 @@ export const CreatePrototype: React.FC = () => {
             <Modal open>
                 <ModalDialog className="flex flex-row items-center gap-2">
                     <CircularProgress className="animate-spin" />
-                    <Typography>
-                        <h1 className="text-lg">Generating...</h1>
-                    </Typography>
+                    <span className="text-lg">Generating...</span>
                 </ModalDialog>
             </Modal>
         );

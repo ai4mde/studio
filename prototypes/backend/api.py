@@ -78,6 +78,90 @@ def stop_prototypes():
     return f"Stopped all running prototypes", 200
 
 
+@app.route('/overwrite_views', methods=['POST'])
+def overwrite_views():
+    """
+    Called by the API agent's generate_node after LLM-based view generation.
+    Writes the LLM-produced views.py directly into the generated prototype directory,
+    replacing whatever the Jinja2 template produced.
+    """
+    data = request.json
+    system_id = data.get('system_id', '').strip()
+    project_name = data.get('project_name', '').strip()
+    application_name = data.get('application_name', '').strip()
+    views_content = data.get('views_content', '')
+
+    if not all([system_id, project_name, application_name, views_content]):
+        abort(400)
+
+    views_path = os.path.join(
+        ROOT_DIR, system_id, project_name, application_name, "views.py"
+    )
+
+    if not os.path.exists(os.path.dirname(views_path)):
+        abort(404)
+
+    try:
+        with open(views_path, 'w') as fh:
+            fh.write(views_content)
+    except OSError as exc:
+        abort(500)
+
+    return {"overwritten": views_path}, 200
+
+
+@app.route('/overwrite_base_template', methods=['POST'])
+def overwrite_base_template():
+    """
+    Called by the API agent's generate_node after UI Designer builds Tailwind base.html.
+    Writes the generated base.html and style CSS into the prototype directory.
+    """
+    data = request.json
+    system_id = data.get('system_id', '').strip()
+    project_name = data.get('project_name', '').strip()
+    application_name = data.get('application_name', '').strip()
+    base_html = data.get('base_html', '')
+    style_css = data.get('style_css', '')
+
+    if not all([system_id, project_name, application_name]):
+        abort(400)
+
+    base_html_path = os.path.join(
+        ROOT_DIR, system_id, project_name, application_name,
+        "templates", f"{application_name}_base.html"
+    )
+    css_path = os.path.join(
+        ROOT_DIR, system_id, project_name, application_name,
+        "static", application_name, f"{application_name}_style.css"
+    )
+
+    overwritten = []
+
+    if base_html:
+        base_dir = os.path.dirname(base_html_path)
+        if not os.path.exists(base_dir):
+            abort(404)
+        try:
+            with open(base_html_path, 'w') as fh:
+                fh.write(base_html)
+            overwritten.append(base_html_path)
+        except OSError:
+            abort(500)
+
+    if style_css:
+        css_dir = os.path.dirname(css_path)
+        if not os.path.exists(css_dir):
+            abort(404)
+        try:
+            with open(css_path, 'w') as fh:
+                fh.write(style_css)
+            overwritten.append(css_path)
+        except OSError:
+            abort(500)
+
+    return {"overwritten": overwritten}, 200
+
+
 @app.route('/active_prototype', methods=['GET'])
 def get_active_prototype():
     with lock:
@@ -140,4 +224,4 @@ def remove_prototype():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=os.environ.get('PORT', 8010), debug=False)
+    app.run(host='0.0.0.0', port=os.environ.get('PORT', 8010), debug=False)
