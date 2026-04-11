@@ -14,7 +14,7 @@ class ScreenInfo(TypedDict):
 
 class UIDesign(TypedDict):
     """Output of UI Designer Agent."""
-    ui_ir: dict               # {apps: [{actor_id, pages: [{name, components}]}], routing: {auth_role_map}}
+    ui_ir: dict               # {apps: [{actor_id, pages: [{name, ast: [Node]}]}], routing: {auth_role_map}}
 
 
 class DiagramSummary(TypedDict):
@@ -38,7 +38,7 @@ class PipelineState(TypedDict):
     parser_dsl: Optional[dict]        # canonical DSL: {domain, actors, entities, actions, workflow}
 
     # ── Page synthesis output (deterministic, pre-LLM) ───────────────────────
-    page_ir: Optional[dict]           # ui_ir format: {apps: [{actor_id, pages: [{name, components}]}], routing}
+    page_ir: Optional[dict]           # {apps: [{actor_id, pages: [{name, action_ids: [str]}]}], routing}
 
     # ── UI Designer Agent output ─────────────────────────────────────────────
     ui_design: Optional[UIDesign]

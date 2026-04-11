@@ -594,54 +594,26 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
     entity_list = parser_dsl.get("entities", []) or []
     entity_by_id = {e["id"]: e for e in entity_list}
 
-    def _page_name(actor_id: str, page_num: int) -> str:
-        safe = actor_id.lower().replace("-", "_").replace(" ", "_")
+    def _page_name(actor_name: str, page_num: int) -> str:
+        safe = actor_name.lower().replace("-", "_").replace(" ", "_")
         raw = f"{safe}_page" if page_num == 0 else f"{safe}_page_{page_num + 1}"
         return "".join(w.capitalize() for w in raw.split("_"))
-
-    def _suggest_components(action_ids: list[str]) -> list[dict]:
-        """Return one ComponentSpec per action using keyword-based type inference."""
-        comps: list[dict] = []
-        for aid in action_ids:
-            act = manual[aid]
-            words = set(act["name"].lower().split())
-            ent_ids: list[str] = act.get("input", []) or []
-            ent_id = ent_ids[0] if ent_ids else None
-            ent = entity_by_id.get(ent_id) if ent_id else None
-
-            if words & _CREATE_KEYWORDS:
-                comp_type = "form"
-            elif words & _DELETE_KEYWORDS:
-                comp_type = "delete_confirm"
-            elif words & _UPDATE_KEYWORDS:
-                comp_type = "detail"
-            elif ent_id:
-                comp_type = "form"
-            else:
-                comp_type = "list"
-
-            comps.append({
-                "type":        comp_type,
-                "bind_action": aid,
-                "entity_id":   ent_id,
-                "fields":      ent.get("fields", []) if ent else [],
-            })
-        return comps
 
     # Group clusters by actor, preserving ordering
     apps_by_actor: dict[str, list] = {}
     actor_page_counter: dict[str, int] = {}
     for cluster in final_clusters:
         actor_id = manual[cluster[0]].get("actor", "")
+        actor_name = actors.get(actor_id, {}).get("name", actor_id)
         page_num = actor_page_counter.get(actor_id, 0)
         actor_page_counter[actor_id] = page_num + 1
         apps_by_actor.setdefault(actor_id, []).append({
-            "name":       _page_name(actor_id, page_num),
-            "components": _suggest_components(cluster),
+            "name":       _page_name(actor_name, page_num),
+            "action_ids": cluster,
         })
 
     apps = [
-        {"actor_id": actor_id, "pages": pages}
+        {"actor_id": actor_id, "actor_name": actors.get(actor_id, {}).get("name", actor_id), "pages": pages}
         for actor_id, pages in apps_by_actor.items()
     ]
     routing = {"auth_role_map": {a: f"/{a}" for a in apps_by_actor}}
@@ -676,6 +648,11 @@ def ui_designer_node(state: PipelineState) -> dict:
         ui_design = _parse_json_response(raw)
         # Default ui_ir to the deterministic page_ir when LLM omits it
         ui_design.setdefault("ui_ir", page_ir)
+        # Merge actor_name from page_ir into the LLM ui_ir (LLM may not emit it)
+        page_ir_actor_names = {app["actor_id"]: app.get("actor_name") for app in page_ir.get("apps", [])}
+        for app in ui_design["ui_ir"].get("apps", []):
+            if not app.get("actor_name"):
+                app["actor_name"] = page_ir_actor_names.get(app["actor_id"])
         logger.info("ui_designer_node: %d ui_ir apps",
                     len(ui_design.get("ui_ir", {}).get("apps", [])))
         return {"page_ir": page_ir, "ui_design": ui_design, "error": None}

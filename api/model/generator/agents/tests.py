@@ -562,8 +562,15 @@ _VALID_UI_DESIGN = {
                 "pages": [
                     {
                         "name": "NurseDashboard",
-                        "components": [
-                            {"type": "form", "bind_action": "act1", "fields": ["name"], "submit_url": "/action/act1"},
+                        "ast": [
+                            {
+                                "tag": "form",
+                                "htmx": {"post": "/action/act1", "target": "#result"},
+                                "children": [
+                                    {"tag": "input", "attrs": {"type": "text", "name": "name"}},
+                                    {"tag": "button", "attrs": {"type": "submit"}, "text": "Submit"},
+                                ],
+                            }
                         ],
                     }
                 ],
@@ -618,7 +625,7 @@ class UIDesignerNodeTests(unittest.TestCase):
 
     @patch("generator.agents.nodes.call_openai")
     def test_ui_ir_present_when_llm_returns_it(self, mock_llm):
-        """When the LLM returns ui_ir, it must appear in ui_design with apps/routing format."""
+        """When the LLM returns ui_ir, it must appear in ui_design with apps/routing/ast format."""
         mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
         state = _minimal_state(screens=[_screen()])
         result = ui_designer_node(state)
@@ -627,8 +634,11 @@ class UIDesignerNodeTests(unittest.TestCase):
         self.assertIn("apps", ui_ir)
         self.assertIn("routing", ui_ir)
         self.assertEqual(ui_ir["apps"][0]["actor_id"], "a1")
-        self.assertEqual(ui_ir["apps"][0]["pages"][0]["components"][0]["type"], "form")
-        self.assertEqual(ui_ir["apps"][0]["pages"][0]["components"][0]["bind_action"], "act1")
+        page = ui_ir["apps"][0]["pages"][0]
+        self.assertIn("ast", page)
+        self.assertIsInstance(page["ast"], list)
+        self.assertGreater(len(page["ast"]), 0)
+        self.assertIn("tag", page["ast"][0])
 
     @patch("generator.agents.nodes.call_openai")
     def test_ui_ir_defaults_when_llm_omits_it(self, mock_llm):
@@ -1046,20 +1056,20 @@ class SynthesisePagesTests(unittest.TestCase):
             self.assertIn("pages", app)
             for page in app["pages"]:
                 self.assertIn("name", page)
-                self.assertIn("components", page)
+                self.assertIn("action_ids", page)
 
     def test_actors_never_mixed_on_same_page(self):
         result = _synthesise_pages(_LOAN_DSL)
         action_actor = {a["id"]: a.get("actor") for a in _LOAN_DSL["actions"]}
         for app in result["apps"]:
             for page in app["pages"]:
-                for comp in page["components"]:
-                    self.assertEqual(action_actor.get(comp["bind_action"]), app["actor_id"])
+                for aid in page["action_ids"]:
+                    self.assertEqual(action_actor.get(aid), app["actor_id"])
 
     def test_auto_actions_excluded_from_pages(self):
         result = _synthesise_pages(_LOAN_DSL)
-        all_binds = [c["bind_action"] for app in result["apps"] for page in app["pages"] for c in page["components"]]
-        self.assertNotIn("lact3", all_binds, "Auto action must not appear on any page")
+        all_ids = [aid for app in result["apps"] for page in app["pages"] for aid in page["action_ids"]]
+        self.assertNotIn("lact3", all_ids, "Auto action must not appear on any page")
 
     def test_actor_id_field_matches_dsl_actor_ids(self):
         result = _synthesise_pages(_LOAN_DSL)
@@ -1070,25 +1080,25 @@ class SynthesisePagesTests(unittest.TestCase):
     def test_applicant_actions_grouped_together(self):
         """lact1 and lact2 share the same actor and are adjacent — expect them on the same page."""
         result = _synthesise_pages(_LOAN_DSL)
-        applicant_binds = {
-            c["bind_action"]
+        applicant_ids = {
+            aid
             for app in result["apps"] if app["actor_id"] == "applicant"
             for page in app["pages"]
-            for c in page["components"]
+            for aid in page["action_ids"]
         }
-        self.assertIn("lact1", applicant_binds)
-        self.assertIn("lact2", applicant_binds)
+        self.assertIn("lact1", applicant_ids)
+        self.assertIn("lact2", applicant_ids)
 
     def test_officer_actions_grouped_together(self):
         result = _synthesise_pages(_LOAN_DSL)
-        officer_binds = {
-            c["bind_action"]
+        officer_ids = {
+            aid
             for app in result["apps"] if app["actor_id"] == "officer"
             for page in app["pages"]
-            for c in page["components"]
+            for aid in page["action_ids"]
         }
-        self.assertIn("lact4", officer_binds)
-        self.assertIn("lact5", officer_binds)
+        self.assertIn("lact4", officer_ids)
+        self.assertIn("lact5", officer_ids)
 
     def test_page_name_is_pascal_case(self):
         result = _synthesise_pages(_LOAN_DSL)
@@ -1107,7 +1117,7 @@ class SynthesisePagesTests(unittest.TestCase):
         result = _synthesise_pages(dsl)
         self.assertEqual(len(result["apps"]), 1)
         self.assertEqual(len(result["apps"][0]["pages"]), 1)
-        self.assertEqual(result["apps"][0]["pages"][0]["components"][0]["bind_action"], "act1")
+        self.assertEqual(result["apps"][0]["pages"][0]["action_ids"][0], "act1")
 
     def test_deterministic_same_input_same_output(self):
         pages_a = _synthesise_pages(_LOAN_DSL)
@@ -1128,7 +1138,7 @@ class SynthesisePagesTests(unittest.TestCase):
         result = _synthesise_pages(dsl)
         for app in result["apps"]:
             for page in app["pages"]:
-                self.assertLessEqual(len(page["components"]), 5, f"Page too large: {page}")
+                self.assertLessEqual(len(page["action_ids"]), 5, f"Page too large: {page}")
 
     def test_routing_contains_all_actors_with_pages(self):
         result = _synthesise_pages(_LOAN_DSL)
@@ -1149,9 +1159,9 @@ class SynthesisePagesTests(unittest.TestCase):
         self.assertIsInstance(result["page_ir"], dict)
         self.assertIn("apps", result["page_ir"])
         # Auto action lact3 must be absent
-        all_binds = [c["bind_action"] for app in result["page_ir"]["apps"]
-                     for page in app["pages"] for c in page["components"]]
-        self.assertNotIn("lact3", all_binds)
+        all_ids = [aid for app in result["page_ir"]["apps"]
+                   for page in app["pages"] for aid in page["action_ids"]]
+        self.assertNotIn("lact3", all_ids)
 
     def test_ui_designer_node_page_ir_in_prompt(self):
         """PAGE IR must appear in the prompt sent to the LLM."""
@@ -1210,7 +1220,7 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
         self.assertGreater(len(page_ir["apps"]), 0)
 
     def test_page_ir_entries_have_required_keys(self):
-        """Every app entry must have actor_id + pages; every page must have name + components."""
+        """Every app entry must have actor_id + pages; every page must have name + action_ids."""
         state = self._build_state()
         with patch("generator.agents.nodes.call_openai") as mock_llm:
             mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
@@ -1220,22 +1230,20 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
             self.assertIn("pages", app, msg=f"App missing 'pages': {app}")
             for page in app["pages"]:
                 self.assertIn("name", page)
-                self.assertIn("components", page)
+                self.assertIn("action_ids", page)
 
-    def test_page_ir_components_structure(self):
-        """Each component must have type, bind_action, entity_id, fields."""
+    def test_page_ir_action_ids_structure(self):
+        """Each page must have a non-empty action_ids list of strings."""
         state = self._build_state()
         with patch("generator.agents.nodes.call_openai") as mock_llm:
             mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
             result = ui_designer_node(state)
         for app in result["page_ir"]["apps"]:
             for page in app["pages"]:
-                self.assertGreater(len(page["components"]), 0, msg=f"Page has no components: {page}")
-                for comp in page["components"]:
-                    for key in ("type", "bind_action", "entity_id", "fields"):
-                        self.assertIn(key, comp, msg=f"Component missing key '{key}': {comp}")
-                    self.assertIn(comp["type"], ("form", "detail", "delete_confirm", "list"))
-                    self.assertIsInstance(comp["fields"], list)
+                self.assertIn("action_ids", page)
+                self.assertGreater(len(page["action_ids"]), 0, msg=f"Page has no action_ids: {page}")
+                for aid in page["action_ids"]:
+                    self.assertIsInstance(aid, str)
 
     # ── actor isolation ───────────────────────────────────────────────────────
 
@@ -1246,9 +1254,9 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
             mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
             result = ui_designer_node(state)
         for app in result["page_ir"]["apps"]:
-            bind_actions = {c["bind_action"] for page in app["pages"] for c in page["components"]}
-            has_applicant = "lact1" in bind_actions
-            has_officer = bool(bind_actions & {"lact2", "lact3"})
+            all_ids = {aid for page in app["pages"] for aid in page["action_ids"]}
+            has_applicant = "lact1" in all_ids
+            has_officer = bool(all_ids & {"lact2", "lact3"})
             self.assertFalse(
                 has_applicant and has_officer,
                 msg=f"Applicant and Loan Officer actions mixed in app: {app}",
@@ -1276,10 +1284,10 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
         with patch("generator.agents.nodes.call_openai") as mock_llm:
             mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
             result = ui_designer_node(state)
-        all_binds = [c["bind_action"] for app in result["page_ir"]["apps"]
-                     for page in app["pages"] for c in page["components"]]
-        self.assertNotIn("lact4", all_binds, "Auto action lact4 must not appear in page_ir")
-        self.assertNotIn("lact5", all_binds, "Auto action lact5 must not appear in page_ir")
+        all_ids = [aid for app in result["page_ir"]["apps"]
+                   for page in app["pages"] for aid in page["action_ids"]]
+        self.assertNotIn("lact4", all_ids, "Auto action lact4 must not appear in page_ir")
+        self.assertNotIn("lact5", all_ids, "Auto action lact5 must not appear in page_ir")
 
     def test_page_ir_actions_cover_all_manual_actions(self):
         """All three manual actions (lact1, lact2, lact3) must appear somewhere in page_ir."""
@@ -1287,10 +1295,10 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
         with patch("generator.agents.nodes.call_openai") as mock_llm:
             mock_llm.return_value = json.dumps(_VALID_UI_DESIGN)
             result = ui_designer_node(state)
-        all_binds = {c["bind_action"] for app in result["page_ir"]["apps"]
-                     for page in app["pages"] for c in page["components"]}
+        all_ids = {aid for app in result["page_ir"]["apps"]
+                   for page in app["pages"] for aid in page["action_ids"]}
         for manual_id in ("lact1", "lact2", "lact3"):
-            self.assertIn(manual_id, all_binds, msg=f"Manual action {manual_id} missing from page_ir")
+            self.assertIn(manual_id, all_ids, msg=f"Manual action {manual_id} missing from page_ir")
 
     # ── ui_design output ─────────────────────────────────────────────────────
 
