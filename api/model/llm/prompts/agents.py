@@ -40,9 +40,13 @@ AST NODE TYPES — use ONLY these four
 3. CONDITIONAL
    {{
      "if": "<Jinja2 expression>",        // e.g. "user.is_authenticated"
-     "children": [Node, ...]
+     "children": [Node, ...],           // the if-branch
+     "elif": [                          // optional — one object per elif branch
+       {{"condition": "<expression>", "children": [Node, ...]}}
+     ],
+     "else_children": [Node, ...]       // optional — the else branch
    }}
-   Renders as: {{% if <if> %}}<children>{{% endif %}}
+   Renders as: {{% if <if> %}}<children>{{% elif <condition> %}}<children>{{% else %}}<else_children>{{% endif %}}
 
 4. RAW (use sparingly — SVG, pre-built markup)
    {{

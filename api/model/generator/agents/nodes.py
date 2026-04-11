@@ -337,6 +337,23 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
         for c in classifiers if c["data"].get("type") == "actor"
     ]
 
+    # Also index by swimlane actorNode IDs (actions use these, not classifier IDs)
+    _swimlane_id_to_name: dict[str, str] = {}
+    for c in classifiers:
+        d = c.get("data", {})
+        if d.get("type") == "swimlanegroup":
+            for lane in d.get("swimlanes", []):
+                node_id = lane.get("actorNode")
+                name = lane.get("actorNodeName")
+                if node_id and name:
+                    _swimlane_id_to_name[node_id] = name
+    # Add swimlane actor nodes deduplicated by id
+    existing_ids = {a["id"] for a in actors}
+    for node_id, name in _swimlane_id_to_name.items():
+        if node_id not in existing_ids:
+            actors.append({"id": node_id, "name": name})
+            existing_ids.add(node_id)
+
     # entities (domain classes)
     entities = [
         {

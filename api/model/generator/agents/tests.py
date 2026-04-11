@@ -6,6 +6,7 @@ Covers:
   - _synthesise_pages     — deterministic page clustering algorithm
   - parser_node           — metadata → ScreenInfo list
   - ui_designer_node      — LLM output schema + key validation
+  - render_node / render_page — HTML emission for all AST node types
 
 All LLM calls are mocked so no real API keys are needed.
 """
@@ -25,6 +26,7 @@ from generator.agents.nodes import (
     parser_node,
     ui_designer_node,
 )
+from generator.agents.renderer import render_node, render_page
 from generator.agents.state import PipelineState, ScreenInfo
 
 
@@ -1333,4 +1335,127 @@ class ParserToUIDesignerIntegrationTests(unittest.TestCase):
         # Actor ids from _LOAN_METADATA — la1 owns lact1, la2 owns lact2/lact3
         self.assertIn("la1", prompt_arg)
         self.assertIn("la2", prompt_arg)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Renderer tests
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestRenderNode(unittest.TestCase):
+    # ── Element ──────────────────────────────────────────────────────────────
+    def test_simple_element(self):
+        node = {"tag": "p", "text": "Hello"}
+        self.assertEqual(render_node(node), "<p>Hello</p>")
+
+    def test_element_with_class_list(self):
+        node = {"tag": "div", "attrs": {"class": ["bg-blue-600", "text-white"]}}
+        self.assertEqual(render_node(node), '<div class="bg-blue-600 text-white"></div>')
+
+    def test_self_closing_input(self):
+        node = {"tag": "input", "attrs": {"type": "text", "name": "email"}}
+        html = render_node(node)
+        self.assertIn('<input', html)
+        self.assertNotIn('</input>', html)
+
+    def test_element_with_htmx(self):
+        node = {"tag": "form", "htmx": {"post": "/action/abc/"}}
+        html = render_node(node)
+        self.assertIn('hx-post="/action/abc/"', html)
+
+    def test_bind_renders_jinja2(self):
+        node = {"tag": "span", "bind": "loan.amount"}
+        self.assertIn("{{ loan.amount }}", render_node(node))
+
+    def test_children_rendered(self):
+        node = {
+            "tag": "div",
+            "children": [{"tag": "span", "text": "child"}],
+        }
+        self.assertIn("<span>child</span>", render_node(node))
+
+    # ── Loop ─────────────────────────────────────────────────────────────────
+    def test_loop_node(self):
+        node = {
+            "loop": "applications",
+            "as": "app",
+            "children": [{"tag": "li", "bind": "app.name"}],
+        }
+        html = render_node(node)
+        self.assertIn("{% for app in applications %}", html)
+        self.assertIn("{% endfor %}", html)
+        self.assertIn("{{ app.name }}", html)
+
+    # ── Conditional — if only ────────────────────────────────────────────────
+    def test_conditional_if_only(self):
+        node = {
+            "if": "user.is_authenticated",
+            "children": [{"tag": "span", "text": "hi"}],
+        }
+        html = render_node(node)
+        self.assertIn("{% if user.is_authenticated %}", html)
+        self.assertIn("<span>hi</span>", html)
+        self.assertIn("{% endif %}", html)
+        self.assertNotIn("{% else %}", html)
+        self.assertNotIn("{% elif", html)
+
+    # ── Conditional — if + else ───────────────────────────────────────────────
+    def test_conditional_if_else(self):
+        node = {
+            "if": "loan.approved",
+            "children": [{"tag": "span", "text": "Approved"}],
+            "else_children": [{"tag": "span", "text": "Pending"}],
+        }
+        html = render_node(node)
+        self.assertIn("{% if loan.approved %}", html)
+        self.assertIn("<span>Approved</span>", html)
+        self.assertIn("{% else %}", html)
+        self.assertIn("<span>Pending</span>", html)
+        self.assertIn("{% endif %}", html)
+
+    # ── Conditional — if + elif + else ───────────────────────────────────────
+    def test_conditional_if_elif_else(self):
+        node = {
+            "if": "loan.status == 'approved'",
+            "children": [{"tag": "span", "text": "Approved"}],
+            "elif": [
+                {
+                    "condition": "loan.status == 'rejected'",
+                    "children": [{"tag": "span", "text": "Rejected"}],
+                }
+            ],
+            "else_children": [{"tag": "span", "text": "Pending"}],
+        }
+        html = render_node(node)
+        self.assertIn("{% if loan.status == 'approved' %}", html)
+        self.assertIn("<span>Approved</span>", html)
+        self.assertIn("{% elif loan.status == 'rejected' %}", html)
+        self.assertIn("<span>Rejected</span>", html)
+        self.assertIn("{% else %}", html)
+        self.assertIn("<span>Pending</span>", html)
+        self.assertIn("{% endif %}", html)
+
+    # ── Conditional — multiple elif branches ─────────────────────────────────
+    def test_conditional_multiple_elif(self):
+        node = {
+            "if": "x == 1",
+            "children": [{"tag": "span", "text": "One"}],
+            "elif": [
+                {"condition": "x == 2", "children": [{"tag": "span", "text": "Two"}]},
+                {"condition": "x == 3", "children": [{"tag": "span", "text": "Three"}]},
+            ],
+        }
+        html = render_node(node)
+        self.assertIn("{% elif x == 2 %}", html)
+        self.assertIn("{% elif x == 3 %}", html)
+        self.assertNotIn("{% else %}", html)
+
+    # ── Raw ──────────────────────────────────────────────────────────────────
+    def test_raw_node(self):
+        node = {"inner_html": "<svg><circle/></svg>"}
+        self.assertEqual(render_node(node), "<svg><circle/></svg>")
+
+    # ── render_page ───────────────────────────────────────────────────────────
+    def test_render_page_concatenates(self):
+        nodes = [{"tag": "h1", "text": "Title"}, {"tag": "p", "text": "Body"}]
+        self.assertEqual(render_page(nodes), "<h1>Title</h1><p>Body</p>")
 

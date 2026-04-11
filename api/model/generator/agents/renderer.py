@@ -10,8 +10,13 @@ Loop:
     Renders as:  {% for <var> in <iterable> %}...{% endfor %}
 
 Conditional:
-    {"if": "<expression>", "children": [Node, ...]}
-    Renders as:  {% if <expression> %}...{% endif %}
+    {
+        "if": "<expression>",
+        "children":      [Node, ...],   # the {% if %} branch
+        "elif":          [{"condition": "<expression>", "children": [Node, ...]}, ...],  # optional
+        "else_children": [Node, ...],   # optional {% else %} branch
+    }
+    Renders as:  {% if <expression> %}...{% elif <c> %}...{% else %}...{% endif %}
 
 Raw:
     {"inner_html": "<raw html string>"}   (no "tag" key)
@@ -52,7 +57,14 @@ def render_node(node: dict) -> str:
     # ── Conditional node ──────────────────────────────────────────────────────
     if "if" in node:
         inner = "".join(render_node(c) for c in node.get("children", []))
-        return f"{{% if {node['if']} %}}{inner}{{% endif %}}"
+        result = f"{{% if {node['if']} %}}{inner}"
+        for branch in node.get("elif", []):
+            elif_inner = "".join(render_node(c) for c in branch.get("children", []))
+            result += f"{{% elif {branch['condition']} %}}{elif_inner}"
+        if "else_children" in node:
+            else_inner = "".join(render_node(c) for c in node["else_children"])
+            result += f"{{% else %}}{else_inner}"
+        return result + "{% endif %}"
 
     # ── Raw node — no tag, just inline HTML ───────────────────────────────────
     if "inner_html" in node and "tag" not in node:
