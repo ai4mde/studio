@@ -46,23 +46,102 @@ def normalize_attrs(attrs: dict) -> dict:
     return {k: " ".join(v) if isinstance(v, list) else v for k, v in attrs.items()}
 
 
-def render_node(node: dict) -> str:
+def normalize_node(node: dict) -> dict:
+    """Normalize a node to schema-friendly form before rendering.
+
+    - Moves hx-* keys from attrs into the htmx map.
+    - Keeps explicit node["htmx"] values as source of truth when both exist.
+    - Recursively normalizes child node containers.
+    """
+    out = dict(node)
+
+    attrs = dict(out.get("attrs", {}) or {})
+    htmx = dict(out.get("htmx", {}) or {})
+
+    moved = {}
+    remove_keys = []
+    for key, value in attrs.items():
+        if key.startswith("hx-"):
+            moved[key[3:]] = value
+            remove_keys.append(key)
+    for key in remove_keys:
+        attrs.pop(key, None)
+
+    for key, value in moved.items():
+        htmx.setdefault(key, value)
+
+    if attrs:
+        out["attrs"] = attrs
+    else:
+        out.pop("attrs", None)
+
+    if htmx:
+        out["htmx"] = htmx
+    else:
+        out.pop("htmx", None)
+
+    if "children" in out and isinstance(out.get("children"), list):
+        out["children"] = [normalize_node(c) if isinstance(c, dict) else c for c in out["children"]]
+
+    if "else_children" in out and isinstance(out.get("else_children"), list):
+        out["else_children"] = [normalize_node(c) if isinstance(c, dict) else c for c in out["else_children"]]
+
+    if "elif" in out and isinstance(out.get("elif"), list):
+        norm_elif = []
+        for branch in out["elif"]:
+            if not isinstance(branch, dict):
+                norm_elif.append(branch)
+                continue
+            b = dict(branch)
+            if "children" in b and isinstance(b.get("children"), list):
+                b["children"] = [normalize_node(c) if isinstance(c, dict) else c for c in b["children"]]
+            norm_elif.append(b)
+        out["elif"] = norm_elif
+
+    return out
+
+
+def _resolve_variant_class(tag: str, variant: str, theme: dict) -> str:
+    """Look up the Tailwind classes for a variant from the theme token map.
+
+    The LLM may have stored the token under several possible key shapes:
+      element.<tag>.<variant>, component.<tag>.<variant>,
+      component.<variant>, region.<variant>, or the variant name itself.
+    Returns the first match found, or empty string if none.
+    """
+    tokens = theme.get("tokens") or {}
+    for key in (
+        f"element.{tag}.{variant}",
+        f"component.{tag}.{variant}",
+        f"component.{variant}",
+        f"region.{variant}",
+        variant,
+    ):
+        classes = tokens.get(key)
+        if classes:
+            return classes
+    return ""
+
+
+def render_node(node: dict, theme: dict | None = None) -> str:
     """Render a single AST node to an HTML string."""
+    node = normalize_node(node)
+
     # ── Loop node ─────────────────────────────────────────────────────────────
     if "loop" in node:
         var = node.get("as", "item")
-        inner = "".join(render_node(c) for c in node.get("children", []))
+        inner = "".join(render_node(c, theme) for c in node.get("children", []))
         return f"{{% for {var} in {node['loop']} %}}{inner}{{% endfor %}}"
 
-    # ── Conditional node ──────────────────────────────────────────────────────
+    # ── Conditional node ─────────────────────────────────────────────────────
     if "if" in node:
-        inner = "".join(render_node(c) for c in node.get("children", []))
+        inner = "".join(render_node(c, theme) for c in node.get("children", []))
         result = f"{{% if {node['if']} %}}{inner}"
         for branch in node.get("elif", []):
-            elif_inner = "".join(render_node(c) for c in branch.get("children", []))
+            elif_inner = "".join(render_node(c, theme) for c in branch.get("children", []))
             result += f"{{% elif {branch['condition']} %}}{elif_inner}"
         if "else_children" in node:
-            else_inner = "".join(render_node(c) for c in node["else_children"])
+            else_inner = "".join(render_node(c, theme) for c in node["else_children"])
             result += f"{{% else %}}{else_inner}"
         return result + "{% endif %}"
 
@@ -75,9 +154,21 @@ def render_node(node: dict) -> str:
     attrs = normalize_attrs(node.get("attrs", {}))
     htmx = node.get("htmx", {})
 
+    # Resolve variant → Tailwind classes from theme tokens
+    variant = node.get("variant")
+    if variant and theme:
+        token_class = _resolve_variant_class(tag, variant, theme)
+        if token_class:
+            existing = attrs.get("class", "")
+            attrs["class"] = f"{existing} {token_class}".strip() if existing else token_class
+
     attr_str = " ".join(f'{k}="{v}"' for k, v in attrs.items())
     hx_str = " ".join(f'hx-{k}="{v}"' for k, v in htmx.items())
     parts = " ".join(filter(None, [attr_str, hx_str]))
+
+    # Pass theme down to child renders
+    def _render_child(c: dict) -> str:
+        return render_node(c, theme)
 
     if tag in SELF_CLOSING:
         return f"<{tag}{' ' + parts if parts else ''}/>"
@@ -88,10 +179,10 @@ def render_node(node: dict) -> str:
         content += f"{{{{ {node['bind']} }}}}"
     if "inner_html" in node:
         content += node["inner_html"]
-    content += "".join(render_node(c) for c in node.get("children", []))
+    content += "".join(_render_child(c) for c in node.get("children", []))
     return f"{open_tag}{content}</{tag}>"
 
 
-def render_page(ast_nodes: list) -> str:
+def render_page(ast_nodes: list, theme: dict | None = None) -> str:
     """Render a page's AST (list of nodes) to a full HTML string."""
-    return "".join(render_node(n) for n in ast_nodes)
+    return "".join(render_node(n, theme) for n in ast_nodes)

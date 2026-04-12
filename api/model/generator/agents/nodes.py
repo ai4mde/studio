@@ -254,6 +254,13 @@ _UPDATE_KEYWORDS = frozenset({"edit", "update", "modify", "assess", "analyze", "
 _DELETE_KEYWORDS = frozenset({"delete", "remove", "cancel", "reject", "deny"})
 
 
+def _norm_state(label: str) -> str:
+    """Normalise state labels into stable snake_case IDs."""
+    if not label:
+        return ""
+    return "_".join(label.strip().lower().replace("-", " ").split())
+
+
 def _build_parser_dsl(classifiers: list, relations: list) -> dict:
     """Build the canonical Parser DSL from classifiers + relations.
 
@@ -408,6 +415,103 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
     }
 
 
+def _build_flow_graph(classifiers: list, relations: list, parser_dsl: dict) -> dict:
+    """Build a normalised flow graph used by state-driven page mapping.
+
+    This is the intermediate layer between parser and UI synthesis:
+      - states: canonical workflow states
+      - transitions: actor-bound actions moving entity state from -> to
+    """
+    actors = {a["id"]: a for a in parser_dsl.get("actors", []) or []}
+    actions = {a["id"]: a for a in parser_dsl.get("actions", []) or []}
+    workflow_edges = parser_dsl.get("workflow", {}).get("edges", []) or []
+
+    clf_by_id = {c["id"]: c for c in classifiers}
+    object_nodes = {
+        c["id"]: c for c in classifiers
+        if c.get("data", {}).get("type") == "object"
+    }
+
+    incoming_object_states: dict[str, set[str]] = {}
+    outgoing_object_states: dict[str, set[str]] = {}
+    for rel in relations:
+        if rel.get("data", {}).get("type") != "controlflow":
+            continue
+        src = rel.get("source")
+        tgt = rel.get("target")
+        if src in object_nodes and tgt in actions:
+            s = _norm_state(object_nodes[src].get("data", {}).get("state", ""))
+            if s:
+                incoming_object_states.setdefault(tgt, set()).add(s)
+        if src in actions and tgt in object_nodes:
+            s = _norm_state(object_nodes[tgt].get("data", {}).get("state", ""))
+            if s:
+                outgoing_object_states.setdefault(src, set()).add(s)
+
+    predecessors: dict[str, set[str]] = {}
+    for edge in workflow_edges:
+        if len(edge) < 2:
+            continue
+        src, tgt = edge[0], edge[1]
+        if src in actions and tgt in actions:
+            predecessors.setdefault(tgt, set()).add(src)
+
+    action_from_state: dict[str, str] = {}
+    action_to_state: dict[str, str] = {}
+
+    for aid, action in actions.items():
+        in_states = sorted(incoming_object_states.get(aid, set()))
+        out_states = sorted(outgoing_object_states.get(aid, set()))
+        action_from_state[aid] = in_states[0] if in_states else ""
+
+        if out_states:
+            action_to_state[aid] = out_states[0]
+        else:
+            action_to_state[aid] = _norm_state(f"{action.get('name', aid)} done")
+
+    for aid, action in actions.items():
+        if action_from_state.get(aid):
+            continue
+        pred_states = {
+            action_to_state[p]
+            for p in predecessors.get(aid, set())
+            if action_to_state.get(p)
+        }
+        if len(pred_states) == 1:
+            action_from_state[aid] = next(iter(pred_states))
+        elif len(pred_states) > 1:
+            action_from_state[aid] = "or_" + "_".join(sorted(pred_states))
+        else:
+            action_from_state[aid] = "start"
+
+    states = {"start"}
+    transitions = []
+    for aid, action in actions.items():
+        actor_id = action.get("actor")
+        from_state = action_from_state.get(aid, "start") or "start"
+        to_state = action_to_state.get(aid, "done") or "done"
+        states.add(from_state)
+        states.add(to_state)
+        transitions.append({
+            "id": f"tr_{aid}_{from_state}_{to_state}",
+            "action_id": aid,
+            "from": from_state,
+            "to": to_state,
+            "actor": actor_id,
+            "action": action.get("name", aid),
+            "auto": bool(action.get("auto", False)),
+        })
+
+    entity_names = [e.get("name", "") for e in parser_dsl.get("entities", []) or [] if e.get("name")]
+    actor_names = [a.get("name", "") for a in parser_dsl.get("actors", []) or [] if a.get("name")]
+    return {
+        "entities": entity_names,
+        "states": sorted(states),
+        "actors": actor_names,
+        "transitions": transitions,
+    }
+
+
 def _build_screens(classifiers: list, relations: list) -> List[ScreenInfo]:
     """Build a ScreenInfo for every non-automatic action in the classifier list.
 
@@ -463,13 +567,22 @@ def parser_node(state: PipelineState) -> dict:
         screens = _build_screens(classifiers, relations)
         diagram_summary = _build_diagram_summary(classifiers, relations)
         parser_dsl = _build_parser_dsl(classifiers, relations)
-        return {"screens": screens, "diagram_summary": diagram_summary, "parser_dsl": parser_dsl, "error": None}
+        flow_graph = _build_flow_graph(classifiers, relations, parser_dsl)
+        parser_dsl["flow_graph"] = flow_graph
+        return {
+            "screens": screens,
+            "diagram_summary": diagram_summary,
+            "parser_dsl": parser_dsl,
+            "flow_graph": flow_graph,
+            "error": None,
+        }
     except Exception as exc:
         logger.exception("parser_node failed")
         return {
             "screens": [],
             "diagram_summary": {"usecase": [], "activity": [], "classes": []},
             "parser_dsl": {"actors": [], "objects": [], "activities": [], "workflow": {"transitions": []}},
+            "flow_graph": {"entities": [], "states": [], "actors": [], "transitions": []},
             "error": str(exc),
         }
 
@@ -526,6 +639,104 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
     - An empty or missing DSL returns {"apps": [], "routing": {"auth_role_map": {}}}.
     """
     _EMPTY: dict = {"apps": [], "routing": {"auth_role_map": {}}}
+
+    flow_graph = parser_dsl.get("flow_graph") or {}
+    transitions = flow_graph.get("transitions", []) if isinstance(flow_graph, dict) else []
+    if transitions:
+        actors = {a["id"]: a for a in parser_dsl.get("actors", []) or []}
+        actor_groups: dict[tuple[str, str], list[dict]] = {}
+        for t in transitions:
+            if t.get("auto"):
+                continue
+            actor_id = t.get("actor")
+            if not actor_id or actor_id not in actors:
+                continue
+            from_state = _norm_state(t.get("from", "start")) or "start"
+            actor_groups.setdefault((actor_id, from_state), []).append(t)
+
+        if not actor_groups:
+            return _EMPTY
+
+        actions_by_id = {a["id"]: a for a in parser_dsl.get("actions", []) or []}
+        entities_by_id = {e["id"]: e for e in parser_dsl.get("entities", []) or []}
+
+        apps_by_actor: dict[str, list] = {}
+        for actor_id, state in sorted(actor_groups.keys()):
+            group = actor_groups[(actor_id, state)]
+            actor_name = actors.get(actor_id, {}).get("name", actor_id)
+            state_token = "".join(w.capitalize() for w in state.split("_")) or "State"
+            page_name = f"{''.join(w.capitalize() for w in actor_name.replace('-', ' ').split())}{state_token}Page"
+            page_id = "_".join(actor_name.lower().replace("-", "_").split()) + f"_{state}_page"
+            action_ids = [t["action_id"] for t in group]
+            transition_ids = [t["id"] for t in group]
+            intent_hints = []
+            for t in group:
+                act = actions_by_id.get(t["action_id"], {})
+                entity_ids = act.get("input", []) or []
+                entity_names = [
+                    entities_by_id.get(eid, {}).get("name", eid)
+                    for eid in entity_ids
+                ]
+                attribute_contracts = []
+                binding_groups = []
+                operation_hint = {
+                    "endpoint": f"/action/{t['action_id']}/",
+                    "allowed": ["create", "update", "delete", "readonly"],
+                    "kind": "llm_decide",
+                }
+                for eid in entity_ids:
+                    entity = entities_by_id.get(eid, {})
+                    entity_name = entity.get("name", eid)
+                    fields = entity.get("fields", []) or []
+                    binds = []
+                    for field in fields:
+                        bind_expr = f"{entity_name}.{field}"
+                        binds.append(bind_expr)
+                        attribute_contracts.append({
+                            "entity_id": eid,
+                            "entity_name": entity_name,
+                            "attribute": field,
+                            "bind": bind_expr,
+                            "ui_policy": {
+                                "validation": [],
+                                "operations": operation_hint,
+                            },
+                        })
+                    if len(binds) >= 2:
+                        binding_groups.append({
+                            "entity_id": eid,
+                            "entity_name": entity_name,
+                            "bind": binds,
+                            "kind": "attribute_set_projection",
+                        })
+                intent_hints.append({
+                    "action_id": t["action_id"],
+                    "action_name": act.get("name", t["action_id"]),
+                    "transition_id": t["id"],
+                    "entity_ids": entity_ids,
+                    "entity_names": entity_names,
+                    "attribute_contracts": attribute_contracts,
+                    "binding_groups": binding_groups,
+                })
+            apps_by_actor.setdefault(actor_id, []).append({
+                "page_id": page_id,
+                "name": page_name,
+                "state": state,
+                "action_ids": action_ids,
+                "transition_ids": transition_ids,
+                "intent_hints": intent_hints,
+            })
+
+        apps = [
+            {
+                "actor_id": actor_id,
+                "actor_name": actors.get(actor_id, {}).get("name", actor_id),
+                "pages": pages,
+            }
+            for actor_id, pages in apps_by_actor.items()
+        ]
+        routing = {"auth_role_map": {a: f"/{a}" for a in apps_by_actor}}
+        return {"apps": apps, "routing": routing}
 
     actors  = {a["id"]: a for a in parser_dsl.get("actors",  []) or []}
     actions = {a["id"]: a for a in parser_dsl.get("actions", []) or []}
@@ -676,4 +887,74 @@ def ui_designer_node(state: PipelineState) -> dict:
     except Exception as exc:
         logger.warning("ui_designer_node failed (%s); skipping UI enhancement", exc)
         return {"page_ir": page_ir, "ui_design": None, "error": None}  # non-fatal: Jinja2 fallback still works
+
+
+# ── Theme Node ────────────────────────────────────────────────────────────────
+
+def _collect_variants(obj: object, seen: set | None = None) -> list:
+    """Recursively walk ui_design and collect unique {tag, variant} pairs from AST nodes."""
+    if seen is None:
+        seen = set()
+    results = []
+    if isinstance(obj, dict):
+        variant = obj.get("variant")
+        if variant:
+            tag = obj.get("tag", "div")
+            key = (tag, variant)
+            if key not in seen:
+                seen.add(key)
+                results.append({"tag": tag, "variant": variant})
+        for v in obj.values():
+            results.extend(_collect_variants(v, seen))
+    elif isinstance(obj, list):
+        for item in obj:
+            results.extend(_collect_variants(item, seen))
+    return results
+
+
+def theme_node(state: PipelineState) -> dict:
+    """Theme Agent: inspects actual AST variant labels and generates matching design tokens.
+
+    The LLM decides the token key namespace (region.*, component.*, element.*) based on
+    the tag + variant context. No keys are hardcoded — tokens are driven entirely by what
+    variants the UI Designer placed in the AST.
+    """
+    from llm.prompts.agents import AGENT_THEME_DESIGNER
+
+    ui_design = state.get("ui_design") or {}
+    variants = _collect_variants(ui_design)
+
+    if not variants:
+        logger.info("theme_node: no variants found in ui_design; skipping LLM call")
+        return {"theme": {"name": "default", "tokens": {}}}
+
+    design_goal = (state.get("theme") or {}).get("design_goal") or \
+                  f"Clean professional UI for {state['project_name']}"
+
+    prompt = AGENT_THEME_DESIGNER.format(
+        project_name=state["project_name"],
+        application_name=state["application_name"],
+        design_goal=design_goal,
+        variants_json=json.dumps(variants, indent=2),
+    )
+
+    refine_prompt = state.get("refine_prompt")
+    if refine_prompt:
+        prompt += (
+            f"\n\nREFINEMENT REQUEST FROM USER:\n{refine_prompt}\n"
+            "Adjust the design tokens to satisfy this request. "
+            "Keep all required variant keys — update only the Tailwind class values."
+        )
+
+    try:
+        raw = call_openai("gpt-4o", prompt)
+        theme = _parse_json_response(raw)
+        logger.info(
+            "theme_node: generated theme '%s' with %d tokens",
+            theme.get("name"), len(theme.get("tokens", {})),
+        )
+        return {"theme": theme}
+    except Exception as exc:
+        logger.warning("theme_node failed (%s); using empty theme", exc)
+        return {"theme": {"name": "default", "tokens": {}}}
 

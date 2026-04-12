@@ -34,9 +34,13 @@ class RunPipelineSchema(Schema):
 
 
 class PipelineStatusSchema(Schema):
-    thread_id: str
-    ui_design: Optional[dict]
-    page_ir: Optional[dict]
+  thread_id: str
+  system_id: Optional[str]
+  ui_design: Optional[dict]
+  page_ir: Optional[dict]
+  flow_graph: Optional[dict]
+  theme: Optional[dict]
+  global_layout: Optional[dict]
 
 
 class ErrorSchema(Schema):
@@ -50,11 +54,62 @@ def _config(thread_id: str) -> dict:
 
 
 def _state_to_status(thread_id: str, state: dict) -> dict:
-    return {
-        "thread_id": thread_id,
-        "ui_design": state.get("ui_design"),
-        "page_ir": state.get("page_ir"),
-    }
+  return {
+    "thread_id": thread_id,
+    "system_id": state.get("system_id"),
+    "ui_design": state.get("ui_design"),
+    "page_ir": state.get("page_ir"),
+    "flow_graph": state.get("flow_graph") or (state.get("parser_dsl") or {}).get("flow_graph"),
+    "theme": state.get("theme"),
+    "global_layout": state.get("global_layout"),
+  }
+
+
+def _collect_page_ast_nodes(page: dict) -> list:
+  """Collect renderable AST nodes from either legacy or region-based page schemas."""
+  ast = page.get("ast", []) or []
+  if ast:
+    return ast
+
+  nodes: list = []
+  for region in page.get("regions", []) or []:
+    region_ast = region.get("ast", []) or []
+    if region_ast:
+      nodes.extend(region_ast)
+      continue
+
+    for component in region.get("components", []) or []:
+      component_ast = component.get("ast", []) or []
+      if component_ast:
+        nodes.extend(component_ast)
+  return nodes
+
+
+def _render_page_body(page: dict, theme: dict | None = None) -> str:
+  """Render page HTML from legacy page.ast or the newer page.regions schema."""
+  ast_nodes = _collect_page_ast_nodes(page)
+  if ast_nodes:
+    return render_page(ast_nodes, theme)
+
+  action_ids = page.get("action_ids", []) or []
+  return (
+    f'<p class="text-gray-400 italic">Page under construction.'
+    f' Actions: {", ".join(action_ids)}</p>'
+  )
+
+
+def _page_preview_subtitle(page: dict) -> str:
+  """Build a human-readable preview subtitle for actor page listings."""
+  ast_nodes = _collect_page_ast_nodes(page)
+  if ast_nodes:
+    return f"{len(ast_nodes)} AST node(s)"
+
+  region_count = len(page.get("regions", []) or [])
+  if region_count:
+    return f"{region_count} region(s)"
+
+  action_ids = page.get("action_ids", []) or []
+  return f"Actions: {', '.join(action_ids)}"
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -81,13 +136,82 @@ def run_pipeline(request, body: RunPipelineSchema):
     return _state_to_status(thread_id, snapshot.values)
 
 
-@pipeline_router.get("/{thread_id}/", response=PipelineStatusSchema)
+@pipeline_router.get("/{thread_id}/", response={200: PipelineStatusSchema, 404: ErrorSchema})
 def get_pipeline_status(request, thread_id: str):
     """Return the current state of a pipeline run."""
     snapshot = pipeline.get_state(_config(thread_id))
     if not snapshot.values:
         return 404, {"error": "thread not found"}
-    return _state_to_status(thread_id, snapshot.values)
+    return 200, _state_to_status(thread_id, snapshot.values)
+
+
+class RefineSchema(Schema):
+    prompt: str
+
+
+@pipeline_router.post("/{thread_id}/refine/", response={200: PipelineStatusSchema, 404: ErrorSchema})
+def refine_pipeline(request, thread_id: str, body: RefineSchema):
+    """Re-run the theme agent with a user-supplied refinement prompt.
+
+    Also calls the layout agent to generate/update global layout elements
+    (navbar, sidebar, footer) when the prompt requests them.
+    """
+    import json as _json
+    from generator.agents.nodes import theme_node as _theme_node
+    from llm.handler import call_openai
+    from llm.prompts.agents import AGENT_LAYOUT_DESIGNER
+
+    config = _config(thread_id)
+    snapshot = pipeline.get_state(config)
+    if not snapshot.values:
+        return 404, {"error": "thread not found"}
+
+    state = dict(snapshot.values)
+    state["refine_prompt"] = body.prompt
+
+    # ── 1. Re-run theme node ──────────────────────────────────────────────────
+    new_theme = _theme_node(state)
+
+    # ── 2. Run layout agent if prompt mentions layout elements ────────────────
+    layout_keywords = ("nav", "sidebar", "footer", "header", "menu", "bar")
+    needs_layout = any(kw in body.prompt.lower() for kw in layout_keywords)
+    new_layout = {}
+    if needs_layout:
+        try:
+            parser_dsl = state.get("parser_dsl") or {}
+            actors = [a.get("name", a.get("id", "")) for a in (parser_dsl.get("actors") or [])]
+            design_goal = (new_theme.get("theme") or {}).get("name") or \
+                          f"Clean professional UI for {state.get('project_name', '')}"
+            layout_prompt = AGENT_LAYOUT_DESIGNER.format(
+                project_name=state.get("project_name", ""),
+                application_name=state.get("application_name", ""),
+                actors_json=_json.dumps(actors),
+                design_goal=design_goal,
+                refine_prompt=body.prompt,
+            )
+            raw = call_openai("gpt-4o", layout_prompt)
+            raw = raw.strip()
+            if raw.startswith("```"):
+                lines = raw.split("\n")
+                raw = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+            layout_result = _json.loads(raw)
+            # Merge with existing global_layout so previous elements are preserved.
+            # New schema: {name: {html, position}}. Null values from LLM mean "leave as-is".
+            existing = state.get("global_layout") or {}
+            merged = {**existing}
+            for name, element in layout_result.items():
+                if element is not None:
+                    merged[name] = element
+            new_layout = {"global_layout": merged}
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("layout agent failed: %s", exc)
+
+    # ── 3. Persist updates back into the LangGraph checkpoint ────────────────
+    pipeline.update_state(config, {**new_theme, **new_layout})
+
+    snapshot = pipeline.get_state(config)
+    return 200, _state_to_status(thread_id, snapshot.values)
 
 
 @pipeline_router.post("/{thread_id}/emit/", response={200: dict, 404: ErrorSchema})
@@ -165,15 +289,7 @@ def emit_pipeline_templates(request, thread_id: str):
             nav_html = "\n      ".join(nav_items)
 
             # ── Body content (same render logic as preview) ────────────────
-            ast = page.get("ast", [])
-            if ast:
-                body_html = render_page(ast)
-            else:
-                action_ids = page.get("action_ids", [])
-                body_html = (
-                    f'<p class="text-gray-400 italic">Page under construction.'
-                    f' Actions: {", ".join(action_ids)}</p>'
-                )
+            body_html = _render_page_body(page, theme=state.get("theme"))
 
             # ── Full standalone HTML identical to preview layout ───────────
             full_html = f"""<!DOCTYPE html>
@@ -307,38 +423,54 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
             return HttpResponse(f"<h1>Page '{page}' not found</h1>", status=404, content_type="text/html")
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
-        ast = page_data.get("ast", [])
-        if ast:
-            body = render_page(ast)
+        body = _render_page_body(page_data, theme=state.get("theme"))
+
+        global_layout = state.get("global_layout") or {}
+
+        def _elements_at(pos: str) -> str:
+            """Concatenate HTML for all layout elements at the given position."""
+            parts = [
+                v["html"] for v in global_layout.values()
+                if isinstance(v, dict) and v.get("position") == pos and v.get("html")
+            ]
+            return "\n".join(parts)
+
+        top_html    = _elements_at("top")
+        left_html   = _elements_at("left")
+        right_html  = _elements_at("right")
+        bottom_html = _elements_at("bottom")
+
+        if left_html or right_html:
+            main_content = f"""  <div class="flex min-h-0">
+    {left_html}
+    <main class="flex-1 max-w-4xl mx-auto p-8">
+      <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+        {body}
+      </div>
+    </main>
+    {right_html}
+  </div>"""
         else:
-            action_ids = page_data.get("action_ids", [])
-            body = (
-                f'<p class="text-gray-400 italic">AST not yet generated. '
-                f'Actions: {", ".join(action_ids)}</p>'
-            )
+            main_content = f"""  <main class="max-w-4xl mx-auto p-8">
+    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+      {body}
+    </div>
+  </main>"""
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base target="_blank"/>
   <title>{page} — {actor_name} — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-8 font-sans">
-  <header class="mb-8 border-b border-gray-200 pb-4 flex items-center gap-4">
-    <a href="{base_url}?actor={actor}" class="text-sm text-indigo-600 hover:underline">&larr; {actor_name}</a>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">{page}</h1>
-      <p class="text-sm text-gray-500 mt-1">{actor_name} &mdash; {project_name}</p>
-    </div>
-  </header>
-  <main class="max-w-4xl mx-auto">
-    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-      {body}
-    </div>
-  </main>
+<body class="bg-gray-50 min-h-screen font-sans">
+  {top_html}
+{main_content}
+  {bottom_html}
 </body>
 </html>"""
         return HttpResponse(html, content_type="text/html")
@@ -353,10 +485,7 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
         cards_html = ""
         for p in app.get("pages", []):
             page_name = p.get("name", "Page")
-            ast = p.get("ast", [])
-            has_ast = bool(ast)
-            action_ids = p.get("action_ids", [])
-            subtitle = f"{len(ast)} AST node(s)" if has_ast else f"Actions: {', '.join(action_ids)}"
+            subtitle = _page_preview_subtitle(p)
             cards_html += f"""
 <a href="{base_url}?actor={actor}&page={page_name}"
    class="block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
@@ -374,16 +503,14 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base target="_blank"/>
   <title>{actor_name} — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen p-8 font-sans">
-  <header class="mb-8 border-b border-gray-200 pb-4 flex items-center gap-4">
-    <a href="{base_url}" class="text-sm text-indigo-600 hover:underline">&larr; All actors</a>
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">{actor_name}</h1>
-      <p class="text-sm text-gray-500 mt-1">{project_name}</p>
-    </div>
+  <header class="mb-8 border-b border-gray-200 pb-4">
+    <h1 class="text-2xl font-bold text-gray-900">{actor_name}</h1>
+    <p class="text-sm text-gray-500 mt-1">{project_name}</p>
   </header>
   <main class="max-w-2xl mx-auto grid gap-4">
     {cards_html if cards_html else '<p class="text-gray-500">No pages for this actor.</p>'}
@@ -416,6 +543,7 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base target="_blank"/>
   <title>Preview — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>

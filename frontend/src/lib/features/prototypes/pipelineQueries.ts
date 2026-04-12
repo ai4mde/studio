@@ -109,3 +109,57 @@ export const useResumePipeline = (threadId: string) =>
             return data;
         },
     });
+
+// ── Generator pipeline (new AST-based pipeline) ───────────────────────────────
+
+export type GeneratorPage = {
+    page_id: string;
+    name: string;
+    ast?: unknown[];
+    regions?: unknown[];
+};
+
+export type GeneratorApp = {
+    actor_id: string;
+    actor_name: string;
+    pages: GeneratorPage[];
+};
+
+export type GeneratorTheme = {
+    name: string;
+    tokens: Record<string, string>;
+};
+
+export type GeneratorPipelineStatus = {
+    thread_id: string;
+    system_id: string | null;
+    ui_design: { ui_ir: { apps: GeneratorApp[] } } | null;
+    page_ir: unknown | null;
+    flow_graph: unknown | null;
+    theme: GeneratorTheme | null;
+    global_layout: Record<string, {
+        html: string;
+        position: 'top' | 'left' | 'right' | 'bottom';
+    }> | null;
+};
+
+export const useGeneratorPipeline = (threadId?: string) =>
+    useQuery<GeneratorPipelineStatus>({
+        queryKey: ["generator-pipeline", threadId],
+        queryFn: async () => {
+            const { data } = await authAxios.get(`/v1/generator/pipeline/${threadId}/`);
+            return data;
+        },
+        enabled: !!threadId,
+    });
+
+export const useRefinePipeline = (threadId: string) =>
+    useMutation<GeneratorPipelineStatus, Error, { prompt: string }>({
+        mutationFn: async (body) => {
+            const { data } = await authAxios.post(
+                `/v1/generator/pipeline/${threadId}/refine/`,
+                body,
+            );
+            return data;
+        },
+    });

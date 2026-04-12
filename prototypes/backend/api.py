@@ -40,7 +40,35 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
         prototype_path = os.path.join(ROOT_DIR, prototype_system, prototype_name)
         if not os.path.isdir(prototype_path):
             return None
-        
+
+        # subprocess.run(
+        #     ["python", "manage.py", "migrate", "--run-syncdb"],
+        #     cwd=prototype_path,
+        #     stdout=sys.stdout,
+        #     stderr=sys.stderr,
+        # )
+        # subprocess.run(
+        #     ["python", "manage.py", "createsuperuser", "--no-input"],
+        #     cwd=prototype_path,
+        #     stdout=sys.stdout,
+        #     stderr=sys.stderr,
+        #     env={**os.environ,
+        #          "DJANGO_SUPERUSER_USERNAME": "admin",
+        #          "DJANGO_SUPERUSER_PASSWORD": "sequoias",
+        #          "DJANGO_SUPERUSER_EMAIL": "admin@localhost"},
+        # )
+        # # Grant all custom role flags to admin so login works
+        # subprocess.run(
+        #     ["python", "manage.py", "shell", "-c",
+        #      "from shared_models.models import User; u=User.objects.get(username='admin'); "
+        #      "[setattr(u, f.name, True) for f in u._meta.get_fields() "
+        #      "if f.name.startswith('is_') and f.name not in ('is_staff','is_superuser','is_active')]; "
+        #      "u.save()"],
+        #     cwd=prototype_path,
+        #     stdout=sys.stdout,
+        #     stderr=sys.stderr,
+        # )
+
         process = subprocess.Popen(
             ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
             cwd=prototype_path,

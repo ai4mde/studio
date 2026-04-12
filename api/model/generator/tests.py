@@ -1,6 +1,12 @@
 from django.urls import reverse
+from django.test import SimpleTestCase
 from rest_framework.test import APITestCase
 from generator.models import Prototype
+from generator.api.views.pipeline import (
+    _collect_page_ast_nodes,
+    _page_preview_subtitle,
+    _render_page_body,
+)
 from metadata.models import Project, System
 from django.contrib.auth.models import User
 from uuid import uuid4
@@ -10,6 +16,58 @@ prototype_metadata = {
     "interfaces": [],
     "useAuthentication": True
 }
+
+
+class PipelinePreviewRenderHelpersTests(SimpleTestCase):
+
+    def test_collect_page_ast_nodes_from_legacy_page_ast(self):
+        page = {
+            "ast": [
+                {"tag": "h1", "text": "Legacy"},
+                {"tag": "p", "text": "Body"},
+            ]
+        }
+        nodes = _collect_page_ast_nodes(page)
+        self.assertEqual(len(nodes), 2)
+        self.assertEqual(nodes[0]["text"], "Legacy")
+
+    def test_collect_page_ast_nodes_from_regions(self):
+        page = {
+            "regions": [
+                {"id": "r1", "ast": [{"tag": "h1", "text": "Region title"}]},
+                {"id": "r2", "ast": [{"tag": "p", "text": "Region body"}]},
+            ]
+        }
+        nodes = _collect_page_ast_nodes(page)
+        self.assertEqual([n["text"] for n in nodes], ["Region title", "Region body"])
+
+    def test_collect_page_ast_nodes_from_components(self):
+        page = {
+            "regions": [
+                {
+                    "id": "r1",
+                    "components": [
+                        {"id": "c1", "ast": [{"tag": "h2", "text": "One"}]},
+                        {"id": "c2", "ast": [{"tag": "div", "text": "Two"}]},
+                    ],
+                }
+            ]
+        }
+        nodes = _collect_page_ast_nodes(page)
+        self.assertEqual([n["text"] for n in nodes], ["One", "Two"])
+
+    def test_render_page_body_falls_back_to_under_construction(self):
+        page = {"action_ids": ["act1", "act2"]}
+        html = _render_page_body(page)
+        self.assertIn("Page under construction", html)
+        self.assertIn("act1, act2", html)
+
+    def test_page_preview_subtitle_prefers_regions_over_actions(self):
+        page = {
+            "regions": [{"id": "r1"}, {"id": "r2"}],
+            "action_ids": ["act1"],
+        }
+        self.assertEqual(_page_preview_subtitle(page), "2 region(s)")
 
 class PrototypeAPITests(APITestCase):
 

@@ -36,9 +36,19 @@ class PipelineState(TypedDict):
     screens: List[ScreenInfo]
     diagram_summary: DiagramSummary   # structured usecase/activity/class data
     parser_dsl: Optional[dict]        # canonical DSL: {domain, actors, entities, actions, workflow}
+    flow_graph: Optional[dict]        # intermediate flow model: {entities, states, actors, transitions}
 
     # ── Page synthesis output (deterministic, pre-LLM) ───────────────────────
     page_ir: Optional[dict]           # {apps: [{actor_id, pages: [{name, action_ids: [str]}]}], routing}
 
     # ── UI Designer Agent output ─────────────────────────────────────────────
     ui_design: Optional[UIDesign]
+
+    # ── Theme Agent output ───────────────────────────────────────────────────
+    theme: Optional[dict]             # {name, tokens: {"region.*|component.*|element.*": "<tailwind classes>"}}
+
+    # ── Global layout (shared across all pages) ──────────────────────────────
+    global_layout: Optional[dict]     # {"navbar_html": str, "sidebar_html": str, ...}
+
+    # ── Refinement input ─────────────────────────────────────────────────────
+    refine_prompt: Optional[str]      # user-supplied prompt for re-generating the theme

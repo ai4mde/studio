@@ -12,7 +12,7 @@ import {
     Typography,
 } from "@mui/joy";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRight, CheckCircle, MessageSquare, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle, MessageSquare, Paintbrush, Sparkles } from "lucide-react";
 import React, { useState } from "react";
 import { useParams } from "react-router";
 import {
@@ -363,6 +363,18 @@ const HITLPanel: React.FC<{
                     {resume.error?.message ?? "Resume failed."}
                 </Typography>
             )}
+
+            <div className="flex items-center justify-end pt-1">
+                <a
+                    href={`/design/${threadId}`}
+                    className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-800 hover:underline transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Paintbrush size={12} />
+                    Open Design Refine
+                </a>
+            </div>
         </div>
     );
 };
@@ -522,7 +534,21 @@ export const PipelinePrototype: React.FC<Props> = ({ open, onClose }) => {
                         <Typography color="success" fontWeight="bold">
                             ✓ Prototype generated successfully!
                         </Typography>
-                        <Button onClick={handleDone}>Done</Button>
+                        <div className="flex gap-2">
+                            <Button onClick={handleDone}>Done</Button>
+                            {threadId && (
+                                <Button
+                                    component="a"
+                                    href={`/design/${threadId}`}
+                                    target="_blank"
+                                    variant="outlined"
+                                    color="neutral"
+                                    startDecorator={<Paintbrush size={14} />}
+                                >
+                                    Refine Design
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 )}
 

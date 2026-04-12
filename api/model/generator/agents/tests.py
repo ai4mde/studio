@@ -59,6 +59,7 @@ def _minimal_state(**kwargs) -> PipelineState:
         screens=[],
         diagram_summary={"usecase": [], "activity": [], "classes": []},
         parser_dsl={"domain": {"name": ""}, "actors": [], "entities": [], "actions": [], "workflow": {"nodes": [], "edges": []}},
+        flow_graph=None,
         page_ir=None,
         ui_design=None,
     )
@@ -831,6 +832,30 @@ class LoanApplicationOutputFormatTests(unittest.TestCase):
         self.assertIn("nodes", dsl["workflow"])
         self.assertIn("edges", dsl["workflow"])
 
+    def test_flow_graph_key_present(self):
+        state = _minimal_state(metadata=json.dumps(_LOAN_METADATA))
+        result = parser_node(state)
+        self.assertIn("flow_graph", result)
+        self.assertIn("flow_graph", result["parser_dsl"])
+
+    def test_flow_graph_has_states_and_transitions(self):
+        state = _minimal_state(metadata=json.dumps(_LOAN_METADATA))
+        fg = parser_node(state)["flow_graph"]
+        self.assertIn("states", fg)
+        self.assertIn("transitions", fg)
+        self.assertIsInstance(fg["states"], list)
+        self.assertIsInstance(fg["transitions"], list)
+        self.assertGreater(len(fg["transitions"]), 0)
+
+    def test_flow_graph_transition_shape(self):
+        state = _minimal_state(metadata=json.dumps(_LOAN_METADATA))
+        fg = parser_node(state)["flow_graph"]
+        t = fg["transitions"][0]
+        for key in ("id", "action_id", "from", "to", "actor", "action", "auto"):
+            self.assertIn(key, t)
+        self.assertNotEqual(t["id"], t["action_id"],
+                            "transition.id must differ from action_id")
+
     def test_parser_dsl_actors(self):
         state = _minimal_state(metadata=json.dumps(_LOAN_METADATA))
         dsl = parser_node(state)["parser_dsl"]
@@ -1148,6 +1173,78 @@ class SynthesisePagesTests(unittest.TestCase):
         auth_role_map = result["routing"]["auth_role_map"]
         self.assertEqual(set(auth_role_map.keys()), actor_ids_in_apps)
 
+    def test_flow_graph_state_mapping_groups_by_actor_and_state(self):
+        dsl = {
+            "actors": [
+                {"id": "applicant", "name": "Applicant"},
+                {"id": "reviewer", "name": "Reviewer"},
+            ],
+            "entities": [
+                {
+                    "id": "loan",
+                    "name": "LoanApplication",
+                    "fields": ["amount", "term", "interest_rate"],
+                },
+            ],
+            "actions": [
+                {"id": "submit", "name": "Submit", "actor": "applicant", "input": ["loan"]},
+                {"id": "approve", "name": "Approve", "actor": "reviewer", "input": ["loan"]},
+                {"id": "reject", "name": "Reject", "actor": "reviewer", "input": ["loan"]},
+            ],
+            "workflow": {"nodes": ["submit", "approve", "reject"], "edges": []},
+            "flow_graph": {
+                "entities": ["LoanApplication"],
+                "states": ["draft", "submitted", "under_review", "approved", "rejected"],
+                "actors": ["Applicant", "Reviewer"],
+                "transitions": [
+                    {"id": "tr_submit_draft_submitted", "action_id": "submit", "from": "draft", "to": "submitted", "actor": "applicant", "action": "Submit", "auto": False},
+                    {"id": "tr_approve_under_review_approved", "action_id": "approve", "from": "under_review", "to": "approved", "actor": "reviewer", "action": "Approve", "auto": False},
+                    {"id": "tr_reject_under_review_rejected", "action_id": "reject", "from": "under_review", "to": "rejected", "actor": "reviewer", "action": "Reject", "auto": False},
+                ],
+            },
+        }
+        result = _synthesise_pages(dsl)
+        self.assertEqual(len(result["apps"]), 2)
+        reviewer = next(a for a in result["apps"] if a["actor_id"] == "reviewer")
+        self.assertEqual(len(reviewer["pages"]), 1)
+        self.assertEqual(set(reviewer["pages"][0]["action_ids"]), {"approve", "reject"})
+        self.assertEqual(reviewer["pages"][0]["state"], "under_review")
+        # transition_ids must differ from action_ids
+        self.assertNotEqual(reviewer["pages"][0]["transition_ids"],
+                            reviewer["pages"][0]["action_ids"])
+        # page_id and intent_hints must be present
+        page = reviewer["pages"][0]
+        self.assertIn("page_id", page)
+        self.assertIn("intent_hints", page)
+        self.assertIsInstance(page["intent_hints"], list)
+        self.assertGreater(len(page["intent_hints"]), 0)
+        # each hint must carry the required keys
+        for hint in page["intent_hints"]:
+            for key in (
+                "action_id",
+                "action_name",
+                "transition_id",
+                "entity_ids",
+                "entity_names",
+                "attribute_contracts",
+                "binding_groups",
+            ):
+                self.assertIn(key, hint)
+            self.assertIsInstance(hint["attribute_contracts"], list)
+            self.assertIsInstance(hint["binding_groups"], list)
+            self.assertGreater(len(hint["attribute_contracts"]), 0)
+            contract = hint["attribute_contracts"][0]
+            self.assertIn("attribute", contract)
+            self.assertIn("bind", contract)
+            self.assertIn("operations", contract)
+            self.assertIn("allowed", contract["operations"])
+            self.assertIn("readonly", contract["operations"]["allowed"])
+            self.assertEqual(contract["operations"].get("kind"), "llm_decide")
+            groups_with_multi_bind = [g for g in hint["binding_groups"] if len(g.get("bind", [])) >= 2]
+            self.assertGreater(len(groups_with_multi_bind), 0)
+        hint_action_ids = {h["action_id"] for h in page["intent_hints"]}
+        self.assertEqual(hint_action_ids, {"approve", "reject"})
+
     def test_ui_designer_node_emits_page_ir(self):
         """ui_designer_node must store synthesised pages in state even when LLM fails."""
         with patch("generator.agents.nodes.call_openai") as mock_llm:
@@ -1361,6 +1458,30 @@ class TestRenderNode(unittest.TestCase):
         node = {"tag": "form", "htmx": {"post": "/action/abc/"}}
         html = render_node(node)
         self.assertIn('hx-post="/action/abc/"', html)
+
+    def test_hx_attrs_moved_into_htmx(self):
+        node = {
+            "tag": "form",
+            "attrs": {
+                "class": ["space-y-4"],
+                "hx-post": "/action/abc/",
+                "hx-target": "#out",
+            },
+        }
+        html = render_node(node)
+        self.assertIn('hx-post="/action/abc/"', html)
+        self.assertIn('hx-target="#out"', html)
+        self.assertNotIn(' hx-hx-post=', html)
+
+    def test_explicit_htmx_overrides_hx_attr(self):
+        node = {
+            "tag": "form",
+            "attrs": {"hx-post": "/action/from-attrs/"},
+            "htmx": {"post": "/action/from-htmx/"},
+        }
+        html = render_node(node)
+        self.assertIn('hx-post="/action/from-htmx/"', html)
+        self.assertNotIn('hx-post="/action/from-attrs/"', html)
 
     def test_bind_renders_jinja2(self):
         node = {"tag": "span", "bind": "loan.amount"}

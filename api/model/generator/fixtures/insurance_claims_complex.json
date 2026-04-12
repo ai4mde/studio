@@ -1,0 +1,1171 @@
+{
+  "classifiers": [
+    {
+      "id": "sys-boundary-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "name": "Insurance Claims Orchestration",
+        "type": "system_boundary",
+        "system_id": null,
+        "system_name": null,
+        "height": 1600,
+        "width": 1600
+      }
+    },
+    {
+      "id": "actor-customer-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": null,
+        "name": "Customer",
+        "type": "actor"
+      }
+    },
+    {
+      "id": "actor-adjuster-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": null,
+        "name": "Claims Adjuster",
+        "type": "actor"
+      }
+    },
+    {
+      "id": "actor-fraud-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": null,
+        "name": "Fraud Analyst",
+        "type": "actor"
+      }
+    },
+    {
+      "id": "actor-system-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": null,
+        "name": "System",
+        "type": "actor"
+      }
+    },
+    {
+      "id": "class-claim-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "class",
+        "attributes": [
+          { "name": "claim_number", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "incident_date", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "claim_amount", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "status", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "coverage_valid", "type": "bool", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "fraud_score", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "approved", "type": "bool", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "rejection_reason", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+        ],
+        "methods": [],
+        "abstract": false,
+        "leaf": false
+      }
+    },
+    {
+      "id": "class-policy-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Policy",
+        "type": "class",
+        "attributes": [
+          { "name": "policy_number", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "customer_id", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "coverage_type", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "active", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+        ],
+        "methods": [],
+        "abstract": false,
+        "leaf": false
+      }
+    },
+    {
+      "id": "class-evidence-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "EvidenceDocument",
+        "type": "class",
+        "attributes": [
+          { "name": "file_name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "document_type", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "uploaded_at", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "verified", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+        ],
+        "methods": [],
+        "abstract": false,
+        "leaf": false
+      }
+    },
+    {
+      "id": "class-payment-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Payment",
+        "type": "class",
+        "attributes": [
+          { "name": "payment_reference", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "amount", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "payment_date", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "status", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+        ],
+        "methods": [],
+        "abstract": false,
+        "leaf": false
+      }
+    },
+    {
+      "id": "class-note-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "InvestigationNote",
+        "type": "class",
+        "attributes": [
+          { "name": "comment", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+          { "name": "created_at", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+        ],
+        "methods": [],
+        "abstract": false,
+        "leaf": false
+      }
+    },
+    {
+      "id": "obj-claim-created-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Created"
+      }
+    },
+    {
+      "id": "obj-claim-evidence-pending-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Evidence Pending"
+      }
+    },
+    {
+      "id": "obj-claim-policy-validated-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Policy Validated"
+      }
+    },
+    {
+      "id": "obj-claim-under-review-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Under Review"
+      }
+    },
+    {
+      "id": "obj-claim-fraud-flagged-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Fraud Flagged"
+      }
+    },
+    {
+      "id": "obj-claim-approved-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Approved"
+      }
+    },
+    {
+      "id": "obj-claim-rejected-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Rejected"
+      }
+    },
+    {
+      "id": "obj-claim-paid-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Claim",
+        "type": "object",
+        "role": "object",
+        "cls": "class-claim-001",
+        "clsName": "Claim",
+        "state": "Paid"
+      }
+    },
+    {
+      "id": "ctl-initial-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "type": "initial",
+        "role": "control",
+        "activity_scope": "activity",
+        "scheduled": false,
+        "schedule": ""
+      }
+    },
+    {
+      "id": "ctl-decision-evidence-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "type": "decision",
+        "role": "control",
+        "decisionInput": "",
+        "decisionInputFlow": "",
+        "page": ""
+      }
+    },
+    {
+      "id": "ctl-decision-fraud-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "type": "decision",
+        "role": "control",
+        "decisionInput": "",
+        "decisionInputFlow": "",
+        "page": ""
+      }
+    },
+    {
+      "id": "ctl-merge-review-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "type": "merge",
+        "role": "control",
+        "merge_spec": "",
+        "is_combine_duplicate": false,
+        "page": ""
+      }
+    },
+    {
+      "id": "ctl-final-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "type": "final",
+        "role": "control",
+        "activity_scope": "activity"
+      }
+    },
+    {
+      "id": "act-submit-claim-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Submit claim",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-customer-001",
+        "actorNodeName": "Customer"
+      }
+    },
+    {
+      "id": "act-upload-evidence-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Upload evidence",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-customer-001",
+        "actorNodeName": "Customer"
+      }
+    },
+    {
+      "id": "act-validate-policy-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Validate policy",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": true,
+        "customCode": "def custom_code(active_process): pass",
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-system-001",
+        "actorNodeName": "System"
+      }
+    },
+    {
+      "id": "act-triage-claim-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Triage claim",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-adjuster-001",
+        "actorNodeName": "Claims Adjuster"
+      }
+    },
+    {
+      "id": "act-request-more-evidence-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Request more evidence",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-adjuster-001",
+        "actorNodeName": "Claims Adjuster"
+      }
+    },
+    {
+      "id": "act-review-evidence-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Review evidence",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-adjuster-001",
+        "actorNodeName": "Claims Adjuster"
+      }
+    },
+    {
+      "id": "act-run-fraud-screening-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Run fraud screening",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": true,
+        "customCode": "def custom_code(active_process): pass",
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-system-001",
+        "actorNodeName": "System"
+      }
+    },
+    {
+      "id": "act-investigate-fraud-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Investigate fraud",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-fraud-001",
+        "actorNodeName": "Fraud Analyst"
+      }
+    },
+    {
+      "id": "act-approve-payout-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Approve payout",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-adjuster-001",
+        "actorNodeName": "Claims Adjuster"
+      }
+    },
+    {
+      "id": "act-reject-claim-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Reject claim",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": false,
+        "customCode": null,
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-adjuster-001",
+        "actorNodeName": "Claims Adjuster"
+      }
+    },
+    {
+      "id": "act-issue-payment-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Issue payment",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": true,
+        "customCode": "def custom_code(active_process): pass",
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-system-001",
+        "actorNodeName": "System"
+      }
+    },
+    {
+      "id": "act-notify-customer-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "namespace": "",
+        "name": "Notify customer",
+        "type": "action",
+        "role": "action",
+        "isAutomatic": true,
+        "customCode": "def custom_code(active_process): pass",
+        "localPrecondition": "",
+        "localPostcondition": "",
+        "body": "",
+        "operation": null,
+        "publish": null,
+        "subscribe": null,
+        "classes": null,
+        "application_models": null,
+        "page": null,
+        "actorNode": "actor-system-001",
+        "actorNodeName": "System"
+      }
+    },
+    {
+      "id": "uc-submit-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": "sys-boundary-001",
+        "namespace": "",
+        "name": "Submit insurance claim",
+        "type": "usecase",
+        "precondition": "",
+        "postcondition": "",
+        "trigger": "",
+        "scenarios": [],
+        "activities": [],
+        "actions": [],
+        "classes": [],
+        "application_model": []
+      }
+    },
+    {
+      "id": "uc-review-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": "sys-boundary-001",
+        "namespace": "",
+        "name": "Review claim",
+        "type": "usecase",
+        "precondition": "",
+        "postcondition": "",
+        "trigger": "",
+        "scenarios": [],
+        "activities": [],
+        "actions": [],
+        "classes": [],
+        "application_model": []
+      }
+    },
+    {
+      "id": "uc-fraud-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": "sys-boundary-001",
+        "namespace": "",
+        "name": "Investigate suspicious claim",
+        "type": "usecase",
+        "precondition": "",
+        "postcondition": "",
+        "trigger": "",
+        "scenarios": [],
+        "activities": [],
+        "actions": [],
+        "classes": [],
+        "application_model": []
+      }
+    },
+    {
+      "id": "uc-pay-001",
+      "system_id": "demo-insurance-claims-001",
+      "system_name": "Insurance Claims Orchestration",
+      "data": {
+        "parentNode": "sys-boundary-001",
+        "namespace": "",
+        "name": "Pay claim",
+        "type": "usecase",
+        "precondition": "",
+        "postcondition": "",
+        "trigger": "",
+        "scenarios": [],
+        "activities": [],
+        "actions": [],
+        "classes": [],
+        "application_model": []
+      }
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel-int-submit-001",
+      "source": "actor-customer-001",
+      "target": "uc-submit-001",
+      "data": { "type": "interaction", "position_handlers": [] }
+    },
+    {
+      "id": "rel-int-review-001",
+      "source": "actor-adjuster-001",
+      "target": "uc-review-001",
+      "data": { "type": "interaction", "position_handlers": [] }
+    },
+    {
+      "id": "rel-int-fraud-001",
+      "source": "actor-fraud-001",
+      "target": "uc-fraud-001",
+      "data": { "type": "interaction", "position_handlers": [] }
+    },
+    {
+      "id": "rel-int-pay-001",
+      "source": "actor-system-001",
+      "target": "uc-pay-001",
+      "data": { "type": "interaction", "position_handlers": [] }
+    },
+    {
+      "id": "rel-assoc-claim-policy-001",
+      "source": "class-claim-001",
+      "target": "class-policy-001",
+      "data": {
+        "type": "association",
+        "label": "validated against",
+        "labels": null,
+        "derived": false,
+        "multiplicity": { "source": "1", "target": "1" },
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-assoc-claim-evidence-001",
+      "source": "class-claim-001",
+      "target": "class-evidence-001",
+      "data": {
+        "type": "association",
+        "label": "contains",
+        "labels": null,
+        "derived": false,
+        "multiplicity": { "source": "1", "target": "*" },
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-assoc-claim-payment-001",
+      "source": "class-claim-001",
+      "target": "class-payment-001",
+      "data": {
+        "type": "association",
+        "label": "results in",
+        "labels": null,
+        "derived": false,
+        "multiplicity": { "source": "1", "target": "0..1" },
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-assoc-claim-note-001",
+      "source": "class-claim-001",
+      "target": "class-note-001",
+      "data": {
+        "type": "association",
+        "label": "has",
+        "labels": null,
+        "derived": false,
+        "multiplicity": { "source": "1", "target": "*" },
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-001",
+      "source": "ctl-initial-001",
+      "target": "act-submit-claim-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-002",
+      "source": "act-submit-claim-001",
+      "target": "obj-claim-created-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-003",
+      "source": "obj-claim-created-001",
+      "target": "act-upload-evidence-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-004",
+      "source": "act-upload-evidence-001",
+      "target": "obj-claim-evidence-pending-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-005",
+      "source": "obj-claim-evidence-pending-001",
+      "target": "act-validate-policy-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-006",
+      "source": "act-validate-policy-001",
+      "target": "obj-claim-policy-validated-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-007",
+      "source": "obj-claim-policy-validated-001",
+      "target": "act-triage-claim-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-008",
+      "source": "act-triage-claim-001",
+      "target": "ctl-decision-evidence-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-009",
+      "source": "ctl-decision-evidence-001",
+      "target": "act-request-more-evidence-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": false,
+          "operator": "==",
+          "threshold": "true",
+          "aggregator": null,
+          "target_class": "class-claim-001",
+          "target_attribute": "coverage_valid",
+          "target_class_name": "Claim",
+          "target_attribute_type": "bool"
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-010",
+      "source": "ctl-decision-evidence-001",
+      "target": "act-review-evidence-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": true,
+          "operator": null,
+          "threshold": null,
+          "aggregator": null,
+          "target_class": null,
+          "target_attribute": null,
+          "target_class_name": null,
+          "target_attribute_type": null
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-011",
+      "source": "act-request-more-evidence-001",
+      "target": "obj-claim-evidence-pending-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-012",
+      "source": "act-review-evidence-001",
+      "target": "obj-claim-under-review-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-013",
+      "source": "obj-claim-under-review-001",
+      "target": "act-run-fraud-screening-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-014",
+      "source": "act-run-fraud-screening-001",
+      "target": "ctl-decision-fraud-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-015",
+      "source": "ctl-decision-fraud-001",
+      "target": "act-investigate-fraud-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": false,
+          "operator": ">",
+          "threshold": "70",
+          "aggregator": null,
+          "target_class": "class-claim-001",
+          "target_attribute": "fraud_score",
+          "target_class_name": "Claim",
+          "target_attribute_type": "int"
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-016",
+      "source": "ctl-decision-fraud-001",
+      "target": "ctl-merge-review-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": true,
+          "operator": null,
+          "threshold": null,
+          "aggregator": null,
+          "target_class": null,
+          "target_attribute": null,
+          "target_class_name": null,
+          "target_attribute_type": null
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-017",
+      "source": "act-investigate-fraud-001",
+      "target": "obj-claim-fraud-flagged-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-018",
+      "source": "obj-claim-fraud-flagged-001",
+      "target": "ctl-merge-review-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-019",
+      "source": "ctl-merge-review-001",
+      "target": "act-approve-payout-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": false,
+          "operator": "==",
+          "threshold": "true",
+          "aggregator": null,
+          "target_class": "class-claim-001",
+          "target_attribute": "approved",
+          "target_class_name": "Claim",
+          "target_attribute_type": "bool"
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-020",
+      "source": "ctl-merge-review-001",
+      "target": "act-reject-claim-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": {
+          "isElse": true,
+          "operator": null,
+          "threshold": null,
+          "aggregator": null,
+          "target_class": null,
+          "target_attribute": null,
+          "target_class_name": null,
+          "target_attribute_type": null
+        },
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-021",
+      "source": "act-approve-payout-001",
+      "target": "obj-claim-approved-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-022",
+      "source": "act-reject-claim-001",
+      "target": "obj-claim-rejected-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-023",
+      "source": "obj-claim-approved-001",
+      "target": "act-issue-payment-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-024",
+      "source": "act-issue-payment-001",
+      "target": "obj-claim-paid-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-025",
+      "source": "obj-claim-paid-001",
+      "target": "act-notify-customer-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-026",
+      "source": "obj-claim-rejected-001",
+      "target": "act-notify-customer-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    },
+    {
+      "id": "rel-cf-027",
+      "source": "act-notify-customer-001",
+      "target": "ctl-final-001",
+      "data": {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": null,
+        "is_directed": true,
+        "position_handlers": []
+      }
+    }
+  ]
+}
