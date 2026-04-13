@@ -1,3 +1,10 @@
+"""Baseline diagram-generation implementation preserved for thesis comparison evidence.
+
+No longer used by the active M01/M04 path. The sibling prompt text files in this
+`llm_generation/prompts/` directory are preserved for the same baseline-vs-mechanism
+evaluation and should not be removed.
+"""
+
 from diagram.models import System, Diagram
 from diagram.api.schemas import FullDiagram
 from typing import Dict, Any

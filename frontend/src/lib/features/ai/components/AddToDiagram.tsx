@@ -84,6 +84,9 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
 
     const _classifiers = pipeline?.output?.classifiers || [];
     const _relations = pipeline?.output?.relations || [];
+    const failure = pipeline?.output?.error;
+    const failedStep = pipeline?.output?.failed_step;
+    const failureStepDetails = pipeline?.output?.chain_evidence?.step_details || [];
 
     const toggleClassifier = (id: string) => {
         if (classifiers.includes(id)) {
@@ -160,6 +163,33 @@ export const AddToDiagram: React.FC<Props> = ({ pipeline }) => {
             await queryClient.invalidateQueries({ queryKey: ["diagrams", `${project}`] });
         }
     });
+
+    if (failure) {
+        return (
+            <Card color="danger" variant="soft" className="flex w-full flex-col gap-3 p-4">
+                <div className="flex flex-col">
+                    <span className="text-lg font-semibold">Model Run Failed</span>
+                    <span className="text-sm">
+                        Code: <span className="font-mono">{failure.code || "CHAIN_ERROR"}</span>
+                    </span>
+                    <span className="text-sm">
+                        Message: {failure.message || "The prose chain failed before producing diagram data."}
+                    </span>
+                    <span className="text-sm">
+                        Failed step: <span className="font-mono">{failedStep || "unknown"}</span>
+                    </span>
+                </div>
+                {!!failureStepDetails.length && (
+                    <details>
+                        <summary className="cursor-pointer text-sm font-medium">Step details</summary>
+                        <pre className="mt-2 max-h-80 overflow-auto rounded bg-black/90 p-3 text-xs text-white">
+                            {JSON.stringify(failureStepDetails, null, 2)}
+                        </pre>
+                    </details>
+                )}
+            </Card>
+        );
+    }
 
     return (
         <>

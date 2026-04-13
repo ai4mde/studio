@@ -25,6 +25,9 @@ if environ.get("DEBUG", "True").lower() == "false":
     DEBUG = False
     ALLOWED_HOSTS = [environ.get("HOSTNAME", "api.ai4mde.localhost"), "localhost"]
 
+# Independent thesis-evidence toggle for LLM chain traces (not tied to Django DEBUG).
+LLM_STORE_CHAIN_TRACE = environ.get("LLM_STORE_CHAIN_TRACE", "True").lower() != "false"
+
 INSTALLED_APPS = [
     "daphne",  # ext: Use Daphne as ASGI server
     "model",  # The main app / project is the model application

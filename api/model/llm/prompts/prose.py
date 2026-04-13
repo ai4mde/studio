@@ -1,3 +1,9 @@
+"""Baseline prose prompt constant preserved for thesis comparison evidence.
+
+Active runtime prompt rendering now uses template-registry Jinja2 files (M01).
+Do not delete this module; it is retained for baseline-vs-mechanism evaluation.
+"""
+
 PROSE_GENERATE_METADATA = """
 Act like an API endpoint that translates human language to UML classes.
 Each class has a name and attributes (of type int/str/bool).

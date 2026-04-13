@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Type
 
+from django.conf import settings
 from pydantic import BaseModel
 
 from llm.parsers.base import ParseError
@@ -76,16 +77,26 @@ class ChainRunner:
             parser = JsonOutputParser(schema=step.output_schema)
             parse_result = parser.parse(raw_response)
 
-            step_details.append(
-                {
-                    "step": step_name,
-                    "prompt_name": step.prompt_name,
-                    "output_key": step.output_key,
-                    "success": parse_result.success,
-                    "error": parse_result.error,
-                    "raw_response": parse_result.raw_response,
-                }
-            )
+            # Step-level traces are intentionally retained for thesis chain-evidence comparisons.
+            if getattr(settings, "LLM_STORE_CHAIN_TRACE", True):
+                step_details.append(
+                    {
+                        "step": step_name,
+                        "prompt_name": step.prompt_name,
+                        "output_key": step.output_key,
+                        "success": parse_result.success,
+                        "error": parse_result.error,
+                        "raw_response": parse_result.raw_response,
+                    }
+                )
+            else:
+                step_details.append(
+                    {
+                        "step": step_name,
+                        "success": parse_result.success,
+                        "error": parse_result.error,
+                    }
+                )
 
             if not parse_result.success or parse_result.data is None:
                 error = parse_result.error or ParseError(

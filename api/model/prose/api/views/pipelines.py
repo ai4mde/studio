@@ -40,6 +40,7 @@ def _build_chain_failure_output(
     outputs: dict[str, Any],
 ) -> dict[str, Any]:
     serialized_step_details = _to_jsonable(step_details)
+    # Chain evidence is intentionally persisted for thesis comparison (M05).
     return {
         "error": {
             "code": code,
@@ -47,9 +48,9 @@ def _build_chain_failure_output(
             "details": _to_jsonable(details),
         },
         "failed_step": failed_step,
-        "step_details": serialized_step_details,
         "chain_evidence": {
             "steps_completed": len(serialized_step_details),
+            "step_details": serialized_step_details,
             "outputs": _to_jsonable(outputs),
         },
     }

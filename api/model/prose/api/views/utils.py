@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+"""Baseline single-call prose parser preserved for thesis comparison evidence.
+
+The active runtime path is the M05 3-step prompt chain with structured parsing (M04).
+Do not delete this module; it is retained for baseline-vs-mechanism evaluation.
+"""
+
 from uuid import uuid4
 
 from llm.parsers.base import ParseResult

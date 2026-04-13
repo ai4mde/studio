@@ -1,3 +1,9 @@
+"""Baseline prompt constants preserved for thesis comparison evidence.
+
+Active runtime prompt rendering now uses template-registry Jinja2 files (M01).
+Do not delete this module; it is retained for baseline-vs-mechanism evaluation.
+"""
+
 DIAGRAM_GENERATE_ATTRIBUTE = """
 
 You are a software engineer that is going to implement a derived attribute for a Django Model using Django {data[django_version]}. This generation will be based on UML Class & UML Use Case diagrams. This derived attribute will belong to a Django model that is generated using the following UML metadata:
