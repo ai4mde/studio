@@ -1,5 +1,4 @@
-import json
-from typing import List
+from typing import Any, Dict, List
 from django.http import HttpRequest
 from django.core import serializers
 from django.db.models import Q
@@ -24,19 +23,17 @@ node = Router()
 code_parser = CodeOutputParser(language="python", validate_syntax=True)
 
 
-def _format_code_parse_error(parse_result) -> str:
+def _format_code_parse_error(parse_result) -> Dict[str, Any]:
     error = parse_result.error
-    return json.dumps(
-        {
-            "error": {
-                "code": error.code if error else "PARSE_ERROR",
-                "message": error.message if error else "Failed to parse generated code.",
-                "details": error.details if error else {},
-            },
-            "raw_response": parse_result.raw_response,
-            "extracted_code": parse_result.data.code if parse_result.data else None,
-        }
-    )
+    return {
+        "error": {
+            "code": error.code if error else "PARSE_ERROR",
+            "message": error.message if error else "Failed to parse generated code.",
+            "details": error.details if error else {},
+        },
+        "raw_response": parse_result.raw_response,
+        "extracted_code": parse_result.data.code if parse_result.data else None,
+    }
 
 
 @node.get("/", response=List[NodeSchema])
@@ -116,7 +113,7 @@ def classifier_usage(request: HttpRequest, node_id: str):
 @node.get("/{uuid:node_id}/enums/", response=List[NodeSchema])
 def get_connected_enums(request: HttpRequest, node_id: str):
     out = []
-    node = Node.objects.get(pk=node_id)
+    node = Node.objects.filter(pk=node_id).first()
     if not node:
         return 404, "Node not found"
     
@@ -221,13 +218,13 @@ def import_node(request: HttpRequest, classifier_id: str):
     return node
 
 
-@node.post("{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: str})
-def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "mixtral-8x7b-32768"):
+@node.post("/{uuid:node_id}/generate_attribute/", response={200: str, 404: str, 422: dict})
+def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str, description: str, model: str = "llama-3.3-70b-versatile"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
     
-    node = diagram.nodes.get(id=node_id)
+    node = diagram.nodes.filter(id=node_id).first()
     if not node:
         return 404, "Node not found"
     
@@ -255,13 +252,13 @@ def generate_attribute(request: HttpRequest, node_id: str, name: str, type: str,
     return parse_result.data.code
     
 
-@node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: str})
-def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "mixtral-8x7b-32768"):
+@node.post("/{uuid:node_id}/generate_method/", response={200: str, 404: str, 422: dict})
+def generate_method(request: HttpRequest, node_id: str, name: str, description: str, model: str = "llama-3.3-70b-versatile"):
     diagram = utils.get_diagram(request)
     if not diagram:
         return 404, "Diagram not found"
     
-    node = diagram.nodes.get(id=node_id)
+    node = diagram.nodes.filter(id=node_id).first()
     if not node:
         return 404, "Node not found"
     

@@ -35,7 +35,8 @@ class JsonOutputParser(OutputParser[T], Generic[T]):
             )
 
         decode_errors: list[dict] = []
-        for candidate in candidates:
+        validation_errors: list[dict] = []
+        for candidate_index, candidate in enumerate(candidates):
             try:
                 payload = json.loads(candidate)
             except json.JSONDecodeError as exc:
@@ -53,12 +54,25 @@ class JsonOutputParser(OutputParser[T], Generic[T]):
                 validated = self.schema.model_validate(payload)
                 return ParseResult.ok(data=validated, raw_response=raw_response)
             except ValidationError as exc:
-                return ParseResult.fail(
-                    code="SCHEMA_VALIDATION_ERROR",
-                    message="JSON parsed but failed schema validation.",
-                    raw_response=raw_response,
-                    details={"errors": exc.errors()},
+                validation_errors.append(
+                    {
+                        "candidate_index": candidate_index,
+                        "errors": exc.errors(),
+                    }
                 )
+                continue
+
+        if validation_errors:
+            last_validation_error = validation_errors[-1]
+            return ParseResult.fail(
+                code="SCHEMA_VALIDATION_ERROR",
+                message="JSON parsed but failed schema validation.",
+                raw_response=raw_response,
+                details={
+                    "errors": last_validation_error["errors"],
+                    "validation_errors": validation_errors,
+                },
+            )
 
         return ParseResult.fail(
             code="JSON_DECODE_ERROR",

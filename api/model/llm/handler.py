@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from groq import Groq
 from openai import OpenAI
 from llm.templates.renderer import render_prompt
@@ -44,15 +44,16 @@ def call_groq(model: str, prompt: str) -> str:
         raise Exception("Failed to call LLM, error " + str(e))
 
 
-def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_data: Dict[str, Any] = {}) -> str:
+def llm_handler(
+    prompt_name: str,
+    model: str = "llama-3.3-70b-versatile",
+    input_data: Optional[Dict[str, Any]] = None,
+) -> str:
 
     if not input_data:
         raise Exception("No input data given")
 
-    try:
-        prompt = render_prompt(prompt_name=prompt_name, context=input_data)
-    except ValueError:
-        raise Exception("Invalid prompt name")
+    prompt = render_prompt(prompt_name=prompt_name, context=input_data)
     
     if model == 'gpt-4o':
         return call_openai(model = model, prompt = prompt)
