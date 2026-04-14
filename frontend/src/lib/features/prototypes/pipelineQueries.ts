@@ -130,6 +130,19 @@ export type GeneratorTheme = {
     tokens: Record<string, string>;
 };
 
+export type LayoutElement = {
+    html: string;
+    position: 'top' | 'left' | 'right' | 'bottom';
+    config?: Record<string, unknown>;
+};
+
+export type LayoutOption = {
+    id: string;
+    name: string;
+    description: string;
+    elements: Record<string, LayoutElement>;
+};
+
 export type GeneratorPipelineStatus = {
     thread_id: string;
     system_id: string | null;
@@ -137,10 +150,8 @@ export type GeneratorPipelineStatus = {
     page_ir: unknown | null;
     flow_graph: unknown | null;
     theme: GeneratorTheme | null;
-    global_layout: Record<string, {
-        html: string;
-        position: 'top' | 'left' | 'right' | 'bottom';
-    }> | null;
+    layout_options: LayoutOption[] | null;
+    global_layout: Record<string, LayoutElement> | null;
 };
 
 export const useGeneratorPipeline = (threadId?: string) =>
@@ -158,6 +169,17 @@ export const useRefinePipeline = (threadId: string) =>
         mutationFn: async (body) => {
             const { data } = await authAxios.post(
                 `/v1/generator/pipeline/${threadId}/refine/`,
+                body,
+            );
+            return data;
+        },
+    });
+
+export const useSelectLayout = (threadId: string) =>
+    useMutation<GeneratorPipelineStatus, Error, { option_id: string }>({
+        mutationFn: async (body) => {
+            const { data } = await authAxios.post(
+                `/v1/generator/pipeline/${threadId}/layout/select/`,
                 body,
             );
             return data;

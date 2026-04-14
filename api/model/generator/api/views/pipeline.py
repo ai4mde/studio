@@ -40,6 +40,7 @@ class PipelineStatusSchema(Schema):
   page_ir: Optional[dict]
   flow_graph: Optional[dict]
   theme: Optional[dict]
+  layout_options: Optional[list]
   global_layout: Optional[dict]
 
 
@@ -61,6 +62,7 @@ def _state_to_status(thread_id: str, state: dict) -> dict:
     "page_ir": state.get("page_ir"),
     "flow_graph": state.get("flow_graph") or (state.get("parser_dsl") or {}).get("flow_graph"),
     "theme": state.get("theme"),
+    "layout_options": state.get("layout_options"),
     "global_layout": state.get("global_layout"),
   }
 
@@ -74,14 +76,28 @@ def _collect_page_ast_nodes(page: dict) -> list:
   nodes: list = []
   for region in page.get("regions", []) or []:
     region_ast = region.get("ast", []) or []
+    region_children: list = []
     if region_ast:
-      nodes.extend(region_ast)
+      region_children = list(region_ast)
+    else:
+      for component in region.get("components", []) or []:
+        component_ast = component.get("ast", []) or []
+        if component_ast:
+          region_children.extend(component_ast)
+
+    if not region_children:
       continue
 
-    for component in region.get("components", []) or []:
-      component_ast = component.get("ast", []) or []
-      if component_ast:
-        nodes.extend(component_ast)
+    # Keep region styling dynamic via theme tokens: region.<type>.
+    # This adds a wrapper mount-point for outer region styles without hardcoded classes.
+    nodes.append(
+      {
+        "tag": "div",
+        "variant": region.get("type", ""),
+        "attrs": {"data-region": region.get("id", "")},
+        "children": region_children,
+      }
+    )
   return nodes
 
 
@@ -95,6 +111,152 @@ def _render_page_body(page: dict, theme: dict | None = None) -> str:
   return (
     f'<p class="text-gray-400 italic">Page under construction.'
     f' Actions: {", ".join(action_ids)}</p>'
+  )
+
+
+def _get_theme_token(theme: dict | None, key: str, fallback: str = "") -> str:
+  """Return a theme token value by key, or fallback if absent/empty."""
+  if not theme:
+    return fallback
+  tokens = (theme.get("tokens") or {}) if isinstance(theme, dict) else {}
+  val = tokens.get(key, "").strip()
+  return val if val else fallback
+
+
+def _filter_token_classes(raw: str, prefixes: tuple[str, ...], exact: tuple[str, ...] = ()) -> str:
+  """Filter class tokens by allowed prefixes/exact names.
+
+  Keeps rendering resilient when upstream tokens contain layout-breaking utilities.
+  """
+  if not raw:
+    return ""
+  picked = [c for c in raw.split() if c in exact or any(c.startswith(p) for p in prefixes)]
+  return " ".join(picked)
+
+
+def _sanitize_surface_classes(raw: str) -> str:
+  """Keep only container-safe classes for card/surface wrappers."""
+  return _filter_token_classes(
+    raw,
+    (
+      "bg-",
+      "text-",
+      "border",
+      "shadow",
+      "ring",
+      "rounded",
+      "from-",
+      "via-",
+      "to-",
+      "backdrop-",
+      "p-",
+      "px-",
+      "py-",
+      "pt-",
+      "pb-",
+      "pl-",
+      "pr-",
+      "m-",
+      "mx-",
+      "my-",
+      "mt-",
+      "mb-",
+      "ml-",
+      "mr-",
+      "max-w-",
+      "w-",
+    ),
+  )
+
+
+def _page_body_class(theme: dict | None) -> str:
+  """Return safe <body> classes from page.body token.
+
+  Do not let global text/layout utilities leak into every child node.
+  """
+  raw = _get_theme_token(theme, "page.body", "")
+  return _filter_token_classes(
+    raw,
+    ("bg-", "text-", "font-", "tracking-", "leading-", "from-", "via-", "to-", "backdrop-"),
+    ("antialiased", "subpixel-antialiased"),
+  )
+
+
+def _resolve_preview_token_class(
+  theme: dict | None,
+  preferred_prefixes: tuple[str, ...],
+  *,
+  page: dict | None = None,
+  include_region_types: bool = False,
+  sanitize_surface: bool = False,
+) -> str:
+  """Generic class resolver for preview shells/cards/main wrappers.
+
+  This keeps token selection logic centralized so new component types do not
+  require adding one-off resolver functions.
+  """
+  tokens = (theme.get("tokens") or {}) if isinstance(theme, dict) and theme else {}
+  populated_keys = [k for k, v in tokens.items() if isinstance(v, str) and v.strip()]
+
+  candidate_keys: list[str] = []
+  if include_region_types and page:
+    region_types = [
+      r.get("type")
+      for r in (page.get("regions", []) or [])
+      if isinstance(r, dict) and r.get("type")
+    ]
+    candidate_keys.extend([f"region.{t}" for t in region_types])
+
+  def _rank(key: str) -> tuple[int, str]:
+    for idx, prefix in enumerate(preferred_prefixes):
+      if key == prefix or key.startswith(prefix + ".") or key.startswith(prefix):
+        return (idx, key)
+    if key.startswith("region."):
+      return (len(preferred_prefixes), key)
+    return (len(preferred_prefixes) + 1, key)
+
+  for key in sorted(populated_keys, key=_rank):
+    if key not in candidate_keys:
+      candidate_keys.append(key)
+
+  for key in candidate_keys:
+    val = tokens.get(key)
+    if not isinstance(val, str) or not val.strip():
+      continue
+    resolved = _sanitize_surface_classes(val.strip()) if sanitize_surface else val.strip()
+    if resolved:
+      return resolved
+
+  return ""
+
+
+def _page_main_class(theme: dict | None, page: dict | None = None) -> str:
+  """Return Tailwind classes for <main> wrapper from option/theme tokens."""
+  return _resolve_preview_token_class(theme, ("page.main", "layout.main"))
+
+
+def _preview_surface_class(page: dict, theme: dict | None = None) -> str:
+  """Build preview content card classes from option/theme tokens."""
+  return _resolve_preview_token_class(
+    theme,
+    ("page.surface",),
+    page=page,
+    include_region_types=True,
+    sanitize_surface=True,
+  )
+
+
+def _preview_list_main_class(theme: dict | None) -> str:
+  """Return classes for actor/index list <main> from option/theme tokens."""
+  return _resolve_preview_token_class(theme, ("page.main", "layout.main"))
+
+
+def _preview_list_card_class(theme: dict | None) -> str:
+  """Return classes for actor/index cards from option/theme tokens."""
+  return _resolve_preview_token_class(
+    theme,
+    ("page.surface",),
+    sanitize_surface=True,
   )
 
 
@@ -149,6 +311,41 @@ class RefineSchema(Schema):
     prompt: str
 
 
+class SelectLayoutSchema(Schema):
+    option_id: str
+
+
+@pipeline_router.post("/{thread_id}/layout/select/", response={200: PipelineStatusSchema, 404: ErrorSchema, 400: ErrorSchema})
+def select_layout(request, thread_id: str, body: SelectLayoutSchema):
+    """Apply one of the pre-generated layout options as the active global_layout.
+
+    The chosen option's elements (html + position + config) become global_layout,
+    ready for preview rendering and subsequent refinement via the refine endpoint.
+    """
+    config = _config(thread_id)
+    snapshot = pipeline.get_state(config)
+    if not snapshot.values:
+        return 404, {"error": "thread not found"}
+
+    options = snapshot.values.get("layout_options") or []
+    chosen = next((o for o in options if o.get("id") == body.option_id), None)
+    if chosen is None:
+        return 400, {"error": f"option_id '{body.option_id}' not found"}
+
+    # Apply option's theme_tokens over the current theme so form/content
+    # styling matches the chosen layout's visual style.
+    updates: dict = {"global_layout": chosen.get("elements", {})}
+    option_tokens = chosen.get("theme_tokens") or {}
+    if option_tokens:
+        current_theme = dict(snapshot.values.get("theme") or {})
+        merged_tokens = {**((current_theme.get("tokens") or {})), **option_tokens}
+        updates["theme"] = {**current_theme, "tokens": merged_tokens, "strict_dynamic": True}
+
+    pipeline.update_state(config, updates)
+    snapshot = pipeline.get_state(config)
+    return 200, _state_to_status(thread_id, snapshot.values)
+
+
 @pipeline_router.post("/{thread_id}/refine/", response={200: PipelineStatusSchema, 404: ErrorSchema})
 def refine_pipeline(request, thread_id: str, body: RefineSchema):
     """Re-run the theme agent with a user-supplied refinement prompt.
@@ -171,6 +368,8 @@ def refine_pipeline(request, thread_id: str, body: RefineSchema):
 
     # ── 1. Re-run theme node ──────────────────────────────────────────────────
     new_theme = _theme_node(state)
+    if isinstance(new_theme, dict) and isinstance(new_theme.get("theme"), dict):
+      new_theme["theme"] = {**new_theme["theme"], "strict_dynamic": True}
 
     # ── 2. Run layout agent if prompt mentions layout elements ────────────────
     layout_keywords = ("nav", "sidebar", "footer", "header", "menu", "bar")
@@ -290,6 +489,9 @@ def emit_pipeline_templates(request, thread_id: str):
 
             # ── Body content (same render logic as preview) ────────────────
             body_html = _render_page_body(page, theme=state.get("theme"))
+            surface_class = _preview_surface_class(page, theme=state.get("theme"))
+            body_class = _page_body_class(state.get("theme"))
+            main_class = _page_main_class(state.get("theme"), page)
 
             # ── Full standalone HTML identical to preview layout ───────────
             full_html = f"""<!DOCTYPE html>
@@ -301,7 +503,7 @@ def emit_pipeline_templates(request, thread_id: str):
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="{body_class} min-h-screen font-sans">
   <header class="border-b border-gray-200 bg-white px-8 py-4 flex items-center justify-between">
     <h1 class="text-xl font-bold text-gray-900">{actor_dir} &mdash; {project_name}</h1>
     <nav class="flex items-center gap-6">
@@ -309,8 +511,8 @@ def emit_pipeline_templates(request, thread_id: str):
       <a href="/logout/" class="text-sm text-red-500 hover:underline">Logout</a>
     </nav>
   </header>
-  <main class="max-w-4xl mx-auto p-8">
-    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+  <main class="{main_class}">
+    <div class="{surface_class}">
       <header class="mb-6 pb-4 border-b border-gray-100">
         <h2 class="text-2xl font-bold text-gray-900">{page_name}</h2>
         <p class="text-sm text-gray-500 mt-1">{actor_dir} &mdash; {project_name}</p>
@@ -424,6 +626,9 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
         body = _render_page_body(page_data, theme=state.get("theme"))
+        surface_class = _preview_surface_class(page_data, theme=state.get("theme"))
+        body_class = _page_body_class(state.get("theme"))
+        main_class = _page_main_class(state.get("theme"), page_data)
 
         global_layout = state.get("global_layout") or {}
 
@@ -441,18 +646,18 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
         bottom_html = _elements_at("bottom")
 
         if left_html or right_html:
-            main_content = f"""  <div class="flex min-h-0">
+            main_content = f"""  <div class="flex min-h-0 flex-1">
     {left_html}
-    <main class="flex-1 max-w-4xl mx-auto p-8">
-      <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+    <main class="flex-1 {main_class}">
+      <div class="{surface_class}">
         {body}
       </div>
     </main>
     {right_html}
   </div>"""
         else:
-            main_content = f"""  <main class="max-w-4xl mx-auto p-8">
-    <div class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
+            main_content = f"""  <main class="{main_class}">
+    <div class="{surface_class}">
       {body}
     </div>
   </main>"""
@@ -467,7 +672,7 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="{body_class} min-h-screen font-sans">
   {top_html}
 {main_content}
   {bottom_html}
@@ -482,13 +687,16 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
             return HttpResponse(f"<h1>Actor '{actor}' not found</h1>", status=404, content_type="text/html")
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
+        body_class = _page_body_class(state.get("theme"))
+        list_main_class = _preview_list_main_class(state.get("theme"))
+        card_class = _preview_list_card_class(state.get("theme"))
         cards_html = ""
         for p in app.get("pages", []):
             page_name = p.get("name", "Page")
             subtitle = _page_preview_subtitle(p)
             cards_html += f"""
 <a href="{base_url}?actor={actor}&page={page_name}"
-   class="block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+  class="block {card_class}">
   <div class="flex items-start justify-between">
     <div>
       <h2 class="text-lg font-semibold text-gray-900">{page_name}</h2>
@@ -507,12 +715,12 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
   <title>{actor_name} — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-8 font-sans">
+<body class="{body_class} min-h-screen p-8 font-sans">
   <header class="mb-8 border-b border-gray-200 pb-4">
     <h1 class="text-2xl font-bold text-gray-900">{actor_name}</h1>
     <p class="text-sm text-gray-500 mt-1">{project_name}</p>
   </header>
-  <main class="max-w-2xl mx-auto grid gap-4">
+  <main class="{list_main_class}">
     {cards_html if cards_html else '<p class="text-gray-500">No pages for this actor.</p>'}
   </main>
 </body>
@@ -521,6 +729,9 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
 
     # ── Index page — list all actors ──────────────────────────────────────────
     cards_html = ""
+    body_class = _page_body_class(state.get("theme"))
+    list_main_class = _preview_list_main_class(state.get("theme"))
+    card_class = _preview_list_card_class(state.get("theme"))
     for app in apps:
         actor_id = app.get("actor_id", "unknown")
         actor_name = app.get("actor_name") or actor_name_map.get(actor_id, actor_id)
@@ -528,7 +739,7 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
         page_label = f"{page_count} page{'s' if page_count != 1 else ''}"
         cards_html += f"""
 <a href="{base_url}?actor={actor_id}"
-   class="block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all">
+  class="block {card_class}">
   <div class="flex items-start justify-between">
     <div>
       <p class="text-xs font-mono text-indigo-500 mb-1">{actor_id}</p>
@@ -547,12 +758,12 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
   <title>Preview — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-8 font-sans">
+<body class="{body_class} min-h-screen p-8 font-sans">
   <header class="mb-8 border-b border-gray-200 pb-4">
     <h1 class="text-2xl font-bold text-gray-900">{project_name}</h1>
     <p class="text-sm text-gray-500 mt-1">Select an actor to view their pages &mdash; <code class="font-mono text-xs">{thread_id}</code></p>
   </header>
-  <main class="max-w-2xl mx-auto grid gap-4">
+  <main class="{list_main_class}">
     {cards_html if cards_html else '<p class="text-gray-500">No actors generated yet.</p>'}
   </main>
 </body>

@@ -123,6 +123,29 @@ def _resolve_variant_class(tag: str, variant: str, theme: dict) -> str:
     return ""
 
 
+def _resolve_tag_level_class(tag: str, theme: dict) -> str:
+    """Best-effort dynamic token lookup for nodes without explicit variants.
+
+    In strict dynamic mode, some AST nodes may not define a variant. This helper
+    attempts to resolve a class from tag-scoped token keys only, without relying
+    on static defaults.
+    """
+    tokens = theme.get("tokens") or {}
+    if not isinstance(tokens, dict) or not tokens:
+        return ""
+
+    candidates = []
+    for key, value in tokens.items():
+        if not isinstance(value, str) or not value.strip():
+            continue
+        if key.startswith(f"element.{tag}.") or key.startswith(f"component.{tag}."):
+            candidates.append((key, value.strip()))
+
+    if len(candidates) == 1:
+        return candidates[0][1]
+    return ""
+
+
 def render_node(node: dict, theme: dict | None = None) -> str:
     """Render a single AST node to an HTML string."""
     node = normalize_node(node)
@@ -156,11 +179,21 @@ def render_node(node: dict, theme: dict | None = None) -> str:
 
     # Resolve variant → Tailwind classes from theme tokens
     variant = node.get("variant")
-    if variant and theme:
-        token_class = _resolve_variant_class(tag, variant, theme)
-        if token_class:
-            existing = attrs.get("class", "")
-            attrs["class"] = f"{existing} {token_class}".strip() if existing else token_class
+    strict_dynamic = True
+    if isinstance(theme, dict):
+        strict_dynamic = bool(theme.get("strict_dynamic", True))
+
+    token_class = ""
+    if theme:
+        if variant:
+            token_class = _resolve_variant_class(tag, variant, theme)
+        else:
+            token_class = _resolve_tag_level_class(tag, theme)
+
+    if token_class:
+        existing = attrs.get("class", "")
+        # Strict mode: dynamic token class owns the visual style for consistency.
+        attrs["class"] = token_class if strict_dynamic else (f"{existing} {token_class}".strip() if existing else token_class)
 
     attr_str = " ".join(f'{k}="{v}"' for k, v in attrs.items())
     hx_str = " ".join(f'hx-{k}="{v}"' for k, v in htmx.items())

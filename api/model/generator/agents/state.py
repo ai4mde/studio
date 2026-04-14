@@ -47,8 +47,13 @@ class PipelineState(TypedDict):
     # ── Theme Agent output ───────────────────────────────────────────────────
     theme: Optional[dict]             # {name, tokens: {"region.*|component.*|element.*": "<tailwind classes>"}}
 
-    # ── Global layout (shared across all pages) ──────────────────────────────
-    global_layout: Optional[dict]     # {"navbar_html": str, "sidebar_html": str, ...}
+    # ── Global layout options (LLM-generated at pipeline start) ─────────────
+    # List of 3 layout presets. Each: {id, name, description, elements: {name: {html, position, config}}}
+    # "config" is a semantic AST dict used for surgical refinement (colors, links, style etc.)
+    layout_options: Optional[list]
+
+    # ── Active global layout (selected by designer, editable via refine) ─────
+    global_layout: Optional[dict]     # {name: {html, position, config}}
 
     # ── Refinement input ─────────────────────────────────────────────────────
     refine_prompt: Optional[str]      # user-supplied prompt for re-generating the theme

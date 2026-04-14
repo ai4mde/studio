@@ -3,15 +3,60 @@ import {
     GeneratorApp,
     GeneratorPipelineStatus,
     GeneratorTheme,
+    LayoutOption,
     useGeneratorPipeline,
     useRefinePipeline,
+    useSelectLayout,
 } from "$lib/features/prototypes/pipelineQueries";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, RefreshCw, Sparkles, History } from "lucide-react";
+import { ArrowLeft, LayoutTemplate, RefreshCw, Sparkles, History, Check } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
-// ── Theme token viewer ────────────────────────────────────────────────────────
+// ── Layout option picker ──────────────────────────────────────────────────────
+
+const LayoutPicker: React.FC<{
+    options: LayoutOption[];
+    activeId: string | null;
+    onSelect: (id: string) => void;
+    isPending: boolean;
+}> = ({ options, activeId, onSelect, isPending }) => (
+    <div className="flex flex-col gap-2">
+        {options.map((opt) => {
+            const isActive = opt.id === activeId;
+            return (
+                <button
+                    key={opt.id}
+                    onClick={() => onSelect(opt.id)}
+                    disabled={isPending}
+                    className={`w-full text-left rounded-lg border p-3 transition-all disabled:opacity-50 ${
+                        isActive
+                            ? "border-indigo-400 bg-indigo-50 ring-1 ring-indigo-300"
+                            : "border-gray-200 bg-white hover:border-indigo-200 hover:bg-gray-50"
+                    }`}
+                >
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-gray-800">{opt.name}</span>
+                        {isActive && <Check size={13} className="text-indigo-600 shrink-0" />}
+                    </div>
+                    <p className="mt-0.5 text-xs text-gray-500 leading-snug">{opt.description}</p>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                        {Object.entries(opt.elements).map(([name, el]) => (
+                            <span
+                                key={name}
+                                className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-mono text-gray-500"
+                            >
+                                {name} · {el.position}
+                            </span>
+                        ))}
+                    </div>
+                </button>
+            );
+        })}
+    </div>
+);
+
+// ── Theme token viewer ──────────────────────────────────────────────────────────────
 
 const TokenRow: React.FC<{ tokenKey: string; classes: string }> = ({ tokenKey, classes }) => {
     // Extract a representative bg/text class for a visual swatch
@@ -127,6 +172,7 @@ export const DesignRefinePage: React.FC = () => {
 
     const { data, isLoading, isError } = useGeneratorPipeline(threadId);
     const refine = useRefinePipeline(threadId ?? "");
+    const selectLayout = useSelectLayout(threadId ?? "");
 
     const [activeActorId, setActiveActorId] = useState<string>("");
     const [activePage, setActivePage] = useState<string>("");
@@ -135,6 +181,7 @@ export const DesignRefinePage: React.FC = () => {
     const [prompt, setPrompt] = useState("");
     const [history, setHistory] = useState<string[]>([]);
     const [liveData, setLiveData] = useState<GeneratorPipelineStatus | null>(null);
+    const [activeLayoutId, setActiveLayoutId] = useState<string | null>(null);
     const previewFetchRef = useRef(0);
 
     // Initialise actor/page selection when data arrives
@@ -178,11 +225,6 @@ export const DesignRefinePage: React.FC = () => {
             setPrompt("");
             // Invalidate so other consumers reflect new theme
             queryClient.invalidateQueries({ queryKey: ["generator-pipeline", threadId] });
-            // Re-fetch preview with new theme — trigger by bumping the page state
-            setActivePage((p) => {
-                // tiny toggle trick: set same value causes no re-render; use a counter flag instead
-                return p;
-            });
             // Force preview refresh
             previewFetchRef.current++;
             const seq = previewFetchRef.current;
@@ -201,6 +243,34 @@ export const DesignRefinePage: React.FC = () => {
                 });
         } catch {
             // error displayed via refine.isError
+        }
+    };
+
+    const handleSelectLayout = async (optionId: string) => {
+        if (!threadId) return;
+        try {
+            const result = await selectLayout.mutateAsync({ option_id: optionId });
+            setActiveLayoutId(optionId);
+            setLiveData(result);
+            queryClient.invalidateQueries({ queryKey: ["generator-pipeline", threadId] });
+            // Refresh preview to show new layout
+            previewFetchRef.current++;
+            const seq = previewFetchRef.current;
+            setPreviewLoading(true);
+            authAxios
+                .get<string>(
+                    `/v1/generator/pipeline/${threadId}/preview/?actor=${activeActorId}&page=${activePage}`,
+                    { responseType: "text" },
+                )
+                .then((res) => {
+                    if (seq !== previewFetchRef.current) return;
+                    setPreviewHtml(res.data);
+                })
+                .finally(() => {
+                    if (seq === previewFetchRef.current) setPreviewLoading(false);
+                });
+        } catch {
+            // silent
         }
     };
 
@@ -326,6 +396,22 @@ export const DesignRefinePage: React.FC = () => {
 
                 {/* Right: Control panel */}
                 <div className="flex w-80 shrink-0 flex-col gap-4 overflow-y-auto p-4">
+                    {/* Layout picker */}
+                    {source?.layout_options && source.layout_options.length > 0 && (
+                        <section>
+                            <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                <LayoutTemplate size={12} />
+                                Layout Presets
+                            </h2>
+                            <LayoutPicker
+                                options={source.layout_options}
+                                activeId={activeLayoutId}
+                                onSelect={handleSelectLayout}
+                                isPending={selectLayout.isPending}
+                            />
+                        </section>
+                    )}
+
                     {/* Theme tokens */}
                     {theme ? (
                         <section>

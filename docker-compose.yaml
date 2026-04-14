@@ -44,7 +44,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"
       - "traefik.http.routers.studio-api.entrypoints=web"
+      - "traefik.http.routers.studio-api.middlewares=studio-api-timeout"
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
+      - "traefik.http.services.studio-api.loadbalancer.responseForwarding.flushInterval=1ms"
+      - "traefik.http.middlewares.studio-api-timeout.headers.customRequestHeaders.X-Forwarded-Timeout=300"
 
   studio-prototypes:
     depends_on: ["postgres"]

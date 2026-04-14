@@ -6,7 +6,11 @@ keys it wants to update.  LangGraph merges the returned dict into state.
 """
 import json
 import logging
+import os
+import random
+import re
 from typing import List
+from urllib.request import Request, urlopen
 
 from generator.agents.state import PipelineState, ScreenInfo
 from llm.handler import call_openai
@@ -26,6 +30,556 @@ def _parse_json_response(raw: str) -> dict:
             end -= 1
         raw = "\n".join(lines[start:end])
     return json.loads(raw)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Live design-library discovery
+# Dynamically discovers component pages at runtime from docs index pages.
+# This avoids hardcoding individual component URLs.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_DESIGN_LIBRARY_INDEXES: list[tuple[str, str]] = [
+    ("https://flowbite.com/docs/components/", "Flowbite"),
+    ("https://flowbite.com/docs/forms/", "Flowbite"),
+    ("https://daisyui.com/components/", "DaisyUI"),
+    ("https://merakiui.com/components/application-ui", "MerakiUI"),
+]
+
+
+def _get_design_library_indexes() -> list[tuple[str, str]]:
+    """Get design index sources from env, falling back to defaults.
+
+    Env format:
+      DESIGN_SOURCE_INDEXES="Flowbite|https://flowbite.com/docs/components/,DaisyUI|https://daisyui.com/components/"
+    """
+    raw = os.getenv("DESIGN_SOURCE_INDEXES", "").strip()
+    if not raw:
+        return _DESIGN_LIBRARY_INDEXES
+
+    parsed: list[tuple[str, str]] = []
+    for item in raw.split(","):
+        part = item.strip()
+        if not part:
+            continue
+        if "|" in part:
+            label, url = part.split("|", 1)
+            label = label.strip() or "Source"
+            url = url.strip()
+        else:
+            label = "Source"
+            url = part
+        if url.startswith("http://") or url.startswith("https://"):
+            parsed.append((url, label))
+
+    return parsed or _DESIGN_LIBRARY_INDEXES
+
+
+def _extract_palette_tokens(html: str, limit: int = 16) -> list[str]:
+    """Extract Tailwind color-like tokens from fetched HTML snippets."""
+    matches = re.findall(
+        r"\b(?:bg|text|border|ring|from|to|via)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b",
+        html,
+    )
+    uniq: list[str] = []
+    for token in matches:
+        t = token.lower()
+        if t not in uniq:
+            uniq.append(t)
+        if len(uniq) >= limit:
+            break
+    return uniq
+
+
+def _extract_layout_tokens(html: str, limit: int = 16) -> list[str]:
+    """Extract Tailwind layout-like utility tokens from fetched HTML snippets."""
+    matches = re.findall(
+        r"\b(?:flex|grid|block|inline-block|w-full|max-w-[\w-]+|gap-\d+|space-[xy]-\d+|items-(?:start|center|end|baseline|stretch)|justify-(?:start|center|end|between|around|evenly)|col-span-\d+|grid-cols-\d+|grid-rows-\d+|p[trblxy]?-[\d.]+|m[trblxy]?-[\d.]+|rounded(?:-[a-z]+)?|shadow(?:-[a-z]+)?)\b",
+        html,
+    )
+    uniq: list[str] = []
+    for token in matches:
+        t = token.lower()
+        if t not in uniq:
+            uniq.append(t)
+        if len(uniq) >= limit:
+            break
+    return uniq
+
+
+def _extract_typography_tokens(html: str, limit: int = 16) -> list[str]:
+    """Extract Tailwind typography-like utility tokens from fetched HTML snippets."""
+    matches = re.findall(
+        r"\b(?:font-(?:sans|serif|mono|thin|extralight|light|normal|medium|semibold|bold|extrabold|black)|text-(?:xs|sm|base|lg|xl|\dxl|[a-z]+-\d{2,3})|tracking-(?:tighter|tight|normal|wide|wider|widest)|leading-(?:none|tight|snug|normal|relaxed|loose|\d+))\b",
+        html,
+    )
+    uniq: list[str] = []
+    for token in matches:
+        t = token.lower()
+        if t not in uniq:
+            uniq.append(t)
+        if len(uniq) >= limit:
+            break
+    return uniq
+
+
+def _fetch_html(url: str, timeout: int = 5) -> str | None:
+    """Fetch HTML and strip heavy script/style blocks."""
+    try:
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; DesignBot/1.0)"})
+        with urlopen(req, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return None
+    body = re.sub(r"<script[^>]*>.*?</script>", "", body, flags=re.DOTALL | re.IGNORECASE)
+    body = re.sub(r"<style[^>]*>.*?</style>", "", body, flags=re.DOTALL | re.IGNORECASE)
+    return body
+
+
+def _normalize_abs_url(base_url: str, href: str) -> str | None:
+    """Normalize anchor href to absolute URL on supported docs hosts."""
+    href = (href or "").strip()
+    if not href or href.startswith("#") or href.startswith("javascript:"):
+        return None
+    if href.startswith("http://") or href.startswith("https://"):
+        return href
+    if href.startswith("//"):
+        return f"https:{href}"
+
+    m = re.match(r"^(https?://[^/]+)", base_url)
+    if not m:
+        return None
+    origin = m.group(1)
+    if href.startswith("/"):
+        return origin + href
+
+    base = base_url if base_url.endswith("/") else base_url + "/"
+    return base + href
+
+
+def _discover_design_urls(max_per_index: int = 12) -> list[tuple[str, str]]:
+    """Discover candidate component URLs from design library index pages."""
+    discovered: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    for index_url, source in _get_design_library_indexes():
+        html = _fetch_html(index_url)
+        if not html:
+            continue
+
+        hrefs = re.findall(r'<a[^>]+href=["\']([^"\']+)["\']', html, re.IGNORECASE)
+        base_origin = re.match(r"^(https?://[^/]+)", index_url)
+        if not base_origin:
+            continue
+        origin = base_origin.group(1)
+
+        scored_candidates: list[tuple[int, str]] = []
+        added = 0
+        for href in hrefs:
+            abs_url = _normalize_abs_url(index_url, href)
+            if not abs_url:
+                continue
+            low = abs_url.lower()
+            if not low.startswith(origin.lower()):
+                continue
+            if abs_url in seen:
+                continue
+            if "#" in abs_url or "?" in abs_url:
+                continue
+
+            path = abs_url[len(origin):].strip("/")
+            segments = [s for s in path.split("/") if s]
+            if not segments:
+                continue
+            slug = segments[-1]
+            if not re.search(r"[a-zA-Z]", slug):
+                continue
+
+            # Prefer deeper, descriptive paths over root/utility links.
+            alpha_len = len(re.sub(r"[^a-zA-Z]", "", slug))
+            score = len(segments) * 4 + min(alpha_len, 24)
+            scored_candidates.append((score, abs_url))
+
+        for _score, abs_url in sorted(scored_candidates, key=lambda x: x[0], reverse=True):
+            if abs_url in seen:
+                continue
+
+            slug = abs_url.rstrip("/").split("/")[-1] or "component"
+            label = f"{source} · {slug.replace('-', ' ').title()}"
+            discovered.append((abs_url, label))
+            seen.add(abs_url)
+            added += 1
+            if added >= max_per_index:
+                break
+
+    return discovered
+
+
+def _structure_only_html(html: str, max_len: int = 700) -> str:
+    """Convert raw fetched HTML into structure-only skeleton.
+
+    Removes style-heavy attributes so prompt references encode layout composition
+    (nesting/order/sections) instead of copied visual tokens.
+    """
+    cleaned = html
+    cleaned = re.sub(r"\sclass=(\"[^\"]*\"|'[^']*')", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\sstyle=(\"[^\"]*\"|'[^']*')", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\sid=(\"[^\"]*\"|'[^']*')", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\sdata-[\w-]+=(\"[^\"]*\"|'[^']*')", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\saria-[\w-]+=(\"[^\"]*\"|'[^']*')", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned[:max_len]
+
+
+def _fetch_design_snippet(url: str, source_name: str, timeout: int = 5) -> str | None:
+    """Fetch one design-library page and extract a representative HTML snippet.
+
+    Tries two strategies in order:
+    1. Find a <code> block whose text contains nav/sidebar class patterns.
+    2. Fall back to the first raw <nav> or <aside> block in the page.
+
+    Returns a labelled string ready to embed in the LLM prompt, or None on failure.
+    """
+    body = _fetch_html(url, timeout=timeout)
+    if not body:
+        return None
+
+    # Strategy 1: code blocks that look like nav/sidebar HTML
+    for block in re.findall(r"<code[^>]*>(.*?)</code>", body, re.DOTALL | re.IGNORECASE):
+        plain = re.sub(r"<[^>]+>", "", block).strip()
+        if any(kw in plain for kw in ("<nav", "<aside", "<header", "bg-", "flex ", "sidebar")):
+            snippet = _structure_only_html(plain, max_len=700)
+            if len(snippet) > 80:
+                palette = _extract_palette_tokens(plain)
+                layout = _extract_layout_tokens(plain)
+                typo = _extract_typography_tokens(plain)
+                palette_line = f"PALETTE_HINTS: {', '.join(palette)}" if palette else "PALETTE_HINTS: (none)"
+                layout_line = f"LAYOUT_HINTS: {', '.join(layout)}" if layout else "LAYOUT_HINTS: (none)"
+                typo_line = f"TYPOGRAPHY_HINTS: {', '.join(typo)}" if typo else "TYPOGRAPHY_HINTS: (none)"
+                return f"[{source_name}]\n{palette_line}\n{layout_line}\n{typo_line}\n{snippet}"
+
+    # Strategy 2: first structural block in raw HTML
+    for pat in (r"<nav\b", r"<aside\b", r"<header\b"):
+        m = re.search(pat, body, re.IGNORECASE)
+        if m:
+            raw_block = body[m.start(): m.start() + 800]
+            palette = _extract_palette_tokens(raw_block)
+            layout = _extract_layout_tokens(raw_block)
+            typo = _extract_typography_tokens(raw_block)
+            palette_line = f"PALETTE_HINTS: {', '.join(palette)}" if palette else "PALETTE_HINTS: (none)"
+            layout_line = f"LAYOUT_HINTS: {', '.join(layout)}" if layout else "LAYOUT_HINTS: (none)"
+            typo_line = f"TYPOGRAPHY_HINTS: {', '.join(typo)}" if typo else "TYPOGRAPHY_HINTS: (none)"
+            return f"[{source_name}]\n{palette_line}\n{layout_line}\n{typo_line}\n{_structure_only_html(raw_block, max_len=700)}"
+
+    return None
+
+
+def _build_design_references(n: int = 5) -> str:
+    """Fetch n live design-library pages and compile real HTML snippets.
+
+    URLs are sampled randomly each run so successive pipelines get
+    different inspiration — no hardcoded style descriptions.
+    """
+    all_urls = _discover_design_urls(max_per_index=14)
+    sampled = random.sample(all_urls, min(n, len(all_urls))) if all_urls else []
+    chunks: list[str] = [
+        "LIVE DESIGN LIBRARY SNIPPETS (fetched at pipeline runtime):",
+        "Use these for structure/placement and palette hints (topbar/sidebar/section composition + colors).",
+        "PALETTE_HINTS and LAYOUT_HINTS are extracted from fetched snippets and should influence each option style.",
+        "",
+    ]
+    found = 0
+    for url, name in sampled:
+        snippet = _fetch_design_snippet(url, name)
+        if snippet:
+            chunks.append(f"── SNIPPET {found + 1} ──")
+            chunks.append(snippet)
+            chunks.append("")
+            found += 1
+    if found == 0:
+        chunks.append(
+            "(All live fetches timed out. Generate 5 richly distinct layouts "
+            "from your own knowledge of modern SaaS UI patterns.)"
+        )
+    return "\n".join(chunks)
+
+
+def _discover_html_blocks(
+    html: str,
+    *,
+    max_blocks: int,
+    min_text_len: int = 24,
+) -> list[tuple[str, str]]:
+    """Discover representative HTML blocks directly from fetched markup.
+
+    Returns ordered (tag, block_html) tuples without relying on hardcoded tag maps.
+    """
+    seen_tags: set[str] = set()
+    candidates: list[str] = []
+    for m in re.finditer(r"<([a-z][a-z0-9]*)\b[^>]*>", html, flags=re.IGNORECASE):
+        tag = m.group(1).lower()
+        if tag not in seen_tags:
+            seen_tags.add(tag)
+            candidates.append(tag)
+
+    blocks: list[tuple[str, str]] = []
+    for tag in candidates:
+        if len(blocks) >= max_blocks:
+            break
+
+        paired = re.search(rf"<{tag}\b[^>]*>.*?</{tag}>", html, flags=re.DOTALL | re.IGNORECASE)
+        if paired:
+            block = paired.group(0)
+        else:
+            single = re.search(rf"<{tag}\b[^>]*>", html, flags=re.IGNORECASE)
+            if not single:
+                continue
+            block = single.group(0)
+
+        text = re.sub(r"<[^>]+>", " ", block)
+        plain_text_len = len(" ".join(text.split()))
+        tag_count = len(re.findall(r"<[a-z][a-z0-9]*\b", block, flags=re.IGNORECASE))
+        attr_count = len(re.findall(r"\s[a-zA-Z_:][-a-zA-Z0-9_:.]*=", block))
+        if plain_text_len < min_text_len and tag_count < 6 and attr_count < 4:
+            continue
+        blocks.append((tag, block))
+
+    return blocks
+
+
+def _block_structure_signature(tag: str, block: str) -> dict[str, int]:
+    """Build structure metrics from a fetched HTML block."""
+    opening_tags = re.findall(r"<([a-z][a-z0-9]*)\b", block, flags=re.IGNORECASE)
+    tag_freq: dict[str, int] = {}
+    for t in opening_tags:
+        low = t.lower()
+        tag_freq[low] = tag_freq.get(low, 0) + 1
+
+    return {
+        "total_nodes": len(opening_tags),
+        "distinct_tags": len(tag_freq),
+        "interactive_nodes": sum(
+            v for k, v in tag_freq.items() if k in {"form", "input", "select", "textarea", "button", "label", "fieldset", "option"}
+        ),
+        "list_nodes": sum(
+            v for k, v in tag_freq.items() if k in {"table", "thead", "tbody", "tr", "th", "td", "ul", "ol", "li", "dl", "dt", "dd"}
+        ),
+        "chrome_nodes": sum(
+            v for k, v in tag_freq.items() if k in {"nav", "aside", "header", "footer", "menu"}
+        ),
+        "heading_nodes": sum(v for k, v in tag_freq.items() if re.fullmatch(r"h[1-6]", k)),
+        "container_nodes": sum(
+            v for k, v in tag_freq.items() if k in {"main", "section", "article", "div"}
+        ),
+        "is_form_tag": 1 if tag == "form" else 0,
+        "is_table_tag": 1 if tag == "table" else 0,
+        "is_nav_tag": 1 if tag in {"nav", "aside", "header", "footer"} else 0,
+    }
+
+
+def _layout_block_score(tag: str, block: str) -> int:
+    """Heuristic score to prefer structurally useful fetched blocks."""
+    sig = _block_structure_signature(tag, block)
+    score = 0
+
+    # Prefer blocks that carry structural/layout information.
+    score += len(_extract_layout_tokens(block, limit=24)) * 3
+    score += len(_extract_palette_tokens(block, limit=24))
+    score += len(_extract_typography_tokens(block, limit=24))
+    score += min(sig["total_nodes"], 30)
+    score += min(sig["distinct_tags"], 10) * 2
+    score += sig["interactive_nodes"] * 2
+    score += sig["list_nodes"] * 2
+    score += sig["chrome_nodes"] * 2
+    score += sig["heading_nodes"]
+    score += sig["container_nodes"]
+    score += sig["is_form_tag"] * 8
+    score += sig["is_table_tag"] * 6
+    score += sig["is_nav_tag"] * 4
+
+    return score
+
+
+def _infer_region_hint(tag: str, block: str) -> str:
+    """Infer a region hint from fetched block semantics."""
+    sig = _block_structure_signature(tag, block)
+    if sig["is_form_tag"] or sig["interactive_nodes"] >= max(3, sig["total_nodes"] // 5):
+        return "form"
+    if sig["is_table_tag"] or sig["list_nodes"] >= max(3, sig["total_nodes"] // 4):
+        return "list"
+    if sig["is_nav_tag"] or sig["chrome_nodes"] >= max(2, sig["total_nodes"] // 6):
+        return "layout_chrome"
+    if sig["container_nodes"] > 0 and sig["heading_nodes"] > 0:
+        return "dashboard"
+    return "detail"
+
+
+def _infer_component_name(tag: str, block: str) -> str:
+    """Infer a component name from discovered block semantics."""
+    if tag not in {"div", "section", "article", "main"}:
+        return tag
+
+    opening_tags = re.findall(r"<([a-z][a-z0-9]*)\b", block, flags=re.IGNORECASE)
+    freq: dict[str, int] = {}
+    for t in opening_tags:
+        low = t.lower()
+        if low in {"div", "section", "article", "main"}:
+            continue
+        freq[low] = freq.get(low, 0) + 1
+
+    if not freq:
+        return tag
+    return max(freq.items(), key=lambda kv: kv[1])[0]
+
+
+def _build_ui_layout_references(n: int = 5, blocks_per_page: int = 6) -> str:
+    """Fetch full pages and extract region-typed blocks for ui_designer guidance.
+
+    This provides region/component assignment hints beyond chrome-only snippets.
+    """
+    all_urls = _discover_design_urls(max_per_index=18)
+    sampled = random.sample(all_urls, min(n, len(all_urls))) if all_urls else []
+    chunks: list[str] = [
+        "FULL PAGE LAYOUT REFERENCES (fetched live at runtime):",
+        "Use these to assign page_ir actions into suitable regions/components (form/list/dashboard/action_panel/detail).",
+        "Each block includes REGION_HINT + PALETTE_HINTS + LAYOUT_HINTS + TYPOGRAPHY_HINTS extracted from fetched pages.",
+        "Blocks are discovered dynamically from fetched HTML structure (no fixed block template list).",
+        "",
+    ]
+
+    found = 0
+    for url, source_name in sampled:
+        html = _fetch_html(url)
+        if not html:
+            continue
+        page_palette = _extract_palette_tokens(html, limit=20)
+        page_layout = _extract_layout_tokens(html, limit=20)
+        page_typo = _extract_typography_tokens(html, limit=20)
+        chunks.append(f"=== PAGE: {source_name} ===")
+        if page_palette:
+            chunks.append(f"PAGE_PALETTE_HINTS: {', '.join(page_palette)}")
+        if page_layout:
+            chunks.append(f"PAGE_LAYOUT_HINTS: {', '.join(page_layout)}")
+        if page_typo:
+            chunks.append(f"PAGE_TYPOGRAPHY_HINTS: {', '.join(page_typo)}")
+
+        discovered = _discover_html_blocks(html, max_blocks=max(18, blocks_per_page * 3), min_text_len=24)
+        discovered = sorted(discovered, key=lambda tb: _layout_block_score(tb[0], tb[1]), reverse=True)[:blocks_per_page]
+        for tag_name, block in discovered:
+            region_hint = _infer_region_hint(tag_name, block)
+            palette = _extract_palette_tokens(block, limit=10)
+            layout = _extract_layout_tokens(block, limit=10)
+            typo = _extract_typography_tokens(block, limit=10)
+            chunks.append(f"- REGION_HINT: {region_hint} | TAG: {tag_name}")
+            chunks.append(f"  PALETTE_HINTS: {', '.join(palette) if palette else '(none)'}")
+            chunks.append(f"  LAYOUT_HINTS: {', '.join(layout) if layout else '(none)'}")
+            chunks.append(f"  TYPOGRAPHY_HINTS: {', '.join(typo) if typo else '(none)'}")
+            chunks.append(f"  HTML_SKELETON: {_structure_only_html(block, max_len=600)}")
+            found += 1
+        chunks.append("")
+
+    if found == 0:
+        chunks.append("(All page fetches timed out. Use strong SaaS region composition best practices.)")
+
+    return "\n".join(chunks)
+
+
+def _build_component_style_references(n: int = 4, max_per_component: int = 4) -> str:
+    """Fetch component-level style snippets for token generation.
+
+    This augments region/page references with direct examples for frequently styled
+    controls so element/component tokens can follow fetched visual language.
+    """
+    all_urls = _discover_design_urls(max_per_index=16)
+    sampled = random.sample(all_urls, min(n, len(all_urls))) if all_urls else []
+
+    collected: dict[str, list[str]] = {}
+
+    for url, _source_name in sampled:
+        html = _fetch_html(url)
+        if not html:
+            continue
+
+        for tag_name, snippet in _discover_html_blocks(html, max_blocks=24, min_text_len=10):
+            name = _infer_component_name(tag_name, snippet)
+            bucket = collected.setdefault(name, [])
+            if len(bucket) >= max_per_component:
+                continue
+            cleaned = _structure_only_html(snippet, max_len=420)
+            if cleaned and cleaned not in bucket:
+                bucket.append(cleaned)
+
+    chunks: list[str] = [
+        "COMPONENT STYLE REFERENCES (fetched live at runtime):",
+        "Use these for component-level token styling across discovered component families.",
+        "Components are inferred dynamically from fetched HTML (no fixed component pattern list).",
+        "",
+    ]
+
+    for name in sorted(collected.keys()):
+        chunks.append(f"== COMPONENT: {name} ==")
+        if not collected[name]:
+            chunks.append("(no fetched snippet)")
+            chunks.append("")
+            continue
+
+        for idx, snippet in enumerate(collected[name], 1):
+            palette = _extract_palette_tokens(snippet, limit=8)
+            layout = _extract_layout_tokens(snippet, limit=8)
+            typo = _extract_typography_tokens(snippet, limit=8)
+            chunks.append(f"- SAMPLE {idx}")
+            chunks.append(f"  PALETTE_HINTS: {', '.join(palette) if palette else '(none)'}")
+            chunks.append(f"  LAYOUT_HINTS: {', '.join(layout) if layout else '(none)'}")
+            chunks.append(f"  TYPOGRAPHY_HINTS: {', '.join(typo) if typo else '(none)'}")
+            chunks.append(f"  HTML_SKELETON: {snippet}")
+        chunks.append("")
+
+    return "\n".join(chunks)
+
+
+def _extract_layout_hints_from_references(ref_text: str) -> set[str]:
+    """Extract layout utility hints from reference text blocks."""
+    hints: set[str] = set()
+    for line in ref_text.splitlines():
+        if "LAYOUT_HINTS:" not in line:
+            continue
+        _, raw = line.split("LAYOUT_HINTS:", 1)
+        for token in raw.split(","):
+            t = token.strip()
+            if t and t != "(none)":
+                hints.add(t)
+    return hints
+
+
+def _extract_ui_ast_class_tokens(obj: object) -> set[str]:
+    """Collect all attrs.class tokens from generated ui_ir AST."""
+    tokens: set[str] = set()
+    if isinstance(obj, dict):
+        attrs = obj.get("attrs")
+        if isinstance(attrs, dict):
+            cls = attrs.get("class")
+            if isinstance(cls, str):
+                for part in cls.split():
+                    part = part.strip()
+                    if part:
+                        tokens.add(part)
+        for v in obj.values():
+            tokens.update(_extract_ui_ast_class_tokens(v))
+    elif isinstance(obj, list):
+        for item in obj:
+            tokens.update(_extract_ui_ast_class_tokens(item))
+    return tokens
+
+
+def _layout_alignment_ratio(ui_design: dict, ui_layout_references: str) -> float:
+    """Return overlap ratio between fetched layout hints and generated AST classes."""
+    hints = _extract_layout_hints_from_references(ui_layout_references)
+    if not hints:
+        return 1.0
+    used = _extract_ui_ast_class_tokens(ui_design)
+    if not used:
+        return 0.0
+    overlap = len(hints & used)
+    return overlap / max(1, len(hints))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -261,14 +815,16 @@ def _norm_state(label: str) -> str:
     return "_".join(label.strip().lower().replace("-", " ").split())
 
 
-def _build_parser_dsl(classifiers: list, relations: list) -> dict:
+def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None = None) -> dict:
     """Build the canonical Parser DSL from classifiers + relations.
 
     Output:
       domain      — {name}
       actors      — [{id, name}]
       entities    — [{id, name, fields}]  (domain classes)
-      actions     — [{id, name, actor, input?: [entity_ids], auto?: true}]
+      actions     — [{id, name, actor, input?: [entity_ids], auto?: true,
+                      entity_flow, step_order, upstream_actions, downstream_actions,
+                      control_flow, actor_name}]
       workflow    — {nodes: [action_id, ...], edges: [[from, to] or [from, to, condition]]}
     """
     clf_by_id: dict[str, dict] = {c["id"]: c for c in classifiers}
@@ -290,16 +846,27 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
             adjacent_nodes.setdefault(r["target"], []).append(r["source"])
 
     def _input_entities_for(action_id: str) -> list[str]:
-        """Return entity (class) IDs from object nodes adjacent to an action."""
+        """Return entity (class) IDs reachable from an action via BFS through control nodes."""
         entity_ids: list[str] = []
-        seen: set[str] = set()
-        for neighbor_id in adjacent_nodes.get(action_id, []):
-            neighbor_data = clf_by_id.get(neighbor_id, {}).get("data", {})
-            if neighbor_data.get("type") == "object":
-                cls_id = neighbor_data.get("cls", "")
-                if cls_id and cls_id not in seen:
-                    seen.add(cls_id)
+        seen_entities: set[str] = set()
+        visited: set[str] = {action_id}
+        queue: list[str] = list(adjacent_nodes.get(action_id, []))
+        while queue:
+            nid = queue.pop(0)
+            if nid in visited:
+                continue
+            visited.add(nid)
+            ndata = clf_by_id.get(nid, {}).get("data", {})
+            ntype = ndata.get("type", "")
+            if ntype == "object":
+                cls_id = ndata.get("cls", "")
+                if cls_id and cls_id not in seen_entities:
+                    seen_entities.add(cls_id)
                     entity_ids.append(cls_id)
+            elif ntype in _CONTROL_TYPES:
+                for neighbor in adjacent_nodes.get(nid, []):
+                    if neighbor not in visited:
+                        queue.append(neighbor)
         return entity_ids
 
     def _find_action_successors(node_id: str, visited: frozenset) -> list[dict]:
@@ -371,6 +938,18 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
         for c in classifiers if c["data"].get("type") == "class"
     ]
 
+    # Entity field types lookup (passed to LLM as context for field_mode reasoning)
+    _entity_field_types: dict[str, dict[str, str]] = {}
+    for c in classifiers:
+        d = c.get("data", {})
+        if d.get("type") == "class":
+            ename = d.get("name", "")
+            if ename:
+                _entity_field_types[ename] = {
+                    a["name"]: a.get("type", "str")
+                    for a in d.get("attributes", []) if a.get("name")
+                }
+
     # actions (all action nodes)
     actions = []
     for c in classifiers:
@@ -403,6 +982,222 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
                 edge.append(succ["condition"])
             wf_edges.append(edge)
 
+    # ── Enrich actions with UML workflow position & entity flow ────────────
+    # Directed adjacency for entity flow direction
+    _fwd: dict[str, list[str]] = {}
+    _rev: dict[str, list[str]] = {}
+    for r in relations:
+        if r.get("data", {}).get("type") == "controlflow":
+            _fwd.setdefault(r["source"], []).append(r["target"])
+            _rev.setdefault(r["target"], []).append(r["source"])
+
+    def _directed_bfs(start: str, adj: dict[str, list[str]]) -> set[str]:
+        """BFS from *start* through control nodes; return entity class names found at object nodes."""
+        found: set[str] = set()
+        visited: set[str] = {start}
+        queue = list(adj.get(start, []))
+        while queue:
+            nid = queue.pop(0)
+            if nid in visited:
+                continue
+            visited.add(nid)
+            nd = clf_by_id.get(nid, {}).get("data", {})
+            nt = nd.get("type", "")
+            if nt == "object":
+                cls_id = nd.get("cls", "")
+                cname = class_by_id.get(cls_id, {}).get("data", {}).get("name", "")
+                if cname:
+                    found.add(cname)
+            elif nt in _CONTROL_TYPES:
+                for nb in adj.get(nid, []):
+                    if nb not in visited:
+                        queue.append(nb)
+        return found
+
+    # Activity diagram y-positions → step ordering
+    _action_y: dict[str, int] = {}
+    for diag in (diagrams or []):
+        if diag.get("type") == "activity":
+            for dn in diag.get("nodes", []):
+                cid = dn.get("cls", "")
+                y = dn.get("data", {}).get("position", {}).get("y")
+                if cid and y is not None:
+                    _action_y[cid] = y
+
+    _sorted_aids = sorted(
+        [a["id"] for a in actions],
+        key=lambda aid: _action_y.get(aid, 9999),
+    )
+    _step_map = {aid: idx + 1 for idx, aid in enumerate(_sorted_aids)}
+
+    # Action-to-action successor / predecessor names
+    _act_ids = {a["id"] for a in actions}
+    _act_name = {a["id"]: a["name"] for a in actions}
+    _successors: dict[str, list[str]] = {}
+    _predecessors: dict[str, list[str]] = {}
+    for edge in wf_edges:
+        if len(edge) >= 2 and edge[0] in _act_ids and edge[1] in _act_ids:
+            _successors.setdefault(edge[0], []).append(_act_name[edge[1]])
+            _predecessors.setdefault(edge[1], []).append(_act_name[edge[0]])
+
+    # Control-flow pattern tags (fork / join / decision / merge neighbours)
+    def _cf_patterns(action_id: str) -> list[str]:
+        pats: list[str] = []
+        for pid in _rev.get(action_id, []):
+            pt = clf_by_id.get(pid, {}).get("data", {}).get("type", "")
+            if pt == "fork":
+                pats.append("after_fork(parallel)")
+            elif pt == "decision":
+                guard = ""
+                for r in relations:
+                    rd = r.get("data", {})
+                    if rd.get("type") == "controlflow" and r["source"] == pid and r["target"] == action_id:
+                        guard = rd.get("guard", "")
+                        break
+                pats.append(f"after_decision(condition={guard})" if guard else "after_decision")
+            elif pt == "merge":
+                pats.append("after_merge(convergence)")
+            elif pt == "join":
+                pats.append("after_join(sync)")
+        for sid in _fwd.get(action_id, []):
+            st = clf_by_id.get(sid, {}).get("data", {}).get("type", "")
+            if st == "fork":
+                pats.append("before_fork(splits)")
+            elif st == "decision":
+                pats.append("before_decision(branching)")
+            elif st == "join":
+                pats.append("before_join(sync)")
+            elif st == "merge":
+                pats.append("before_merge")
+        return pats
+
+    for action in actions:
+        aid = action["id"]
+        produced = _directed_bfs(aid, _fwd)
+        consumed = _directed_bfs(aid, _rev)
+        ef: dict[str, str] = {}
+        for en in produced | consumed:
+            if en in produced and en in consumed:
+                ef[en] = "read_write"
+            elif en in produced:
+                ef[en] = "produces"
+            else:
+                ef[en] = "consumes"
+        action["entity_flow"] = ef
+        action["step_order"] = _step_map.get(aid, 0)
+        action["upstream_actions"] = _predecessors.get(aid, [])
+        action["downstream_actions"] = _successors.get(aid, [])
+        action["control_flow"] = _cf_patterns(aid)
+        action["actor_name"] = _swimlane_id_to_name.get(action.get("actor", ""), "")
+
+    # ── State transitions: which entity states each action consumes/produces ─
+    # BFS forward/backward from each action through control nodes to find
+    # connected object nodes with their state labels.
+    _action_ids_set = {a["id"] for a in actions}
+
+    def _state_bfs(start: str, adj: dict[str, list[str]]) -> dict[str, list[str]]:
+        """BFS from *start*; return {entity_name: [state_labels]} from object nodes.
+
+        Traverses through control nodes AND other action nodes (not *start*)
+        so that states separated by intermediate actions are still reachable.
+        e.g. Final decision ← decision ← Assess completeness ← … ← [Analyzed]
+        """
+        result: dict[str, list[str]] = {}
+        visited: set[str] = {start}
+        queue = list(adj.get(start, []))
+        while queue:
+            nid = queue.pop(0)
+            if nid in visited:
+                continue
+            visited.add(nid)
+            nd = clf_by_id.get(nid, {}).get("data", {})
+            nt = nd.get("type", "")
+            if nt == "object":
+                cls_id = nd.get("cls", "")
+                cname = class_by_id.get(cls_id, {}).get("data", {}).get("name", "")
+                state = nd.get("state", "")
+                if cname and state:
+                    result.setdefault(cname, []).append(state)
+            elif nt in _CONTROL_TYPES or nid in _action_ids_set:
+                # Also traverse through other action nodes so we can reach
+                # object-state nodes separated by intermediate actions.
+                for nb in adj.get(nid, []):
+                    if nb not in visited:
+                        queue.append(nb)
+        return result
+
+    for action in actions:
+        aid = action["id"]
+        fwd_states = _state_bfs(aid, _fwd)   # states this action produces
+        rev_states = _state_bfs(aid, _rev)    # states this action consumes
+        st: dict[str, dict[str, list[str]]] = {}
+        for ename in set(list(fwd_states.keys()) + list(rev_states.keys())):
+            st[ename] = {}
+            if ename in rev_states:
+                st[ename]["from_states"] = sorted(set(rev_states[ename]))
+            if ename in fwd_states:
+                st[ename]["to_states"] = sorted(set(fwd_states[ename]))
+        if st:
+            action["state_transitions"] = st
+
+    # ── Field context: structured metadata for LLM field_mode reasoning ─────
+    # 1. Collect "decision fields" — fields referenced in decision node conditions.
+    #    These fields belong to the actor whose action feeds the decision.
+    _decision_fields: dict[str, set[str]] = {}  # entity_name → {field_names}
+    _decision_field_actor: dict[str, str] = {}    # field_name → actor_id that decides it
+    _decision_field_actor_name: dict[str, str] = {}  # field_name → actor_name
+    for r in relations:
+        rd = r.get("data", {})
+        if rd.get("type") != "controlflow":
+            continue
+        cond = rd.get("condition") or {}
+        attr = cond.get("target_attribute", "")
+        cls_name = cond.get("target_class_name", "")
+        if attr and cls_name:
+            _decision_fields.setdefault(cls_name, set()).add(attr)
+            src_data = clf_by_id.get(r.get("source", ""), {}).get("data", {})
+            if src_data.get("type") == "decision":
+                for prev_r in relations:
+                    if prev_r.get("data", {}).get("type") == "controlflow" and prev_r["target"] == r["source"]:
+                        prev_data = clf_by_id.get(prev_r["source"], {}).get("data", {})
+                        if prev_data.get("type") == "action":
+                            prev_actor = prev_data.get("actorNode", "")
+                            if prev_actor:
+                                _decision_field_actor[attr] = prev_actor
+                                _decision_field_actor_name[attr] = _swimlane_id_to_name.get(prev_actor, prev_actor)
+
+    # 2. Track first producer per entity.
+    _entity_first_producer: dict[str, str] = {}  # entity_name → actor_id
+    _entity_first_producer_name: dict[str, str] = {}
+    for a in sorted(actions, key=lambda x: x.get("step_order", 9999)):
+        for ename, flow in a.get("entity_flow", {}).items():
+            if flow == "produces" and ename not in _entity_first_producer:
+                _entity_first_producer[ename] = a.get("actor", "")
+                _entity_first_producer_name[ename] = a.get("actor_name", "")
+
+    # 3. Build per-entity field_context: LLM-facing structured hints.
+    _entity_field_context: dict[str, list[dict]] = {}  # entity_name → [{field, type, decision_info}]
+    for e in entities:
+        ename = e.get("name", "")
+        fields = e.get("fields", []) or []
+        ftypes = _entity_field_types.get(ename, {})
+        ctx_list: list[dict] = []
+        for f in fields:
+            entry: dict = {
+                "field": f,
+                "type": ftypes.get(f, "str"),
+            }
+            if f in _decision_fields.get(ename, set()):
+                entry["decision_condition"] = True
+                owner_name = _decision_field_actor_name.get(f, "")
+                if owner_name:
+                    entry["decided_by_actor"] = owner_name
+            if ename in _entity_first_producer_name:
+                entry["first_produced_by"] = _entity_first_producer_name[ename]
+            ctx_list.append(entry)
+        if ctx_list:
+            _entity_field_context[ename] = ctx_list
+
     return {
         "domain": {"name": domain_name},
         "actors": actors,
@@ -412,6 +1207,7 @@ def _build_parser_dsl(classifiers: list, relations: list) -> dict:
             "nodes": wf_nodes,
             "edges": wf_edges,
         },
+        "field_context": _entity_field_context,
     }
 
 
@@ -566,7 +1362,8 @@ def parser_node(state: PipelineState) -> dict:
         relations: list = metadata.get("relations", [])
         screens = _build_screens(classifiers, relations)
         diagram_summary = _build_diagram_summary(classifiers, relations)
-        parser_dsl = _build_parser_dsl(classifiers, relations)
+        diagrams: list = metadata.get("diagrams", [])
+        parser_dsl = _build_parser_dsl(classifiers, relations, diagrams)
         flow_graph = _build_flow_graph(classifiers, relations, parser_dsl)
         parser_dsl["flow_graph"] = flow_graph
         return {
@@ -684,24 +1481,36 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                     "allowed": ["create", "update", "delete", "readonly"],
                     "kind": "llm_decide",
                 }
+                field_context = parser_dsl.get("field_context", {})
                 for eid in entity_ids:
                     entity = entities_by_id.get(eid, {})
                     entity_name = entity.get("name", eid)
                     fields = entity.get("fields", []) or []
+                    fc_list = field_context.get(entity_name, [])
+                    fc_by_field = {fc["field"]: fc for fc in fc_list}
                     binds = []
                     for field in fields:
                         bind_expr = f"{entity_name}.{field}"
                         binds.append(bind_expr)
-                        attribute_contracts.append({
+                        fc = fc_by_field.get(field, {})
+                        contract: dict = {
                             "entity_id": eid,
                             "entity_name": entity_name,
                             "attribute": field,
                             "bind": bind_expr,
+                            "field_type": fc.get("type", "str"),
                             "ui_policy": {
                                 "validation": [],
                                 "operations": operation_hint,
                             },
-                        })
+                        }
+                        if fc.get("decision_condition"):
+                            contract["decision_condition"] = True
+                            if fc.get("decided_by_actor"):
+                                contract["decided_by_actor"] = fc["decided_by_actor"]
+                        if fc.get("first_produced_by"):
+                            contract["first_produced_by"] = fc["first_produced_by"]
+                        attribute_contracts.append(contract)
                     if len(binds) >= 2:
                         binding_groups.append({
                             "entity_id": eid,
@@ -717,6 +1526,15 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                     "entity_names": entity_names,
                     "attribute_contracts": attribute_contracts,
                     "binding_groups": binding_groups,
+                    "workflow_context": {
+                        "entity_flow": act.get("entity_flow", {}),
+                        "step_order": act.get("step_order", 0),
+                        "upstream_actions": act.get("upstream_actions", []),
+                        "downstream_actions": act.get("downstream_actions", []),
+                        "control_flow": act.get("control_flow", []),
+                        "actor_name": act.get("actor_name", ""),
+                        "state_transitions": act.get("state_transitions", {}),
+                    },
                 })
             apps_by_actor.setdefault(actor_id, []).append({
                 "page_id": page_id,
@@ -855,6 +1673,214 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
 #    blocks automatically inherit the new look.
 # ─────────────────────────────────────────────────────────────────────────────
 
+
+def _enforce_field_policies(ui_design: dict) -> dict:
+    """Post-process LLM output: enforce field_policies on AST nodes.
+
+    For each component, read its field_policies and:
+    - Remove AST nodes whose 'bind' matches a hidden field.
+    - Convert input/textarea/select nodes for readonly fields into span nodes.
+    Also removes hidden fields from the component's 'attributes' list.
+    """
+
+    def _bind_field_name(bind_val: str) -> str | None:
+        """Extract the field name from a bind like 'Entity.field'."""
+        if not bind_val or not isinstance(bind_val, str):
+            return None
+        parts = bind_val.rsplit(".", 1)
+        return parts[-1] if parts else None
+
+    def _is_hidden_node(node: dict, hidden_fields: set) -> bool:
+        """Check if a node binds to a hidden field."""
+        bind = node.get("bind", "")
+        fname = _bind_field_name(bind)
+        return fname is not None and fname in hidden_fields
+
+    def _strip_hidden_nodes(nodes: list, hidden_fields: set) -> list:
+        """Recursively remove nodes bound to hidden fields and their label siblings."""
+        if not hidden_fields:
+            return nodes
+        result = []
+        skip_next_label_for: set | None = None
+        i = 0
+        while i < len(nodes):
+            node = nodes[i]
+            if not isinstance(node, dict):
+                result.append(node)
+                i += 1
+                continue
+
+            # Check if this node directly binds to a hidden field
+            if _is_hidden_node(node, hidden_fields):
+                # Also remove the preceding label if it was just added
+                if result and isinstance(result[-1], dict) and result[-1].get("tag") == "label":
+                    result.pop()
+                i += 1
+                continue
+
+            # Check if next sibling is a hidden input — then this label should be skipped
+            tag = node.get("tag", "")
+            if tag == "label" and i + 1 < len(nodes):
+                next_node = nodes[i + 1] if isinstance(nodes[i + 1], dict) else {}
+                if _is_hidden_node(next_node, hidden_fields):
+                    i += 1  # skip label; the hidden node itself will be skipped next iteration
+                    continue
+
+            # Recurse into children
+            new_node = dict(node)
+            if "children" in new_node and isinstance(new_node["children"], list):
+                new_node["children"] = _strip_hidden_nodes(new_node["children"], hidden_fields)
+            if "else_children" in new_node and isinstance(new_node["else_children"], list):
+                new_node["else_children"] = _strip_hidden_nodes(new_node["else_children"], hidden_fields)
+            result.append(new_node)
+            i += 1
+        return result
+
+    def _convert_readonly_nodes(nodes: list, readonly_fields: set) -> list:
+        """Recursively mark nodes bound to readonly fields as display-only.
+
+        Generic — no hardcoded tag or attr lists:
+        - Sets variant="readonly" so theme tokens control the visual style.
+        - Strips htmx dict to remove all server interaction.
+        - Preserves tag, attrs, text, bind, children — structure stays intact
+          so the theme can apply rich 'human in the loop' styling.
+        """
+        if not readonly_fields:
+            return nodes
+        result = []
+        for node in nodes:
+            if not isinstance(node, dict):
+                result.append(node)
+                continue
+            new_node = dict(node)
+            bind = new_node.get("bind", "")
+            fname = _bind_field_name(bind)
+
+            if fname and fname in readonly_fields:
+                new_node["variant"] = "readonly"
+                new_node.pop("htmx", None)
+
+            # Always recurse into children
+            if "children" in new_node and isinstance(new_node["children"], list):
+                new_node["children"] = _convert_readonly_nodes(new_node["children"], readonly_fields)
+            if "else_children" in new_node and isinstance(new_node["else_children"], list):
+                new_node["else_children"] = _convert_readonly_nodes(new_node["else_children"], readonly_fields)
+            result.append(new_node)
+        return result
+
+    ui_ir = ui_design.get("ui_ir", {})
+    for app in ui_ir.get("apps", []):
+        for page in app.get("pages", []):
+            for region in page.get("regions", []):
+                # Collect field_policies from all components in this region
+                hidden_fields: set[str] = set()
+                readonly_fields: set[str] = set()
+                for comp in region.get("components", []):
+                    fp = comp.get("field_policies", {})
+                    for attr_name, policy in fp.items():
+                        mode = policy.get("mode", "")
+                        if mode == "hidden":
+                            hidden_fields.add(attr_name)
+                        elif mode == "readonly":
+                            readonly_fields.add(attr_name)
+                    # Remove hidden fields from attributes list
+                    if "attributes" in comp and isinstance(comp["attributes"], list):
+                        comp["attributes"] = [
+                            a for a in comp["attributes"] if a not in hidden_fields
+                        ]
+
+                ast_nodes = region.get("ast", [])
+                if ast_nodes:
+                    ast_nodes = _strip_hidden_nodes(ast_nodes, hidden_fields)
+                    ast_nodes = _convert_readonly_nodes(ast_nodes, readonly_fields)
+                    region["ast"] = ast_nodes
+
+    return ui_design
+
+
+def _guardrail_entity_flow(ui_design: dict, page_ir: dict) -> dict:
+    """Post-process guardrail: enforce hard entity_flow constraints on LLM output.
+
+    1. consumes → all field_policies must be readonly (never editable).
+    2. produces/read_write → at least one field must be editable in some component.
+       If the LLM made everything readonly/hidden, flip the first non-decision field to editable.
+    """
+    # Build lookup: page_id → [{entity_flow, action_name}]
+    page_flow: dict[str, list[dict]] = {}
+    for app_ir in page_ir.get("apps", []):
+        for page in app_ir.get("pages", []):
+            pid = page.get("page_id", "")
+            hints = page.get("intent_hints", [])
+            for h in hints:
+                wc = h.get("workflow_context", {})
+                ef = wc.get("entity_flow", {})
+                page_flow.setdefault(pid, []).append(ef)
+
+    ui_ir = ui_design.get("ui_ir", {})
+    for app in ui_ir.get("apps", []):
+        for page in app.get("pages", []):
+            pid = page.get("page_id", "")
+            flows = page_flow.get(pid, [])
+            if not flows:
+                continue
+
+            # Aggregate entity_flow for this page
+            all_consumes = all(
+                flow_val == "consumes"
+                for ef in flows
+                for flow_val in ef.values()
+            ) if flows else False
+
+            any_produces_or_rw = any(
+                flow_val in ("produces", "read_write")
+                for ef in flows
+                for flow_val in ef.values()
+            )
+
+            for region in page.get("regions", []):
+                for comp in region.get("components", []):
+                    fp = comp.get("field_policies", {})
+
+                    if all_consumes:
+                        # HARD: consumes → force all to readonly
+                        for attr_name, policy in fp.items():
+                            if policy.get("mode") == "editable":
+                                policy["mode"] = "readonly"
+                                logger.debug("guardrail: %s.%s forced readonly (consumes)", pid, attr_name)
+
+            if any_produces_or_rw:
+                # Check if at least one editable field exists
+                has_editable = False
+                for region in page.get("regions", []):
+                    for comp in region.get("components", []):
+                        fp = comp.get("field_policies", {})
+                        if any(p.get("mode") == "editable" for p in fp.values()):
+                            has_editable = True
+                            break
+                    if has_editable:
+                        break
+
+                if not has_editable:
+                    # Flip first non-hidden field to editable
+                    flipped = False
+                    for region in page.get("regions", []):
+                        for comp in region.get("components", []):
+                            fp = comp.get("field_policies", {})
+                            for attr_name, policy in fp.items():
+                                if policy.get("mode") != "hidden":
+                                    policy["mode"] = "editable"
+                                    logger.info("guardrail: %s.%s flipped to editable (produces/read_write needs inputs)", pid, attr_name)
+                                    flipped = True
+                                    break
+                            if flipped:
+                                break
+                        if flipped:
+                            break
+
+    # Re-run _enforce_field_policies to fix AST after guardrail changes
+    return _enforce_field_policies(ui_design)
+
+
 def ui_designer_node(state: PipelineState) -> dict:
     """UI Designer: runs page synthesis then calls LLM for ui_ir component mapping."""
     from llm.prompts.agents import AGENT_UI_DESIGNER
@@ -863,17 +1889,34 @@ def ui_designer_node(state: PipelineState) -> dict:
 
     # ── Deterministic page synthesis (pre-LLM) ───────────────────────────────
     page_ir = _synthesise_pages(parser_dsl)
+    ui_layout_references = _build_ui_layout_references(n=5, blocks_per_page=6)
 
     prompt = AGENT_UI_DESIGNER.format(
         project_name=state["project_name"],
         application_name=state["application_name"],
         page_ir_json=json.dumps(page_ir, indent=2),
         parser_dsl_json=json.dumps(parser_dsl, indent=2),
+        ui_layout_references=ui_layout_references,
     )
 
     try:
         raw = call_openai("gpt-4o", prompt)
         ui_design = _parse_json_response(raw)
+
+        # Guardrail: ensure generated structure actually uses fetched layout hints.
+        # If overlap is too low, retry once with a stricter reminder.
+        align_ratio = _layout_alignment_ratio(ui_design, ui_layout_references)
+        if align_ratio < 0.08:
+            strict_prompt = (
+                prompt
+                + "\n\nSTRICT FETCHED-LAYOUT ENFORCEMENT:\n"
+                + "Your previous output underused fetched LAYOUT_HINTS. Regenerate ui_ir and explicitly"
+                + " reuse fetched layout utilities in attrs.class for page/region containers."
+                + " Keep forms readable: do NOT place all form fields in one horizontal row;"
+                + " form containers must be vertical stack or clear grid with spacing."
+            )
+            raw = call_openai("gpt-4o", strict_prompt)
+            ui_design = _parse_json_response(raw)
         # Default ui_ir to the deterministic page_ir when LLM omits it
         ui_design.setdefault("ui_ir", page_ir)
         # Merge actor_name from page_ir into the LLM ui_ir (LLM may not emit it)
@@ -881,6 +1924,10 @@ def ui_designer_node(state: PipelineState) -> dict:
         for app in ui_design["ui_ir"].get("apps", []):
             if not app.get("actor_name"):
                 app["actor_name"] = page_ir_actor_names.get(app["actor_id"])
+        # Enforce field_policies on AST: strip hidden fields, convert readonly
+        ui_design = _enforce_field_policies(ui_design)
+        # Guardrail: enforce hard entity_flow constraints (consumes→readonly, produces→has editables)
+        ui_design = _guardrail_entity_flow(ui_design, page_ir)
         logger.info("ui_designer_node: %d ui_ir apps",
                     len(ui_design.get("ui_ir", {}).get("apps", [])))
         return {"page_ir": page_ir, "ui_design": ui_design, "error": None}
@@ -924,18 +1971,50 @@ def theme_node(state: PipelineState) -> dict:
     ui_design = state.get("ui_design") or {}
     variants = _collect_variants(ui_design)
 
+    # Collect region types from page structures — the preview renderer wraps each
+    # region in a <div variant="<region_type>"> so the theme must provide tokens.
+    ui_ir = ui_design.get("ui_ir") or {}
+    _region_type_seen: set[str] = set()
+    for app in ui_ir.get("apps", []) or []:
+        for page in app.get("pages", []) or []:
+            for region in page.get("regions", []) or []:
+                rtype = region.get("type")
+                if rtype and rtype not in _region_type_seen:
+                    _region_type_seen.add(rtype)
+    existing_variant_keys = {v["variant"] for v in variants}
+    for rtype in sorted(_region_type_seen):
+        if rtype not in existing_variant_keys:
+            variants.append({"tag": "div", "variant": rtype})
+            existing_variant_keys.add(rtype)
+
+    # Always inject structural page-level tokens so every theme covers the page shell.
+    # These control <body> bg, <main> width/padding, and the content surface card.
+    _PAGE_STRUCTURAL_VARIANTS = [
+        {"tag": "body", "variant": "page.body"},
+        {"tag": "main", "variant": "page.main"},
+        {"tag": "div",  "variant": "page.surface"},
+    ]
+    for sv in _PAGE_STRUCTURAL_VARIANTS:
+        if sv["variant"] not in existing_variant_keys:
+            variants.append(sv)
+            existing_variant_keys.add(sv["variant"])
+
     if not variants:
         logger.info("theme_node: no variants found in ui_design; skipping LLM call")
         return {"theme": {"name": "default", "tokens": {}}}
 
     design_goal = (state.get("theme") or {}).get("design_goal") or \
                   f"Clean professional UI for {state['project_name']}"
+    theme_references = _build_ui_layout_references(n=4, blocks_per_page=5)
+    component_references = _build_component_style_references(n=4, max_per_component=3)
 
     prompt = AGENT_THEME_DESIGNER.format(
         project_name=state["project_name"],
         application_name=state["application_name"],
         design_goal=design_goal,
         variants_json=json.dumps(variants, indent=2),
+        theme_references=theme_references,
+        component_references=component_references,
     )
 
     refine_prompt = state.get("refine_prompt")
@@ -957,4 +2036,69 @@ def theme_node(state: PipelineState) -> dict:
     except Exception as exc:
         logger.warning("theme_node failed (%s); using empty theme", exc)
         return {"theme": {"name": "default", "tokens": {}}}
+
+
+def layout_options_node(state: PipelineState) -> dict:
+    """Layout Options Agent: generates 5 distinct global layout presets for the designer to pick.
+
+    Design references are fetched live from public design libraries (Flowbite, DaisyUI, MerakiUI)
+    at runtime, so each pipeline run receives fresh HTML pattern examples as LLM context.
+    Each option contains named elements (navbar, sidebar, footer, etc.) with:
+    - html: standalone Tailwind snippet
+    - position: top|left|right|bottom
+    - config: semantic AST dict (logo, links, colors) for surgical refinement later
+    """
+    from llm.prompts.agents import AGENT_LAYOUT_OPTIONS
+
+    theme = state.get("theme") or {}
+    theme_name = theme.get("name", "default")
+    tokens = theme.get("tokens") or {}
+
+    # Always ensure structural page-shell tokens are in scope for layout options,
+    # even if theme_node produced them in a fresh run's tokens dict.
+    _PAGE_LAYOUT_KEYS = ["page.body", "page.main", "page.surface"]
+    extended_tokens = dict(tokens)
+    for k in _PAGE_LAYOUT_KEYS:
+        extended_tokens.setdefault(k, "")
+
+    parser_dsl = state.get("parser_dsl") or {}
+    actors = [a.get("name", a.get("id", "")) for a in (parser_dsl.get("actors") or [])]
+
+    design_references = _build_design_references(n=5)
+    logger.info("layout_options_node: fetched design references (%d chars)", len(design_references))
+    region_references = _build_ui_layout_references(n=3, blocks_per_page=5)
+    logger.info("layout_options_node: fetched region references (%d chars)", len(region_references))
+
+    prompt = AGENT_LAYOUT_OPTIONS.format(
+        project_name=state["project_name"],
+        application_name=state["application_name"],
+        actors_json=json.dumps(actors),
+        theme_name=theme_name,
+        theme_token_keys=json.dumps(list(extended_tokens.keys())),
+        design_references=design_references,
+        region_references=region_references,
+    )
+
+    try:
+        raw = call_openai("gpt-4o", prompt)
+        raw = raw.strip()
+        if raw.startswith("```"):
+            lines = raw.split("\n")
+            raw = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+        options = json.loads(raw)
+        if not isinstance(options, list):
+            raise ValueError("expected JSON array")
+        # Ensure every option's theme_tokens covers exactly the same keys as the base theme.
+        # LLMs sometimes omit keys or use wrong names — fill gaps with base theme values.
+        for opt in options:
+            opt_tokens = opt.get("theme_tokens") or {}
+            merged = {}
+            for key, base_val in extended_tokens.items():
+                merged[key] = opt_tokens.get(key, base_val)
+            opt["theme_tokens"] = merged
+        logger.info("layout_options_node: generated %d layout options", len(options))
+        return {"layout_options": options}
+    except Exception as exc:
+        logger.warning("layout_options_node failed (%s); returning empty options", exc)
+        return {"layout_options": []}
 
