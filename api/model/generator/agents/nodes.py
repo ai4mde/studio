@@ -991,8 +991,14 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
             _fwd.setdefault(r["source"], []).append(r["target"])
             _rev.setdefault(r["target"], []).append(r["source"])
 
+    _action_ids_set_early = {c["id"] for c in classifiers if c["data"].get("type") == "action"}
+
     def _directed_bfs(start: str, adj: dict[str, list[str]]) -> set[str]:
-        """BFS from *start* through control nodes; return entity class names found at object nodes."""
+        """BFS from *start* through control nodes; return entity class names found at object nodes.
+
+        Also peeks one hop through other action nodes to reach object nodes
+        separated by intermediate actions (same strategy as _state_bfs).
+        """
         found: set[str] = set()
         visited: set[str] = {start}
         queue = list(adj.get(start, []))
@@ -1008,6 +1014,18 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
                 cname = class_by_id.get(cls_id, {}).get("data", {}).get("name", "")
                 if cname:
                     found.add(cname)
+            elif nid in _action_ids_set_early:
+                # Peek one hop further for adjacent object nodes only
+                for nb in adj.get(nid, []):
+                    if nb in visited:
+                        continue
+                    nb_d = clf_by_id.get(nb, {}).get("data", {})
+                    if nb_d.get("type") == "object":
+                        visited.add(nb)
+                        cls_id = nb_d.get("cls", "")
+                        cname = class_by_id.get(cls_id, {}).get("data", {}).get("name", "")
+                        if cname:
+                            found.add(cname)
             elif nt in _CONTROL_TYPES:
                 for nb in adj.get(nid, []):
                     if nb not in visited:
@@ -1098,9 +1116,12 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
     def _state_bfs(start: str, adj: dict[str, list[str]]) -> dict[str, list[str]]:
         """BFS from *start*; return {entity_name: [state_labels]} from object nodes.
 
-        Traverses through control nodes AND other action nodes (not *start*)
-        so that states separated by intermediate actions are still reachable.
-        e.g. Final decision ← decision ← Assess completeness ← … ← [Analyzed]
+        Traverses freely through control nodes.  When it hits another action
+        node it peeks one hop further (to pick up adjacent object-state nodes)
+        but does NOT continue BFS beyond that action — this prevents reaching
+        states that are many actions away and polluting the result.
+        e.g. Final decision ← decision ← Assess completeness ← [Analyzed] ✓
+             but will NOT keep going through Assess → fork → … → [Created]
         """
         result: dict[str, list[str]] = {}
         visited: set[str] = {start}
@@ -1118,9 +1139,21 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
                 state = nd.get("state", "")
                 if cname and state:
                     result.setdefault(cname, []).append(state)
-            elif nt in _CONTROL_TYPES or nid in _action_ids_set:
-                # Also traverse through other action nodes so we can reach
-                # object-state nodes separated by intermediate actions.
+            elif nid in _action_ids_set:
+                # Hit another action — peek one hop further for object nodes only
+                for nb in adj.get(nid, []):
+                    if nb in visited:
+                        continue
+                    nb_d = clf_by_id.get(nb, {}).get("data", {})
+                    if nb_d.get("type") == "object":
+                        visited.add(nb)
+                        cls_id = nb_d.get("cls", "")
+                        cname = class_by_id.get(cls_id, {}).get("data", {}).get("name", "")
+                        state = nb_d.get("state", "")
+                        if cname and state:
+                            result.setdefault(cname, []).append(state)
+                # Do NOT enqueue further — stop BFS at this action boundary
+            elif nt in _CONTROL_TYPES:
                 for nb in adj.get(nid, []):
                     if nb not in visited:
                         queue.append(nb)
@@ -1146,6 +1179,7 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
     _decision_fields: dict[str, set[str]] = {}  # entity_name → {field_names}
     _decision_field_actor: dict[str, str] = {}    # field_name → actor_id that decides it
     _decision_field_actor_name: dict[str, str] = {}  # field_name → actor_name
+    _decision_field_action_id: dict[str, str] = {}   # field_name → action_id that feeds the decision
     for r in relations:
         rd = r.get("data", {})
         if rd.get("type") != "controlflow":
@@ -1165,8 +1199,33 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
                             if prev_actor:
                                 _decision_field_actor[attr] = prev_actor
                                 _decision_field_actor_name[attr] = _swimlane_id_to_name.get(prev_actor, prev_actor)
+                                _decision_field_action_id[attr] = prev_r["source"]
 
-    # 2. Track first producer per entity.
+    # 2. Parse customCode from automatic actions to find auto-computed fields.
+    #    Pattern: <var>.<field> = ... inside custom_code functions.
+    import re as _re
+    _auto_computed_fields: dict[str, set[str]] = {}  # entity_name → {field_names}
+    _entity_names_lower = {e.get("name", "").lower().replace(" ", ""): e.get("name", "") for e in entities}
+    for c in classifiers:
+        cd = c.get("data", {})
+        if cd.get("type") != "action" or not cd.get("isAutomatic"):
+            continue
+        code = cd.get("customCode", "") or ""
+        if not code:
+            continue
+        # Match patterns like: loan_application.risk = ...
+        for match in _re.finditer(r'(\w+)\.(\w+)\s*=', code):
+            var_name = match.group(1)  # e.g. "loan_application"
+            field_name = match.group(2)  # e.g. "risk"
+            if field_name == "save":
+                continue
+            # Try to match var to an entity (snake_case → entity name)
+            var_lower = var_name.replace("_", "")
+            ename = _entity_names_lower.get(var_lower, "")
+            if ename:
+                _auto_computed_fields.setdefault(ename, set()).add(field_name)
+
+    # 3. Track first producer per entity.
     _entity_first_producer: dict[str, str] = {}  # entity_name → actor_id
     _entity_first_producer_name: dict[str, str] = {}
     for a in sorted(actions, key=lambda x: x.get("step_order", 9999)):
@@ -1175,7 +1234,7 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
                 _entity_first_producer[ename] = a.get("actor", "")
                 _entity_first_producer_name[ename] = a.get("actor_name", "")
 
-    # 3. Build per-entity field_context: LLM-facing structured hints.
+    # 4. Build per-entity field_context: LLM-facing structured hints.
     _entity_field_context: dict[str, list[dict]] = {}  # entity_name → [{field, type, decision_info}]
     for e in entities:
         ename = e.get("name", "")
@@ -1192,8 +1251,11 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
                 owner_name = _decision_field_actor_name.get(f, "")
                 if owner_name:
                     entry["decided_by_actor"] = owner_name
-            if ename in _entity_first_producer_name:
-                entry["first_produced_by"] = _entity_first_producer_name[ename]
+                action_id = _decision_field_action_id.get(f, "")
+                if action_id:
+                    entry["decided_by_action_id"] = action_id
+            if f in _auto_computed_fields.get(ename, set()):
+                entry["auto_computed"] = True
             ctx_list.append(entry)
         if ctx_list:
             _entity_field_context[ename] = ctx_list
@@ -1208,6 +1270,7 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
             "edges": wf_edges,
         },
         "field_context": _entity_field_context,
+        "entity_first_produced_by": _entity_first_producer_name,
     }
 
 
@@ -1456,6 +1519,7 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
 
         actions_by_id = {a["id"]: a for a in parser_dsl.get("actions", []) or []}
         entities_by_id = {e["id"]: e for e in parser_dsl.get("entities", []) or []}
+        _efpb = parser_dsl.get("entity_first_produced_by", {})
 
         apps_by_actor: dict[str, list] = {}
         for actor_id, state in sorted(actor_groups.keys()):
@@ -1508,8 +1572,10 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                             contract["decision_condition"] = True
                             if fc.get("decided_by_actor"):
                                 contract["decided_by_actor"] = fc["decided_by_actor"]
-                        if fc.get("first_produced_by"):
-                            contract["first_produced_by"] = fc["first_produced_by"]
+                            if fc.get("decided_by_action_id"):
+                                contract["decided_by_action_id"] = fc["decided_by_action_id"]
+                        if fc.get("auto_computed"):
+                            contract["auto_computed"] = True
                         attribute_contracts.append(contract)
                     if len(binds) >= 2:
                         binding_groups.append({
@@ -1534,6 +1600,11 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                         "control_flow": act.get("control_flow", []),
                         "actor_name": act.get("actor_name", ""),
                         "state_transitions": act.get("state_transitions", {}),
+                        "entity_first_produced_by": {
+                            eid_name: _efpb.get(eid_name, "")
+                            for eid_name in entity_names
+                            if _efpb.get(eid_name)
+                        },
                     },
                 })
             apps_by_actor.setdefault(actor_id, []).append({
@@ -1807,6 +1878,9 @@ def _guardrail_entity_flow(ui_design: dict, page_ir: dict) -> dict:
     """
     # Build lookup: page_id → [{entity_flow, action_name}]
     page_flow: dict[str, list[dict]] = {}
+    # Build lookup: page_id → {field_name: decided_by_action_id} for decided_by exemption
+    page_decided_by_action: dict[str, dict[str, str]] = {}  # page_id → {field → decided_by_action_id}
+    page_action_ids: dict[str, set[str]] = {}  # page_id → {action_ids on this page}
     for app_ir in page_ir.get("apps", []):
         for page in app_ir.get("pages", []):
             pid = page.get("page_id", "")
@@ -1815,6 +1889,10 @@ def _guardrail_entity_flow(ui_design: dict, page_ir: dict) -> dict:
                 wc = h.get("workflow_context", {})
                 ef = wc.get("entity_flow", {})
                 page_flow.setdefault(pid, []).append(ef)
+                page_action_ids.setdefault(pid, set()).add(h.get("action_id", ""))
+                for ac in h.get("attribute_contracts", []):
+                    if ac.get("decision_condition") and ac.get("decided_by_action_id"):
+                        page_decided_by_action.setdefault(pid, {})[ac["attribute"]] = ac["decided_by_action_id"]
 
     ui_ir = ui_design.get("ui_ir", {})
     for app in ui_ir.get("apps", []):
@@ -1837,14 +1915,21 @@ def _guardrail_entity_flow(ui_design: dict, page_ir: dict) -> dict:
                 for flow_val in ef.values()
             )
 
+            # Fields where decided_by_action_id matches THIS page's action (exempt from consumes→readonly)
+            _page_aids = page_action_ids.get(pid, set())
+            _decided_here = {
+                fname for fname, dba_id in page_decided_by_action.get(pid, {}).items()
+                if dba_id in _page_aids
+            }
+
             for region in page.get("regions", []):
                 for comp in region.get("components", []):
                     fp = comp.get("field_policies", {})
 
                     if all_consumes:
-                        # HARD: consumes → force all to readonly
+                        # HARD: consumes → force all to readonly, EXCEPT decided_by this actor
                         for attr_name, policy in fp.items():
-                            if policy.get("mode") == "editable":
+                            if policy.get("mode") == "editable" and attr_name not in _decided_here:
                                 policy["mode"] = "readonly"
                                 logger.debug("guardrail: %s.%s forced readonly (consumes)", pid, attr_name)
 
@@ -1878,6 +1963,176 @@ def _guardrail_entity_flow(ui_design: dict, page_ir: dict) -> dict:
                             break
 
     # Re-run _enforce_field_policies to fix AST after guardrail changes
+    return _enforce_field_policies(ui_design)
+
+
+def _guardrail_page_completeness(ui_design: dict, page_ir: dict) -> dict:
+    """Inject entire pages the LLM omitted from its output.
+
+    Compare page_ids in ui_ir against page_ir.  For any missing page, copy the
+    page skeleton from page_ir into the correct actor app in ui_ir.  Fields are
+    given a placeholder field_policy; downstream guardrails (_guardrail_entity_flow,
+    _guardrail_completeness) will assign correct modes.
+    """
+    ui_ir = ui_design.get("ui_ir", {})
+
+    # Collect all page_ids already in ui_ir
+    existing_pids: set[str] = set()
+    # Also build actor_id → app index for injection
+    actor_app_idx: dict[str, int] = {}
+    for idx, app in enumerate(ui_ir.get("apps", [])):
+        actor_app_idx[app.get("actor_id", "")] = idx
+        for page in app.get("pages", []):
+            existing_pids.add(page.get("page_id", ""))
+
+    for ir_app in page_ir.get("apps", []):
+        actor_id = ir_app.get("actor_id", "")
+        for ir_page in ir_app.get("pages", []):
+            pid = ir_page.get("page_id", "")
+            if pid in existing_pids:
+                continue
+
+            # Build a minimal page with all fields as editable (guardrails will fix modes)
+            regions: list[dict] = []
+            for hint in ir_page.get("intent_hints", []):
+                contracts = hint.get("attribute_contracts", [])
+                if not contracts:
+                    continue
+                fp: dict = {}
+                binds: list[str] = []
+                attrs: list[str] = []
+                for c in contracts:
+                    fname = c["attribute"]
+                    fp[fname] = {"mode": "editable"}
+                    binds.append(c.get("bind", ""))
+                    attrs.append(fname)
+                comp = {
+                    "id": f"{pid}_fields",
+                    "type": "entity_detail",
+                    "bind": binds,
+                    "attributes": attrs,
+                    "field_policies": fp,
+                    "operations": {},
+                }
+                regions.append({
+                    "id": f"{pid}_region",
+                    "type": "detail",
+                    "span": 1,
+                    "components": [comp],
+                    "ast": [],
+                })
+
+            new_page = {
+                "page_id": pid,
+                "name": ir_page.get("name", pid),
+                "layout": {"type": "grid", "columns": 1},
+                "regions": regions,
+            }
+
+            # Insert into the correct actor app (create if needed)
+            if actor_id in actor_app_idx:
+                ui_ir["apps"][actor_app_idx[actor_id]]["pages"].append(new_page)
+            else:
+                new_app = {
+                    "actor_id": actor_id,
+                    "actor_name": ir_app.get("actor_name", ""),
+                    "pages": [new_page],
+                }
+                ui_ir.setdefault("apps", []).append(new_app)
+                actor_app_idx[actor_id] = len(ui_ir["apps"]) - 1
+
+            logger.info("page guardrail: injected missing page %s", pid)
+
+    return ui_design
+
+
+def _guardrail_completeness(ui_design: dict, page_ir: dict) -> dict:
+    """Post-process guardrail: backfill fields the LLM omitted from its output.
+
+    For each page, compare LLM-emitted field_policies against the page_ir
+    attribute_contracts.  Any contract field not present in ANY component on
+    that page is added as readonly to the first component (the LLM decided to
+    render the field but simply forgot to include it — the prompt says every
+    field must appear in field_policies, so an omission is a bug, not a
+    deliberate *hidden* decision).
+
+    When from_states is non-empty the actor needs prior context, so backfilled
+    fields default to readonly.  When from_states is empty (initial creation)
+    the field is likely irrelevant, so it is added as hidden.
+    """
+    # Build per-page expected fields + metadata from page_ir
+    page_contracts: dict[str, list[dict]] = {}  # page_id → [attribute_contract]
+    page_has_from_states: dict[str, bool] = {}
+    for app_ir in page_ir.get("apps", []):
+        for page in app_ir.get("pages", []):
+            pid = page.get("page_id", "")
+            for h in page.get("intent_hints", []):
+                wc = h.get("workflow_context", {})
+                st = wc.get("state_transitions", {})
+                has_from = any(bool(v.get("from_states")) for v in st.values()) if st else False
+                page_has_from_states[pid] = has_from
+                page_contracts.setdefault(pid, []).extend(h.get("attribute_contracts", []))
+
+    ui_ir = ui_design.get("ui_ir", {})
+    for app in ui_ir.get("apps", []):
+        for page in app.get("pages", []):
+            pid = page.get("page_id", "")
+            expected = page_contracts.get(pid, [])
+            if not expected:
+                continue
+
+            # Collect all field names already present in any component
+            present: set[str] = set()
+            first_comp: dict | None = None
+            for region in page.get("regions", []):
+                for comp in region.get("components", []):
+                    fp = comp.get("field_policies", {})
+                    present.update(fp.keys())
+                    if first_comp is None and fp:
+                        first_comp = comp
+
+            missing = [c for c in expected if c["attribute"] not in present]
+            if not missing:
+                continue
+
+            has_from = page_has_from_states.get(pid, False)
+            default_mode = "readonly" if has_from else "hidden"
+
+            # Find or create a detail region/component for backfilled readonly fields
+            target_comp = first_comp
+            if target_comp is None:
+                # Edge case: no components yet – create a minimal one
+                if not page.get("regions"):
+                    page["regions"] = [{"id": f"{pid}_backfill", "type": "detail", "span": 1, "components": [], "ast": []}]
+                region0 = page["regions"][0]
+                target_comp = {"id": f"{pid}_context", "type": "entity_detail", "bind": [], "attributes": [], "field_policies": {}, "operations": {}}
+                region0.setdefault("components", []).insert(0, target_comp)
+
+            for contract in missing:
+                fname = contract["attribute"]
+                bind_val = contract.get("bind", "")
+                ftype = contract.get("field_type", "str")
+                target_comp["field_policies"][fname] = {"mode": default_mode}
+                if default_mode != "hidden":
+                    # Also add to attributes + minimal AST
+                    attrs = target_comp.get("attributes", [])
+                    if not isinstance(attrs, list):
+                        attrs = [attrs] if attrs else []
+                        target_comp["attributes"] = attrs
+                    if fname not in attrs:
+                        attrs.append(fname)
+                    binds = target_comp.get("bind", [])
+                    if not isinstance(binds, list):
+                        binds = [binds] if binds else []
+                        target_comp["bind"] = binds
+                    if bind_val and bind_val not in binds:
+                        binds.append(bind_val)
+                logger.info(
+                    "completeness guardrail: %s.%s backfilled as %s",
+                    pid, fname, default_mode,
+                )
+
+    # Re-run enforce to handle hidden stripping and readonly conversion
     return _enforce_field_policies(ui_design)
 
 
@@ -1924,10 +2179,14 @@ def ui_designer_node(state: PipelineState) -> dict:
         for app in ui_design["ui_ir"].get("apps", []):
             if not app.get("actor_name"):
                 app["actor_name"] = page_ir_actor_names.get(app["actor_id"])
+        # Guardrail: inject any pages the LLM omitted entirely
+        ui_design = _guardrail_page_completeness(ui_design, page_ir)
         # Enforce field_policies on AST: strip hidden fields, convert readonly
         ui_design = _enforce_field_policies(ui_design)
         # Guardrail: enforce hard entity_flow constraints (consumes→readonly, produces→has editables)
         ui_design = _guardrail_entity_flow(ui_design, page_ir)
+        # Guardrail: backfill any fields the LLM omitted from its output
+        ui_design = _guardrail_completeness(ui_design, page_ir)
         logger.info("ui_designer_node: %d ui_ir apps",
                     len(ui_design.get("ui_ir", {}).get("apps", [])))
         return {"page_ir": page_ir, "ui_design": ui_design, "error": None}

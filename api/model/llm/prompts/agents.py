@@ -7,39 +7,68 @@ Each attribute_contract carries structured metadata from the UML activity diagra
   • "field_type": the data type from the class diagram (int, str, bool, etc.)
   • "decision_condition": true if this field appears in a workflow decision node
   • "decided_by_actor": the actor whose action feeds the decision that tests this field
-  • "first_produced_by": the actor who first creates the entity
+  • "auto_computed": true if this field is set by an automatic system action (e.g. risk analysis)
   • workflow_context.entity_flow: "produces"|"consumes"|"read_write" — this action's relation to the entity
   • workflow_context.actor_name: the current actor
   • workflow_context.step_order: position in the workflow
+  • workflow_context.entity_first_produced_by: {{entity_name: actor_name}} — who first creates each entity
 
 YOUR JOB: for each field on each page, decide field_mode = "editable" | "readonly" | "hidden".
 
 FIELD_MODE REASONING GUIDELINES:
-1. entity_flow = "consumes" → ALL fields MUST be readonly. No exceptions. Still provide action button.
-2. entity_flow = "produces" + this actor is the first_produced_by → this is the initial data-entry page.
-   Only fields the APPLICANT would fill in should be editable (e.g. amounts, dates, names).
-   Fields that are processing outputs (approvals, risk, reasons, assessments) → hidden.
-3. entity_flow = "produces" + this actor is NOT first_produced_by → this is a decision/processing page.
-   Decision fields where decided_by_actor matches this actor → editable.
-   Fields that are this actor's professional output (e.g. reasons, justifications) → editable.
-   Input data from earlier actors (amounts, dates) → readonly.
-   Fields owned by other decision actors → hidden.
-4. entity_flow = "read_write" → this actor modifies some fields.
-   Input data from the first producer → readonly.
-   Processing/assessment fields this actor is responsible for → editable.
-   Decision fields owned by OTHER actors → readonly.
+1. entity_flow = "consumes" → ALL fields MUST be readonly, EXCEPT:
+   • If a field has decided_by_actor matching THIS actor_name AND decision_condition is true,
+     AND the decision directly follows THIS specific action (not a later action by the same actor),
+     that field is editable — this actor sets the field before the branch.
+     (e.g. "Assess completeness" → decision on requires_additional_documents → editable.
+      But "approved" is decided after "Final decision", NOT after "Assess completeness" → readonly here.)
+   Still provide action button (submit).
+
+2. entity_flow = "produces" + actor_name matches entity_first_produced_by → INITIAL DATA-ENTRY page.
+   State clue: to_states present, NO from_states → entity does not exist yet.
+   • Fields the initial actor fills in (amounts, dates, names, quantities) → editable.
+   • Decision fields where decided_by_actor is a DIFFERENT actor → hidden (not yet relevant).
+   • auto_computed fields → hidden (will be set by system later).
+   • Other processing output fields (assessments, approvals) that belong to later steps → hidden.
+
+3. entity_flow = "produces" + actor_name does NOT match entity_first_produced_by → DECISION/PROCESSING page.
+   State clue: has from_states (prior data exists) AND to_states (this action adds outcome).
+   CRITICAL — this actor needs to SEE prior data to make their decision:
+   • ALL fields from prior states (from_states) → readonly (NEVER hidden — actor needs context).
+   • auto_computed fields → readonly (set by system, valuable context for decision-making).
+   • Decision fields where decided_by_actor matches this actor → editable.
+   • Fields that are this actor's professional output (reasons, justifications for their decision) → editable.
+     A non-decision, non-auto_computed, non-initial-input str field is likely this actor's written output.
+   • Decision fields owned by OTHER actors that have NOT been decided yet → hidden.
+     But if a prior actor already set a field (it exists in from_states data), show it readonly.
+
+4. entity_flow = "read_write" → this actor MODIFIES some fields while reading others.
+   State clue: has from_states (reads prior data) AND to_states (writes new data).
+   Use to_states vs from_states to determine what THIS action contributes:
+   • Fields from the entity creation step (entity_first_produced_by actor's input) → readonly (input context).
+   • auto_computed fields → readonly (set by automatic system actions, not by this manual actor).
+   • Remaining fields that semantically match what this action ADDS (the new state) → editable.
+     e.g. from=[Created] to=[Analyzed]: this action adds analysis → reason = editable.
+   • Decision fields owned by OTHER actors → readonly (not hidden — may exist from prior steps).
+
 5. HARD CONSTRAINT: if entity_flow is "produces" or "read_write", AT LEAST ONE field must be editable.
    Zero-input forms are FORBIDDEN for non-consumes actions.
+
 6. hidden fields: do NOT render at all — no element, no bind, nothing.
-7. STATE TRANSITION REASONING — use state_transitions to identify what THIS action adds:
-   • from_states = entity states consumed (e.g. ["Created"] → this action reads data from "Created" state).
+
+7. STATE TRANSITION REASONING — use state_transitions to decide field_mode:
+   • from_states = entity states consumed (e.g. ["Created"] → entity has data from "Created" state).
    • to_states = entity states produced (e.g. ["Analyzed"] → this action transitions entity to "Analyzed").
-   • The DIFFERENCE between from_states and to_states indicates what new data this action contributes.
-     Example: from=["Created"] to=["Analyzed"] means this action adds analysis data (risk, reason).
-     Example: to=["Approved", "Denied"] means this action decides approval (approved, reason).
-     Example: to=["Created"] with no from → initial creation, only input fields editable.
-   • Fields that semantically belong to the NEW state (to_states) should be editable for this actor.
-   • Fields that belong to a PRIOR state (from_states) should be readonly.
+   • HARD RULE: if from_states is non-empty, ALL fields that existed before this action MUST be
+     at minimum readonly (NEVER hidden). The actor needs to see prior data as context.
+     Only fields that have NO relevance to ANY state may be hidden.
+   • The DIFFERENCE between from_states and to_states tells you what THIS action contributes:
+     Example: from=["Created"] to=["Analyzed"] → adds analysis data (risk, reason) = editable.
+     Example: from=["Analyzed"] to=["Approved","Denied"] → decides approval (approved, reason) = editable,
+              all analyzed data (loan_amount, risk, requires_additional_documents) = readonly context.
+     Example: to=["Created"] with no from → initial creation, only applicant input fields editable.
+   • Fields semantically belonging to the NEW state (to_states) → editable for this actor.
+   • Fields belonging to a PRIOR state (from_states) → readonly (visible as context, NEVER hidden).
 
 COMPLETENESS REQUIREMENTS — CRITICAL:
 • You MUST generate EXACTLY one output page for EACH page in the PAGE IR. Count them.
@@ -70,7 +99,7 @@ Format: apps[{{actor_id, pages[{{page_id, name, state, action_ids, transition_id
     transition_id,
     entity_ids,
     entity_names,
-    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, decision_condition?, decided_by_actor?, first_produced_by?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
+    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, decision_condition?, decided_by_actor?, auto_computed?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
     binding_groups[{{entity_id, entity_name, bind[list], kind, operations{{endpoint, allowed, kind}}}}],
     workflow_context: {{
       entity_flow: {{entity_name: "produces"|"consumes"|"read_write"}},
@@ -79,7 +108,8 @@ Format: apps[{{actor_id, pages[{{page_id, name, state, action_ids, transition_id
       downstream_actions: [action_name, ...],
       control_flow: ["after_fork(parallel)", "after_decision(condition=...)", "after_join(sync)", "after_merge(convergence)", "before_fork(splits)", "before_decision(branching)", ...],
       actor_name: str,
-      state_transitions: {{entity_name: {{from_states?: [str], to_states?: [str]}}}}
+      state_transitions: {{entity_name: {{from_states?: [str], to_states?: [str]}}}},
+      entity_first_produced_by: {{entity_name: actor_name}}
     }}
   }}.
   Use intent_hints to decide what REGIONS to create for each page.
