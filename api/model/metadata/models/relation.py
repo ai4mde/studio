@@ -1,11 +1,15 @@
 import uuid
+from datetime import datetime
+from typing import Any
 
 from django.db import models
+from django.core.exceptions import ValidationError
 
-from .classifier import Classifier
+from .classifier import ClassAttribute, Classifier
 from .core import Project
 from .extension_base import ExtensionBase, TypeExtensionModel
-from .types import RelationType, AggregatorType, OperatorType
+from .types import RelationType, AggregatorType, OperatorType, AttributeType, ClassifierType
+from .fields import TypedForeignKey
 
 
 class Relation(TypeExtensionModel):
@@ -169,7 +173,14 @@ class Condition(SingleRelationExtensionBase):
     aggregator = models.CharField(max_length=5, blank=True, null=True, choices=AggregatorType.choices)
     operator = models.CharField(max_length=2, blank=True, null=True, choices=OperatorType.choices)
     value = models.CharField(max_length=255, blank=True, null=True)
-    # TODO add relation to attribute (belongs to class classifier) ALSO ADD A WAY TO VALIDATE THIS
+    
+    attribute = models.ForeignKey(
+        ClassAttribute,
+        on_delete=models.CASCADE,
+        related_name="conditions",
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         constraints = [
@@ -186,19 +197,64 @@ class Condition(SingleRelationExtensionBase):
             ),
         ]
 
-    # @property
-    # def parsed_value(self):
-    # TODO Parse value based on the attribute type (e.g. int, string, bool)
+    @property
+    def parsed_value(self) -> Any:
+        if self.else_condition:
+            return None
+
+        if self.attribute is None or self.value is None:
+            return None
+
+        attr_type = self.attribute.attribute_type
+
+        try:
+            # ENUM not yet supported.
+            # IN the future we should let the user select a literal when they select an ENUM
+            if attr_type == AttributeType.STRING or attr_type == AttributeType.ENUM:
+                return self.value
+
+            if attr_type == AttributeType.INT:
+                return int(self.value)
+
+            if attr_type == AttributeType.BOOL:
+                # assume valid input: "true" / "false"
+                return self.value.lower() == "true"
+
+            if attr_type == AttributeType.DATETIME:
+                return datetime.fromisoformat(self.value)
+
+        except ValueError as e:
+            raise ValidationError(
+                f"Could not parse value '{self.value}' for type '{attr_type}': {e}"
+            )
+
+        raise ValidationError(f"Unsupported attribute type '{attr_type}'")
 
     def __str__(self) -> str:
-        # TODO Extend with attribute information when available
         if self.else_condition:
             return "Else"
-        if self.aggregator and self.operator and self.value:
-            return f"{self.aggregator} {self.operator} {self.value}"
+        if self.attribute:
+            return f"{self.attribute.name} {self.aggregator} {self.operator} {self.parsed_value}"
         return "Condition"
 
 
 class InterfaceExtension(SingleRelationExtensionBase):
     ALLOWED_TYPES = (RelationType.INTERFACE,)
-    # TODO add relations to interface classifier
+    provided = TypedForeignKey( # type: ignore[call-arg]
+        Classifier,
+        on_delete=models.CASCADE,
+        related_name="provided_interface_relations",
+        null=True,
+        blank=True,
+        allowed_types=(ClassifierType.INTERFACE,),
+        limit_choices_to={"type": ClassifierType.INTERFACE}
+    )
+    required = TypedForeignKey( # type: ignore[call-arg]
+        Classifier,
+        on_delete=models.CASCADE,
+        related_name="required_interface_relations",
+        null=True,
+        blank=True,
+        allowed_types=(ClassifierType.INTERFACE,),
+        limit_choices_to={"type": ClassifierType.INTERFACE}
+    )

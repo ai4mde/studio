@@ -1,5 +1,3 @@
-import uuid
-
 from django.core.exceptions import ValidationError, ValidationErrorMessageArg
 from django.db import models, transaction
 
