@@ -1,60 +1,27 @@
 import uuid
 
-from django.core.exceptions import ValidationError, ValidationErrorMessageArg
-from django.db import models, transaction
+from django.db import models
+from django.core.exceptions import ValidationError
+
 
 from .core import Project
-from .types import (
-    ClassifierType,
-    ActivityScope,
-    AttributeType,
-)
+from .extension_base import ExtensionBase, TypeExtensionModel
+from .types import ActivityScope, ClassifierType, AttributeType
 from .fields import PythonCodeField, TypedForeignKey
 
 
-class ClassifierManager(models.Manager['Classifier']):
-    @transaction.atomic
-    def create_with_extensions(
-        self,
-        *,
-        type: str,
-        project: Project,
-        extension_data: dict[type["ClassifierExtensionBase"], dict | list[dict]] | None = None,
-    ):
-        extension_data = extension_data or {}
-
-        # Create the base classifier
-        classifier = self.create(
-            type=type,
-            project=project,
-        )
-
-        # Create any extensions for the classifier
-        # This will throw an error if any of the extensions are not allowed
-        # and the transaction will be rolled back, preventing incomplete classifiers from being created
-        for model, data in extension_data.items():
-            if isinstance(data, list):
-                if not model.allows_multiple():
-                    raise ValidationError(
-                        f"{model.__name__} does not allow multiple instances, but a list was provided"
-                    )
-                for item in data:
-                    model.objects.create(classifier=classifier, **item)
-            else:
-                model.objects.create(classifier=classifier, **data)
-
-        classifier.validate_completeness()
-        return classifier
-
-
-class Classifier(models.Model):
+class Classifier(TypeExtensionModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     type = models.CharField(max_length=32, choices=ClassifierType.choices)
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="classifiers",
+        Project,
+        on_delete=models.CASCADE,
+        related_name="classifiers",
     )
-    objects = ClassifierManager()
-    
+
+    # Fill this after extensions have been created (at the end of file)
+    REQUIRED_EXTENSIONS: dict[str, tuple[type["ExtensionBase"], ...]] = {}
+
     class Meta:
         indexes = [
             models.Index(fields=["project", "type"]),
@@ -70,137 +37,16 @@ class Classifier(models.Model):
             ClassifierType.INITIAL,
             ClassifierType.FINAL,
         )
-        return (
-            'control'
-            if self.type in control_nodes
-            else self.type
-        )
+        return "control" if self.type in control_nodes else self.type
 
-    REQUIRED_EXTENSIONS: dict[str, tuple[type["ClassifierExtensionBase"], ...]] = {}
-
-    def validate_completeness(self) -> None:
-        errors: dict[str, ValidationErrorMessageArg] = {}
-        required = self.REQUIRED_EXTENSIONS.get(self.type, ())
-    
-        for model in required:
-            accessor_name = model.get_classifier_accessor_name()
-
-            if model.allows_multiple():
-                relation = getattr(self, accessor_name)
-                if not relation.exists():
-                    errors[accessor_name] = [
-                        f"At least one {model.__name__} extension is required for classifier type '{self.type}'"
-                    ]
-            else:
-                try:
-                    getattr(self, accessor_name)
-                except model.DoesNotExist:
-                    errors[accessor_name] = [
-                        f"{model.__name__} extension is required for classifier type '{self.type}'"
-                    ]
-        
-        if errors:
-            raise ValidationError(errors)
-
-    def save(self, *args, **kwargs):
-        # Do not allow changing classifier type after creation
-        # This would allow for invalid combinations of classifier and extensions
-        if not self._state.adding:
-            old_type = type(self).objects.only("type").get(pk=self.pk).type
-            if old_type != self.type:
-                raise ValidationError("Cannot change classifier type after creation")
-        return super().save(*args, **kwargs)
-    
     def __str__(self) -> str:
         return f"{self.type} in {self.project}"
 
-
-    @transaction.atomic
-    def add_extensions(
-        self,
-        extension_data: dict[type["ClassifierExtensionBase"], dict | list[dict]],
-    ) -> None:
-        """
-            Add extensions to an existing classifier.
-        """
-        for model, data in extension_data.items():
-            if isinstance(data, list):
-                if not model.allows_multiple():
-                    raise ValidationError(
-                        f"{model.__name__} does not allow multiple instances, but a list was provided"
-                    )
-                for item in data:
-                    model.objects.create(classifier=self, **item)
-            else:
-                model.objects.create(classifier=self, **data)
-
-
-class ClassifierExtensionBase(models.Model):
-    """
-        Base class for classifier extensions
-        Subclasses define how they reference the classifier
-    """
-    # Each extension subclass should define its own allowed classifier types
-    ALLOWED_CLASSIFIER_TYPES: tuple[str, ...] = ()
+class ClassifierExtensionBase(ExtensionBase):
+    OWNER_FIELD_NAME = "classifier"
 
     class Meta:
         abstract = True
-
-    def get_classifier(self) -> "Classifier":
-        raise NotImplementedError(
-            f"{self.__class__.__name__} must implement get_classifier()"
-        )
-
-    @classmethod
-    def get_classifier_accessor_name(cls) -> str:
-        field = cls._meta.get_field("classifier")
-        related_name = field.remote_field.related_name
-
-        if related_name is None:
-            raise RuntimeError(
-                f"{cls.__name__} must define a related_name for the classifier field"
-            )
-
-        return related_name
-
-    @classmethod
-    def allows_multiple(cls) -> bool:
-        field = cls._meta.get_field("classifier")
-        return isinstance(field, models.ForeignKey)
-
-    def clean(self):
-        super().clean()
-
-        if not self.ALLOWED_CLASSIFIER_TYPES:
-            raise RuntimeError(
-                f"{self.__class__.__name__} must define ALLOWED_CLASSIFIER_TYPES"
-            )
-
-        classifier = self.get_classifier()
-
-        if classifier.type not in self.ALLOWED_CLASSIFIER_TYPES:
-            raise ValidationError(
-                f"{self.__class__.__name__} not allowed for classifier type '{classifier.type}'"
-            )
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        classifier = self.get_classifier()
-        required = classifier.REQUIRED_EXTENSIONS.get(classifier.type, ())
-
-        if type(self) in required:
-            raise ValidationError(
-                f"{type(self).__name__} extension is required for classifier type '{classifier.type}' "
-                "and cannot be deleted independently"
-            )
-
-        return super().delete(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return f"{self.get_classifier()}"
 
 
 class SingleClassifierExtensionBase(ClassifierExtensionBase):
@@ -213,9 +59,6 @@ class SingleClassifierExtensionBase(ClassifierExtensionBase):
 
     class Meta:
         abstract = True
-    
-    def get_classifier(self) -> "Classifier":
-        return self.classifier
 
 
 class MultiClassifierExtensionBase(ClassifierExtensionBase):
@@ -229,12 +72,9 @@ class MultiClassifierExtensionBase(ClassifierExtensionBase):
     class Meta:
         abstract = True
 
-    def get_classifier(self) -> "Classifier":
-        return self.classifier
-
 
 class NamedElement(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (
+    ALLOWED_TYPES = (
         ClassifierType.CLASS,
         ClassifierType.ENUMERATION,
         ClassifierType.INTERFACE,
@@ -255,31 +95,33 @@ class NamedElement(SingleClassifierExtensionBase):
 
 
 class EnumLiteral(MultiClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ENUMERATION,)
+    ALLOWED_TYPES = (ClassifierType.ENUMERATION,)
     text = models.CharField(max_length=255)
 
 
 class ClassExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.CLASS,)
+    ALLOWED_TYPES = (ClassifierType.CLASS,)
     abstract = models.BooleanField(default=False)
     leaf = models.BooleanField(default=False)
 
 
 class ClassAttribute(MultiClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.CLASS,)
+    ALLOWED_TYPES = (ClassifierType.CLASS,)
 
     name = models.CharField(max_length=255)
     attribute_type = models.CharField(max_length=32, choices=AttributeType.choices)
-    derived=models.BooleanField(default=False)
+    derived = models.BooleanField(default=False)
     description = models.CharField(max_length=255, blank=True, null=True)
     body = PythonCodeField(blank=True, null=True)
 
-    enum = models.ForeignKey(
+    enum = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
         related_name="enum_attributes",
         null=True,
         blank=True,
+        allowed_types=(ClassifierType.ENUMERATION,),
+        limit_choices_to={"type": ClassifierType.ENUMERATION}
     )
 
     def clean(self):
@@ -296,14 +138,14 @@ class ClassAttribute(MultiClassifierExtensionBase):
 
 
 class ClassMethod(MultiClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.CLASS,)
+    ALLOWED_TYPES = (ClassifierType.CLASS,)
 
     name = models.CharField(max_length=255)
     body = PythonCodeField(blank=True, null=True)
 
 
 class SystemBoundaryExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SYSTEM_BOUNDARY,)
+    ALLOWED_TYPES = (ClassifierType.SYSTEM_BOUNDARY,)
     system = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
@@ -314,15 +156,16 @@ class SystemBoundaryExtension(SingleClassifierExtensionBase):
 
 
 class ActionExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.ACTION,)
+    ALLOWED_TYPES = (ClassifierType.ACTION,)
     is_automatic = models.BooleanField(default=False)
     custom_code = PythonCodeField(blank=True, null=True)
 
 
 class ObjectExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.OBJECT,)
+    ALLOWED_TYPES = (ClassifierType.OBJECT,)
     state = models.CharField(max_length=255, blank=True, null=True)
-    object = TypedForeignKey( # type: ignore[call-arg]
+    # rel to avoid shadowing object variable
+    rel_object = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
         related_name="objects",
@@ -332,7 +175,7 @@ class ObjectExtension(SingleClassifierExtensionBase):
 
 
 class EventExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.EVENT,)
+    ALLOWED_TYPES = (ClassifierType.EVENT,)
     signal = TypedForeignKey( # type: ignore[call-arg] (Django doesn't understand the addition of allowed types to the field, but it works as intended)
         Classifier,
         on_delete=models.CASCADE,
@@ -343,7 +186,7 @@ class EventExtension(SingleClassifierExtensionBase):
 
 
 class InitialExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.INITIAL,)
+    ALLOWED_TYPES = (ClassifierType.INITIAL,)
     scheduled = models.BooleanField(default=False)
     schedule = models.CharField(max_length=255, blank=True, null=True)
 
@@ -357,17 +200,17 @@ class InitialExtension(SingleClassifierExtensionBase):
 
 
 class FinalExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.FINAL,)
+    ALLOWED_TYPES = (ClassifierType.FINAL,)
     activity_scope = models.CharField(max_length=8, choices=ActivityScope.choices)
 
 
 class SwimlaneExtension(SingleClassifierExtensionBase):
-    ALLOWED_CLASSIFIER_TYPES = (ClassifierType.SWIMLANE,)
+    ALLOWED_TYPES = (ClassifierType.SWIMLANE,)
 
     component = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.SET_NULL,
-        related_name="swimlanes",
+        related_name="component_swimlanes",
         allowed_types=(ClassifierType.COMPONENT,),
         limit_choices_to={"type": ClassifierType.COMPONENT},
         null=True,
@@ -376,7 +219,7 @@ class SwimlaneExtension(SingleClassifierExtensionBase):
     actor = TypedForeignKey( # type: ignore[call-arg]
         Classifier,
         on_delete=models.CASCADE,
-        related_name="swimlanes",
+        related_name="actor_swimlanes",
         allowed_types=(ClassifierType.ACTOR,),
         limit_choices_to={"type": ClassifierType.ACTOR},
         null=True,
@@ -394,7 +237,7 @@ class SwimlaneExtension(SingleClassifierExtensionBase):
 
     @property
     def is_leaf(self) -> bool:
-        return not self.child_swimlanes.exists()
+        return not self.classifier.child_swimlanes.exists()
 
     def clean(self):
         super().clean()
