@@ -56,7 +56,17 @@ FIELD_MODE REASONING GUIDELINES:
 
 6. hidden fields: do NOT render at all — no element, no bind, nothing.
 
-7. STATE TRANSITION REASONING — use state_transitions to decide field_mode:
+7. ASSOCIATED ENTITIES (deterministically promoted, decide field_mode only):
+   Some attribute_contracts have "associated_entity": true. These are class-diagram-linked entities
+   promoted because the action/actor name matches the entity (e.g. "Analyze documents" → Document entity,
+   actor "Applicant" on "Fill in application" → Applicant entity).
+   They are already included — you just decide field_mode like any other field:
+   • If the actor creates/modifies this entity's data on this action → editable.
+     e.g. Applicant entering their name/email, Doc analyst setting Document.valid.
+   • If it's context for the actor's decision → readonly.
+   • Group associated entity fields in their own component/section by entity_name.
+
+8. STATE TRANSITION REASONING — use state_transitions to decide field_mode:
    • from_states = entity states consumed (e.g. ["Created"] → entity has data from "Created" state).
    • to_states = entity states produced (e.g. ["Analyzed"] → this action transitions entity to "Analyzed").
    • HARD RULE: if from_states is non-empty, ALL fields that existed before this action MUST be
@@ -99,7 +109,7 @@ Format: apps[{{actor_id, pages[{{page_id, name, state, action_ids, transition_id
     transition_id,
     entity_ids,
     entity_names,
-    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, decision_condition?, decided_by_actor?, auto_computed?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
+    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, decision_condition?, decided_by_actor?, auto_computed?, associated_entity?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
     binding_groups[{{entity_id, entity_name, bind[list], kind, operations{{endpoint, allowed, kind}}}}],
     workflow_context: {{
       entity_flow: {{entity_name: "produces"|"consumes"|"read_write"}},

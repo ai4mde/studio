@@ -9,6 +9,7 @@ import logging
 import os
 import random
 import re
+import uuid as _uuid
 from typing import List
 from urllib.request import Request, urlopen
 
@@ -1260,6 +1261,32 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
         if ctx_list:
             _entity_field_context[ename] = ctx_list
 
+    # 5. Build entity associations from class diagram (association relations).
+    #    Maps entity_name → [{target_entity_name, target_entity_id, label, multiplicity}]
+    _entity_associations: dict[str, list[dict]] = {}
+    _entity_name_by_id = {e["id"]: e["name"] for e in entities}
+    for r in relations:
+        rd = r.get("data", {})
+        if rd.get("type") != "association":
+            continue
+        src_name = _entity_name_by_id.get(r.get("source", ""), "")
+        tgt_name = _entity_name_by_id.get(r.get("target", ""), "")
+        if not src_name or not tgt_name:
+            continue
+        mult = rd.get("multiplicity", {})
+        _entity_associations.setdefault(src_name, []).append({
+            "entity_name": tgt_name,
+            "entity_id": r["target"],
+            "label": rd.get("label", ""),
+            "multiplicity": mult.get("target", ""),
+        })
+        _entity_associations.setdefault(tgt_name, []).append({
+            "entity_name": src_name,
+            "entity_id": r["source"],
+            "label": rd.get("label", ""),
+            "multiplicity": mult.get("source", ""),
+        })
+
     return {
         "domain": {"name": domain_name},
         "actors": actors,
@@ -1271,6 +1298,7 @@ def _build_parser_dsl(classifiers: list, relations: list, diagrams: list | None 
         },
         "field_context": _entity_field_context,
         "entity_first_produced_by": _entity_first_producer_name,
+        "entity_associations": _entity_associations,
     }
 
 
@@ -1534,9 +1562,32 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
             for t in group:
                 act = actions_by_id.get(t["action_id"], {})
                 entity_ids = act.get("input", []) or []
+                # Deterministic promotion of associated entities based on name matching
+                _assoc = parser_dsl.get("entity_associations", {})
+                _primary_set = set(entity_ids)
+                _promoted_ids: list[str] = []
+                action_name_lower = act.get("name", "").lower()
+                actor_name_lower = act.get("actor_name", "").lower()
+                for eid in entity_ids:
+                    ename = entities_by_id.get(eid, {}).get("name", "")
+                    for assoc in _assoc.get(ename, []):
+                        aid = assoc.get("entity_id", "")
+                        if not aid or aid in _primary_set or aid not in entities_by_id:
+                            continue
+                        if aid in _promoted_ids:
+                            continue
+                        assoc_ename = entities_by_id.get(aid, {}).get("name", "")
+                        assoc_lower = assoc_ename.lower()
+                        # Promote if action name references entity (e.g. "Analyze documents" → Document)
+                        name_match = assoc_lower in action_name_lower or action_name_lower in assoc_lower
+                        # Promote if actor name matches entity (e.g. actor "Applicant" → Applicant entity)
+                        actor_match = assoc_lower in actor_name_lower or actor_name_lower in assoc_lower
+                        if name_match or actor_match:
+                            _promoted_ids.append(aid)
+                all_entity_ids = list(entity_ids) + _promoted_ids
                 entity_names = [
                     entities_by_id.get(eid, {}).get("name", eid)
-                    for eid in entity_ids
+                    for eid in all_entity_ids
                 ]
                 attribute_contracts = []
                 binding_groups = []
@@ -1546,7 +1597,8 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                     "kind": "llm_decide",
                 }
                 field_context = parser_dsl.get("field_context", {})
-                for eid in entity_ids:
+                for eid in all_entity_ids:
+                    is_promoted = eid in _promoted_ids
                     entity = entities_by_id.get(eid, {})
                     entity_name = entity.get("name", eid)
                     fields = entity.get("fields", []) or []
@@ -1568,6 +1620,8 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                                 "operations": operation_hint,
                             },
                         }
+                        if is_promoted:
+                            contract["associated_entity"] = True
                         if fc.get("decision_condition"):
                             contract["decision_condition"] = True
                             if fc.get("decided_by_actor"):
@@ -1588,7 +1642,7 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                     "action_id": t["action_id"],
                     "action_name": act.get("name", t["action_id"]),
                     "transition_id": t["id"],
-                    "entity_ids": entity_ids,
+                    "entity_ids": all_entity_ids,
                     "entity_names": entity_names,
                     "attribute_contracts": attribute_contracts,
                     "binding_groups": binding_groups,
@@ -2112,8 +2166,14 @@ def _guardrail_completeness(ui_design: dict, page_ir: dict) -> dict:
                 fname = contract["attribute"]
                 bind_val = contract.get("bind", "")
                 ftype = contract.get("field_type", "str")
-                target_comp["field_policies"][fname] = {"mode": default_mode}
-                if default_mode != "hidden":
+                # On initial creation pages (no from_states), promoted associated entity
+                # fields should be editable (actor fills in their data), not hidden.
+                if not has_from and contract.get("associated_entity"):
+                    backfill_mode = "editable"
+                else:
+                    backfill_mode = default_mode
+                target_comp["field_policies"][fname] = {"mode": backfill_mode}
+                if backfill_mode != "hidden":
                     # Also add to attributes + minimal AST
                     attrs = target_comp.get("attributes", [])
                     if not isinstance(attrs, list):
@@ -2129,7 +2189,7 @@ def _guardrail_completeness(ui_design: dict, page_ir: dict) -> dict:
                         binds.append(bind_val)
                 logger.info(
                     "completeness guardrail: %s.%s backfilled as %s",
-                    pid, fname, default_mode,
+                    pid, fname, backfill_mode,
                 )
 
     # Re-run enforce to handle hidden stripping and readonly conversion
@@ -2360,4 +2420,250 @@ def layout_options_node(state: PipelineState) -> dict:
     except Exception as exc:
         logger.warning("layout_options_node failed (%s); returning empty options", exc)
         return {"layout_options": []}
+
+
+# ── Interface Mapper Node ─────────────────────────────────────────────────────
+#    Deterministic conversion: ui_ir + page_ir + metadata → Interface JSON
+#    format compatible with the legacy Jinja2 prototype generator.
+# ──────────────────────────────────────────────────────────────────────────────
+
+def interface_mapper_node(state: PipelineState) -> dict:
+    """Convert pipeline ui_ir → system Interface JSON format (per actor).
+
+    Reads:
+      - ui_design.ui_ir  (LLM-enhanced regions + field_policies)
+      - page_ir          (attribute_contracts with entity_id, bind, field_type)
+      - metadata         (classifiers for full attribute metadata: enum, derived, body, description)
+      - parser_dsl       (entity_field_types for lookup)
+
+    Returns:
+      {"interface_ir": [
+          {"actor_name": str, "actor_id": str, "data": {pages, sections, categories, styling, settings}},
+          ...
+      ]}
+    """
+    ui_ir = (state.get("ui_design") or {}).get("ui_ir") or state.get("page_ir") or {}
+    page_ir = state.get("page_ir") or {}
+    metadata_str = state.get("metadata", "")
+
+    # ── Parse metadata for full attribute definitions ──────────────────────
+    try:
+        metadata = json.loads(metadata_str) if metadata_str else {}
+    except (json.JSONDecodeError, TypeError):
+        metadata = {}
+
+    classifiers = metadata.get("classifiers", [])
+
+    # ── Map classifier UUID → diagram node UUID ──────────────────────────
+    # The prototype generator's workflow engine uses diagram node IDs to
+    # match page.action.value against activity diagram nodes.
+    # The pipeline parser uses classifier IDs as action_id.
+    # This mapping bridges the two ID spaces.
+    cls_to_diagram_node: dict[str, str] = {}
+    for diag in metadata.get("diagrams", []):
+        for node in diag.get("nodes", []):
+            cls_ref = node.get("cls")
+            if isinstance(cls_ref, str) and cls_ref:
+                cls_to_diagram_node[cls_ref] = node["id"]
+    # Build {entity_id → {name, attributes: [{name, type, derived, enum, body, description}]}}
+    entity_catalog: dict[str, dict] = {}
+    for c in classifiers:
+        d = c.get("data", {})
+        if d.get("type") == "class":
+            entity_catalog[c["id"]] = {
+                "name": d.get("name", ""),
+                "attributes": d.get("attributes", []),
+            }
+
+    # Build a lookup from page_id → merged attribute_contracts (from page_ir)
+    page_contracts: dict[str, list[dict]] = {}
+    page_actions: dict[str, list[dict]] = {}  # page_id → [{action_id, action_name}]
+    for app in page_ir.get("apps", []):
+        for page in app.get("pages", []):
+            pid = page.get("page_id", "")
+            contracts: list[dict] = []
+            actions: list[dict] = []
+            for hint in page.get("intent_hints", []):
+                for ac in hint.get("attribute_contracts", []):
+                    contracts.append(ac)
+                actions.append({
+                    "action_id": hint.get("action_id", ""),
+                    "action_name": hint.get("action_name", ""),
+                })
+            page_contracts[pid] = contracts
+            page_actions[pid] = actions
+
+    # ── Extract field_policies from ui_ir per page ────────────────────────
+    # {page_id → {attribute_name → mode}}
+    page_field_modes: dict[str, dict[str, str]] = {}
+    for app in ui_ir.get("apps", []):
+        for page in app.get("pages", []):
+            pid = page.get("page_id", "")
+            modes: dict[str, str] = {}
+            for region in page.get("regions", []):
+                for comp in region.get("components", []):
+                    fp = comp.get("field_policies", {})
+                    for fname, policy in fp.items():
+                        modes[fname] = policy.get("mode", "readonly")
+            page_field_modes[pid] = modes
+
+    # ── Build Interface JSON per actor ────────────────────────────────────
+    interfaces: list[dict] = []
+
+    for app in ui_ir.get("apps", []):
+        actor_id = app.get("actor_id", "")
+        actor_name = app.get("actor_name", "")
+        pages_out: list[dict] = []
+        sections_out: list[dict] = []
+
+        for page in app.get("pages", []):
+            pid = page.get("page_id", "")
+            page_name = page.get("name", pid)
+            contracts = page_contracts.get(pid, [])
+            actions = page_actions.get(pid, [])
+            modes = page_field_modes.get(pid, {})
+
+            # Group contracts by entity_id to create sections
+            entity_groups: dict[str, list[dict]] = {}
+            for ac in contracts:
+                eid = ac.get("entity_id", "")
+                entity_groups.setdefault(eid, []).append(ac)
+
+            page_section_refs: list[dict] = []
+
+            for entity_id, group in entity_groups.items():
+                entity_info = entity_catalog.get(entity_id, {})
+                entity_name = entity_info.get("name", "")
+                raw_attrs = {a["name"]: a for a in entity_info.get("attributes", [])}
+
+                # Separate fields into editable vs readonly buckets
+                editable_attrs: list[dict] = []
+                readonly_attrs: list[dict] = []
+
+                for ac in group:
+                    fname = ac.get("attribute", "")
+                    mode = modes.get(fname, "hidden")
+
+                    if mode == "hidden":
+                        continue  # Don't include hidden fields in sections
+
+                    # Build attribute entry matching legacy format
+                    raw = raw_attrs.get(fname, {})
+                    attr_entry: dict = {
+                        "name": fname,
+                        "type": raw.get("type", ac.get("field_type", "str")),
+                        "derived": raw.get("derived", False),
+                        "enum": raw.get("enum"),
+                    }
+                    if raw.get("body") is not None:
+                        attr_entry["body"] = raw["body"]
+                    if raw.get("description") is not None:
+                        attr_entry["description"] = raw["description"]
+
+                    if mode == "editable":
+                        editable_attrs.append(attr_entry)
+                    else:  # readonly
+                        readonly_attrs.append(attr_entry)
+
+                # When ALL visible fields share the same mode → single section
+                # When mixed → split into two sections (editable + readonly)
+                sub_sections: list[tuple[str, list[dict], dict]] = []
+
+                if editable_attrs and readonly_attrs:
+                    # Mixed: two sections
+                    sub_sections.append((
+                        entity_name,
+                        editable_attrs,
+                        {"create": True, "update": True, "delete": True},
+                    ))
+                    sub_sections.append((
+                        f"{entity_name} (read-only)",
+                        readonly_attrs,
+                        {"create": False, "update": False, "delete": False},
+                    ))
+                elif editable_attrs:
+                    sub_sections.append((
+                        entity_name,
+                        editable_attrs,
+                        {"create": True, "update": True, "delete": True},
+                    ))
+                elif readonly_attrs:
+                    sub_sections.append((
+                        entity_name,
+                        readonly_attrs,
+                        {"create": False, "update": False, "delete": False},
+                    ))
+
+                for sec_name, sec_attrs, sec_ops in sub_sections:
+                    section_id = str(_uuid.uuid4())
+
+                    sections_out.append({
+                        "id": section_id,
+                        "name": sec_name,
+                        "text": "",
+                        "class": entity_id,
+                        "attributes": sec_attrs,
+                        "operations": sec_ops,
+                    })
+
+                    page_section_refs.append({
+                        "label": sec_name,
+                        "value": section_id,
+                    })
+
+            # Determine page type and linked action
+            action_ref = None
+            page_type = {"label": "Normal", "value": "normal"}
+            if actions:
+                first_action = actions[0]
+                if first_action.get("action_name"):
+                    page_type = {"label": "Activity", "value": "activity"}
+                    # Translate classifier UUID → diagram node UUID so the
+                    # prototype's workflow engine can match the action to its
+                    # activity diagram node.
+                    cls_action_id = first_action.get("action_id", "")
+                    diagram_node_id = cls_to_diagram_node.get(cls_action_id, cls_action_id)
+                    action_ref = {
+                        "label": first_action["action_name"],
+                        "value": diagram_node_id,
+                    }
+
+            # Build human-readable page name from action
+            display_name = page_name
+            if actions and actions[0].get("action_name"):
+                display_name = actions[0]["action_name"]
+
+            pages_out.append({
+                "id": str(_uuid.uuid4()),
+                "name": display_name,
+                "type": page_type,
+                "action": action_ref,
+                "category": None,
+                "sections": page_section_refs,
+            })
+
+        # Default styling & settings
+        styling = {
+            "radius": 10,
+            "textColor": "#000000",
+            "accentColor": "#777777",
+            "selectedStyle": "basic",
+            "backgroundColor": "#FFFFFF",
+        }
+        settings = {"managerAccess": False}
+
+        interfaces.append({
+            "actor_name": actor_name,
+            "actor_id": actor_id,
+            "data": {
+                "pages": pages_out,
+                "sections": sections_out,
+                "categories": [],
+                "styling": styling,
+                "settings": settings,
+            },
+        })
+
+    logger.info("interface_mapper_node: generated %d interfaces", len(interfaces))
+    return {"interface_ir": interfaces}
 

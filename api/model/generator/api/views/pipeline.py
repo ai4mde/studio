@@ -10,7 +10,7 @@ Endpoints:
 import os
 import shutil
 import uuid
-from typing import Optional
+from typing import Optional, List
 
 import requests as http_requests
 from django.http import HttpResponse
@@ -42,6 +42,7 @@ class PipelineStatusSchema(Schema):
   theme: Optional[dict]
   layout_options: Optional[list]
   global_layout: Optional[dict]
+  interface_ir: Optional[list]
 
 
 class ErrorSchema(Schema):
@@ -64,6 +65,7 @@ def _state_to_status(thread_id: str, state: dict) -> dict:
     "theme": state.get("theme"),
     "layout_options": state.get("layout_options"),
     "global_layout": state.get("global_layout"),
+    "interface_ir": state.get("interface_ir"),
   }
 
 
@@ -296,6 +298,82 @@ def run_pipeline(request, body: RunPipelineSchema):
 
     snapshot = pipeline.get_state(_config(thread_id))
     return _state_to_status(thread_id, snapshot.values)
+
+
+@pipeline_router.post("/generate-interfaces/", response={200: dict, 400: ErrorSchema})
+def generate_interfaces(request, body: RunPipelineSchema):
+    """Run the pipeline and write interface_ir results into the Interface model.
+
+    For each actor in the pipeline output, upserts an Interface record:
+    - If an Interface with the same actor already exists for the system, update its data.
+    - Otherwise create a new Interface.
+
+    Returns the list of upserted interface IDs.
+    """
+    from metadata.models import System, Interface, Classifier
+
+    # ── Run pipeline ──────────────────────────────────────────────────────
+    thread_id = str(uuid.uuid4())
+    initial_state = {
+        "project_name": body.project_name,
+        "application_name": body.application_name,
+        "metadata": body.metadata,
+        "system_id": body.system_id,
+        "authentication_present": body.authentication_present,
+        "screens": [],
+        "ui_design": None,
+    }
+
+    for event in pipeline.stream(initial_state, config=_config(thread_id)):
+        pass
+
+    snapshot = pipeline.get_state(_config(thread_id))
+    state = snapshot.values
+    interface_ir = state.get("interface_ir") or []
+    if not interface_ir:
+        return 400, {"error": "Pipeline produced no interface_ir"}
+
+    # ── Resolve System ────────────────────────────────────────────────────
+    try:
+        system = System.objects.get(pk=body.system_id)
+    except System.DoesNotExist:
+        return 400, {"error": f"System {body.system_id} not found"}
+
+    # ── Build actor name → Classifier lookup ──────────────────────────────
+    actor_classifiers = {
+        c.data.get("name", ""): c
+        for c in Classifier.objects.filter(system=system, data__type="actor")
+    }
+
+    # ── Upsert interfaces ────────────────────────────────────────────────
+    upserted: list[dict] = []
+    for iface in interface_ir:
+        actor_name = iface.get("actor_name", "")
+        iface_data = iface.get("data", {})
+
+        actor_cls = actor_classifiers.get(actor_name)
+        if not actor_cls:
+            continue
+
+        existing = Interface.objects.filter(system=system, actor=actor_cls).first()
+        if existing:
+            existing.data = iface_data
+            existing.save(update_fields=["data"])
+            upserted.append({"id": str(existing.id), "actor": actor_name, "action": "updated"})
+        else:
+            new_iface = Interface.objects.create(
+                name=actor_name,
+                description=f"Generated from pipeline for {actor_name}",
+                system=system,
+                actor=actor_cls,
+                data=iface_data,
+            )
+            upserted.append({"id": str(new_iface.id), "actor": actor_name, "action": "created"})
+
+    return {
+        "thread_id": thread_id,
+        "upserted": upserted,
+    }
 
 
 @pipeline_router.get("/{thread_id}/", response={200: PipelineStatusSchema, 404: ErrorSchema})

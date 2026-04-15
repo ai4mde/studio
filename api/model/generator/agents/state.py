@@ -55,5 +55,8 @@ class PipelineState(TypedDict):
     # ── Active global layout (selected by designer, editable via refine) ─────
     global_layout: Optional[dict]     # {name: {html, position, config}}
 
+    # ── Interface IR (deterministic conversion of ui_ir → legacy format) ───────
+    interface_ir: Optional[list]      # [{actor_name, actor_id, data: {pages, sections, categories, styling, settings}}]
+
     # ── Refinement input ─────────────────────────────────────────────────────
     refine_prompt: Optional[str]      # user-supplied prompt for re-generating the theme

@@ -1,8 +1,8 @@
 import { useAtom } from "jotai";
-import { Plus, PaintRoller, X } from "lucide-react";
+import { Plus, PaintRoller, X, Sparkles, Loader2 } from "lucide-react";
 import React, { useState} from "react";
 import { createInterfaceAtom } from "../../browser/atoms";
-import { useInterfaces } from "$browser/queries";
+import { useInterfaces, useSystem } from "$browser/queries";
 import CreateInterface from "./CreateInterface";
 import useLocalStorage from './useLocalStorage';
 import { authAxios } from "$lib/features/auth/state/auth";
@@ -18,12 +18,15 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCreate] = useAtom(createInterfaceAtom);
     const { systemId } = useParams();
     const { data, isSuccess, refetch } = useInterfaces(systemId);
+    const { data: systemData } = useSystem(systemId);
     const [, setStyling, ] = useLocalStorage('styling', '');
     const [, setCategories, ] = useLocalStorage('categories', []);
     const [, setPages, ] = useLocalStorage('pages', []);
     const [, setSections, ] = useLocalStorage('sections', []);
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
+    const [generating, setGenerating] = useState(false);
+    const [generateError, setGenerateError] = useState("");
 
     const handleLoadInterface = (app_comp) => {
 
@@ -40,6 +43,35 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
             console.error('Error making request:', error);
         }
         refetch();
+    }
+
+    const generateFromPipeline = async () => {
+        if (!systemId || !systemData) return;
+        setGenerating(true);
+        setGenerateError("");
+        try {
+            const exportRes = await authAxios.get("/v1/metadata/systems/export/", {
+                params: { system_ids: systemId },
+            });
+            const exportData = exportRes.data;
+            if (!exportData || exportData.length === 0) {
+                throw new Error("No metadata found for this system.");
+            }
+            const metadata = JSON.stringify(exportData[0]);
+            await authAxios.post("/v1/generator/pipeline/generate-interfaces/", {
+                project_name: systemData.name || "Project",
+                application_name: systemData.name || "Application",
+                metadata,
+                system_id: systemId,
+                authentication_present: true,
+            }, { timeout: 300000 });
+            refetch();
+        } catch (error) {
+            console.error("Error generating interfaces from pipeline:", error);
+            setGenerateError(error instanceof Error ? error.message : "Generation failed");
+        } finally {
+            setGenerating(false);
+        }
     }
 
     const handleDeleteInterface = async (interfaceId: string) => {
@@ -103,6 +135,17 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                     >
                         <Plus />
                     </button>
+                    <button
+                        onClick={() => generateFromPipeline()}
+                        disabled={generating}
+                        className="flex h-fit flex-row items-center gap-2 rounded-md bg-indigo-100 px-4 py-4 text-sm font-medium text-indigo-700 hover:bg-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {generating ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                        {generating ? "Generating…" : "Generate from Pipeline"}
+                    </button>
+                    {generateError && (
+                        <p className="self-center text-sm text-red-500">{generateError}</p>
+                    )}
                 </div>
             )}
             <CreateInterface system={system} />

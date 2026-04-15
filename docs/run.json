@@ -1,0 +1,3106 @@
+{
+  "systems": [
+    {
+      "diagrams": [
+        {
+          "nodes": [
+            {
+              "id": "fe922048-a5ac-4580-8f6c-cc3032e9db90",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "4ffa54fe-3e5a-4a90-8cc2-bbff4b44a5b6",
+              "data": {
+                "position": {
+                  "x": 165,
+                  "y": 75
+                }
+              }
+            },
+            {
+              "id": "b5468a39-a46e-4891-b981-8e066b6ce5be",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "8e010314-e246-465e-8983-e3a420a4feeb",
+              "data": {
+                "position": {
+                  "x": 1125,
+                  "y": 615
+                }
+              }
+            },
+            {
+              "id": "3004b75d-71b4-45df-abc8-b75ed3f1d9fb",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "7055c2e0-bf27-4a8a-8372-67cb6948c694",
+              "data": {
+                "position": {
+                  "x": 525,
+                  "y": 1005
+                }
+              }
+            },
+            {
+              "id": "38a8c3c7-c10c-435c-9ee4-6d5f75126604",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "c4ede036-c5ec-4b23-ad85-55fb6e44e11a",
+              "data": {
+                "position": {
+                  "x": 1170,
+                  "y": 990
+                }
+              }
+            },
+            {
+              "id": "473541fa-9e57-43ed-bd88-30989cdb0bc7",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "5230c8f3-d513-46f0-8aa6-2c0b258a0c20",
+              "data": {
+                "position": {
+                  "x": 1155,
+                  "y": 1380
+                }
+              }
+            },
+            {
+              "id": "4a4103ee-86c9-4b70-b9af-6931335658d1",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "c4b16bc0-8488-4b5e-a5d5-97ac5d1a56e8",
+              "data": {
+                "position": {
+                  "x": 1290,
+                  "y": 330
+                }
+              }
+            },
+            {
+              "id": "734ee0cd-ea38-4ccc-a074-150f542ddd7b",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "ba483adf-521b-4dab-9e3e-babe810b73af",
+              "data": {
+                "position": {
+                  "x": 915,
+                  "y": 1620
+                }
+              }
+            },
+            {
+              "id": "2ccd05d4-52b2-42b2-96cd-61d1f19119e3",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "cff7c0f7-c1fe-41b0-a6b0-98e259405109",
+              "data": {
+                "position": {
+                  "x": 90,
+                  "y": 225
+                }
+              }
+            },
+            {
+              "id": "970e49c6-eddc-4103-93ce-6e7d58992659",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "d911755a-9fef-4cdd-af44-f3d9304ba647",
+              "data": {
+                "position": {
+                  "x": 1050,
+                  "y": 225
+                }
+              }
+            },
+            {
+              "id": "493450d3-3b9f-46fb-8983-17f4349ccc4d",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "2339a9b3-6542-44d2-a18b-93632da05d14",
+              "data": {
+                "position": {
+                  "x": 450,
+                  "y": 630
+                }
+              }
+            },
+            {
+              "id": "00e7c4fd-9821-4cbd-ac40-2bc8486ebc70",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "f32357d5-5ad5-48af-96db-1a2c02604d3b",
+              "data": {
+                "position": {
+                  "x": 495,
+                  "y": 1185
+                }
+              }
+            },
+            {
+              "id": "b68938f6-9acf-4ff6-96e9-48a06ca37a7a",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "d7fba6fc-2b10-456c-8ef8-517171ef0b1f",
+              "data": {
+                "position": {
+                  "x": 600,
+                  "y": 1605
+                }
+              }
+            },
+            {
+              "id": "a82bbc02-0db8-47ff-92d7-ae4cf9c9d780",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "f9110612-caf4-4691-925a-b994a6a2b8b7",
+              "data": {
+                "position": {
+                  "x": 105,
+                  "y": 390
+                }
+              }
+            },
+            {
+              "id": "33e47516-9cff-4b96-8dc9-fda92b753d02",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "89e6c473-cf3d-4569-8946-d8bb2ae69cf1",
+              "data": {
+                "position": {
+                  "x": 1050,
+                  "y": 495
+                }
+              }
+            },
+            {
+              "id": "c7d131fc-0711-478c-97bc-3102821db0bf",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "203ad708-bfae-4868-81bc-784b1ae7c2a6",
+              "data": {
+                "position": {
+                  "x": 570,
+                  "y": 810
+                }
+              }
+            },
+            {
+              "id": "af202d68-afe9-4477-b39d-5c11396ddfd8",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "ba19261b-4b9b-4c15-b364-9bcd3d45ed71",
+              "data": {
+                "position": {
+                  "x": 945,
+                  "y": 1185
+                }
+              }
+            },
+            {
+              "id": "f5b912ed-3aaa-45cc-9dec-35c369ea2812",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "5f2ad2fe-1d8d-4f6d-9738-03a7640d3e9d",
+              "data": {
+                "position": {
+                  "x": 885,
+                  "y": 315
+                }
+              }
+            },
+            {
+              "id": "b096e77e-4358-4870-bde4-cb13f4ed9016",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "269c2210-f297-4a98-8843-7f435e743f1d",
+              "data": {
+                "position": {
+                  "x": 1170,
+                  "y": 75
+                }
+              }
+            },
+            {
+              "id": "f0637ff9-d828-4bfe-89c1-eb4cadb32ca3",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "a3b75000-6dea-46a2-8aba-359fe3433204",
+              "data": {
+                "position": {
+                  "x": 45,
+                  "y": 630
+                }
+              }
+            },
+            {
+              "id": "01d842be-245c-4de7-a5ee-b797e8935201",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "cd4f0342-f145-4457-a395-8c83ac5292ff",
+              "data": {
+                "position": {
+                  "x": 1290,
+                  "y": 1185
+                }
+              }
+            },
+            {
+              "id": "ebacd715-3e30-40be-bc72-0682e999121b",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "cls": "8aeba65f-52ef-49f1-b1cf-b87049edacfa",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": -15
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "ca7af82d-6d54-467a-84fa-2a224b1e0be8",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "3a04b4fb-4826-46f5-bca7-577c708c9baa",
+              "data": {
+                "source_offset": {
+                  "x": -41.41666666666674,
+                  "y": 1
+                },
+                "target_offset": {
+                  "x": 5,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 990,
+                    "y": 465
+                  },
+                  {
+                    "x": 1200,
+                    "y": 465
+                  }
+                ]
+              }
+            },
+            {
+              "id": "3e9b3f17-093d-4832-b8a6-fce4e53570ac",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "930568c5-2154-492b-aada-1700581dda36",
+              "data": {
+                "source_offset": {
+                  "x": 1,
+                  "y": 26.253521126760575
+                },
+                "target_offset": {
+                  "x": 0,
+                  "y": -9.422535211267615
+                },
+                "position_handlers": [
+                  {
+                    "x": 390,
+                    "y": 435
+                  },
+                  {
+                    "x": 390,
+                    "y": 120
+                  }
+                ]
+              }
+            },
+            {
+              "id": "4901e7b7-347c-49b5-9449-b8328f71b221",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "346ea106-8eef-42c3-b0a2-6c7d53f28983",
+              "data": {
+                "source_offset": {
+                  "x": -8,
+                  "y": 6
+                },
+                "target_offset": {
+                  "x": 94.66666666666674,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1230,
+                    "y": 270
+                  },
+                  {
+                    "x": 1395,
+                    "y": 270
+                  }
+                ]
+              }
+            },
+            {
+              "id": "44154601-46f0-4d96-aa3f-6f4b2fad0e95",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "5b2e372c-208e-4f09-8957-3bef544d5dc1",
+              "data": {}
+            },
+            {
+              "id": "9d98a362-006b-442d-8107-94d93c0a495c",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "70da1232-a1e8-4302-a9c0-4b2acc8bdd3b",
+              "data": {
+                "source_offset": {
+                  "x": -15,
+                  "y": 17.399999999999977
+                },
+                "target_offset": {
+                  "x": -90.61538461538458,
+                  "y": 1
+                },
+                "position_handlers": [
+                  {
+                    "x": 210,
+                    "y": 855
+                  }
+                ]
+              }
+            },
+            {
+              "id": "f3609cb5-119c-4e42-ac16-2b5e6b01b1fd",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "4131ce34-410c-4b75-91bc-ed309254d2c2",
+              "data": {}
+            },
+            {
+              "id": "a6d500d8-f1de-4989-b117-9fefe44f73e5",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "7b456cfd-957e-4bdf-99f1-3d20bbd125b9",
+              "data": {
+                "source_offset": {
+                  "x": 37.76923076923072,
+                  "y": 4
+                },
+                "target_offset": {
+                  "x": -11.076923076923094,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1380,
+                    "y": 1320
+                  },
+                  {
+                    "x": 1215,
+                    "y": 1320
+                  }
+                ]
+              }
+            },
+            {
+              "id": "21d59382-761f-4dc3-a592-f15eb4fc5536",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "4e0aff38-ea4c-4c5a-b144-cfd56832223d",
+              "data": {
+                "target_offset": {
+                  "x": -16.75,
+                  "y": 0
+                },
+                "position_handlers": []
+              }
+            },
+            {
+              "id": "35094454-dba4-403c-9bc3-e40d8baba262",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "be46c4de-6127-4f6d-a7c6-8f31256b96c9",
+              "data": {
+                "source_offset": {
+                  "x": 0,
+                  "y": -7
+                },
+                "target_offset": {
+                  "x": 7,
+                  "y": -4
+                }
+              }
+            },
+            {
+              "id": "8c10cb0d-3f26-4894-87a5-22d2a3355822",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "0211bbad-20cb-45c7-9916-19de8bcb5bcf",
+              "data": {
+                "source_offset": {
+                  "x": 7.153846153846189,
+                  "y": -9
+                },
+                "target_offset": {
+                  "x": 19.461538461538566,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1245,
+                    "y": 1110
+                  },
+                  {
+                    "x": 1365,
+                    "y": 1110
+                  }
+                ]
+              }
+            },
+            {
+              "id": "d08e0b32-ae3d-499d-a389-da54ef5d7bc4",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "d9f306a5-fca1-48b9-a093-b661fd0b6a1d",
+              "data": {
+                "source_offset": {
+                  "x": -10.863636363636374,
+                  "y": 1
+                },
+                "target_offset": {
+                  "x": -3.0909090909090935,
+                  "y": 0
+                },
+                "position_handlers": []
+              }
+            },
+            {
+              "id": "a9f5d3e7-5bcd-458f-905e-2e2e06c776d9",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "b7cc3e73-ac9a-4959-b01e-43eabbd7bff2",
+              "data": {
+                "source_offset": {
+                  "x": 13,
+                  "y": 7
+                },
+                "target_offset": {
+                  "x": -11,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "744197ca-b93e-40f5-9b9b-f07c255db706",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "a1fedbba-3ff1-4f62-88a9-711411d3a658",
+              "data": {
+                "source_offset": {
+                  "x": 5.400000000000091,
+                  "y": 6
+                },
+                "target_offset": {
+                  "x": -58.90000000000009,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1185,
+                    "y": 270
+                  },
+                  {
+                    "x": 1020,
+                    "y": 270
+                  }
+                ]
+              }
+            },
+            {
+              "id": "5eba1ae6-59fd-4336-b6e2-241c78762305",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "d950a508-d330-45d6-8a85-695da7abba03",
+              "data": {
+                "source_offset": {
+                  "x": 36.59999999999991,
+                  "y": 6
+                }
+              }
+            },
+            {
+              "id": "fd94ad3b-8349-484a-9ffb-c18b87dc4dac",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "e61f0feb-7d15-48d6-bc78-8f4fc90db2b7",
+              "data": {
+                "target_offset": {
+                  "x": 34.875,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "5aec0b6d-8249-4f22-8448-df3c4eeada5a",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "782579fe-2abb-4f2f-abd1-502cbba00404",
+              "data": {
+                "source_offset": {
+                  "x": 15,
+                  "y": -3.400000000000091
+                },
+                "target_offset": {
+                  "x": -41.61538461538453,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1185,
+                    "y": 1110
+                  },
+                  {
+                    "x": 1035,
+                    "y": 1110
+                  }
+                ]
+              }
+            },
+            {
+              "id": "65d3ae93-7fb2-41b7-9bf9-f5aed463f9a6",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "96fafd3e-a2c1-4ed1-b57e-06b9871ab70a",
+              "data": {
+                "source_offset": {
+                  "x": -38.30769230769238,
+                  "y": 4
+                },
+                "target_offset": {
+                  "x": 30,
+                  "y": -3
+                },
+                "position_handlers": [
+                  {
+                    "x": 1035,
+                    "y": 1320
+                  },
+                  {
+                    "x": 1185,
+                    "y": 1320
+                  }
+                ]
+              }
+            },
+            {
+              "id": "ba1506c6-9c28-4324-b4b3-32df8ebe76a8",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "7e530f3c-ae93-42c4-95c4-9fb49d53777f",
+              "data": {
+                "source_offset": {
+                  "x": -81,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 195,
+                    "y": 540
+                  },
+                  {
+                    "x": 435,
+                    "y": 540
+                  },
+                  {
+                    "x": 435,
+                    "y": 150
+                  }
+                ]
+              }
+            },
+            {
+              "id": "41e5d15b-e2b1-42bb-b8c2-1c05b2f2b7c9",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "d1f4e80e-4990-4e20-b21a-877ec72ccf86",
+              "data": {
+                "source_offset": {
+                  "x": -24.269230769230717,
+                  "y": 1
+                },
+                "target_offset": {
+                  "x": 31,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "fe9db958-ede2-44b5-9fd2-3627e299bd81",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "45d613bc-fa4d-4b2a-ab8c-8e74e5fa14f2",
+              "data": {
+                "source_offset": {
+                  "x": 13.192307692307736,
+                  "y": 1
+                },
+                "target_offset": {
+                  "x": 7.5,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "69d5e2e5-b535-4871-9a46-b0809cbd0ce9",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "e656d39e-ccaa-4265-9198-f4d983f3165a",
+              "data": {
+                "source_offset": {
+                  "x": 49.818181818181756,
+                  "y": 1
+                },
+                "target_offset": {
+                  "x": 6.545454545454504,
+                  "y": 0
+                },
+                "position_handlers": [
+                  {
+                    "x": 1395,
+                    "y": 465
+                  },
+                  {
+                    "x": 1230,
+                    "y": 465
+                  }
+                ]
+              }
+            },
+            {
+              "id": "08ad7673-4c3a-49b9-9f54-fd77c72bf557",
+              "diagram": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+              "rel": "050e2b92-f7ce-4aa1-9929-966c8d206a75",
+              "data": {
+                "source_offset": {
+                  "x": 45,
+                  "y": 8.625
+                },
+                "target_offset": {
+                  "x": 46.5333333333333,
+                  "y": 30
+                },
+                "position_handlers": [
+                  {
+                    "x": 1200,
+                    "y": 1635
+                  }
+                ]
+              }
+            }
+          ],
+          "id": "75ddfcfd-d4f7-4c7c-a223-d70d3fe9cb71",
+          "type": "activity",
+          "name": "Loan application",
+          "description": "",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68"
+        },
+        {
+          "nodes": [
+            {
+              "id": "fd876680-2905-423a-917b-6ddd6dd92e8b",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "20e73c8c-09c4-4c2e-ae58-5ca294586f1b",
+              "data": {
+                "position": {
+                  "x": 750,
+                  "y": -75
+                }
+              }
+            },
+            {
+              "id": "4a13acee-c95b-4e6f-ae09-8f41c24f0be6",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "d433c6c4-75c1-4bb1-8c7c-54533cc09e53",
+              "data": {
+                "position": {
+                  "x": 135,
+                  "y": -330
+                }
+              }
+            },
+            {
+              "id": "e4fa3059-03d5-4234-9677-a64a2f484d6a",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+              "data": {
+                "position": {
+                  "x": 195,
+                  "y": 225
+                }
+              }
+            },
+            {
+              "id": "8ee29207-588d-4a2f-ac01-0e5933fe304f",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "f1f87487-7927-4949-b50b-7bca4de49c46",
+              "data": {
+                "position": {
+                  "x": 555,
+                  "y": 240
+                }
+              }
+            },
+            {
+              "id": "875cf843-f03d-4750-9258-d57672aab9d9",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+              "data": {
+                "position": {
+                  "x": 90,
+                  "y": -150
+                }
+              }
+            },
+            {
+              "id": "e8103fb0-5027-4c63-96aa-91955c2bc3dc",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "cls": "5d5abf7a-9c88-468d-976e-a84e5e9536a0",
+              "data": {
+                "position": {
+                  "x": -375,
+                  "y": -150
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "ce3039fa-c0e4-4353-9f72-c01d54f50b68",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "rel": "24004218-53d0-47d7-b33c-14ef92b6b52f",
+              "data": {}
+            },
+            {
+              "id": "e1f1ce67-8ba8-4090-a291-fbc1124ff64b",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "rel": "0239e2e2-ccde-4008-bf73-c02b42dc4e25",
+              "data": {}
+            },
+            {
+              "id": "45deaefc-ab47-4b38-84a9-33cab85deaa3",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "rel": "4a20b1e6-796c-4bf0-8696-d7541f848647",
+              "data": {}
+            },
+            {
+              "id": "9c96bbd6-c045-4cd3-83df-a57930793672",
+              "diagram": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+              "rel": "18aac245-fff5-4410-a534-1c0ed6dbee99",
+              "data": {}
+            }
+          ],
+          "id": "cc029a4b-cbae-48bc-8653-b3aa0725f959",
+          "type": "classes",
+          "name": "Structure",
+          "description": "",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68"
+        },
+        {
+          "nodes": [
+            {
+              "id": "625bb218-3422-48c6-8f13-38c3c800e94c",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "1a57e688-ced7-463b-8c61-73aed0bc181b",
+              "data": {
+                "position": {
+                  "x": -225,
+                  "y": 90
+                }
+              }
+            },
+            {
+              "id": "042d9ece-ceb8-46aa-941a-6cccf20498e8",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "b30f3632-7a78-4362-983b-2db9ba2ced85",
+              "data": {
+                "position": {
+                  "x": 690,
+                  "y": 840
+                }
+              }
+            },
+            {
+              "id": "9d8ece40-6365-4718-a298-b5c0d0965b18",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "76feaff6-e3b0-435f-8fe9-0cc34c80abcc",
+              "data": {
+                "position": {
+                  "x": 120,
+                  "y": 810
+                }
+              }
+            },
+            {
+              "id": "96537a10-066f-454e-b293-293feb20e5fe",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "290a9f8e-0163-4ac6-bbe9-2a203dd07247",
+              "data": {
+                "position": {
+                  "x": 120,
+                  "y": 105
+                }
+              }
+            },
+            {
+              "id": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "ef54dcd4-cffd-4f1b-8276-ff1edd894e85",
+              "data": {
+                "position": {
+                  "x": -210,
+                  "y": 675
+                }
+              }
+            },
+            {
+              "id": "be3b9b99-643d-40a4-8f8b-b41a65903608",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "9c8f2163-21be-4818-8e01-5dccec46054f",
+              "data": {
+                "position": {
+                  "x": 75,
+                  "y": 315
+                }
+              }
+            },
+            {
+              "id": "e5974fbf-ed77-4ea9-9c14-5bf3e2182280",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "5c838229-f19e-4d72-aa7f-031b30674109",
+              "data": {
+                "position": {
+                  "x": 690,
+                  "y": 150
+                }
+              }
+            },
+            {
+              "id": "f5ca01c3-40de-4cdd-98bc-5b02f73a92d5",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "e113adfe-c869-42f3-9c8a-d36f70dc679d",
+              "data": {
+                "position": {
+                  "x": 150,
+                  "y": 465
+                }
+              }
+            },
+            {
+              "id": "84462642-7762-4aba-8563-4572f20eefe7",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "1086c55a-767b-42e9-b359-b27ee7c0e98d",
+              "data": {
+                "position": {
+                  "x": 1185,
+                  "y": 150
+                }
+              }
+            },
+            {
+              "id": "0060b978-9aa6-4a27-91e0-b0607fd4b4d9",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "1887edab-577f-42e2-8e10-d3168f085182",
+              "data": {
+                "position": {
+                  "x": 675,
+                  "y": 510
+                }
+              }
+            },
+            {
+              "id": "b7c0c7ab-0c9f-4b2b-a9ae-db40fc604a94",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "a23f0062-1007-46e1-8921-b3a483d90241",
+              "data": {
+                "position": {
+                  "x": 690,
+                  "y": 690
+                }
+              }
+            },
+            {
+              "id": "318426e4-13c8-469c-9455-1ebd0a77b636",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "6c703451-de38-4fa1-bf1e-d08d1e4debc1",
+              "data": {
+                "position": {
+                  "x": 30,
+                  "y": -30
+                }
+              }
+            },
+            {
+              "id": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+              "data": {
+                "position": {
+                  "x": 1230,
+                  "y": 630
+                }
+              }
+            },
+            {
+              "id": "aa1f25b1-a343-445f-86a3-f285a6598ad1",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "cls": "2db90a4f-5810-40a6-afa6-e376fc859be3",
+              "data": {
+                "position": {
+                  "x": 135,
+                  "y": 630
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "386c4a54-1988-4231-bf05-6c3ba79653bc",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "562632ac-8575-4230-b73e-1b8af7563859",
+              "data": {}
+            },
+            {
+              "id": "5d65af15-426c-4ab8-8c2d-281ba30d7291",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "c98b49ff-a947-4ad4-83bd-b06a7e042dbb",
+              "data": {}
+            },
+            {
+              "id": "469ccebb-f77e-49e3-a275-773eabcaeae3",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "6578d984-1a5f-4a58-815e-fb6abbc9369c",
+              "data": {}
+            },
+            {
+              "id": "29d313cb-645b-4c77-b99a-b0b3fbd0725f",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "08d9513a-b4cb-4f3d-a2b0-20e223a11e9c",
+              "data": {}
+            },
+            {
+              "id": "f051b588-38bd-42a2-9ca2-d6648ceb2417",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "d61acf82-5288-4130-9e0a-42c3d497a035",
+              "data": {}
+            },
+            {
+              "id": "30b86469-79c3-4404-9f22-cd4e17d78dac",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "17f9a72c-2145-4606-b20a-e96fc906065c",
+              "data": {}
+            },
+            {
+              "id": "e4306728-6029-405a-8644-7811fec0d23d",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "4ed32fdd-e261-4dcd-9b52-a8191e7ad9ab",
+              "data": {}
+            },
+            {
+              "id": "d76851b6-f4bb-4f67-a89e-daabf1fea960",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "a804098d-2832-4652-8e17-32474e4cb581",
+              "data": {}
+            },
+            {
+              "id": "3e653c7a-a80d-4306-a312-343ec1fe6f99",
+              "diagram": "68599c37-e294-40a1-a969-c3ff98845aa2",
+              "rel": "92e13792-4cd1-4a3a-b90d-dc39bea16bf3",
+              "data": {}
+            }
+          ],
+          "id": "68599c37-e294-40a1-a969-c3ff98845aa2",
+          "type": "usecase",
+          "name": "Interactions",
+          "description": "",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68"
+        }
+      ],
+      "classifiers": [
+        {
+          "id": "2db90a4f-5810-40a6-afa6-e376fc859be3",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Perform risk analysis",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Document",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "enum": null,
+                "name": "file_conent",
+                "type": "str",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "upload_date",
+                "type": "str",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "valid",
+                "type": "bool",
+                "derived": false
+              },
+              {
+                "enum": "f1f87487-7927-4949-b50b-7bca4de49c46",
+                "name": "document_type",
+                "type": "enum",
+                "derived": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "c4b16bc0-8488-4b5e-a5d5-97ac5d1a56e8",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Analyze documents",
+            "role": "action",
+            "type": "action",
+            "actorNode": "625bb218-3422-48c6-8f13-38c3c800e94c",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "ba19261b-4b9b-4c15-b364-9bcd3d45ed71",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "cls": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+            "name": "LoanApplication",
+            "role": "object",
+            "type": "object",
+            "state": "Approved",
+            "clsName": "LoanApplication",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "d911755a-9fef-4cdd-af44-f3d9304ba647",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "fork",
+            "width": "300",
+            "height": "12"
+          }
+        },
+        {
+          "id": "cd4f0342-f145-4457-a395-8c83ac5292ff",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "cls": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+            "name": "LoanApplication",
+            "role": "object",
+            "type": "object",
+            "state": "Denied",
+            "clsName": "LoanApplication",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "f1f87487-7927-4949-b50b-7bca4de49c46",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Document type",
+            "type": "enum",
+            "literals": [
+              "PDF",
+              "DOCX"
+            ],
+            "namespace": ""
+          }
+        },
+        {
+          "id": "76feaff6-e3b0-435f-8fe9-0cc34c80abcc",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Send application results",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "6c703451-de38-4fa1-bf1e-d08d1e4debc1",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Loan application",
+            "type": "system_boundary",
+            "width": 1000,
+            "height": 1000
+          }
+        },
+        {
+          "id": "5d5abf7a-9c88-468d-976e-a84e5e9536a0",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Applicant",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "body": null,
+                "enum": null,
+                "name": "first_name",
+                "type": "str",
+                "derived": false,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "last_name",
+                "type": "str",
+                "derived": false,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "date_of_birth",
+                "type": "str",
+                "derived": false,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "credit_score",
+                "type": "int",
+                "derived": false,
+                "description": null
+              },
+              {
+                "body": null,
+                "enum": null,
+                "name": "address",
+                "type": "str",
+                "derived": false,
+                "description": null
+              },
+              {
+                "body": "def full_name(self):\n    return f\"{self.first_name} {self.last_name}\"",
+                "enum": null,
+                "name": "full_name",
+                "type": "str",
+                "derived": true,
+                "description": "combines the first and last name into a single attribute"
+              },
+              {
+                "enum": null,
+                "name": "email",
+                "type": "str",
+                "derived": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "5c838229-f19e-4d72-aa7f-031b30674109",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Decide on application",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "89e6c473-cf3d-4569-8946-d8bb2ae69cf1",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "join",
+            "width": "300",
+            "height": "12",
+            "join_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "c4ede036-c5ec-4b23-ad85-55fb6e44e11a",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "decision",
+            "decisionInput": "",
+            "decisionInputFlow": ""
+          }
+        },
+        {
+          "id": "269c2210-f297-4a98-8843-7f435e743f1d",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "merge",
+            "merge_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "5230c8f3-d513-46f0-8aa6-2c0b258a0c20",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "merge",
+            "merge_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "1a57e688-ced7-463b-8c61-73aed0bc181b",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Document analyst",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "1887edab-577f-42e2-8e10-d3168f085182",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Receive application results",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "ba483adf-521b-4dab-9e3e-babe810b73af",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Share results",
+            "role": "action",
+            "type": "action",
+            "actorNode": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+            "namespace": "",
+            "customCode": "def custom_code(active_process: ActiveProcess) -> None:\n    # The following variables are Django QuerySet objects related to the active process\n    applicationnotes = active_process.applicationnotes # Do not change this line\n    loanapplications = active_process.loanapplications # Do not change this line\n    applicants = active_process.applicants # Do not change this line\n    documents = active_process.documents # Do not change this line\n\n    loan_application = loanapplications.first()\n    applicant = applicants.first()\n\n    outcome = \"approved\" if loan_application.approved else \"denied\"\n\n    print(f\"Sending decision email to {applicant.email}: Your loan application has been {outcome}\", flush=True)",
+            "isAutomatic": true,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "8e010314-e246-465e-8983-e3a420a4feeb",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "cls": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+            "name": "LoanApplication",
+            "role": "object",
+            "type": "object",
+            "state": "Analyzed",
+            "clsName": "LoanApplication",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "8aeba65f-52ef-49f1-b1cf-b87049edacfa",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "type": "swimlanegroup",
+            "width": 400,
+            "height": "1800",
+            "swimlanes": [
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+                "actorNodeName": "Applicant"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "84462642-7762-4aba-8563-4572f20eefe7",
+                "actorNodeName": "Loan officer"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+                "actorNodeName": "System"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "625bb218-3422-48c6-8f13-38c3c800e94c",
+                "actorNodeName": "Document analyst"
+              }
+            ],
+            "horizontal": false
+          }
+        },
+        {
+          "id": "ef54dcd4-cffd-4f1b-8276-ff1edd894e85",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "System",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "a23f0062-1007-46e1-8921-b3a483d90241",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Submit extra documents",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "4ffa54fe-3e5a-4a90-8cc2-bbff4b44a5b6",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "initial",
+            "schedule": "",
+            "scheduled": false,
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "1086c55a-767b-42e9-b359-b27ee7c0e98d",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Loan officer",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "2339a9b3-6542-44d2-a18b-93632da05d14",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Assess application completeness",
+            "role": "action",
+            "type": "action",
+            "actorNode": "84462642-7762-4aba-8563-4572f20eefe7",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "b30f3632-7a78-4362-983b-2db9ba2ced85",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Fill in loan application",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "d7fba6fc-2b10-456c-8ef8-517171ef0b1f",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "final",
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "8f961619-f534-40bb-ac08-e128c9a2279f",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "type": "swimlanegroup",
+            "width": 300,
+            "height": 1000,
+            "swimlanes": [
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "625bb218-3422-48c6-8f13-38c3c800e94c",
+                "actorNodeName": "Document analyst"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+                "actorNodeName": "System"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "84462642-7762-4aba-8563-4572f20eefe7",
+                "actorNodeName": "Loan officer"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+                "actorNodeName": "Applicant"
+              }
+            ],
+            "horizontal": false
+          }
+        },
+        {
+          "id": "fcc2764e-4410-4d2f-9a3d-fc73a89f650e",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "initial",
+            "schedule": "",
+            "scheduled": false,
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "LoanApplication",
+            "type": "class",
+            "methods": [
+              {
+                "body": "def approve(self):\n    self.approved = True\n    self.save()",
+                "name": "approve",
+                "type": "str",
+                "description": "Approves the loanapplication by setting approved to true and saving it"
+              }
+            ],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "enum": null,
+                "name": "loan_amount",
+                "type": "int",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "requires_additional_documents",
+                "type": "bool",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "approved",
+                "type": "bool",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "reason",
+                "type": "str",
+                "derived": false
+              },
+              {
+                "enum": null,
+                "name": "risk",
+                "type": "str",
+                "derived": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Applicant",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "9c8f2163-21be-4818-8e01-5dccec46054f",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Check document completeness",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "cff7c0f7-c1fe-41b0-a6b0-98e259405109",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Fill in application",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "203ad708-bfae-4868-81bc-784b1ae7c2a6",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "decision",
+            "decisionInput": "",
+            "decisionInputFlow": ""
+          }
+        },
+        {
+          "id": "f9110612-caf4-4691-925a-b994a6a2b8b7",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "cls": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+            "name": "LoanApplication",
+            "role": "object",
+            "type": "object",
+            "state": "Created",
+            "clsName": "LoanApplication",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "a3b75000-6dea-46a2-8aba-359fe3433204",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Provice additional information",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "290a9f8e-0163-4ac6-bbe9-2a203dd07247",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Analyze documents",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "a964efbf-117a-441f-b40b-59ff4f769b36",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "type": "swimlanegroup",
+            "width": 700,
+            "height": 2000,
+            "swimlanes": [
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "625bb218-3422-48c6-8f13-38c3c800e94c",
+                "actorNodeName": "Document analyst"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+                "actorNodeName": "System"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "84462642-7762-4aba-8563-4572f20eefe7",
+                "actorNodeName": "Loan officer"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a8b9f535-20ba-4076-8a39-7e0f16c9e866",
+                "actorNodeName": "Applicant"
+              }
+            ],
+            "horizontal": false
+          }
+        },
+        {
+          "id": "d433c6c4-75c1-4bb1-8c7c-54533cc09e53",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Loan Application approved",
+            "type": "signal",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "7055c2e0-bf27-4a8a-8372-67cb6948c694",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Final decision",
+            "role": "action",
+            "type": "action",
+            "actorNode": "84462642-7762-4aba-8563-4572f20eefe7",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "e113adfe-c869-42f3-9c8a-d36f70dc679d",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Foreign address check",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "318426e4-13c8-469c-9455-1ebd0a77b636",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "5f2ad2fe-1d8d-4f6d-9738-03a7640d3e9d",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Perform risk analysis",
+            "role": "action",
+            "type": "action",
+            "actorNode": "869dad0d-7628-4dd9-83f1-8bbeeac72192",
+            "namespace": "",
+            "customCode": "def custom_code(active_process: ActiveProcess) -> None:\n    # The following variables are Django QuerySet objects related to the active process\n    applicationnotes = active_process.applicationnotes # Do not change this line\n    applicants = active_process.applicants # Do not change this line\n    loanapplications = active_process.loanapplications # Do not change this line\n    documents = active_process.documents # Do not change this line\n    \n    loan_application = loanapplications.first()\n\n    import random\n    risks = ['low', 'medium', 'high']\n    random_risk = random.choice(risks)\n    print(f'This loan application risk level is: {random_risk}', flush=True)\n    loan_application.risk = random_risk\n    loan_application.save()",
+            "isAutomatic": true,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "f32357d5-5ad5-48af-96db-1a2c02604d3b",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "name": "Loan Application approved",
+            "role": "event",
+            "type": "event",
+            "signal": "d433c6c4-75c1-4bb1-8c7c-54533cc09e53",
+            "namespace": "",
+            "signalName": "Loan Application approved"
+          }
+        },
+        {
+          "id": "20e73c8c-09c4-4c2e-ae58-5ca294586f1b",
+          "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "ApplicationNote",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              {
+                "enum": null,
+                "name": "comment",
+                "type": "str",
+                "derived": false
+              }
+            ]
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "e656d39e-ccaa-4265-9198-f4d983f3165a",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "c4b16bc0-8488-4b5e-a5d5-97ac5d1a56e8",
+          "target": "89e6c473-cf3d-4569-8946-d8bb2ae69cf1"
+        },
+        {
+          "id": "d1f4e80e-4990-4e20-b21a-877ec72ccf86",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "2339a9b3-6542-44d2-a18b-93632da05d14",
+          "target": "203ad708-bfae-4868-81bc-784b1ae7c2a6"
+        },
+        {
+          "id": "782579fe-2abb-4f2f-abd1-502cbba00404",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "c4ede036-c5ec-4b23-ad85-55fb6e44e11a",
+          "target": "ba19261b-4b9b-4c15-b364-9bcd3d45ed71"
+        },
+        {
+          "id": "24004218-53d0-47d7-b33c-14ef92b6b52f",
+          "data": {
+            "type": "dependency",
+            "label": "",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+          "target": "f1f87487-7927-4949-b50b-7bca4de49c46"
+        },
+        {
+          "id": "08d9513a-b4cb-4f3d-a2b0-20e223a11e9c",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+          "target": "b30f3632-7a78-4362-983b-2db9ba2ced85"
+        },
+        {
+          "id": "c98b49ff-a947-4ad4-83bd-b06a7e042dbb",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "ef54dcd4-cffd-4f1b-8276-ff1edd894e85",
+          "target": "2db90a4f-5810-40a6-afa6-e376fc859be3"
+        },
+        {
+          "id": "3a04b4fb-4826-46f5-bca7-577c708c9baa",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "5f2ad2fe-1d8d-4f6d-9738-03a7640d3e9d",
+          "target": "89e6c473-cf3d-4569-8946-d8bb2ae69cf1"
+        },
+        {
+          "id": "4a20b1e6-796c-4bf0-8696-d7541f848647",
+          "data": {
+            "type": "association",
+            "label": "Fills in",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "5d5abf7a-9c88-468d-976e-a84e5e9536a0",
+          "target": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0"
+        },
+        {
+          "id": "4ed32fdd-e261-4dcd-9b52-a8191e7ad9ab",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "1086c55a-767b-42e9-b359-b27ee7c0e98d",
+          "target": "5c838229-f19e-4d72-aa7f-031b30674109"
+        },
+        {
+          "id": "92e13792-4cd1-4a3a-b90d-dc39bea16bf3",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "ef54dcd4-cffd-4f1b-8276-ff1edd894e85",
+          "target": "76feaff6-e3b0-435f-8fe9-0cc34c80abcc"
+        },
+        {
+          "id": "70da1232-a1e8-4302-a9c0-4b2acc8bdd3b",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "true",
+              "aggregator": null,
+              "target_class": "875cf843-f03d-4750-9258-d57672aab9d9",
+              "target_attribute": "requires_additional_documents",
+              "target_class_name": "LoanApplication",
+              "target_attribute_type": "bool"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "203ad708-bfae-4868-81bc-784b1ae7c2a6",
+          "target": "a3b75000-6dea-46a2-8aba-359fe3433204"
+        },
+        {
+          "id": "0211bbad-20cb-45c7-9916-19de8bcb5bcf",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "false",
+              "aggregator": null,
+              "target_class": "875cf843-f03d-4750-9258-d57672aab9d9",
+              "target_attribute": "approved",
+              "target_class_name": "LoanApplication",
+              "target_attribute_type": "bool"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "c4ede036-c5ec-4b23-ad85-55fb6e44e11a",
+          "target": "cd4f0342-f145-4457-a395-8c83ac5292ff"
+        },
+        {
+          "id": "b7cc3e73-ac9a-4959-b01e-43eabbd7bff2",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "4ffa54fe-3e5a-4a90-8cc2-bbff4b44a5b6",
+          "target": "cff7c0f7-c1fe-41b0-a6b0-98e259405109"
+        },
+        {
+          "id": "d950a508-d330-45d6-8a85-695da7abba03",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "269c2210-f297-4a98-8843-7f435e743f1d",
+          "target": "d911755a-9fef-4cdd-af44-f3d9304ba647"
+        },
+        {
+          "id": "7e530f3c-ae93-42c4-95c4-9fb49d53777f",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "a3b75000-6dea-46a2-8aba-359fe3433204",
+          "target": "269c2210-f297-4a98-8843-7f435e743f1d"
+        },
+        {
+          "id": "96fafd3e-a2c1-4ed1-b57e-06b9871ab70a",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "ba19261b-4b9b-4c15-b364-9bcd3d45ed71",
+          "target": "5230c8f3-d513-46f0-8aa6-2c0b258a0c20"
+        },
+        {
+          "id": "0239e2e2-ccde-4008-bf73-c02b42dc4e25",
+          "data": {
+            "type": "association",
+            "label": "includes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+          "target": "a3199409-29d8-4023-9d5c-8f7f27afa361"
+        },
+        {
+          "id": "d61acf82-5288-4130-9e0a-42c3d497a035",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "1a57e688-ced7-463b-8c61-73aed0bc181b",
+          "target": "290a9f8e-0163-4ac6-bbe9-2a203dd07247"
+        },
+        {
+          "id": "d9f306a5-fca1-48b9-a093-b661fd0b6a1d",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "cff7c0f7-c1fe-41b0-a6b0-98e259405109",
+          "target": "f9110612-caf4-4691-925a-b994a6a2b8b7"
+        },
+        {
+          "id": "930568c5-2154-492b-aada-1700581dda36",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "f9110612-caf4-4691-925a-b994a6a2b8b7",
+          "target": "269c2210-f297-4a98-8843-7f435e743f1d"
+        },
+        {
+          "id": "4e0aff38-ea4c-4c5a-b144-cfd56832223d",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "203ad708-bfae-4868-81bc-784b1ae7c2a6",
+          "target": "7055c2e0-bf27-4a8a-8372-67cb6948c694"
+        },
+        {
+          "id": "7b456cfd-957e-4bdf-99f1-3d20bbd125b9",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "cd4f0342-f145-4457-a395-8c83ac5292ff",
+          "target": "5230c8f3-d513-46f0-8aa6-2c0b258a0c20"
+        },
+        {
+          "id": "18aac245-fff5-4410-a534-1c0ed6dbee99",
+          "data": {
+            "type": "association",
+            "label": "has",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+          "target": "20e73c8c-09c4-4c2e-ae58-5ca294586f1b"
+        },
+        {
+          "id": "a1fedbba-3ff1-4f62-88a9-711411d3a658",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "d911755a-9fef-4cdd-af44-f3d9304ba647",
+          "target": "5f2ad2fe-1d8d-4f6d-9738-03a7640d3e9d"
+        },
+        {
+          "id": "e61f0feb-7d15-48d6-bc78-8f4fc90db2b7",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "89e6c473-cf3d-4569-8946-d8bb2ae69cf1",
+          "target": "8e010314-e246-465e-8983-e3a420a4feeb"
+        },
+        {
+          "id": "45d613bc-fa4d-4b2a-ab8c-8e74e5fa14f2",
+          "data": {
+            "type": "controlflow",
+            "guard": "approved = True",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "7055c2e0-bf27-4a8a-8372-67cb6948c694",
+          "target": "f32357d5-5ad5-48af-96db-1a2c02604d3b"
+        },
+        {
+          "id": "050e2b92-f7ce-4aa1-9929-966c8d206a75",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "5230c8f3-d513-46f0-8aa6-2c0b258a0c20",
+          "target": "ba483adf-521b-4dab-9e3e-babe810b73af"
+        },
+        {
+          "id": "6578d984-1a5f-4a58-815e-fb6abbc9369c",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+          "target": "1887edab-577f-42e2-8e10-d3168f085182"
+        },
+        {
+          "id": "562632ac-8575-4230-b73e-1b8af7563859",
+          "data": {
+            "type": "inclusion",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "290a9f8e-0163-4ac6-bbe9-2a203dd07247",
+          "target": "9c8f2163-21be-4818-8e01-5dccec46054f"
+        },
+        {
+          "id": "346ea106-8eef-42c3-b0a2-6c7d53f28983",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "d911755a-9fef-4cdd-af44-f3d9304ba647",
+          "target": "c4b16bc0-8488-4b5e-a5d5-97ac5d1a56e8"
+        },
+        {
+          "id": "5b2e372c-208e-4f09-8957-3bef544d5dc1",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "8e010314-e246-465e-8983-e3a420a4feeb",
+          "target": "2339a9b3-6542-44d2-a18b-93632da05d14"
+        },
+        {
+          "id": "4131ce34-410c-4b75-91bc-ed309254d2c2",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "7055c2e0-bf27-4a8a-8372-67cb6948c694",
+          "target": "c4ede036-c5ec-4b23-ad85-55fb6e44e11a"
+        },
+        {
+          "id": "be46c4de-6127-4f6d-a7c6-8f31256b96c9",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "ba483adf-521b-4dab-9e3e-babe810b73af",
+          "target": "d7fba6fc-2b10-456c-8ef8-517171ef0b1f"
+        },
+        {
+          "id": "17f9a72c-2145-4606-b20a-e96fc906065c",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+          "target": "a23f0062-1007-46e1-8921-b3a483d90241"
+        },
+        {
+          "id": "a804098d-2832-4652-8e17-32474e4cb581",
+          "data": {
+            "type": "extension",
+            "position_handlers": []
+          },
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "source": "e113adfe-c869-42f3-9c8a-d36f70dc679d",
+          "target": "2db90a4f-5810-40a6-afa6-e376fc859be3"
+        }
+      ],
+      "interfaces": [
+        {
+          "id": "c9e71654-fb75-450b-9f42-1d40f8d5602c",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "name": "System",
+          "description": "System application",
+          "actor": "ef54dcd4-cffd-4f1b-8276-ff1edd894e85",
+          "data": {
+            "pages": [],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [],
+            "categories": []
+          }
+        },
+        {
+          "id": "0e04b771-8202-4fe2-805d-7c89b9d45f81",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "name": "Document analyst",
+          "description": "Document analyst application",
+          "actor": "1a57e688-ced7-463b-8c61-73aed0bc181b",
+          "data": {
+            "pages": [
+              {
+                "id": "ab3daad1-b951-43d9-8677-dec63c71297d",
+                "name": "Analyze documents",
+                "type": {
+                  "label": "Activity",
+                  "value": "activity"
+                },
+                "action": {
+                  "label": "Analyze documents",
+                  "value": "4a4103ee-86c9-4b70-b9af-6931335658d1"
+                },
+                "category": null,
+                "sections": [
+                  {
+                    "label": "Check documents",
+                    "value": "205b91e4-97ed-400b-b9ab-ca698af55112"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "205b91e4-97ed-400b-b9ab-ca698af55112",
+                "name": "Check documents",
+                "text": "Check validity of documents",
+                "class": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "file_conent",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "upload_date",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "valid",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": "f1f87487-7927-4949-b50b-7bca4de49c46",
+                    "name": "document_type",
+                    "type": "enum",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": true
+                }
+              }
+            ],
+            "settings": {
+              "managerAccess": false
+            },
+            "categories": []
+          }
+        },
+        {
+          "id": "7cb15d30-277c-4cf2-b735-826bea27b2d5",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "name": "Loan officer",
+          "description": "Loan officer application",
+          "actor": "1086c55a-767b-42e9-b359-b27ee7c0e98d",
+          "data": {
+            "pages": [
+              {
+                "id": "a232dba2-227e-4e68-afae-72801c904536",
+                "name": "Assess application completeness",
+                "type": {
+                  "label": "Activity",
+                  "value": "activity"
+                },
+                "action": {
+                  "label": "Assess application completeness",
+                  "value": "493450d3-3b9f-46fb-8983-17f4349ccc4d"
+                },
+                "category": null,
+                "sections": [
+                  {
+                    "label": "Assess completeness",
+                    "value": "b58bc3ad-4d6b-41f6-8c8b-c23fd05efcd7"
+                  },
+                  {
+                    "label": "Display applicant",
+                    "value": "69724b17-e27d-4450-80ba-b3fb4e8c4a45"
+                  },
+                  {
+                    "label": "Display documents",
+                    "value": "150c583d-f60b-41e4-8705-5b12d21cff99"
+                  },
+                  {
+                    "label": "Add notes",
+                    "value": "150ac358-b890-49d9-826c-27afcf1ace69"
+                  }
+                ]
+              },
+              {
+                "id": "0d8a2f91-b2a6-49f9-8254-b8dda110d288",
+                "name": "Final decision",
+                "type": {
+                  "label": "Activity",
+                  "value": "activity"
+                },
+                "action": {
+                  "label": "Final decision",
+                  "value": "3004b75d-71b4-45df-abc8-b75ed3f1d9fb"
+                },
+                "category": null,
+                "sections": [
+                  {
+                    "label": "Display applicant",
+                    "value": "69724b17-e27d-4450-80ba-b3fb4e8c4a45"
+                  },
+                  {
+                    "label": "Display documents",
+                    "value": "150c583d-f60b-41e4-8705-5b12d21cff99"
+                  },
+                  {
+                    "label": "Final decision",
+                    "value": "58abb025-33c9-4aa1-b0bd-e6a61d7ea714"
+                  }
+                ]
+              },
+              {
+                "id": "53a9a4f3-f947-4d4f-903b-fb69ac788db5",
+                "name": "Applications overview",
+                "type": {
+                  "label": "Normal",
+                  "value": "normal"
+                },
+                "action": null,
+                "category": {
+                  "label": "Overview",
+                  "value": {
+                    "id": "e03c2075-59ed-47c0-b680-3fdc68d3f8a3",
+                    "name": "Overview"
+                  }
+                },
+                "sections": [
+                  {
+                    "label": "Read loan applications",
+                    "value": "801c2a21-27ec-48f9-ad66-6525bdfd922a"
+                  }
+                ]
+              },
+              {
+                "id": "bbf64a9e-05fb-49ee-9775-2e5b6e187e66",
+                "name": "Applicant overview",
+                "type": {
+                  "label": "Normal",
+                  "value": "normal"
+                },
+                "action": null,
+                "category": {
+                  "label": "Overview",
+                  "value": {
+                    "id": "e03c2075-59ed-47c0-b680-3fdc68d3f8a3",
+                    "name": "Overview"
+                  }
+                },
+                "sections": [
+                  {
+                    "label": "Display applicant",
+                    "value": "69724b17-e27d-4450-80ba-b3fb4e8c4a45"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 2,
+              "textColor": "#000000",
+              "accentColor": "#ecec13",
+              "selectedStyle": "basic",
+              "backgroundColor": "#55e00b"
+            },
+            "sections": [
+              {
+                "id": "b58bc3ad-4d6b-41f6-8c8b-c23fd05efcd7",
+                "name": "Assess completeness",
+                "text": "Assess completeness of the application",
+                "class": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "requires_additional_documents",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "loan_amount",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "reason",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "risk",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": true
+                }
+              },
+              {
+                "id": "69724b17-e27d-4450-80ba-b3fb4e8c4a45",
+                "name": "Display applicant",
+                "text": "Applicant information:",
+                "class": "5d5abf7a-9c88-468d-976e-a84e5e9536a0",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "first_name",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "last_name",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "date_of_birth",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "credit_score",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "address",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": "def full_name(self):\n    return f\"{self.first_name} {self.last_name}\"",
+                    "enum": null,
+                    "name": "full_name",
+                    "type": "str",
+                    "derived": true,
+                    "description": "combines the first and last name into a single attribute"
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "email",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              },
+              {
+                "id": "150c583d-f60b-41e4-8705-5b12d21cff99",
+                "name": "Display documents",
+                "text": "Submitted documents",
+                "class": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "file_conent",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "upload_date",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "valid",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": "f1f87487-7927-4949-b50b-7bca4de49c46",
+                    "name": "document_type",
+                    "type": "enum",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              },
+              {
+                "id": "150ac358-b890-49d9-826c-27afcf1ace69",
+                "name": "Add notes",
+                "text": "Add comments",
+                "class": "20e73c8c-09c4-4c2e-ae58-5ca294586f1b",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "comment",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": true,
+                  "update": true
+                }
+              },
+              {
+                "id": "58abb025-33c9-4aa1-b0bd-e6a61d7ea714",
+                "name": "Final decision",
+                "text": "Approve or deny application",
+                "class": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+                "methods": [
+                  {
+                    "body": "def approve(self):\n    self.approved = True\n    self.save()",
+                    "name": "approve",
+                    "type": "str",
+                    "description": "Approves the loanapplication by setting approved to true and saving it"
+                  }
+                ],
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "loan_amount",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "approved",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "reason",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "risk",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              },
+              {
+                "id": "801c2a21-27ec-48f9-ad66-6525bdfd922a",
+                "name": "Read loan applications",
+                "text": "Requested loan applications",
+                "class": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "loan_amount",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "requires_additional_documents",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "approved",
+                    "type": "bool",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "reason",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "risk",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              }
+            ],
+            "settings": {
+              "managerAccess": true
+            },
+            "categories": [
+              {
+                "id": "e03c2075-59ed-47c0-b680-3fdc68d3f8a3",
+                "name": "Overview"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c7ca90f5-e82f-4da4-989e-1ae7070beed9",
+          "system": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+          "name": "Applicant",
+          "description": "Applicant application",
+          "actor": "0014c0d3-a283-44b0-9a8d-b0cdcef27784",
+          "data": {
+            "pages": [
+              {
+                "id": "29c198b1-b3d1-453f-a118-f6602d7d03a1",
+                "name": "Fill in application",
+                "type": {
+                  "label": "Activity",
+                  "value": "activity"
+                },
+                "action": {
+                  "label": "Fill in application",
+                  "value": "2ccd05d4-52b2-42b2-96cd-61d1f19119e3"
+                },
+                "category": null,
+                "sections": [
+                  {
+                    "label": "Personal information",
+                    "value": "bf18dc37-be8c-4acb-b9c0-26d2ff951efb"
+                  },
+                  {
+                    "label": "Create application",
+                    "value": "6d84b69d-3a98-480d-b749-f523142267ce"
+                  },
+                  {
+                    "label": "Add documents",
+                    "value": "27eb2c9e-571b-41f6-89c0-224555a9f962"
+                  }
+                ]
+              },
+              {
+                "id": "ad46ae54-074f-42e8-a269-b301e4a6c9f6",
+                "name": "Provide additional information",
+                "type": {
+                  "label": "Activity",
+                  "value": "activity"
+                },
+                "action": {
+                  "label": "Provice additional information",
+                  "value": "f0637ff9-d828-4bfe-89c1-eb4cadb32ca3"
+                },
+                "category": null,
+                "sections": [
+                  {
+                    "label": "Add documents",
+                    "value": "27eb2c9e-571b-41f6-89c0-224555a9f962"
+                  },
+                  {
+                    "label": "Show notes",
+                    "value": "60bc42fc-292d-493e-8741-c2e57450be5a"
+                  }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "bf18dc37-be8c-4acb-b9c0-26d2ff951efb",
+                "name": "Personal information",
+                "text": "Fill in personal information",
+                "class": "5d5abf7a-9c88-468d-976e-a84e5e9536a0",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "first_name",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "last_name",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "date_of_birth",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "credit_score",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "address",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "email",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": true,
+                  "update": true
+                }
+              },
+              {
+                "id": "6d84b69d-3a98-480d-b749-f523142267ce",
+                "name": "Create application",
+                "text": "How much you like to loan",
+                "class": "61195e24-19fc-46b5-bac2-a6fcbf2fb2a0",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "loan_amount",
+                    "type": "int",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "reason",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": true,
+                  "update": true
+                }
+              },
+              {
+                "id": "27eb2c9e-571b-41f6-89c0-224555a9f962",
+                "name": "Add documents",
+                "text": "Add document to support your application",
+                "class": "a3199409-29d8-4023-9d5c-8f7f27afa361",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "file_conent",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "upload_date",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  },
+                  {
+                    "body": null,
+                    "enum": "f1f87487-7927-4949-b50b-7bca4de49c46",
+                    "name": "document_type",
+                    "type": "enum",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": true,
+                  "delete": true,
+                  "update": true
+                }
+              },
+              {
+                "id": "60bc42fc-292d-493e-8741-c2e57450be5a",
+                "name": "Show notes",
+                "text": "Attached notes from loan officer",
+                "class": "20e73c8c-09c4-4c2e-ae58-5ca294586f1b",
+                "attributes": [
+                  {
+                    "body": null,
+                    "enum": null,
+                    "name": "comment",
+                    "type": "str",
+                    "derived": false,
+                    "description": null
+                  }
+                ],
+                "operations": {
+                  "create": false,
+                  "delete": false,
+                  "update": false
+                }
+              }
+            ],
+            "settings": {
+              "managerAccess": false
+            },
+            "categories": []
+          }
+        }
+      ],
+      "id": "35ef9ce1-a3ff-4df1-a541-443fe36fcd68",
+      "project": "703afae0-a800-4166-9d89-e66b0e7418d3",
+      "name": "Loan Application Demo",
+      "description": ""
+    }
+  ],
+  "id": "703afae0-a800-4166-9d89-e66b0e7418d3",
+  "name": "Loan Application Demo",
+  "description": ""
+}

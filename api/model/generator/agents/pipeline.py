@@ -1,9 +1,9 @@
 """
-LangGraph pipeline: UML metadata → Parser → UI Designer → Theme → Layout Options.
+LangGraph pipeline: UML metadata → Parser → UI Designer → Theme → Layout Options → Interface Mapper.
 
 Graph topology
 ──────────────────────────────────────────────────────────────────────────────
-  parser → ui_designer → theme → layout_options → END
+  parser → ui_designer → theme → layout_options → interface_mapper → END
 """
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -14,6 +14,7 @@ from generator.agents.nodes import (
     ui_designer_node,
     theme_node,
     layout_options_node,
+    interface_mapper_node,
 )
 
 
@@ -31,13 +32,15 @@ def build_pipeline() -> tuple:
     graph.add_node("ui_designer",    ui_designer_node)
     graph.add_node("theme",          theme_node)
     graph.add_node("layout_options", layout_options_node)
+    graph.add_node("interface_mapper", interface_mapper_node)
 
     # ── Edges ─────────────────────────────────────────────────────────────────
     graph.set_entry_point("parser")
-    graph.add_edge("parser",         "ui_designer")
-    graph.add_edge("ui_designer",    "theme")
-    graph.add_edge("theme",          "layout_options")
-    graph.add_edge("layout_options", END)
+    graph.add_edge("parser",           "ui_designer")
+    graph.add_edge("ui_designer",      "theme")
+    graph.add_edge("theme",            "layout_options")
+    graph.add_edge("layout_options",   "interface_mapper")
+    graph.add_edge("interface_mapper", END)
 
     compiled = graph.compile(checkpointer=checkpointer)
     return compiled, checkpointer
