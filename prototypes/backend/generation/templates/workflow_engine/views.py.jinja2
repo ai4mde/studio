@@ -121,4 +121,3 @@ class ChangeUserAssignmentUpdateView(GenericView):
             new_user = get_object_or_404(User, pk=new_user_id)
             active_process_node.reassign_user(new_user)
         return redirect(reverse(f"{app}:{app}_change_user_assignment"))
-

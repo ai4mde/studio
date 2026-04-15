@@ -33,11 +33,14 @@
                             {% endfor %}
                         {% endraw %}
                         </select>
-                        <input type="submit" value="Save">
-                    </form>
+                        
                 </td>
                 <td>
-                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment'{% raw %}%}{% endraw %}">Cancel</a>
+                        <input type="submit" value="Save"></input>
+                </td>
+                <td>
+                        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment'{% raw %}%}{% endraw %}">Cancel</a>
+                    </form>
                 </td>
             </tr>
             {% raw %}{% else %}{% endraw %}

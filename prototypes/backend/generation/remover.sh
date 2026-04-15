@@ -1,21 +1,14 @@
 #!/bin/bash
 
-export PROJECT_ID=$1
-export PROJECT_NAME=$2
-export PROJECT_SYSTEM=$3
-export OUTDIR=/usr/src/prototypes/generated_prototypes
-export ROOT=/usr/src/prototypes/
+export SOURCE_PROJECT_NAME=$1
+export TARGET_PROJECT_NAME=$2
+export SYSTEM_ID=$3
+export WORKDIR=/usr/src/prototypes/generated_prototypes
 
-
-remove_django_project() {
-    rm -rf "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    
-    cd "${OUTDIR}/${PROJECT_SYSTEM}"
-    if [ ! "$(ls -A .)" ]; then # Delete system directory if it contains no prototypes
-        cd "${OUTDIR}"
-        rmdir "${OUTDIR}/${PROJECT_SYSTEM}"
-    fi
+move_database() {
+    rm -f "${WORKDIR}/${SYSTEM_ID}/${TARGET_PROJECT_NAME}/db.sqlite3"
+    cp "${WORKDIR}/${SYSTEM_ID}/${SOURCE_PROJECT_NAME}/db.sqlite3" "${WORKDIR}/${SYSTEM_ID}/${TARGET_PROJECT_NAME}/db.sqlite3"
 }
 
-remove_django_project
+move_database
 exit 0
