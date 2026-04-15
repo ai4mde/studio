@@ -1,6 +1,14 @@
 diagram package
 ===============
 
+Module contents
+---------------
+
+.. automodule:: diagram
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -8,7 +16,6 @@ Subpackages
    :maxdepth: 4
 
    diagram.api
-   diagram.migrations
 
 Submodules
 ----------
@@ -53,10 +60,3 @@ diagram.views module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: diagram
-   :members:
-   :show-inheritance:
-   :undoc-members:

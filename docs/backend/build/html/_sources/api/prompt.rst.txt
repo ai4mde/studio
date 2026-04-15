@@ -1,6 +1,14 @@
 prompt package
 ==============
 
+Module contents
+---------------
+
+.. automodule:: prompt
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -10,7 +18,6 @@ Subpackages
    prompt.api
    prompt.chatbots
    prompt.consumers
-   prompt.migrations
 
 Submodules
 ----------
@@ -55,10 +62,3 @@ prompt.views module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prompt
-   :members:
-   :show-inheritance:
-   :undoc-members:

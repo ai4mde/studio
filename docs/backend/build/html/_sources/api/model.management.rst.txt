@@ -1,6 +1,14 @@
 model.management package
 ========================
 
+Module contents
+---------------
+
+.. automodule:: model.management
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -9,10 +17,3 @@ Subpackages
 
    model.management.commands
 
-Module contents
----------------
-
-.. automodule:: model.management
-   :members:
-   :show-inheritance:
-   :undoc-members:

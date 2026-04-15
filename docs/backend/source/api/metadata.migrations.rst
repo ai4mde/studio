@@ -92,6 +92,14 @@ metadata.migrations.0011\_classifier\_project\_alter\_classifier\_system module
    :show-inheritance:
    :undoc-members:
 
+metadata.migrations.0012\_remove\_release\_diagrams\_remove\_release\_interfaces\_and\_more module
+--------------------------------------------------------------------------------------------------
+
+.. automodule:: metadata.migrations.0012_remove_release_diagrams_remove_release_interfaces_and_more
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 

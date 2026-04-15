@@ -1,6 +1,14 @@
 metadata.specification.component package
 ========================================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification.component
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -20,10 +28,3 @@ metadata.specification.component.relations module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.specification.component
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -1,6 +1,14 @@
 llm package
 ===========
 
+Module contents
+---------------
+
+.. automodule:: llm
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -20,10 +28,3 @@ llm.handler module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: llm
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -1,6 +1,14 @@
 metadata.api package
 ====================
 
+Module contents
+---------------
+
+.. automodule:: metadata.api
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -10,10 +18,3 @@ Subpackages
    metadata.api.schemas
    metadata.api.views
 
-Module contents
----------------
-
-.. automodule:: metadata.api
-   :members:
-   :show-inheritance:
-   :undoc-members:

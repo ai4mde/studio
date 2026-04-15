@@ -1,6 +1,14 @@
 prose.api.views package
 =======================
 
+Module contents
+---------------
+
+.. automodule:: prose.api.views
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -20,10 +28,3 @@ prose.api.views.utils module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prose.api.views
-   :members:
-   :show-inheritance:
-   :undoc-members:

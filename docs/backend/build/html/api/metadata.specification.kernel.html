@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 current has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,8 +309,306 @@
         <article role="main" id="furo-main-content">
           <section id="metadata-specification-kernel-package">
 <h1>metadata.specification.kernel package<a class="headerlink" href="#metadata-specification-kernel-package" title="Link to this heading">¶</a></h1>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.kernel">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-metadata.specification.kernel" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">Attribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.Attribute" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'str'</em><em>, </em><em>'int'</em><em>, </em><em>'bool'</em><em>, </em><em>'datetime'</em><em>, </em><em>'enum'</em><em>]</em>)</p></li>
+<li><p><strong>enum</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>derived</strong> (<em>bool</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>body</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.body">
+<span class="sig-name descname"><span class="pre">body</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.body" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.derived">
+<span class="sig-name descname"><span class="pre">derived</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.derived" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.enum">
+<span class="sig-name descname"><span class="pre">enum</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.enum" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'body':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'derived':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'enum':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=True),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['str',</span> <span class="pre">'int',</span> <span class="pre">'bool',</span> <span class="pre">'datetime',</span> <span class="pre">'enum'],</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Attribute.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'str'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'int'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'bool'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'datetime'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'enum'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.kernel.Attribute.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">Multiplicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>is_ordered</strong> (<em>bool</em>)</p></li>
+<li><p><strong>is_unique</strong> (<em>bool</em>)</p></li>
+<li><p><strong>lower</strong> (<em>int</em>)</p></li>
+<li><p><strong>upper</strong> (<em>Literal</em><em>[</em><em>'*'</em><em>] </em><em>| </em><em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.is_ordered">
+<span class="sig-name descname"><span class="pre">is_ordered</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.is_ordered" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.is_unique">
+<span class="sig-name descname"><span class="pre">is_unique</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.is_unique" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.lower">
+<span class="sig-name descname"><span class="pre">lower</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.lower" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'is_ordered':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'is_unique':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'lower':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=1),</span> <span class="pre">'upper':</span> <span class="pre">FieldInfo(annotation=Union[Literal['*'],</span> <span class="pre">int],</span> <span class="pre">required=False,</span> <span class="pre">default='*')}</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Multiplicity.upper">
+<span class="sig-name descname"><span class="pre">upper</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'*'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.kernel.Multiplicity.upper" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamedElement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">NamedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.NamedElement" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamedElement.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.NamedElement.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamedElement.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#metadata.specification.kernel.NamedElement.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamedElement.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.NamedElement.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamespacedElement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">NamespacedElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.NamespacedElement" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>namespace</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamespacedElement.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.NamespacedElement.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamespacedElement.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'namespace':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='')}</span></span><a class="headerlink" href="#metadata.specification.kernel.NamespacedElement.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.NamespacedElement.namespace">
+<span class="sig-name descname"><span class="pre">namespace</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.NamespacedElement.namespace" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">Operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.Operation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'str'</em><em>, </em><em>'int'</em><em>, </em><em>'bool'</em><em>, </em><em>'datetime'</em><em>, </em><em>'enum'</em><em>]</em>)</p></li>
+<li><p><strong>body</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.body">
+<span class="sig-name descname"><span class="pre">body</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.body" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'body':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['str',</span> <span class="pre">'int',</span> <span class="pre">'bool',</span> <span class="pre">'datetime',</span> <span class="pre">'enum'],</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.Operation.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'str'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'int'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'bool'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'datetime'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'enum'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.kernel.Operation.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationLabels">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">RelationLabels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.RelationLabels" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>)</p></li>
+<li><p><strong>target</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationLabels.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationLabels.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationLabels.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'source':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'target':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='')}</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationLabels.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationLabels.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationLabels.source" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationLabels.target">
+<span class="sig-name descname"><span class="pre">target</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationLabels.target" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationMultiplicity">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.kernel.</span></span><span class="sig-name descname"><span class="pre">RelationMultiplicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.kernel.RelationMultiplicity" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<em>str</em>)</p></li>
+<li><p><strong>target</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationMultiplicity.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationMultiplicity.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationMultiplicity.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'source':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'target':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationMultiplicity.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationMultiplicity.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationMultiplicity.source" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.kernel.RelationMultiplicity.target">
+<span class="sig-name descname"><span class="pre">target</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.kernel.RelationMultiplicity.target" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -375,7 +668,64 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metadata.specification.kernel package</a><ul>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-metadata.specification.kernel">Module contents</a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute"><code class="docutils literal notranslate"><span class="pre">Attribute</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.body"><code class="docutils literal notranslate"><span class="pre">Attribute.body</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.derived"><code class="docutils literal notranslate"><span class="pre">Attribute.derived</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.description"><code class="docutils literal notranslate"><span class="pre">Attribute.description</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.enum"><code class="docutils literal notranslate"><span class="pre">Attribute.enum</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.model_config"><code class="docutils literal notranslate"><span class="pre">Attribute.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.model_fields"><code class="docutils literal notranslate"><span class="pre">Attribute.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.name"><code class="docutils literal notranslate"><span class="pre">Attribute.name</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Attribute.type"><code class="docutils literal notranslate"><span class="pre">Attribute.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity"><code class="docutils literal notranslate"><span class="pre">Multiplicity</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.is_ordered"><code class="docutils literal notranslate"><span class="pre">Multiplicity.is_ordered</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.is_unique"><code class="docutils literal notranslate"><span class="pre">Multiplicity.is_unique</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.lower"><code class="docutils literal notranslate"><span class="pre">Multiplicity.lower</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.model_config"><code class="docutils literal notranslate"><span class="pre">Multiplicity.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.model_fields"><code class="docutils literal notranslate"><span class="pre">Multiplicity.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Multiplicity.upper"><code class="docutils literal notranslate"><span class="pre">Multiplicity.upper</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamedElement"><code class="docutils literal notranslate"><span class="pre">NamedElement</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamedElement.model_config"><code class="docutils literal notranslate"><span class="pre">NamedElement.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamedElement.model_fields"><code class="docutils literal notranslate"><span class="pre">NamedElement.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamedElement.name"><code class="docutils literal notranslate"><span class="pre">NamedElement.name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamespacedElement"><code class="docutils literal notranslate"><span class="pre">NamespacedElement</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamespacedElement.model_config"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamespacedElement.model_fields"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.NamespacedElement.namespace"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.namespace</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation"><code class="docutils literal notranslate"><span class="pre">Operation</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.body"><code class="docutils literal notranslate"><span class="pre">Operation.body</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.description"><code class="docutils literal notranslate"><span class="pre">Operation.description</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.model_config"><code class="docutils literal notranslate"><span class="pre">Operation.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.model_fields"><code class="docutils literal notranslate"><span class="pre">Operation.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.name"><code class="docutils literal notranslate"><span class="pre">Operation.name</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.Operation.type"><code class="docutils literal notranslate"><span class="pre">Operation.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationLabels"><code class="docutils literal notranslate"><span class="pre">RelationLabels</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationLabels.model_config"><code class="docutils literal notranslate"><span class="pre">RelationLabels.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationLabels.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationLabels.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationLabels.source"><code class="docutils literal notranslate"><span class="pre">RelationLabels.source</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationLabels.target"><code class="docutils literal notranslate"><span class="pre">RelationLabels.target</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationMultiplicity"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationMultiplicity.model_config"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationMultiplicity.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationMultiplicity.source"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.source</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.kernel.RelationMultiplicity.target"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

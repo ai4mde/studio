@@ -1,6 +1,14 @@
 metadata.specification package
 ==============================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -15,10 +23,3 @@ Subpackages
    metadata.specification.kernel
    metadata.specification.usecase
 
-Module contents
----------------
-
-.. automodule:: metadata.specification
-   :members:
-   :show-inheritance:
-   :undoc-members:

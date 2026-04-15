@@ -1,6 +1,14 @@
 metadata.specification.applications package
 ===========================================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification.applications
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ metadata.specification.applications.classifiers module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.specification.applications
-   :members:
-   :show-inheritance:
-   :undoc-members:

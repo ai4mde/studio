@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,17 +309,39 @@
         <article role="main" id="furo-main-content">
           <section id="metadata-api-views-package">
 <h1>metadata.api.views package<a class="headerlink" href="#metadata-api-views-package" title="Link to this heading">¶</a></h1>
+<section id="module-metadata.api.views">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-metadata.api.views" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.create_default_interface">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.</span></span><span class="sig-name descname"><span class="pre">create_default_interface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.create_default_interface" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metadata.api.schemas.html#metadata.api.schemas.interface.ReadInterface" title="metadata.api.schemas.interface.ReadInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadInterface</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>actor</strong> (<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="metadata.api.views.systems.html">metadata.api.views.systems package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-metadata.api.views.systems">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#metadata-api-views-systems-classifiers-module">metadata.api.views.systems.classifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#metadata-api-views-systems-meta-module">metadata.api.views.systems.meta module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#metadata-api-views-systems-node-module">metadata.api.views.systems.node module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#metadata-api-views-systems-relations-module">metadata.api.views.systems.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-metadata.api.views.systems.classifiers">metadata.api.views.systems.classifiers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-metadata.api.views.systems.meta">metadata.api.views.systems.meta module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-metadata.api.views.systems.node">metadata.api.views.systems.node module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.api.views.systems.html#metadata.api.views.systems.node.get_nodes"><code class="docutils literal notranslate"><span class="pre">get_nodes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.api.views.systems.html#module-metadata.api.views.systems.relations">metadata.api.views.systems.relations module</a></li>
 </ul>
 </li>
 </ul>
@@ -333,20 +350,290 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="metadata-api-views-defaulting-module">
-<h2>metadata.api.views.defaulting module<a class="headerlink" href="#metadata-api-views-defaulting-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.api.views.defaulting">
+<span id="metadata-api-views-defaulting-module"></span><h2>metadata.api.views.defaulting module<a class="headerlink" href="#module-metadata.api.views.defaulting" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">CrudType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType.CREATE">
+<span class="sig-name descname"><span class="pre">CREATE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType.CREATE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType.DELETE">
+<span class="sig-name descname"><span class="pre">DELETE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType.DELETE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType.OTHER">
+<span class="sig-name descname"><span class="pre">OTHER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType.OTHER" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType.READ">
+<span class="sig-name descname"><span class="pre">READ</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType.READ" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.CrudType.UPDATE">
+<span class="sig-name descname"><span class="pre">UPDATE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#metadata.api.views.defaulting.CrudType.UPDATE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.DefaultUsecase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">DefaultUsecase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crud_types</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.DefaultUsecase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>crud_types</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.api.views.defaulting.CrudType" title="metadata.api.views.defaulting.CrudType"><em>CrudType</em></a><em>]</em>)</p></li>
+<li><p><strong>model</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>)</p></li>
+<li><p><strong>attributes</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.api.views.defaulting.ModelAttribute" title="metadata.api.views.defaulting.ModelAttribute"><em>ModelAttribute</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.ModelAttribute">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">ModelAttribute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derived</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enum</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.ModelAttribute" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>type</strong> (<em>str</em>)</p></li>
+<li><p><strong>derived</strong> (<em>bool</em>)</p></li>
+<li><p><strong>enum</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_use_case_objects</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>default_use_case_objects</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><em>DefaultUsecase</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_categories">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_categories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_use_case_objects</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_categories" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>default_use_case_objects</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><em>DefaultUsecase</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_pages">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sections</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_pages" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>sections</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_section_attributes">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_section_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_case</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_section_attributes" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>use_case</strong> (<a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><em>DefaultUsecase</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_section_operations">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_section_operations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_case</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_section_operations" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>use_case</strong> (<a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><em>DefaultUsecase</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_sections">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_sections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default_use_case_objects</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_sections" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>default_use_case_objects</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><em>DefaultUsecase</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.build_data_styling">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">build_data_styling</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.build_data_styling" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.create_default_interface">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">create_default_interface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.create_default_interface" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="metadata.api.schemas.html#metadata.api.schemas.interface.ReadInterface" title="metadata.api.schemas.interface.ReadInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadInterface</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>actor</strong> (<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_class_acted_on">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_class_acted_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_case_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_class_acted_on" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>use_case_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_class_attributes">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_class_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_class_attributes" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#metadata.api.views.defaulting.ModelAttribute" title="metadata.api.views.defaulting.ModelAttribute"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelAttribute</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>class_id</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_crud_type">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_crud_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_case_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_crud_type" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#metadata.api.views.defaulting.CrudType" title="metadata.api.views.defaulting.CrudType"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrudType</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>use_case_name</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_default_interface_data">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_default_interface_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_default_interface_data" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>actor</strong> (<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_default_use_cases">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_default_use_cases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relevant_use_cases</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_default_use_cases" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase" title="metadata.api.views.defaulting.DefaultUsecase"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultUsecase</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>relevant_use_cases</strong> (<em>List</em><em>[</em><a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_directly_linked_use_cases">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_directly_linked_use_cases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_directly_linked_use_cases" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Classifier</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>actor</strong> (<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="metadata.api.views.defaulting.get_extended_use_cases">
+<span class="sig-prename descclassname"><span class="pre">metadata.api.views.defaulting.</span></span><span class="sig-name descname"><span class="pre">get_extended_use_cases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cases</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.api.views.defaulting.get_extended_use_cases" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>[<a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Classifier</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>system</strong> (<a class="reference internal" href="metadata.html#metadata.models.System" title="metadata.models.System"><em>System</em></a>)</p></li>
+<li><p><strong>use_cases</strong> (<em>List</em><em>[</em><a class="reference internal" href="metadata.html#metadata.models.Classifier" title="metadata.models.Classifier"><em>Classifier</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="metadata-api-views-interfaces-module">
-<h2>metadata.api.views.interfaces module<a class="headerlink" href="#metadata-api-views-interfaces-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.api.views.interfaces">
+<span id="metadata-api-views-interfaces-module"></span><h2>metadata.api.views.interfaces module<a class="headerlink" href="#module-metadata.api.views.interfaces" title="Link to this heading">¶</a></h2>
 </section>
-<section id="metadata-api-views-projects-module">
-<h2>metadata.api.views.projects module<a class="headerlink" href="#metadata-api-views-projects-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.api.views.projects">
+<span id="metadata-api-views-projects-module"></span><h2>metadata.api.views.projects module<a class="headerlink" href="#module-metadata.api.views.projects" title="Link to this heading">¶</a></h2>
 </section>
-<section id="metadata-api-views-releases-module">
-<h2>metadata.api.views.releases module<a class="headerlink" href="#metadata-api-views-releases-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.api.views.releases">
+<span id="metadata-api-views-releases-module"></span><h2>metadata.api.views.releases module<a class="headerlink" href="#module-metadata.api.views.releases" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -406,13 +693,43 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metadata.api.views package</a><ul>
+<li><a class="reference internal" href="#module-metadata.api.views">Module contents</a><ul>
+<li><a class="reference internal" href="#metadata.api.views.create_default_interface"><code class="docutils literal notranslate"><span class="pre">create_default_interface()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#metadata-api-views-defaulting-module">metadata.api.views.defaulting module</a></li>
-<li><a class="reference internal" href="#metadata-api-views-interfaces-module">metadata.api.views.interfaces module</a></li>
-<li><a class="reference internal" href="#metadata-api-views-projects-module">metadata.api.views.projects module</a></li>
-<li><a class="reference internal" href="#metadata-api-views-releases-module">metadata.api.views.releases module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-metadata.api.views.defaulting">metadata.api.views.defaulting module</a><ul>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType"><code class="docutils literal notranslate"><span class="pre">CrudType</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType.CREATE"><code class="docutils literal notranslate"><span class="pre">CrudType.CREATE</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType.DELETE"><code class="docutils literal notranslate"><span class="pre">CrudType.DELETE</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType.OTHER"><code class="docutils literal notranslate"><span class="pre">CrudType.OTHER</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType.READ"><code class="docutils literal notranslate"><span class="pre">CrudType.READ</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.CrudType.UPDATE"><code class="docutils literal notranslate"><span class="pre">CrudType.UPDATE</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.DefaultUsecase"><code class="docutils literal notranslate"><span class="pre">DefaultUsecase</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.ModelAttribute"><code class="docutils literal notranslate"><span class="pre">ModelAttribute</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data"><code class="docutils literal notranslate"><span class="pre">build_data()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_categories"><code class="docutils literal notranslate"><span class="pre">build_data_categories()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_pages"><code class="docutils literal notranslate"><span class="pre">build_data_pages()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_section_attributes"><code class="docutils literal notranslate"><span class="pre">build_data_section_attributes()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_section_operations"><code class="docutils literal notranslate"><span class="pre">build_data_section_operations()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_sections"><code class="docutils literal notranslate"><span class="pre">build_data_sections()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.build_data_styling"><code class="docutils literal notranslate"><span class="pre">build_data_styling()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.create_default_interface"><code class="docutils literal notranslate"><span class="pre">create_default_interface()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_class_acted_on"><code class="docutils literal notranslate"><span class="pre">get_class_acted_on()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_class_attributes"><code class="docutils literal notranslate"><span class="pre">get_class_attributes()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_crud_type"><code class="docutils literal notranslate"><span class="pre">get_crud_type()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_default_interface_data"><code class="docutils literal notranslate"><span class="pre">get_default_interface_data()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_default_use_cases"><code class="docutils literal notranslate"><span class="pre">get_default_use_cases()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_directly_linked_use_cases"><code class="docutils literal notranslate"><span class="pre">get_directly_linked_use_cases()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.api.views.defaulting.get_extended_use_cases"><code class="docutils literal notranslate"><span class="pre">get_extended_use_cases()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.api.views.interfaces">metadata.api.views.interfaces module</a></li>
+<li><a class="reference internal" href="#module-metadata.api.views.projects">metadata.api.views.projects module</a></li>
+<li><a class="reference internal" href="#module-metadata.api.views.releases">metadata.api.views.releases module</a></li>
 </ul>
 </li>
 </ul>

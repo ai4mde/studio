@@ -1,4 +1,4 @@
-# Architecture Manual
+# Architecture Manual 
 
 <p align="center">
     <img
@@ -27,7 +27,7 @@ AI4MDE is a web-based application designed for AI-enhanced Model-Driven Engineer
 - **Chatbot**: A container that runs a Flowise chatbot.
 
 The application uses Traefik to route incoming traffic to the appropriate Docker container. When the project is run, you can connect to the containers via the following URLs:
-- **Frontend:** [ai4mde.localhost](https://ai4mde.localhost)
+- **Frontend:** [ai4mde.localhost](ai4mde.localhost)
 - **API:** [api.ai4mde.localhost](api.ai4mde.localhost)
 - **Prototypes**:
     - **API:** [prototypes_api.ai4mde.localhost](prototypes_api.ai4mde.localhost)

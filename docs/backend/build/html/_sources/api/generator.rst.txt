@@ -1,6 +1,14 @@
 generator package
 =================
 
+Module contents
+---------------
+
+.. automodule:: generator
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -8,7 +16,6 @@ Subpackages
    :maxdepth: 4
 
    generator.api
-   generator.migrations
 
 Submodules
 ----------
@@ -53,10 +60,3 @@ generator.views module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: generator
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -1,6 +1,14 @@
 diagram.api.schemas package
 ===========================
 
+Module contents
+---------------
+
+.. automodule:: diagram.api.schemas
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -28,10 +36,3 @@ diagram.api.schemas.node module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: diagram.api.schemas
-   :members:
-   :show-inheritance:
-   :undoc-members:

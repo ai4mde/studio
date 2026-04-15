@@ -1,6 +1,14 @@
 metadata.specification.base package
 ===================================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification.base
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ metadata.specification.base.relations module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.specification.base
-   :members:
-   :show-inheritance:
-   :undoc-members:

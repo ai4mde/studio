@@ -1,6 +1,14 @@
 metadata package
 ================
 
+Module contents
+---------------
+
+.. automodule:: metadata
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -8,7 +16,6 @@ Subpackages
    :maxdepth: 4
 
    metadata.api
-   metadata.migrations
    metadata.specification
 
 Submodules
@@ -54,10 +61,3 @@ metadata.views module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata
-   :members:
-   :show-inheritance:
-   :undoc-members:

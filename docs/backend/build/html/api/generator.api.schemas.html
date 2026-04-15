@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 current has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,14 +309,350 @@
         <article role="main" id="furo-main-content">
           <section id="generator-api-schemas-package">
 <h1>generator.api.schemas package<a class="headerlink" href="#generator-api-schemas-package" title="Link to this heading">¶</a></h1>
+<section id="module-generator.api.schemas">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-generator.api.schemas" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.</span></span><span class="sig-name descname"><span class="pre">CreatePrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.CreatePrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype" title="generator.api.schemas.prototype.CreatePrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreatePrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>metadata</strong> (<em>AnyObject</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AnyObject</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.metadata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'metadata':</span> <span class="pre">FieldInfo(annotation=AnyObject,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=dict,</span> <span class="pre">title='Metadata'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.CreatePrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.CreatePrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.</span></span><span class="sig-name descname"><span class="pre">ReadPrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.ReadPrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype" title="generator.api.schemas.prototype.ReadPrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadPrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.ReadPrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.ReadPrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.</span></span><span class="sig-name descname"><span class="pre">UpdatePrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype" title="generator.api.schemas.prototype.UpdatePrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdatePrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.UpdatePrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.UpdatePrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="generator-api-schemas-prototype-module">
-<h2>generator.api.schemas.prototype module<a class="headerlink" href="#generator-api-schemas-prototype-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-generator.api.schemas.prototype">
+<span id="generator-api-schemas-prototype-module"></span><h2>generator.api.schemas.prototype module<a class="headerlink" href="#module-generator.api.schemas.prototype" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.prototype.</span></span><span class="sig-name descname"><span class="pre">CreatePrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype" title="generator.api.schemas.prototype.CreatePrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreatePrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>metadata</strong> (<em>AnyObject</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AnyObject</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.metadata" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'metadata':</span> <span class="pre">FieldInfo(annotation=AnyObject,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=dict,</span> <span class="pre">title='Metadata'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.CreatePrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.prototype.CreatePrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.prototype.</span></span><span class="sig-name descname"><span class="pre">ReadPrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype" title="generator.api.schemas.prototype.ReadPrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReadPrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.ReadPrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.prototype.ReadPrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">generator.api.schemas.prototype.</span></span><span class="sig-name descname"><span class="pre">UpdatePrototype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype" title="generator.api.schemas.prototype.UpdatePrototype"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdatePrototype</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>description</strong> (<em>str</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>database_hash</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.database_hash">
+<span class="sig-name descname"><span class="pre">database_hash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.database_hash" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'database_hash':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">title='Database</span> <span class="pre">Hash',</span> <span class="pre">metadata=[MaxLen(max_length=256)]),</span> <span class="pre">'description':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Description'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True,</span> <span class="pre">title='Name',</span> <span class="pre">metadata=[MaxLen(max_length=255)]),</span> <span class="pre">'system':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='system_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='System')}</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="generator.api.schemas.prototype.UpdatePrototype.system">
+<span class="sig-name descname"><span class="pre">system</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#generator.api.schemas.prototype.UpdatePrototype.system" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -381,9 +712,73 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">generator.api.schemas package</a><ul>
+<li><a class="reference internal" href="#module-generator.api.schemas">Module contents</a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype"><code class="docutils literal notranslate"><span class="pre">CreatePrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.description"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.metadata"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.metadata</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.model_config"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.name"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.CreatePrototype.system"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.system</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype"><code class="docutils literal notranslate"><span class="pre">ReadPrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.description"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.id"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.id</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.model_config"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.name"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.ReadPrototype.system"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.system</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.description"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.id"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.id</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.model_config"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.name"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.UpdatePrototype.system"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.system</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#generator-api-schemas-prototype-module">generator.api.schemas.prototype module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-generator.api.schemas.prototype">generator.api.schemas.prototype module</a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype"><code class="docutils literal notranslate"><span class="pre">CreatePrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.description"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.metadata"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.metadata</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.model_config"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.name"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.CreatePrototype.system"><code class="docutils literal notranslate"><span class="pre">CreatePrototype.system</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype"><code class="docutils literal notranslate"><span class="pre">ReadPrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.description"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.id"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.id</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.model_config"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.name"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.ReadPrototype.system"><code class="docutils literal notranslate"><span class="pre">ReadPrototype.system</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype</span></code></a><ul>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.database_hash"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.database_hash</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.description"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.description</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.id"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.id</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.model_config"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.model_config</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.model_fields"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.name"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.name</span></code></a></li>
+<li><a class="reference internal" href="#generator.api.schemas.prototype.UpdatePrototype.system"><code class="docutils literal notranslate"><span class="pre">UpdatePrototype.system</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

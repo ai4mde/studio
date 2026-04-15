@@ -1,6 +1,14 @@
 llm.prompts package
 ===================
 
+Module contents
+---------------
+
+.. automodule:: llm.prompts
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -36,10 +44,3 @@ llm.prompts.prose module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: llm.prompts
-   :members:
-   :show-inheritance:
-   :undoc-members:

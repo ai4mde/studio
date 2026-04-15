@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 current has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" checked="" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,14 +309,358 @@
         <article role="main" id="furo-main-content">
           <section id="prose-api-schemas-package">
 <h1>prose.api.schemas package<a class="headerlink" href="#prose-api-schemas-package" title="Link to this heading">¶</a></h1>
+<section id="module-prose.api.schemas">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-prose.api.schemas" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineModelSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.</span></span><span class="sig-name descname"><span class="pre">PipelineModelSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.PipelineModelSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>)</p></li>
+<li><p><strong>url</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineModelSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineModelSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineModelSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'type':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'url':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineModelSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineModelSchema.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineModelSchema.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineModelSchema.url">
+<span class="sig-name descname"><span class="pre">url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineModelSchema.url" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineRequirementsSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.</span></span><span class="sig-name descname"><span class="pre">PipelineRequirementsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.PipelineRequirementsSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>requirements</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineRequirementsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineRequirementsSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineRequirementsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'requirements':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineRequirementsSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineRequirementsSchema.requirements">
+<span class="sig-name descname"><span class="pre">requirements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineRequirementsSchema.requirements" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineResultsSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.</span></span><span class="sig-name descname"><span class="pre">PipelineResultsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.PipelineResultsSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output</strong> (<em>dict</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineResultsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineResultsSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineResultsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'output':</span> <span class="pre">FieldInfo(annotation=dict,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineResultsSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineResultsSchema.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></span><a class="headerlink" href="#prose.api.schemas.PipelineResultsSchema.output" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.</span></span><span class="sig-name descname"><span class="pre">PipelineSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.PipelineSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema" title="prose.api.schemas.pipelines.PipelineSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineSchema</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>requirements</strong> (<em>str</em>)</p></li>
+<li><p><strong>output</strong> (<em>AnyObject</em>)</p></li>
+<li><p><strong>created_at</strong> (<em>datetime</em>)</p></li>
+<li><p><strong>updated_at</strong> (<em>datetime</em>)</p></li>
+<li><p><strong>type</strong> (<em>str</em>)</p></li>
+<li><p><strong>step</strong> (<em>int</em>)</p></li>
+<li><p><strong>url</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.created_at" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'created_at':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=True,</span> <span class="pre">title='Created</span> <span class="pre">At'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'output':</span> <span class="pre">FieldInfo(annotation=AnyObject,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=dict,</span> <span class="pre">title='Output'),</span> <span class="pre">'requirements':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='',</span> <span class="pre">title='Requirements'),</span> <span class="pre">'step':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=2,</span> <span class="pre">title='Step'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='metadata',</span> <span class="pre">title='Type',</span> <span class="pre">metadata=[MaxLen(max_length=100)]),</span> <span class="pre">'updated_at':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=True,</span> <span class="pre">title='Updated</span> <span class="pre">At'),</span> <span class="pre">'url':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='http://tiantian-class.ai4mde-prose.localhost/',</span> <span class="pre">title='Url',</span> <span class="pre">metadata=[MaxLen(max_length=100)])}</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AnyObject</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.output" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.requirements">
+<span class="sig-name descname"><span class="pre">requirements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.requirements" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.step" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.updated_at">
+<span class="sig-name descname"><span class="pre">updated_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.updated_at" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.PipelineSchema.url">
+<span class="sig-name descname"><span class="pre">url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.PipelineSchema.url" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="prose-api-schemas-pipelines-module">
-<h2>prose.api.schemas.pipelines module<a class="headerlink" href="#prose-api-schemas-pipelines-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-prose.api.schemas.pipelines">
+<span id="prose-api-schemas-pipelines-module"></span><h2>prose.api.schemas.pipelines module<a class="headerlink" href="#module-prose.api.schemas.pipelines" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineModelSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.pipelines.</span></span><span class="sig-name descname"><span class="pre">PipelineModelSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineModelSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>str</em>)</p></li>
+<li><p><strong>url</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineModelSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineModelSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineModelSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'type':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'url':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineModelSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineModelSchema.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineModelSchema.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineModelSchema.url">
+<span class="sig-name descname"><span class="pre">url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineModelSchema.url" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineRequirementsSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.pipelines.</span></span><span class="sig-name descname"><span class="pre">PipelineRequirementsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>requirements</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineRequirementsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineRequirementsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'requirements':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineRequirementsSchema.requirements">
+<span class="sig-name descname"><span class="pre">requirements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.requirements" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineResultsSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.pipelines.</span></span><span class="sig-name descname"><span class="pre">PipelineResultsSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineResultsSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Schema</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>output</strong> (<em>dict</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineResultsSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineResultsSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineResultsSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'output':</span> <span class="pre">FieldInfo(annotation=dict,</span> <span class="pre">required=True)}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineResultsSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineResultsSchema.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineResultsSchema.output" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">prose.api.schemas.pipelines.</span></span><span class="sig-name descname"><span class="pre">PipelineSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema" title="prose.api.schemas.pipelines.PipelineSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">PipelineSchema</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>requirements</strong> (<em>str</em>)</p></li>
+<li><p><strong>output</strong> (<em>AnyObject</em>)</p></li>
+<li><p><strong>created_at</strong> (<em>datetime</em>)</p></li>
+<li><p><strong>updated_at</strong> (<em>datetime</em>)</p></li>
+<li><p><strong>type</strong> (<em>str</em>)</p></li>
+<li><p><strong>step</strong> (<em>int</em>)</p></li>
+<li><p><strong>url</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.created_at">
+<span class="sig-name descname"><span class="pre">created_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.created_at" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'created_at':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=True,</span> <span class="pre">title='Created</span> <span class="pre">At'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'output':</span> <span class="pre">FieldInfo(annotation=AnyObject,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=dict,</span> <span class="pre">title='Output'),</span> <span class="pre">'requirements':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='',</span> <span class="pre">title='Requirements'),</span> <span class="pre">'step':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=2,</span> <span class="pre">title='Step'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='metadata',</span> <span class="pre">title='Type',</span> <span class="pre">metadata=[MaxLen(max_length=100)]),</span> <span class="pre">'updated_at':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=True,</span> <span class="pre">title='Updated</span> <span class="pre">At'),</span> <span class="pre">'url':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default='http://tiantian-class.ai4mde-prose.localhost/',</span> <span class="pre">title='Url',</span> <span class="pre">metadata=[MaxLen(max_length=100)])}</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.output">
+<span class="sig-name descname"><span class="pre">output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AnyObject</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.output" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.requirements">
+<span class="sig-name descname"><span class="pre">requirements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.requirements" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.step" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.updated_at">
+<span class="sig-name descname"><span class="pre">updated_at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.updated_at" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="prose.api.schemas.pipelines.PipelineSchema.url">
+<span class="sig-name descname"><span class="pre">url</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#prose.api.schemas.pipelines.PipelineSchema.url" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -381,9 +720,77 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">prose.api.schemas package</a><ul>
+<li><a class="reference internal" href="#module-prose.api.schemas">Module contents</a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineModelSchema"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineModelSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineModelSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineModelSchema.type"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.type</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineModelSchema.url"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.url</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineRequirementsSchema"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineRequirementsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineRequirementsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineRequirementsSchema.requirements"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.requirements</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineResultsSchema"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineResultsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineResultsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineResultsSchema.output"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.output</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema"><code class="docutils literal notranslate"><span class="pre">PipelineSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.created_at"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.created_at</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.id"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.id</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.output"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.output</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.requirements"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.requirements</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.step"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.step</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.type"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.type</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.updated_at"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.updated_at</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.PipelineSchema.url"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.url</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#prose-api-schemas-pipelines-module">prose.api.schemas.pipelines module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-prose.api.schemas.pipelines">prose.api.schemas.pipelines module</a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineModelSchema"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineModelSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineModelSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineModelSchema.type"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.type</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineModelSchema.url"><code class="docutils literal notranslate"><span class="pre">PipelineModelSchema.url</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineRequirementsSchema.requirements"><code class="docutils literal notranslate"><span class="pre">PipelineRequirementsSchema.requirements</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineResultsSchema"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineResultsSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineResultsSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineResultsSchema.output"><code class="docutils literal notranslate"><span class="pre">PipelineResultsSchema.output</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema"><code class="docutils literal notranslate"><span class="pre">PipelineSchema</span></code></a><ul>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.created_at"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.created_at</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.id"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.id</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.model_config"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.output"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.output</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.requirements"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.requirements</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.step"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.step</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.type"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.type</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.updated_at"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.updated_at</span></code></a></li>
+<li><a class="reference internal" href="#prose.api.schemas.pipelines.PipelineSchema.url"><code class="docutils literal notranslate"><span class="pre">PipelineSchema.url</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

@@ -14,3 +14,6 @@ Welcome to the manual.
 
    api/modules
 
+.. automodule:: model
+   :members:
+   :undoc-members:

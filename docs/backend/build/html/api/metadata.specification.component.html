@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 current has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,17 +309,272 @@
         <article role="main" id="furo-main-content">
           <section id="metadata-specification-component-package">
 <h1>metadata.specification.component package<a class="headerlink" href="#metadata-specification-component-package" title="Link to this heading">¶</a></h1>
+<section id="module-metadata.specification.component">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-metadata.specification.component" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.ComponentRelation">
+<span class="sig-prename descclassname"><span class="pre">metadata.specification.component.</span></span><span class="sig-name descname"><span class="pre">ComponentRelation</span></span><a class="headerlink" href="#metadata.specification.component.ComponentRelation" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#metadata.specification.component.relations.Interface" title="metadata.specification.component.relations.Interface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Interface</span></code></a></p>
+</dd></dl>
+
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="metadata-specification-component-classifiers-module">
-<h2>metadata.specification.component.classifiers module<a class="headerlink" href="#metadata-specification-component-classifiers-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.component.classifiers">
+<span id="metadata-specification-component-classifiers-module"></span><h2>metadata.specification.component.classifiers module<a class="headerlink" href="#module-metadata.specification.component.classifiers" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Component">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.classifiers.</span></span><span class="sig-name descname"><span class="pre">Component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.Component" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement" title="metadata.specification.component.classifiers.InternalsElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">InternalsElement</span></code></a>, <a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement" title="metadata.specification.kernel.NamedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedElement</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>internals</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.specification.component.classifiers.Internal" title="metadata.specification.component.classifiers.Internal"><em>Internal</em></a><em>]</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'component'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Component.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Component.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Component.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'internals':</span> <span class="pre">FieldInfo(annotation=List[Internal],</span> <span class="pre">required=False,</span> <span class="pre">default=[]),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['component'],</span> <span class="pre">required=False,</span> <span class="pre">default='component')}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Component.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Component.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'component'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Component.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Container">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.classifiers.</span></span><span class="sig-name descname"><span class="pre">Container</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.Container" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement" title="metadata.specification.component.classifiers.InternalsElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">InternalsElement</span></code></a>, <a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement" title="metadata.specification.kernel.NamedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedElement</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>internals</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.specification.component.classifiers.Internal" title="metadata.specification.component.classifiers.Internal"><em>Internal</em></a><em>]</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'container'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Container.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Container.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Container.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'internals':</span> <span class="pre">FieldInfo(annotation=List[Internal],</span> <span class="pre">required=False,</span> <span class="pre">default=[]),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['container'],</span> <span class="pre">required=False,</span> <span class="pre">default='container')}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Container.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Container.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'container'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Container.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.classifiers.</span></span><span class="sig-name descname"><span class="pre">Internal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>type</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>typeName</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True),</span> <span class="pre">'typeName':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False)}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.set_type_name">
+<span class="sig-name descname"><span class="pre">set_type_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.set_type_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.Internal.typeName">
+<span class="sig-name descname"><span class="pre">typeName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.Internal.typeName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.InternalsElement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.classifiers.</span></span><span class="sig-name descname"><span class="pre">InternalsElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.InternalsElement" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>internals</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.specification.component.classifiers.Internal" title="metadata.specification.component.classifiers.Internal"><em>Internal</em></a><em>]</em>)</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.InternalsElement.internals">
+<span class="sig-name descname"><span class="pre">internals</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#metadata.specification.component.classifiers.Internal" title="metadata.specification.component.classifiers.Internal"><span class="pre">Internal</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.component.classifiers.InternalsElement.internals" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.InternalsElement.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.InternalsElement.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.InternalsElement.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'internals':</span> <span class="pre">FieldInfo(annotation=List[Internal],</span> <span class="pre">required=False,</span> <span class="pre">default=[])}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.InternalsElement.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.System">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.classifiers.</span></span><span class="sig-name descname"><span class="pre">System</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.classifiers.System" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement" title="metadata.specification.component.classifiers.InternalsElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">InternalsElement</span></code></a>, <a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement" title="metadata.specification.kernel.NamedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedElement</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>internals</strong> (<em>List</em><em>[</em><a class="reference internal" href="#metadata.specification.component.classifiers.Internal" title="metadata.specification.component.classifiers.Internal"><em>Internal</em></a><em>]</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'system'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.System.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.System.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.System.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'internals':</span> <span class="pre">FieldInfo(annotation=List[Internal],</span> <span class="pre">required=False,</span> <span class="pre">default=[]),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['system'],</span> <span class="pre">required=False,</span> <span class="pre">default='system')}</span></span><a class="headerlink" href="#metadata.specification.component.classifiers.System.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.classifiers.System.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'system'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.component.classifiers.System.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="metadata-specification-component-relations-module">
-<h2>metadata.specification.component.relations module<a class="headerlink" href="#metadata-specification-component-relations-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.component.relations">
+<span id="metadata-specification-component-relations-module"></span><h2>metadata.specification.component.relations module<a class="headerlink" href="#module-metadata.specification.component.relations" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.ComponentRelation">
+<span class="sig-prename descclassname"><span class="pre">metadata.specification.component.relations.</span></span><span class="sig-name descname"><span class="pre">ComponentRelation</span></span><a class="headerlink" href="#metadata.specification.component.relations.ComponentRelation" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#metadata.specification.component.relations.Interface" title="metadata.specification.component.relations.Interface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Interface</span></code></a></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.component.relations.</span></span><span class="sig-name descname"><span class="pre">Interface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.relations.Interface" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.RelationBase" title="metadata.specification.base.relations.RelationBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RelationBase</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>position_handlers</strong> (<em>List</em><em>[</em><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers" title="metadata.specification.base.relations.PositionHandlers"><em>PositionHandlers</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'interface'</em><em>]</em>)</p></li>
+<li><p><strong>provided</strong> (<em>str</em>)</p></li>
+<li><p><strong>required</strong> (<em>str</em>)</p></li>
+<li><p><strong>provided_name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>required_name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.fill_interface_names">
+<span class="sig-name descname"><span class="pre">fill_interface_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.component.relations.Interface.fill_interface_names" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'position_handlers':</span> <span class="pre">FieldInfo(annotation=Union[List[PositionHandlers],</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=[]),</span> <span class="pre">'provided':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'provided_name':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'required':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'required_name':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['interface'],</span> <span class="pre">required=False,</span> <span class="pre">default='interface')}</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.provided">
+<span class="sig-name descname"><span class="pre">provided</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.provided" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.provided_name">
+<span class="sig-name descname"><span class="pre">provided_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.provided_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.required">
+<span class="sig-name descname"><span class="pre">required</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.required" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.required_name">
+<span class="sig-name descname"><span class="pre">required_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.required_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.component.relations.Interface.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'interface'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.component.relations.Interface.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -384,10 +634,62 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metadata.specification.component package</a><ul>
+<li><a class="reference internal" href="#module-metadata.specification.component">Module contents</a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.ComponentRelation"><code class="docutils literal notranslate"><span class="pre">ComponentRelation</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#metadata-specification-component-classifiers-module">metadata.specification.component.classifiers module</a></li>
-<li><a class="reference internal" href="#metadata-specification-component-relations-module">metadata.specification.component.relations module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-metadata.specification.component.classifiers">metadata.specification.component.classifiers module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Component.model_config"><code class="docutils literal notranslate"><span class="pre">Component.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Component.model_fields"><code class="docutils literal notranslate"><span class="pre">Component.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Component.type"><code class="docutils literal notranslate"><span class="pre">Component.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Container"><code class="docutils literal notranslate"><span class="pre">Container</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Container.model_config"><code class="docutils literal notranslate"><span class="pre">Container.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Container.model_fields"><code class="docutils literal notranslate"><span class="pre">Container.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Container.type"><code class="docutils literal notranslate"><span class="pre">Container.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal"><code class="docutils literal notranslate"><span class="pre">Internal</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.model_config"><code class="docutils literal notranslate"><span class="pre">Internal.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.model_fields"><code class="docutils literal notranslate"><span class="pre">Internal.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.name"><code class="docutils literal notranslate"><span class="pre">Internal.name</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.set_type_name"><code class="docutils literal notranslate"><span class="pre">Internal.set_type_name()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.type"><code class="docutils literal notranslate"><span class="pre">Internal.type</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.Internal.typeName"><code class="docutils literal notranslate"><span class="pre">Internal.typeName</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement"><code class="docutils literal notranslate"><span class="pre">InternalsElement</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement.internals"><code class="docutils literal notranslate"><span class="pre">InternalsElement.internals</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement.model_config"><code class="docutils literal notranslate"><span class="pre">InternalsElement.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.InternalsElement.model_fields"><code class="docutils literal notranslate"><span class="pre">InternalsElement.model_fields</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.System"><code class="docutils literal notranslate"><span class="pre">System</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.System.model_config"><code class="docutils literal notranslate"><span class="pre">System.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.System.model_fields"><code class="docutils literal notranslate"><span class="pre">System.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.classifiers.System.type"><code class="docutils literal notranslate"><span class="pre">System.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.specification.component.relations">metadata.specification.component.relations module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.relations.ComponentRelation"><code class="docutils literal notranslate"><span class="pre">ComponentRelation</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface"><code class="docutils literal notranslate"><span class="pre">Interface</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.fill_interface_names"><code class="docutils literal notranslate"><span class="pre">Interface.fill_interface_names()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.model_config"><code class="docutils literal notranslate"><span class="pre">Interface.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.model_fields"><code class="docutils literal notranslate"><span class="pre">Interface.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.provided"><code class="docutils literal notranslate"><span class="pre">Interface.provided</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.provided_name"><code class="docutils literal notranslate"><span class="pre">Interface.provided_name</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.required"><code class="docutils literal notranslate"><span class="pre">Interface.required</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.required_name"><code class="docutils literal notranslate"><span class="pre">Interface.required_name</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.component.relations.Interface.type"><code class="docutils literal notranslate"><span class="pre">Interface.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

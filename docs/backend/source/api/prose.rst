@@ -1,6 +1,14 @@
 prose package
 =============
 
+Module contents
+---------------
+
+.. automodule:: prose
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -8,7 +16,6 @@ Subpackages
    :maxdepth: 4
 
    prose.api
-   prose.migrations
 
 Submodules
 ----------
@@ -53,10 +60,3 @@ prose.views module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prose
-   :members:
-   :show-inheritance:
-   :undoc-members:

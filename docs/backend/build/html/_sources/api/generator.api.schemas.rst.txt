@@ -1,6 +1,14 @@
 generator.api.schemas package
 =============================
 
+Module contents
+---------------
+
+.. automodule:: generator.api.schemas
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ generator.api.schemas.prototype module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: generator.api.schemas
-   :members:
-   :show-inheritance:
-   :undoc-members:

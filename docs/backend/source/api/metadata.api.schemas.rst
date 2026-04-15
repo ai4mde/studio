@@ -1,6 +1,14 @@
 metadata.api.schemas package
 ============================
 
+Module contents
+---------------
+
+.. automodule:: metadata.api.schemas
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -44,10 +52,3 @@ metadata.api.schemas.system module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.api.schemas
-   :members:
-   :show-inheritance:
-   :undoc-members:

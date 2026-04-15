@@ -1,6 +1,14 @@
 diagram.api package
 ===================
 
+Module contents
+---------------
+
+.. automodule:: diagram.api
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -11,10 +19,3 @@ Subpackages
    diagram.api.utils
    diagram.api.views
 
-Module contents
----------------
-
-.. automodule:: diagram.api
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -1,6 +1,14 @@
 metadata.specification.activity package
 =======================================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification.activity
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -20,10 +28,3 @@ metadata.specification.activity.relations module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.specification.activity
-   :members:
-   :show-inheritance:
-   :undoc-members:

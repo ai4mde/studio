@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,17 +309,207 @@
         <article role="main" id="furo-main-content">
           <section id="diagram-api-utils-package">
 <h1>diagram.api.utils package<a class="headerlink" href="#diagram-api-utils-package" title="Link to this heading">¶</a></h1>
+<section id="module-diagram.api.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-diagram.api.utils" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.create_edge">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">create_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.create_edge" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>data</strong> (<em>Annotated</em><em>[</em><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow" title="metadata.specification.activity.relations.ControlFlow"><em>ControlFlow</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow" title="metadata.specification.activity.relations.ObjectFlow"><em>ObjectFlow</em></a><em> | </em><em>Association</em><em> | </em><em>Composition</em><em> | </em><em>Generalization</em><em> | </em><em>Dependency</em><em> | </em><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation" title="metadata.specification.usecase.relations.UsecaseRelation"><em>UsecaseRelation</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface" title="metadata.specification.component.relations.Interface"><em>Interface</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>]</em>)</p></li>
+<li><p><strong>source</strong> (<a class="reference internal" href="diagram.html#diagram.models.Node" title="diagram.models.Node"><em>Node</em></a>)</p></li>
+<li><p><strong>target</strong> (<a class="reference internal" href="diagram.html#diagram.models.Node" title="diagram.models.Node"><em>Node</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.create_node">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">create_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.create_node" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>data</strong> (<em>Annotated</em><em>[</em><em>Annotated</em><em>[</em><em>SwimLane</em><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup" title="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup"><em>SwimLaneGroup</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.action.Action" title="metadata.specification.activity.classifiers.action.Action"><em>Action</em></a><em> | </em><em>Annotated</em><em>[</em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Decision" title="metadata.specification.activity.classifiers.control.Decision"><em>Decision</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Final" title="metadata.specification.activity.classifiers.control.Final"><em>Final</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Fork" title="metadata.specification.activity.classifiers.control.Fork"><em>Fork</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Initial" title="metadata.specification.activity.classifiers.control.Initial"><em>Initial</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Join" title="metadata.specification.activity.classifiers.control.Join"><em>Join</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Merge" title="metadata.specification.activity.classifiers.control.Merge"><em>Merge</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><em>Object</em><em> | </em><em>Event</em><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application" title="metadata.specification.classes.classifiers.Application"><em>Application</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page" title="metadata.specification.classes.classifiers.Page"><em>Page</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section" title="metadata.specification.classes.classifiers.Section"><em>Section</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class" title="metadata.specification.classes.classifiers.Class"><em>Class</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum" title="metadata.specification.classes.classifiers.Enum"><em>Enum</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal" title="metadata.specification.classes.classifiers.Signal"><em>Signal</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface" title="metadata.specification.classes.classifiers.Interface"><em>Interface</em></a><em> | </em><em>Actor</em><em> | </em><em>Usecase</em><em> | </em><em>SystemBoundary</em><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System" title="metadata.specification.component.classifiers.System"><em>System</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container" title="metadata.specification.component.classifiers.Container"><em>Container</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component" title="metadata.specification.component.classifiers.Component"><em>Component</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.delete_classifier_everywhere">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">delete_classifier_everywhere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.delete_classifier_everywhere" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>classifier_id</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.delete_relation_everywhere">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">delete_relation_everywhere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.delete_relation_everywhere" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>edge_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.get_diagram">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">get_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.get_diagram" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><code class="xref py py-class docutils literal notranslate"><span class="pre">Diagram</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>request</strong> (<em>HttpRequest</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.import_node">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">import_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.import_node" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.remove_edge_from_diagram">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">remove_edge_from_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.remove_edge_from_diagram" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>edge_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.remove_node">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.</span></span><span class="sig-name descname"><span class="pre">remove_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.remove_node" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>node_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="diagram-api-utils-edge-module">
-<h2>diagram.api.utils.edge module<a class="headerlink" href="#diagram-api-utils-edge-module" title="Link to this heading">¶</a></h2>
+<section id="module-diagram.api.utils.edge">
+<span id="diagram-api-utils-edge-module"></span><h2>diagram.api.utils.edge module<a class="headerlink" href="#module-diagram.api.utils.edge" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.edge.create_edge">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.edge.</span></span><span class="sig-name descname"><span class="pre">create_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.edge.create_edge" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>data</strong> (<em>Annotated</em><em>[</em><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow" title="metadata.specification.activity.relations.ControlFlow"><em>ControlFlow</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow" title="metadata.specification.activity.relations.ObjectFlow"><em>ObjectFlow</em></a><em> | </em><em>Association</em><em> | </em><em>Composition</em><em> | </em><em>Generalization</em><em> | </em><em>Dependency</em><em> | </em><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation" title="metadata.specification.usecase.relations.UsecaseRelation"><em>UsecaseRelation</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface" title="metadata.specification.component.relations.Interface"><em>Interface</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>]</em>)</p></li>
+<li><p><strong>source</strong> (<a class="reference internal" href="diagram.html#diagram.models.Node" title="diagram.models.Node"><em>Node</em></a>)</p></li>
+<li><p><strong>target</strong> (<a class="reference internal" href="diagram.html#diagram.models.Node" title="diagram.models.Node"><em>Node</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.edge.delete_relation_everywhere">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.edge.</span></span><span class="sig-name descname"><span class="pre">delete_relation_everywhere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.edge.delete_relation_everywhere" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>edge_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.edge.fetch_and_update_edges">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.edge.</span></span><span class="sig-name descname"><span class="pre">fetch_and_update_edges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.edge.fetch_and_update_edges" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.edge.remove_edge_from_diagram">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.edge.</span></span><span class="sig-name descname"><span class="pre">remove_edge_from_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.edge.remove_edge_from_diagram" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>edge_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
-<section id="diagram-api-utils-node-module">
-<h2>diagram.api.utils.node module<a class="headerlink" href="#diagram-api-utils-node-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-diagram.api.utils.node">
+<span id="diagram-api-utils-node-module"></span><h2>diagram.api.utils.node module<a class="headerlink" href="#module-diagram.api.utils.node" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.node.create_node">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.node.</span></span><span class="sig-name descname"><span class="pre">create_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.node.create_node" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>data</strong> (<em>Annotated</em><em>[</em><em>Annotated</em><em>[</em><em>SwimLane</em><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup" title="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup"><em>SwimLaneGroup</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.action.Action" title="metadata.specification.activity.classifiers.action.Action"><em>Action</em></a><em> | </em><em>Annotated</em><em>[</em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Decision" title="metadata.specification.activity.classifiers.control.Decision"><em>Decision</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Final" title="metadata.specification.activity.classifiers.control.Final"><em>Final</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Fork" title="metadata.specification.activity.classifiers.control.Fork"><em>Fork</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Initial" title="metadata.specification.activity.classifiers.control.Initial"><em>Initial</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Join" title="metadata.specification.activity.classifiers.control.Join"><em>Join</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Merge" title="metadata.specification.activity.classifiers.control.Merge"><em>Merge</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><em>Object</em><em> | </em><em>Event</em><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application" title="metadata.specification.classes.classifiers.Application"><em>Application</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page" title="metadata.specification.classes.classifiers.Page"><em>Page</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section" title="metadata.specification.classes.classifiers.Section"><em>Section</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class" title="metadata.specification.classes.classifiers.Class"><em>Class</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum" title="metadata.specification.classes.classifiers.Enum"><em>Enum</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal" title="metadata.specification.classes.classifiers.Signal"><em>Signal</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface" title="metadata.specification.classes.classifiers.Interface"><em>Interface</em></a><em> | </em><em>Actor</em><em> | </em><em>Usecase</em><em> | </em><em>SystemBoundary</em><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System" title="metadata.specification.component.classifiers.System"><em>System</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container" title="metadata.specification.component.classifiers.Container"><em>Container</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component" title="metadata.specification.component.classifiers.Component"><em>Component</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.node.delete_classifier_everywhere">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.node.</span></span><span class="sig-name descname"><span class="pre">delete_classifier_everywhere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classifier_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.node.delete_classifier_everywhere" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>classifier_id</strong> (<em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diagram.api.utils.node.remove_node">
+<span class="sig-prename descclassname"><span class="pre">diagram.api.utils.node.</span></span><span class="sig-name descname"><span class="pre">remove_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">diagram</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#diagram.api.utils.node.remove_node" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>diagram</strong> (<a class="reference internal" href="diagram.html#diagram.models.Diagram" title="diagram.models.Diagram"><em>Diagram</em></a>)</p></li>
+<li><p><strong>node_id</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -384,10 +569,31 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">diagram.api.utils package</a><ul>
+<li><a class="reference internal" href="#module-diagram.api.utils">Module contents</a><ul>
+<li><a class="reference internal" href="#diagram.api.utils.create_edge"><code class="docutils literal notranslate"><span class="pre">create_edge()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.create_node"><code class="docutils literal notranslate"><span class="pre">create_node()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.delete_classifier_everywhere"><code class="docutils literal notranslate"><span class="pre">delete_classifier_everywhere()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.delete_relation_everywhere"><code class="docutils literal notranslate"><span class="pre">delete_relation_everywhere()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.get_diagram"><code class="docutils literal notranslate"><span class="pre">get_diagram()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.import_node"><code class="docutils literal notranslate"><span class="pre">import_node()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.remove_edge_from_diagram"><code class="docutils literal notranslate"><span class="pre">remove_edge_from_diagram()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.remove_node"><code class="docutils literal notranslate"><span class="pre">remove_node()</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#diagram-api-utils-edge-module">diagram.api.utils.edge module</a></li>
-<li><a class="reference internal" href="#diagram-api-utils-node-module">diagram.api.utils.node module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-diagram.api.utils.edge">diagram.api.utils.edge module</a><ul>
+<li><a class="reference internal" href="#diagram.api.utils.edge.create_edge"><code class="docutils literal notranslate"><span class="pre">create_edge()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.edge.delete_relation_everywhere"><code class="docutils literal notranslate"><span class="pre">delete_relation_everywhere()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.edge.fetch_and_update_edges"><code class="docutils literal notranslate"><span class="pre">fetch_and_update_edges()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.edge.remove_edge_from_diagram"><code class="docutils literal notranslate"><span class="pre">remove_edge_from_diagram()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-diagram.api.utils.node">diagram.api.utils.node module</a><ul>
+<li><a class="reference internal" href="#diagram.api.utils.node.create_node"><code class="docutils literal notranslate"><span class="pre">create_node()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.node.delete_classifier_everywhere"><code class="docutils literal notranslate"><span class="pre">delete_classifier_everywhere()</span></code></a></li>
+<li><a class="reference internal" href="#diagram.api.utils.node.remove_node"><code class="docutils literal notranslate"><span class="pre">remove_node()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

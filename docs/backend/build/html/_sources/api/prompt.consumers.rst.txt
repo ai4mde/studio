@@ -1,6 +1,14 @@
 prompt.consumers package
 ========================
 
+Module contents
+---------------
+
+.. automodule:: prompt.consumers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ prompt.consumers.chatbot module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prompt.consumers
-   :members:
-   :show-inheritance:
-   :undoc-members:

@@ -1,6 +1,14 @@
 model package
 =============
 
+Module contents
+---------------
+
+.. automodule:: model
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -60,10 +68,3 @@ model.wsgi module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: model
-   :members:
-   :show-inheritance:
-   :undoc-members:

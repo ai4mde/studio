@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 current has-children"><a class="reference internal" href="metadata.specification.html">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l4 current has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" checked="" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
 <li class="toctree-l5 current current-page"><a class="current reference internal" href="#">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,26 +309,547 @@
         <article role="main" id="furo-main-content">
           <section id="metadata-specification-activity-classifiers-package">
 <h1>metadata.specification.activity.classifiers package<a class="headerlink" href="#metadata-specification-activity-classifiers-package" title="Link to this heading">¶</a></h1>
+<section id="module-metadata.specification.activity.classifiers">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-metadata.specification.activity.classifiers" title="Link to this heading">¶</a></h2>
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 </section>
-<section id="metadata-specification-activity-classifiers-action-module">
-<h2>metadata.specification.activity.classifiers.action module<a class="headerlink" href="#metadata-specification-activity-classifiers-action-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.activity.classifiers.action">
+<span id="metadata-specification-activity-classifiers-action-module"></span><h2>metadata.specification.activity.classifiers.action module<a class="headerlink" href="#module-metadata.specification.activity.classifiers.action" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.action.</span></span><span class="sig-name descname"><span class="pre">Action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement" title="metadata.specification.kernel.NamedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedElement</span></code></a>, <a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamespacedElement" title="metadata.specification.kernel.NamespacedElement"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespacedElement</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>namespace</strong> (<em>str</em>)</p></li>
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'action'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'action'</em><em>]</em>)</p></li>
+<li><p><strong>isAutomatic</strong> (<em>bool</em>)</p></li>
+<li><p><strong>customCode</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>localPrecondition</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>localPostcondition</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>body</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>operation</strong> (<a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation" title="metadata.specification.kernel.Operation"><em>Operation</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>publish</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>subscribe</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>classes</strong> (<em>ActionClasses</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>application_models</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>page</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>actorNode</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>actorNodeName</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.actorNode">
+<span class="sig-name descname"><span class="pre">actorNode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.actorNode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.actorNodeName">
+<span class="sig-name descname"><span class="pre">actorNodeName</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.actorNodeName" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.application_models">
+<span class="sig-name descname"><span class="pre">application_models</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.application_models" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.body">
+<span class="sig-name descname"><span class="pre">body</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.body" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.classes">
+<span class="sig-name descname"><span class="pre">classes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ActionClasses</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.classes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.customCode">
+<span class="sig-name descname"><span class="pre">customCode</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.customCode" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.isAutomatic">
+<span class="sig-name descname"><span class="pre">isAutomatic</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.isAutomatic" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.localPostcondition">
+<span class="sig-name descname"><span class="pre">localPostcondition</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.localPostcondition" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.localPrecondition">
+<span class="sig-name descname"><span class="pre">localPrecondition</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.localPrecondition" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'actorNode':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'actorNodeName':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'application_models':</span> <span class="pre">FieldInfo(annotation=Union[list[str],</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'body':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'classes':</span> <span class="pre">FieldInfo(annotation=Union[ActionClasses,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'customCode':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'isAutomatic':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=True),</span> <span class="pre">'localPostcondition':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'localPrecondition':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'namespace':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'operation':</span> <span class="pre">FieldInfo(annotation=Union[Operation,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'page':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'publish':</span> <span class="pre">FieldInfo(annotation=Union[list[str],</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['action'],</span> <span class="pre">required=False,</span> <span class="pre">default='action'),</span> <span class="pre">'subscribe':</span> <span class="pre">FieldInfo(annotation=Union[list[str],</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['action'],</span> <span class="pre">required=False,</span> <span class="pre">default='action')}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.operation">
+<span class="sig-name descname"><span class="pre">operation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation" title="metadata.specification.kernel.Operation"><span class="pre">Operation</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.operation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.page">
+<span class="sig-name descname"><span class="pre">page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.page" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.publish">
+<span class="sig-name descname"><span class="pre">publish</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.publish" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'action'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.set_actor_node_name">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">set_actor_node_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.set_actor_node_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.subscribe">
+<span class="sig-name descname"><span class="pre">subscribe</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.subscribe" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.Action.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'action'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.Action.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.action.ActionClassifier">
+<span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.action.</span></span><span class="sig-name descname"><span class="pre">ActionClassifier</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.action.ActionClassifier" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action" title="metadata.specification.activity.classifiers.action.Action"><code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></a></p>
+</dd></dl>
+
 </section>
-<section id="metadata-specification-activity-classifiers-control-module">
-<h2>metadata.specification.activity.classifiers.control module<a class="headerlink" href="#metadata-specification-activity-classifiers-control-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.activity.classifiers.control">
+<span id="metadata-specification-activity-classifiers-control-module"></span><h2>metadata.specification.activity.classifiers.control module<a class="headerlink" href="#module-metadata.specification.activity.classifiers.control" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Decision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'decision'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>decisionInput</strong> (<em>str</em>)</p></li>
+<li><p><strong>decisionInputFlow</strong> (<em>str</em>)</p></li>
+<li><p><strong>page</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.decisionInput">
+<span class="sig-name descname"><span class="pre">decisionInput</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.decisionInput" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.decisionInputFlow">
+<span class="sig-name descname"><span class="pre">decisionInputFlow</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.decisionInputFlow" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'decisionInput':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'decisionInputFlow':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'page':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['decision'],</span> <span class="pre">required=False,</span> <span class="pre">default='decision')}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.page">
+<span class="sig-name descname"><span class="pre">page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.page" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Decision.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'decision'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Decision.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Final</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'final'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>activity_scope</strong> (<em>Literal</em><em>[</em><em>'flow'</em><em>, </em><em>'activity'</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final.activity_scope">
+<span class="sig-name descname"><span class="pre">activity_scope</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'flow'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'activity'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final.activity_scope" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'activity_scope':</span> <span class="pre">FieldInfo(annotation=Literal['flow',</span> <span class="pre">'activity'],</span> <span class="pre">required=False,</span> <span class="pre">default='activity'),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['final'],</span> <span class="pre">required=False,</span> <span class="pre">default='final')}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Final.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'final'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Final.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Fork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'fork'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>height</strong> (<em>int</em>)</p></li>
+<li><p><strong>width</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.height">
+<span class="sig-name descname"><span class="pre">height</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.height" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'height':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=8),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['fork'],</span> <span class="pre">required=False,</span> <span class="pre">default='fork'),</span> <span class="pre">'width':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=56)}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'fork'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Fork.width">
+<span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Fork.width" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Initial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'initial'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>activity_scope</strong> (<em>Literal</em><em>[</em><em>'flow'</em><em>, </em><em>'activity'</em><em>]</em>)</p></li>
+<li><p><strong>scheduled</strong> (<em>bool</em>)</p></li>
+<li><p><strong>schedule</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.activity_scope">
+<span class="sig-name descname"><span class="pre">activity_scope</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'flow'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'activity'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.activity_scope" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'activity_scope':</span> <span class="pre">FieldInfo(annotation=Literal['flow',</span> <span class="pre">'activity'],</span> <span class="pre">required=False,</span> <span class="pre">default='activity'),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'schedule':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'scheduled':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['initial'],</span> <span class="pre">required=False,</span> <span class="pre">default='initial')}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.schedule">
+<span class="sig-name descname"><span class="pre">schedule</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.schedule" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.scheduled">
+<span class="sig-name descname"><span class="pre">scheduled</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.scheduled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Initial.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'initial'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Initial.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Join</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'join'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>join_spec</strong> (<em>str</em>)</p></li>
+<li><p><strong>height</strong> (<em>int</em>)</p></li>
+<li><p><strong>width</strong> (<em>int</em>)</p></li>
+<li><p><strong>is_combine_duplicate</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.height">
+<span class="sig-name descname"><span class="pre">height</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.height" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.is_combine_duplicate">
+<span class="sig-name descname"><span class="pre">is_combine_duplicate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.is_combine_duplicate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.join_spec">
+<span class="sig-name descname"><span class="pre">join_spec</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.join_spec" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'height':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=8),</span> <span class="pre">'is_combine_duplicate':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'join_spec':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['join'],</span> <span class="pre">required=False,</span> <span class="pre">default='join'),</span> <span class="pre">'width':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=56)}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'join'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Join.width">
+<span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Join.width" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.control.</span></span><span class="sig-name descname"><span class="pre">Merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'merge'</em><em>]</em>)</p></li>
+<li><p><strong>role</strong> (<em>Literal</em><em>[</em><em>'control'</em><em>]</em>)</p></li>
+<li><p><strong>merge_spec</strong> (<em>str</em>)</p></li>
+<li><p><strong>is_combine_duplicate</strong> (<em>bool</em>)</p></li>
+<li><p><strong>page</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.is_combine_duplicate">
+<span class="sig-name descname"><span class="pre">is_combine_duplicate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.is_combine_duplicate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.merge_spec">
+<span class="sig-name descname"><span class="pre">merge_spec</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.merge_spec" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'is_combine_duplicate':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'merge_spec':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'page':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=False,</span> <span class="pre">default=''),</span> <span class="pre">'role':</span> <span class="pre">FieldInfo(annotation=Literal['control'],</span> <span class="pre">required=False,</span> <span class="pre">default='control'),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['merge'],</span> <span class="pre">required=False,</span> <span class="pre">default='merge')}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.page">
+<span class="sig-name descname"><span class="pre">page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.page" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.role">
+<span class="sig-name descname"><span class="pre">role</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'control'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.role" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.control.Merge.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'merge'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.control.Merge.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="metadata-specification-activity-classifiers-event-module">
-<h2>metadata.specification.activity.classifiers.event module<a class="headerlink" href="#metadata-specification-activity-classifiers-event-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.activity.classifiers.event">
+<span id="metadata-specification-activity-classifiers-event-module"></span><h2>metadata.specification.activity.classifiers.event module<a class="headerlink" href="#module-metadata.specification.activity.classifiers.event" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.event.EventClassifier">
+<span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.event.</span></span><span class="sig-name descname"><span class="pre">EventClassifier</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.event.EventClassifier" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></p>
+</dd></dl>
+
 </section>
-<section id="metadata-specification-activity-classifiers-object-module">
-<h2>metadata.specification.activity.classifiers.object module<a class="headerlink" href="#metadata-specification-activity-classifiers-object-module" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.activity.classifiers.object">
+<span id="metadata-specification-activity-classifiers-object-module"></span><h2>metadata.specification.activity.classifiers.object module<a class="headerlink" href="#module-metadata.specification.activity.classifiers.object" title="Link to this heading">¶</a></h2>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.object.ObjectClassifier">
+<span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.object.</span></span><span class="sig-name descname"><span class="pre">ObjectClassifier</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.object.ObjectClassifier" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">Object</span></code></p>
+</dd></dl>
+
 </section>
-<section id="metadata-specification-activity-classifiers-swimlane-module">
-<h2>metadata.specification.activity.classifiers.swimlane module<a class="headerlink" href="#metadata-specification-activity-classifiers-swimlane-module" title="Link to this heading">¶</a></h2>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<section id="module-metadata.specification.activity.classifiers.swimlane">
+<span id="metadata-specification-activity-classifiers-swimlane-module"></span><h2>metadata.specification.activity.classifiers.swimlane module<a class="headerlink" href="#module-metadata.specification.activity.classifiers.swimlane" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.activity.classifiers.swimlane.</span></span><span class="sig-name descname"><span class="pre">SwimLaneGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> (<em>Literal</em><em>[</em><em>'swimlanegroup'</em><em>]</em>)</p></li>
+<li><p><strong>height</strong> (<em>int</em>)</p></li>
+<li><p><strong>width</strong> (<em>int</em>)</p></li>
+<li><p><strong>horizontal</strong> (<em>bool</em>)</p></li>
+<li><p><strong>swimlanes</strong> (<em>List</em><em>[</em><em>SwimLane</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.height">
+<span class="sig-name descname"><span class="pre">height</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.height" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.horizontal">
+<span class="sig-name descname"><span class="pre">horizontal</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.horizontal" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'height':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=1000),</span> <span class="pre">'horizontal':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=False,</span> <span class="pre">default=False),</span> <span class="pre">'swimlanes':</span> <span class="pre">FieldInfo(annotation=List[SwimLane],</span> <span class="pre">required=True),</span> <span class="pre">'type':</span> <span class="pre">FieldInfo(annotation=Literal['swimlanegroup'],</span> <span class="pre">required=False,</span> <span class="pre">default='swimlanegroup'),</span> <span class="pre">'width':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=False,</span> <span class="pre">default=300)}</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.swimlanes">
+<span class="sig-name descname"><span class="pre">swimlanes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">SwimLane</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.swimlanes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.type">
+<span class="sig-name descname"><span class="pre">type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'swimlanegroup'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.type" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.width">
+<span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.width" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -393,13 +909,115 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metadata.specification.activity.classifiers package</a><ul>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers">Module contents</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#metadata-specification-activity-classifiers-action-module">metadata.specification.activity.classifiers.action module</a></li>
-<li><a class="reference internal" href="#metadata-specification-activity-classifiers-control-module">metadata.specification.activity.classifiers.control module</a></li>
-<li><a class="reference internal" href="#metadata-specification-activity-classifiers-event-module">metadata.specification.activity.classifiers.event module</a></li>
-<li><a class="reference internal" href="#metadata-specification-activity-classifiers-object-module">metadata.specification.activity.classifiers.object module</a></li>
-<li><a class="reference internal" href="#metadata-specification-activity-classifiers-swimlane-module">metadata.specification.activity.classifiers.swimlane module</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers.action">metadata.specification.activity.classifiers.action module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action"><code class="docutils literal notranslate"><span class="pre">Action</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.actorNode"><code class="docutils literal notranslate"><span class="pre">Action.actorNode</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.actorNodeName"><code class="docutils literal notranslate"><span class="pre">Action.actorNodeName</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.application_models"><code class="docutils literal notranslate"><span class="pre">Action.application_models</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.body"><code class="docutils literal notranslate"><span class="pre">Action.body</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.classes"><code class="docutils literal notranslate"><span class="pre">Action.classes</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.customCode"><code class="docutils literal notranslate"><span class="pre">Action.customCode</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.isAutomatic"><code class="docutils literal notranslate"><span class="pre">Action.isAutomatic</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.localPostcondition"><code class="docutils literal notranslate"><span class="pre">Action.localPostcondition</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.localPrecondition"><code class="docutils literal notranslate"><span class="pre">Action.localPrecondition</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.model_config"><code class="docutils literal notranslate"><span class="pre">Action.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.model_fields"><code class="docutils literal notranslate"><span class="pre">Action.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.operation"><code class="docutils literal notranslate"><span class="pre">Action.operation</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.page"><code class="docutils literal notranslate"><span class="pre">Action.page</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.publish"><code class="docutils literal notranslate"><span class="pre">Action.publish</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.role"><code class="docutils literal notranslate"><span class="pre">Action.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.set_actor_node_name"><code class="docutils literal notranslate"><span class="pre">Action.set_actor_node_name()</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.subscribe"><code class="docutils literal notranslate"><span class="pre">Action.subscribe</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.Action.type"><code class="docutils literal notranslate"><span class="pre">Action.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.action.ActionClassifier"><code class="docutils literal notranslate"><span class="pre">ActionClassifier</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers.control">metadata.specification.activity.classifiers.control module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision"><code class="docutils literal notranslate"><span class="pre">Decision</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.decisionInput"><code class="docutils literal notranslate"><span class="pre">Decision.decisionInput</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.decisionInputFlow"><code class="docutils literal notranslate"><span class="pre">Decision.decisionInputFlow</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.model_config"><code class="docutils literal notranslate"><span class="pre">Decision.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.model_fields"><code class="docutils literal notranslate"><span class="pre">Decision.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.page"><code class="docutils literal notranslate"><span class="pre">Decision.page</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.role"><code class="docutils literal notranslate"><span class="pre">Decision.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Decision.type"><code class="docutils literal notranslate"><span class="pre">Decision.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final"><code class="docutils literal notranslate"><span class="pre">Final</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final.activity_scope"><code class="docutils literal notranslate"><span class="pre">Final.activity_scope</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final.model_config"><code class="docutils literal notranslate"><span class="pre">Final.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final.model_fields"><code class="docutils literal notranslate"><span class="pre">Final.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final.role"><code class="docutils literal notranslate"><span class="pre">Final.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Final.type"><code class="docutils literal notranslate"><span class="pre">Final.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork"><code class="docutils literal notranslate"><span class="pre">Fork</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.height"><code class="docutils literal notranslate"><span class="pre">Fork.height</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.model_config"><code class="docutils literal notranslate"><span class="pre">Fork.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.model_fields"><code class="docutils literal notranslate"><span class="pre">Fork.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.role"><code class="docutils literal notranslate"><span class="pre">Fork.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.type"><code class="docutils literal notranslate"><span class="pre">Fork.type</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Fork.width"><code class="docutils literal notranslate"><span class="pre">Fork.width</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial"><code class="docutils literal notranslate"><span class="pre">Initial</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.activity_scope"><code class="docutils literal notranslate"><span class="pre">Initial.activity_scope</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.model_config"><code class="docutils literal notranslate"><span class="pre">Initial.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.model_fields"><code class="docutils literal notranslate"><span class="pre">Initial.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.role"><code class="docutils literal notranslate"><span class="pre">Initial.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.schedule"><code class="docutils literal notranslate"><span class="pre">Initial.schedule</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.scheduled"><code class="docutils literal notranslate"><span class="pre">Initial.scheduled</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Initial.type"><code class="docutils literal notranslate"><span class="pre">Initial.type</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join"><code class="docutils literal notranslate"><span class="pre">Join</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.height"><code class="docutils literal notranslate"><span class="pre">Join.height</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.is_combine_duplicate"><code class="docutils literal notranslate"><span class="pre">Join.is_combine_duplicate</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.join_spec"><code class="docutils literal notranslate"><span class="pre">Join.join_spec</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.model_config"><code class="docutils literal notranslate"><span class="pre">Join.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.model_fields"><code class="docutils literal notranslate"><span class="pre">Join.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.role"><code class="docutils literal notranslate"><span class="pre">Join.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.type"><code class="docutils literal notranslate"><span class="pre">Join.type</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Join.width"><code class="docutils literal notranslate"><span class="pre">Join.width</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge"><code class="docutils literal notranslate"><span class="pre">Merge</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.is_combine_duplicate"><code class="docutils literal notranslate"><span class="pre">Merge.is_combine_duplicate</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.merge_spec"><code class="docutils literal notranslate"><span class="pre">Merge.merge_spec</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.model_config"><code class="docutils literal notranslate"><span class="pre">Merge.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.model_fields"><code class="docutils literal notranslate"><span class="pre">Merge.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.page"><code class="docutils literal notranslate"><span class="pre">Merge.page</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.role"><code class="docutils literal notranslate"><span class="pre">Merge.role</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.control.Merge.type"><code class="docutils literal notranslate"><span class="pre">Merge.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers.event">metadata.specification.activity.classifiers.event module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.event.EventClassifier"><code class="docutils literal notranslate"><span class="pre">EventClassifier</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers.object">metadata.specification.activity.classifiers.object module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.object.ObjectClassifier"><code class="docutils literal notranslate"><span class="pre">ObjectClassifier</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-metadata.specification.activity.classifiers.swimlane">metadata.specification.activity.classifiers.swimlane module</a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.height"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.height</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.horizontal"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.horizontal</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_config"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.model_fields"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.swimlanes"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.swimlanes</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.type"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.type</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup.width"><code class="docutils literal notranslate"><span class="pre">SwimLaneGroup.width</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

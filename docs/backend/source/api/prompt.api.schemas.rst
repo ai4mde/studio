@@ -1,6 +1,14 @@
 prompt.api.schemas package
 ==========================
 
+Module contents
+---------------
+
+.. automodule:: prompt.api.schemas
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ prompt.api.schemas.prompt module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prompt.api.schemas
-   :members:
-   :show-inheritance:
-   :undoc-members:

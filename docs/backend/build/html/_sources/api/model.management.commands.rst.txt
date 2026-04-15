@@ -1,6 +1,14 @@
 model.management.commands package
 =================================
 
+Module contents
+---------------
+
+.. automodule:: model.management.commands
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -20,10 +28,3 @@ model.management.commands.wait\_for\_db module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: model.management.commands
-   :members:
-   :show-inheritance:
-   :undoc-members:

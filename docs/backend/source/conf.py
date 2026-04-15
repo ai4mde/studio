@@ -1,12 +1,12 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../../api/model'))
 
-# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "model.settings")
-#
-# import django
-# django.setup()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "model.settings")
+
+import django
+django.setup()
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -28,6 +28,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
+    'sphinx_autodoc_typehints'
 ]
 
 myst_enable_extensions = [
@@ -37,7 +39,6 @@ myst_enable_extensions = [
 
 source_suffix = {
     ".rst": "restructuredtext",
-    ".md": "markdown",
 }
 
 autosummary_generate = True

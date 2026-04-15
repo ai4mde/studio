@@ -6,7 +6,7 @@ set -e
 # -------------------------
 
 # 1. Regenerate API docs (structure step)
-sphinx-apidoc -o docs/backend/source/api api/model
+sphinx-apidoc -f -o docs/backend/source/api api/model */migrations */__pycache__ --templatedir=docs/backend/templates
 
 # 2. Build HTML documentation
 sphinx-build -b html docs/backend/source docs/backend/build/html -E -a -v

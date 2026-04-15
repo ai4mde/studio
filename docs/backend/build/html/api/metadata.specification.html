@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="metadata.specification.activity package" href="metadata.specification.activity.html"><link rel="prev" title="metadata.migrations package" href="metadata.migrations.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="metadata.specification.activity package" href="metadata.specification.activity.html"><link rel="prev" title="metadata.api.views.systems package" href="metadata.api.views.systems.html">
 
     <!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
         <title>metadata.specification package - AI4MDE documentation</title>
@@ -203,7 +203,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="diagram.migrations.html">diagram.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="generator.html">generator package</a><input aria-label="Toggle navigation of generator package" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -212,7 +211,6 @@
 <li class="toctree-l4"><a class="reference internal" href="generator.api.views.html">generator.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generator.migrations.html">generator.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="llm.html">llm package</a><input aria-label="Toggle navigation of llm package" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -229,7 +227,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="metadata.migrations.html">metadata.migrations package</a></li>
 <li class="toctree-l3 current has-children current-page"><a class="current reference internal" href="#">metadata.specification package</a><input aria-label="Toggle navigation of metadata.specification package" checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l4 has-children"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><input aria-label="Toggle navigation of metadata.specification.activity package" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l5"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a></li>
@@ -260,7 +257,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.chatbots.html">prompt.chatbots package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="prompt.consumers.html">prompt.consumers package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="prompt.migrations.html">prompt.migrations package</a></li>
 </ul>
 </li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="prose.html">prose package</a><input aria-label="Toggle navigation of prose package" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
@@ -269,7 +265,6 @@
 <li class="toctree-l4"><a class="reference internal" href="prose.api.views.html">prose.api.views package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="prose.migrations.html">prose.migrations package</a></li>
 </ul>
 </li>
 </ul>
@@ -314,71 +309,433 @@
         <article role="main" id="furo-main-content">
           <section id="metadata-specification-package">
 <h1>metadata.specification package<a class="headerlink" href="#metadata-specification-package" title="Link to this heading">¶</a></h1>
+<section id="module-metadata.specification">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-metadata.specification" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.</span></span><span class="sig-name descname"><span class="pre">ClassifierSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.ClassifierSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#metadata.specification.ClassifierSchema" title="metadata.specification.ClassifierSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassifierSchema</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Annotated</em><em>[</em><em>Annotated</em><em>[</em><em>SwimLane</em><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup" title="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup"><em>SwimLaneGroup</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.action.Action" title="metadata.specification.activity.classifiers.action.Action"><em>Action</em></a><em> | </em><em>Annotated</em><em>[</em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Decision" title="metadata.specification.activity.classifiers.control.Decision"><em>Decision</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Final" title="metadata.specification.activity.classifiers.control.Final"><em>Final</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Fork" title="metadata.specification.activity.classifiers.control.Fork"><em>Fork</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Initial" title="metadata.specification.activity.classifiers.control.Initial"><em>Initial</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Join" title="metadata.specification.activity.classifiers.control.Join"><em>Join</em></a><em> | </em><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Merge" title="metadata.specification.activity.classifiers.control.Merge"><em>Merge</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>] </em><em>| </em><em>Object</em><em> | </em><em>Event</em><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application" title="metadata.specification.classes.classifiers.Application"><em>Application</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page" title="metadata.specification.classes.classifiers.Page"><em>Page</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section" title="metadata.specification.classes.classifiers.Section"><em>Section</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class" title="metadata.specification.classes.classifiers.Class"><em>Class</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum" title="metadata.specification.classes.classifiers.Enum"><em>Enum</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal" title="metadata.specification.classes.classifiers.Signal"><em>Signal</em></a><em> | </em><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface" title="metadata.specification.classes.classifiers.Interface"><em>Interface</em></a><em> | </em><em>Actor</em><em> | </em><em>Usecase</em><em> | </em><em>SystemBoundary</em><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System" title="metadata.specification.component.classifiers.System"><em>System</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container" title="metadata.specification.component.classifiers.Container"><em>Container</em></a><em> | </em><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component" title="metadata.specification.component.classifiers.Component"><em>Component</em></a><em>, </em><em>FieldInfo</em><em>(</em><em>annotation=NoneType</em><em>, </em><em>required=True</em><em>, </em><em>discriminator='type'</em><em>)</em><em>]</em>)</p></li>
+<li><p><strong>system_id</strong> (<em>UUID</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>system_name</strong> (<em>str</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><span class="pre">SwimLane</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.swimlane.SwimLaneGroup" title="metadata.specification.activity.classifiers.swimlane.SwimLaneGroup"><span class="pre">SwimLaneGroup</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">discriminator</span></span><span class="o"><span class="pre">=</span></span><span class="s"><span class="pre">'type'</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.action.Action" title="metadata.specification.activity.classifiers.action.Action"><span class="pre">Action</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Annotated</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Decision" title="metadata.specification.activity.classifiers.control.Decision"><span class="pre">Decision</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Final" title="metadata.specification.activity.classifiers.control.Final"><span class="pre">Final</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Fork" title="metadata.specification.activity.classifiers.control.Fork"><span class="pre">Fork</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Initial" title="metadata.specification.activity.classifiers.control.Initial"><span class="pre">Initial</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Join" title="metadata.specification.activity.classifiers.control.Join"><span class="pre">Join</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata.specification.activity.classifiers.control.Merge" title="metadata.specification.activity.classifiers.control.Merge"><span class="pre">Merge</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">discriminator</span></span><span class="o"><span class="pre">=</span></span><span class="s"><span class="pre">'type'</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Object</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Event</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application" title="metadata.specification.classes.classifiers.Application"><span class="pre">Application</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page" title="metadata.specification.classes.classifiers.Page"><span class="pre">Page</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section" title="metadata.specification.classes.classifiers.Section"><span class="pre">Section</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class" title="metadata.specification.classes.classifiers.Class"><span class="pre">Class</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum" title="metadata.specification.classes.classifiers.Enum"><span class="pre">Enum</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal" title="metadata.specification.classes.classifiers.Signal"><span class="pre">Signal</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface" title="metadata.specification.classes.classifiers.Interface"><span class="pre">Interface</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Actor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Usecase</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">SystemBoundary</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System" title="metadata.specification.component.classifiers.System"><span class="pre">System</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container" title="metadata.specification.component.classifiers.Container"><span class="pre">Container</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component" title="metadata.specification.component.classifiers.Component"><span class="pre">Component</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">(</span></span><span class="n"><span class="pre">annotation</span></span><span class="o"><span class="pre">=</span></span><span class="pre">NoneType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="k"><span class="pre">True</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">discriminator</span></span><span class="o"><span class="pre">=</span></span><span class="s"><span class="pre">'type'</span></span><span class="p"><span class="pre">)</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'data':</span> <span class="pre">FieldInfo(annotation=Union[Annotated[Union[SwimLane,</span> <span class="pre">SwimLaneGroup],</span> <span class="pre">FieldInfo(annotation=NoneType,</span> <span class="pre">required=True,</span> <span class="pre">discriminator='type')],</span> <span class="pre">Action,</span> <span class="pre">Annotated[Union[Decision,</span> <span class="pre">Final,</span> <span class="pre">Fork,</span> <span class="pre">Initial,</span> <span class="pre">Join,</span> <span class="pre">Merge],</span> <span class="pre">FieldInfo(annotation=NoneType,</span> <span class="pre">required=True,</span> <span class="pre">discriminator='type')],</span> <span class="pre">Object,</span> <span class="pre">Event,</span> <span class="pre">Application,</span> <span class="pre">Page,</span> <span class="pre">Section,</span> <span class="pre">Class,</span> <span class="pre">Enum,</span> <span class="pre">Signal,</span> <span class="pre">Interface,</span> <span class="pre">Actor,</span> <span class="pre">Usecase,</span> <span class="pre">SystemBoundary,</span> <span class="pre">System,</span> <span class="pre">Container,</span> <span class="pre">Component],</span> <span class="pre">required=False,</span> <span class="pre">default=Ellipsis,</span> <span class="pre">discriminator='type'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'system_id':</span> <span class="pre">FieldInfo(annotation=Union[UUID,</span> <span class="pre">NoneType],</span> <span class="pre">required=False),</span> <span class="pre">'system_name':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=False)}</span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.system_id">
+<span class="sig-name descname"><span class="pre">system_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.system_id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.ClassifierSchema.system_name">
+<span class="sig-name descname"><span class="pre">system_name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#metadata.specification.ClassifierSchema.system_name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">metadata.specification.</span></span><span class="sig-name descname"><span class="pre">RelationSchema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#metadata.specification.RelationSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#metadata.specification.RelationSchema" title="metadata.specification.RelationSchema"><code class="xref py py-class docutils literal notranslate"><span class="pre">RelationSchema</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>data</strong> (<em>AnyObject</em>)</p></li>
+<li><p><strong>source_id</strong> (<em>UUID</em>)</p></li>
+<li><p><strong>target_id</strong> (<em>UUID</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.data">
+<span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">AnyObject</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.data" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.id" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'from_attributes':</span> <span class="pre">True}</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.model_config" title="Link to this definition">¶</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'data':</span> <span class="pre">FieldInfo(annotation=AnyObject,</span> <span class="pre">required=True,</span> <span class="pre">title='Data'),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=False,</span> <span class="pre">default_factory=uuid4,</span> <span class="pre">title='Id'),</span> <span class="pre">'source':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='source_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='Source'),</span> <span class="pre">'target':</span> <span class="pre">FieldInfo(annotation=UUID,</span> <span class="pre">required=True,</span> <span class="pre">alias='target_id',</span> <span class="pre">alias_priority=2,</span> <span class="pre">title='Target')}</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.model_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo].</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.source" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="metadata.specification.RelationSchema.target">
+<span class="sig-name descname"><span class="pre">target</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></span><a class="headerlink" href="#metadata.specification.RelationSchema.target" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.activity.html">metadata.specification.activity package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#module-metadata.specification.activity">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="metadata.specification.activity.classifiers.html">metadata.specification.activity.classifiers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers">Module contents</a></li>
 <li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata-specification-activity-classifiers-action-module">metadata.specification.activity.classifiers.action module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata-specification-activity-classifiers-control-module">metadata.specification.activity.classifiers.control module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata-specification-activity-classifiers-event-module">metadata.specification.activity.classifiers.event module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata-specification-activity-classifiers-object-module">metadata.specification.activity.classifiers.object module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#metadata-specification-activity-classifiers-swimlane-module">metadata.specification.activity.classifiers.swimlane module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers.action">metadata.specification.activity.classifiers.action module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers.control">metadata.specification.activity.classifiers.control module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers.event">metadata.specification.activity.classifiers.event module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers.object">metadata.specification.activity.classifiers.object module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.classifiers.html#module-metadata.specification.activity.classifiers.swimlane">metadata.specification.activity.classifiers.swimlane module</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#metadata-specification-activity-relations-module">metadata.specification.activity.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.activity.html#module-metadata.specification.activity.relations">metadata.specification.activity.relations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow"><code class="docutils literal notranslate"><span class="pre">ControlFlow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.condition"><code class="docutils literal notranslate"><span class="pre">ControlFlow.condition</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.guard"><code class="docutils literal notranslate"><span class="pre">ControlFlow.guard</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.is_directed"><code class="docutils literal notranslate"><span class="pre">ControlFlow.is_directed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.model_config"><code class="docutils literal notranslate"><span class="pre">ControlFlow.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.model_fields"><code class="docutils literal notranslate"><span class="pre">ControlFlow.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.type"><code class="docutils literal notranslate"><span class="pre">ControlFlow.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlow.weight"><code class="docutils literal notranslate"><span class="pre">ControlFlow.weight</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.aggregator"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.aggregator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.isElse"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.isElse</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.model_config"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.model_fields"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.operator"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.operator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.set_target_class_name"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.set_target_class_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.target_attribute"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.target_attribute</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.target_attribute_type"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.target_attribute_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.target_class"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.target_class</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.target_class_name"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.target_class_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.threshold"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.threshold</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ControlFlowCondition.validate_condition"><code class="docutils literal notranslate"><span class="pre">ControlFlowCondition.validate_condition()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow"><code class="docutils literal notranslate"><span class="pre">ObjectFlow</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.cls"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.cls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.guard"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.guard</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.is_directed"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.is_directed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.model_config"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.model_fields"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.type"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.activity.html#metadata.specification.activity.relations.ObjectFlow.weight"><code class="docutils literal notranslate"><span class="pre">ObjectFlow.weight</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.applications.html">metadata.specification.applications package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.applications.html#module-metadata.specification.applications">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.applications.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.applications.html#metadata-specification-applications-classifiers-module">metadata.specification.applications.classifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.applications.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.applications.html#module-metadata.specification.applications.classifiers">metadata.specification.applications.classifiers module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.base.html">metadata.specification.base package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.base.html#module-metadata.specification.base">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.RelationBase"><code class="docutils literal notranslate"><span class="pre">RelationBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.RelationBase.model_config"><code class="docutils literal notranslate"><span class="pre">RelationBase.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.RelationBase.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationBase.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.RelationBase.position_handlers"><code class="docutils literal notranslate"><span class="pre">RelationBase.position_handlers</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.base.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.base.html#metadata-specification-base-relations-module">metadata.specification.base.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.base.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.base.html#module-metadata.specification.base.relations">metadata.specification.base.relations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers"><code class="docutils literal notranslate"><span class="pre">PositionHandlers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers.model_config"><code class="docutils literal notranslate"><span class="pre">PositionHandlers.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers.model_fields"><code class="docutils literal notranslate"><span class="pre">PositionHandlers.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers.x"><code class="docutils literal notranslate"><span class="pre">PositionHandlers.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.PositionHandlers.y"><code class="docutils literal notranslate"><span class="pre">PositionHandlers.y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.RelationBase"><code class="docutils literal notranslate"><span class="pre">RelationBase</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.RelationBase.model_config"><code class="docutils literal notranslate"><span class="pre">RelationBase.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.RelationBase.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationBase.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.base.html#metadata.specification.base.relations.RelationBase.position_handlers"><code class="docutils literal notranslate"><span class="pre">RelationBase.position_handlers</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.classes.html">metadata.specification.classes package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#module-metadata.specification.classes">Module contents</a></li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#metadata-specification-classes-classifiers-module">metadata.specification.classes.classifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#metadata-specification-classes-relations-module">metadata.specification.classes.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#module-metadata.specification.classes.classifiers">metadata.specification.classes.classifiers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application"><code class="docutils literal notranslate"><span class="pre">Application</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application.model_config"><code class="docutils literal notranslate"><span class="pre">Application.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application.model_fields"><code class="docutils literal notranslate"><span class="pre">Application.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Application.type"><code class="docutils literal notranslate"><span class="pre">Application.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationClassifiers"><code class="docutils literal notranslate"><span class="pre">ApplicationClassifiers</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationClassifiers.attributes"><code class="docutils literal notranslate"><span class="pre">ApplicationClassifiers.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationClassifiers.id"><code class="docutils literal notranslate"><span class="pre">ApplicationClassifiers.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationClassifiers.model_config"><code class="docutils literal notranslate"><span class="pre">ApplicationClassifiers.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationClassifiers.model_fields"><code class="docutils literal notranslate"><span class="pre">ApplicationClassifiers.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationShared"><code class="docutils literal notranslate"><span class="pre">ApplicationShared</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationShared.categories"><code class="docutils literal notranslate"><span class="pre">ApplicationShared.categories</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationShared.classifiers"><code class="docutils literal notranslate"><span class="pre">ApplicationShared.classifiers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationShared.model_config"><code class="docutils literal notranslate"><span class="pre">ApplicationShared.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.ApplicationShared.model_fields"><code class="docutils literal notranslate"><span class="pre">ApplicationShared.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Category"><code class="docutils literal notranslate"><span class="pre">Category</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Category.model_config"><code class="docutils literal notranslate"><span class="pre">Category.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Category.model_fields"><code class="docutils literal notranslate"><span class="pre">Category.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Category.name"><code class="docutils literal notranslate"><span class="pre">Category.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class"><code class="docutils literal notranslate"><span class="pre">Class</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.abstract"><code class="docutils literal notranslate"><span class="pre">Class.abstract</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.attributes"><code class="docutils literal notranslate"><span class="pre">Class.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.leaf"><code class="docutils literal notranslate"><span class="pre">Class.leaf</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.methods"><code class="docutils literal notranslate"><span class="pre">Class.methods</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.model_config"><code class="docutils literal notranslate"><span class="pre">Class.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.model_fields"><code class="docutils literal notranslate"><span class="pre">Class.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Class.type"><code class="docutils literal notranslate"><span class="pre">Class.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum"><code class="docutils literal notranslate"><span class="pre">Enum</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum.literals"><code class="docutils literal notranslate"><span class="pre">Enum.literals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum.model_config"><code class="docutils literal notranslate"><span class="pre">Enum.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum.model_fields"><code class="docutils literal notranslate"><span class="pre">Enum.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Enum.type"><code class="docutils literal notranslate"><span class="pre">Enum.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface"><code class="docutils literal notranslate"><span class="pre">Interface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface.model_config"><code class="docutils literal notranslate"><span class="pre">Interface.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface.model_fields"><code class="docutils literal notranslate"><span class="pre">Interface.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Interface.type"><code class="docutils literal notranslate"><span class="pre">Interface.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page"><code class="docutils literal notranslate"><span class="pre">Page</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.create"><code class="docutils literal notranslate"><span class="pre">Page.create</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.data_paths"><code class="docutils literal notranslate"><span class="pre">Page.data_paths</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.model_config"><code class="docutils literal notranslate"><span class="pre">Page.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.model_fields"><code class="docutils literal notranslate"><span class="pre">Page.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.page_type"><code class="docutils literal notranslate"><span class="pre">Page.page_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.query"><code class="docutils literal notranslate"><span class="pre">Page.query</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Page.type"><code class="docutils literal notranslate"><span class="pre">Page.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section"><code class="docutils literal notranslate"><span class="pre">Section</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.classes"><code class="docutils literal notranslate"><span class="pre">Section.classes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.content"><code class="docutils literal notranslate"><span class="pre">Section.content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.linked_page"><code class="docutils literal notranslate"><span class="pre">Section.linked_page</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.model_config"><code class="docutils literal notranslate"><span class="pre">Section.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.model_fields"><code class="docutils literal notranslate"><span class="pre">Section.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.sorting"><code class="docutils literal notranslate"><span class="pre">Section.sorting</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Section.type"><code class="docutils literal notranslate"><span class="pre">Section.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal"><code class="docutils literal notranslate"><span class="pre">Signal</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal.model_config"><code class="docutils literal notranslate"><span class="pre">Signal.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal.model_fields"><code class="docutils literal notranslate"><span class="pre">Signal.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.classes.html#metadata.specification.classes.classifiers.Signal.type"><code class="docutils literal notranslate"><span class="pre">Signal.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.classes.html#module-metadata.specification.classes.relations">metadata.specification.classes.relations module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.component.html">metadata.specification.component package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#module-metadata.specification.component">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.ComponentRelation"><code class="docutils literal notranslate"><span class="pre">ComponentRelation</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#metadata-specification-component-classifiers-module">metadata.specification.component.classifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#metadata-specification-component-relations-module">metadata.specification.component.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#module-metadata.specification.component.classifiers">metadata.specification.component.classifiers module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component"><code class="docutils literal notranslate"><span class="pre">Component</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component.model_config"><code class="docutils literal notranslate"><span class="pre">Component.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component.model_fields"><code class="docutils literal notranslate"><span class="pre">Component.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Component.type"><code class="docutils literal notranslate"><span class="pre">Component.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container"><code class="docutils literal notranslate"><span class="pre">Container</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container.model_config"><code class="docutils literal notranslate"><span class="pre">Container.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container.model_fields"><code class="docutils literal notranslate"><span class="pre">Container.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Container.type"><code class="docutils literal notranslate"><span class="pre">Container.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal"><code class="docutils literal notranslate"><span class="pre">Internal</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.model_config"><code class="docutils literal notranslate"><span class="pre">Internal.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.model_fields"><code class="docutils literal notranslate"><span class="pre">Internal.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.name"><code class="docutils literal notranslate"><span class="pre">Internal.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.set_type_name"><code class="docutils literal notranslate"><span class="pre">Internal.set_type_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.type"><code class="docutils literal notranslate"><span class="pre">Internal.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.Internal.typeName"><code class="docutils literal notranslate"><span class="pre">Internal.typeName</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.InternalsElement"><code class="docutils literal notranslate"><span class="pre">InternalsElement</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.InternalsElement.internals"><code class="docutils literal notranslate"><span class="pre">InternalsElement.internals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.InternalsElement.model_config"><code class="docutils literal notranslate"><span class="pre">InternalsElement.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.InternalsElement.model_fields"><code class="docutils literal notranslate"><span class="pre">InternalsElement.model_fields</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System"><code class="docutils literal notranslate"><span class="pre">System</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System.model_config"><code class="docutils literal notranslate"><span class="pre">System.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System.model_fields"><code class="docutils literal notranslate"><span class="pre">System.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.classifiers.System.type"><code class="docutils literal notranslate"><span class="pre">System.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.component.html#module-metadata.specification.component.relations">metadata.specification.component.relations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.ComponentRelation"><code class="docutils literal notranslate"><span class="pre">ComponentRelation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface"><code class="docutils literal notranslate"><span class="pre">Interface</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.fill_interface_names"><code class="docutils literal notranslate"><span class="pre">Interface.fill_interface_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.model_config"><code class="docutils literal notranslate"><span class="pre">Interface.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.model_fields"><code class="docutils literal notranslate"><span class="pre">Interface.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.provided"><code class="docutils literal notranslate"><span class="pre">Interface.provided</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.provided_name"><code class="docutils literal notranslate"><span class="pre">Interface.provided_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.required"><code class="docutils literal notranslate"><span class="pre">Interface.required</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.required_name"><code class="docutils literal notranslate"><span class="pre">Interface.required_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.component.html#metadata.specification.component.relations.Interface.type"><code class="docutils literal notranslate"><span class="pre">Interface.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.kernel.html">metadata.specification.kernel package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.kernel.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.kernel.html#module-metadata.specification.kernel">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute"><code class="docutils literal notranslate"><span class="pre">Attribute</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.body"><code class="docutils literal notranslate"><span class="pre">Attribute.body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.derived"><code class="docutils literal notranslate"><span class="pre">Attribute.derived</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.description"><code class="docutils literal notranslate"><span class="pre">Attribute.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.enum"><code class="docutils literal notranslate"><span class="pre">Attribute.enum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.model_config"><code class="docutils literal notranslate"><span class="pre">Attribute.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.model_fields"><code class="docutils literal notranslate"><span class="pre">Attribute.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.name"><code class="docutils literal notranslate"><span class="pre">Attribute.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Attribute.type"><code class="docutils literal notranslate"><span class="pre">Attribute.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity"><code class="docutils literal notranslate"><span class="pre">Multiplicity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.is_ordered"><code class="docutils literal notranslate"><span class="pre">Multiplicity.is_ordered</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.is_unique"><code class="docutils literal notranslate"><span class="pre">Multiplicity.is_unique</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.lower"><code class="docutils literal notranslate"><span class="pre">Multiplicity.lower</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.model_config"><code class="docutils literal notranslate"><span class="pre">Multiplicity.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.model_fields"><code class="docutils literal notranslate"><span class="pre">Multiplicity.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Multiplicity.upper"><code class="docutils literal notranslate"><span class="pre">Multiplicity.upper</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement"><code class="docutils literal notranslate"><span class="pre">NamedElement</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement.model_config"><code class="docutils literal notranslate"><span class="pre">NamedElement.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement.model_fields"><code class="docutils literal notranslate"><span class="pre">NamedElement.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamedElement.name"><code class="docutils literal notranslate"><span class="pre">NamedElement.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamespacedElement"><code class="docutils literal notranslate"><span class="pre">NamespacedElement</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamespacedElement.model_config"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamespacedElement.model_fields"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.NamespacedElement.namespace"><code class="docutils literal notranslate"><span class="pre">NamespacedElement.namespace</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation"><code class="docutils literal notranslate"><span class="pre">Operation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.body"><code class="docutils literal notranslate"><span class="pre">Operation.body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.description"><code class="docutils literal notranslate"><span class="pre">Operation.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.model_config"><code class="docutils literal notranslate"><span class="pre">Operation.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.model_fields"><code class="docutils literal notranslate"><span class="pre">Operation.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.name"><code class="docutils literal notranslate"><span class="pre">Operation.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.Operation.type"><code class="docutils literal notranslate"><span class="pre">Operation.type</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationLabels"><code class="docutils literal notranslate"><span class="pre">RelationLabels</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationLabels.model_config"><code class="docutils literal notranslate"><span class="pre">RelationLabels.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationLabels.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationLabels.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationLabels.source"><code class="docutils literal notranslate"><span class="pre">RelationLabels.source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationLabels.target"><code class="docutils literal notranslate"><span class="pre">RelationLabels.target</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationMultiplicity"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationMultiplicity.model_config"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationMultiplicity.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationMultiplicity.source"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.source</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.kernel.html#metadata.specification.kernel.RelationMultiplicity.target"><code class="docutils literal notranslate"><span class="pre">RelationMultiplicity.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="metadata.specification.usecase.html">metadata.specification.usecase package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#module-metadata.specification.usecase">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.UsecaseRelation"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.UsecaseRelation.model_config"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.UsecaseRelation.model_fields"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.UsecaseRelation.type"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#metadata-specification-usecase-classifiers-module">metadata.specification.usecase.classifiers module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#metadata-specification-usecase-relations-module">metadata.specification.usecase.relations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#module-metadata.specification.usecase.classifiers">metadata.specification.usecase.classifiers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="metadata.specification.usecase.html#module-metadata.specification.usecase.relations">metadata.specification.usecase.relations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation.model_config"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation.model_fields"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="metadata.specification.usecase.html#metadata.specification.usecase.relations.UsecaseRelation.type"><code class="docutils literal notranslate"><span class="pre">UsecaseRelation.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </div>
-</section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
 </section>
 </section>
 
@@ -396,14 +753,14 @@
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="metadata.migrations.html">
+          <a class="prev-page" href="metadata.api.views.systems.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">metadata.migrations package</div>
+                <div class="title">metadata.api.views.systems package</div>
                 
               </div>
             </a>
@@ -438,8 +795,28 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">metadata.specification package</a><ul>
+<li><a class="reference internal" href="#module-metadata.specification">Module contents</a><ul>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.data"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.data</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.id"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.id</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.model_config"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.system_id"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.system_id</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.ClassifierSchema.system_name"><code class="docutils literal notranslate"><span class="pre">ClassifierSchema.system_name</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema"><code class="docutils literal notranslate"><span class="pre">RelationSchema</span></code></a><ul>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.data"><code class="docutils literal notranslate"><span class="pre">RelationSchema.data</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.id"><code class="docutils literal notranslate"><span class="pre">RelationSchema.id</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.model_config"><code class="docutils literal notranslate"><span class="pre">RelationSchema.model_config</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.model_fields"><code class="docutils literal notranslate"><span class="pre">RelationSchema.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.source"><code class="docutils literal notranslate"><span class="pre">RelationSchema.source</span></code></a></li>
+<li><a class="reference internal" href="#metadata.specification.RelationSchema.target"><code class="docutils literal notranslate"><span class="pre">RelationSchema.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
-<li><a class="reference internal" href="#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>

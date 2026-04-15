@@ -1,6 +1,14 @@
 metadata.specification.activity.classifiers package
 ===================================================
 
+Module contents
+---------------
+
+.. automodule:: metadata.specification.activity.classifiers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -44,10 +52,3 @@ metadata.specification.activity.classifiers.swimlane module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.specification.activity.classifiers
-   :members:
-   :show-inheritance:
-   :undoc-members:

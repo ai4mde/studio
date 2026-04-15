@@ -1,6 +1,14 @@
 metadata.api.views package
 ==========================
 
+Module contents
+---------------
+
+.. automodule:: metadata.api.views
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -44,10 +52,3 @@ metadata.api.views.releases module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: metadata.api.views
-   :members:
-   :show-inheritance:
-   :undoc-members:

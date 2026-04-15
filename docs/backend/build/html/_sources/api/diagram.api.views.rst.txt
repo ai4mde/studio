@@ -1,6 +1,14 @@
 diagram.api.views package
 =========================
 
+Module contents
+---------------
+
+.. automodule:: diagram.api.views
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Subpackages
 -----------
 
@@ -44,10 +52,3 @@ diagram.api.views.system module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: diagram.api.views
-   :members:
-   :show-inheritance:
-   :undoc-members:

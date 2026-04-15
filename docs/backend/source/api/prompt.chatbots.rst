@@ -1,6 +1,14 @@
 prompt.chatbots package
 =======================
 
+Module contents
+---------------
+
+.. automodule:: prompt.chatbots
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ prompt.chatbots.changes module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prompt.chatbots
-   :members:
-   :show-inheritance:
-   :undoc-members:

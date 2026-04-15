@@ -1,6 +1,14 @@
 prose.api.schemas package
 =========================
 
+Module contents
+---------------
+
+.. automodule:: prose.api.schemas
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Submodules
 ----------
 
@@ -12,10 +20,3 @@ prose.api.schemas.pipelines module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: prose.api.schemas
-   :members:
-   :show-inheritance:
-   :undoc-members:
