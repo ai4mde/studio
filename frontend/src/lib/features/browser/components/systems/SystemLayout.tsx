@@ -1,6 +1,6 @@
 import { useSystem } from "$browser/queries";
 import { TopNavigation } from "$lib/shared/components/TopNavigation";
-import { GitGraph, Package, Paintbrush, PaintRoller, Rocket } from "lucide-react";
+import { GitGraph, Package, PaintRoller, Rocket } from "lucide-react";
 import React from "react";
 import { useParams } from "react-router";
 
@@ -42,11 +42,6 @@ const SystemLayout: React.FC<Props> = ({ children }) => {
                             name: "Prototypes",
                             Icon: Package,
                             href: `/systems/${systemId}/prototypes`,
-                        },
-                        {
-                            name: "Design",
-                            Icon: Paintbrush,
-                            href: `/systems/${systemId}/design`,
                         },
                     ]}
                 />
