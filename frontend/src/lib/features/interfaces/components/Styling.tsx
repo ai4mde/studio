@@ -25,7 +25,8 @@ export const Styling: React.FC<Props> = () => {
                 backgroundColor: '#FFFFFF',
                 textColor: '#000000',
                 accentColor: '#F5F5F4',
-                selectedStyle: 'modern'
+                selectedStyle: 'modern',
+                selectedLayout: 'sidebar_left'
             };
             setData(defaultStyling);
         }
@@ -56,6 +57,11 @@ export const Styling: React.FC<Props> = () => {
 
     const handleStyleChange = (event, newValue) => {
         const newData = { ...data, selectedStyle: newValue };
+        setData(newData);
+    };
+
+    const handleLayoutChange = (event, newValue) => {
+        const newData = { ...data, selectedLayout: newValue };
         setData(newData);
     };
 
@@ -112,6 +118,24 @@ export const Styling: React.FC<Props> = () => {
                             <Option value="basic">Basic</Option>
                             <Option value="modern">Modern</Option>
                             <Option value="abstract">Abstract</Option>
+                            <Option value="elegant">Elegant</Option>
+                            <Option value="brutalist">Brutalist</Option>
+                            <Option value="glassmorphism">Glassmorphism</Option>
+                            <Option value="dark">Dark</Option>
+                        </Select>
+                    </FormControl>
+
+                    <FormControl required>
+                        <h3 className="text-xl font-bold">Layout</h3>
+                        <Select
+                            placeholder="Choose one…"
+                            value={data.selectedLayout || 'sidebar_left'}
+                            onChange={handleLayoutChange}
+                        >
+                            <Option value="sidebar_left">Sidebar Left</Option>
+                            <Option value="sidebar_right">Sidebar Right</Option>
+                            <Option value="top_nav">Top Navigation</Option>
+                            <Option value="top_nav_sidebar">Top Nav + Sidebar</Option>
                         </Select>
                     </FormControl>
 

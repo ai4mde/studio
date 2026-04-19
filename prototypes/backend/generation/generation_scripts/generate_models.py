@@ -4,61 +4,84 @@ from utils.definitions.model import Model, Attribute, AttributeType, CustomMetho
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
-from utils.loading_json_utils import get_apps, get_enum_literals
+from utils.loading_json_utils import (
+    _classifier_lookup,
+    _edge_relation_data,
+    _edge_source_ref,
+    _edge_target_ref,
+    _node_classifier_data,
+    _relation_lookup,
+    _relation_record_lookup,
+    get_apps,
+    get_enum_literals,
+)
+from utils.metadata_input import resolve_metadata_arg
 
 
-def retrieve_class_name_by_id(node_id: str, diagram: str) -> str:
+def retrieve_class_name_by_id(node_id: str, diagram: dict, classifiers_by_id: dict[str, dict]) -> str | None:
     """Function that finds a 'node' in 'diagram' by id and builds a foreign model attribute for it"""
     for node in diagram["nodes"]:
         if node["id"] != node_id:
             continue
-        if node["cls"]["type"] == "class":
-            return model_name_sanitization(node["cls"]["name"])
+        node_data = _node_classifier_data(node, classifiers_by_id)
+        if node_data.get("type") == "class":
+            return model_name_sanitization(node_data["name"])
         return None
+    return None
 
 
 # TODO: implement different type of foreign models for differnt type of associations
-def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
+def retrieve_foreign_models(
+    node: dict,
+    diagram: dict,
+    classifiers_by_id: dict[str, dict],
+    relations_by_id: dict[str, dict],
+    relation_records_by_id: dict[str, dict],
+) -> List[Attribute]:
     """Function that retrieves relations from 'node' to other nodes in 'diagram'
     and builds foreign model attributes for these relations"""
     out = []
     for edge in diagram["edges"]:
-        if edge["rel"]["type"] != "association":
+        edge_data = _edge_relation_data(edge, relations_by_id)
+        if edge_data.get("type") != "association":
             continue
 
-        if edge["source_ptr"] == node["id"] :
+        source_ref = _edge_source_ref(edge, relation_records_by_id)
+        target_ref = _edge_target_ref(edge, relation_records_by_id)
+
+        if source_ref == node["id"]:
             foreign_model = Attribute(
-                retrieve_class_name_by_id(edge["target_ptr"], diagram),
+                retrieve_class_name_by_id(target_ref, diagram, classifiers_by_id),
                 AttributeType.FOREIGN_MODEL,
                 enum_literals=None,
-                cardinality=define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=True),
+                cardinality=define_cardinality(edge_data["multiplicity"]["source"], edge_data["multiplicity"]["target"], node_is_source=True),
                 derived=False,
                 body=None,
 
             )
-            if foreign_model:
+            if foreign_model.name:
                 out.append(foreign_model)
 
-        if edge["target_ptr"] == node["id"] :
+        if target_ref == node["id"]:
             foreign_model = Attribute(
-                retrieve_class_name_by_id(edge["source_ptr"], diagram),
+                retrieve_class_name_by_id(source_ref, diagram, classifiers_by_id),
                 AttributeType.FOREIGN_MODEL,
                 enum_literals=None,
-                cardinality=define_cardinality(edge["rel"]["multiplicity"]["target"], edge["rel"]["multiplicity"]["source"], node_is_source=False),
+                cardinality=define_cardinality(edge_data["multiplicity"]["target"], edge_data["multiplicity"]["source"], node_is_source=False),
                 derived=False,
                 body=None,
-
             )
-            if foreign_model:
+            if foreign_model.name:
                 out.append(foreign_model)
     return out
 
 
-def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
+def retrieve_model_attributes(metadata: str, node: dict, classifiers_by_id: dict[str, dict]) -> List[Attribute]:
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
+    node_data = _node_classifier_data(node, classifiers_by_id)
 
-    for attribute in node["cls"]["attributes"]:
+    for attribute in node_data.get("attributes", []):
         att_type = AttributeType.NONE
         enum_literals = None
         if attribute["type"] == "str":
@@ -75,24 +98,35 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
                 enum_literals = []
             else:
                 enum_literals = get_enum_literals(metadata, attribute["enum"])
+        elif attribute["type"] == "date":
+            att_type = AttributeType.DATE
+        elif attribute["type"] == "datetime":
+            att_type = AttributeType.DATETIME
+        elif attribute["type"] == "text":
+            att_type = AttributeType.TEXT
+        elif attribute["type"] == "float":
+            att_type = AttributeType.FLOAT
+        elif attribute["type"] == "email":
+            att_type = AttributeType.EMAIL
         
         att = Attribute(
             name = attribute_name_sanitization(attribute["name"]),
             type = att_type,
             enum_literals = enum_literals,
             cardinality = None,
-            derived = attribute["derived"],
-            body = attribute["body"]
+            derived = attribute.get("derived", False),
+            body = attribute.get("body")
         )
         out.append(att)
 
     return out
 
 
-def retrieve_model_custom_methods(node: str) -> List[CustomMethod]:
+def retrieve_model_custom_methods(node: dict, classifiers_by_id: dict[str, dict]) -> List[CustomMethod]:
     """Function that parses the custom methods of a class node from JSON to a Python objects"""
     out = []
-    for custom_method in node["cls"]["methods"]:
+    node_data = _node_classifier_data(node, classifiers_by_id)
+    for custom_method in node_data.get("methods", []):
         mtd = CustomMethod(
             name = custom_method_name_sanitization(custom_method["name"]),
             body = custom_method["body"]
@@ -110,16 +144,21 @@ def retrieve_models(metadata: str) -> List[Model]:
     out = []
     try:
         if metadata:
-            for diagram in json.loads(metadata)["diagrams"]:
+            metadata_json = json.loads(metadata)
+            classifiers_by_id = _classifier_lookup(metadata_json)
+            relations_by_id = _relation_lookup(metadata_json)
+            relation_records_by_id = _relation_record_lookup(metadata_json)
+            for diagram in metadata_json["diagrams"]:
                 if diagram["type"] != "classes":
                     continue
                 for node in diagram["nodes"]:
-                    if node["cls"]["type"] != "class":
+                    node_data = _node_classifier_data(node, classifiers_by_id)
+                    if node_data.get("type") != "class":
                         continue
                     cls = Model(
-                        name = model_name_sanitization(node["cls"]["name"]),
-                        attributes = retrieve_model_attributes(metadata, node) + retrieve_foreign_models(node, diagram),
-                        custom_methods = retrieve_model_custom_methods(node)
+                        name = model_name_sanitization(node_data["name"]),
+                        attributes = retrieve_model_attributes(metadata, node, classifiers_by_id) + retrieve_foreign_models(node, diagram, classifiers_by_id, relations_by_id, relation_records_by_id),
+                        custom_methods = retrieve_model_custom_methods(node, classifiers_by_id)
                     )
                     out.append(cls)
     except:
@@ -134,7 +173,7 @@ def main():
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/models.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/models.py"
 
-    metadata = sys.argv[2]
+    metadata = resolve_metadata_arg(sys.argv[2])
     application_names = get_apps(metadata).split()
 
     data = {

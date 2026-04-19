@@ -19,7 +19,9 @@ def generate_styling(application_component: ApplicationComponent, system_id: str
 
     data = {
         "application_name": application_name,
-        "styling": application_component.styling
+        "styling": application_component.styling,
+        "theme": application_component.theme,
+        "theme_summary": application_component.theme_summary,
     }
 
     if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

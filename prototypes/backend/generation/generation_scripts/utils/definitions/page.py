@@ -14,7 +14,9 @@ class Page():
             category: Optional[str], # TODO: refer to category object
             activity_name: Optional[str],
             type: Literal['normal', 'activity'],
-            section_components: List[SectionComponent]
+            section_components: List[SectionComponent],
+            render_ast: Optional[list] = None,
+            semantic_ast: Optional[dict] = None,
     ):
         self.name = page_name_sanitization(name)
         self.display_name = name
@@ -24,6 +26,8 @@ class Page():
         self.activity_name = activity_name
         self.type = type
         self.section_components = section_components
+        self.render_ast = render_ast or []
+        self.semantic_ast = semantic_ast or {}
 
     def __str__(self):
         return self.name

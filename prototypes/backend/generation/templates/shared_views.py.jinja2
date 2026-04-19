@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 from django.apps import apps
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
 from django.views import View
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-
-from workflow_engine.models import ActiveProcessNode
 
 
 class RoleRequiredMixin(UserPassesTestMixin):
@@ -38,6 +38,8 @@ class GenericListView(GenericViewMixin, ListView):
     
     @property
     def active_process_node(self) -> ActiveProcessNode | None:
+        from workflow_engine.models import ActiveProcessNode
+
         return get_object_or_404(
             ActiveProcessNode,
             pk=self.kwargs.get('active_process_node_id'),

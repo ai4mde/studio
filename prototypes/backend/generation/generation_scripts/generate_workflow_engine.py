@@ -5,13 +5,14 @@ from utils.workflow_engine.view_generation import generate_views
 from utils.workflow_engine.models_generation import generate_models
 from utils.workflow_engine.data_generation import generate_data
 from utils.workflow_engine.cron_generation import generate_cron_jobs
+from utils.metadata_input import resolve_metadata_arg
 
 def main():
     if len(sys.argv) != 5:
         raise Exception("Invalid number of system arguments.")
     
     project_name = project_name_sanitization(sys.argv[1])
-    metadata = sys.argv[2]
+    metadata = resolve_metadata_arg(sys.argv[2])
     system_id = sys.argv[3]
     authentication_present = sys.argv[4] == "True"
 

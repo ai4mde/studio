@@ -1,5 +1,7 @@
 from flask import Flask, redirect, request, abort
 from multiprocessing import Manager, Lock
+import json
+import tempfile
 import subprocess
 import os
 import time
@@ -220,10 +222,18 @@ def generate_prototype():
     name = data.get('name')
     system = data.get('system')
     metadata = data.get('metadata')
+    metadata_path = None
     try:
-        subprocess.run([GENERATOR_PATH, id, system, name, metadata], check=True)
+        metadata_payload = metadata if isinstance(metadata, str) else json.dumps(metadata, ensure_ascii=False)
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.json', delete=False) as fh:
+            fh.write(metadata_payload)
+            metadata_path = fh.name
+        subprocess.run([GENERATOR_PATH, id, system, name, f"@{metadata_path}"], check=True)
     except subprocess.CalledProcessError:
         return f"Failed to generate prototype, id={id}", 500
+    finally:
+        if metadata_path and os.path.exists(metadata_path):
+            os.unlink(metadata_path)
 
     # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:

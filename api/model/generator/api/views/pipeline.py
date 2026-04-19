@@ -10,7 +10,7 @@ Endpoints:
 import os
 import shutil
 import uuid
-from typing import Optional, List
+from typing import Optional, List, Any, cast
 
 import requests as http_requests
 from django.http import HttpResponse
@@ -43,6 +43,7 @@ class PipelineStatusSchema(Schema):
   layout_options: Optional[list]
   global_layout: Optional[dict]
   interface_ir: Optional[list]
+  final_metadata: Optional[dict]
 
 
 class ErrorSchema(Schema):
@@ -66,12 +67,84 @@ def _state_to_status(thread_id: str, state: dict) -> dict:
     "layout_options": state.get("layout_options"),
     "global_layout": state.get("global_layout"),
     "interface_ir": state.get("interface_ir"),
+    "final_metadata": state.get("final_metadata"),
   }
+
+
+def _sync_derived_outputs(state: dict) -> dict:
+  from generator.agents.nodes import interface_mapper_node, metadata_export_node
+
+  typed_state = cast(Any, state)
+  mapped = interface_mapper_node(typed_state)
+  merged_state = {**state, **mapped}
+  exported = metadata_export_node(cast(Any, merged_state))
+  return {**mapped, **exported}
+
+
+def _preview_source_from_final_metadata(state: dict) -> tuple[list, dict | None, dict]:
+  final_metadata = state.get("final_metadata") or {}
+  interfaces = final_metadata.get("interfaces") or []
+  if not isinstance(interfaces, list) or not interfaces:
+    return [], None, {}
+
+  apps: list[dict] = []
+  theme: dict | None = None
+  global_layout: dict = {}
+
+  for iface in interfaces:
+    if not isinstance(iface, dict):
+      continue
+    data = iface.get("data") or {}
+    pages: list[dict] = []
+    for page in data.get("pages") or []:
+      if not isinstance(page, dict):
+        continue
+      pages.append({
+        "name": page.get("name", ""),
+        "type": (page.get("type") or {}).get("value", "normal"),
+        "activity_name": (page.get("action") or {}).get("label"),
+        "category": page.get("category"),
+        "renderAst": page.get("renderAst") or page.get("ast") or [],
+        "semanticAst": page.get("semanticAst") or {},
+        "ast": page.get("renderAst") or page.get("ast") or [],
+      })
+
+    if not pages:
+      component_schema = data.get("componentSchema") or {}
+      pages = component_schema.get("pages") or []
+    actor_id = str(iface.get("actor") or iface.get("actor_id") or "")
+    actor_name = iface.get("name") or iface.get("actor_name") or actor_id
+
+    if pages:
+      apps.append({
+        "actor_id": actor_id,
+        "actor_name": actor_name,
+        "pages": pages,
+      })
+
+    if theme is None and isinstance(data.get("theme"), dict):
+      theme = data.get("theme")
+
+    layout = data.get("layout") or {}
+    selected_layout = layout.get("selected") or {}
+    if not global_layout and isinstance(selected_layout, dict):
+      global_layout = selected_layout
+
+  return apps, theme, global_layout
+
+
+def _resolve_preview_inputs(state: dict) -> tuple[list, dict | None, dict]:
+  apps, theme, global_layout = _preview_source_from_final_metadata(state)
+  if apps:
+    return apps, theme or state.get("theme"), global_layout or (state.get("global_layout") or {})
+
+  ui_ir = (state.get("ui_design") or {}).get("ui_ir") or state.get("page_ir") or {}
+  return ui_ir.get("apps", []), state.get("theme"), state.get("global_layout") or {}
 
 
 def _collect_page_ast_nodes(page: dict) -> list:
   """Collect renderable AST nodes from either legacy or region-based page schemas."""
-  ast = page.get("ast", []) or []
+  ast = page.get("renderAst", []) or page.get("ast", []) or []
   if ast:
     return ast
 
@@ -419,7 +492,8 @@ def select_layout(request, thread_id: str, body: SelectLayoutSchema):
         merged_tokens = {**((current_theme.get("tokens") or {})), **option_tokens}
         updates["theme"] = {**current_theme, "tokens": merged_tokens, "strict_dynamic": True}
 
-    pipeline.update_state(config, updates)
+    derived_updates = _sync_derived_outputs({**snapshot.values, **updates})
+    pipeline.update_state(config, {**updates, **derived_updates})
     snapshot = pipeline.get_state(config)
     return 200, _state_to_status(thread_id, snapshot.values)
 
@@ -445,7 +519,7 @@ def refine_pipeline(request, thread_id: str, body: RefineSchema):
     state["refine_prompt"] = body.prompt
 
     # ── 1. Re-run theme node ──────────────────────────────────────────────────
-    new_theme = _theme_node(state)
+    new_theme = _theme_node(cast(Any, state))
     if isinstance(new_theme, dict) and isinstance(new_theme.get("theme"), dict):
       new_theme["theme"] = {**new_theme["theme"], "strict_dynamic": True}
 
@@ -485,7 +559,8 @@ def refine_pipeline(request, thread_id: str, body: RefineSchema):
             logging.getLogger(__name__).warning("layout agent failed: %s", exc)
 
     # ── 3. Persist updates back into the LangGraph checkpoint ────────────────
-    pipeline.update_state(config, {**new_theme, **new_layout})
+    derived_updates = _sync_derived_outputs({**state, **new_theme, **new_layout})
+    pipeline.update_state(config, {**new_theme, **new_layout, **derived_updates})
 
     snapshot = pipeline.get_state(config)
     return 200, _state_to_status(thread_id, snapshot.values)
@@ -509,9 +584,7 @@ def emit_pipeline_templates(request, thread_id: str):
     state = snapshot.values
     system_id = state.get("system_id", "unknown")
 
-    # Mirror preview: use ui_ir directly (LLM output with ASTs)
-    ui_ir = (state.get("ui_design") or {}).get("ui_ir") or state.get("page_ir") or {}
-    apps = ui_ir.get("apps", [])
+    apps, preview_theme, preview_layout = _resolve_preview_inputs(state)
 
     # Actor name lookup from parser_dsl (same as preview)
     parser_dsl = state.get("parser_dsl") or {}
@@ -566,10 +639,51 @@ def emit_pipeline_templates(request, thread_id: str):
             nav_html = "\n      ".join(nav_items)
 
             # ── Body content (same render logic as preview) ────────────────
-            body_html = _render_page_body(page, theme=state.get("theme"))
-            surface_class = _preview_surface_class(page, theme=state.get("theme"))
-            body_class = _page_body_class(state.get("theme"))
-            main_class = _page_main_class(state.get("theme"), page)
+            body_html = _render_page_body(page, theme=preview_theme)
+            surface_class = _preview_surface_class(page, theme=preview_theme)
+            body_class = _page_body_class(preview_theme)
+            main_class = _page_main_class(preview_theme, page)
+
+            def _elements_at(pos: str) -> str:
+                parts = [
+                    v["html"] for v in preview_layout.values()
+                    if isinstance(v, dict) and v.get("position") == pos and v.get("html")
+                ]
+                return "\n      ".join(parts)
+
+            top_html = _elements_at("top")
+            left_html = _elements_at("left")
+            right_html = _elements_at("right")
+            bottom_html = _elements_at("bottom")
+
+            if left_html or right_html:
+                page_shell = f"""{top_html}
+  <div class=\"flex min-h-0 flex-1\">
+    {left_html}
+    <main class=\"flex-1 {main_class}\">
+      <div class=\"{surface_class}\">
+        <header class=\"mb-6 pb-4 border-b border-gray-100\">
+          <h2 class=\"text-2xl font-bold text-gray-900\">{page_name}</h2>
+          <p class=\"text-sm text-gray-500 mt-1\">{actor_dir} &mdash; {project_name}</p>
+        </header>
+        {body_html}
+      </div>
+    </main>
+    {right_html}
+  </div>
+  {bottom_html}"""
+            else:
+                page_shell = f"""{top_html}
+  <main class=\"{main_class}\">
+    <div class=\"{surface_class}\">
+      <header class=\"mb-6 pb-4 border-b border-gray-100\">
+        <h2 class=\"text-2xl font-bold text-gray-900\">{page_name}</h2>
+        <p class=\"text-sm text-gray-500 mt-1\">{actor_dir} &mdash; {project_name}</p>
+      </header>
+      {body_html}
+    </div>
+  </main>
+  {bottom_html}"""
 
             # ── Full standalone HTML identical to preview layout ───────────
             full_html = f"""<!DOCTYPE html>
@@ -589,15 +703,7 @@ def emit_pipeline_templates(request, thread_id: str):
       <a href="/logout/" class="text-sm text-red-500 hover:underline">Logout</a>
     </nav>
   </header>
-  <main class="{main_class}">
-    <div class="{surface_class}">
-      <header class="mb-6 pb-4 border-b border-gray-100">
-        <h2 class="text-2xl font-bold text-gray-900">{page_name}</h2>
-        <p class="text-sm text-gray-500 mt-1">{actor_dir} &mdash; {project_name}</p>
-      </header>
-      {body_html}
-    </div>
-  </main>
+  {page_shell}
 </body>
 </html>"""
 
@@ -670,7 +776,7 @@ def emit_pipeline_templates(request, thread_id: str):
 
 
 @pipeline_router.get("/{thread_id}/preview/", auth=None)
-def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str = None):
+def preview_pipeline_html(request, thread_id: str, actor: Optional[str] = None, page: Optional[str] = None):
     """Render pages from the pipeline's ui_ir AST as viewable HTML.
 
     Without params        → index: list all actors with links.
@@ -682,8 +788,7 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
         return HttpResponse("<h1>Thread not found</h1>", status=404, content_type="text/html")
 
     state = snapshot.values
-    ui_ir = (state.get("ui_design") or {}).get("ui_ir") or state.get("page_ir") or {}
-    apps = ui_ir.get("apps", [])
+    apps, preview_theme, preview_layout = _resolve_preview_inputs(state)
     project_name = state.get("project_name", thread_id)
 
     # Build actor id → name lookup from parser_dsl
@@ -703,12 +808,12 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
             return HttpResponse(f"<h1>Page '{page}' not found</h1>", status=404, content_type="text/html")
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
-        body = _render_page_body(page_data, theme=state.get("theme"))
-        surface_class = _preview_surface_class(page_data, theme=state.get("theme"))
-        body_class = _page_body_class(state.get("theme"))
-        main_class = _page_main_class(state.get("theme"), page_data)
+        body = _render_page_body(page_data, theme=preview_theme)
+        surface_class = _preview_surface_class(page_data, theme=preview_theme)
+        body_class = _page_body_class(preview_theme)
+        main_class = _page_main_class(preview_theme, page_data)
 
-        global_layout = state.get("global_layout") or {}
+        global_layout = preview_layout or {}
 
         def _elements_at(pos: str) -> str:
             """Concatenate HTML for all layout elements at the given position."""
@@ -765,9 +870,9 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
             return HttpResponse(f"<h1>Actor '{actor}' not found</h1>", status=404, content_type="text/html")
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
-        body_class = _page_body_class(state.get("theme"))
-        list_main_class = _preview_list_main_class(state.get("theme"))
-        card_class = _preview_list_card_class(state.get("theme"))
+        body_class = _page_body_class(preview_theme)
+        list_main_class = _preview_list_main_class(preview_theme)
+        card_class = _preview_list_card_class(preview_theme)
         cards_html = ""
         for p in app.get("pages", []):
             page_name = p.get("name", "Page")
@@ -807,9 +912,9 @@ def preview_pipeline_html(request, thread_id: str, actor: str = None, page: str 
 
     # ── Index page — list all actors ──────────────────────────────────────────
     cards_html = ""
-    body_class = _page_body_class(state.get("theme"))
-    list_main_class = _preview_list_main_class(state.get("theme"))
-    card_class = _preview_list_card_class(state.get("theme"))
+    body_class = _page_body_class(preview_theme)
+    list_main_class = _preview_list_main_class(preview_theme)
+    card_class = _preview_list_card_class(preview_theme)
     for app in apps:
         actor_id = app.get("actor_id", "unknown")
         actor_name = app.get("actor_name") or actor_name_map.get(actor_id, actor_id)

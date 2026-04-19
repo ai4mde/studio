@@ -1,32 +1,76 @@
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{%- set tokens = theme.get('tokens', {}) if theme else {} -%}
+{%- set has_theme = tokens | length > 0 -%}
+
+{#- ── BREADCRUMBS ── #}
+{% raw %}{% block breadcrumbs %}{% endraw %}
+{% if page.category %}<span class="breadcrumb-sep">/</span><span>{{ page.category }}</span>{% endif %}
+<span class="breadcrumb-sep">/</span><span class="breadcrumb-current">{{ page.display_name }}</span>
+{% raw %}{% endblock %}{% endraw %}
+
 {% raw %}{% block content %}{% endraw %}
 
 
-<div>
+<div{% if has_theme %} class="{{ tokens.get('page.surface', '') }}"{% endif %}>
     {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
-    {%- for section_component in page.section_components %}
 
-    {% if page.type != 'activity' %}<h2>{{ section_component.display_name }}</h2>{% endif %}
-
-    {% if page.type == 'activity' %}
-        <p>{{ loop.index }}. {{ section_component.text}}</p>
-    {% else  %}
-        <p>{{ section_component.text}}</p>
+    {#- ── TABS (when multiple sections) ── #}
+    {% if page.section_components | length > 1 and page.type != 'activity' %}
+    <div class="tabs" role="tablist">
+        {% for section_component in page.section_components %}
+        <button class="tab-btn{% if loop.first %} tab-active{% endif %}"
+                role="tab"
+                aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+                data-tab="tab-{{ loop.index }}">
+            {{ section_component.display_name }}
+        </button>
+        {% endfor %}
+    </div>
     {% endif %}
 
+    {%- for section_component in page.section_components %}
+
+    {#- ── TAB PANEL WRAPPER ── #}
+    {% if page.section_components | length > 1 and page.type != 'activity' %}
+    <div class="tab-panel{% if loop.first %} tab-panel-active{% endif %}" id="tab-{{ loop.index }}" role="tabpanel">
+    {% endif %}
+
+    {#- ── SECTION HEADER (with accordion toggle) ── #}
+    {% if page.type != 'activity' %}
+    <div class="section-header" data-accordion="section-body-{{ loop.index }}">
+        <h2{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ section_component.display_name }}</h2>
+        <span class="accordion-icon">&#9660;</span>
+    </div>
+    {% else %}
+        <p>{{ loop.index }}. {{ section_component.text}}</p>
+    {% endif %}
+
+    <div class="section-body{% if has_theme %} {{ tokens.get('component.card', '') }}{% endif %}" id="section-body-{{ loop.index }}">
+    {% if page.type != 'activity' and section_component.text %}
+    <p>{{ section_component.text}}</p>
+    {% endif %}
+
+    {#- ── SEARCH BAR ── #}
+    <div class="search-bar">
+        <input type="text" class="search-input" placeholder="Search..." data-table="table-{{ loop.index }}">
+    </div>
+
     {# TABLE WITH OBJECTS, UPDATE BUTTONS, DELETE BUTTONS -#}
-    <table>
+    <table id="table-{{ loop.index }}"{% if has_theme %} class="{{ tokens.get('component.table', '') }}"{% endif %}>
 
         {#- COLUMN HEADERS #}
+        <thead>
         <tr>
             {%- for attribute in section_component.attributes %}
-            <th>{{ attribute }}</th>
+            <th{% if has_theme %} class="{{ tokens.get('element.th', '') }}"{% endif %}>{{ attribute }}</th>
             {%- endfor %}
             {%- for parent_model in section_component.parent_models %}
-            <th>{{ parent_model }}</th>
+            <th{% if has_theme %} class="{{ tokens.get('element.th', '') }}"{% endif %}>{{ parent_model }}</th>
             {%- endfor %}
         </tr>
+        </thead>
 
+        <tbody>
         {#- ROWS #}
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
         <tr>
@@ -37,44 +81,59 @@
                 {% raw %}{% csrf_token %}{% endraw %}
                 {% for attribute in section_component.attributes %}
                 {% if attribute.updatable and not attribute.derived %}
-                <td style="text-align:center;">
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">
                     {% if attribute.type == AttributeType.STRING %}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                     
                     {%- elif attribute.type == AttributeType.INTEGER %}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}">
+                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+
+                    {%- elif attribute.type == AttributeType.FLOAT %}
+                    <input type="number" step="0.01" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                     
                     {%- elif attribute.type == AttributeType.BOOLEAN %}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}>
+                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %}{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                     
                     {%- elif attribute.type == AttributeType.ENUM %}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
+                    <select name="{{ attribute }}" id="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                         {% for literal in attribute.enum_literals %}
                             <option value="{{ literal }}">{{ literal }}</option>
                         {% endfor %}
                     </select>
+
+                    {%- elif attribute.type == AttributeType.DATE %}
+                    <input type="date" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+
+                    {%- elif attribute.type == AttributeType.DATETIME %}
+                    <input type="datetime-local" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|date:'Y-m-d\TH:i' {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+
+                    {%- elif attribute.type == AttributeType.TEXT %}
+                    <textarea name="{{ attribute }}" id="{{ attribute }}" rows="3"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}</textarea>
+
+                    {%- elif attribute.type == AttributeType.EMAIL %}
+                    <input type="email" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                     {%- endif %}
                 </td>
 
                 {% else %}
-                {% if attribute.type == AttributeType.STRING %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                {% if attribute.type in [AttributeType.STRING, AttributeType.INTEGER, AttributeType.FLOAT, AttributeType.ENUM, AttributeType.EMAIL, AttributeType.TEXT] %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
                 
-                {% elif attribute.type == AttributeType.INTEGER %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-
                 {% elif attribute.type == AttributeType.BOOLEAN %}
-                <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
-                
-                {% elif attribute.type == AttributeType.ENUM %}
-                <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
+
+                {% elif attribute.type == AttributeType.DATE %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}</td>
+
+                {% elif attribute.type == AttributeType.DATETIME %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d H:i' {% raw %}}}{% endraw %}</td>
 
                 {% endif -%}
                 {% endif -%}
                 {% endfor %}
                 {% for parent_model in section_component.parent_models %}
-                <td style="text-align:center;">
-                    <select name="{{ parent_model }}">
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">
+                    <select name="{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
                         {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
                         {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
                         {% raw %}{% endfor %}{% endraw %}
@@ -82,7 +141,7 @@
                 </td>
                 {% endfor %}
                 <td>
-                    <input type="submit" value="Save">
+                    <input type="submit" value="Save"{% if has_theme %} class="{{ tokens.get('component.button.primary', '') }}"{% endif %}>
                 </td>
                 <td>
                     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
@@ -93,22 +152,22 @@
             
             {#- ATTRIBUTE VALUES #}
             {% for attribute in section_component.attributes -%}
-            {% if attribute.type == AttributeType.STRING -%}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            {% if attribute.type in [AttributeType.STRING, AttributeType.INTEGER, AttributeType.FLOAT, AttributeType.ENUM, AttributeType.EMAIL, AttributeType.TEXT] -%}
+            <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
 
-            {%- elif attribute.type == AttributeType.INTEGER %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
-            
             {%- elif attribute.type == AttributeType.BOOLEAN %}
-            <td style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
+            <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
             
-            {%- elif attribute.type == AttributeType.ENUM %}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+            {%- elif attribute.type == AttributeType.DATE %}
+            <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}</td>
+
+            {%- elif attribute.type == AttributeType.DATETIME %}
+            <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d H:i' {% raw %}}}{% endraw %}</td>
 
             {% endif -%}
             {% endfor -%}
             {% for parent_model in section_component.parent_models -%}
-            <td style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
+            <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
             {% endfor -%}
             {% if section_component.has_update_operation -%}
             {% raw %}{% endif %}{% endraw %}
@@ -165,70 +224,91 @@
             {% endfor -%}
         </tr>
         {% raw %}{% endfor %}{% endraw %}
-
-        {# CREATE FORM -#}
-        {% if section_component.has_create_operation -%}
-        {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
-        <tr>
-            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post">
-                {% raw %}{% csrf_token %}{% endraw %}
-                {% for attribute in section_component.attributes -%}
-                {% if attribute.derived -%}
-                <td></td>
-                {% else -%}
-                <td style="text-align:center;">
-                    {% if attribute.type == AttributeType.STRING -%}
-                    <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.INTEGER -%}
-                    <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.BOOLEAN -%}
-                    <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}">
-                    {% elif attribute.type == AttributeType.ENUM -%}
-                    <select name="{{ attribute }}" id="{{ attribute }}">
-                        {% for literal in attribute.enum_literals %}
-                            <option value="{{ literal }}">{{ literal }}</option>
-                        {% endfor %}
-                    </select>
-                    
-                    {%- endif %}
-                </td>
-                {% endif -%}
-                {% endfor -%}
-                {% for parent_model in section_component.parent_models -%}
-                <td>
-                    <select name="{{ parent_model }}">
-                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
-                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
-                        {% raw %}{% endfor %}{% endraw %}
-                    </select>
-                </td>
-                {% endfor -%}
-                <td>
-                    <input type="submit" value="Save">
-                </td>
-                <td>
-                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}">Cancel</a>
-                </td>
-            </form>
-        </tr>
-        {% raw %}{% endif %}{% endraw %}
-        {%- endif %}
+        </tbody>
     </table>
 
-    {#- CREATE BUTTON #}
+    {#- ── PAGINATION ── #}
+    <div class="pagination" data-table="table-{{ loop.index }}">
+        <button class="page-btn page-prev" disabled>&laquo; Prev</button>
+        <span class="page-info">Page <span class="page-current">1</span></span>
+        <button class="page-btn page-next">Next &raquo;</button>
+    </div>
+
+    {#- ── CREATE BUTTON → opens modal ── #}
     {% if section_component.has_create_operation -%}
-    {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get">
-        <input type="hidden", name="create_{{ section_component }}" value="true">
-        <label style="cursor:pointer;">
-            <input type="submit" style="display:none;"/>
-            <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79086 21 3 19.2091 3 17V7C3 4.79086 4.79086 3 7 3H17C19.2091 3 21 4.79086 21 7V17C21 19.2091 19.2091 21 17 21Z" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-        </label>
-    </form>
-    {% raw %}{% endif %}{% endraw %}
+    <button class="create-open-btn" data-modal="modal-{{ loop.index }}">
+        <svg width="20px" height="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79086 21 3 19.2091 3 17V7C3 4.79086 4.79086 3 7 3H17C19.2091 3 21 4.79086 21 7V17C21 19.2091 19.2091 21 17 21Z" stroke="#000000" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Add {{ section_component.display_name }}
+    </button>
+
+    {#- ── MODAL FORM ── #}
+    <div class="modal-overlay" id="modal-{{ loop.index }}">
+        <div class="modal{% if has_theme %} {{ tokens.get('page.surface', '') }}{% endif %}">
+            <div class="modal-header">
+                <h3{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>Create {{ section_component.display_name }}</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post" class="modal-form{% if has_theme %} {{ tokens.get('region.form', '') }}{% endif %}">
+                    {% raw %}{% csrf_token %}{% endraw %}
+                    {% for attribute in section_component.attributes -%}
+                    {% if attribute.derived -%}
+                    {% else -%}
+                    <div class="form-group">
+                        <label for="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ attribute }}</label>
+                        {% if attribute.type == AttributeType.STRING -%}
+                        <input type="text" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.INTEGER -%}
+                        <input type="number" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.FLOAT -%}
+                        <input type="number" step="0.01" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.BOOLEAN -%}
+                        <input type="checkbox" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.ENUM -%}
+                        <select name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                            {% for literal in attribute.enum_literals %}
+                                <option value="{{ literal }}">{{ literal }}</option>
+                            {% endfor %}
+                        </select>
+                        {% elif attribute.type == AttributeType.DATE -%}
+                        <input type="date" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.DATETIME -%}
+                        <input type="datetime-local" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% elif attribute.type == AttributeType.TEXT -%}
+                        <textarea name="{{ attribute }}" id="create_{{ attribute }}" rows="3" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}></textarea>
+                        {% elif attribute.type == AttributeType.EMAIL -%}
+                        <input type="email" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {%- endif %}
+                    </div>
+                    {% endif -%}
+                    {% endfor -%}
+                    {% for parent_model in section_component.parent_models -%}
+                    <div class="form-group">
+                        <label for="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ parent_model }}</label>
+                        <select name="{{ parent_model }}" id="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                            {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                            {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                            {% raw %}{% endfor %}{% endraw %}
+                        </select>
+                    </div>
+                    {% endfor -%}
+                    <div class="modal-actions">
+                        <input type="submit" value="Save" class="btn-save{% if has_theme %} {{ tokens.get('component.button.primary', '') }}{% endif %}">
+                        <button type="button" class="btn-cancel modal-close{% if has_theme %} {{ tokens.get('component.button.secondary', '') }}{% endif %}">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     {%- endif %}
+
+    </div>{# /section-body #}
+
+    {% if page.section_components | length > 1 and page.type != 'activity' %}
+    </div>{# /tab-panel #}
+    {% endif %}
 
     {% endfor %}
 
@@ -243,5 +323,68 @@
     </div>
     {% endif %}
 </div>
+
+{#- ── JAVASCRIPT: tabs, search, pagination, modal, accordion ── #}
+<script>
+(function(){
+    /* Tabs */
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var tabId = this.getAttribute('data-tab');
+            this.closest('.tabs').querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('tab-active'); b.setAttribute('aria-selected','false'); });
+            this.classList.add('tab-active');
+            this.setAttribute('aria-selected','true');
+            document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('tab-panel-active'); });
+            document.getElementById(tabId).classList.add('tab-panel-active');
+        });
+    });
+    /* Search */
+    document.querySelectorAll('.search-input').forEach(function(input){
+        input.addEventListener('input', function(){
+            var q = this.value.toLowerCase();
+            var tableId = this.getAttribute('data-table');
+            var rows = document.querySelectorAll('#'+tableId+' tbody tr');
+            rows.forEach(function(row){ row.style.display = row.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none'; });
+        });
+    });
+    /* Pagination */
+    var PAGE_SIZE = 10;
+    document.querySelectorAll('.pagination').forEach(function(pag){
+        var tableId = pag.getAttribute('data-table');
+        var rows = document.querySelectorAll('#'+tableId+' tbody tr');
+        var currentPage = 1;
+        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        function render(){
+            rows.forEach(function(r,i){ r.style.display = (i >= (currentPage-1)*PAGE_SIZE && i < currentPage*PAGE_SIZE) ? '' : 'none'; });
+            pag.querySelector('.page-current').textContent = currentPage;
+            pag.querySelector('.page-prev').disabled = currentPage <= 1;
+            pag.querySelector('.page-next').disabled = currentPage >= totalPages;
+            if(rows.length <= PAGE_SIZE) pag.style.display = 'none';
+        }
+        pag.querySelector('.page-prev').addEventListener('click', function(){ if(currentPage>1){currentPage--;render();} });
+        pag.querySelector('.page-next').addEventListener('click', function(){ if(currentPage<totalPages){currentPage++;render();} });
+        render();
+    });
+    /* Modal */
+    document.querySelectorAll('.create-open-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){ document.getElementById(this.getAttribute('data-modal')).classList.add('modal-visible'); });
+    });
+    document.querySelectorAll('.modal-close').forEach(function(btn){
+        btn.addEventListener('click', function(){ this.closest('.modal-overlay').classList.remove('modal-visible'); });
+    });
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+        overlay.addEventListener('click', function(e){ if(e.target === this) this.classList.remove('modal-visible'); });
+    });
+    /* Accordion */
+    document.querySelectorAll('.section-header[data-accordion]').forEach(function(header){
+        header.addEventListener('click', function(){
+            var body = document.getElementById(this.getAttribute('data-accordion'));
+            var icon = this.querySelector('.accordion-icon');
+            if(body.classList.contains('section-body-collapsed')){ body.classList.remove('section-body-collapsed'); icon.textContent = '\u25BC'; }
+            else { body.classList.add('section-body-collapsed'); icon.textContent = '\u25B6'; }
+        });
+    });
+})();
+</script>
 
 {% raw %}{% endblock %}{% endraw %}

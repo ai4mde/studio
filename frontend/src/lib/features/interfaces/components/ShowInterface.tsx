@@ -8,14 +8,15 @@ import {
     TabPanel,
     Tabs,
 } from '@mui/joy';
-import { CircleUserRound, Save, Trash } from "lucide-react";
+import { CircleUserRound, Save, Trash, Wand2 } from "lucide-react";
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { Styling } from './Styling';
 import { Settings } from './Settings';
+import InterfaceGenerate from './InterfaceGenerate';
 
 
 type Props = {
@@ -27,6 +28,8 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const { data, isSuccess } = useInterface(app_comp);
     const navigate = useNavigate();
     const { systemId } = useParams();
+    const [searchParams] = useSearchParams();
+    const defaultTab = searchParams.get("tab") === "ai-generate" ? 6 : 0;
     const [isSaving, setIsSaving] = useState(false);
     //const actorId = data?.actor || '';
     //const [actor, isSuccessActor] = useActor(systemId, actorId);
@@ -103,7 +106,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             </button>
                         </div>
                     </div>
-                    <Tabs>
+                    <Tabs defaultValue={defaultTab}>
                         <TabList>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
@@ -111,6 +114,12 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Section Components</Tab>
                             <Tab>Styling</Tab>
                             <Tab>Settings</Tab>
+                            <Tab>
+                                <span className="flex items-center gap-1">
+                                    <Wand2 size={14} />
+                                    AI Generate
+                                </span>
+                            </Tab>
                         </TabList>
                         <TabPanel value={0}>
                             <p>Fragment</p>
@@ -129,6 +138,12 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         </TabPanel>
                         <TabPanel value={5}>
                             <Settings />
+                        </TabPanel>
+                        <TabPanel value={6}>
+                            <InterfaceGenerate
+                                interfaceId={app_comp}
+                                systemId={systemId || ""}
+                            />
                         </TabPanel>
                     </Tabs>
                 </>

@@ -15,7 +15,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes | rejectattr('derived') %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -33,8 +33,11 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.TEXT, AttributeType.EMAIL] -%}
         if not instance.{{ attribute }}:
+            instance.{{ attribute }} = None
+        {% elif attribute.type in [AttributeType.DATE, AttributeType.DATETIME] -%}
+        if not self.request.POST.get('{{ attribute }}'):
             instance.{{ attribute }} = None
         {% endif -%}
         {% endif -%}
@@ -59,7 +62,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes | rejectattr('derived') %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -77,8 +80,11 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% if not attribute.derived -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.TEXT, AttributeType.EMAIL] -%}
         if not instance.{{ attribute }}:
+            instance.{{ attribute }} = None
+        {% elif attribute.type in [AttributeType.DATE, AttributeType.DATETIME] -%}
+        if not self.request.POST.get('{{ attribute }}'):
             instance.{{ attribute }} = None
         {% endif -%}
         {% endif -%}

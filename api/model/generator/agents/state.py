@@ -58,5 +58,8 @@ class PipelineState(TypedDict):
     # ── Interface IR (deterministic conversion of ui_ir → legacy format) ───────
     interface_ir: Optional[list]      # [{actor_name, actor_id, data: {pages, sections, categories, styling, settings}}]
 
+    # ── Final metadata export (original metadata + enriched interfaces) ───────
+    final_metadata: Optional[dict]    # backward-compatible metadata payload with enriched interface data
+
     # ── Refinement input ─────────────────────────────────────────────────────
     refine_prompt: Optional[str]      # user-supplied prompt for re-generating the theme

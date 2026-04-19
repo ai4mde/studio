@@ -226,6 +226,7 @@ def build_data_styling() -> Dict[str, Any]:
         "textColor": "#000000",
         "accentColor": "#F5F5F4",
         "selectedStyle": "modern",
+        "selectedLayout": "sidebar_left",
         "backgroundColor": "#FFFFFF"
     }
 

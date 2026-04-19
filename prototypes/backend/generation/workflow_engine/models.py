@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import json
 import logging
@@ -5,14 +7,19 @@ from operator import eq, ne, lt, le, gt, ge
 import re
 from typing import NamedTuple, Union
 
+from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
 from django.db.models.query import QuerySet
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.core.exceptions import PermissionDenied, ValidationError
 
-from shared_models.models import User
+
+def _get_user():
+    return get_user_model()
+
 
 # Imports
 
@@ -108,7 +115,7 @@ class ActionNode(models.Model):
         if current_user and self.actor in current_user.roles:
             return current_user
 
-        users = User.objects.filter(**{f"is_{self.actor}": True})
+        users = _get_user().objects.filter(**{f"is_{self.actor}": True})
         # TODO: Implement a better distribution algorithm
         # For now, just return the first user that matches the actor
         next_user = users.first() if users.exists() else None
@@ -408,7 +415,7 @@ class ActiveProcessNode(models.Model):
     id = models.AutoField(primary_key=True)
     active_process = models.ForeignKey(ActiveProcess, on_delete=models.CASCADE)
     action_node = models.ForeignKey(ActionNode, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
 
     def reassign_user(self, new_user: User) -> None:
         """Reassign the current node to a new user."""
@@ -576,7 +583,7 @@ class ActionLog(models.Model):
 
     action_node = models.ForeignKey(ActionNode, related_name="action_logs", on_delete=models.CASCADE, null=True)
     active_process = models.ForeignKey(ActiveProcess, related_name="active_process_action_logs", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, related_name="action_logs", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="action_logs", on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Action log for {self.active_process} - {self.status} at {self.created_at}"

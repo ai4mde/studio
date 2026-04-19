@@ -4,6 +4,18 @@ import json
 from typing import Any, NamedTuple
 
 from utils.file_generation import write_to_file
+from utils.loading_json_utils import (
+    _classifier_lookup,
+    _edge_relation_data,
+    _edge_source_ref,
+    _edge_target_ref,
+    _interface_data,
+    _interface_label,
+    _node_classifier_data,
+    _node_classifier_ref,
+    _relation_lookup,
+    _relation_record_lookup,
+)
 from utils.sanitization import page_name_sanitization, app_name_sanitization
 
 
@@ -54,6 +66,9 @@ class ActivityDiagramParser:
 
     def __init__(self, metadata: dict[str, Any]):
         self.metadata = metadata
+        self.classifiers_by_id = _classifier_lookup(metadata)
+        self.relations_by_id = _relation_lookup(metadata)
+        self.relation_records_by_id = _relation_record_lookup(metadata)
         self.nodes: dict[str, Node] = {}
         self.action_nodes: dict[str, dict[str, Any]] = {}
         self.join_nodes: dict[str, dict[str, Any]] = {}
@@ -67,50 +82,79 @@ class ActivityDiagramParser:
     def actors(self) -> dict[str, str]:
         """Returns id of the actors associated with their name"""
         return {
-            actor_node['id']: app_name_sanitization(actor_node['cls']['name'])
+            actor_node['id']: app_name_sanitization(_node_classifier_data(actor_node, self.classifiers_by_id).get('name', ''))
             for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams'])
-            for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes'])
+            for actor_node in filter(lambda node: _node_classifier_data(node, self.classifiers_by_id).get('type') == 'actor', usecase_diagram['nodes'])
+            if _node_classifier_data(actor_node, self.classifiers_by_id).get('name')
         }
     
     @cached_property
     def interface_map(self) -> dict[str, str]:
         """Map from the action node UUID to a possible interface url"""
         return {
-            page['action']['value']: f"/{app_name_sanitization(interface['value']['name'])}/render_{app_name_sanitization(interface['value']['name'])}_{page_name_sanitization(page['name'])}"
+            page['action']['value']: f"/{app_name_sanitization(_interface_label(interface))}/render_{app_name_sanitization(_interface_label(interface))}_{page_name_sanitization(page['name'])}"
             for interface in self.metadata['interfaces']
-            for page in interface['value']['data']['pages']
-            if page['type']['value'] != 'normal'
+            for page in _interface_data(interface).get('pages', [])
+            if page.get('type', {}).get('value') != 'normal' and page.get('action', {}).get('value')
         }
 
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
         """Get the number of incoming edges for a node"""
         return sum(
-            1 for _ in filter(lambda edge: edge['target_ptr'] == target_id, edges)
+            1 for _ in filter(lambda edge: self._resolve_node_id_from_ref(edges[0].get('diagram'), _edge_target_ref(edge, self.relation_records_by_id)) == target_id, edges)
         )
+
+    def _get_diagram(self, diagram_id: str | None) -> dict[str, Any] | None:
+        if not diagram_id:
+            return None
+        return next((diagram for diagram in self.metadata['diagrams'] if diagram.get('id') == diagram_id), None)
+
+    def _resolve_node_id_from_ref(self, diagram_id: str | None, node_ref: str | None) -> str | None:
+        if not node_ref:
+            return None
+        diagram = self._get_diagram(diagram_id)
+        if not diagram:
+            return node_ref
+        for node in diagram.get('nodes', []):
+            if node.get('id') == node_ref or _node_classifier_ref(node) == node_ref:
+                return node.get('id')
+        return node_ref
 
     def find_node(self, nodes: list[dict[str, Any]], node_id: str) -> dict[str, Any]:
         """Find a node by its uuid in a list of nodes"""
-        filtered_nodes = list(filter(lambda node: node['id'] == node_id, nodes))
+        filtered_nodes = list(filter(lambda node: node['id'] == node_id or _node_classifier_ref(node) == node_id, nodes))
         if not filtered_nodes:
             raise ValueError(f"Node with id {node_id} not found")
         return filtered_nodes[0]
 
     def find_edges(self, edges: list[dict[str, Any]], source_id: str) -> list[Edge]:
         """Find all edges that have a given source Node"""
-        return [
-            Edge(
-                target_node=edge['target_ptr'],
-                condition=Condition(
-                    isElse=edge['rel']['condition']['isElse'],
-                    operator=edge['rel']['condition']['operator'],
-                    threshold=edge['rel']['condition']['threshold'],
-                    aggregator=edge['rel']['condition']['aggregator'],
-                    target_attribute=edge['rel']['condition']['target_attribute'],
-                    target_class_name=edge['rel']['condition']['target_class_name'],
-                    target_attribute_type=edge['rel']['condition']['target_attribute_type'],
-                ) if edge['rel']['condition'] else None,
-            ) for edge in filter(lambda edge: edge['source_ptr'] == source_id, edges)
-        ]
+        diagram_id = edges[0].get('diagram') if edges else None
+        out: list[Edge] = []
+        for edge in filter(
+            lambda edge: self._resolve_node_id_from_ref(diagram_id, _edge_source_ref(edge, self.relation_records_by_id)) == source_id,
+            edges,
+        ):
+            target_node = self._resolve_node_id_from_ref(diagram_id, _edge_target_ref(edge, self.relation_records_by_id))
+            if not target_node:
+                continue
+            edge_data = _edge_relation_data(edge, self.relations_by_id)
+            condition_data = edge_data.get('condition')
+            out.append(
+                Edge(
+                    target_node=target_node,
+                    condition=Condition(
+                        isElse=condition_data['isElse'],
+                        operator=condition_data['operator'],
+                        threshold=condition_data['threshold'],
+                        aggregator=condition_data['aggregator'],
+                        target_attribute=condition_data['target_attribute'],
+                        target_class_name=condition_data['target_class_name'],
+                        target_attribute_type=condition_data['target_attribute_type'],
+                    ) if condition_data else None,
+                )
+            )
+        return out
 
     def create_nodes(self, diagram: dict[str, Any], node_id: str) -> dict[str, Node] | None:
         """Create all nodes in the diagram recursively"""
@@ -122,17 +166,18 @@ class ActivityDiagramParser:
         current_node = self.find_node(diagram['nodes'], node_id)
         outgoing_edges = self.find_edges(diagram['edges'], node_id)
         incoming_edges_count = self._get_incoming_edges_count(diagram['edges'], node_id)
+        current_node_data = _node_classifier_data(current_node, self.classifiers_by_id)
 
         node = Node(
             id=current_node['id'],
-            name=current_node['cls'].get('name'),
-            type=current_node['cls']['type'],
-            actor_node=self.actors.get(current_node['cls'].get('actorNode')),
+            name=current_node_data.get('name'),
+            type=current_node_data['type'],
+            actor_node=self.actors.get(current_node_data.get('actorNode', '')) if current_node_data.get('actorNode') else None,
             next_nodes=[edge.target_node for edge in outgoing_edges],
             conditions=[edge.condition for edge in outgoing_edges],
             incoming_edges_count=incoming_edges_count,
             url=self.interface_map.get(current_node['id']),
-            custom_code=current_node['cls'].get('customCode'),
+            custom_code=current_node_data.get('customCode'),
         )
         self.nodes[node_id] = node
 
@@ -143,14 +188,15 @@ class ActivityDiagramParser:
 
     def parse_activity_diagram(self, diagram: dict[str, Any]) -> tuple[CronJob | None, dict[str, Node] | None]:
         """Parse an activity diagram starting from the initial node"""
-        start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
+        start_node = list(filter(lambda node: _node_classifier_data(node, self.classifiers_by_id).get('type') == 'initial', diagram['nodes']))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
         start_node = start_node[0]
+        start_node_data = _node_classifier_data(start_node, self.classifiers_by_id)
         cron_job = CronJob(
             process_id=self.process_id,
-            schedule=start_node['cls'].get('schedule', '')
-        ) if start_node['cls'].get('scheduled', False) and start_node['cls'].get('schedule', '') else None
+            schedule=start_node_data.get('schedule', '')
+        ) if start_node_data.get('scheduled', False) and start_node_data.get('schedule', '') else None
         return cron_job, self.create_nodes(diagram, start_node['id'])
 
     def parse_metadata(self) -> list[Diagram]:
@@ -248,7 +294,7 @@ class ActivityDiagramParser:
                 rule_entry["condition"] = condition._asdict()
 
             # Further flatten the next value if possible
-            if isinstance(next_value, list) and len(next_value) == 1 and set(rule_entry.keys()) & set(next_value[0].keys()) == set({"next"}):
+            if isinstance(next_value, list) and len(next_value) == 1 and isinstance(next_value[0], dict) and set(rule_entry.keys()) & set(next_value[0].keys()) == set({"next"}):
                 rule_entry = {
                     **rule_entry,
                     **next_value[0],

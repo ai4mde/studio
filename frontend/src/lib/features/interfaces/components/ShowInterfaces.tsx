@@ -1,12 +1,12 @@
 import { useAtom } from "jotai";
-import { Plus, PaintRoller, X, Sparkles, Loader2 } from "lucide-react";
+import { Plus, PaintRoller, X, Sparkles, Loader2, Wand2 } from "lucide-react";
 import React, { useState} from "react";
 import { createInterfaceAtom } from "../../browser/atoms";
 import { useInterfaces, useSystem } from "$browser/queries";
 import CreateInterface from "./CreateInterface";
 import useLocalStorage from './useLocalStorage';
 import { authAxios } from "$lib/features/auth/state/auth";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { Modal, ModalClose, ModalDialog, Divider, Button } from "@mui/joy";
 
 
@@ -17,6 +17,7 @@ type Props = {
 export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCreate] = useAtom(createInterfaceAtom);
     const { systemId } = useParams();
+    const navigate = useNavigate();
     const { data, isSuccess, refetch } = useInterfaces(systemId);
     const { data: systemData } = useSystem(systemId);
     const [, setStyling, ] = useLocalStorage('styling', '');
@@ -110,6 +111,16 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                                         {e.id.split("-").slice(-1)}
                                     </span>
                                 </a>
+                                <button
+                                    onClick={() => {
+                                        handleLoadInterface(e.data);
+                                        navigate(`/systems/${system}/interfaces/${e.id}?tab=ai-generate`);
+                                    }}
+                                    className="absolute bottom-1 left-1 p-1.5 rounded-md text-indigo-500 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+                                    title="AI Generate UI"
+                                >
+                                    <Wand2 size={16} />
+                                </button>
                                 <button
                                     onClick={() => openDeleteInterfaceModal(e.id)}
                                     className="absolute top-1 right-1 text-gray-500 hover:text-red-500"

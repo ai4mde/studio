@@ -3,15 +3,16 @@
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
-export METADATA="$4"
+export METADATA_ARG="$4"
 export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
+export PYTHON_BIN=/usr/src/.venv/bin/python
 
 export PYTHONPATH="${WORKDIR}/generation_scripts"
 
 # Global settings such as authentication go here
-export AUTH_PRESENT=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA")
+export AUTH_PRESENT=$(${PYTHON_BIN} "${WORKDIR}/generation_scripts/get_globals.py" get_auth "$METADATA_ARG")
 
 
 create_outdir() {
@@ -24,10 +25,10 @@ create_outdir() {
 create_new_django_project() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}"
     if [ -d "$PROJECT_NAME" ]; then
-        echo "Error: Directory with project name already exists."
-        exit 1
+        echo "Warning: Directory with project name already exists. Removing old version."
+        rm -rf "$PROJECT_NAME"
     fi
-    python -m django startproject "$PROJECT_NAME"
+    ${PYTHON_BIN} -m django startproject "$PROJECT_NAME"
 }
 
 update_django_project_settings() {
@@ -42,16 +43,16 @@ update_django_project_settings() {
 
 create_shared_models_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python -m django startapp "shared_models"
-    python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    ${PYTHON_BIN} -m django startapp "shared_models"
+    ${PYTHON_BIN} "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA_ARG" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['shared_models']" >> settings.py
 }
 
 create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python -m django startapp "workflow_engine"
-    python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
+    ${PYTHON_BIN} -m django startapp "workflow_engine"
+    ${PYTHON_BIN} "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA_ARG" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py
@@ -60,8 +61,8 @@ create_workflow_engine_app() {
 
 create_authentication_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python -m django startapp "authentication"
-    python "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    ${PYTHON_BIN} -m django startapp "authentication"
+    ${PYTHON_BIN} "${WORKDIR}/generation_scripts/generate_authentication.py" "$PROJECT_NAME" "$METADATA_ARG" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['authentication']" >> settings.py
     echo "LOGIN_URL = '/'" >> settings.py
@@ -71,8 +72,8 @@ create_authentication_app() {
 
 create_noauth_home_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python -m django startapp "noauth_home"
-    python "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM"
+    ${PYTHON_BIN} -m django startapp "noauth_home"
+    ${PYTHON_BIN} "${WORKDIR}/generation_scripts/generate_noauth_home.py" "$PROJECT_NAME" "$METADATA_ARG" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['noauth_home']" >> settings.py
     echo "urlpatterns += [path(\"\", include(\"noauth_home.urls\"))]" >> urls.py
@@ -93,13 +94,13 @@ create_new_django_app() {
         echo "Error: Directory with application component name already exists."
         exit 1
     fi
-    python -m django startapp "$app"
-    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    ${PYTHON_BIN} -m django startapp "$app"
+    ${PYTHON_BIN} "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA_ARG" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     update_global_app_settings "$app"
 }
 
 create_django_apps() {
-    applications=$(python "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA")
+    applications=$(${PYTHON_BIN} "${WORKDIR}/generation_scripts/get_globals.py" get_apps "$METADATA_ARG")
     
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     
@@ -117,15 +118,15 @@ create_django_apps() {
 
 run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python "manage.py" "makemigrations"
+    ${PYTHON_BIN} "manage.py" "makemigrations"
     cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
-    python "manage.py" "migrate"
+    ${PYTHON_BIN} "manage.py" "migrate"
 }
 
 add_cron_jobs() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python "manage.py" crontab remove 2>/dev/null || true
-    python "manage.py" crontab add
+    ${PYTHON_BIN} "manage.py" crontab remove 2>/dev/null || true
+    ${PYTHON_BIN} "manage.py" crontab add
 }
 
 generate_prototype() {

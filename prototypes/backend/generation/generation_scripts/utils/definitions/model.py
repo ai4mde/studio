@@ -27,6 +27,11 @@ class AttributeType(Enum):
     ENUM = 4
     FOREIGN_MODEL = 5
     NONE = 6
+    DATE = 7
+    TEXT = 8
+    FLOAT = 9
+    EMAIL = 10
+    DATETIME = 11
 
 
 class Cardinality(Enum):

@@ -10,6 +10,7 @@ import os
 import random
 import re
 import uuid as _uuid
+from copy import deepcopy
 from typing import List
 from urllib.request import Request, urlopen
 
@@ -2427,6 +2428,354 @@ def layout_options_node(state: PipelineState) -> dict:
 #    format compatible with the legacy Jinja2 prototype generator.
 # ──────────────────────────────────────────────────────────────────────────────
 
+_TAILWIND_HEX: dict[str, dict[int, str]] = {
+    "slate": {50: "#f8fafc", 100: "#f1f5f9", 200: "#e2e8f0", 300: "#cbd5e1", 400: "#94a3b8", 500: "#64748b", 600: "#475569", 700: "#334155", 800: "#1e293b", 900: "#0f172a", 950: "#020617"},
+    "gray": {50: "#f9fafb", 100: "#f3f4f6", 200: "#e5e7eb", 300: "#d1d5db", 400: "#9ca3af", 500: "#6b7280", 600: "#4b5563", 700: "#374151", 800: "#1f2937", 900: "#111827", 950: "#030712"},
+    "zinc": {50: "#fafafa", 100: "#f4f4f5", 200: "#e4e4e7", 300: "#d4d4d8", 400: "#a1a1aa", 500: "#71717a", 600: "#52525b", 700: "#3f3f46", 800: "#27272a", 900: "#18181b", 950: "#09090b"},
+    "neutral": {50: "#fafafa", 100: "#f5f5f5", 200: "#e5e5e5", 300: "#d4d4d4", 400: "#a3a3a3", 500: "#737373", 600: "#525252", 700: "#404040", 800: "#262626", 900: "#171717", 950: "#0a0a0a"},
+    "stone": {50: "#fafaf9", 100: "#f5f5f4", 200: "#e7e5e4", 300: "#d6d3d1", 400: "#a8a29e", 500: "#78716c", 600: "#57534e", 700: "#44403c", 800: "#292524", 900: "#1c1917", 950: "#0c0a09"},
+    "red": {50: "#fef2f2", 100: "#fee2e2", 200: "#fecaca", 300: "#fca5a5", 400: "#f87171", 500: "#ef4444", 600: "#dc2626", 700: "#b91c1c", 800: "#991b1b", 900: "#7f1d1d", 950: "#450a0a"},
+    "orange": {50: "#fff7ed", 100: "#ffedd5", 200: "#fed7aa", 300: "#fdba74", 400: "#fb923c", 500: "#f97316", 600: "#ea580c", 700: "#c2410c", 800: "#9a3412", 900: "#7c2d12", 950: "#431407"},
+    "amber": {50: "#fffbeb", 100: "#fef3c7", 200: "#fde68a", 300: "#fcd34d", 400: "#fbbf24", 500: "#f59e0b", 600: "#d97706", 700: "#b45309", 800: "#92400e", 900: "#78350f", 950: "#451a03"},
+    "yellow": {50: "#fefce8", 100: "#fef9c3", 200: "#fef08a", 300: "#fde047", 400: "#facc15", 500: "#eab308", 600: "#ca8a04", 700: "#a16207", 800: "#854d0e", 900: "#713f12", 950: "#422006"},
+    "lime": {50: "#f7fee7", 100: "#ecfccb", 200: "#d9f99d", 300: "#bef264", 400: "#a3e635", 500: "#84cc16", 600: "#65a30d", 700: "#4d7c0f", 800: "#3f6212", 900: "#365314", 950: "#1a2e05"},
+    "green": {50: "#f0fdf4", 100: "#dcfce7", 200: "#bbf7d0", 300: "#86efac", 400: "#4ade80", 500: "#22c55e", 600: "#16a34a", 700: "#15803d", 800: "#166534", 900: "#14532d", 950: "#052e16"},
+    "emerald": {50: "#ecfdf5", 100: "#d1fae5", 200: "#a7f3d0", 300: "#6ee7b7", 400: "#34d399", 500: "#10b981", 600: "#059669", 700: "#047857", 800: "#065f46", 900: "#064e3b", 950: "#022c22"},
+    "teal": {50: "#f0fdfa", 100: "#ccfbf1", 200: "#99f6e4", 300: "#5eead4", 400: "#2dd4bf", 500: "#14b8a6", 600: "#0d9488", 700: "#0f766e", 800: "#115e59", 900: "#134e4a", 950: "#042f2e"},
+    "cyan": {50: "#ecfeff", 100: "#cffafe", 200: "#a5f3fc", 300: "#67e8f9", 400: "#22d3ee", 500: "#06b6d4", 600: "#0891b2", 700: "#0e7490", 800: "#155e75", 900: "#164e63", 950: "#083344"},
+    "sky": {50: "#f0f9ff", 100: "#e0f2fe", 200: "#bae6fd", 300: "#7dd3fc", 400: "#38bdf8", 500: "#0ea5e9", 600: "#0284c7", 700: "#0369a1", 800: "#075985", 900: "#0c4a6e", 950: "#082f49"},
+    "blue": {50: "#eff6ff", 100: "#dbeafe", 200: "#bfdbfe", 300: "#93c5fd", 400: "#60a5fa", 500: "#3b82f6", 600: "#2563eb", 700: "#1d4ed8", 800: "#1e40af", 900: "#1e3a8a", 950: "#172554"},
+    "indigo": {50: "#eef2ff", 100: "#e0e7ff", 200: "#c7d2fe", 300: "#a5b4fc", 400: "#818cf8", 500: "#6366f1", 600: "#4f46e5", 700: "#4338ca", 800: "#3730a3", 900: "#312e81", 950: "#1e1b4b"},
+    "violet": {50: "#f5f3ff", 100: "#ede9fe", 200: "#ddd6fe", 300: "#c4b5fd", 400: "#a78bfa", 500: "#8b5cf6", 600: "#7c3aed", 700: "#6d28d9", 800: "#5b21b6", 900: "#4c1d95", 950: "#2e1065"},
+    "purple": {50: "#faf5ff", 100: "#f3e8ff", 200: "#e9d5ff", 300: "#d8b4fe", 400: "#c084fc", 500: "#a855f7", 600: "#9333ea", 700: "#7e22ce", 800: "#6b21a8", 900: "#581c87", 950: "#3b0764"},
+    "fuchsia": {50: "#fdf4ff", 100: "#fae8ff", 200: "#f5d0fe", 300: "#f0abfc", 400: "#e879f9", 500: "#d946ef", 600: "#c026d3", 700: "#a21caf", 800: "#86198f", 900: "#701a75", 950: "#4a044e"},
+    "pink": {50: "#fdf2f8", 100: "#fce7f3", 200: "#fbcfe8", 300: "#f9a8d4", 400: "#f472b6", 500: "#ec4899", 600: "#db2777", 700: "#be185d", 800: "#9d174d", 900: "#831843", 950: "#500724"},
+    "rose": {50: "#fff1f2", 100: "#ffe4e6", 200: "#fecdd3", 300: "#fda4af", 400: "#fb7185", 500: "#f43f5e", 600: "#e11d48", 700: "#be123c", 800: "#9f1239", 900: "#881337", 950: "#4c0519"},
+}
+
+_ROUNDING_TO_RADIUS = {
+    "rounded-none": 0,
+    "rounded-sm": 2,
+    "rounded": 4,
+    "rounded-md": 6,
+    "rounded-lg": 8,
+    "rounded-xl": 12,
+    "rounded-2xl": 16,
+    "rounded-3xl": 24,
+    "rounded-full": 999,
+}
+
+
+def _tailwind_token_to_hex(token: str) -> str | None:
+    match = re.search(
+        r"(?:bg|text|border|ring|from|to|via)-([a-z]+)-(50|100|200|300|400|500|600|700|800|900|950)\b",
+        token,
+    )
+    if not match:
+        return None
+    family = match.group(1)
+    scale = int(match.group(2))
+    return _TAILWIND_HEX.get(family, {}).get(scale)
+
+
+def _extract_first_hex_from_classes(raw: str, prefixes: tuple[str, ...]) -> str | None:
+    if not raw:
+        return None
+    for cls in raw.split():
+        if cls.startswith(prefixes):
+            value = _tailwind_token_to_hex(cls)
+            if value:
+                return value
+    return None
+
+
+def _extract_radius_from_classes(*class_values: str) -> int | None:
+    for raw in class_values:
+        if not raw:
+            continue
+        for cls in raw.split():
+            if cls in _ROUNDING_TO_RADIUS:
+                return _ROUNDING_TO_RADIUS[cls]
+    return None
+
+
+def _build_styling_summary(theme: dict | None) -> dict:
+    tokens = (theme or {}).get("tokens") or {}
+
+    page_body = tokens.get("page.body", "")
+    page_surface = tokens.get("page.surface", "")
+    button_primary = (
+        tokens.get("component.button.primary")
+        or tokens.get("element.button.primary")
+        or tokens.get("component.primary")
+        or ""
+    )
+    input_default = (
+        tokens.get("component.input.default")
+        or tokens.get("element.input.default")
+        or ""
+    )
+
+    background = _extract_first_hex_from_classes(page_body, ("bg-", "from-", "via-", "to-")) \
+        or _extract_first_hex_from_classes(page_surface, ("bg-",)) \
+        or "#FFFFFF"
+    text = _extract_first_hex_from_classes(page_body, ("text-",)) \
+        or _extract_first_hex_from_classes(page_surface, ("text-",)) \
+        or "#000000"
+    accent = _extract_first_hex_from_classes(button_primary, ("bg-", "border-", "ring-", "from-", "to-", "via-")) \
+        or _extract_first_hex_from_classes(input_default, ("ring-", "border-")) \
+        or "#777777"
+    radius = _extract_radius_from_classes(button_primary, input_default, page_surface) or 10
+
+    return {
+        "radius": radius,
+        "textColor": text,
+        "accentColor": accent,
+        "selectedStyle": (theme or {}).get("name") or "basic",
+        "backgroundColor": background,
+    }
+
+
+def _build_layout_payload(state: PipelineState) -> dict:
+    return {
+        "selected": state.get("global_layout") or {},
+        "options": state.get("layout_options") or [],
+    }
+
+
+def _build_designer_meta(state: PipelineState) -> dict:
+    theme = state.get("theme") or {}
+    return {
+        "source": "generator_pipeline",
+        "themeName": theme.get("name") or "default",
+        "strictDynamic": bool(theme.get("strict_dynamic", True)),
+        "refinePrompt": state.get("refine_prompt"),
+        "version": 1,
+    }
+
+
+def _build_component_schema(app: dict, generator_ast_by_page_id: dict[str, list[dict]] | None = None) -> dict:
+    generator_ast_by_page_id = generator_ast_by_page_id or {}
+    pages_out: list[dict] = []
+    for page in app.get("pages", []) or []:
+        page_id = page.get("page_id", "")
+        pages_out.append({
+            "page_id": page_id,
+            "name": page.get("name", ""),
+            "layout": deepcopy(page.get("layout") or {}),
+            "regions": deepcopy(page.get("regions") or []),
+            "renderAst": deepcopy(generator_ast_by_page_id.get(page_id) or page.get("renderAst") or page.get("ast") or []),
+            "ast": deepcopy(generator_ast_by_page_id.get(page_id) or page.get("renderAst") or page.get("ast") or []),
+            "semanticAst": deepcopy(page.get("semanticAst") or {}),
+        })
+    return {"pages": pages_out}
+
+
+def _build_generator_page_semantic_ast(page_name: str, page_type: str, sections: list[dict], activity_name: str | None = None) -> dict:
+    return {
+        "kind": f"page.{page_type}",
+        "name": page_name,
+        "activityName": activity_name,
+        "sections": [
+            {
+                "kind": "region.form" if (section.get("operations") or {}).get("create") or (section.get("operations") or {}).get("update") else "region.detail",
+                "entity": section.get("name", "Section"),
+                "entityRef": section.get("class"),
+                "operations": deepcopy(section.get("operations") or {}),
+                "fields": [
+                    {
+                        "kind": "component.field",
+                        "name": attr.get("name", "field"),
+                        "fieldType": attr.get("type", "str"),
+                        "derived": bool(attr.get("derived", False)),
+                    }
+                    for attr in (section.get("attributes") or [])
+                    if isinstance(attr, dict)
+                ],
+            }
+            for section in sections
+        ],
+    }
+
+
+def _build_generator_section_ast(section: dict) -> list[dict]:
+    attrs = [attr for attr in (section.get("attributes") or []) if isinstance(attr, dict)]
+    operations = section.get("operations") or {}
+
+    header_cells = [
+        {
+            "tag": "th",
+            "attrs": {"class": "border-b border-gray-200 px-3 py-2 text-left text-sm font-medium"},
+            "text": attr.get("name", "Field"),
+        }
+        for attr in attrs
+    ]
+    sample_cells = [
+        {
+            "tag": "td",
+            "attrs": {"class": "border-b border-gray-100 px-3 py-3 text-sm text-gray-500"},
+            "text": attr.get("name", "field"),
+        }
+        for attr in attrs
+    ]
+
+    badge_nodes: list[dict] = []
+    if operations.get("create"):
+        badge_nodes.append({"tag": "button", "variant": "primary", "attrs": {"disabled": "disabled", "type": "button"}, "text": "Create"})
+    if operations.get("update"):
+        badge_nodes.append({"tag": "button", "variant": "primary", "attrs": {"disabled": "disabled", "type": "button"}, "text": "Update"})
+    if operations.get("delete"):
+        badge_nodes.append({"tag": "button", "variant": "primary", "attrs": {"disabled": "disabled", "type": "button"}, "text": "Delete"})
+
+    section_children: list[dict] = [
+        {
+            "tag": "div",
+            "attrs": {"class": "flex items-start justify-between gap-4"},
+            "children": [
+                {
+                    "tag": "div",
+                    "children": [
+                        {"tag": "h3", "attrs": {"class": "text-lg font-semibold text-gray-900"}, "text": section.get("name", "Section")},
+                        *([
+                            {"tag": "p", "attrs": {"class": "mt-2 text-sm text-gray-500"}, "text": section.get("text", "")}
+                        ] if section.get("text") else []),
+                    ],
+                },
+                {
+                    "tag": "div",
+                    "attrs": {"class": "flex flex-wrap gap-2"},
+                    "children": badge_nodes,
+                },
+            ],
+        },
+        {
+            "tag": "div",
+            "attrs": {"class": "mt-4 overflow-x-auto"},
+            "children": [
+                {
+                    "tag": "table",
+                    "variant": "default",
+                    "children": [
+                        {"tag": "thead", "children": [{"tag": "tr", "children": header_cells}]},
+                        {"tag": "tbody", "children": [{"tag": "tr", "children": sample_cells}]},
+                    ],
+                }
+            ],
+        },
+    ]
+
+    if operations.get("create") or operations.get("update"):
+        form_fields = []
+        for attr in attrs[:4]:
+            if attr.get("derived"):
+                continue
+            form_fields.append({
+                "tag": "label",
+                "attrs": {"class": "block text-sm font-medium text-gray-600"},
+                "children": [
+                    {"tag": "span", "attrs": {"class": "mb-1 block"}, "text": attr.get("name", "Field")},
+                    {
+                        "tag": "input",
+                        "variant": "default",
+                        "attrs": {
+                            "placeholder": attr.get("name", "Field"),
+                            "disabled": "disabled",
+                            "type": "text",
+                        },
+                    },
+                ],
+            })
+
+        if form_fields:
+            section_children.append({
+                "tag": "div",
+                "attrs": {"class": "mt-5 grid gap-4 md:grid-cols-2"},
+                "children": form_fields,
+            })
+
+    return [{
+        "tag": "section",
+        "variant": "detail" if not (operations.get("create") or operations.get("update")) else "form",
+        "attrs": {"class": "mb-6"},
+        "children": section_children,
+    }]
+
+
+def _build_generator_page_ast(page_name: str, page_type: str, sections: list[dict], activity_name: str | None = None) -> list[dict]:
+    page_children: list[dict] = []
+    title = activity_name if page_type == "activity" and activity_name else page_name
+    if title:
+        page_children.append({
+            "tag": "h2",
+            "attrs": {"class": "mb-6 text-2xl font-bold text-gray-900"},
+            "text": title,
+        })
+
+    for section in sections:
+        page_children.extend(_build_generator_section_ast(section))
+
+    if page_type == "activity":
+        page_children.append({
+            "tag": "div",
+            "attrs": {"class": "mt-6 flex justify-end"},
+            "children": [
+                {"tag": "button", "variant": "primary", "attrs": {"disabled": "disabled", "type": "button"}, "text": "Complete task"},
+            ],
+        })
+
+    if not page_children:
+        page_children.append({
+            "tag": "div",
+            "variant": "detail",
+            "children": [
+                {"tag": "p", "attrs": {"class": "text-sm text-gray-500"}, "text": "No sections generated yet."},
+            ],
+        })
+
+    return page_children
+
+
+def _build_final_metadata(state: PipelineState, interfaces: list[dict]) -> dict:
+    metadata_str = state.get("metadata", "")
+    try:
+        metadata = json.loads(metadata_str) if metadata_str else {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+    except (json.JSONDecodeError, TypeError):
+        metadata = {}
+
+    final_metadata = deepcopy(metadata)
+    existing_interfaces = final_metadata.get("interfaces") or []
+    existing_by_actor: dict[str, dict] = {}
+    existing_by_name: dict[str, dict] = {}
+    if isinstance(existing_interfaces, list):
+        for iface in existing_interfaces:
+            if not isinstance(iface, dict):
+                continue
+            actor_id = iface.get("actor")
+            name = iface.get("name")
+            if actor_id:
+                existing_by_actor[str(actor_id)] = iface
+            if name:
+                existing_by_name[str(name)] = iface
+
+    exported_interfaces: list[dict] = []
+    for iface in interfaces:
+        actor_id = iface.get("actor_id", "")
+        actor_name = iface.get("actor_name", actor_id)
+        existing = existing_by_actor.get(str(actor_id)) or existing_by_name.get(str(actor_name)) or {}
+        exported_interfaces.append({
+            "id": existing.get("id") or str(_uuid.uuid4()),
+            "name": existing.get("name") or actor_name,
+            "description": existing.get("description") or f"Generated from pipeline for {actor_name}",
+            "actor": existing.get("actor") or actor_id,
+            "system": existing.get("system") or final_metadata.get("id") or state.get("system_id", ""),
+            "data": iface.get("data", {}),
+        })
+
+    final_metadata["interfaces"] = exported_interfaces
+    return final_metadata
+
 def interface_mapper_node(state: PipelineState) -> dict:
     """Convert pipeline ui_ir → system Interface JSON format (per actor).
 
@@ -2445,6 +2794,16 @@ def interface_mapper_node(state: PipelineState) -> dict:
     ui_ir = (state.get("ui_design") or {}).get("ui_ir") or state.get("page_ir") or {}
     page_ir = state.get("page_ir") or {}
     metadata_str = state.get("metadata", "")
+    theme = state.get("theme") or {}
+    layout_payload = _build_layout_payload(state)
+    designer_meta = _build_designer_meta(state)
+    styling = _build_styling_summary(theme)
+    parser_dsl = state.get("parser_dsl") or {}
+    actor_name_map = {
+        actor.get("id", ""): actor.get("name", actor.get("id", ""))
+        for actor in (parser_dsl.get("actors") or [])
+        if isinstance(actor, dict)
+    }
 
     # ── Parse metadata for full attribute definitions ──────────────────────
     try:
@@ -2512,9 +2871,11 @@ def interface_mapper_node(state: PipelineState) -> dict:
 
     for app in ui_ir.get("apps", []):
         actor_id = app.get("actor_id", "")
-        actor_name = app.get("actor_name", "")
+        actor_name = app.get("actor_name") or actor_name_map.get(actor_id, "")
         pages_out: list[dict] = []
         sections_out: list[dict] = []
+        generator_ast_by_page_id: dict[str, list[dict]] = {}
+        semantic_ast_by_page_id: dict[str, dict] = {}
 
         for page in app.get("pages", []):
             pid = page.get("page_id", "")
@@ -2522,6 +2883,7 @@ def interface_mapper_node(state: PipelineState) -> dict:
             contracts = page_contracts.get(pid, [])
             actions = page_actions.get(pid, [])
             modes = page_field_modes.get(pid, {})
+            page_sections_data: list[dict] = []
 
             # Group contracts by entity_id to create sections
             entity_groups: dict[str, list[dict]] = {}
@@ -2606,6 +2968,15 @@ def interface_mapper_node(state: PipelineState) -> dict:
                         "operations": sec_ops,
                     })
 
+                    page_sections_data.append({
+                        "id": section_id,
+                        "name": sec_name,
+                        "text": "",
+                        "class": entity_id,
+                        "attributes": deepcopy(sec_attrs),
+                        "operations": deepcopy(sec_ops),
+                    })
+
                     page_section_refs.append({
                         "label": sec_name,
                         "value": section_id,
@@ -2633,6 +3004,21 @@ def interface_mapper_node(state: PipelineState) -> dict:
             if actions and actions[0].get("action_name"):
                 display_name = actions[0]["action_name"]
 
+            generator_page_ast = _build_generator_page_ast(
+                display_name,
+                page_type["value"],
+                page_sections_data,
+                action_ref["label"] if action_ref else None,
+            )
+            generator_page_semantic_ast = _build_generator_page_semantic_ast(
+                display_name,
+                page_type["value"],
+                page_sections_data,
+                action_ref["label"] if action_ref else None,
+            )
+            generator_ast_by_page_id[pid] = deepcopy(generator_page_ast)
+            semantic_ast_by_page_id[pid] = deepcopy(generator_page_semantic_ast)
+
             pages_out.append({
                 "id": str(_uuid.uuid4()),
                 "name": display_name,
@@ -2640,17 +3026,17 @@ def interface_mapper_node(state: PipelineState) -> dict:
                 "action": action_ref,
                 "category": None,
                 "sections": page_section_refs,
+                "renderAst": generator_page_ast,
+                "semanticAst": generator_page_semantic_ast,
+                "ast": generator_page_ast,
             })
 
-        # Default styling & settings
-        styling = {
-            "radius": 10,
-            "textColor": "#000000",
-            "accentColor": "#777777",
-            "selectedStyle": "basic",
-            "backgroundColor": "#FFFFFF",
-        }
         settings = {"managerAccess": False}
+        component_schema = _build_component_schema(app, generator_ast_by_page_id)
+        for page in component_schema.get("pages", []):
+            page_id = page.get("page_id", "")
+            if page_id in semantic_ast_by_page_id:
+                page["semanticAst"] = deepcopy(semantic_ast_by_page_id[page_id])
 
         interfaces.append({
             "actor_name": actor_name,
@@ -2660,10 +3046,22 @@ def interface_mapper_node(state: PipelineState) -> dict:
                 "sections": sections_out,
                 "categories": [],
                 "styling": styling,
+                "theme": deepcopy(theme),
+                "layout": deepcopy(layout_payload),
+                "designerMeta": deepcopy(designer_meta),
+                "componentSchema": component_schema,
                 "settings": settings,
             },
         })
 
     logger.info("interface_mapper_node: generated %d interfaces", len(interfaces))
     return {"interface_ir": interfaces}
+
+
+def metadata_export_node(state: PipelineState) -> dict:
+    """Merge enriched interface data back into the original metadata payload."""
+    interfaces = state.get("interface_ir") or []
+    final_metadata = _build_final_metadata(state, interfaces)
+    logger.info("metadata_export_node: exported metadata with %d interfaces", len(final_metadata.get("interfaces") or []))
+    return {"final_metadata": final_metadata}
 

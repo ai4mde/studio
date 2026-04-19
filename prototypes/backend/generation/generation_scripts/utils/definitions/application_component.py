@@ -15,6 +15,8 @@ class ApplicationComponent():
         categories: List[str],
         pages: List[Page],
         styling: Styling,
+        theme: dict | None,
+        theme_summary: dict | None,
         settings: Settings,
         authentication_present: bool = True,
     ):
@@ -24,6 +26,8 @@ class ApplicationComponent():
         self.categories = categories
         self.pages = pages
         self.styling = styling
+        self.theme = theme or {}
+        self.theme_summary = theme_summary or {}
         self.settings = settings
         self.authentication_present = authentication_present # TODO: maybe put this in a global settings object
 

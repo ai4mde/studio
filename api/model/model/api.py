@@ -25,7 +25,7 @@ class GetTokenSchema(Schema):
     password: str
 
 
-@api.post("/auth/token", auth=None, tags=["authentication"])
+@api.post("/auth/token", auth=None, tags=["authentication"], response={200: dict, 403: dict})
 def get_token(request, body: GetTokenSchema, response: HttpResponse):
     user, token = create_token(body.username, body.password)
     if user and token:
@@ -49,7 +49,7 @@ def logout(request, response: HttpResponse):
     return {"message": "Logged out."}
 
 
-@api.get("/auth/status", tags=["authentication"])
+@api.get("/auth/status", tags=["authentication"], response={200: dict, 403: dict})
 def get_auth(request):
     if user := request.auth:
         return 200, {

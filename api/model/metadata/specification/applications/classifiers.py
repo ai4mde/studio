@@ -57,7 +57,8 @@ class SectionComponent(NamedElement, BaseModel):
 
 class Styling(BaseModel):
     logo: str = "" # TODO: define logo's somewhere
-    type: Literal["basic", "moden", "abstract", ] = "basic"
+    type: Literal["basic", "modern", "abstract", "elegant", "brutalist", "glassmorphism", "dark"] = "basic"
+    layout: Literal["sidebar_left", "sidebar_right", "top_nav", "top_nav_sidebar"] = "sidebar_left"
     radius: int = 10
     text_color: str = "#000000"
     accent_color: str = "#C2C2C2"

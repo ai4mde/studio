@@ -590,3 +590,138 @@ Return ONLY valid JSON:
 
 Return ONLY valid JSON. Zero explanation. Zero markdown outside the JSON.
 '''
+
+
+# ── Interface variant generation (3 variants from designer prompt) ────────────
+
+AGENT_INTERFACE_VARIANTS = """You are a UI theme designer generating 3 distinct interface style variants for a web application.
+
+The UI designer has provided this direction:
+{designer_prompt}
+
+SYSTEM: {system_name}
+INTERFACE: {interface_name} (Actor: {actor_name})
+
+CURRENT PAGE STRUCTURE:
+{page_structure}
+
+YOUR TASK:
+Generate 3 visually distinct theme variants based on the designer's prompt. Each variant should:
+1. Have a very different visual identity (color palette, typography feel, spacing, shadows)
+2. Be cohesive and professional
+3. Follow the designer's intent from their prompt
+4. Include all necessary Tailwind CSS tokens for rendering
+
+The variants should cover a range of aesthetics — e.g. one might be minimal/clean, another bold/colorful,
+another dark/sophisticated — while all respecting the designer's direction.
+
+TOKEN KEY NAMING:
+  page.body       — <body> classes: background, text color, font family
+  page.main       — <main> wrapper: max-width, padding, margin
+  page.surface    — content card: rounded, bg, shadow, border, padding
+  component.button.primary   — primary action buttons
+  component.button.secondary — secondary buttons
+  component.card             — card containers
+  component.table            — data tables
+  element.input.editable     — form inputs (text, email, etc.)
+  element.input.readonly     — readonly display fields
+  element.label              — form labels
+  element.heading            — section headings
+  element.th                 — table header cells
+  element.td                 — table body cells
+  region.form                — form wrapper region
+  region.header              — page header region
+  region.nav                 — navigation region
+  region.sidebar             — sidebar region
+
+OUTPUT FORMAT — return ONLY valid JSON:
+{{
+  "variants": [
+    {{
+      "id": "variant_1",
+      "name": "<descriptive name, e.g. 'Arctic Minimal'>",
+      "description": "<2-sentence description of the visual style>",
+      "tokens": {{
+        "page.body": "<tailwind classes>",
+        "page.main": "<tailwind classes>",
+        "page.surface": "<tailwind classes>",
+        "component.button.primary": "<tailwind classes>",
+        "component.button.secondary": "<tailwind classes>",
+        "component.card": "<tailwind classes>",
+        "component.table": "<tailwind classes>",
+        "element.input.editable": "<tailwind classes>",
+        "element.input.readonly": "<tailwind classes>",
+        "element.label": "<tailwind classes>",
+        "element.heading": "<tailwind classes>",
+        "element.th": "<tailwind classes>",
+        "element.td": "<tailwind classes>",
+        "region.form": "<tailwind classes>",
+        "region.header": "<tailwind classes>",
+        "region.nav": "<tailwind classes>"
+      }}
+    }},
+    {{ "id": "variant_2", ... }},
+    {{ "id": "variant_3", ... }}
+  ]
+}}
+
+RULES:
+- Values must be Tailwind CSS utility class strings only (space-separated).
+- Be consistent within each variant but visually distinct across variants.
+- Each variant should feel like a complete, polished design system.
+- All token keys listed above MUST be present in every variant.
+- Return ONLY valid JSON. No explanation. No markdown.
+"""
+
+
+AGENT_INTERFACE_REFINE = """You are a UI theme designer refining an existing interface style variant.
+
+SYSTEM: {system_name}
+INTERFACE: {interface_name}
+
+ORIGINAL DESIGNER PROMPT:
+{original_prompt}
+
+CURRENT VARIANT:
+Name: {variant_name}
+Description: {variant_description}
+Current tokens:
+{current_tokens}
+
+REFINEMENT REQUEST FROM DESIGNER:
+{refine_prompt}
+
+YOUR TASK:
+Update the variant's theme tokens based on the refinement request.
+Keep the variant's overall identity but apply the requested changes.
+
+OUTPUT FORMAT — return ONLY valid JSON:
+{{
+  "name": "<updated name>",
+  "description": "<updated 2-sentence description>",
+  "tokens": {{
+    "page.body": "<tailwind classes>",
+    "page.main": "<tailwind classes>",
+    "page.surface": "<tailwind classes>",
+    "component.button.primary": "<tailwind classes>",
+    "component.button.secondary": "<tailwind classes>",
+    "component.card": "<tailwind classes>",
+    "component.table": "<tailwind classes>",
+    "element.input.editable": "<tailwind classes>",
+    "element.input.readonly": "<tailwind classes>",
+    "element.label": "<tailwind classes>",
+    "element.heading": "<tailwind classes>",
+    "element.th": "<tailwind classes>",
+    "element.td": "<tailwind classes>",
+    "region.form": "<tailwind classes>",
+    "region.header": "<tailwind classes>",
+    "region.nav": "<tailwind classes>"
+  }}
+}}
+
+RULES:
+- Preserve tokens the designer did not ask to change.
+- Apply refinement to relevant tokens only.
+- Values must be Tailwind CSS utility class strings only.
+- Return ONLY valid JSON. No explanation. No markdown.
+"""
