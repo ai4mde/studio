@@ -81,8 +81,13 @@ class Project(ImportMixin):
 
         system_ids = []
         for system_data in data["systems"]:
-            System.import_from_json(system_data)
-            system_ids.append(system_data["id"])
+            imported_system_data = system_data.copy()
+            imported_system_data["project"] = str(project.id)
+            System.import_from_json(
+                imported_system_data,
+                project=project,
+            )
+            system_ids.append(imported_system_data["id"])
 
         cls.delete_missing(project.systems, system_ids)
 
