@@ -13,6 +13,12 @@ Core entry point
 - parsing the returned JSON
 - validating the resulting activity graph
 
+Debugging / tests
+-----------------
+Use :func:`debug_model_activity` or ``model_activity(..., debug=True)`` to inspect
+``prompt`` and ``raw_response``. Pass ``llm_caller=`` to inject a fake LLM in unit
+tests (no network).
+
 Note:
 Generation and refinement share the same pipeline.
 The only difference lies in the input provided.
@@ -42,16 +48,28 @@ Baseline (single model) stays in `baseline_generator` only.
 """
 import json
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .handler import call_openai
-from .converter import convert_to_ai4mde
+from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
 from .prompt_builder import build_activity_prompt
 
+ActivityDebugResult = Dict[str, Any]
 
-def _is_clean_format(model: dict) -> bool:
+
+def _is_clean_format(model: Any) -> bool:
     """Check if the model is in clean format (nodes + edges at top level)."""
-    return isinstance(model.get("nodes"), list) and isinstance(model.get("edges"), list)
+    return (
+        isinstance(model, dict)
+        and isinstance(model.get("nodes"), list)
+        and isinstance(model.get("edges"), list)
+    )
+
+
+def _unwrap_ai4mde_model(model: Any) -> dict:
+    if _is_clean_format(model):
+        return model
+    return unwrap_ai4mde_systems_export(model)
 
 
 def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
@@ -59,19 +77,29 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
     Extract a clean activity graph from AI4MDE format for use in prompts.
     Maps classifier IDs to simple ids (n1, n2, ...).
     """
+    ai4mde = _unwrap_ai4mde_model(ai4mde)
     diagrams = ai4mde.get("diagrams") or []
     if not diagrams:
         return {"nodes": [], "edges": []}
     d = diagrams[0]
     nodes_raw = d.get("nodes") or []
     edges_raw = d.get("edges") or []
+    classifiers = {
+        str(classifier.get("id")): classifier.get("data") or {}
+        for classifier in ai4mde.get("classifiers") or []
+        if isinstance(classifier, dict) and classifier.get("id")
+    }
+    relations = {
+        str(relation.get("id")): relation
+        for relation in ai4mde.get("relations") or []
+        if isinstance(relation, dict) and relation.get("id")
+    }
 
     cls_id_to_clean: Dict[str, str] = {}
     clean_nodes: list = []
     for i, node in enumerate(nodes_raw):
-        cls_data = node.get("cls_data") or {}
-        cls_id = cls_data.get("id") or str(node.get("cls", ""))
-        data = cls_data.get("data") or {}
+        cls_id = str(node.get("cls", ""))
+        data = classifiers.get(cls_id, {})
         node_type = data.get("type", "action")
         node_name = data.get("name", "")
 
@@ -85,9 +113,9 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
 
     clean_edges: list = []
     for edge in edges_raw:
-        rel_data = edge.get("rel_data") or {}
-        source_cls = rel_data.get("source")
-        target_cls = rel_data.get("target")
+        rel_data = relations.get(str(edge.get("rel", "")), {})
+        source_cls = str(rel_data.get("source", ""))
+        target_cls = str(rel_data.get("target", ""))
         if source_cls and target_cls and source_cls in cls_id_to_clean and target_cls in cls_id_to_clean:
             edge_data: Dict[str, Any] = {
                 "source": cls_id_to_clean[source_cls],
@@ -112,21 +140,131 @@ def _get_clean_model(model: dict) -> dict:
 
 
 def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
-    """Extract system_id, diagram_id, name, description from AI4MDE format."""
+    """Extract system_id, diagram_id, name, description, project from AI4MDE format."""
+    ai4mde = _unwrap_ai4mde_model(ai4mde)
     system_id = str(ai4mde.get("id", "System"))
     name = str(ai4mde.get("name", "GeneratedActivity"))
     description = str(ai4mde.get("description", ""))
+    project_id = ai4mde.get("project")
+    project_id_str = str(project_id) if project_id is not None else ""
     diagrams = ai4mde.get("diagrams") or []
     diagram_id = str(diagrams[0].get("id", "diagram1")
                      ) if diagrams else "diagram1"
-    return system_id, diagram_id, name, description
+    return system_id, diagram_id, name, description, project_id_str
+
+
+def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
+    """
+    Parse LLM output and validate the clean activity graph schema (nodes / edges).
+    """
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        raise ValueError("LLM activity modelling output is not valid JSON.")
+
+    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
+        raise ValueError(
+            "LLM activity modelling output does not follow required schema.")
+    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
+        raise ValueError(
+            "LLM activity modelling output does not follow required schema.")
+
+    for node in parsed["nodes"]:
+        if not isinstance(node, dict):
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
+        if "id" not in node or "type" not in node:
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
+        if node.get("type") == "action" and "name" not in node:
+            raise ValueError(
+                "LLM activity modelling output: action nodes must have a name.")
+
+    for edge in parsed["edges"]:
+        if not isinstance(edge, dict):
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
+        if "source" not in edge or "target" not in edge:
+            raise ValueError(
+                "LLM activity modelling output does not follow required schema.")
+
+    return parsed
+
+
+def _default_activity_llm_caller(prompt: str) -> str:
+    return call_openai("gpt-4o-mini", prompt)
+
+
+def _build_debug_result(prompt: str, raw_output: str, parsed: dict) -> ActivityDebugResult:
+    return {
+        "prompt": prompt,
+        "raw_response": raw_output,
+        "parsed": parsed,
+        "model": parsed,
+    }
+
+
+def _activity_llm_roundtrip(
+    process_text: str,
+    current_model: Optional[dict] = None,
+    instruction: Optional[str] = None,
+    *,
+    llm_caller: Optional[Callable[[str], str]] = None,
+) -> tuple[str, str, dict]:
+    """
+    Build prompt, call LLM, parse and validate. Returns (prompt, raw_response, graph).
+    """
+    clean_current: Optional[dict] = None
+    if current_model is not None:
+        clean_current = _get_clean_model(current_model)
+
+    prompt = build_activity_prompt(
+        process_text=process_text,
+        current_model=clean_current,
+        refinement_instruction=instruction,
+    )
+
+    caller = llm_caller if llm_caller is not None else _default_activity_llm_caller
+    raw_output = caller(prompt)
+    parsed = _parse_and_validate_activity_graph_json(raw_output)
+    return prompt, raw_output, parsed
+
+
+def debug_model_activity(
+    process_text: str,
+    current_model: Optional[dict] = None,
+    instruction: Optional[str] = None,
+    *,
+    llm_caller: Optional[Callable[[str], str]] = None,
+) -> ActivityDebugResult:
+    """
+    Same pipeline as ``model_activity``, but returns intermediates for debugging
+    and unit tests.
+
+    Returns
+    -------
+    dict
+        ``prompt`` — text sent to the LLM
+        ``raw_response`` — string returned by the LLM (before JSON parse)
+        ``parsed`` / ``model`` — validated ``{"nodes": [...], "edges": [...]}``
+    """
+    prompt, raw_output, parsed = _activity_llm_roundtrip(
+        process_text,
+        current_model=current_model,
+        instruction=instruction,
+        llm_caller=llm_caller,
+    )
+    return _build_debug_result(prompt, raw_output, parsed)
 
 
 def model_activity(
     process_text: str,
     current_model: Optional[dict] = None,
     instruction: Optional[str] = None,
-) -> dict:
+    *,
+    debug: bool = False,
+    llm_caller: Optional[Callable[[str], str]] = None,
+) -> Union[dict, ActivityDebugResult]:
     """
 Core function for activity-diagram LLM modelling.
 
@@ -170,50 +308,23 @@ dict
         "nodes": [...],
         "edges": [...]
     }
+
+debug : bool, optional
+    If True, return the same structure as :func:`debug_model_activity` instead
+    of only the graph.
+
+llm_caller : callable, optional
+    ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
+    offline debugging only.
 """
-    clean_current: Optional[dict] = None
-    if current_model is not None:
-        clean_current = _get_clean_model(current_model)
-
-    prompt = build_activity_prompt(
-        process_text=process_text,
-        current_model=clean_current,
-        refinement_instruction=instruction,
+    prompt, raw_output, parsed = _activity_llm_roundtrip(
+        process_text,
+        current_model=current_model,
+        instruction=instruction,
+        llm_caller=llm_caller,
     )
-
-    raw_output = call_openai("gpt-4o-mini", prompt)
-
-    try:
-        parsed = json.loads(raw_output)
-    except json.JSONDecodeError:
-        raise ValueError("LLM activity modelling output is not valid JSON.")
-
-    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
-        raise ValueError(
-            "LLM activity modelling output does not follow required schema.")
-    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
-        raise ValueError(
-            "LLM activity modelling output does not follow required schema.")
-
-    for node in parsed["nodes"]:
-        if not isinstance(node, dict):
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if "id" not in node or "type" not in node:
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if node.get("type") == "action" and "name" not in node:
-            raise ValueError(
-                "LLM activity modelling output: action nodes must have a name.")
-
-    for edge in parsed["edges"]:
-        if not isinstance(edge, dict):
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if "source" not in edge or "target" not in edge:
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-
+    if debug:
+        return _build_debug_result(prompt, raw_output, parsed)
     return parsed
 
 
@@ -249,10 +360,11 @@ def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
     return models
 
 
-def generate_candidates_with_conversion(
+def generate_and_convert_candidates(
     process_text: str,
     n: int = 3,
     *,
+    project_id: str,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -269,6 +381,8 @@ def generate_candidates_with_conversion(
         Natural language process description.
     n : int, default 3
         Number of candidates. If ``n <= 0``, returns an empty list.
+    project_id : str
+        Existing AI4MDE project UUID reused by all generated candidates in the same session.
     name_prefix : str, optional
         Base name for each system's ``name`` field (index appended).
     description_template : str, optional
@@ -277,8 +391,8 @@ def generate_candidates_with_conversion(
     Returns
     -------
     list of dict
-        Each element is ``{"clean": <nodes/edges dict>, "ai4mde": <AI4MDE system JSON>}``.
-        Each ``ai4mde`` uses a new ``system_id`` and ``diagram_id`` (UUIDs).
+        Each element is ``{"clean": <nodes/edges dict>, "ai4mde": <AI4MDE export list>}``.
+        Each candidate uses a new ``system_id`` and ``diagram_id`` but the same project id.
     """
     cleans = generate_initial_candidates(process_text, n=n)
     results: List[Dict[str, Any]] = []
@@ -291,15 +405,35 @@ def generate_candidates_with_conversion(
             diagram_id=diagram_id,
             name=f"{name_prefix} {i}",
             description=description_template.format(index=i),
+            project_id=project_id,
         )
         results.append({"clean": clean, "ai4mde": ai4mde})
     return results
+
+
+def generate_candidates_with_conversion(
+    process_text: str,
+    n: int = 3,
+    *,
+    project_id: str,
+    name_prefix: str = "Activity candidate",
+    description_template: str = "Generated candidate {index} for interactive selection",
+) -> List[Dict[str, Any]]:
+    return generate_and_convert_candidates(
+        process_text,
+        n=n,
+        project_id=project_id,
+        name_prefix=name_prefix,
+        description_template=description_template,
+    )
 
 
 def refine_activity_model(
     process_text: str,
     current_model: dict,
     refinement_instruction: str,
+    *,
+    project_id: Optional[str] = None,
 ) -> dict:
     """
 Refine **one** activity model per call (after human selection of a single candidate).
@@ -347,14 +481,24 @@ dict
     )
 
     # Preserve metadata from current model if it's AI4MDE; otherwise use defaults
+    resolved_project_id = project_id
     if _is_clean_format(current_model):
         system_id = "System"
         diagram_id = "diagram1"
         name = "GeneratedActivity"
         description = ""
+        if not resolved_project_id:
+            raise ValueError(
+                "project_id is required when refining from a clean model so the refined "
+                "system stays in the same experiment session"
+            )
     else:
-        system_id, diagram_id, name, description = _get_ai4mde_metadata(
+        system_id, diagram_id, name, description, proj = _get_ai4mde_metadata(
             current_model)
+        resolved_project_id = proj or resolved_project_id
+
+    if not resolved_project_id:
+        raise ValueError("refine_activity_model could not determine a valid project_id")
 
     return convert_to_ai4mde(
         clean_model=clean_graph,
@@ -362,4 +506,5 @@ dict
         diagram_id=diagram_id,
         name=name,
         description=description,
+        project_id=resolved_project_id,
     )
