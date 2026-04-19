@@ -706,6 +706,26 @@ def retrieve_theme_summary(application_name: str, metadata: str) -> dict:
         "radius": radius,
     }
 
+
+def retrieve_global_layout(application_name: str, metadata: str) -> dict:
+    """Retrieve the LLM-generated global layout elements (navbar/sidebar HTML) from metadata."""
+    if metadata in ["", None]:
+        return {}
+
+    try:
+        for application_component in json.loads(metadata)["interfaces"]:
+            if app_name_sanitization(_interface_label(application_component)) != application_name:
+                continue
+            data = _interface_data(application_component)
+            layout = data.get("layout") or {}
+            selected = layout.get("selected")
+            return selected if isinstance(selected, dict) else {}
+    except:
+        return {}
+
+    return {}
+
+
 def retrieve_settings(application_name: str, metadata: str) -> Settings:
     if metadata in ["", None]:
         raise Exception("Failed to retrieve styling from metadata: metadata is empty")
@@ -751,6 +771,7 @@ def get_application_component(project_name: str, application_name: str, metadata
     styling = retrieve_styling(application_name=application_name, metadata=metadata)
     theme = retrieve_theme(application_name=application_name, metadata=metadata)
     theme_summary = retrieve_theme_summary(application_name=application_name, metadata=metadata)
+    global_layout = retrieve_global_layout(application_name=application_name, metadata=metadata)
 
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
@@ -762,5 +783,6 @@ def get_application_component(project_name: str, application_name: str, metadata
         theme = theme,
         theme_summary = theme_summary,
         settings = settings,
-        authentication_present = authentication_present
+        authentication_present = authentication_present,
+        global_layout = global_layout,
     )

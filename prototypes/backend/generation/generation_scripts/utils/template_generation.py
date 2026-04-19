@@ -23,6 +23,7 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
         "settings": application_component.settings,
         "styling": application_component.styling,
         "theme": application_component.theme,
+        "global_layout": application_component.global_layout,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

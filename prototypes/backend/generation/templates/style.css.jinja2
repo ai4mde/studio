@@ -428,7 +428,7 @@ body {
     margin-bottom: 8px;
     text-align: center;
     max-width: 200px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -635,7 +635,7 @@ body {
     text-align: center;
     transition: background-color 0.3s;
     max-width: 220px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -854,7 +854,7 @@ body {
     text-align: center;
     transition: transform 0.3s, background-color 0.3s;
     max-width: 230px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -1098,7 +1098,7 @@ body {
     letter-spacing: 0.5px;
     transition: background-color 0.2s ease;
     max-width: 240px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -1325,7 +1325,7 @@ body {
     text-transform: uppercase;
     transition: all 0.1s;
     max-width: 220px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -1564,7 +1564,7 @@ body {
     transition: all 0.2s ease;
     background: rgba(255, 255, 255, 0.05);
     max-width: 230px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -1803,7 +1803,7 @@ body {
     color: #b0b0c0;
     transition: all 0.2s ease;
     max-width: 220px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -1990,6 +1990,8 @@ table td {
 
 {# ── Designer theme overrides ── #}
 {% set tokens = theme.get('tokens', {}) if theme else {} %}
+{% set _gl = global_layout if global_layout is defined else {} %}
+{% set _has_gl = _gl | length > 0 %}
 {% if tokens | length > 0 %}
 
 /* ─── Tailwind tokens active ─────────────────────────────────────────────────
@@ -2001,6 +2003,8 @@ body {
     padding: 0;
 }
 
+{% if not _has_gl %}
+{# Only emit legacy .header/.menu/.content rules when NO global_layout HTML is present #}
 .header {
     text-align: center;
 }
@@ -2022,7 +2026,7 @@ body {
     margin-bottom: 8px;
     text-align: center;
     max-width: 200px;
-    max-height: 24px;
+
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -2032,6 +2036,14 @@ body {
     padding: 20px;
     margin-left: 220px;
 }
+{% else %}
+{# global_layout present — minimal .content styling only #}
+.content {
+    padding: 20px;
+}
+.breadcrumbs { padding: 8px 0; font-size: 14px; }
+.breadcrumbs a { text-decoration: none; }
+{% endif %}
 
 table {
     width: 100%;
@@ -2108,6 +2120,7 @@ form a {
     font-size: 16px;
 }
 
+{% if not _has_gl %}
 {% if styling.layout_type == LayoutType.TOP_NAV %}
 /* Top-nav structural override */
 .content {
@@ -2123,6 +2136,7 @@ form a {
     margin-left: 0 !important;
     margin-right: 240px;
 }
+{% endif %}
 {% endif %}
 
 {% else %}

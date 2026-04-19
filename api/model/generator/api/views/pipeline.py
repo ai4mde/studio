@@ -257,6 +257,106 @@ def _page_body_class(theme: dict | None) -> str:
   )
 
 
+def _build_preview_structural_css(layout_type: str, tokens: dict) -> str:
+  """Build inline CSS that mirrors the prototype's structural layout."""
+  # Extract theme colors for fallback when no Tailwind tokens fully style it
+  bg = ""
+  text = ""
+  accent = ""
+  accent_text = ""
+  surface = ""
+  border = ""
+  font = ""
+  radius = "8"
+
+  if tokens:
+    # Try to extract colors from token class strings
+    # These are Tailwind classes, but we also provide CSS fallbacks
+    pass
+
+  css = """
+body { margin: 0; padding: 0; font-family: sans-serif; }
+.header {
+  text-align: center;
+  padding: 15px;
+}
+.header h1 { margin: 0; font-size: 24px; }
+.menu {
+  width: 200px;
+  padding: 15px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.menu a {
+  text-decoration: none;
+  padding: 10px;
+  display: block;
+  margin-bottom: 8px;
+  text-align: center;
+  max-width: 200px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.content { padding: 20px; }
+.breadcrumbs { padding: 8px 0; font-size: 14px; }
+.breadcrumbs a { text-decoration: none; }
+.breadcrumb-sep { margin: 0 6px; }
+.breadcrumb-current { font-weight: 600; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; overflow: hidden; }
+th, td { padding: 8px; text-align: left; }
+td input[type="text"], td input[type="number"], td select {
+  width: 100%; height: 100%; box-sizing: border-box;
+  padding: 8px; border: none; outline: none;
+}
+input[type="submit"] { border: none; padding: 10px; cursor: pointer; }
+form a { text-decoration: none; }
+.process-item {
+  padding: 20px; width: 350px; text-align: center;
+  display: flex; justify-content: space-between; align-items: center;
+  position: relative;
+}
+.process-item h4 { margin: 0; padding: 0; font-size: 20px; flex: 1; text-align: left; line-height: 1; }
+.process-button { border: none; padding: 12px; cursor: pointer; flex-shrink: 0; }
+.no-processes { font-size: 18px; text-align: left; }
+.active-node-name { font-size: 14px; margin-top: 5px; text-align: left; }
+.complete-activity-button { padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; }
+"""
+
+  if layout_type == "sidebar_left":
+    css += """
+.menu { float: left; height: 100vh; }
+.content { margin-left: 220px; }
+"""
+  elif layout_type == "sidebar_right":
+    css += """
+.menu-right { float: right !important; height: 100vh; }
+.content-sidebar-right { margin-left: 0 !important; margin-right: 240px; }
+"""
+  elif layout_type == "top_nav":
+    css += """
+.topnav {
+  display: flex; gap: 0; padding: 0 15px;
+}
+.topnav a {
+  padding: 10px 16px; text-decoration: none; display: inline-block;
+}
+.content-topnav { margin-left: 0 !important; padding: 24px; }
+"""
+  elif layout_type == "top_nav_sidebar":
+    css += """
+.header { display: flex; align-items: center; justify-content: space-between; }
+.topnav-inline { display: flex; gap: 8px; }
+.topnav-inline a { text-decoration: none; padding: 8px 12px; }
+.menu { float: left; height: calc(100vh - 60px); }
+.content { margin-left: 220px; }
+"""
+
+  return css
+
+
 def _resolve_preview_token_class(
   theme: dict | None,
   preferred_prefixes: tuple[str, ...],
@@ -658,32 +758,24 @@ def emit_pipeline_templates(request, thread_id: str):
 
             if left_html or right_html:
                 page_shell = f"""{top_html}
-  <div class=\"flex min-h-0 flex-1\">
-    {left_html}
-    <main class=\"flex-1 {main_class}\">
-      <div class=\"{surface_class}\">
-        <header class=\"mb-6 pb-4 border-b border-gray-100\">
-          <h2 class=\"text-2xl font-bold text-gray-900\">{page_name}</h2>
-          <p class=\"text-sm text-gray-500 mt-1\">{actor_dir} &mdash; {project_name}</p>
-        </header>
-        {body_html}
-      </div>
-    </main>
-    {right_html}
-  </div>
-  {bottom_html}"""
-            else:
-                page_shell = f"""{top_html}
-  <main class=\"{main_class}\">
-    <div class=\"{surface_class}\">
-      <header class=\"mb-6 pb-4 border-b border-gray-100\">
-        <h2 class=\"text-2xl font-bold text-gray-900\">{page_name}</h2>
-        <p class=\"text-sm text-gray-500 mt-1\">{actor_dir} &mdash; {project_name}</p>
-      </header>
+<div style="display:flex;min-height:calc(100vh - 60px);">
+  {left_html}
+  <div class="content {main_class}" style="flex:1;padding:20px;">
+    <div class="{surface_class}">
       {body_html}
     </div>
-  </main>
-  {bottom_html}"""
+  </div>
+  {right_html}
+</div>
+{bottom_html}"""
+            else:
+                page_shell = f"""{top_html}
+<div class="content {main_class}" style="padding:20px;">
+  <div class="{surface_class}">
+    {body_html}
+  </div>
+</div>
+{bottom_html}"""
 
             # ── Full standalone HTML identical to preview layout ───────────
             full_html = f"""<!DOCTYPE html>
@@ -694,16 +786,10 @@ def emit_pipeline_templates(request, thread_id: str):
   <title>{page_name} &mdash; {actor_dir} &mdash; {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>body {{ margin:0; padding:0; }}</style>
 </head>
-<body class="{body_class} min-h-screen font-sans">
-  <header class="border-b border-gray-200 bg-white px-8 py-4 flex items-center justify-between">
-    <h1 class="text-xl font-bold text-gray-900">{actor_dir} &mdash; {project_name}</h1>
-    <nav class="flex items-center gap-6">
-      {nav_html}
-      <a href="/logout/" class="text-sm text-red-500 hover:underline">Logout</a>
-    </nav>
-  </header>
-  {page_shell}
+<body class="{body_class}">
+{page_shell}
 </body>
 </html>"""
 
@@ -828,22 +914,34 @@ def preview_pipeline_html(request, thread_id: str, actor: Optional[str] = None, 
         right_html  = _elements_at("right")
         bottom_html = _elements_at("bottom")
 
+        home_url = f"{base_url}?actor={actor}"
+        breadcrumb_html = f"""<nav class="breadcrumbs" style="padding:8px 0;font-size:14px;">
+  <a href="{home_url}" style="text-decoration:none;">Home</a>
+  <span style="margin:0 6px;">/</span>
+  <span style="font-weight:600;">{page}</span>
+</nav>"""
+
+        page_body = f"""{breadcrumb_html}
+<div class="{surface_class}">
+  {body}
+</div>"""
+
         if left_html or right_html:
-            main_content = f"""  <div class="flex min-h-0 flex-1">
-    {left_html}
-    <main class="flex-1 {main_class}">
-      <div class="{surface_class}">
-        {body}
-      </div>
-    </main>
-    {right_html}
-  </div>"""
+            main_content = f"""{top_html}
+<div style="display:flex;min-height:calc(100vh - 60px);">
+  {left_html}
+  <div class="content {main_class}" style="flex:1;padding:20px;">
+    {page_body}
+  </div>
+  {right_html}
+</div>
+{bottom_html}"""
         else:
-            main_content = f"""  <main class="{main_class}">
-    <div class="{surface_class}">
-      {body}
-    </div>
-  </main>"""
+            main_content = f"""{top_html}
+<div class="content {main_class}" style="padding:20px;">
+  {page_body}
+</div>
+{bottom_html}"""
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -854,16 +952,15 @@ def preview_pipeline_html(request, thread_id: str, actor: Optional[str] = None, 
   <title>{page} — {actor_name} — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+  <style>body {{ margin:0; padding:0; }}</style>
 </head>
-<body class="{body_class} min-h-screen font-sans">
-  {top_html}
+<body class="{body_class}">
 {main_content}
-  {bottom_html}
 </body>
 </html>"""
         return HttpResponse(html, content_type="text/html")
 
-    # ── Actor page list: ?actor=<id> ──────────────────────────────────────────
+    # ── Actor Home page: ?actor=<id> ─────────────────────────────────────────
     if actor:
         app = next((a for a in apps if a.get("actor_id") == actor), None)
         if not app:
@@ -871,23 +968,77 @@ def preview_pipeline_html(request, thread_id: str, actor: Optional[str] = None, 
 
         actor_name = app.get("actor_name") or actor_name_map.get(actor, actor)
         body_class = _page_body_class(preview_theme)
-        list_main_class = _preview_list_main_class(preview_theme)
-        card_class = _preview_list_card_class(preview_theme)
-        cards_html = ""
-        for p in app.get("pages", []):
-            page_name = p.get("name", "Page")
-            subtitle = _page_preview_subtitle(p)
-            cards_html += f"""
-<a href="{base_url}?actor={actor}&page={page_name}"
-  class="block {card_class}">
-  <div class="flex items-start justify-between">
-    <div>
-      <h2 class="text-lg font-semibold text-gray-900">{page_name}</h2>
-      <p class="text-sm text-gray-400 mt-1">{subtitle}</p>
-    </div>
-    <span class="text-indigo-400 text-lg">&rarr;</span>
+        main_class = _page_main_class(preview_theme, None)
+
+        global_layout = preview_layout or {}
+
+        def _elements_at(pos: str) -> str:
+            parts = [
+                v["html"] for v in global_layout.values()
+                if isinstance(v, dict) and v.get("position") == pos and v.get("html")
+            ]
+            return "\n".join(parts)
+
+        top_html    = _elements_at("top")
+        left_html   = _elements_at("left")
+        right_html  = _elements_at("right")
+        bottom_html = _elements_at("bottom")
+
+        # Build Home page body — workflow processes + tasks
+        parser_dsl = state.get("parser_dsl") or {}
+        workflows = parser_dsl.get("workflows", []) or []
+        all_pages = app.get("pages", [])
+
+        process_items_html = ""
+        for wf in workflows:
+            wf_name = wf.get("name", "")
+            lanes = wf.get("lanes", []) or []
+            if lanes and lanes[0].get("actor") == actor:
+                process_items_html += f"""
+<div class="process-item" style="padding:20px;width:350px;display:flex;justify-content:space-between;align-items:center;">
+  <h4 style="margin:0;font-size:20px;flex:1;text-align:left;">{wf_name}</h4>
+  <button disabled style="border:none;padding:12px;cursor:pointer;">Start</button>
+</div>"""
+
+        if not process_items_html:
+            process_items_html = '<p style="font-size:18px;">No processes available</p>'
+
+        activity_pages = [p for p in all_pages if p.get("type") == "activity"]
+        task_items_html = ""
+        for ap in activity_pages:
+            act_name = ap.get("activity_name") or ap.get("name", "Task")
+            task_items_html += f"""
+<div class="process-item" style="padding:20px;width:350px;display:flex;justify-content:space-between;align-items:center;">
+  <h4 style="margin:0;font-size:20px;flex:1;text-align:left;">{act_name}</h4>
+  <div style="font-size:14px;margin-top:5px;">Pending</div>
+</div>"""
+
+        if not task_items_html:
+            task_items_html = '<p style="font-size:18px;">No tasks to complete</p>'
+
+        home_body = f"""
+<h2>Processes you can start</h2>
+{process_items_html}
+<h2 style="margin-top: 32px;">Tasks to complete</h2>
+{task_items_html}
+"""
+
+        if left_html or right_html:
+            main_content = f"""{top_html}
+<div style="display:flex;min-height:calc(100vh - 60px);">
+  {left_html}
+  <div class="content {main_class}" style="flex:1;padding:20px;">
+    {home_body}
   </div>
-</a>"""
+  {right_html}
+</div>
+{bottom_html}"""
+        else:
+            main_content = f"""{top_html}
+<div class="content {main_class}" style="padding:20px;">
+  {home_body}
+</div>
+{bottom_html}"""
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -895,17 +1046,12 @@ def preview_pipeline_html(request, thread_id: str, actor: Optional[str] = None, 
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <base target="_blank"/>
-  <title>{actor_name} — {project_name}</title>
+  <title>Home — {actor_name} — {project_name}</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>body {{ margin:0; padding:0; }}</style>
 </head>
-<body class="{body_class} min-h-screen p-8 font-sans">
-  <header class="mb-8 border-b border-gray-200 pb-4">
-    <h1 class="text-2xl font-bold text-gray-900">{actor_name}</h1>
-    <p class="text-sm text-gray-500 mt-1">{project_name}</p>
-  </header>
-  <main class="{list_main_class}">
-    {cards_html if cards_html else '<p class="text-gray-500">No pages for this actor.</p>'}
-  </main>
+<body class="{body_class}">
+{main_content}
 </body>
 </html>"""
         return HttpResponse(html, content_type="text/html")

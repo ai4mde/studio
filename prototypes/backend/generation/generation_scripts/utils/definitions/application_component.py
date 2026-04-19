@@ -19,6 +19,7 @@ class ApplicationComponent():
         theme_summary: dict | None,
         settings: Settings,
         authentication_present: bool = True,
+        global_layout: dict | None = None,
     ):
         self.id = id
         self.project = project
@@ -30,6 +31,7 @@ class ApplicationComponent():
         self.theme_summary = theme_summary or {}
         self.settings = settings
         self.authentication_present = authentication_present # TODO: maybe put this in a global settings object
+        self.global_layout = global_layout or {}
 
     def __str__(self):
         return self.name

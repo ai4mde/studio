@@ -2499,7 +2499,7 @@ def _extract_radius_from_classes(*class_values: str) -> int | None:
     return None
 
 
-def _build_styling_summary(theme: dict | None) -> dict:
+def _build_styling_summary(theme: dict | None, global_layout: dict | None = None) -> dict:
     tokens = (theme or {}).get("tokens") or {}
 
     page_body = tokens.get("page.body", "")
@@ -2527,11 +2527,32 @@ def _build_styling_summary(theme: dict | None) -> dict:
         or "#777777"
     radius = _extract_radius_from_classes(button_primary, input_default, page_surface) or 10
 
+    # Derive selectedLayout from global_layout element positions
+    selected_layout = "sidebar_left"
+    if global_layout:
+        positions = {
+            v.get("position")
+            for v in global_layout.values()
+            if isinstance(v, dict) and v.get("position")
+        }
+        has_top = "top" in positions
+        has_left = "left" in positions
+        has_right = "right" in positions
+        if has_top and has_left:
+            selected_layout = "top_nav_sidebar"
+        elif has_top:
+            selected_layout = "top_nav"
+        elif has_right:
+            selected_layout = "sidebar_right"
+        else:
+            selected_layout = "sidebar_left"
+
     return {
         "radius": radius,
         "textColor": text,
         "accentColor": accent,
         "selectedStyle": (theme or {}).get("name") or "basic",
+        "selectedLayout": selected_layout,
         "backgroundColor": background,
     }
 
@@ -2797,7 +2818,8 @@ def interface_mapper_node(state: PipelineState) -> dict:
     theme = state.get("theme") or {}
     layout_payload = _build_layout_payload(state)
     designer_meta = _build_designer_meta(state)
-    styling = _build_styling_summary(theme)
+    global_layout = state.get("global_layout") or {}
+    styling = _build_styling_summary(theme, global_layout)
     parser_dsl = state.get("parser_dsl") or {}
     actor_name_map = {
         actor.get("id", ""): actor.get("name", actor.get("id", ""))

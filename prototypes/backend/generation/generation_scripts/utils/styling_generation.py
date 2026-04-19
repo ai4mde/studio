@@ -22,6 +22,7 @@ def generate_styling(application_component: ApplicationComponent, system_id: str
         "styling": application_component.styling,
         "theme": application_component.theme,
         "theme_summary": application_component.theme_summary,
+        "global_layout": application_component.global_layout,
     }
 
     if not generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):

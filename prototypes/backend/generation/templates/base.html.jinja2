@@ -1,6 +1,28 @@
 {% raw %}{% load static %}{% endraw %}
 {%- set tokens = theme.get('tokens', {}) if theme else {} -%}
 {%- set has_theme = tokens | length > 0 -%}
+{# ── Detect LLM-designed layout elements ── #}
+{%- set gl = global_layout if global_layout else {} -%}
+{%- set has_gl = gl | length > 0 -%}
+{%- if has_gl -%}
+  {%- set gl_top_parts = [] -%}
+  {%- set gl_left_parts = [] -%}
+  {%- set gl_right_parts = [] -%}
+  {%- set gl_bottom_parts = [] -%}
+  {%- for key, val in gl.items() -%}
+    {%- if val is mapping and val.get('html') -%}
+      {%- if val.get('position') == 'top' -%}
+        {%- set _ = gl_top_parts.append(val['html']) -%}
+      {%- elif val.get('position') == 'left' -%}
+        {%- set _ = gl_left_parts.append(val['html']) -%}
+      {%- elif val.get('position') == 'right' -%}
+        {%- set _ = gl_right_parts.append(val['html']) -%}
+      {%- elif val.get('position') == 'bottom' -%}
+        {%- set _ = gl_bottom_parts.append(val['html']) -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
 <!DOCTYPE html>
 <html>
     <head>
@@ -13,7 +35,47 @@
     </head>
 
     <body{% if has_theme %} class="{{ tokens.get('page.body', '') }}"{% endif %}>
-        {% if styling.layout_type == LayoutType.TOP_NAV %}
+        {% if has_gl %}
+        {# ── LLM-designed layout: use global_layout HTML elements ── #}
+        {% for html in gl_top_parts %}
+        {{ html }}
+        {% endfor %}
+        {% if gl_left_parts or gl_right_parts %}
+        <div style="display: flex; min-height: calc(100vh - 60px);">
+            {% for html in gl_left_parts %}
+            {{ html }}
+            {% endfor %}
+            <div class="content{% if has_theme %} {{ tokens.get('page.main', '') }}{% endif %}" style="flex: 1;">
+                {% raw %}
+                <nav class="breadcrumbs" aria-label="breadcrumb">
+                    <a href="{% url '{% endraw %}{{ application_name }}:{{ application_name }}-homerender{% raw %}' %}">Home</a>
+                    {% block breadcrumbs %}{% endblock %}
+                </nav>
+                {% block content %}
+                {% endblock %}
+                {% endraw %}
+            </div>
+            {% for html in gl_right_parts %}
+            {{ html }}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="content{% if has_theme %} {{ tokens.get('page.main', '') }}{% endif %}">
+            {% raw %}
+            <nav class="breadcrumbs" aria-label="breadcrumb">
+                <a href="{% url '{% endraw %}{{ application_name }}:{{ application_name }}-homerender{% raw %}' %}">Home</a>
+                {% block breadcrumbs %}{% endblock %}
+            </nav>
+            {% block content %}
+            {% endblock %}
+            {% endraw %}
+        </div>
+        {% endif %}
+        {% for html in gl_bottom_parts %}
+        {{ html }}
+        {% endfor %}
+
+        {% elif styling.layout_type == LayoutType.TOP_NAV %}
         {# ── TOP_NAV: horizontal navigation bar, no sidebar ── #}
         <div class="header{% if has_theme %} {{ tokens.get('region.header', '') }}{% endif %}">
             <div class="logo">
