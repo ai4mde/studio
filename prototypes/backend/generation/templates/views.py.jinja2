@@ -142,7 +142,6 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
@@ -161,9 +160,14 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
         {% endfor %}
         {% endif %}
+        {%- if page.screen_type | default('list') == 'dashboard' %}
+        {#- Dashboard: add counts for summary cards -#}
+        {% for primary_model in models_on_pages[page]['primary_models'] -%}
+        context['{{ primary_model }}_count'] = {{ primary_model }}.objects.count()
+        {% endfor -%}
+        {% endif %}
         return context
 
-    {% endif -%}
 {% endfor -%}
 
 

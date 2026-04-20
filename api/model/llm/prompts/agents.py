@@ -576,6 +576,29 @@ RULES
   sensible spacing + background + border/shadow classes aligned with fetched palette hints.
 - page.surface must have a clear card shape: include bg, rounded, border or shadow, and padding.
 
+SCREEN TYPE DESIGN GUIDANCE — pages are classified into screen types, each requiring distinct visual treatment:
+  dashboard  → Summary/overview layout with stat cards + recent-items tables.
+               component.card tokens style each KPI stat card — use prominent numbers, subtle bg, clear borders.
+               Tables show only recent rows. Aim for an executive-dashboard feel: spacious, data-forward, low-chrome.
+  form       → Standalone full-page form. region.form is the wrapper.
+               Generous vertical spacing (space-y-5 or gap-6), centered max-w (max-w-lg or max-w-xl),
+               clear label-above-input hierarchy, prominent submit button, subtle card wrapper.
+  wizard     → Multi-step form with step indicator + navigation.
+               Step indicator should feel like a progress bar: numbered circles connected by lines.
+               Active step gets accent color; completed steps get a muted success tone; future steps stay gray.
+               Each panel is a single form with generous padding. Nav buttons (prev/next) sit at the bottom.
+  modal      → Centered dialog card overlaying the page surface.
+               Compact width (max-w-md), elevated shadow (shadow-xl or shadow-2xl), distinct from page.surface,
+               clear header/body/footer zones inside the card.
+  list       → Default CRUD table + search + pagination. Already well-covered by component.table + element.th/td.
+
+- When generating tokens, ensure the following region keys are styled if the variant will contain those page types:
+    region.dashboard     — dashboard page wrapper: grid gap for cards + bg + padding
+    region.form          — form wrapper: vertical stacking + centered width + padding
+    region.wizard        — wizard container: centered width + card border + padding
+    region.wizard.step   — step indicator items: flex + gap + font sizing
+    region.modal         — modal card wrapper: compact width + elevated shadow + border
+
 ═══════════════════════════════════════════════════
 OUTPUT FORMAT
 ═══════════════════════════════════════════════════
@@ -621,7 +644,7 @@ TOKEN KEY NAMING:
   page.surface    — content card: rounded, bg, shadow, border, padding
   component.button.primary   — primary action buttons
   component.button.secondary — secondary buttons
-  component.card             — card containers
+  component.card             — card containers (also used for dashboard stat cards)
   component.table            — data tables
   element.input.editable     — form inputs (text, email, etc.)
   element.input.readonly     — readonly display fields
@@ -629,10 +652,23 @@ TOKEN KEY NAMING:
   element.heading            — section headings
   element.th                 — table header cells
   element.td                 — table body cells
-  region.form                — form wrapper region
+  region.form                — form wrapper region (standalone form + wizard step forms)
   region.header              — page header region
   region.nav                 — navigation region
   region.sidebar             — sidebar region
+  region.dashboard           — dashboard page wrapper: grid layout for stat cards
+  region.wizard              — wizard container: centered width, card, step indicator
+  region.wizard.step         — wizard step indicator: circles + connectors
+  region.modal               — modal/dialog card: compact, elevated shadow
+
+SCREEN TYPE STYLING — each page has a screen type affecting its layout:
+  dashboard  → stat cards (component.card) in a grid (region.dashboard), recent-items tables below.
+               Cards show large numbers with subtle labels. Executive-dashboard feel: spacious, data-forward.
+  form       → standalone full-page form (region.form). Centered, generous spacing, clear hierarchy.
+  wizard     → multi-step form (region.wizard). Step indicator with numbered circles + connectors.
+               Active step = accent color, completed = success muted, future = gray.
+  modal      → centered dialog (region.modal). Compact width, elevated shadow, clear zones.
+  list       → default CRUD table + search + pagination (component.table + element.th/td).
 
 OUTPUT FORMAT — return ONLY valid JSON:
 {{
@@ -657,7 +693,11 @@ OUTPUT FORMAT — return ONLY valid JSON:
         "element.td": "<tailwind classes>",
         "region.form": "<tailwind classes>",
         "region.header": "<tailwind classes>",
-        "region.nav": "<tailwind classes>"
+        "region.nav": "<tailwind classes>",
+        "region.dashboard": "<tailwind classes>",
+        "region.wizard": "<tailwind classes>",
+        "region.wizard.step": "<tailwind classes>",
+        "region.modal": "<tailwind classes>"
       }}
     }},
     {{ "id": "variant_2", ... }},
@@ -715,7 +755,11 @@ OUTPUT FORMAT — return ONLY valid JSON:
     "element.td": "<tailwind classes>",
     "region.form": "<tailwind classes>",
     "region.header": "<tailwind classes>",
-    "region.nav": "<tailwind classes>"
+    "region.nav": "<tailwind classes>",
+    "region.dashboard": "<tailwind classes>",
+    "region.wizard": "<tailwind classes>",
+    "region.wizard.step": "<tailwind classes>",
+    "region.modal": "<tailwind classes>"
   }}
 }}
 

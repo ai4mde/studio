@@ -120,12 +120,14 @@ class Model():
             self,
             name: str,
             attributes: List[Attribute],
-            custom_methods: List[CustomMethod]
+            custom_methods: List[CustomMethod],
+            parent_class: Optional[str] = None
     ):
         self.name = name
         self.attributes = attributes
         self.object_name_attribute = define_object_name_attribute(attributes)
         self.custom_methods = custom_methods
+        self.parent_class = parent_class
 
     def __str__(self):
         return self.name

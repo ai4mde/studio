@@ -211,41 +211,31 @@ def _render_style_css(theme: dict) -> str:
         return ""
 
 
+def _detect_screen_type(page_name: str, sections: list[dict]) -> str:
+    """Detect screen type from page name and sections (mirrors screen_type.py)."""
+    name_lower = page_name.lower()
+    if any(kw in name_lower for kw in ("dashboard", "overview", "summary", "home", "analytics")):
+        return "dashboard"
+    if any(kw in name_lower for kw in ("wizard", "setup", "onboarding", "workflow")):
+        if len(sections) >= 2:
+            return "wizard"
+    if any(kw in name_lower for kw in ("modal", "dialog", "popup", "confirm")):
+        return "modal"
+    # form: single section with create-only ops, or name match
+    if any(kw in name_lower for kw in ("form", "register", "signup", "apply", "submit")):
+        return "form"
+    return "list"
+
+
 def _render_variant_preview(interface_data: dict, variant: dict, interface_name: str) -> str:
-    """Render a standalone HTML preview matching the prototype layout
-    (header + sidebar + content with breadcrumbs, tables, pagination)."""
+    """Render a standalone HTML preview using the same template structure
+    as the generated prototypes, ensuring visual parity."""
     tokens = variant.get("tokens", {})
+
     pages = interface_data.get("pages", [])
     sections = interface_data.get("sections", [])
 
-    body_cls = _get_token(tokens, "page.body", "bg-white text-gray-900 font-sans")
-    main_cls = _get_token(tokens, "page.main", "")
-    surface_cls = _get_token(tokens, "page.surface", "")
-    btn_primary = _get_token(tokens, "component.button.primary",
-                             "bg-blue-600 text-white px-4 py-2 rounded-lg font-medium")
-    btn_secondary = _get_token(tokens, "component.button.secondary",
-                               "bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium")
-    input_cls = _get_token(tokens, "element.input.editable",
-                           "border border-gray-300 rounded-lg px-3 py-2 w-full")
-    label_cls = _get_token(tokens, "element.label", "text-sm font-medium mb-1 block")
-    heading_cls = _get_token(tokens, "element.heading", "text-2xl font-bold")
-    th_cls = _get_token(tokens, "element.th",
-                        "text-left text-xs font-semibold uppercase tracking-wider px-4 py-3")
-    td_cls = _get_token(tokens, "element.td", "px-4 py-3 text-sm")
-    card_cls = _get_token(tokens, "component.card", "rounded-lg border p-4")
-    table_cls = _get_token(tokens, "component.table", "min-w-full divide-y")
-    form_cls = _get_token(tokens, "region.form", "space-y-4")
-    header_cls = _get_token(tokens, "region.header", "")
-    nav_cls = _get_token(tokens, "region.nav", "")
-
-    # Sidebar nav links — matches base.html.jinja2 SIDEBAR_LEFT
-    nav_links = '<a href="#">Home</a>\n'
-    for p in pages:
-        p_name = p.get("name", "Page")
-        nav_links += f'<a href="#">{p_name}</a>\n'
-    nav_links += '<a href="#">Logout</a>\n'
-
-    # ── First page content ──
+    # Resolve first page + its sections
     first_page = pages[0] if pages else {"name": interface_name, "id": ""}
     first_page_name = first_page.get("name", interface_name)
     page_id = first_page.get("id", "")
@@ -261,283 +251,115 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
             ]},
         ]
 
-    # Tab buttons when multiple sections
-    tabs_html = ""
-    if len(page_sections) > 1:
-        tabs_html = '<div class="tabs" role="tablist">\n'
-        for i, sec in enumerate(page_sections):
-            sec_name = sec.get("name", f"Section {i + 1}")
-            active = " tab-active" if i == 0 else ""
-            selected = "true" if i == 0 else "false"
-            tabs_html += (
-                f'<button class="tab-btn{active}" role="tab"'
-                f' data-tab="tab-{i + 1}" aria-selected="{selected}">{sec_name}</button>\n'
-            )
-        tabs_html += "</div>\n"
-
-    # ── Build section content (matching page.html.jinja2) ──
-    page_content = ""
-    for idx, sec in enumerate(page_sections):
-        sec_name = sec.get("name", "Section")
+    # Normalise attributes to dicts
+    for sec in page_sections:
         attrs = sec.get("attributes", [])
         if not attrs:
-            attrs = [{"name": "Field 1", "type": "str"}, {"name": "Field 2", "type": "str"}]
+            sec["attributes"] = [{"name": "Field 1", "type": "str"}, {"name": "Field 2", "type": "str"}]
 
-        # Tab panel wrapper
-        if len(page_sections) > 1:
-            active_panel = " tab-panel-active" if idx == 0 else ""
-            page_content += (
-                f'<div class="tab-panel{active_panel}" id="tab-{idx + 1}" role="tabpanel">\n'
-            )
+    screen_type = _detect_screen_type(first_page_name, page_sections)
 
-        # Section header with accordion
-        page_content += f"""
-        <div class="section-header" data-accordion="section-body-{idx + 1}">
-            <h2 class="{heading_cls}">{sec_name}</h2>
-            <span class="accordion-icon">&#9660;</span>
-        </div>
-        <div class="section-body {card_cls}" id="section-body-{idx + 1}">
-        """
+    # Determine layout type from interface styling
+    styling = interface_data.get("styling", {})
+    layout_raw = styling.get("selectedLayout", "SIDEBAR_LEFT") or "SIDEBAR_LEFT"
+    layout_type = str(layout_raw).replace(" ", "_").upper()
 
-        # Search bar
-        table_id = f"table-{idx + 1}"
-        page_content += f"""
-        <div class="search-bar">
-            <input type="text" class="search-input" data-table="{table_id}" placeholder="Search...">
-        </div>
-        """
+    categories = interface_data.get("categories", [])
 
-        # Table
-        visible_attrs = attrs[:6]
-        th_html = "".join(
-            f'<th class="{th_cls}">{a.get("name", "")}</th>' for a in visible_attrs
-        )
-        th_html += f'<th class="{th_cls}"></th><th class="{th_cls}"></th>'
-
-        sample_rows = ""
-        for row_i in range(3):
-            cells = ""
-            for a in visible_attrs:
-                a_type = a.get("type", "str")
-                if a_type in ("int", "float", "number"):
-                    val = str(10 + row_i * 5)
-                elif a_type == "date":
-                    val = f"2024-01-{10 + row_i:02d}"
-                elif a_type == "bool":
-                    checked = " checked" if row_i % 2 == 0 else ""
-                    val = f'<input type="checkbox" disabled{checked}>'
-                else:
-                    val = f"Sample {row_i + 1}"
-                cells += f'<td class="{td_cls}" style="text-align:center;">{val}</td>'
-            # Edit icon
-            cells += (
-                '<td><svg width="20" height="20" viewBox="0 0 24 24" fill="none">'
-                '<path d="M21.28 6.4L11.74 15.94C10.79 16.89 7.97 17.33 7.34 16.7'
-                "C6.71 16.07 7.14 13.25 8.09 12.3L17.64 2.75C18.43 1.94 19.71 1.94"
-                ' 20.5 2.73C21.29 3.51 21.29 4.79 20.5 5.58Z"'
-                ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round"'
-                ' stroke-linejoin="round"/>'
-                '<path d="M11 4H6C4.94 4 3.92 4.42 3.17 5.17C2.42 5.92 2 6.94 2 8'
-                "V18C2 19.06 2.42 20.08 3.17 20.83C3.92 21.58 4.94 22 6 22H17"
-                'C19.21 22 20 20.2 20 18V13"'
-                ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round"'
-                ' stroke-linejoin="round"/></svg></td>'
-            )
-            # Delete icon
-            cells += (
-                '<td><svg width="20" height="20" viewBox="0 0 24 24" fill="none">'
-                '<path d="M10 12V17" stroke="currentColor" stroke-width="2"'
-                ' stroke-linecap="round" stroke-linejoin="round"/>'
-                '<path d="M14 12V17" stroke="currentColor" stroke-width="2"'
-                ' stroke-linecap="round" stroke-linejoin="round"/>'
-                '<path d="M4 7H20" stroke="currentColor" stroke-width="2"'
-                ' stroke-linecap="round" stroke-linejoin="round"/>'
-                '<path d="M6 10V18C6 19.66 7.34 21 9 21H15C16.66 21 18 19.66 18 18V10"'
-                ' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
-                ' stroke-linejoin="round"/>'
-                '<path d="M9 5C9 3.9 9.9 3 11 3H13C14.1 3 15 3.9 15 5V7H9V5Z"'
-                ' stroke="currentColor" stroke-width="2" stroke-linecap="round"'
-                ' stroke-linejoin="round"/></svg></td>'
-            )
-            sample_rows += f"<tr>{cells}</tr>\n"
-
-        page_content += f"""
-        <table class="{table_cls}" id="{table_id}">
-            <thead><tr>{th_html}</tr></thead>
-            <tbody>{sample_rows}</tbody>
-        </table>
-        """
-
-        # Pagination
-        page_content += f"""
-        <div class="pagination" data-table="{table_id}">
-            <button class="page-btn page-prev" disabled>&laquo; Prev</button>
-            <span class="page-info">Page <span class="page-current">1</span></span>
-            <button class="page-btn page-next">Next &raquo;</button>
-        </div>
-        """
-
-        # Create button
-        modal_id = f"modal-create-{idx + 1}"
-        page_content += f"""
-        <button class="create-open-btn {btn_primary}" data-modal="{modal_id}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79 21 3 19.21
-                 3 17V7C3 4.79 4.79 3 7 3H17C19.21 3 21 4.79 21 7V17C21 19.21 19.21
-                 21 17 21Z" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round"/>
-            </svg>
-            Add {sec_name}
-        </button>
-        """
-
-        # Modal for create form (matching page.html.jinja2)
-        modal_fields = ""
-        for a in attrs[:6]:
-            a_name = a.get("name", "Field")
-            a_type = a.get("type", "str")
-            input_type = "number" if a_type in ("int", "float", "number") else (
-                "date" if a_type == "date" else "text"
-            )
-            if a_type == "bool":
-                modal_fields += f"""
-                <div class="form-group">
-                    <label class="{label_cls}">{a_name}</label>
-                    <input type="checkbox" class="{input_cls}">
-                </div>"""
-            else:
-                modal_fields += f"""
-                <div class="form-group">
-                    <label class="{label_cls}">{a_name}</label>
-                    <input type="{input_type}" class="{input_cls}" placeholder="{a_name}">
-                </div>"""
-
-        page_content += f"""
-        <div class="modal-overlay" id="{modal_id}">
-            <div class="modal">
-                <div class="modal-header">
-                    <h3>Create {sec_name}</h3>
-                    <button class="modal-close">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form onsubmit="return false;">
-                        {modal_fields}
-                        <div class="modal-actions">
-                            <button type="button" class="btn-cancel modal-close">Cancel</button>
-                            <button type="submit" class="btn-save {btn_primary}">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        """
-
-        page_content += "</div>\n"  # close section-body
-
-        if len(page_sections) > 1:
-            page_content += "</div>\n"  # close tab-panel
-
-    # ── CSS from the actual prototype template ──────────────────────────────
+    # Render CSS using same style.css.jinja2 as prototypes
     theme = {"name": variant.get("name", ""), "tokens": tokens}
     inline_css = _render_style_css(theme)
 
-    # JavaScript — same as page.html.jinja2 output
-    page_js = """
-<script>
-(function(){
-    /* Tabs */
-    document.querySelectorAll('.tab-btn').forEach(function(btn){
-        btn.addEventListener('click', function(){
-            var tabId = this.getAttribute('data-tab');
-            this.closest('.tabs').querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('tab-active'); b.setAttribute('aria-selected','false'); });
-            this.classList.add('tab-active');
-            this.setAttribute('aria-selected','true');
-            document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('tab-panel-active'); });
-            document.getElementById(tabId).classList.add('tab-panel-active');
-        });
-    });
-    /* Search */
-    document.querySelectorAll('.search-input').forEach(function(input){
-        input.addEventListener('input', function(){
-            var q = this.value.toLowerCase();
-            var tableId = this.getAttribute('data-table');
-            var rows = document.querySelectorAll('#'+tableId+' tbody tr');
-            rows.forEach(function(row){ row.style.display = row.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none'; });
-        });
-    });
-    /* Pagination */
-    var PAGE_SIZE = 10;
-    document.querySelectorAll('.pagination').forEach(function(pag){
-        var tableId = pag.getAttribute('data-table');
-        var rows = document.querySelectorAll('#'+tableId+' tbody tr');
-        var currentPage = 1;
-        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-        function render(){
-            rows.forEach(function(r,i){ r.style.display = (i >= (currentPage-1)*PAGE_SIZE && i < currentPage*PAGE_SIZE) ? '' : 'none'; });
-            pag.querySelector('.page-current').textContent = currentPage;
-            pag.querySelector('.page-prev').disabled = currentPage <= 1;
-            pag.querySelector('.page-next').disabled = currentPage >= totalPages;
-            if(rows.length <= PAGE_SIZE) pag.style.display = 'none';
-        }
-        pag.querySelector('.page-prev').addEventListener('click', function(){ if(currentPage>1){currentPage--;render();} });
-        pag.querySelector('.page-next').addEventListener('click', function(){ if(currentPage<totalPages){currentPage++;render();} });
-        render();
-    });
-    /* Modal */
-    document.querySelectorAll('.create-open-btn').forEach(function(btn){
-        btn.addEventListener('click', function(){ document.getElementById(this.getAttribute('data-modal')).classList.add('modal-visible'); });
-    });
-    document.querySelectorAll('.modal-close').forEach(function(btn){
-        btn.addEventListener('click', function(){ this.closest('.modal-overlay').classList.remove('modal-visible'); });
-    });
-    document.querySelectorAll('.modal-overlay').forEach(function(overlay){
-        overlay.addEventListener('click', function(e){ if(e.target === this) this.classList.remove('modal-visible'); });
-    });
-    /* Accordion */
-    document.querySelectorAll('.section-header[data-accordion]').forEach(function(header){
-        header.addEventListener('click', function(){
-            var body = document.getElementById(this.getAttribute('data-accordion'));
-            var icon = this.querySelector('.accordion-icon');
-            if(body.classList.contains('section-body-collapsed')){ body.classList.remove('section-body-collapsed'); icon.textContent = '\\u25BC'; }
-            else { body.classList.add('section-body-collapsed'); icon.textContent = '\\u25B6'; }
-        });
-    });
-})();
-</script>"""
+    # Render preview using the shared template
+    try:
+        preview_dir = os.path.dirname(os.path.abspath(__file__))
+        env = Environment(loader=FileSystemLoader(preview_dir))
+        tpl = env.get_template("preview.html.jinja2")
+        return tpl.render(
+            variant_name=variant.get("name", "Preview"),
+            interface_name=interface_name,
+            theme=theme,
+            inline_css=inline_css,
+            layout_type=layout_type,
+            screen_type=screen_type,
+            pages=pages,
+            categories=categories,
+            first_page=first_page,
+            page_sections=page_sections,
+        )
+    except Exception as e:
+        logger.error("Failed to render preview template: %s", e, exc_info=True)
+        return f"<html><body><h1>Preview render error</h1><pre>{e}</pre></body></html>"
 
-    return f"""<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8"/>
-  <title>{variant.get('name', 'Preview')} &mdash; {interface_name}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>{inline_css}</style>
-</head>
-<body class="{body_cls}">
-  <div class="header {header_cls}">
-    <div class="logo"></div>
-    <h1 class="{heading_cls}">{interface_name}</h1>
-  </div>
-  <div class="menu {nav_cls}">
-    {nav_links}
-  </div>
-  <div class="content {main_cls}">
-    <nav class="breadcrumbs" aria-label="breadcrumb">
-      <a href="#">Home</a>
-      <span class="breadcrumb-sep">/</span>
-      <span class="breadcrumb-current">{first_page_name}</span>
-    </nav>
-    <div class="{surface_cls}">
-      {tabs_html}
-      {page_content}
-    </div>
-  </div>
-  {page_js}
-</body>
-</html>"""
+
+# ── Session persistence helpers ──────────────────────────────────────────────
+
+def _persist_session(session_id: str) -> None:
+    """Save in-memory session to Interface.data.designerSession in the DB."""
+    from metadata.models import Interface
+    session = _sessions.get(session_id)
+    if not session:
+        return
+    try:
+        iface = Interface.objects.get(pk=session["interface_id"])
+        data = iface.data if isinstance(iface.data, dict) else {}
+        data["designerSession"] = {
+            "session_id": session["session_id"],
+            "original_prompt": session["original_prompt"],
+            "variants": session["variants"],
+            "selected_variant_id": session["selected_variant_id"],
+            "refine_history": session["refine_history"],
+            "applied": session.get("applied", False),
+        }
+        iface.data = data
+        iface.save(update_fields=["data"])
+    except Exception as e:
+        logger.warning("Failed to persist designer session: %s", e)
+
+
+def _restore_session(interface_id: str) -> Optional[str]:
+    """Restore session from DB into memory if not already loaded. Returns session_id or None."""
+    from metadata.models import Interface
+    # Check if there's already a memory session for this interface
+    for sid, sess in _sessions.items():
+        if sess.get("interface_id") == interface_id:
+            return sid
+    # Try to restore from DB
+    try:
+        iface = Interface.objects.select_related("system", "actor").get(pk=interface_id)
+        data = iface.data if isinstance(iface.data, dict) else {}
+        saved = data.get("designerSession")
+        if not saved or not saved.get("session_id"):
+            return None
+        session_id = saved["session_id"]
+        interface_name = iface.name or "Interface"
+        system_name = iface.system.name if iface.system else "System"
+        actor_name = (
+            iface.actor.data.get("name", "Actor")
+            if iface.actor and isinstance(iface.actor.data, dict)
+            else "Actor"
+        )
+        _sessions[session_id] = {
+            "session_id": session_id,
+            "interface_id": interface_id,
+            "interface_name": interface_name,
+            "system_name": system_name,
+            "actor_name": actor_name,
+            "interface_data": data,
+            "original_prompt": saved.get("original_prompt", ""),
+            "variants": saved.get("variants", []),
+            "selected_variant_id": saved.get("selected_variant_id"),
+            "refine_history": saved.get("refine_history", []),
+            "applied": saved.get("applied", False),
+        }
+        return session_id
+    except Exception as e:
+        logger.warning("Failed to restore designer session: %s", e)
+        return None
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
+
 
 @interface_gen_router.post("/generate/", response={200: dict, 400: ErrorSchema})
 def generate_variants(request, body: GenerateSchema):
@@ -588,6 +410,9 @@ def generate_variants(request, body: GenerateSchema):
         "selected_variant_id": None,
         "refine_history": [],
     }
+
+    # Persist session to DB so it survives navigation / server restart
+    _persist_session(session_id)
 
     return {
         "session_id": session_id,
@@ -674,6 +499,9 @@ def refine_variant(request, session_id: str, body: RefineSchema):
     session["selected_variant_id"] = body.variant_id
     session["refine_history"].append(body.prompt)
 
+    # Persist updated session to DB
+    _persist_session(session_id)
+
     return {
         "session_id": session_id,
         "variant": {"id": variant["id"], "name": variant["name"], "description": variant["description"]},
@@ -711,14 +539,39 @@ def apply_variant(request, session_id: str, body: ApplySchema):
         "variantName": variant["name"],
         "refineHistory": session["refine_history"],
     }
+    # Mark session as applied (keep it so the design page can restore it)
+    session["applied"] = True
+    session["selected_variant_id"] = body.variant_id
     iface.data = data
     iface.save(update_fields=["data"])
 
-    # Clean up session
-    _sessions.pop(session_id, None)
+    # Persist the session with applied flag so it survives restart
+    _persist_session(session_id)
 
     return {
         "applied": True,
         "interface_id": session["interface_id"],
         "variant_name": variant["name"],
+    }
+
+
+@interface_gen_router.get("/restore/{interface_id}/", response={200: dict, 404: ErrorSchema})
+def restore_session(request, interface_id: str):
+    """Restore a previously saved design session for an interface."""
+    session_id = _restore_session(interface_id)
+    if not session_id:
+        return 404, {"error": "No saved session for this interface"}
+
+    session = _sessions[session_id]
+    return {
+        "session_id": session_id,
+        "interface_id": session["interface_id"],
+        "original_prompt": session["original_prompt"],
+        "selected_variant_id": session["selected_variant_id"],
+        "refine_history": session["refine_history"],
+        "applied": session.get("applied", False),
+        "variants": [
+            {"id": v["id"], "name": v["name"], "description": v["description"]}
+            for v in session["variants"]
+        ],
     }

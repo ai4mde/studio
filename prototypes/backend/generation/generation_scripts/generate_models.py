@@ -43,7 +43,8 @@ def retrieve_foreign_models(
     out = []
     for edge in diagram["edges"]:
         edge_data = _edge_relation_data(edge, relations_by_id)
-        if edge_data.get("type") != "association":
+        edge_type = edge_data.get("type")
+        if edge_type not in ("association", "composition"):
             continue
 
         source_ref = _edge_source_ref(edge, relation_records_by_id)
@@ -148,6 +149,23 @@ def retrieve_models(metadata: str) -> List[Model]:
             classifiers_by_id = _classifier_lookup(metadata_json)
             relations_by_id = _relation_lookup(metadata_json)
             relation_records_by_id = _relation_record_lookup(metadata_json)
+
+            # First pass: collect generalization (inheritance) edges
+            # generalization source = child, target = parent
+            parent_map: dict[str, str] = {}  # child_node_id -> parent_class_name
+            for diagram in metadata_json["diagrams"]:
+                if diagram["type"] != "classes":
+                    continue
+                for edge in diagram["edges"]:
+                    edge_data = _edge_relation_data(edge, relations_by_id)
+                    if edge_data.get("type") != "generalization":
+                        continue
+                    source_ref = _edge_source_ref(edge, relation_records_by_id)
+                    target_ref = _edge_target_ref(edge, relation_records_by_id)
+                    parent_name = retrieve_class_name_by_id(target_ref, diagram, classifiers_by_id)
+                    if parent_name:
+                        parent_map[source_ref] = parent_name
+
             for diagram in metadata_json["diagrams"]:
                 if diagram["type"] != "classes":
                     continue
@@ -158,9 +176,29 @@ def retrieve_models(metadata: str) -> List[Model]:
                     cls = Model(
                         name = model_name_sanitization(node_data["name"]),
                         attributes = retrieve_model_attributes(metadata, node, classifiers_by_id) + retrieve_foreign_models(node, diagram, classifiers_by_id, relations_by_id, relation_records_by_id),
-                        custom_methods = retrieve_model_custom_methods(node, classifiers_by_id)
+                        custom_methods = retrieve_model_custom_methods(node, classifiers_by_id),
+                        parent_class = parent_map.get(node["id"]),
                     )
                     out.append(cls)
+
+            # Sort models: parents before children for correct Django inheritance
+            name_set = {m.name for m in out}
+            sorted_out: list[Model] = []
+            remaining = list(out)
+            added = set()
+            while remaining:
+                progress = False
+                for m in list(remaining):
+                    if m.parent_class is None or m.parent_class in added or m.parent_class not in name_set:
+                        sorted_out.append(m)
+                        added.add(m.name)
+                        remaining.remove(m)
+                        progress = True
+                if not progress:
+                    # Break cycles by adding remaining as-is
+                    sorted_out.extend(remaining)
+                    break
+            out = sorted_out
     except:
         raise Exception("Failed to retrieve models from metadata: parsing error")
     

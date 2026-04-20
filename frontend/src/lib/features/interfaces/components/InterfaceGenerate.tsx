@@ -1,7 +1,7 @@
 import { authAxios } from "$auth/state/auth";
 import { baseURL } from "$shared/globals";
 import { RefreshCw, Sparkles, Check, MessageSquare, Wand2 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type VariantSummary = {
     id: string;
@@ -27,6 +27,31 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
     const [refineHistory, setRefineHistory] = useState<string[]>([]);
     const [applied, setApplied] = useState(false);
     const iframeRefs = useRef<Record<string, number>>({});
+    const [restoring, setRestoring] = useState(true);
+
+    // Restore saved session on mount
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const { data } = await authAxios.get(
+                    `/v1/generator/interface-gen/restore/${interfaceId}/`,
+                );
+                if (cancelled) return;
+                setSessionId(data.session_id);
+                setVariants(data.variants || []);
+                setRefineHistory(data.refine_history || []);
+                setSelectedVariant(data.selected_variant_id || null);
+                setPrompt(data.original_prompt || "");
+                if (data.applied) setApplied(true);
+            } catch {
+                // No saved session — that's fine
+            } finally {
+                if (!cancelled) setRestoring(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [interfaceId]);
 
     const handleGenerate = async () => {
         if (!prompt.trim()) return;
@@ -102,6 +127,14 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
 
     // No session yet — show prompt input
     if (!sessionId) {
+        if (restoring) {
+            return (
+                <div className="flex items-center justify-center gap-2 py-12 text-sm text-gray-400">
+                    <RefreshCw size={16} className="animate-spin" />
+                    Restoring previous session…
+                </div>
+            );
+        }
         return (
             <div className="flex flex-col items-center justify-center gap-6 py-12">
                 <div className="flex flex-col items-center gap-2">
@@ -154,31 +187,8 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
         );
     }
 
-    // Applied successfully
-    if (applied) {
-        return (
-            <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <div className="flex items-center gap-2 text-green-600">
-                    <Check size={32} />
-                    <h2 className="text-lg font-semibold">Theme Applied Successfully!</h2>
-                </div>
-                <p className="text-sm text-gray-500">The selected variant has been saved to this interface.</p>
-                <button
-                    onClick={() => {
-                        setSessionId(null);
-                        setVariants([]);
-                        setSelectedVariant(null);
-                        setPrompt("");
-                        setApplied(false);
-                        setRefineHistory([]);
-                    }}
-                    className="text-sm text-indigo-600 hover:underline"
-                >
-                    Generate New Variants
-                </button>
-            </div>
-        );
-    }
+    // Applied — don't show a separate screen, continue showing variants
+    // The "applied" badge is shown in the header below
 
     // Auto-select first variant as the active tab
     const activeTab = selectedVariant || (variants.length > 0 ? variants[0].id : null);
@@ -188,15 +198,23 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
         <div className="flex flex-col" style={{ height: "calc(100vh - 200px)" }}>
             {/* Header row */}
             <div className="flex items-center justify-between shrink-0 px-4 py-2 border-b bg-gray-50">
-                <p className="text-xs text-gray-400 truncate max-w-md">
-                    Prompt: &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
-                </p>
+                <div className="flex items-center gap-2 truncate max-w-md">
+                    <p className="text-xs text-gray-400 truncate">
+                        Prompt: &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
+                    </p>
+                    {applied && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 border border-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
+                            <Check size={10} /> Applied
+                        </span>
+                    )}
+                </div>
                 <button
                     onClick={() => {
                         setSessionId(null);
                         setVariants([]);
                         setSelectedVariant(null);
                         setRefineHistory([]);
+                        setApplied(false);
                     }}
                     className="text-xs text-gray-500 hover:text-gray-700"
                 >
@@ -299,7 +317,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                         ) : (
                             <Check size={14} />
                         )}
-                        Apply Theme
+                        {applied ? "Re-apply Theme" : "Apply Theme"}
                     </button>
                 </div>
 

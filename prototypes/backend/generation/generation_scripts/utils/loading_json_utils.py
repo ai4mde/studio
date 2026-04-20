@@ -1,7 +1,7 @@
 from typing import List, Dict
 from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization, attribute_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
-from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod
+from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod, SectionLink
 from utils.definitions.page import Page
 from utils.definitions.category import Category
 from utils.definitions.model import AttributeType, Model, Cardinality, define_cardinality
@@ -447,6 +447,33 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
     return out
 
 
+def retrieve_section_links(section: dict, component_data: dict) -> List[SectionLink]:
+    """Parse links from a section, resolving page_out references to page names."""
+    if not section or "links" not in section:
+        return []
+    out = []
+    for link in section.get("links", []):
+        if not link:
+            continue
+        content = link.get("content", "")
+        page_out = link.get("page_out")
+        page_name = ""
+        if isinstance(page_out, dict):
+            page_name = page_out.get("name", "")
+        elif isinstance(page_out, str):
+            # Might be a page ID — try to resolve it
+            for p in component_data.get("pages", []):
+                if p.get("id") == page_out:
+                    page_name = p.get("name", "")
+                    break
+        if page_name or content:
+            out.append(SectionLink(
+                page_name=page_name,
+                content=content or page_name,
+            ))
+    return out
+
+
 def retrieve_section_components(application_name: str, page_name: str, metadata: str) -> List[SectionComponent]:
     '''Function that retrieves the section components corresponding to page_name from
     metadata and returns a list of SectionComponent objects.'''
@@ -490,7 +517,8 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"]
+                        text = section["text"],
+                        links = retrieve_section_links(section, component_data),
                     )
                     out.append(sec)
             return out

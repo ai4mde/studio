@@ -2,6 +2,7 @@ from utils.definitions.application_component import ApplicationComponent
 from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
 from utils.file_generation import generate_output_file, write_to_file
 from utils.ast_template_renderer import render_page
+from utils.screen_type import detect_screen_type
 from os import makedirs
 
 
@@ -114,6 +115,9 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
 
     for page in pages_in_app:
         OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_" + page_name_sanitization(page.name) + ".html"
+        # Annotate each page with its detected screen type for template branching
+        if not hasattr(page, 'screen_type'):
+            page.screen_type = detect_screen_type(page)
         # NOTE: render_ast produces visual mockups (disabled inputs, no Django
         # forms) that are not functional.  Always use page.html.jinja2 which
         # supports theme tokens and generates working CRUD pages.

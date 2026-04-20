@@ -74,6 +74,15 @@ class SectionCustomMethod():
         return self.name
 
 
+class SectionLink():
+    def __init__(self, page_name: str, content: str):
+        self.page_name = page_name
+        self.content = content
+
+    def __str__(self):
+        return self.content
+
+
 class SectionComponent():
     """Definition of a Section Component. A Section Component is a component
     on a page on which the end user can act on the attributes of a model."""
@@ -91,6 +100,7 @@ class SectionComponent():
             has_delete_operation: bool = False,
             has_update_operation: bool = False,
             custom_methods = List[SectionCustomMethod],
+            links: List[SectionLink] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -105,6 +115,7 @@ class SectionComponent():
         self.has_update_operation = has_update_operation
         self.custom_methods = custom_methods
         self.text = parse_section_text(text)
+        self.links = links or []
 
     def __str__(self):
         return self.name

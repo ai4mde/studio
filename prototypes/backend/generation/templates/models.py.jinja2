@@ -26,7 +26,11 @@ class User(AbstractUser):
 {% endif %}
 
 {% for model in models -%}
+{% if model.parent_class -%}
+class {{ model.name }}({{ model.parent_class }}):
+{% else -%}
 class {{ model.name }}(models.Model):
+{%- endif %}
     {% if model.attributes -%}
     {% for attribute in model.attributes -%}
     {% if attribute.derived and attribute.body %}

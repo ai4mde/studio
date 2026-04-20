@@ -2314,7 +2314,14 @@ def theme_node(state: PipelineState) -> dict:
         {"tag": "main", "variant": "page.main"},
         {"tag": "div",  "variant": "page.surface"},
     ]
-    for sv in _PAGE_STRUCTURAL_VARIANTS:
+    # Screen-type region tokens — ensure the theme covers all page layout types.
+    _SCREEN_TYPE_REGION_VARIANTS = [
+        {"tag": "div",  "variant": "region.dashboard"},
+        {"tag": "div",  "variant": "region.wizard"},
+        {"tag": "div",  "variant": "region.wizard.step"},
+        {"tag": "div",  "variant": "region.modal"},
+    ]
+    for sv in _PAGE_STRUCTURAL_VARIANTS + _SCREEN_TYPE_REGION_VARIANTS:
         if sv["variant"] not in existing_variant_keys:
             variants.append(sv)
             existing_variant_keys.add(sv["variant"])

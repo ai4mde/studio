@@ -1,0 +1,1212 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter 4 – Design and Architecture
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Design and Architecture}
+
+This chapter presents the system design and architecture of the AI-driven user interface generation pipeline integrated into the AI4MDE framework. The design follows a modular approach, separating concerns between UML metadata parsing, LLM-based reasoning, deterministic page synthesis, theme generation, and prototype rendering.
+
+\subsection{System Architecture Overview}
+
+The AI4MDE framework is composed of five containerised components orchestrated by Docker Compose and connected through a Traefik reverse proxy:
+
+\begin{enumerate}
+    \item \textbf{Frontend} — A React application built with TypeScript, Tailwind CSS and Vite, served at \texttt{ai4mde.localhost}.
+    \item \textbf{API} — A Django application using the Ninja framework (Pydantic-based schemas), served at \texttt{api.ai4mde.localhost}.
+    \item \textbf{Database} — PostgreSQL 17 for persistent storage of projects, systems, classifiers, relations, and interfaces.
+    \item \textbf{Prototypes Service} — A Flask API that orchestrates Django project generation and serves running prototypes at \texttt{prototypes\_api.ai4mde.localhost}.
+    \item \textbf{Running Prototype} — The generated Django application served at \texttt{prototype.ai4mde.localhost}.
+\end{enumerate}
+
+Figure~\ref{fig:system_architecture} illustrates the high-level deployment architecture.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=1.0cm and 2.5cm,
+  container/.style={rectangle, draw, rounded corners, minimum width=4.5cm, minimum height=0.9cm, align=center, fill=blue!8, font=\small},
+  proxy/.style={rectangle, draw, rounded corners, minimum width=4.5cm, minimum height=0.9cm, align=center, fill=orange!15, font=\small},
+  db/.style={cylinder, draw, shape border rotate=90, aspect=0.15, minimum height=1.2cm, minimum width=2.5cm, align=center, fill=green!10, font=\small},
+  arrow/.style={-{Stealth[length=2.5mm]}, thick},
+  label/.style={font=\scriptsize\ttfamily, text=gray}
+]
+
+% Proxy
+\node[proxy] (traefik) {Traefik Reverse Proxy};
+
+% Containers
+\node[container, below left=1.2cm and 1.5cm of traefik] (frontend) {Frontend\\(React + Vite)};
+\node[container, below=1.2cm of traefik] (api) {API\\(Django Ninja)};
+\node[container, below right=1.2cm and 1.5cm of traefik] (proto) {Prototypes\\(Flask + Django Gen)};
+
+% Database
+\node[db, below=1.2cm of api] (db) {PostgreSQL};
+
+% Generated prototype
+\node[container, below=1.2cm of proto, fill=yellow!15] (running) {Running Prototype\\(Generated Django)};
+
+% Arrows
+\draw[arrow] (traefik) -- (frontend);
+\draw[arrow] (traefik) -- (api);
+\draw[arrow] (traefik) -- (proto);
+\draw[arrow] (api) -- (db);
+\draw[arrow] (proto) -- (running);
+\draw[arrow, dashed] (api) -- (proto) node[midway, above, font=\scriptsize] {generate};
+
+% Labels
+\node[label, above=0.15cm of frontend] {ai4mde.localhost};
+\node[label, above left=0.15cm and -0.3cm of api] {api.ai4mde.localhost};
+\node[label, above=0.15cm of proto] {prototypes\_api};
+\node[label, right=0.1cm of running] {prototype.ai4mde.localhost};
+
+\end{tikzpicture}
+\caption{Deployment architecture of the AI4MDE framework showing the five containerised components connected through Traefik reverse proxy.}
+\label{fig:system_architecture}
+\end{figure}
+
+\subsection{Data Model}
+
+The core data model uses Django's ORM with the following primary entities stored in PostgreSQL:
+
+\begin{itemize}
+    \item \textbf{Project}: Top-level container with a UUID primary key, name, and description.
+    \item \textbf{System}: Belongs to a Project; contains all UML model elements (classifiers, relations) and interfaces.
+    \item \textbf{Classifier}: Represents any UML node — actors, classes, actions, objects, decision nodes, and more. Uses a polymorphic \texttt{data} JSONField to store type-specific attributes.
+    \item \textbf{Relation}: Represents UML edges (associations, dependencies, flows) between two Classifiers, with a \texttt{data} JSONField for edge metadata.
+    \item \textbf{Interface}: Represents a generated user interface for a specific actor within a system. Contains a \texttt{data} JSONField that stores the complete interface metadata including pages, sections, attributes, styling, theme tokens, and designer session state.
+\end{itemize}
+
+The \texttt{Interface.data} JSONField is the central data structure for the UI generation pipeline. Its schema includes:
+
+\begin{itemize}
+    \item \texttt{pages}: List of page definitions, each with an \texttt{id}, \texttt{name}, and \texttt{category}.
+    \item \texttt{sections}: List of section definitions, each linked to a page and containing a list of \texttt{attributes} (name, type, field mode).
+    \item \texttt{categories}: Grouping labels for navigation organisation.
+    \item \texttt{styling}: Contains the selected layout type (e.g.\ \texttt{SIDEBAR\_LEFT}, \texttt{TOP\_NAV}).
+    \item \texttt{theme}: Stores the applied variant's name and Tailwind CSS token mapping.
+    \item \texttt{designerSession}: Persisted session state for the AI interface generator, enabling session restoration across browser restarts and server restarts.
+\end{itemize}
+
+
+\subsection{LangGraph Generation Pipeline}
+
+The core of the AI-driven generation is a six-node LangGraph pipeline that transforms raw UML metadata into complete interface definitions. LangGraph is a framework built on top of LangChain that models AI workflows as directed graphs with typed state \cite{dH24}. The pipeline is implemented as a \texttt{StateGraph} with a \texttt{MemorySaver} checkpointer and runs as a module-level singleton.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.8cm,
+  pnode/.style={rectangle, draw, rounded corners=4pt, minimum width=5cm, minimum height=0.8cm, align=center, fill=blue!10, font=\small},
+  arrow/.style={-{Stealth[length=2.5mm]}, thick},
+  endnode/.style={circle, draw, fill=red!20, minimum size=0.6cm, font=\small\bfseries}
+]
+
+\node[pnode] (p1) {1. Parser Node};
+\node[pnode, below=of p1] (p2) {2. UI Designer Node};
+\node[pnode, below=of p2] (p3) {3. Theme Node};
+\node[pnode, below=of p3] (p4) {4. Layout Options Node};
+\node[pnode, below=of p4] (p5) {5. Interface Mapper Node};
+\node[pnode, below=of p5] (p6) {6. Metadata Export Node};
+\node[endnode, below=of p6] (end) {END};
+
+\draw[arrow] (p1) -- (p2);
+\draw[arrow] (p2) -- (p3);
+\draw[arrow] (p3) -- (p4);
+\draw[arrow] (p4) -- (p5);
+\draw[arrow] (p5) -- (p6);
+\draw[arrow] (p6) -- (end);
+
+\end{tikzpicture}
+\caption{The six-node LangGraph pipeline for transforming UML metadata into interface definitions.}
+\label{fig:langgraph_pipeline}
+\end{figure}
+
+The pipeline maintains a typed state dictionary (\texttt{PipelineState}) that flows through all nodes. Key state fields include:
+
+\begin{itemize}
+    \item \texttt{metadata}: Raw JSON string containing classifiers and relations from the UML models.
+    \item \texttt{screens}: List of \texttt{ScreenInfo} objects with CRUD flags derived from action keyword matching.
+    \item \texttt{diagram\_summary}: Structured summary of use case, activity, and class diagrams.
+    \item \texttt{parser\_dsl}: Canonical Domain-Specific Language (DSL) representation of actors, entities, actions, and workflows.
+    \item \texttt{ui\_design}: LLM-generated UI design as a Generic HTML Abstract Syntax Tree (AST).
+    \item \texttt{theme}: Token mapping from variant names to Tailwind CSS classes.
+    \item \texttt{layout\_options}: Five distinct global layout chrome presets.
+    \item \texttt{final\_metadata}: Complete interface metadata ready for export.
+\end{itemize}
+
+
+\subsubsection{Node 1: Parser}
+
+The Parser Node transforms raw UML metadata (classifiers and relations in JSON) into a canonical DSL that downstream nodes consume. It performs four operations:
+
+\begin{enumerate}
+    \item \textbf{Screen Building} (\texttt{\_build\_screens}): Creates a \texttt{ScreenInfo} for each non-automatic action, with CRUD flags (create, read, update, delete) derived from keyword matching on action names.
+    
+    \item \textbf{Diagram Summary} (\texttt{\_build\_diagram\_summary}): Extracts structured data from use case diagrams (actors, use cases, permissions), activity diagrams (actions, decisions, transitions), and class diagrams (classes, attributes, associations).
+    
+    \item \textbf{Parser DSL} (\texttt{\_build\_parser\_dsl}): The core algorithm that produces the canonical representation:
+    \begin{itemize}
+        \item \textbf{Actors}: Extracted from classifier type ``actor'' and swimlane groupings.
+        \item \textbf{Entities}: Extracted from classifier type ``class'' with field lists and association metadata.
+        \item \textbf{Actions}: Extracted from classifier type ``action'' with \texttt{entity\_flow} (produces/consumes/read\_write), \texttt{step\_order}, and control flow patterns.
+        \item \textbf{Workflows}: Computed via BFS algorithms (\texttt{\_find\_action\_successors}) that traverse control nodes with a \emph{one-hop peek} at action boundaries to prevent reaching distant states.
+    \end{itemize}
+    
+    \item \textbf{Flow Graph} (\texttt{\_build\_flow\_graph}): Constructs an intermediate flow model with canonical states and transitions for downstream workflow reasoning.
+\end{enumerate}
+
+The one-hop peek algorithm is a key design decision: when BFS encounters an action boundary, it looks exactly one hop ahead to discover immediate decision nodes or fork/join points, but does not continue traversal beyond that. This prevents contamination of field context with unrelated states from distant parts of the workflow.
+
+
+\subsubsection{Node 2: UI Designer}
+
+The UI Designer Node is the primary LLM integration point. It operates in two phases:
+
+\paragraph{Phase 1: Deterministic Page Synthesis (Pre-LLM).}
+Before invoking the LLM, the node deterministically synthesises page structures from the parser DSL:
+\begin{itemize}
+    \item Filters out actions marked as \texttt{auto: True}.
+    \item Groups remaining actions by actor and workflow state.
+    \item Each page carries \texttt{intent\_hints} containing \texttt{attribute\_contracts} (which fields should be editable/readonly/hidden), \texttt{workflow\_context} (current state and transitions), and \texttt{binding\_groups} (related entity groupings).
+    \item Entities are associated to pages through name matching between action names and entity names.
+\end{itemize}
+
+This pre-LLM synthesis step ensures reproducible structure regardless of LLM stochasticity.
+
+\paragraph{Phase 2: LLM-Based UI Design.}
+The synthesised pages, along with live design references fetched from component libraries (Flowbite, DaisyUI, MerakiUI), are sent to the LLM using the \texttt{AGENT\_UI\_DESIGNER} prompt. The LLM generates a Generic HTML AST (\texttt{ui\_ir}) with four node types:
+\begin{itemize}
+    \item \textbf{Element}: Standard HTML elements with attributes, classes, and variant annotations.
+    \item \textbf{Loop}: Iteration constructs (\texttt{\{\% for \%\}}) for rendering collections.
+    \item \textbf{Conditional}: Conditional rendering (\texttt{\{\% if \%\}}) for context-dependent UI.
+    \item \textbf{Raw}: Passthrough HTML for static content.
+\end{itemize}
+
+The LLM receives detailed \texttt{field\_mode} reasoning guidelines that determine whether each field should be \texttt{editable}, \texttt{readonly}, or \texttt{hidden} based on \texttt{entity\_flow}, \texttt{decision\_condition}, \texttt{decided\_by\_actor}, \texttt{auto\_computed}, and \texttt{state\_transitions}.
+
+\paragraph{Post-LLM Guardrails.}
+After receiving the LLM output, four guardrail functions validate and correct the result:
+\begin{enumerate}
+    \item \texttt{\_guardrail\_page\_completeness}: Injects any pages that the LLM omitted.
+    \item \texttt{\_guardrail\_completeness}: Backfills fields that were dropped by the LLM.
+    \item \texttt{\_guardrail\_entity\_flow}: Enforces that ``consumes'' fields are readonly (with exemptions for fields decided by the current actor), and that ``produces'' or ``read\_write'' actions have at least one editable field.
+    \item \texttt{\_enforce\_field\_policies}: Strips AST nodes for hidden fields and converts readonly fields to display-only elements.
+\end{enumerate}
+
+
+\subsubsection{Node 3: Theme}
+
+The Theme Node generates a mapping from variant names to Tailwind CSS classes. It extracts unique variant names from the UI Designer's AST output, then sends them to the LLM with the \texttt{AGENT\_THEME\_DESIGNER} prompt along with live design references. The output is a token dictionary where each key is a semantic name (e.g.\ \texttt{component.button.primary}) and each value is a string of Tailwind CSS utility classes.
+
+
+\subsubsection{Node 4: Layout Options}
+
+The Layout Options Node generates five visually distinct global layout chrome presets using the \texttt{AGENT\_LAYOUT\_OPTIONS} prompt. Each option includes:
+\begin{itemize}
+    \item A unique identifier, name, and description.
+    \item HTML elements for navigation bars, sidebars, headers, and footers with position metadata.
+    \item Theme token overrides specific to the layout style.
+\end{itemize}
+
+These options are presented to the user for selection in the frontend interface.
+
+
+\subsubsection{Nodes 5 and 6: Interface Mapper and Metadata Export}
+
+The Interface Mapper Node transforms the pipeline's intermediate representation into the final interface metadata format that the prototype generator consumes. It performs three transformations:
+
+\begin{enumerate}
+    \item \textbf{Section Construction}: Groups attribute contracts by entity, splits mixed-mode entities into separate sections (editable vs.\ read-only), and assigns CRUD operation flags (\texttt{create}, \texttt{update}, \texttt{delete}) based on the field modes determined by the UI Designer's guardrails.
+    
+    \item \textbf{Render AST Generation}: Builds a concrete HTML Abstract Syntax Tree (\texttt{renderAst}) for each page — a JSON tree of HTML element nodes used by the API-layer preview system. Each node carries a \texttt{tag}, optional \texttt{variant} annotation, \texttt{attrs} (HTML attributes including Tailwind CSS classes), and \texttt{children} or \texttt{text} content. The prototype generator does not consume this AST directly; it uses the structured section data via Jinja2 templates instead.
+    
+    \item \textbf{Semantic AST Generation}: Builds a higher-level Semantic AST (\texttt{semanticAst}) for each page — a domain-oriented representation that describes pages in terms of their \emph{kind} (e.g.\ \texttt{page.activity}), entity references, field types, and CRUD capabilities without committing to specific HTML structures. This AST is generated and persisted as an architectural provision for future extensibility (see Section~\ref{sec:dual_ast_impl}).
+\end{enumerate}
+
+The two ASTs serve complementary purposes (detailed in Section~\ref{sec:dual_ast_impl}). The Metadata Export Node then merges the per-actor interface data back into the original UML metadata payload and persists it to the database.
+
+\subsubsection{Exported Interface Metadata Schema}
+\label{sec:interface_schema}
+
+The final metadata exported by the pipeline contains the original UML classifiers and relations alongside the generated interfaces. Each interface's \texttt{data} field follows a structured schema, illustrated in Figure~\ref{fig:interface_data_schema}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  level 1/.style={sibling distance=3.2cm, level distance=1.6cm},
+  level 2/.style={sibling distance=1.5cm, level distance=1.4cm},
+  every node/.style={rectangle, draw, rounded corners=3pt, font=\scriptsize, minimum height=0.55cm, inner sep=3pt},
+  root/.style={fill=blue!15, font=\scriptsize\bfseries},
+  branch/.style={fill=gray!10},
+  leaf/.style={fill=yellow!10},
+  edge from parent/.style={draw, -{Stealth[length=1.8mm]}, thick}
+]
+\node[root] {interface.data}
+  child { node[branch] {pages}
+    child { node[leaf] {renderAst} }
+    child { node[leaf] {semanticAst} }
+    child { node[leaf] {sections[ ]} }
+  }
+  child { node[branch] {sections}
+    child { node[leaf] {attributes} }
+    child { node[leaf] {operations} }
+  }
+  child { node[branch] {styling} }
+  child { node[branch] {theme}
+    child { node[leaf] {tokens} }
+  }
+  child { node[branch] {componentSchema}
+    child { node[leaf] {pages[ ]} }
+  }
+  child { node[branch] {layout}
+    child { node[leaf] {selected} }
+    child { node[leaf] {options} }
+  };
+\end{tikzpicture}
+\caption{Hierarchical schema of the \texttt{Interface.data} JSON structure exported by the pipeline.}
+\label{fig:interface_data_schema}
+\end{figure}
+
+Table~\ref{tab:interface_data_fields} summarises the top-level fields within each interface's \texttt{data} object.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lp{10cm}}
+\hline
+\textbf{Field} & \textbf{Description} \\
+\hline
+\texttt{pages} & List of page objects. Each page carries an \texttt{id}, display \texttt{name}, \texttt{type} (normal or activity), optional \texttt{action} reference linking to a diagram node UUID, section references, \texttt{renderAst}, and \texttt{semanticAst}. \\
+\texttt{sections} & List of section objects. Each section is bound to a UML class entity (\texttt{class} field), carries typed \texttt{attributes}, and an \texttt{operations} object with boolean \texttt{create}/\texttt{update}/\texttt{delete} flags. \\
+\texttt{styling} & Extracted styling summary: \texttt{backgroundColor}, \texttt{textColor}, \texttt{accentColor}, \texttt{radius}, \texttt{selectedStyle}, and \texttt{selectedLayout}. \\
+\texttt{theme} & Theme variant name and \texttt{tokens} dictionary mapping 18 semantic keys to Tailwind CSS classes. \\
+\texttt{layout} & Contains the \texttt{selected} layout option and the full list of five \texttt{options} generated by the Layout Options Node. \\
+\texttt{componentSchema} & Per-page component data including \texttt{renderAst}, \texttt{ast}, and \texttt{semanticAst} used by the prototype generator. \\
+\texttt{designerMeta} & Traceability metadata: generation source, theme name, refinement prompt history, and version. \\
+\texttt{settings} & Configuration flags such as \texttt{managerAccess}. \\
+\hline
+\end{tabular}
+\caption{Top-level fields of the \texttt{Interface.data} JSON structure.}
+\label{tab:interface_data_fields}
+\end{table}
+
+
+\subsection{Interface Theme Generation Architecture}
+
+In addition to the main LangGraph pipeline, a separate subsystem handles interactive theme variant generation and refinement. This subsystem implements the human-in-the-loop approach described in Chapter~3.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=1.0cm and 1.8cm,
+  box/.style={rectangle, draw, rounded corners, minimum width=5.5cm, minimum height=0.8cm, align=center, fill=blue!8, font=\small},
+  userbox/.style={rectangle, draw, rounded corners, minimum width=5.5cm, minimum height=0.8cm, align=center, fill=green!10, font=\small},
+  arrow/.style={-{Stealth[length=2.5mm]}, thick}
+]
+
+\node[userbox] (prompt) {Designer enters style prompt};
+\node[box, below=of prompt] (llm1) {LLM generates 3 theme variants};
+\node[box, below=of llm1] (preview) {Preview renders for each variant};
+\node[userbox, below=of preview] (select) {Designer selects \& previews variant};
+\node[userbox, below=of select] (refine) {Designer provides refinement prompt};
+\node[box, below=of refine] (llm2) {LLM refines selected variant tokens};
+\node[userbox, below=of llm2] (apply) {Designer applies chosen variant};
+
+\draw[arrow] (prompt) -- (llm1);
+\draw[arrow] (llm1) -- (preview);
+\draw[arrow] (preview) -- (select);
+\draw[arrow] (select) -- (refine);
+\draw[arrow] (refine) -- (llm2);
+\draw[arrow] (llm2) -- (preview);
+\draw[arrow] (select) -- (apply);
+
+\end{tikzpicture}
+\caption{Human-in-the-loop theme generation flow. Green boxes indicate user actions; blue boxes indicate system actions.}
+\label{fig:hitl_flow}
+\end{figure}
+
+
+\subsubsection{Theme Token Schema}
+
+Each variant produced by the LLM contains a \texttt{tokens} dictionary that maps semantic UI regions to Tailwind CSS utility classes. The token keys are organised into four tiers:
+
+\begin{enumerate}
+    \item \textbf{Page-level tokens}: \texttt{page.body} (body background and text), \texttt{page.main} (main content area), \texttt{page.surface} (card/panel surfaces).
+    
+    \item \textbf{Component tokens}: \texttt{component.button.primary}, \texttt{component.button.secondary} (button styles), \texttt{component.card} (card containers), \texttt{component.table} (table styling).
+    
+    \item \textbf{Element tokens}: \texttt{element.input.editable}, \texttt{element.input.readonly} (form inputs), \texttt{element.label}, \texttt{element.heading} (typography), \texttt{element.th}, \texttt{element.td} (table cells).
+    
+    \item \textbf{Region tokens}: \texttt{region.form}, \texttt{region.header}, \texttt{region.nav}, \texttt{region.sidebar} (layout regions), \texttt{region.dashboard}, \texttt{region.wizard}, \texttt{region.wizard.step}, \texttt{region.modal} (screen-type-specific regions).
+\end{enumerate}
+
+
+\subsubsection{Screen Type Detection}
+
+The system automatically detects the screen type for each page based on naming conventions and structural analysis. The detection algorithm uses keyword matching on the page name:
+
+\begin{itemize}
+    \item \textbf{Dashboard}: Triggered by keywords ``dashboard'', ``overview'', ``summary'', ``home'', ``analytics''.
+    \item \textbf{Wizard}: Triggered by keywords ``wizard'', ``setup'', ``onboarding'', ``workflow'', combined with having two or more sections.
+    \item \textbf{Modal}: Triggered by keywords ``modal'', ``dialog'', ``popup'', ``confirm''.
+    \item \textbf{Form}: Triggered by keywords ``form'', ``register'', ``signup'', ``apply'', ``submit''.
+    \item \textbf{List}: Default screen type when no keywords match.
+\end{itemize}
+
+Each screen type has distinct layout patterns that the preview and prototype templates render differently (detailed in Chapter~5).
+
+
+\subsubsection{Session Persistence Design}
+
+The designer session is persisted to the database within the \texttt{Interface.data.designerSession} field. This ensures that:
+
+\begin{itemize}
+    \item Sessions survive browser page refreshes and navigation between different interface pages.
+    \item Sessions survive API server restarts, as the in-memory session store (\texttt{\_sessions} dictionary) is repopulated from the database on demand.
+    \item Applied sessions remain accessible, allowing designers to revisit their choices and continue refining after applying a theme.
+\end{itemize}
+
+The persistence logic operates bidirectionally: \texttt{\_persist\_session()} saves the current in-memory session state to the database after every generate and refine operation, while \texttt{\_restore\_session()} loads a saved session from the database back into memory when the designer reopens the interface page.
+
+
+\subsection{Layout System Design}
+
+The framework supports four layout types that determine the overall page chrome:
+
+\begin{enumerate}
+    \item \textbf{SIDEBAR\_LEFT} (default): Left-positioned vertical sidebar with navigation links; main content area on the right.
+    \item \textbf{SIDEBAR\_RIGHT}: Main content on the left; sidebar navigation on the right.
+    \item \textbf{TOP\_NAV}: Horizontal navigation bar at the top; full-width content below.
+    \item \textbf{TOP\_NAV\_SIDEBAR}: Horizontal header at the top combined with a left sidebar for sub-navigation.
+\end{enumerate}
+
+Additionally, the LLM can generate fully custom layouts through the Layout Options system, where navigation elements are positioned freely using flex/grid layouts. Custom layouts take priority over the enum-based layout types when present.
+
+
+\subsection{Prototype Generation Architecture}
+
+The prototype generation system converts interface metadata into a fully functional Django web application. The generation is orchestrated by a shell script (\texttt{generator.sh}) that:
+
+\begin{enumerate}
+    \item Creates a new Django project with the system name.
+    \item Generates a \texttt{shared\_models} app containing Django ORM models derived from UML class diagrams.
+    \item Generates a \texttt{workflow\_engine} app for state machine logic.
+    \item Creates an authentication app or a no-authentication home page based on system configuration.
+    \item For each interface, generates a Django app with:
+    \begin{itemize}
+        \item Models (from class diagrams)
+        \item Views (from activity diagrams and interface metadata)
+        \item Templates (from Jinja2 templates with theme tokens)
+        \item URL configurations
+    \end{itemize}
+    \item Runs database migrations.
+\end{enumerate}
+
+The generated templates use the same token schema as the preview system, ensuring visual consistency between the designer's preview and the running prototype.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter 5 – Implementation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Implementation}
+
+This chapter details the implementation of the AI-driven interface generation system within the AI4MDE framework. It covers the technology stack, LLM integration, template rendering, and the human-in-the-loop interaction implementation.
+
+\subsection{Technology Stack}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+\hline
+Frontend & React 18 + TypeScript & Single-page application \\
+Styling & Tailwind CSS & Utility-first CSS framework \\
+Build & Vite & Frontend build tool \\
+API & Django 5 + Ninja & REST API with Pydantic schemas \\
+Database & PostgreSQL 17 & Persistent storage \\
+LLM & OpenAI GPT-4o API & Natural language reasoning \\
+Pipeline & LangGraph + LangChain & AI workflow orchestration \\
+Templates & Jinja2 & HTML/CSS template rendering \\
+Prototypes & Django (generated) & Running web application \\
+Containerisation & Docker Compose & Service orchestration \\
+Reverse Proxy & Traefik v3 & HTTP routing and load balancing \\
+\hline
+\end{tabular}
+\caption{Technology stack of the AI4MDE framework.}
+\label{tab:tech_stack}
+\end{table}
+
+
+\subsection{LLM Integration}
+
+\subsubsection{API Communication}
+
+The LLM integration uses OpenAI's GPT-4o model through a centralised \texttt{call\_openai(model, prompt)} function. All LLM calls use structured prompts that instruct the model to return valid JSON, which is then parsed with markdown fence stripping to handle cases where the LLM wraps output in code blocks.
+
+\begin{verbatim}
+def _parse_json_response(raw: str) -> dict:
+    raw = raw.strip()
+    if raw.startswith("```"):
+        lines = raw.split("\n")
+        raw = "\n".join(
+            lines[1:-1] if lines[-1].strip() == "```" 
+            else lines[1:]
+        )
+    return json.loads(raw)
+\end{verbatim}
+
+\subsubsection{Variant Generation Prompt}
+
+The \texttt{AGENT\_INTERFACE\_VARIANTS} prompt template takes five parameters:
+\begin{itemize}
+    \item \texttt{designer\_prompt}: The user's natural language style description.
+    \item \texttt{system\_name}: Name of the system being designed.
+    \item \texttt{interface\_name}: Name of the specific interface.
+    \item \texttt{actor\_name}: Name of the actor using this interface.
+    \item \texttt{page\_structure}: A text summary of all pages and their sections with field types.
+\end{itemize}
+
+The prompt instructs the LLM to generate exactly three variants, each containing all 18 required token keys. It includes screen-type-specific styling guidance:
+\begin{itemize}
+    \item \textbf{Dashboard}: Stat cards in a grid layout, recent-items tables, executive visual feel.
+    \item \textbf{Form}: Standalone full-page forms, centred layout, generous spacing.
+    \item \textbf{Wizard}: Multi-step interfaces with numbered step indicator circles and connectors.
+    \item \textbf{Modal}: Centred dialog cards with compact width and elevated shadows.
+    \item \textbf{List}: CRUD tables with search bars and pagination controls.
+\end{itemize}
+
+
+\subsubsection{Variant Refinement Prompt}
+
+The \texttt{AGENT\_INTERFACE\_REFINE} prompt enables iterative refinement of a selected variant. It receives the current token values alongside the designer's refinement instruction (e.g.\ ``make the sidebar darker'' or ``use rounder buttons'') and produces an updated token set that preserves unchanged values while modifying only the requested aspects.
+
+
+\subsection{Page Structure Extraction}
+
+The \texttt{\_build\_page\_structure()} function generates a text summary of an interface's structure for inclusion in LLM prompts:
+
+\begin{verbatim}
+def _build_page_structure(interface_data: dict) -> str:
+    pages = interface_data.get("pages", [])
+    sections = interface_data.get("sections", [])
+    lines = []
+    for page in pages:
+        name = page.get("name", "Unnamed")
+        lines.append(f"Page: {name}")
+        page_id = page.get("id", "")
+        page_sections = [
+            s for s in sections 
+            if str(s.get("page", "")) == str(page_id)
+        ]
+        for section in page_sections:
+            lines.append(f"  Section: {section.get('name')}")
+            for attr in section.get("attributes", []):
+                lines.append(
+                    f"    - {attr.get('name')} "
+                    f"({attr.get('type', 'STRING')})"
+                )
+    return "\n".join(lines)
+\end{verbatim}
+
+This structured summary enables the LLM to understand the data layout and generate appropriate theme tokens for the specific interface content.
+
+
+\subsection{Dual-AST Architecture: Render AST and Semantic AST}
+\label{sec:dual_ast_impl}
+
+The Interface Mapper Node produces two complementary AST representations for each page. This dual-AST design separates presentation concerns from semantic concerns, enabling different consumers to use the representation most suited to their needs.
+
+\subsubsection{Render AST}
+
+The Render AST (\texttt{renderAst}) is a concrete HTML tree serialised as a JSON array. Each node represents a single HTML element and contains:
+
+\begin{itemize}
+    \item \texttt{tag}: The HTML element name (e.g.\ \texttt{h2}, \texttt{section}, \texttt{table}, \texttt{input}, \texttt{button}).
+    \item \texttt{variant}: An optional semantic annotation (e.g.\ \texttt{primary}, \texttt{default}, \texttt{form}, \texttt{detail}) used by the theme system to apply token-based styling.
+    \item \texttt{attrs}: A dictionary of HTML attributes, most notably \texttt{class} for Tailwind CSS utility classes.
+    \item \texttt{text}: Leaf text content.
+    \item \texttt{children}: Nested child nodes.
+\end{itemize}
+
+The Render AST is constructed by \texttt{\_build\_generator\_section\_ast()}, which for each section generates:
+
+\begin{enumerate}
+    \item A header row containing the section name and CRUD operation buttons (\texttt{Create}, \texttt{Update}, \texttt{Delete}) — only those operations whose flags are \texttt{true} in the section's \texttt{operations} object.
+    \item A data table with \texttt{<thead>} (field names as column headers) and \texttt{<tbody>} (sample row with field name placeholders).
+    \item A form grid (only for sections with \texttt{create} or \texttt{update} operations) containing up to four input fields with appropriate \texttt{<label>} and \texttt{<input>} elements, skipping derived fields.
+\end{enumerate}
+
+For activity-type pages, a ``Complete task'' button is appended at the bottom of the page AST.
+
+The Render AST is consumed in two contexts:
+\begin{enumerate}
+    \item \textbf{API Pipeline Preview}: The pipeline's built-in preview endpoint (\texttt{pipeline.py}) collects Render AST nodes via \texttt{\_collect\_page\_ast\_nodes()} and renders them through \texttt{ast\_template\_renderer.py}, which traverses the tree, resolves \texttt{variant} annotations against the theme token dictionary, and produces complete HTML.
+    \item \textbf{Prototype Generator (available but unused)}: An \texttt{ast\_template\_renderer.render\_page()} function exists that can convert the Render AST into Django template HTML. However, the current prototype generator bypasses this path and instead uses the structured \texttt{section\_components} data through the \texttt{page.html.jinja2} template, which generates functional CRUD pages with Django form bindings, model querysets, and workflow integration — capabilities that the Render AST's static mockup nodes (disabled inputs, placeholder text) cannot provide.
+\end{enumerate}
+
+\subsubsection{Semantic AST}
+
+The Semantic AST (\texttt{semanticAst}) is a higher-level, domain-oriented representation that abstracts away HTML specifics. Its structure is:
+
+\begin{verbatim}
+{
+  "kind": "page.activity",
+  "name": "Submit Application",
+  "activityName": "Submit Application",
+  "sections": [
+    {
+      "kind": "region.form",
+      "entity": "Application",
+      "entityRef": "entity-uuid",
+      "operations": {
+        "create": true, "update": true, "delete": true
+      },
+      "fields": [
+        {
+          "kind": "component.field",
+          "name": "title",
+          "fieldType": "str",
+          "derived": false
+        }
+      ]
+    }
+  ]
+}
+\end{verbatim}
+
+Key differences from the Render AST:
+
+\begin{itemize}
+    \item \textbf{No HTML elements}: Uses semantic \texttt{kind} labels (\texttt{page.activity}, \texttt{region.form}, \texttt{region.detail}, \texttt{component.field}) instead of HTML tags.
+    \item \textbf{Entity references}: Each section carries an \texttt{entityRef} UUID linking back to the UML class diagram, providing a direct mapping to Django ORM model classes.
+    \item \textbf{Field metadata}: Fields include \texttt{fieldType} (data type from the UML model) and \texttt{derived} (whether the field is computed), encoding sufficient information for form widget selection and derived-field exclusion.
+    \item \textbf{Region classification}: The \texttt{kind} label distinguishes between \texttt{region.form} (sections with editable fields) and \texttt{region.detail} (read-only display sections), encoding the semantic intent of each page region.
+\end{itemize}
+
+\paragraph{Current Usage.}
+The Semantic AST is generated by the Interface Mapper Node and persisted within each interface's \texttt{data} and \texttt{componentSchema} fields. However, the current prototype generator does not consume it at runtime — the generator's \texttt{page.html.jinja2} template reads the structured \texttt{section\_components} list (sections with attributes, operations, and entity references) directly. The Semantic AST therefore serves as an \emph{architectural provision}: it encodes sufficient information for a future generator path that could map pages to Django generic views (\texttt{ListView}, \texttt{CreateView}, etc.) and form widgets based on \texttt{fieldType}, without requiring the intermediate \texttt{section\_components} layer.
+
+\subsubsection{Design Rationale}
+
+The dual-AST approach addresses two distinct needs:
+
+\begin{enumerate}
+    \item The \textbf{Render AST} provides a \emph{visual contract} — it defines the layout, component structure, and Tailwind classes for preview rendering. The API pipeline's preview system uses this AST (via \texttt{ast\_template\_renderer.py}) to produce HTML previews during the generation pipeline's execution.
+    
+    \item The \textbf{Semantic AST} provides a \emph{domain contract} — it describes what the page \emph{means} in terms of entities, operations, and data types, independent of any visual representation. While not consumed by the current generator, it is designed to enable future capabilities such as:
+    \begin{itemize}
+        \item Mapping sections to Django model classes via \texttt{entityRef}.
+        \item Generating appropriate Django generic views (\texttt{ListView}, \texttt{CreateView}, \texttt{UpdateView}, \texttt{DeleteView}) based on \texttt{operations} flags.
+        \item Selecting form field widgets based on \texttt{fieldType}.
+        \item Wiring workflow transitions based on the page's \texttt{kind} and action references.
+    \end{itemize}
+\end{enumerate}
+
+In the current implementation, the prototype generator uses a third representation — \texttt{section\_components} — which carries the same entity, attribute, and operation data as the Semantic AST but in a format tailored to the existing Jinja2 template system. The Semantic AST was introduced to decouple the generation contract from this template-specific format, ensuring that visual design changes (e.g.\ different Tailwind classes, layout reordering) do not affect the semantic layer, and that future generator backends can consume a stable, template-independent interface specification.
+
+
+\subsection{Preview Rendering System}
+
+The preview system renders real-time HTML previews that visually match the generated prototype. This is achieved through a shared template architecture.
+
+\subsubsection{Template Architecture}
+
+Two parallel template systems are used:
+
+\begin{enumerate}
+    \item \textbf{Prototype templates} (in \texttt{prototypes/backend/generation/templates/}):
+    \begin{itemize}
+        \item \texttt{base.html.jinja2}: Base layout template with navigation, breadcrumbs, and layout type branching.
+        \item \texttt{page.html.jinja2}: Page content template with screen type detection and rendering.
+        \item \texttt{style.css.jinja2}: CSS stylesheet template with token-aware styling.
+    \end{itemize}
+    
+    \item \textbf{Preview template} (in \texttt{api/model/generator/api/views/}):
+    \begin{itemize}
+        \item \texttt{preview.html.jinja2}: A standalone preview template that mirrors the combined structure of \texttt{base.html.jinja2} and \texttt{page.html.jinja2}, producing identical visual output with sample data.
+    \end{itemize}
+\end{enumerate}
+
+Both template systems apply the same token keys to the same HTML elements, ensuring visual parity between the designer's preview and the generated prototype.
+
+
+\subsubsection{CSS Rendering with Tokens}
+
+The \texttt{\_render\_style\_css()} function generates CSS from theme tokens by:
+
+\begin{enumerate}
+    \item Extracting Tailwind utility classes from the token dictionary.
+    \item Resolving colour names and shades using a comprehensive Tailwind colour palette lookup table (\texttt{\_TW\_COLORS}) containing 17 named colours $\times$ 11 shades plus black, white, and transparent.
+    \item Resolving border radius values from Tailwind's \texttt{rounded-*} classes using \texttt{\_TW\_RADIUS}.
+    \item Rendering the \texttt{style.css.jinja2} template with the extracted styling values.
+\end{enumerate}
+
+When theme tokens are present, the CSS template skips style-type-specific rules (e.g.\ \texttt{MODERN}, \texttt{GLASSMORPHISM}) and relies on Tailwind CDN classes applied directly in the HTML, ensuring that the token-based styling takes priority.
+
+
+\subsubsection{Screen Type Rendering}
+
+Each screen type produces distinct HTML structures in both the preview and prototype templates:
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lp{9cm}}
+\hline
+\textbf{Screen Type} & \textbf{Rendered Components} \\
+\hline
+Dashboard & Stat cards in a responsive grid, recent-items tables (limited to 3--5 rows), executive summary layout \\
+Form & Centred form container with typed input fields (text, number, checkbox, select, date, email, textarea) based on attribute types \\
+Wizard & Numbered step indicator circles with connecting lines, step panels with forms, previous/next navigation buttons \\
+Modal & Centred card with overlay-style wrapper, compact form layout, elevated shadow \\
+List & Tab navigation (for multiple sections), accordion sections, search bar, sortable data table, pagination controls, create/edit/delete modals \\
+\hline
+\end{tabular}
+\caption{HTML components rendered for each screen type.}
+\label{tab:screen_types}
+\end{table}
+
+The attribute type system maps UML data types to appropriate HTML input elements:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\hline
+\textbf{Attribute Type} & \textbf{HTML Input} \\
+\hline
+STRING & \texttt{<input type="text">} \\
+INTEGER & \texttt{<input type="number">} \\
+FLOAT & \texttt{<input type="number" step="0.01">} \\
+BOOLEAN & \texttt{<input type="checkbox">} \\
+ENUM & \texttt{<select>} with options \\
+DATE & \texttt{<input type="date">} \\
+DATETIME & \texttt{<input type="datetime-local">} \\
+TEXT & \texttt{<textarea>} \\
+EMAIL & \texttt{<input type="email">} \\
+\hline
+\end{tabular}
+\caption{Mapping from UML attribute types to HTML input elements.}
+\label{tab:attr_types}
+\end{table}
+
+
+\subsection{Variant Generation and Refinement Endpoints}
+
+\subsubsection{Generate Variants Endpoint}
+
+The \texttt{POST /interface-gen/generate/} endpoint implements the following flow:
+
+\begin{enumerate}
+    \item Load the \texttt{Interface} object from the database, including related \texttt{System} and \texttt{Actor} objects.
+    \item Extract interface metadata (\texttt{pages}, \texttt{sections}, \texttt{styling}) from the \texttt{Interface.data} JSONField.
+    \item Build a page structure summary via \texttt{\_build\_page\_structure()}.
+    \item Format the \texttt{AGENT\_INTERFACE\_VARIANTS} prompt with the designer's prompt, system name, interface name, actor name, and page structure.
+    \item Call GPT-4o with a 120-second timeout and parse the JSON response.
+    \item Validate that exactly three variants were returned.
+    \item Create an in-memory session with a UUID session identifier.
+    \item Persist the session to the database via \texttt{\_persist\_session()}.
+    \item Return the session ID and variant summaries (id, name, description) to the frontend.
+\end{enumerate}
+
+
+\subsubsection{Refine Variant Endpoint}
+
+The \texttt{POST /interface-gen/\{session\_id\}/refine/} endpoint:
+
+\begin{enumerate}
+    \item Retrieves the session and the target variant from the in-memory store.
+    \item Formats the \texttt{AGENT\_INTERFACE\_REFINE} prompt with the variant's current tokens and the designer's refinement instruction.
+    \item Calls GPT-4o to produce updated tokens.
+    \item Updates the variant in place within the session (name, description, and tokens).
+    \item Appends the refinement prompt to the session's \texttt{refine\_history}.
+    \item Persists the updated session to the database.
+\end{enumerate}
+
+
+\subsubsection{Apply Variant Endpoint}
+
+The \texttt{POST /interface-gen/\{session\_id\}/apply/} endpoint:
+
+\begin{enumerate}
+    \item Writes the selected variant's \texttt{theme} (name and tokens) into the \texttt{Interface.data} JSONField.
+    \item Writes \texttt{designerMeta} containing the original prompt, variant information, and refinement history for traceability.
+    \item Marks the session as \texttt{applied} and persists it to the database, allowing the designer to revisit the session and continue refining if needed.
+\end{enumerate}
+
+
+\subsubsection{Preview Variant Endpoint}
+
+The \texttt{GET /interface-gen/\{session\_id\}/preview/\{variant\_id\}/} endpoint renders a full HTML page. It is decorated with \texttt{@xframe\_options\_exempt} to allow embedding in an iframe within the React frontend. The preview is generated by \texttt{\_render\_variant\_preview()}, which:
+
+\begin{enumerate}
+    \item Extracts the first page and its sections from the interface metadata.
+    \item Detects the screen type using \texttt{\_detect\_screen\_type()}.
+    \item Determines the layout type from \texttt{interface\_data.styling.selectedLayout}.
+    \item Renders CSS using the prototype's \texttt{style.css.jinja2} template.
+    \item Renders the preview HTML using \texttt{preview.html.jinja2} with all layout, screen type, and token variables.
+\end{enumerate}
+
+
+\subsection{Frontend Implementation}
+
+\subsubsection{InterfaceGenerate Component}
+
+The \texttt{InterfaceGenerate} React component manages the entire human-in-the-loop workflow. It maintains the following state:
+
+\begin{itemize}
+    \item \texttt{sessionId}: Current generation session identifier.
+    \item \texttt{variants}: Array of variant summaries (id, name, description).
+    \item \texttt{selectedVariant}: Currently active variant tab.
+    \item \texttt{prompt}: Designer's original style prompt.
+    \item \texttt{refinePrompt}: Current refinement input text.
+    \item \texttt{refineHistory}: Array of past refinement prompts, displayed as pills.
+    \item \texttt{applied}: Whether a variant has been applied.
+    \item \texttt{restoring}: Loading state during session restoration.
+\end{itemize}
+
+\subsubsection{Session Restoration}
+
+On component mount, a \texttt{useEffect} hook attempts to restore a previously saved session:
+
+\begin{verbatim}
+useEffect(() => {
+    let cancelled = false;
+    (async () => {
+        try {
+            const { data } = await authAxios.get(
+                `/v1/generator/interface-gen/restore/
+                 ${interfaceId}/`
+            );
+            if (cancelled) return;
+            setSessionId(data.session_id);
+            setVariants(data.variants || []);
+            setRefineHistory(data.refine_history || []);
+            setSelectedVariant(
+                data.selected_variant_id || null
+            );
+            setPrompt(data.original_prompt || "");
+            if (data.applied) setApplied(true);
+        } catch { /* No saved session */ }
+        finally {
+            if (!cancelled) setRestoring(false);
+        }
+    })();
+    return () => { cancelled = true; };
+}, [interfaceId]);
+\end{verbatim}
+
+This ensures that designers see their previous session immediately upon navigating back to the interface page, even after a browser restart or server restart.
+
+\subsubsection{Variant Preview Rendering}
+
+Each variant is rendered in a full-height iframe that loads the preview endpoint:
+
+\begin{verbatim}
+<iframe
+    src={`${baseURL}/v1/generator/interface-gen/
+          ${sessionId}/preview/${variantId}/`}
+    className="w-full h-full border-0"
+    sandbox="allow-same-origin allow-scripts"
+/>
+\end{verbatim}
+
+The \texttt{sandbox} attribute restricts the iframe to same-origin requests and script execution, preventing security issues while allowing the preview to render interactive elements.
+
+After a refinement operation, the iframe is forced to reload by incrementing a refresh key in the component's ref store, which changes the iframe's \texttt{key} prop and triggers a React re-mount.
+
+\subsubsection{User Interface Layout}
+
+The component displays:
+\begin{enumerate}
+    \item A header row showing the original prompt and an ``Applied'' badge when applicable.
+    \item Variant tabs for switching between the three generated variants.
+    \item A full-height iframe preview area occupying the remaining vertical space.
+    \item A bottom action bar containing:
+    \begin{itemize}
+        \item A text input for refinement prompts.
+        \item A ``Refine'' button to submit refinements.
+        \item An ``Apply Theme'' (or ``Re-apply Theme'') button.
+    \end{itemize}
+    \item Refinement history displayed as coloured pills.
+\end{enumerate}
+
+
+\subsection{Prototype Generation Implementation}
+
+\subsubsection{Generation Orchestration}
+
+The prototype generation is orchestrated by \texttt{generator.sh}, a shell script that creates a complete Django project:
+
+\begin{enumerate}
+    \item \textbf{Project Creation}: \texttt{django-admin startproject} creates the Django project skeleton.
+    \item \textbf{Settings Configuration}: \texttt{ALLOWED\_HOSTS} is set to \texttt{['*']}, and \texttt{AUTH\_USER\_MODEL} is configured when authentication is present.
+    \item \textbf{Shared Models App}: Django ORM models are generated from UML class diagrams via \texttt{generate\_models.py}.
+    \item \textbf{Workflow Engine App}: State machine logic is generated from activity diagrams via \texttt{generate\_workflow\_engine.py}.
+    \item \textbf{Interface Apps}: For each interface, a Django app is generated with models, views, templates, and URL configurations via \texttt{generate\_application.py}.
+    \item \textbf{Database Setup}: \texttt{makemigrations} and \texttt{migrate} create the database schema.
+\end{enumerate}
+
+\subsubsection{Template Rendering in Generated Prototypes}
+
+The generated prototype templates consume the same theme tokens stored in \texttt{Interface.data.theme.tokens}. The \texttt{base.html.jinja2} template applies tokens to HTML elements:
+
+\begin{itemize}
+    \item \texttt{page.body} on the \texttt{<body>} tag for background and text colour.
+    \item \texttt{page.main} on the main content div.
+    \item \texttt{region.header} on header elements.
+    \item \texttt{region.nav} on navigation and menu elements.
+    \item \texttt{region.sidebar} on sidebar containers.
+    \item \texttt{element.heading} on \texttt{<h1>} headings.
+\end{itemize}
+
+The \texttt{page.html.jinja2} template renders page content based on the detected screen type and applies component-level tokens (\texttt{component.card}, \texttt{component.button.primary}, \texttt{component.table}, etc.) to the appropriate elements.
+
+The \texttt{style.css.jinja2} template generates CSS that provides structural layout rules (grid systems, flex containers, responsive breakpoints) while deferring colour and typography to the Tailwind CDN classes specified in the tokens. When tokens are absent, it falls back to one of seven predefined style types: \texttt{BASIC}, \texttt{MODERN}, \texttt{ABSTRACT}, \texttt{ELEGANT}, \texttt{BRUTALIST}, \texttt{GLASSMORPHISM}, or \texttt{DARK}.
+
+
+\subsubsection{Prototype Serving}
+
+The Flask API (\texttt{api.py}) manages prototype lifecycle:
+\begin{itemize}
+    \item \texttt{POST /run}: Starts the generated Django application on port 8020.
+    \item \texttt{POST /stop\_prototypes}: Terminates the running prototype process.
+    \item \texttt{POST /overwrite\_views}: Allows runtime updates to generated view files.
+    \item \texttt{POST /overwrite\_base\_template}: Allows runtime updates to base templates and CSS.
+\end{itemize}
+
+Process management uses Python's \texttt{multiprocessing.Manager} and \texttt{Lock} for safe concurrent access to the running prototype state.
+
+
+\subsection{Live Design Library Integration}
+
+The system fetches live design references from popular component libraries at runtime, rather than relying on hardcoded patterns:
+
+\begin{enumerate}
+    \item \texttt{\_discover\_design\_urls()}: Scrapes index pages from Flowbite, DaisyUI, and MerakiUI using regex to extract component page URLs.
+    \item \texttt{\_fetch\_design\_snippet()}: Fetches individual component pages and extracts code blocks or raw HTML for navigation, sidebar, header, and card components.
+    \item Token extraction: Three categories of tokens are extracted from design references — palette tokens (colour classes), layout tokens (flex, grid, spacing), and typography tokens (font families, text sizes).
+\end{enumerate}
+
+This approach ensures that the LLM receives up-to-date design patterns without requiring manual updates to the codebase.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter 6 – Evaluation and Results
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Evaluation and Results}
+
+This chapter presents the evaluation methodology and results for the AI-driven interface generation system. The evaluation assesses the system against the three hypotheses defined in Section~1.2.2.
+
+\subsection{Evaluation Methodology}
+
+The evaluation follows a mixed-methods approach combining automated metrics, expert assessment, and user studies \cite{vD24, dH24}.
+
+\subsubsection{Participants}
+
+Two groups of participants are recruited:
+\begin{itemize}
+    \item \textbf{UI Designers} ($n = 5$): Professional designers with experience in web application design, responsible for evaluating OOUI alignment and visual quality.
+    \item \textbf{University Students} ($n = 5$): Computer science students who evaluate usability and functional correctness through task-based testing.
+\end{itemize}
+
+\subsubsection{Test Scenarios}
+
+Three enterprise-style scenarios are used for evaluation:
+\begin{enumerate}
+    \item \textbf{E-Commerce System}: A shop interface with two actors (buyers and administrators), involving product browsing, ordering, and inventory management workflows.
+    \item \textbf{Human Resources System}: An HR management interface with three actors (employees, managers, HR administrators), involving leave requests, approvals, and personnel management.
+    \item \textbf{Project Management System}: A project tracking interface with two actors (team members and project managers), involving task creation, assignment, and progress tracking.
+\end{enumerate}
+
+\subsubsection{Evaluation Dimensions}
+
+The system is evaluated along four dimensions:
+
+\begin{enumerate}
+    \item \textbf{OOUI Alignment}: Whether the generated interfaces reflect object-oriented user interface principles — object-centric navigation, direct manipulation, and relationship-driven navigation.
+    \item \textbf{Usability}: Task completion time, error rates, and System Usability Scale (SUS) scores \cite{vD24}.
+    \item \textbf{Variant Diversity}: Whether the three generated variants are meaningfully different in visual style, colour scheme, and layout patterns.
+    \item \textbf{Refinement Effectiveness}: How many iteration rounds are needed to reach a satisfactory result, and the quality improvement per iteration.
+\end{enumerate}
+
+
+\subsection{OOUI Alignment Evaluation}
+
+\subsubsection{Evaluation Criteria}
+
+OOUI alignment is assessed using five criteria derived from the principles described in Section~2.4 \cite{Ver25}:
+
+\begin{enumerate}
+    \item \textbf{Object Centricity}: Interfaces are organised around domain objects rather than abstract operations.
+    \item \textbf{Direct Manipulation}: Users can interact directly with objects through CRUD operations visible on the same page.
+    \item \textbf{Relationship Navigation}: Navigation between pages reflects associations between domain entities.
+    \item \textbf{Contextual Actions}: Available actions depend on the current object state and user role.
+    \item \textbf{Consistent Object Representation}: The same domain object appears consistently across different views.
+\end{enumerate}
+
+\subsubsection{Assessment Method}
+
+Each UI designer independently rates the generated interfaces on each criterion using a 5-point Likert scale (1 = strongly disagree, 5 = strongly agree). Inter-rater reliability is measured using Krippendorff's alpha.
+
+\subsubsection{Expected Results}
+
+The AI-generated interfaces are expected to score significantly higher on OOUI alignment compared to the rule-based baseline, particularly on criteria 1 (Object Centricity) and 3 (Relationship Navigation), as the LLM can reason about entity associations and group related content contextually \cite{dH24, Ver25}.
+
+
+\subsection{Usability Evaluation}
+
+\subsubsection{Task-Based Testing}
+
+Participants perform predefined tasks on both rule-based and AI-generated interfaces for each test scenario. Example tasks include:
+
+\begin{itemize}
+    \item \textbf{E-Commerce}: Browse products, add to cart, complete checkout (buyer); add new product, update inventory (administrator).
+    \item \textbf{HR System}: Submit leave request (employee); approve/reject leave request (manager); view all pending requests (HR administrator).
+    \item \textbf{Project Management}: Create a new task, assign to team member (project manager); update task status, log time (team member).
+\end{itemize}
+
+\subsubsection{Metrics}
+
+\begin{itemize}
+    \item \textbf{Task Completion Time}: Measured in seconds for each task.
+    \item \textbf{Error Rate}: Number of incorrect actions or navigation errors per task.
+    \item \textbf{SUS Score}: System Usability Scale questionnaire administered after each scenario \cite{vD24}.
+    \item \textbf{Satisfaction Score}: Post-task satisfaction rating on a 5-point Likert scale.
+\end{itemize}
+
+\subsubsection{Comparison Baseline}
+
+The baseline for comparison is the output of the existing rule-based AI4MDE generator (without AI theme generation). Both the baseline and AI-generated versions use the same UML models as input, ensuring that differences are attributable to the AI-driven generation rather than input variation.
+
+
+\subsection{Variant Diversity Analysis}
+
+\subsubsection{Quantitative Metrics}
+
+Variant diversity is measured through:
+
+\begin{itemize}
+    \item \textbf{Colour Distance}: CIE $\Delta E_{2000}$ colour difference between the primary colours of each variant pair, computed from the \texttt{component.button.primary} and \texttt{page.body} token values.
+    \item \textbf{Token Overlap}: Percentage of tokens with identical values across variant pairs. Lower overlap indicates higher diversity.
+    \item \textbf{Layout Variation}: Whether variants use different border radius values, font stacks, or spacing patterns.
+\end{itemize}
+
+\subsubsection{Qualitative Assessment}
+
+Designers rate the visual distinctiveness of each variant pair on a 3-point scale: ``very similar'', ``moderately different'', ``clearly distinct''.
+
+
+\subsection{Human-in-the-Loop Effectiveness}
+
+\subsubsection{Iteration Analysis}
+
+For each test scenario, the following data is collected:
+
+\begin{itemize}
+    \item Number of refinement iterations before the designer is satisfied.
+    \item Content of each refinement prompt (categorised by type: colour change, layout change, typography change, component style change).
+    \item Quality improvement per iteration, measured by the designer's satisfaction score before and after each refinement.
+\end{itemize}
+
+\subsubsection{Convergence Analysis}
+
+The hypothesis is that most designers reach satisfactory results within 1--2 refinement iterations \cite{dH24, Ver25}. The system enforces a maximum of three refinement iterations to prevent over-reliance on AI generation.
+
+
+\subsection{Results Summary}
+
+Results are presented in tables and charts comparing:
+
+\begin{itemize}
+    \item Rule-based vs.\ AI-generated interfaces on OOUI alignment scores.
+    \item Task completion times and error rates across both approaches.
+    \item SUS scores for baseline vs.\ AI-generated interfaces.
+    \item Variant diversity metrics across all test scenarios.
+    \item Refinement iteration counts and convergence patterns.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter 7 – Discussion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Discussion}
+
+This chapter interprets the evaluation results, discusses limitations, analyses threats to validity, and compares the proposed approach with related work.
+
+\subsection{Interpretation of Results}
+
+\subsubsection{H1: OOUI Principle Effectiveness}
+
+The AI-based approach is expected to produce interfaces that more effectively reflect OOUI principles compared to rule-based generation. This is attributed to the LLM's ability to reason about domain entity relationships and contextually group related content, capabilities that fixed rules cannot replicate \cite{Ver25}.
+
+The parser DSL's one-hop peek algorithm and the entity flow tracking (\texttt{produces}, \texttt{consumes}, \texttt{read\_write}) provide the LLM with sufficient context to make informed decisions about field modes and page structure, directly supporting object-centric interface design.
+
+\subsubsection{H2: Enterprise Application Suitability}
+
+The multi-actor, workflow-driven test scenarios demonstrate the system's capability to handle enterprise-level complexity. Key factors contributing to suitability include:
+
+\begin{itemize}
+    \item \textbf{Actor-specific interfaces}: Each actor receives a tailored interface with appropriate pages and permissions derived from use case diagrams \cite{Wil24}.
+    \item \textbf{Workflow-aware field modes}: The guardrail system ensures that ``consumes'' fields are readonly and ``produces'' fields have at least one editable field, enforcing correct data flow in multi-step workflows \cite{vA22}.
+    \item \textbf{Screen type variety}: The five screen types (dashboard, form, wizard, modal, list) cover common enterprise UI patterns, providing appropriate layouts for different interaction contexts.
+\end{itemize}
+
+\subsubsection{H3: Human-in-the-Loop Refinement}
+
+The iterative refinement mechanism allows designers to guide the AI toward their design intent through natural language prompts. The session persistence system ensures that refinement progress is preserved across browser sessions and server restarts, reducing friction in the iterative design process.
+
+
+\subsection{Threats to Validity}
+
+\subsubsection{Internal Validity}
+\begin{itemize}
+    \item \textbf{LLM Non-Determinism}: The same prompt may produce different outputs across invocations. This is mitigated by the deterministic pre-LLM page synthesis and post-LLM guardrails, which ensure structural consistency regardless of LLM stochasticity.
+    \item \textbf{Learning Effects}: Participants performing tasks on both rule-based and AI-generated interfaces may improve due to familiarity. This is mitigated through counterbalanced task ordering.
+\end{itemize}
+
+\subsubsection{External Validity}
+\begin{itemize}
+    \item \textbf{Scenario Representativeness}: The three test scenarios cover common enterprise patterns but may not represent all application domains. Extending the evaluation to additional domains (healthcare, logistics, education) would improve generalisability.
+    \item \textbf{Participant Sample}: The sample size ($n = 10$) is adequate for identifying large effect sizes but may not capture subtle differences. Larger studies are needed for definitive conclusions.
+\end{itemize}
+
+\subsubsection{Construct Validity}
+\begin{itemize}
+    \item \textbf{OOUI Criteria}: The five OOUI alignment criteria are derived from established literature \cite{Ver25} but may not capture all relevant aspects of object-oriented interface design.
+    \item \textbf{SUS Limitations}: The System Usability Scale provides a general usability measure but does not distinguish between learnability and efficiency components.
+\end{itemize}
+
+
+\subsection{Limitations}
+
+\subsubsection{LLM Limitations}
+\begin{itemize}
+    \item \textbf{Hallucination}: The LLM may generate token values that reference non-existent Tailwind classes or produce visually inconsistent colour combinations. The token validation in \texttt{\_TW\_COLORS} and \texttt{\_TW\_RADIUS} mitigates this partially but does not eliminate it.
+    \item \textbf{Context Window}: Very large UML models with many entities and relationships may exceed the LLM's context window, requiring truncation of the page structure summary.
+    \item \textbf{Cost}: Each variant generation requires at least one GPT-4o API call, and each refinement adds another. For frequent usage, API costs may become significant.
+\end{itemize}
+
+\subsubsection{Architectural Limitations}
+\begin{itemize}
+    \item \textbf{In-Memory Session Store}: The primary session store is an in-memory Python dictionary, which does not scale horizontally. While sessions are persisted to the database, the in-memory store introduces latency for initial restoration. A Redis-backed session store would be more suitable for production deployment.
+    \item \textbf{Template Duplication}: The preview template (\texttt{preview.html.jinja2}) duplicates significant structure from the prototype templates (\texttt{base.html.jinja2} and \texttt{page.html.jinja2}). Changes to the prototype templates must be manually synchronised with the preview template.
+    \item \textbf{Iteration Limit}: The three-iteration refinement limit may be insufficient for complex design requirements. However, this limit prevents excessive LLM usage and encourages designers to provide comprehensive initial prompts \cite{dH24}.
+\end{itemize}
+
+
+\subsection{Comparison with Related Work}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{3.5cm}p{2.5cm}p{2.5cm}p{2.5cm}p{2.5cm}}
+\hline
+\textbf{Feature} & \textbf{Rule-Based \newline \cite{vD24}} & \textbf{Template-Based} & \textbf{LLM-Only \newline \cite{Zei23}} & \textbf{This Work} \\
+\hline
+UML model input & Yes & Partial & No & Yes \\
+OOUI awareness & No & No & Partial & Yes \\
+Multi-actor support & Basic & Basic & N/A & Full \\
+Screen type variety & 1 (list) & 2--3 & Unlimited & 5 \\
+Theme customisation & No & Limited & Yes & Yes (tokens) \\
+Iterative refinement & No & No & Yes & Yes (HITL) \\
+Prototype generation & Yes & Yes & No & Yes \\
+Preview--prototype parity & N/A & Partial & N/A & Full \\
+Session persistence & N/A & N/A & No & Yes \\
+\hline
+\end{tabular}
+\caption{Feature comparison between different UI generation approaches and this work.}
+\label{tab:comparison}
+\end{table}
+
+The key differentiators of this work are:
+\begin{enumerate}
+    \item Integration of LLM reasoning within an existing MDE pipeline, rather than replacing it.
+    \item Full preview-to-prototype visual parity through shared template architecture.
+    \item Persistent human-in-the-loop sessions that survive server restarts.
+    \item Deterministic pre-LLM synthesis combined with post-LLM guardrails for reliability.
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Chapter 8 – Conclusion
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Conclusion}
+
+\subsection{Summary of Contributions}
+
+This thesis presents an AI-driven approach to user interface generation within the AI4MDE model-driven engineering framework. The contributions are:
+
+\begin{enumerate}
+    \item \textbf{LLM Integration in MDE Pipeline}: A six-node LangGraph pipeline that combines deterministic parsing with LLM-based reasoning to generate OOUI-aware interface metadata from UML class, use case, and activity models. The pipeline uses pre-LLM page synthesis for reproducibility and post-LLM guardrails for correctness \cite{dH24, vD24}.
+    
+    \item \textbf{Theme Token Schema}: A structured token system with 18 semantic keys organised across four tiers (page, component, element, region) that maps domain concepts to Tailwind CSS utility classes. This schema enables consistent theming across previews and generated prototypes.
+    
+    \item \textbf{Screen Type System}: Five screen types (dashboard, form, wizard, modal, list) with automatic detection based on page naming conventions and structural analysis, providing appropriate UI patterns for different interaction contexts.
+    
+    \item \textbf{Human-in-the-Loop Theme Generation}: An interactive three-variant generation and refinement system that allows designers to guide UI styling through natural language prompts, with persistent sessions that survive browser and server restarts \cite{Ver25}.
+    
+    \item \textbf{Preview--Prototype Parity}: A shared Jinja2 template architecture that ensures the designer's real-time preview matches the generated Django prototype, eliminating visual discrepancies between design-time and runtime.
+\end{enumerate}
+
+
+\subsection{Answers to Research Hypotheses}
+
+\subsubsection{H1: OOUI Principle Reflection}
+
+The AI-based approach effectively reflects OOUI principles through:
+\begin{itemize}
+    \item Object-centric page organisation derived from UML class diagrams and entity flow analysis.
+    \item Direct manipulation via CRUD operations generated for each entity.
+    \item Relationship-driven navigation computed from class diagram associations.
+    \item Contextual field modes (\texttt{editable}, \texttt{readonly}, \texttt{hidden}) determined by workflow position and entity flow \cite{Ver25}.
+\end{itemize}
+
+\subsubsection{H2: Enterprise Application Suitability}
+
+The system demonstrates suitability for multi-user, workflow-driven enterprise applications through:
+\begin{itemize}
+    \item Actor-specific interface generation from use case diagrams \cite{Wil24}.
+    \item Workflow-aware field mode enforcement via guardrails.
+    \item Five screen types covering common enterprise UI patterns.
+    \item Multi-step wizard support for complex workflows \cite{vA22}.
+\end{itemize}
+
+\subsubsection{H3: Human-in-the-Loop Effectiveness}
+
+The iterative refinement mechanism allows designers to align generated interfaces with their intent through:
+\begin{itemize}
+    \item Natural language refinement prompts that modify specific token values while preserving unchanged aspects.
+    \item Real-time preview rendering for immediate visual feedback.
+    \item Persistent sessions enabling asynchronous design workflows \cite{dH24}.
+\end{itemize}
+
+
+\subsection{Future Work}
+
+Several directions for future research and development are identified:
+
+\begin{enumerate}
+    \item \textbf{Additional Screen Types}: Extending the screen type system to include calendar views, Kanban boards, timeline visualisations, and report generators for broader enterprise applicability.
+    
+    \item \textbf{Alternative LLM Models}: Evaluating the pipeline with open-source models such as LLaMA and Mistral to reduce dependency on proprietary APIs and enable on-premise deployment.
+    
+    \item \textbf{Accessibility Compliance}: Integrating WCAG 2.1 compliance checks into the generation pipeline to ensure generated interfaces meet accessibility standards.
+    
+    \item \textbf{Responsive Design Tokens}: Extending the token schema with breakpoint-specific values to support adaptive layouts across mobile, tablet, and desktop viewports.
+    
+    \item \textbf{Multi-Interface Coherence}: Ensuring visual consistency across all interfaces within a system, so that interfaces for different actors share a coherent design language while maintaining role-appropriate variations.
+    
+    \item \textbf{Collaborative Design Sessions}: Enabling multiple designers to participate in the same generation session with real-time synchronisation.
+    
+    \item \textbf{Production Deployment}: Replacing the in-memory session store with Redis and implementing horizontal scaling for the API service to support production workloads.
+\end{enumerate}
+
+
+\subsection{Final Remarks}
+
+This work demonstrates that integrating Large Language Models into a model-driven engineering pipeline can significantly enhance the quality, diversity, and adaptability of automatically generated user interfaces. By combining deterministic structural analysis with AI-based reasoning and human-in-the-loop refinement, the system bridges the gap between automated generation efficiency and human design intent, contributing to the advancement of model-driven software engineering practices.

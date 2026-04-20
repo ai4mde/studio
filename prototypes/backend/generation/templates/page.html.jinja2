@@ -1,6 +1,7 @@
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {%- set tokens = theme.get('tokens', {}) if theme else {} -%}
 {%- set has_theme = tokens | length > 0 -%}
+{%- set screen_type = page.screen_type | default('list') -%}
 
 {#- ── BREADCRUMBS ── #}
 {% raw %}{% block breadcrumbs %}{% endraw %}
@@ -13,6 +14,289 @@
 
 <div{% if has_theme %} class="{{ tokens.get('page.surface', '') }}"{% endif %}>
     {% if page.type == 'activity' %}<h2>{{ page.activity_name}}</h2>{% endif %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# ██  DASHBOARD LAYOUT                                    ██ #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% if screen_type == 'dashboard' %}
+
+    <h2{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ page.display_name }}</h2>
+
+    {#- ── Summary Cards ── #}
+    <div class="dashboard-cards{% if has_theme %} {{ tokens.get('region.dashboard', '') }}{% endif %}">
+        {% for section_component in page.section_components %}
+        <div class="dashboard-card{% if has_theme %} {{ tokens.get('component.card', '') }}{% endif %}">
+            <div class="dashboard-card-header">
+                <h3{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ section_component.display_name }}</h3>
+            </div>
+            <div class="dashboard-card-value">
+                {% raw %}{{{% endraw %} {{ section_component.primary_model }}_list|length {% raw %}}}{% endraw %}
+            </div>
+            <div class="dashboard-card-label"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>Total Records</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {#- ── Recent Items Tables ── #}
+    {% for section_component in page.section_components %}
+    <div class="dashboard-section{% if has_theme %} {{ tokens.get('component.card', '') }}{% endif %}">
+        <div class="dashboard-section-header">
+            <h3{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>Recent {{ section_component.display_name }}</h3>
+        </div>
+        <table{% if has_theme %} class="{{ tokens.get('component.table', '') }}"{% endif %}>
+            <thead>
+            <tr>
+                {%- for attribute in section_component.attributes %}
+                <th{% if has_theme %} class="{{ tokens.get('element.th', '') }}"{% endif %}>{{ attribute }}</th>
+                {%- endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list|slice:":5" {% raw %}%}{% endraw %}
+            <tr>
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.type in [AttributeType.STRING, AttributeType.INTEGER, AttributeType.FLOAT, AttributeType.ENUM, AttributeType.EMAIL, AttributeType.TEXT] -%}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</td>
+                {%- elif attribute.type == AttributeType.BOOLEAN %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;"><input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled></td>
+                {%- elif attribute.type == AttributeType.DATE %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d' {% raw %}}}{% endraw %}</td>
+                {%- elif attribute.type == AttributeType.DATETIME %}
+                <td{% if has_theme %} class="{{ tokens.get('element.td', '') }}"{% endif %} style="text-align:center;">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}|date:'Y-m-d H:i' {% raw %}}}{% endraw %}</td>
+                {% endif -%}
+                {% endfor -%}
+            </tr>
+            {% raw %}{% endfor %}{% endraw %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# ██  STANDALONE FORM LAYOUT                              ██ #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% elif screen_type == 'form' %}
+
+    {% for section_component in page.section_components %}
+    <div class="standalone-form-container{% if has_theme %} {{ tokens.get('component.card', '') }} {{ tokens.get('region.form', '') }}{% endif %}">
+        <h2{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ section_component.display_name }}</h2>
+        {% if section_component.text %}
+        <p>{{ section_component.text }}</p>
+        {% endif %}
+
+        {% if section_component.has_create_operation %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="standalone-form{% if has_theme %} {{ tokens.get('region.form', '') }}{% endif %}">
+            {% raw %}{% csrf_token %}{% endraw %}
+            {% for attribute in section_component.attributes -%}
+            {% if attribute.derived -%}
+            {% else -%}
+            <div class="form-group">
+                <label for="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ attribute }}</label>
+                {% if attribute.type == AttributeType.STRING -%}
+                <input type="text" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.INTEGER -%}
+                <input type="number" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.FLOAT -%}
+                <input type="number" step="0.01" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.BOOLEAN -%}
+                <input type="checkbox" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.ENUM -%}
+                <select name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% for literal in attribute.enum_literals %}
+                        <option value="{{ literal }}">{{ literal }}</option>
+                    {% endfor %}
+                </select>
+                {% elif attribute.type == AttributeType.DATE -%}
+                <input type="date" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.DATETIME -%}
+                <input type="datetime-local" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {% elif attribute.type == AttributeType.TEXT -%}
+                <textarea name="{{ attribute }}" id="create_{{ attribute }}" rows="3" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}></textarea>
+                {% elif attribute.type == AttributeType.EMAIL -%}
+                <input type="email" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                {%- endif %}
+            </div>
+            {% endif -%}
+            {% endfor -%}
+            {% for parent_model in section_component.parent_models -%}
+            <div class="form-group">
+                <label for="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ parent_model }}</label>
+                <select name="{{ parent_model }}" id="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                    {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                    {% raw %}{% endfor %}{% endraw %}
+                </select>
+            </div>
+            {% endfor -%}
+            <div class="form-actions">
+                <button type="submit" class="btn-save{% if has_theme %} {{ tokens.get('component.button.primary', '') }}{% endif %}">Submit</button>
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="btn-cancel{% if has_theme %} {{ tokens.get('component.button.secondary', '') }}{% endif %}">Cancel</a>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# ██  MODAL LAYOUT (centered card)                        ██ #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% elif screen_type == 'modal' %}
+
+    {% for section_component in page.section_components %}
+    <div class="modal-page-wrapper">
+        <div class="modal-page-card{% if has_theme %} {{ tokens.get('component.card', '') }} {{ tokens.get('region.modal', '') }}{% endif %}">
+            <h2{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ section_component.display_name }}</h2>
+            {% if section_component.text %}
+            <p>{{ section_component.text }}</p>
+            {% endif %}
+
+            {% if section_component.has_create_operation %}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="modal-form{% if has_theme %} {{ tokens.get('region.form', '') }}{% endif %}">
+                {% raw %}{% csrf_token %}{% endraw %}
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.derived -%}
+                {% else -%}
+                <div class="form-group">
+                    <label for="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ attribute }}</label>
+                    {% if attribute.type == AttributeType.STRING -%}
+                    <input type="text" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.INTEGER -%}
+                    <input type="number" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.FLOAT -%}
+                    <input type="number" step="0.01" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.BOOLEAN -%}
+                    <input type="checkbox" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.ENUM -%}
+                    <select name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% for literal in attribute.enum_literals %}
+                            <option value="{{ literal }}">{{ literal }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif attribute.type == AttributeType.DATE -%}
+                    <input type="date" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.DATETIME -%}
+                    <input type="datetime-local" name="{{ attribute }}" id="create_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.TEXT -%}
+                    <textarea name="{{ attribute }}" id="create_{{ attribute }}" rows="3" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}></textarea>
+                    {% elif attribute.type == AttributeType.EMAIL -%}
+                    <input type="email" name="{{ attribute }}" id="create_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {%- endif %}
+                </div>
+                {% endif -%}
+                {% endfor -%}
+                {% for parent_model in section_component.parent_models -%}
+                <div class="form-group">
+                    <label for="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ parent_model }}</label>
+                    <select name="{{ parent_model }}" id="create_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                        {% raw %}{% endfor %}{% endraw %}
+                    </select>
+                </div>
+                {% endfor -%}
+                <div class="modal-actions">
+                    <button type="submit" class="btn-save{% if has_theme %} {{ tokens.get('component.button.primary', '') }}{% endif %}">Save</button>
+                    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:home' {% raw %}%}{% endraw %}" class="btn-cancel{% if has_theme %} {{ tokens.get('component.button.secondary', '') }}{% endif %}">Cancel</a>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# ██  WIZARD LAYOUT (multi-step)                          ██ #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% elif screen_type == 'wizard' %}
+
+    <div class="wizard-container{% if has_theme %} {{ tokens.get('component.card', '') }} {{ tokens.get('region.wizard', '') }}{% endif %}">
+        <h2{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ page.display_name }}</h2>
+
+        {#- ── Step Indicator ── #}
+        <div class="wizard-steps{% if has_theme %} {{ tokens.get('region.wizard.step', '') }}{% endif %}">
+            {% for section_component in page.section_components %}
+            <div class="wizard-step{% if loop.first %} wizard-step-active{% endif %}" data-step="{{ loop.index }}">
+                <span class="wizard-step-number">{{ loop.index }}</span>
+                <span class="wizard-step-label">{{ section_component.display_name }}</span>
+            </div>
+            {% if not loop.last %}<div class="wizard-step-connector"></div>{% endif %}
+            {% endfor %}
+        </div>
+
+        {#- ── Step Panels ── #}
+        {% for section_component in page.section_components %}
+        <div class="wizard-panel{% if loop.first %} wizard-panel-active{% endif %}" id="wizard-panel-{{ loop.index }}">
+            <h3{% if has_theme %} class="{{ tokens.get('element.heading', '') }}"{% endif %}>{{ section_component.display_name }}</h3>
+            {% if section_component.text %}
+            <p>{{ section_component.text }}</p>
+            {% endif %}
+
+            {% if section_component.has_create_operation %}
+            <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="wizard-form{% if has_theme %} {{ tokens.get('region.form', '') }}{% endif %}" id="wizard-form-{{ loop.index }}">
+                {% raw %}{% csrf_token %}{% endraw %}
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.derived -%}
+                {% else -%}
+                <div class="form-group">
+                    <label for="wizard_{{ loop.index }}_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ attribute }}</label>
+                    {% if attribute.type == AttributeType.STRING -%}
+                    <input type="text" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.INTEGER -%}
+                    <input type="number" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.FLOAT -%}
+                    <input type="number" step="0.01" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.BOOLEAN -%}
+                    <input type="checkbox" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.ENUM -%}
+                    <select name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% for literal in attribute.enum_literals %}
+                            <option value="{{ literal }}">{{ literal }}</option>
+                        {% endfor %}
+                    </select>
+                    {% elif attribute.type == AttributeType.DATE -%}
+                    <input type="date" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.DATETIME -%}
+                    <input type="datetime-local" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {% elif attribute.type == AttributeType.TEXT -%}
+                    <textarea name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}" rows="3" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}></textarea>
+                    {% elif attribute.type == AttributeType.EMAIL -%}
+                    <input type="email" name="{{ attribute }}" id="wizard_{{ loop.index }}_{{ attribute }}" placeholder="{{ attribute }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                    {%- endif %}
+                </div>
+                {% endif -%}
+                {% endfor -%}
+                {% for parent_model in section_component.parent_models -%}
+                <div class="form-group">
+                    <label for="wizard_{{ loop.index }}_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.label', '') }}"{% endif %}>{{ parent_model }}</label>
+                    <select name="{{ parent_model }}" id="wizard_{{ loop.index }}_{{ parent_model }}"{% if has_theme %} class="{{ tokens.get('element.input.editable', '') }}"{% endif %}>
+                        {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                        {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                        {% raw %}{% endfor %}{% endraw %}
+                    </select>
+                </div>
+                {% endfor -%}
+                {#- Submit button only on last step - intermediate steps navigate via JS #}
+                {% if loop.last %}
+                <div class="form-actions">
+                    <button type="submit" class="btn-save{% if has_theme %} {{ tokens.get('component.button.primary', '') }}{% endif %}">Submit</button>
+                </div>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {#- ── Wizard Navigation ── #}
+        <div class="wizard-nav">
+            <button class="wizard-prev{% if has_theme %} {{ tokens.get('component.button.secondary', '') }}{% endif %}" disabled>&#8592; Previous</button>
+            <button class="wizard-next{% if has_theme %} {{ tokens.get('component.button.primary', '') }}{% endif %}">Next &#8594;</button>
+        </div>
+    </div>
+
+{# ═══════════════════════════════════════════════════════════ #}
+{# ██  DEFAULT LIST LAYOUT                                 ██ #}
+{# ═══════════════════════════════════════════════════════════ #}
+{% else %}
 
     {#- ── TABS (when multiple sections) ── #}
     {% if page.section_components | length > 1 and page.type != 'activity' %}
@@ -234,6 +518,15 @@
         <button class="page-btn page-next">Next &raquo;</button>
     </div>
 
+    {#- ── SECTION LINKS (cross-page navigation) ── #}
+    {% if section_component.links %}
+    <div class="section-links">
+        {% for link in section_component.links %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ link.page_name }}' {% raw %}%}{% endraw %}" class="section-link{% if has_theme %} {{ tokens.get('component.button.secondary', '') }}{% endif %}">{{ link.content }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {#- ── CREATE BUTTON → opens modal ── #}
     {% if section_component.has_create_operation -%}
     <button class="create-open-btn" data-modal="modal-{{ loop.index }}">
@@ -322,6 +615,8 @@
         </form>
     </div>
     {% endif %}
+
+{% endif %}{# /screen_type #}
 </div>
 
 {#- ── JAVASCRIPT: tabs, search, pagination, modal, accordion ── #}
@@ -384,6 +679,42 @@
             else { body.classList.add('section-body-collapsed'); icon.textContent = '\u25B6'; }
         });
     });
+    /* Wizard */
+    (function(){
+        var panels = document.querySelectorAll('.wizard-panel');
+        var steps = document.querySelectorAll('.wizard-step');
+        var prevBtn = document.querySelector('.wizard-prev');
+        var nextBtn = document.querySelector('.wizard-next');
+        if(!panels.length) return;
+        var current = 1;
+        var total = panels.length;
+        function showStep(n){
+            panels.forEach(function(p){ p.classList.remove('wizard-panel-active'); });
+            steps.forEach(function(s){ s.classList.remove('wizard-step-active'); s.classList.remove('wizard-step-done'); });
+            var target = document.getElementById('wizard-panel-'+n);
+            if(target) target.classList.add('wizard-panel-active');
+            for(var i=0;i<steps.length;i++){
+                if(i+1 < n) steps[i].classList.add('wizard-step-done');
+                if(i+1 === n) steps[i].classList.add('wizard-step-active');
+            }
+            if(prevBtn) prevBtn.disabled = (n <= 1);
+            if(nextBtn){
+                if(n >= total){ nextBtn.style.display='none'; }
+                else { nextBtn.style.display=''; }
+            }
+        }
+        if(prevBtn) prevBtn.addEventListener('click', function(){ if(current>1){current--;showStep(current);} });
+        if(nextBtn) nextBtn.addEventListener('click', function(){
+            /* submit intermediate form via AJAX then advance */
+            var form = document.getElementById('wizard-form-'+current);
+            if(form){
+                var fd = new FormData(form);
+                fetch(form.action, {method:'POST', body:fd, headers:{'X-Requested-With':'XMLHttpRequest'}})
+                .then(function(){ if(current<total){current++;showStep(current);} })
+                .catch(function(){ if(current<total){current++;showStep(current);} });
+            } else { if(current<total){current++;showStep(current);} }
+        });
+    })();
 })();
 </script>
 

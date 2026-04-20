@@ -1,0 +1,252 @@
+[
+  {
+    "id": 1,
+    "prompt": "Modern dark theme with purple accents, clean sans-serif typography, rounded cards with subtle shadows, generous whitespace between sections",
+    "tags": ["dark", "purple", "modern", "rounded"]
+  },
+  {
+    "id": 2,
+    "prompt": "Minimal light theme inspired by Apple's design language — neutral grays, SF Pro-style fonts, ultra-thin borders, large rounded corners, airy spacing",
+    "tags": ["light", "minimal", "apple", "neutral"]
+  },
+  {
+    "id": 3,
+    "prompt": "Corporate enterprise dashboard with navy blue sidebar, white content area, blue primary buttons, compact data-dense tables, professional serif headings",
+    "tags": ["corporate", "navy", "sidebar", "data-dense"]
+  },
+  {
+    "id": 4,
+    "prompt": "Glassmorphism UI with frosted glass panels, backdrop blur, translucent white cards on a gradient indigo-to-purple background, soft shadows",
+    "tags": ["glassmorphism", "gradient", "indigo", "translucent"]
+  },
+  {
+    "id": 5,
+    "prompt": "Warm earth-tone palette — amber accents, stone-gray backgrounds, rounded-xl cards, warm shadows, organic feel with generous padding",
+    "tags": ["warm", "earth-tone", "amber", "organic"]
+  },
+  {
+    "id": 6,
+    "prompt": "High-contrast dark mode with neon green accents on near-black backgrounds, monospace code-style typography, sharp square corners, terminal aesthetic",
+    "tags": ["dark", "neon-green", "terminal", "monospace"]
+  },
+  {
+    "id": 7,
+    "prompt": "Clean healthcare dashboard — soft teal accents, white surfaces, light blue-gray sidebar, large readable fonts, accessible color contrast ratios",
+    "tags": ["healthcare", "teal", "accessible", "clean"]
+  },
+  {
+    "id": 8,
+    "prompt": "Fintech trading platform look — dark zinc background, emerald/red for positive/negative values, compact tables, small tight typography, data-first layout",
+    "tags": ["fintech", "dark", "data-first", "compact"]
+  },
+  {
+    "id": 9,
+    "prompt": "Soft pastel theme with rose-pink and sky-blue accents, rounded-2xl cards, light drop shadows, playful friendly aesthetic, large buttons with pill shapes",
+    "tags": ["pastel", "rose", "sky", "playful"]
+  },
+  {
+    "id": 10,
+    "prompt": "Material Design 3 inspired — surface tonal colors, rounded-xl containers, elevated surfaces with shadow-md, purple-violet primary color, dynamic spacing",
+    "tags": ["material", "tonal", "violet", "elevated"]
+  },
+  {
+    "id": 11,
+    "prompt": "Brutalist design — stark black and white, no rounded corners, heavy borders, bold uppercase headings, raw utilitarian aesthetic, high contrast",
+    "tags": ["brutalist", "black-white", "sharp", "bold"]
+  },
+  {
+    "id": 12,
+    "prompt": "Nordic minimalist — cool slate-gray palette, thin hairline borders, lots of negative space, light sans-serif font, subtle hover transitions",
+    "tags": ["nordic", "minimal", "slate", "light"]
+  },
+  {
+    "id": 13,
+    "prompt": "Vibrant SaaS dashboard with indigo primary, orange call-to-action buttons, white cards on gray-50 background, medium rounded corners, clear visual hierarchy",
+    "tags": ["saas", "indigo", "orange", "vibrant"]
+  },
+  {
+    "id": 14,
+    "prompt": "Dark mode admin panel with zinc-900 background, blue-500 primary, rounded-lg cards with ring-1 ring-white/10 borders, compact sidebar with icon rail",
+    "tags": ["dark", "admin", "zinc", "icon-rail"]
+  },
+  {
+    "id": 15,
+    "prompt": "Luxury brand aesthetic — black and gold color scheme, serif display headings, generous letter-spacing, large hero sections, elegant thin borders",
+    "tags": ["luxury", "gold", "serif", "elegant"]
+  },
+  {
+    "id": 16,
+    "prompt": "Education platform with cheerful blue-500 primary, yellow-400 highlights, rounded-xl cards with shadow-lg, friendly readable text, large touch-friendly buttons",
+    "tags": ["education", "blue", "yellow", "friendly"]
+  },
+  {
+    "id": 17,
+    "prompt": "Retro synthwave theme — deep purple background, hot pink and cyan neon accents, dark surfaces with glow effects, rounded cards, 80s futuristic vibe",
+    "tags": ["retro", "synthwave", "neon", "purple"]
+  },
+  {
+    "id": 18,
+    "prompt": "Clean government portal — professional blue-700 header, white content, gray-100 backgrounds, accessible typography, clear form labels, standard button styles",
+    "tags": ["government", "blue", "accessible", "professional"]
+  },
+  {
+    "id": 19,
+    "prompt": "Notion-inspired workspace — warm off-white background, minimal borders, system font stack, inline editing feel, subtle hover highlights, flat design",
+    "tags": ["notion", "warm-white", "flat", "minimal"]
+  },
+  {
+    "id": 20,
+    "prompt": "E-commerce storefront with rose-600 primary, white product cards, shadow-sm, clean grid layouts, prominent price typography, green trust badges",
+    "tags": ["ecommerce", "rose", "grid", "clean"]
+  },
+  {
+    "id": 21,
+    "prompt": "Stripe-inspired — violet-600 gradient hero, white dashboard cards, gray-50 page background, polished shadows, smooth rounded-xl corners, professional polish",
+    "tags": ["stripe", "violet", "gradient", "polished"]
+  },
+  {
+    "id": 22,
+    "prompt": "Agricultural management system — forest green primary, warm cream backgrounds, earthy brown accents, solid buttons, medium rounding, grounded natural feel",
+    "tags": ["agriculture", "green", "cream", "earthy"]
+  },
+  {
+    "id": 23,
+    "prompt": "Dark mode with amber-500 accent on neutral-900 background, warm gray surfaces, rounded-lg components, cozy reading-focused typography with larger line-height",
+    "tags": ["dark", "amber", "warm", "reading"]
+  },
+  {
+    "id": 24,
+    "prompt": "Monochrome grayscale — all grays from white to gray-900, no color accents, strong typographic hierarchy, clean borders, sophisticated understated design",
+    "tags": ["monochrome", "grayscale", "typographic", "sophisticated"]
+  },
+  {
+    "id": 25,
+    "prompt": "Slack-inspired workspace — dark aubergine sidebar, white content pane, green online indicators, compact message-style cards, comfortable sans-serif text",
+    "tags": ["slack", "aubergine", "sidebar", "compact"]
+  },
+  {
+    "id": 26,
+    "prompt": "Medical records system — sterile white surfaces, sky-blue accents, red-500 for alerts, large legible labels, high-contrast form inputs, clinical precision",
+    "tags": ["medical", "sky-blue", "clinical", "high-contrast"]
+  },
+  {
+    "id": 27,
+    "prompt": "Startup pitch deck style — bold gradient from fuchsia-600 to pink-500, white text on dark sections, large hero headings, dramatic shadows, rounded-2xl cards",
+    "tags": ["startup", "gradient", "fuchsia", "bold"]
+  },
+  {
+    "id": 28,
+    "prompt": "Japanese zen aesthetic — lots of whitespace, stone-100 backgrounds, subtle ink-gray text, thin elegant borders, minimal decoration, balanced asymmetric layouts",
+    "tags": ["zen", "whitespace", "stone", "elegant"]
+  },
+  {
+    "id": 29,
+    "prompt": "CRM dashboard with sky-600 primary, orange action buttons, compact data tables, left sidebar navigation, card-based metrics with shadow-sm, professional look",
+    "tags": ["crm", "sky", "orange", "sidebar"]
+  },
+  {
+    "id": 30,
+    "prompt": "Construction project tracker — safety-orange accents, concrete-gray backgrounds, bold chunky headings, strong borders, industrial utilitarian aesthetic",
+    "tags": ["construction", "orange", "industrial", "bold"]
+  },
+  {
+    "id": 31,
+    "prompt": "Neumorphism soft UI — gray-200 background, inset and raised shadow pairs, no visible borders, soft rounded shapes, muted blue accents, tactile feel",
+    "tags": ["neumorphism", "soft", "gray", "tactile"]
+  },
+  {
+    "id": 32,
+    "prompt": "Linear-app inspired — dark background with subtle blue tint, violet-500 primary, compact dense layout, small font sizes, keyboard-first aesthetic, sharp focus rings",
+    "tags": ["linear", "dark-blue", "violet", "dense"]
+  },
+  {
+    "id": 33,
+    "prompt": "Restaurant management system — warm red-700 accents, cream background, rustic serif headings, card-based menu items, inviting warm shadows",
+    "tags": ["restaurant", "red", "cream", "rustic"]
+  },
+  {
+    "id": 34,
+    "prompt": "Light airy theme with cyan-500 primary, white cards floating on gray-50, rounded-xl corners, soft shadow-md, open generous spacing, modern sans-serif",
+    "tags": ["light", "cyan", "airy", "modern"]
+  },
+  {
+    "id": 35,
+    "prompt": "Real estate listing platform — slate-800 header, emerald-600 primary buttons, white property cards with photo placeholders, clean grid, trustworthy professional feel",
+    "tags": ["real-estate", "slate", "emerald", "grid"]
+  },
+  {
+    "id": 36,
+    "prompt": "GitHub-style developer tool — gray-900 dark mode, blue-500 links, green-500 success states, rounded-md small components, monospace for code, compact information density",
+    "tags": ["github", "developer", "dark", "compact"]
+  },
+  {
+    "id": 37,
+    "prompt": "Fitness tracking app — energetic lime-500 accents on dark backgrounds, bold motivational headings, progress-bar-friendly layout, dynamic sporty aesthetic",
+    "tags": ["fitness", "lime", "energetic", "dark"]
+  },
+  {
+    "id": 38,
+    "prompt": "Legal document management — conservative navy and white, traditional serif headings, structured form layouts, bordered tables, formal authoritative tone",
+    "tags": ["legal", "navy", "serif", "formal"]
+  },
+  {
+    "id": 39,
+    "prompt": "Spotify-inspired music dashboard — black background, green-500 primary, card grid for albums/playlists, rounded-full avatar shapes, bold white headings",
+    "tags": ["spotify", "black", "green", "cards"]
+  },
+  {
+    "id": 40,
+    "prompt": "Logistics warehouse tracker — utilitarian gray theme, orange-500 warning accents, blue-600 primary actions, dense tables, status badge indicators, no-nonsense layout",
+    "tags": ["logistics", "gray", "utilitarian", "dense"]
+  },
+  {
+    "id": 41,
+    "prompt": "Airbnb-style marketplace — warm rose-500 primary, white backgrounds, rounded-xl listing cards with shadow-lg on hover, friendly readable body text, photo-forward design",
+    "tags": ["marketplace", "rose", "warm", "photo-forward"]
+  },
+  {
+    "id": 42,
+    "prompt": "Scientific research portal — clean white with indigo-700 accents, data visualization-friendly layout, large tables, precise small typography, structured academic feel",
+    "tags": ["scientific", "indigo", "academic", "structured"]
+  },
+  {
+    "id": 43,
+    "prompt": "Kids educational platform — bright primary colors (red, blue, yellow), extra-rounded-3xl cards, large playful fonts, oversized buttons, fun and approachable",
+    "tags": ["kids", "colorful", "playful", "large"]
+  },
+  {
+    "id": 44,
+    "prompt": "Banking app — trustworthy dark blue-900 header, white content, green-600 for positive balances, red-500 for negative, clean number formatting, secure professional feel",
+    "tags": ["banking", "blue", "trustworthy", "professional"]
+  },
+  {
+    "id": 45,
+    "prompt": "Event management platform — vibrant purple-600 primary, yellow-400 highlights, white cards, celebration-themed with rounded-xl shapes, energetic button styles",
+    "tags": ["events", "purple", "yellow", "vibrant"]
+  },
+  {
+    "id": 46,
+    "prompt": "Vercel-inspired — pure black and white, no color except blue-500 links, geometric sharp design, small precise typography, developer-focused minimal aesthetic",
+    "tags": ["vercel", "black-white", "geometric", "minimal"]
+  },
+  {
+    "id": 47,
+    "prompt": "Hotel booking system — elegant teal-700 and gold accents, cream backgrounds, sophisticated card layouts for rooms, serif display headings, luxurious spacing",
+    "tags": ["hotel", "teal", "gold", "luxurious"]
+  },
+  {
+    "id": 48,
+    "prompt": "Supply chain dashboard — cool blue-gray palette, compact stat cards with border-l-4 accent stripes, dense sortable tables, functional no-frills design, topbar navigation",
+    "tags": ["supply-chain", "blue-gray", "compact", "functional"]
+  },
+  {
+    "id": 49,
+    "prompt": "Creative agency portfolio — bold gradients from violet to fuchsia, large typography, oversized hero sections, asymmetric card grid, artistic experimental layout",
+    "tags": ["creative", "gradient", "bold", "artistic"]
+  },
+  {
+    "id": 50,
+    "prompt": "Inventory management system — practical green-700 primary, light gray surfaces, clear form inputs with visible borders, standard rounded-md components, functional clean design",
+    "tags": ["inventory", "green", "practical", "functional"]
+  }
+]
