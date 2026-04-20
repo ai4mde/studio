@@ -140,10 +140,12 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Settings />
                         </TabPanel>
                         <TabPanel value={6}>
-                            <InterfaceGenerate
-                                interfaceId={app_comp}
-                                systemId={systemId || ""}
-                            />
+                            <div className="overflow-y-auto" style={{ maxHeight: "calc(100vh - 180px)" }}>
+                                <InterfaceGenerate
+                                    interfaceId={app_comp}
+                                    systemId={systemId || ""}
+                                />
+                            </div>
                         </TabPanel>
                     </Tabs>
                 </>

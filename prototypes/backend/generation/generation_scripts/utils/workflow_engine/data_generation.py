@@ -387,6 +387,21 @@ class ActivityDiagramParser:
 
 
 
+def _add_null_guards(code: str) -> str:
+    """Add null guards after .first() assignments to prevent NoneType errors."""
+    lines = code.split('\n')
+    new_lines = []
+    for line in lines:
+        new_lines.append(line)
+        match = re.match(r'^(\s+)(\w+)\s*=\s*\w+\.first\(\)\s*$', line)
+        if match:
+            indent = match.group(1)
+            var_name = match.group(2)
+            new_lines.append(f'{indent}if {var_name} is None:')
+            new_lines.append(f'{indent}    return')
+    return '\n'.join(new_lines)
+
+
 def generate_data(system_id: str, project_name: str, metadata: str) -> list[CronJob]:
     OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
     CUSTOM_CODE_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/custom_code.py"
@@ -403,6 +418,7 @@ def generate_data(system_id: str, project_name: str, metadata: str) -> list[Cron
             name_pattern = r"def\s+(\w+)\s*\("
             action_node_name = action_node['name'].replace(" ", "_")
             code = re.sub(name_pattern, r"def \1" + f"_{action_node_name}" + "(", action_node['custom_code'])
+            code = _add_null_guards(code)
             custom_code_to_add.append(code)
 
             # Store a reference to the function in the action node

@@ -180,19 +180,17 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
         );
     }
 
-    // Session active — show variants
+    // Auto-select first variant as the active tab
+    const activeTab = selectedVariant || (variants.length > 0 ? variants[0].id : null);
+
+    // Session active — show variants as tabs with large preview
     return (
-        <div className="flex flex-col gap-4 h-full">
-            {/* Header */}
-            <div className="flex items-center justify-between shrink-0">
-                <div>
-                    <h2 className="text-sm font-semibold text-gray-800">
-                        3 Style Variants Generated
-                    </h2>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                        Prompt: &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
-                    </p>
-                </div>
+        <div className="flex flex-col" style={{ height: "calc(100vh - 200px)" }}>
+            {/* Header row */}
+            <div className="flex items-center justify-between shrink-0 px-4 py-2 border-b bg-gray-50">
+                <p className="text-xs text-gray-400 truncate max-w-md">
+                    Prompt: &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
+                </p>
                 <button
                     onClick={() => {
                         setSessionId(null);
@@ -206,135 +204,123 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                 </button>
             </div>
 
-            {/* Variant Grid */}
-            <div className="grid grid-cols-3 gap-4 flex-1 min-h-0">
+            {/* Variant tabs */}
+            <div className="flex items-center shrink-0 border-b bg-white">
                 {variants.map((v) => {
-                    const isSelected = selectedVariant === v.id;
+                    const isActive = activeTab === v.id;
+                    return (
+                        <button
+                            key={v.id}
+                            onClick={() => setSelectedVariant(v.id)}
+                            className={`relative px-5 py-3 text-sm font-medium transition-colors ${
+                                isActive
+                                    ? "text-indigo-600 border-b-2 border-indigo-600 bg-white"
+                                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                            }`}
+                        >
+                            <span>{v.name}</span>
+                            <span className="ml-2 text-xs font-normal text-gray-400 hidden sm:inline">
+                                {v.description && v.description.length > 50
+                                    ? v.description.slice(0, 50) + "…"
+                                    : v.description}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Large preview area */}
+            <div className="flex-1 min-h-0 bg-gray-100 overflow-hidden">
+                {variants.map((v) => {
+                    const isActive = activeTab === v.id;
                     const refreshKey = iframeRefs.current[v.id] || 0;
                     return (
                         <div
                             key={v.id}
-                            className={`flex flex-col rounded-xl border-2 transition-all overflow-hidden ${
-                                isSelected
-                                    ? "border-indigo-500 ring-2 ring-indigo-200 shadow-lg"
-                                    : "border-gray-200 hover:border-indigo-300 hover:shadow"
-                            }`}
+                            className={`h-full ${isActive ? "block" : "hidden"}`}
                         >
-                            {/* Variant header */}
-                            <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b shrink-0">
-                                <div className="flex flex-col min-w-0">
-                                    <span className="text-xs font-semibold text-gray-700 truncate">
-                                        {v.name}
-                                    </span>
-                                    <span className="text-xs text-gray-400 truncate">
-                                        {v.description}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedVariant(v.id)}
-                                    className={`shrink-0 ml-2 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                                        isSelected
-                                            ? "bg-indigo-600 text-white"
-                                            : "bg-white border border-gray-300 text-gray-600 hover:bg-indigo-50"
-                                    }`}
-                                >
-                                    {isSelected ? (
-                                        <span className="flex items-center gap-1">
-                                            <Check size={10} /> Selected
-                                        </span>
-                                    ) : (
-                                        "Select"
-                                    )}
-                                </button>
-                            </div>
-                            {/* Preview iframe */}
-                            <div className="flex-1 min-h-[300px] bg-white">
-                                <iframe
-                                    key={`${v.id}_${refreshKey}`}
-                                    src={`${baseURL}/v1/generator/interface-gen/${sessionId}/preview/${v.id}/`}
-                                    className="w-full h-full border-0"
-                                    sandbox="allow-same-origin allow-scripts"
-                                    title={`Preview: ${v.name}`}
-                                />
-                            </div>
+                            <iframe
+                                key={`${v.id}_${refreshKey}`}
+                                src={`${baseURL}/v1/generator/interface-gen/${sessionId}/preview/${v.id}/`}
+                                className="w-full h-full border-0"
+                                style={{ minHeight: "500px" }}
+                                sandbox="allow-same-origin allow-scripts"
+                                title={`Preview: ${v.name}`}
+                            />
                         </div>
                     );
                 })}
             </div>
 
-            {/* Refinement Panel (shown when a variant is selected) */}
-            {selectedVariant && (
-                <div className="shrink-0 border-t pt-4 flex flex-col gap-3">
-                    <div className="flex items-start gap-4">
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                                <MessageSquare size={14} className="text-indigo-500" />
-                                <span className="text-xs font-semibold text-gray-600">
-                                    Refine &ldquo;{variants.find((v) => v.id === selectedVariant)?.name}&rdquo;
-                                </span>
-                            </div>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300"
-                                    placeholder="e.g. Make the buttons rounder, use more contrast, darker background..."
-                                    value={refinePrompt}
-                                    onChange={(e) => setRefinePrompt(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            handleRefine();
-                                        }
-                                    }}
-                                    disabled={refining}
-                                />
-                                <button
-                                    onClick={handleRefine}
-                                    disabled={refining || !refinePrompt.trim()}
-                                    className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {refining ? (
-                                        <RefreshCw size={14} className="animate-spin" />
-                                    ) : (
-                                        <Sparkles size={14} />
-                                    )}
-                                    Refine
-                                </button>
-                                <button
-                                    onClick={handleApply}
-                                    disabled={applying}
-                                    className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {applying ? (
-                                        <RefreshCw size={14} className="animate-spin" />
-                                    ) : (
-                                        <Check size={14} />
-                                    )}
-                                    Apply Theme
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Refine History */}
-                    {refineHistory.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                            {refineHistory.map((h, i) => (
-                                <span
-                                    key={i}
-                                    className="rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-xs text-violet-600"
-                                    title={h}
-                                >
-                                    {h.length > 40 ? h.slice(0, 40) + "…" : h}
-                                </span>
-                            ))}
-                        </div>
-                    )}
+            {/* Bottom action bar */}
+            <div className="shrink-0 border-t bg-white px-4 py-3 flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                    <MessageSquare size={14} className="text-indigo-500 shrink-0" />
+                    <input
+                        type="text"
+                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                        placeholder={`Refine "${variants.find((v) => v.id === activeTab)?.name || ""}" — e.g. darker background, rounder buttons...`}
+                        value={refinePrompt}
+                        onChange={(e) => setRefinePrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                if (activeTab) setSelectedVariant(activeTab);
+                                handleRefine();
+                            }
+                        }}
+                        disabled={refining}
+                    />
+                    <button
+                        onClick={() => {
+                            if (activeTab) setSelectedVariant(activeTab);
+                            handleRefine();
+                        }}
+                        disabled={refining || !refinePrompt.trim() || !activeTab}
+                        className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {refining ? (
+                            <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                            <Sparkles size={14} />
+                        )}
+                        Refine
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (activeTab) setSelectedVariant(activeTab);
+                            handleApply();
+                        }}
+                        disabled={applying || !activeTab}
+                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {applying ? (
+                            <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                            <Check size={14} />
+                        )}
+                        Apply Theme
+                    </button>
                 </div>
-            )}
+
+                {/* Refine History */}
+                {refineHistory.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                        {refineHistory.map((h, i) => (
+                            <span
+                                key={i}
+                                className="rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-xs text-violet-600"
+                                title={h}
+                            >
+                                {h.length > 40 ? h.slice(0, 40) + "…" : h}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {error && (
-                <p className="rounded-md bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-600">
+                <p className="rounded-md bg-red-50 border border-red-100 px-3 py-2 text-xs text-red-600 mx-4 mb-2">
                     {error}
                 </p>
             )}

@@ -18,6 +18,10 @@ const CodeEditorModal: React.FC<CodeEditorModalProps> = ({ open, onClose, onSave
             const generatedCode = `def custom_code(active_process: ActiveProcess) -> None:\n` +
                 "    # The following variables are Django QuerySet objects related to the active process\n" +
                 classes.map((cls) => `    ${cls.toLowerCase().replace("-", "_").replace(" ", "_")}s = active_process.${cls.toLowerCase().replace("-", "_").replace(" ", "_")}s # Do not change this line`).join("\n") +
+                `\n\n    # When using .first(), always check for None before accessing attributes:` +
+                `\n    # example = ${classes.length > 0 ? classes[0].toLowerCase().replace("-", "_").replace(" ", "_") + "s" : "queryset"}.first()` +
+                `\n    # if example is None:` +
+                `\n    #     return` +
                 `\n    pass`;
             setCurrentCode(generatedCode);
         }

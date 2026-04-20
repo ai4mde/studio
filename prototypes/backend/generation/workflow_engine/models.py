@@ -91,19 +91,19 @@ class ActionNode(models.Model):
         module_name, function_name = self.custom_code.rsplit(".", 1)
         
         try:
-            # Import the module and function dynamically
             module = importlib.import_module(module_name)
-            custom_function = getattr(module, function_name)
-
-            if not callable(custom_function):
-                raise TypeError(f"{function_name} is not callable in module {module_name}")
-            
-            # Execute the custom function
-            custom_function(active_process=active_process)
         except ImportError as e:
-            raise ImportError(f"Failled to import module when executing custom code: {module_name}") from e
+            raise ImportError(f"Failed to import module when executing custom code: {module_name}") from e
+
+        try:
+            custom_function = getattr(module, function_name)
         except AttributeError as e:
             raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
+
+        if not callable(custom_function):
+            raise TypeError(f"{function_name} is not callable in module {module_name}")
+
+        custom_function(active_process=active_process)
  
     def _get_next_user(self, current_user: User | None) -> User | None:
         """Determine the next user for the given node."""

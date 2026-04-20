@@ -11,12 +11,18 @@ Endpoints:
 """
 import json
 import logging
+import os
+import re
 import uuid
+from enum import Enum
+from types import SimpleNamespace
 from typing import Optional
 
 from django.http import HttpResponse
 from django.views.decorators.clickjacking import xframe_options_exempt
 from ninja import Router, Schema
+
+from jinja2 import Environment, FileSystemLoader
 
 from llm.handler import call_openai
 from llm.prompts.agents import AGENT_INTERFACE_VARIANTS, AGENT_INTERFACE_REFINE
@@ -92,6 +98,119 @@ def _get_token(tokens: dict, key: str, fallback: str = "") -> str:
     return tokens.get(key, fallback)
 
 
+# ── Prototype template rendering (style.css.jinja2) ─────────────────────────
+# Mirror the enums from prototypes/generation/definitions/styling.py so that
+# style.css.jinja2 can reference StyleType.* / LayoutType.* in conditionals.
+
+class _StyleType(Enum):
+    BASIC = 1; MODERN = 2; ABSTRACT = 3; ELEGANT = 4
+    BRUTALIST = 5; GLASSMORPHISM = 6; DARK = 7
+
+class _LayoutType(Enum):
+    SIDEBAR_LEFT = 1; SIDEBAR_RIGHT = 2; TOP_NAV = 3; TOP_NAV_SIDEBAR = 4
+
+_PROTO_TEMPLATES_DIR = "/usr/src/proto_templates"
+
+# Tailwind named-color palette → hex (covers all standard colors).
+_TW_COLORS = {
+    "slate":   {50:"#f8fafc",100:"#f1f5f9",200:"#e2e8f0",300:"#cbd5e1",400:"#94a3b8",500:"#64748b",600:"#475569",700:"#334155",800:"#1e293b",900:"#0f172a",950:"#020617"},
+    "gray":    {50:"#f9fafb",100:"#f3f4f6",200:"#e5e7eb",300:"#d1d5db",400:"#9ca3af",500:"#6b7280",600:"#4b5563",700:"#374151",800:"#1f2937",900:"#111827",950:"#030712"},
+    "zinc":    {50:"#fafafa",100:"#f4f4f5",200:"#e4e4e7",300:"#d4d4d8",400:"#a1a1aa",500:"#71717a",600:"#52525b",700:"#3f3f46",800:"#27272a",900:"#18181b",950:"#09090b"},
+    "neutral": {50:"#fafafa",100:"#f5f5f5",200:"#e5e5e5",300:"#d4d4d4",400:"#a3a3a3",500:"#737373",600:"#525252",700:"#404040",800:"#262626",900:"#171717",950:"#0a0a0a"},
+    "stone":   {50:"#fafaf9",100:"#f5f5f4",200:"#e7e5e4",300:"#d6d3d1",400:"#a8a29e",500:"#78716c",600:"#57534e",700:"#44403c",800:"#292524",900:"#1c1917",950:"#0c0a09"},
+    "red":     {50:"#fef2f2",100:"#fee2e2",200:"#fecaca",300:"#fca5a5",400:"#f87171",500:"#ef4444",600:"#dc2626",700:"#b91c1c",800:"#991b1b",900:"#7f1d1d",950:"#450a0a"},
+    "orange":  {50:"#fff7ed",100:"#ffedd5",200:"#fed7aa",300:"#fdba74",400:"#fb923c",500:"#f97316",600:"#ea580c",700:"#c2410c",800:"#9a3412",900:"#7c2d12",950:"#431407"},
+    "amber":   {50:"#fffbeb",100:"#fef3c7",200:"#fde68a",300:"#fcd34d",400:"#fbbf24",500:"#f59e0b",600:"#d97706",700:"#b45309",800:"#92400e",900:"#78350f",950:"#451a03"},
+    "yellow":  {50:"#fefce8",100:"#fef9c3",200:"#fef08a",300:"#fde047",400:"#facc15",500:"#eab308",600:"#ca8a04",700:"#a16207",800:"#854d0e",900:"#713f12",950:"#422006"},
+    "lime":    {50:"#f7fee7",100:"#ecfccb",200:"#d9f99d",300:"#bef264",400:"#a3e635",500:"#84cc16",600:"#65a30d",700:"#4d7c0f",800:"#3f6212",900:"#365314",950:"#1a2e05"},
+    "green":   {50:"#f0fdf4",100:"#dcfce7",200:"#bbf7d0",300:"#86efac",400:"#4ade80",500:"#22c55e",600:"#16a34a",700:"#15803d",800:"#166534",900:"#14532d",950:"#052e16"},
+    "emerald": {50:"#ecfdf5",100:"#d1fae5",200:"#a7f3d0",300:"#6ee7b7",400:"#34d399",500:"#10b981",600:"#059669",700:"#047857",800:"#065f46",900:"#064e3b",950:"#022c22"},
+    "teal":    {50:"#f0fdfa",100:"#ccfbf1",200:"#99f6e4",300:"#5eead4",400:"#2dd4bf",500:"#14b8a6",600:"#0d9488",700:"#0f766e",800:"#115e59",900:"#134e4a",950:"#042f2e"},
+    "cyan":    {50:"#ecfeff",100:"#cffafe",200:"#a5f3fc",300:"#67e8f9",400:"#22d3ee",500:"#06b6d4",600:"#0891b2",700:"#0e7490",800:"#155e75",900:"#164e63",950:"#083344"},
+    "sky":     {50:"#f0f9ff",100:"#e0f2fe",200:"#bae6fd",300:"#7dd3fc",400:"#38bdf8",500:"#0ea5e9",600:"#0284c7",700:"#0369a1",800:"#075985",900:"#0c4a6e",950:"#082f49"},
+    "blue":    {50:"#eff6ff",100:"#dbeafe",200:"#bfdbfe",300:"#93c5fd",400:"#60a5fa",500:"#3b82f6",600:"#2563eb",700:"#1d4ed8",800:"#1e40af",900:"#1e3a8a",950:"#172554"},
+    "indigo":  {50:"#eef2ff",100:"#e0e7ff",200:"#c7d2fe",300:"#a5b4fc",400:"#818cf8",500:"#6366f1",600:"#4f46e5",700:"#4338ca",800:"#3730a3",900:"#312e81",950:"#1e1b4b"},
+    "violet":  {50:"#f5f3ff",100:"#ede9fe",200:"#ddd6fe",300:"#c4b5fd",400:"#a78bfa",500:"#8b5cf6",600:"#7c3aed",700:"#6d28d9",800:"#5b21b6",900:"#4c1d95",950:"#2e1065"},
+    "purple":  {50:"#faf5ff",100:"#f3e8ff",200:"#e9d5ff",300:"#d8b4fe",400:"#c084fc",500:"#a855f7",600:"#9333ea",700:"#7e22ce",800:"#6b21a8",900:"#581c87",950:"#3b0764"},
+    "fuchsia": {50:"#fdf4ff",100:"#fae8ff",200:"#f5d0fe",300:"#f0abfc",400:"#e879f9",500:"#d946ef",600:"#c026d3",700:"#a21caf",800:"#86198f",900:"#701a75",950:"#4a044e"},
+    "pink":    {50:"#fdf2f8",100:"#fce7f3",200:"#fbcfe8",300:"#f9a8d4",400:"#f472b6",500:"#ec4899",600:"#db2777",700:"#be185d",800:"#9d174d",900:"#831843",950:"#500724"},
+    "rose":    {50:"#fff1f2",100:"#ffe4e6",200:"#fecdd3",300:"#fda4af",400:"#fb7185",500:"#f43f5e",600:"#e11d48",700:"#be123c",800:"#9f1239",900:"#881337",950:"#4c0519"},
+}
+_TW_SPECIAL = {"white": "#ffffff", "black": "#000000", "transparent": "transparent"}
+_TW_RADIUS = {
+    "rounded-none": 0, "rounded-sm": 2, "rounded": 4, "rounded-md": 6,
+    "rounded-lg": 8, "rounded-xl": 12, "rounded-2xl": 16,
+    "rounded-3xl": 24, "rounded-full": 999,
+}
+
+
+def _tw_to_hex(classes: str, prefixes: tuple) -> str | None:
+    """Extract first hex color from a Tailwind class string matching *prefixes*."""
+    if not classes:
+        return None
+    for cls in classes.split():
+        if not any(cls.startswith(p) for p in prefixes):
+            continue
+        # Arbitrary value: bg-[#1a1a2e]
+        arb = re.search(r'\[(#[0-9a-fA-F]{3,8})\]', cls)
+        if arb:
+            return arb.group(1)
+        # Special: bg-white, bg-black
+        for sp, hx in _TW_SPECIAL.items():
+            if cls.endswith(f"-{sp}"):
+                return hx
+        # Named: bg-gray-900
+        m = re.search(r'-([a-z]+)-(\d+)$', cls)
+        if m:
+            return _TW_COLORS.get(m.group(1), {}).get(int(m.group(2)))
+    return None
+
+
+def _extract_styling_from_tokens(tokens: dict) -> SimpleNamespace:
+    """Build a Styling-compatible object by deriving colours from theme tokens."""
+    body = tokens.get("page.body", "")
+    btn = tokens.get("component.button.primary", "")
+
+    bg = _tw_to_hex(body, ("bg-", "from-")) or "#FFFFFF"
+    text = _tw_to_hex(body, ("text-",)) or "#000000"
+    accent = _tw_to_hex(btn, ("bg-", "border-")) or "#2563eb"
+
+    radius = 4
+    for cls in btn.split():
+        if cls in _TW_RADIUS:
+            radius = _TW_RADIUS[cls]
+            break
+
+    return SimpleNamespace(
+        style_type=_StyleType.BASIC,
+        layout_type=_LayoutType.SIDEBAR_LEFT,
+        radius=radius,
+        text_color=text,
+        accent_color=accent,
+        background_color=bg,
+    )
+
+
+def _render_style_css(theme: dict) -> str:
+    """Render style.css.jinja2 from the prototype templates with variant tokens."""
+    tokens = theme.get("tokens", {})
+    styling = _extract_styling_from_tokens(tokens)
+    try:
+        env = Environment(loader=FileSystemLoader(_PROTO_TEMPLATES_DIR))
+        tpl = env.get_template("style.css.jinja2")
+        tpl.globals["StyleType"] = _StyleType
+        tpl.globals["LayoutType"] = _LayoutType
+        return tpl.render(
+            styling=styling,
+            theme=theme,
+            theme_summary={},
+            global_layout={},
+        )
+    except Exception as e:
+        logger.warning("Failed to render style.css.jinja2: %s", e)
+        return ""
+
+
 def _render_variant_preview(interface_data: dict, variant: dict, interface_name: str) -> str:
     """Render a standalone HTML preview matching the prototype layout
     (header + sidebar + content with breadcrumbs, tables, pagination)."""
@@ -119,11 +238,12 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
     header_cls = _get_token(tokens, "region.header", "")
     nav_cls = _get_token(tokens, "region.nav", "")
 
-    # ── Sidebar navigation links ──
+    # Sidebar nav links — matches base.html.jinja2 SIDEBAR_LEFT
     nav_links = '<a href="#">Home</a>\n'
     for p in pages:
         p_name = p.get("name", "Page")
         nav_links += f'<a href="#">{p_name}</a>\n'
+    nav_links += '<a href="#">Logout</a>\n'
 
     # ── First page content ──
     first_page = pages[0] if pages else {"name": interface_name, "id": ""}
@@ -148,8 +268,10 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
         for i, sec in enumerate(page_sections):
             sec_name = sec.get("name", f"Section {i + 1}")
             active = " tab-active" if i == 0 else ""
+            selected = "true" if i == 0 else "false"
             tabs_html += (
-                f'<button class="tab-btn{active}" role="tab">{sec_name}</button>\n'
+                f'<button class="tab-btn{active}" role="tab"'
+                f' data-tab="tab-{i + 1}" aria-selected="{selected}">{sec_name}</button>\n'
             )
         tabs_html += "</div>\n"
 
@@ -178,9 +300,10 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
         """
 
         # Search bar
-        page_content += """
+        table_id = f"table-{idx + 1}"
+        page_content += f"""
         <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Search...">
+            <input type="text" class="search-input" data-table="{table_id}" placeholder="Search...">
         </div>
         """
 
@@ -239,15 +362,15 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
             sample_rows += f"<tr>{cells}</tr>\n"
 
         page_content += f"""
-        <table class="{table_cls}">
+        <table class="{table_cls}" id="{table_id}">
             <thead><tr>{th_html}</tr></thead>
             <tbody>{sample_rows}</tbody>
         </table>
         """
 
         # Pagination
-        page_content += """
-        <div class="pagination">
+        page_content += f"""
+        <div class="pagination" data-table="{table_id}">
             <button class="page-btn page-prev" disabled>&laquo; Prev</button>
             <span class="page-info">Page <span class="page-current">1</span></span>
             <button class="page-btn page-next">Next &raquo;</button>
@@ -255,8 +378,9 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
         """
 
         # Create button
+        modal_id = f"modal-create-{idx + 1}"
         page_content += f"""
-        <button class="create-open-btn {btn_primary}">
+        <button class="create-open-btn {btn_primary}" data-modal="{modal_id}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path d="M15 12H12M12 12H9M12 12V9M12 12V15M17 21H7C4.79 21 3 19.21
                  3 17V7C3 4.79 4.79 3 7 3H17C19.21 3 21 4.79 21 7V17C21 19.21 19.21
@@ -267,130 +391,119 @@ def _render_variant_preview(interface_data: dict, variant: dict, interface_name:
         </button>
         """
 
+        # Modal for create form (matching page.html.jinja2)
+        modal_fields = ""
+        for a in attrs[:6]:
+            a_name = a.get("name", "Field")
+            a_type = a.get("type", "str")
+            input_type = "number" if a_type in ("int", "float", "number") else (
+                "date" if a_type == "date" else "text"
+            )
+            if a_type == "bool":
+                modal_fields += f"""
+                <div class="form-group">
+                    <label class="{label_cls}">{a_name}</label>
+                    <input type="checkbox" class="{input_cls}">
+                </div>"""
+            else:
+                modal_fields += f"""
+                <div class="form-group">
+                    <label class="{label_cls}">{a_name}</label>
+                    <input type="{input_type}" class="{input_cls}" placeholder="{a_name}">
+                </div>"""
+
+        page_content += f"""
+        <div class="modal-overlay" id="{modal_id}">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Create {sec_name}</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="return false;">
+                        {modal_fields}
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel modal-close">Cancel</button>
+                            <button type="submit" class="btn-save {btn_primary}">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        """
+
         page_content += "</div>\n"  # close section-body
 
         if len(page_sections) > 1:
             page_content += "</div>\n"  # close tab-panel
 
-    # ── Inline CSS matching prototype style.css.jinja2 ──
-    inline_css = """
-/* Structural layout — SIDEBAR_LEFT (prototype default) */
-.header {
-    padding: 15px;
-    text-align: center;
-}
-.header h1 { margin: 0; font-size: 24px; }
-.menu {
-    width: 220px;
-    padding: 20px;
-    float: left;
-    height: 100vh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-}
-.menu a {
-    text-decoration: none;
-    padding: 10px;
-    display: block;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    text-align: center;
-    max-width: 220px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-.menu a:hover { opacity: 0.8; }
-.content {
-    padding: 20px;
-    margin-left: 240px;
-}
+    # ── CSS from the actual prototype template ──────────────────────────────
+    theme = {"name": variant.get("name", ""), "tokens": tokens}
+    inline_css = _render_style_css(theme)
 
-/* Breadcrumbs */
-.breadcrumbs {
-    display: flex; align-items: center; gap: 4px;
-    padding: 8px 0; margin-bottom: 16px;
-    font-size: 13px; color: #666;
-}
-.breadcrumbs a { text-decoration: none; }
-.breadcrumbs a:hover { text-decoration: underline; }
-.breadcrumb-sep { margin: 0 4px; color: #999; }
-.breadcrumb-current { font-weight: 600; }
-
-/* Tabs */
-.tabs {
-    display: flex; gap: 2px;
-    border-bottom: 2px solid #e0e0e0; margin-bottom: 0;
-}
-.tab-btn {
-    padding: 10px 20px; border: none; background: transparent;
-    cursor: pointer; font-size: 14px; font-weight: 500; color: #666;
-    border-bottom: 2px solid transparent; margin-bottom: -2px;
-}
-.tab-btn.tab-active { font-weight: 600; border-bottom-color: currentColor; }
-.tab-panel { display: none; padding-top: 16px; }
-.tab-panel-active { display: block; }
-
-/* Section header / accordion */
-.section-header {
-    display: flex; align-items: center; justify-content: space-between;
-    cursor: pointer; padding: 8px 0; user-select: none;
-}
-.section-header:hover { opacity: 0.8; }
-.accordion-icon { font-size: 12px; color: #999; }
-.section-body { overflow: visible; }
-.section-body-collapsed { max-height: 0 !important; overflow: hidden; padding: 0; margin: 0; }
-
-/* Search bar */
-.search-bar { margin-bottom: 12px; max-width: 320px; }
-.search-input {
-    width: 100%; padding: 8px 12px;
-    border: 1px solid #ddd; border-radius: 6px;
-    font-size: 14px; box-sizing: border-box;
-}
-.search-input:focus { outline: none; border-color: #666; box-shadow: 0 0 0 2px rgba(0,0,0,0.05); }
-
-/* Table */
-table { width: 100%; border-collapse: collapse; margin-top: 10px; border-radius: 6px; overflow: hidden; }
-table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-
-/* Pagination */
-.pagination {
-    display: flex; align-items: center; gap: 12px;
-    margin-top: 12px; font-size: 13px;
-}
-.page-btn {
-    padding: 6px 14px; border: 1px solid #ddd; border-radius: 6px;
-    cursor: pointer; font-size: 13px; background: transparent;
-}
-.page-btn:disabled { opacity: 0.4; cursor: default; }
-.page-info { color: #666; }
-
-/* Create button */
-.create-open-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; margin-top: 12px;
-    border: none; border-radius: 6px;
-    cursor: pointer; font-size: 14px;
-}
-
-/* Process containers (home page) */
-.process-container {
-    display: flex; justify-content: flex-start; align-items: flex-start;
-    gap: 20px; margin-top: 20px;
-}
-.process-list { display: flex; flex-direction: column; gap: 12px; }
-.process-item {
-    border-radius: 6px; padding: 16px; width: 320px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    display: flex; justify-content: space-between; align-items: center;
-}
-.process-button {
-    border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer;
-}
-"""
+    # JavaScript — same as page.html.jinja2 output
+    page_js = """
+<script>
+(function(){
+    /* Tabs */
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var tabId = this.getAttribute('data-tab');
+            this.closest('.tabs').querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('tab-active'); b.setAttribute('aria-selected','false'); });
+            this.classList.add('tab-active');
+            this.setAttribute('aria-selected','true');
+            document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('tab-panel-active'); });
+            document.getElementById(tabId).classList.add('tab-panel-active');
+        });
+    });
+    /* Search */
+    document.querySelectorAll('.search-input').forEach(function(input){
+        input.addEventListener('input', function(){
+            var q = this.value.toLowerCase();
+            var tableId = this.getAttribute('data-table');
+            var rows = document.querySelectorAll('#'+tableId+' tbody tr');
+            rows.forEach(function(row){ row.style.display = row.textContent.toLowerCase().indexOf(q) > -1 ? '' : 'none'; });
+        });
+    });
+    /* Pagination */
+    var PAGE_SIZE = 10;
+    document.querySelectorAll('.pagination').forEach(function(pag){
+        var tableId = pag.getAttribute('data-table');
+        var rows = document.querySelectorAll('#'+tableId+' tbody tr');
+        var currentPage = 1;
+        var totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+        function render(){
+            rows.forEach(function(r,i){ r.style.display = (i >= (currentPage-1)*PAGE_SIZE && i < currentPage*PAGE_SIZE) ? '' : 'none'; });
+            pag.querySelector('.page-current').textContent = currentPage;
+            pag.querySelector('.page-prev').disabled = currentPage <= 1;
+            pag.querySelector('.page-next').disabled = currentPage >= totalPages;
+            if(rows.length <= PAGE_SIZE) pag.style.display = 'none';
+        }
+        pag.querySelector('.page-prev').addEventListener('click', function(){ if(currentPage>1){currentPage--;render();} });
+        pag.querySelector('.page-next').addEventListener('click', function(){ if(currentPage<totalPages){currentPage++;render();} });
+        render();
+    });
+    /* Modal */
+    document.querySelectorAll('.create-open-btn').forEach(function(btn){
+        btn.addEventListener('click', function(){ document.getElementById(this.getAttribute('data-modal')).classList.add('modal-visible'); });
+    });
+    document.querySelectorAll('.modal-close').forEach(function(btn){
+        btn.addEventListener('click', function(){ this.closest('.modal-overlay').classList.remove('modal-visible'); });
+    });
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay){
+        overlay.addEventListener('click', function(e){ if(e.target === this) this.classList.remove('modal-visible'); });
+    });
+    /* Accordion */
+    document.querySelectorAll('.section-header[data-accordion]').forEach(function(header){
+        header.addEventListener('click', function(){
+            var body = document.getElementById(this.getAttribute('data-accordion'));
+            var icon = this.querySelector('.accordion-icon');
+            if(body.classList.contains('section-body-collapsed')){ body.classList.remove('section-body-collapsed'); icon.textContent = '\\u25BC'; }
+            else { body.classList.add('section-body-collapsed'); icon.textContent = '\\u25B6'; }
+        });
+    });
+})();
+</script>"""
 
     return f"""<!DOCTYPE html>
 <html>
@@ -402,6 +515,7 @@ table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 </head>
 <body class="{body_cls}">
   <div class="header {header_cls}">
+    <div class="logo"></div>
     <h1 class="{heading_cls}">{interface_name}</h1>
   </div>
   <div class="menu {nav_cls}">
@@ -418,6 +532,7 @@ table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
       {page_content}
     </div>
   </div>
+  {page_js}
 </body>
 </html>"""
 
