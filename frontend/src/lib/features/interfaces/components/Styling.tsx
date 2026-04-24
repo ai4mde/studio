@@ -10,11 +10,19 @@ import useLocalStorage from './useLocalStorage';
 
 
 type Props = {
+    dbStyling?: Record<string, any> | null;
 }
 
-export const Styling: React.FC<Props> = () => {
+export const Styling: React.FC<Props> = ({ dbStyling }) => {
 
     const [data, setData, isSuccess] = useLocalStorage('styling', '');
+
+    // When DB styling changes (e.g. after AI Apply Theme), sync into React state + localStorage
+    useEffect(() => {
+        if (dbStyling && Object.keys(dbStyling).length > 0) {
+            setData(dbStyling);
+        }
+    }, [dbStyling]);
     const [logoFile, setLogoFile] = useLocalStorage('logoFile', null);
     const [logoDimensions, setLogoDimensions] = useLocalStorage('logoDimensions', { width: 0, height: 0 });
 

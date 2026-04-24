@@ -118,7 +118,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
 
 ]
-CSRF_COOKIE_DOMAIN = '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
+_hostname_parts = environ.get("HOSTNAME", "ai4mde.localhost").split('.')
+CSRF_COOKIE_DOMAIN = '.' + '.'.join(_hostname_parts[1:]) if len(_hostname_parts) > 1 else None
 CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
 CORS_ALLOW_CREDENTIALS = True  # TODO: Investigate if necessary?
 CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?

@@ -28,7 +28,10 @@ def stop_prototype():
     with lock:
         if "id" in running_prototype:
             pid = running_prototype["pid"]
-            os.kill(pid, signal.SIGTERM)
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             running_prototype.clear()
 
 
@@ -36,7 +39,10 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
     with lock:
         if "id" in running_prototype:
             pid = running_prototype["pid"]
-            os.kill(pid, signal.SIGTERM)
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             running_prototype.clear()
 
         prototype_path = os.path.join(ROOT_DIR, prototype_system, prototype_name)

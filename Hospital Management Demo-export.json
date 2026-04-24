@@ -1,0 +1,2209 @@
+{
+  "systems": [
+    {
+      "diagrams": [
+        {
+          "nodes": [
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {
+                "position": { "x": 165, "y": 75 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {
+                "position": { "x": 90, "y": 225 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {
+                "position": { "x": 105, "y": 390 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {
+                "position": { "x": 1170, "y": 75 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000005",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {
+                "position": { "x": 1050, "y": 225 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000006",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000006",
+              "data": {
+                "position": { "x": 885, "y": 315 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000007",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000007",
+              "data": {
+                "position": { "x": 1050, "y": 495 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000008",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000008",
+              "data": {
+                "position": { "x": 450, "y": 630 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000009",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000009",
+              "data": {
+                "position": { "x": 1125, "y": 615 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000010",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000010",
+              "data": {
+                "position": { "x": 570, "y": 810 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000011",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000011",
+              "data": {
+                "position": { "x": 1290, "y": 330 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000012",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000012",
+              "data": {
+                "position": { "x": 525, "y": 1005 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000013",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000013",
+              "data": {
+                "position": { "x": 1170, "y": 990 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000014",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000014",
+              "data": {
+                "position": { "x": 495, "y": 1185 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000015",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000015",
+              "data": {
+                "position": { "x": 945, "y": 1185 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000016",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000016",
+              "data": {
+                "position": { "x": 1290, "y": 1185 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000017",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000017",
+              "data": {
+                "position": { "x": 1155, "y": 1380 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000018",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000018",
+              "data": {
+                "position": { "x": 915, "y": 1620 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000019",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000019",
+              "data": {
+                "position": { "x": 600, "y": 1605 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000020",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000020",
+              "data": {
+                "position": { "x": 45, "y": 630 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-1111-4aaa-8001-000000000021",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "cls": "c1a1a1a1-1111-4aaa-8001-000000000021",
+              "data": {
+                "position": { "x": 0, "y": -15 }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {
+                "source_offset": { "x": 5, "y": 6 },
+                "target_offset": { "x": -58, "y": 0 },
+                "position_handlers": [
+                  { "x": 1185, "y": 270 },
+                  { "x": 1020, "y": 270 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {
+                "source_offset": { "x": -8, "y": 6 },
+                "target_offset": { "x": 94, "y": 0 },
+                "position_handlers": [
+                  { "x": 1230, "y": 270 },
+                  { "x": 1395, "y": 270 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000005",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {
+                "source_offset": { "x": -41, "y": 1 },
+                "target_offset": { "x": 5, "y": 0 },
+                "position_handlers": [
+                  { "x": 990, "y": 465 },
+                  { "x": 1200, "y": 465 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000006",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000006",
+              "data": {
+                "source_offset": { "x": 49, "y": 1 },
+                "target_offset": { "x": 6, "y": 0 },
+                "position_handlers": [
+                  { "x": 1395, "y": 465 },
+                  { "x": 1230, "y": 465 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000007",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000007",
+              "data": {
+                "target_offset": { "x": 34, "y": 0 }
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000008",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000008",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000009",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000009",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000010",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000010",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000011",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000011",
+              "data": {
+                "source_offset": { "x": -15, "y": 17 },
+                "target_offset": { "x": -90, "y": 1 },
+                "position_handlers": [
+                  { "x": 210, "y": 855 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000012",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000012",
+              "data": {
+                "target_offset": { "x": -16, "y": 0 },
+                "position_handlers": []
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000013",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000013",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000014",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000014",
+              "data": {}
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000015",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000015",
+              "data": {
+                "source_offset": { "x": 15, "y": -3 },
+                "target_offset": { "x": -41, "y": 0 },
+                "position_handlers": [
+                  { "x": 1185, "y": 1110 },
+                  { "x": 1035, "y": 1110 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000016",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000016",
+              "data": {
+                "source_offset": { "x": 7, "y": -9 },
+                "target_offset": { "x": 19, "y": 0 },
+                "position_handlers": [
+                  { "x": 1245, "y": 1110 },
+                  { "x": 1365, "y": 1110 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000017",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000017",
+              "data": {
+                "source_offset": { "x": -38, "y": 4 },
+                "target_offset": { "x": 30, "y": -3 },
+                "position_handlers": [
+                  { "x": 1035, "y": 1320 },
+                  { "x": 1185, "y": 1320 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000018",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000018",
+              "data": {
+                "source_offset": { "x": 37, "y": 4 },
+                "target_offset": { "x": -11, "y": 0 },
+                "position_handlers": [
+                  { "x": 1380, "y": 1320 },
+                  { "x": 1215, "y": 1320 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000019",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000019",
+              "data": {
+                "source_offset": { "x": 45, "y": 8 },
+                "target_offset": { "x": 46, "y": 30 },
+                "position_handlers": [
+                  { "x": 1200, "y": 1635 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000020",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000020",
+              "data": {
+                "source_offset": { "x": 0, "y": -7 },
+                "target_offset": { "x": 7, "y": -4 }
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000021",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000021",
+              "data": {
+                "source_offset": { "x": 13, "y": 1 },
+                "target_offset": { "x": 7, "y": 0 }
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000022",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000022",
+              "data": {
+                "source_offset": { "x": -81, "y": 0 },
+                "position_handlers": [
+                  { "x": 195, "y": 540 },
+                  { "x": 435, "y": 540 },
+                  { "x": 435, "y": 150 }
+                ]
+              }
+            },
+            {
+              "id": "e1a1a1a1-1111-4aaa-8001-000000000023",
+              "diagram": "30a1a1a1-1111-4aaa-8001-000000000001",
+              "rel": "f1a1a1a1-1111-4aaa-8001-000000000023",
+              "data": {
+                "source_offset": { "x": 1, "y": 26 },
+                "target_offset": { "x": 0, "y": -9 },
+                "position_handlers": [
+                  { "x": 390, "y": 435 },
+                  { "x": 390, "y": 120 }
+                ]
+              }
+            }
+          ],
+          "id": "30a1a1a1-1111-4aaa-8001-000000000001",
+          "type": "activity",
+          "name": "Patient admission",
+          "description": "",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001"
+        },
+        {
+          "nodes": [
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {
+                "position": { "x": 90, "y": -150 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {
+                "position": { "x": 555, "y": 240 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {
+                "position": { "x": 195, "y": 225 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {
+                "position": { "x": 750, "y": -75 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000005",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000006",
+              "data": {
+                "position": { "x": 135, "y": -330 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-2222-4aaa-8001-000000000006",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "cls": "40a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {
+                "position": { "x": -375, "y": -150 }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e2a1a1a1-1111-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "rel": "f2a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {}
+            },
+            {
+              "id": "e2a1a1a1-1111-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "rel": "f2a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {}
+            },
+            {
+              "id": "e2a1a1a1-1111-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "rel": "f2a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {}
+            },
+            {
+              "id": "e2a1a1a1-1111-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-2222-4aaa-8001-000000000001",
+              "rel": "f2a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {}
+            }
+          ],
+          "id": "30a1a1a1-2222-4aaa-8001-000000000001",
+          "type": "classes",
+          "name": "Structure",
+          "description": "",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001"
+        },
+        {
+          "nodes": [
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "50a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {
+                "position": { "x": -225, "y": 90 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "50a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {
+                "position": { "x": -210, "y": 675 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "50a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {
+                "position": { "x": 690, "y": 150 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "50a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {
+                "position": { "x": 1185, "y": 150 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000005",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "50a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {
+                "position": { "x": 1230, "y": 630 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000006",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {
+                "position": { "x": 30, "y": -30 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000007",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {
+                "position": { "x": 120, "y": 105 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000008",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {
+                "position": { "x": 75, "y": 315 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000009",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {
+                "position": { "x": 150, "y": 465 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000010",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {
+                "position": { "x": 675, "y": 510 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000011",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000006",
+              "data": {
+                "position": { "x": 690, "y": 690 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000012",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000007",
+              "data": {
+                "position": { "x": 120, "y": 810 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000013",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000008",
+              "data": {
+                "position": { "x": 690, "y": 840 }
+              }
+            },
+            {
+              "id": "a1b2c3d4-3333-4aaa-8001-000000000014",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "cls": "60a1a1a1-1111-4aaa-8001-000000000009",
+              "data": {
+                "position": { "x": 135, "y": 630 }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000001",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000001",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000002",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000002",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000003",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000003",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000004",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000004",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000005",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000005",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000006",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000006",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000007",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000007",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000008",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000008",
+              "data": {}
+            },
+            {
+              "id": "e3a1a1a1-1111-4aaa-8001-000000000009",
+              "diagram": "30a1a1a1-3333-4aaa-8001-000000000001",
+              "rel": "f3a1a1a1-1111-4aaa-8001-000000000009",
+              "data": {}
+            }
+          ],
+          "id": "30a1a1a1-3333-4aaa-8001-000000000001",
+          "type": "usecase",
+          "name": "Interactions",
+          "description": "",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001"
+        }
+      ],
+      "classifiers": [
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000001",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "initial",
+            "schedule": "",
+            "scheduled": false,
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000002",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Register patient",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000005",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000003",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "cls": "40a1a1a1-1111-4aaa-8001-000000000003",
+            "name": "Appointment",
+            "role": "object",
+            "type": "object",
+            "state": "Created",
+            "clsName": "Appointment",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000004",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "merge",
+            "merge_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000005",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "fork",
+            "width": "300",
+            "height": "12"
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000006",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Perform triage",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000004",
+            "namespace": "",
+            "customCode": "def custom_code(active_process: ActiveProcess) -> None:\n    patients = active_process.patients\n    appointments = active_process.appointments\n    medicalrecords = active_process.medicalrecords\n\n    appointment = appointments.first()\n\n    import random\n    priorities = ['low', 'medium', 'high', 'critical']\n    random_priority = random.choice(priorities)\n    print(f'Triage priority assigned: {random_priority}', flush=True)\n    appointment.priority = random_priority\n    appointment.save()",
+            "isAutomatic": true,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000007",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "join",
+            "width": "300",
+            "height": "12",
+            "join_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000008",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Examine patient",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000003",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000009",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "cls": "40a1a1a1-1111-4aaa-8001-000000000003",
+            "name": "Appointment",
+            "role": "object",
+            "type": "object",
+            "state": "Examined",
+            "clsName": "Appointment",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000010",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "decision",
+            "decisionInput": "",
+            "decisionInputFlow": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000011",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Record vitals",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000004",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000012",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Diagnose and prescribe",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000003",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000013",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "decision",
+            "decisionInput": "",
+            "decisionInputFlow": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000014",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Patient discharged",
+            "role": "event",
+            "type": "event",
+            "signal": "40a1a1a1-1111-4aaa-8001-000000000007",
+            "namespace": "",
+            "signalName": "Patient discharged"
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000015",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "cls": "40a1a1a1-1111-4aaa-8001-000000000003",
+            "name": "Appointment",
+            "role": "object",
+            "type": "object",
+            "state": "Discharged",
+            "clsName": "Appointment",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000016",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "cls": "40a1a1a1-1111-4aaa-8001-000000000003",
+            "name": "Appointment",
+            "role": "object",
+            "type": "object",
+            "state": "Admitted",
+            "clsName": "Appointment",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000017",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "page": "",
+            "role": "control",
+            "type": "merge",
+            "merge_spec": "",
+            "is_combine_duplicate": false
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000018",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Notify discharge",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000005",
+            "namespace": "",
+            "customCode": "def custom_code(active_process: ActiveProcess) -> None:\n    patients = active_process.patients\n    appointments = active_process.appointments\n    medicalrecords = active_process.medicalrecords\n    prescriptions = active_process.prescriptions\n\n    appointment = appointments.first()\n    patient = patients.first()\n\n    outcome = \"discharged\" if appointment.discharged else \"admitted\"\n\n    print(f\"Sending notification to {patient.email}: Your appointment has been {outcome}\", flush=True)",
+            "isAutomatic": true,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000019",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "role": "control",
+            "type": "final",
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000020",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "body": "",
+            "name": "Request additional tests",
+            "role": "action",
+            "type": "action",
+            "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000002",
+            "namespace": "",
+            "isAutomatic": false,
+            "localPrecondition": "",
+            "localPostcondition": ""
+          }
+        },
+        {
+          "id": "c1a1a1a1-1111-4aaa-8001-000000000021",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "type": "swimlanegroup",
+            "width": 400,
+            "height": "1800",
+            "swimlanes": [
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000002",
+                "actorNodeName": "Patient"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000001",
+                "actorNodeName": "Receptionist"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000004",
+                "actorNodeName": "Nurse"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000003",
+                "actorNodeName": "Doctor"
+              },
+              {
+                "role": "swimlane",
+                "type": "swimlane",
+                "actorNode": "a1b2c3d4-3333-4aaa-8001-000000000005",
+                "actorNodeName": "System"
+              }
+            ],
+            "horizontal": false
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000001",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Patient",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              { "body": null, "enum": null, "name": "first_name", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "last_name", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "date_of_birth", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "gender", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "phone", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "email", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "address", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "insurance_number", "type": "str", "derived": false, "description": null },
+              { "body": "def full_name(self):\n    return f\"{self.first_name} {self.last_name}\"", "enum": null, "name": "full_name", "type": "str", "derived": true, "description": "combines the first and last name into a single attribute" }
+            ]
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000002",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Doctor",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              { "body": null, "enum": null, "name": "first_name", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "last_name", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "specialization", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "license_number", "type": "str", "derived": false, "description": null },
+              { "body": null, "enum": null, "name": "email", "type": "str", "derived": false, "description": null }
+            ]
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000003",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Appointment",
+            "type": "class",
+            "methods": [
+              {
+                "body": "def discharge(self):\n    self.discharged = True\n    self.save()",
+                "name": "discharge",
+                "type": "str",
+                "description": "Discharges the patient by setting discharged to true and saving it"
+              }
+            ],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              { "enum": null, "name": "scheduled_date", "type": "str", "derived": false },
+              { "enum": null, "name": "priority", "type": "str", "derived": false },
+              { "enum": null, "name": "requires_admission", "type": "bool", "derived": false },
+              { "enum": null, "name": "discharged", "type": "bool", "derived": false },
+              { "enum": null, "name": "diagnosis", "type": "str", "derived": false },
+              { "enum": null, "name": "notes", "type": "str", "derived": false }
+            ]
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000004",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "MedicalRecord",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              { "enum": null, "name": "record_date", "type": "str", "derived": false },
+              { "enum": null, "name": "symptoms", "type": "str", "derived": false },
+              { "enum": null, "name": "diagnosis", "type": "str", "derived": false },
+              { "enum": null, "name": "treatment_plan", "type": "str", "derived": false },
+              { "enum": null, "name": "blood_pressure", "type": "str", "derived": false },
+              { "enum": null, "name": "temperature", "type": "str", "derived": false }
+            ]
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000005",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "leaf": false,
+            "name": "Prescription",
+            "type": "class",
+            "methods": [],
+            "abstract": false,
+            "namespace": "",
+            "attributes": [
+              { "enum": null, "name": "medication", "type": "str", "derived": false },
+              { "enum": null, "name": "dosage", "type": "str", "derived": false },
+              { "enum": null, "name": "frequency", "type": "str", "derived": false },
+              { "enum": null, "name": "duration", "type": "str", "derived": false }
+            ]
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000006",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Appointment type",
+            "type": "enum",
+            "literals": ["CHECKUP", "EMERGENCY", "FOLLOW_UP", "SURGERY"],
+            "namespace": ""
+          }
+        },
+        {
+          "id": "40a1a1a1-1111-4aaa-8001-000000000007",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Patient discharged",
+            "type": "signal",
+            "namespace": ""
+          }
+        },
+        {
+          "id": "50a1a1a1-1111-4aaa-8001-000000000001",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Receptionist",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "50a1a1a1-1111-4aaa-8001-000000000002",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Patient",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "50a1a1a1-1111-4aaa-8001-000000000003",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Doctor",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "50a1a1a1-1111-4aaa-8001-000000000004",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Nurse",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "50a1a1a1-1111-4aaa-8001-000000000005",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "System",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000001",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Hospital management",
+            "type": "system_boundary",
+            "width": 1000,
+            "height": 1000
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000002",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Register patient",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000003",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Schedule appointment",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000004",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Diagnose patient",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000005",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Prescribe medication",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000006",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Update medical record",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000007",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "View test results",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000008",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Discharge patient",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        },
+        {
+          "id": "60a1a1a1-1111-4aaa-8001-000000000009",
+          "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "original_system_id": null,
+          "data": {
+            "name": "Record vitals",
+            "type": "usecase",
+            "actions": [],
+            "classes": [],
+            "trigger": "",
+            "namespace": "",
+            "scenarios": [],
+            "activities": [],
+            "parentNode": "a1b2c3d4-3333-4aaa-8001-000000000006",
+            "precondition": "",
+            "postcondition": "",
+            "application_model": []
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000001",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000001",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000002"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000002",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000002",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000003"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000023",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000004"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000024",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000004",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000005"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000003",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000005",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000006"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000004",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000005",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000011"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000005",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000006",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000007"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000006",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000011",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000007"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000007",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000007",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000009"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000008",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000009",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000008"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000009",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000008",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000010"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000010",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "true",
+              "aggregator": null,
+              "target_class": "a1b2c3d4-2222-4aaa-8001-000000000002",
+              "target_attribute": "requires_admission",
+              "target_class_name": "Appointment",
+              "target_attribute_type": "bool"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000010",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000020"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000012",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000010",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000012"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000013",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000012",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000013"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000014",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000013",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000014"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000015",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000013",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000015"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000016",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "false",
+              "aggregator": null,
+              "target_class": "a1b2c3d4-2222-4aaa-8001-000000000002",
+              "target_attribute": "discharged",
+              "target_class_name": "Appointment",
+              "target_attribute_type": "bool"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000013",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000016"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000017",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000015",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000017"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000018",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000016",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000017"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000019",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000017",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000018"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000020",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000018",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000019"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000021",
+          "data": {
+            "type": "controlflow",
+            "guard": "discharged = True",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000012",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000014"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000022",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000020",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000004"
+        },
+        {
+          "id": "f1a1a1a1-1111-4aaa-8001-000000000011",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "c1a1a1a1-1111-4aaa-8001-000000000010",
+          "target": "c1a1a1a1-1111-4aaa-8001-000000000012"
+        },
+        {
+          "id": "f2a1a1a1-1111-4aaa-8001-000000000001",
+          "data": {
+            "type": "association",
+            "label": "visits",
+            "labels": null,
+            "derived": false,
+            "multiplicity": { "source": "1", "target": "*" },
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "40a1a1a1-1111-4aaa-8001-000000000001",
+          "target": "40a1a1a1-1111-4aaa-8001-000000000003"
+        },
+        {
+          "id": "f2a1a1a1-1111-4aaa-8001-000000000002",
+          "data": {
+            "type": "association",
+            "label": "has",
+            "labels": null,
+            "derived": false,
+            "multiplicity": { "source": "1", "target": "*" },
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "40a1a1a1-1111-4aaa-8001-000000000001",
+          "target": "40a1a1a1-1111-4aaa-8001-000000000004"
+        },
+        {
+          "id": "f2a1a1a1-1111-4aaa-8001-000000000003",
+          "data": {
+            "type": "association",
+            "label": "includes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": { "source": "1", "target": "*" },
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "40a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "40a1a1a1-1111-4aaa-8001-000000000005"
+        },
+        {
+          "id": "f2a1a1a1-1111-4aaa-8001-000000000004",
+          "data": {
+            "type": "dependency",
+            "label": "",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "40a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "40a1a1a1-1111-4aaa-8001-000000000006"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000001",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000001",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000002"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000002",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000001",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000003"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000003",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000004"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000004",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000005"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000005",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000004",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000009"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000006",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000002",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000007"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000007",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000003",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000008"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000008",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "50a1a1a1-1111-4aaa-8001-000000000005",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000006"
+        },
+        {
+          "id": "f3a1a1a1-1111-4aaa-8001-000000000009",
+          "data": {
+            "type": "inclusion",
+            "position_handlers": []
+          },
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "source": "60a1a1a1-1111-4aaa-8001-000000000004",
+          "target": "60a1a1a1-1111-4aaa-8001-000000000009"
+        }
+      ],
+      "interfaces": [
+        {
+          "id": "70a1a1a1-1111-4aaa-8001-000000000001",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "name": "System",
+          "description": "System application",
+          "actor": "50a1a1a1-1111-4aaa-8001-000000000005",
+          "data": {
+            "pages": [],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [],
+            "categories": []
+          }
+        },
+        {
+          "id": "70a1a1a1-1111-4aaa-8001-000000000002",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "name": "Receptionist",
+          "description": "Receptionist application",
+          "actor": "50a1a1a1-1111-4aaa-8001-000000000001",
+          "data": {
+            "pages": [
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000001",
+                "name": "Register patient",
+                "type": { "label": "Activity", "value": "activity" },
+                "action": { "label": "Register patient", "value": "a1b2c3d4-1111-4aaa-8001-000000000002" },
+                "category": null,
+                "sections": [
+                  { "label": "Patient information", "value": "80a1a1a1-1111-4aaa-8001-000000000001" },
+                  { "label": "Create appointment", "value": "80a1a1a1-1111-4aaa-8001-000000000002" }
+                ]
+              },
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000002",
+                "name": "Appointments overview",
+                "type": { "label": "Normal", "value": "normal" },
+                "action": null,
+                "category": { "label": "Overview", "value": { "id": "a0a1a1a1-1111-4aaa-8001-000000000001", "name": "Overview" } },
+                "sections": [
+                  { "label": "View appointments", "value": "80a1a1a1-1111-4aaa-8001-000000000003" }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000001",
+                "name": "Patient information",
+                "text": "Fill in patient information",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000001",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "first_name", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "last_name", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "date_of_birth", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "gender", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "phone", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "email", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "address", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "insurance_number", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": true, "delete": true, "update": true }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000002",
+                "name": "Create appointment",
+                "text": "Schedule a new appointment",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000003",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "scheduled_date", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "notes", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": true, "delete": true, "update": true }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000003",
+                "name": "View appointments",
+                "text": "Scheduled appointments",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000003",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "scheduled_date", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "priority", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "requires_admission", "type": "bool", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "discharged", "type": "bool", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "diagnosis", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "notes", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              }
+            ],
+            "settings": { "managerAccess": false },
+            "categories": [
+              { "id": "a0a1a1a1-1111-4aaa-8001-000000000001", "name": "Overview" }
+            ]
+          }
+        },
+        {
+          "id": "70a1a1a1-1111-4aaa-8001-000000000003",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "name": "Doctor",
+          "description": "Doctor application",
+          "actor": "50a1a1a1-1111-4aaa-8001-000000000003",
+          "data": {
+            "pages": [
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000003",
+                "name": "Examine patient",
+                "type": { "label": "Activity", "value": "activity" },
+                "action": { "label": "Examine patient", "value": "a1b2c3d4-1111-4aaa-8001-000000000008" },
+                "category": null,
+                "sections": [
+                  { "label": "Patient information", "value": "80a1a1a1-1111-4aaa-8001-000000000004" },
+                  { "label": "Medical records", "value": "80a1a1a1-1111-4aaa-8001-000000000005" },
+                  { "label": "Examination notes", "value": "80a1a1a1-1111-4aaa-8001-000000000006" }
+                ]
+              },
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000004",
+                "name": "Diagnose and prescribe",
+                "type": { "label": "Activity", "value": "activity" },
+                "action": { "label": "Diagnose and prescribe", "value": "a1b2c3d4-1111-4aaa-8001-000000000012" },
+                "category": null,
+                "sections": [
+                  { "label": "Patient information", "value": "80a1a1a1-1111-4aaa-8001-000000000004" },
+                  { "label": "Medical records", "value": "80a1a1a1-1111-4aaa-8001-000000000005" },
+                  { "label": "Diagnosis", "value": "80a1a1a1-1111-4aaa-8001-000000000007" },
+                  { "label": "Add prescription", "value": "80a1a1a1-1111-4aaa-8001-000000000008" }
+                ]
+              },
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000005",
+                "name": "Patients overview",
+                "type": { "label": "Normal", "value": "normal" },
+                "action": null,
+                "category": { "label": "Overview", "value": { "id": "a0a1a1a1-1111-4aaa-8001-000000000002", "name": "Overview" } },
+                "sections": [
+                  { "label": "Patient information", "value": "80a1a1a1-1111-4aaa-8001-000000000004" }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 2,
+              "textColor": "#000000",
+              "accentColor": "#1976d2",
+              "selectedStyle": "basic",
+              "backgroundColor": "#e3f2fd"
+            },
+            "sections": [
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000004",
+                "name": "Patient information",
+                "text": "Patient details",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000001",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "first_name", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "last_name", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "date_of_birth", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "gender", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "insurance_number", "type": "str", "derived": false, "description": null },
+                  { "body": "def full_name(self):\n    return f\"{self.first_name} {self.last_name}\"", "enum": null, "name": "full_name", "type": "str", "derived": true, "description": "combines the first and last name into a single attribute" }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000005",
+                "name": "Medical records",
+                "text": "Patient medical history",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000004",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "record_date", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "symptoms", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "diagnosis", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "treatment_plan", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "blood_pressure", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "temperature", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000006",
+                "name": "Examination notes",
+                "text": "Record examination findings",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000003",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "requires_admission", "type": "bool", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "priority", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "notes", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": true }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000007",
+                "name": "Diagnosis",
+                "text": "Diagnose and decide on treatment",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000003",
+                "methods": [
+                  {
+                    "body": "def discharge(self):\n    self.discharged = True\n    self.save()",
+                    "name": "discharge",
+                    "type": "str",
+                    "description": "Discharges the patient by setting discharged to true and saving it"
+                  }
+                ],
+                "attributes": [
+                  { "body": null, "enum": null, "name": "diagnosis", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "discharged", "type": "bool", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "requires_admission", "type": "bool", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000008",
+                "name": "Add prescription",
+                "text": "Prescribe medication",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000005",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "medication", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "dosage", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "frequency", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "duration", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": true, "delete": true, "update": true }
+              }
+            ],
+            "settings": { "managerAccess": true },
+            "categories": [
+              { "id": "a0a1a1a1-1111-4aaa-8001-000000000002", "name": "Overview" }
+            ]
+          }
+        },
+        {
+          "id": "70a1a1a1-1111-4aaa-8001-000000000004",
+          "system": "20a1a1a1-1111-4aaa-8001-000000000001",
+          "name": "Patient",
+          "description": "Patient application",
+          "actor": "50a1a1a1-1111-4aaa-8001-000000000002",
+          "data": {
+            "pages": [
+              {
+                "id": "90a1a1a1-1111-4aaa-8001-000000000006",
+                "name": "View test results",
+                "type": { "label": "Activity", "value": "activity" },
+                "action": { "label": "Request additional tests", "value": "a1b2c3d4-1111-4aaa-8001-000000000020" },
+                "category": null,
+                "sections": [
+                  { "label": "My medical records", "value": "80a1a1a1-1111-4aaa-8001-000000000009" },
+                  { "label": "My prescriptions", "value": "80a1a1a1-1111-4aaa-8001-00000000000a" }
+                ]
+              }
+            ],
+            "styling": {
+              "radius": 0,
+              "textColor": "#000000",
+              "accentColor": "#F5F5F4",
+              "selectedStyle": "modern",
+              "backgroundColor": "#FFFFFF"
+            },
+            "sections": [
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-000000000009",
+                "name": "My medical records",
+                "text": "Your medical records",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000004",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "record_date", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "symptoms", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "diagnosis", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "treatment_plan", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              },
+              {
+                "id": "80a1a1a1-1111-4aaa-8001-00000000000a",
+                "name": "My prescriptions",
+                "text": "Your prescribed medications",
+                "class": "40a1a1a1-1111-4aaa-8001-000000000005",
+                "attributes": [
+                  { "body": null, "enum": null, "name": "medication", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "dosage", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "frequency", "type": "str", "derived": false, "description": null },
+                  { "body": null, "enum": null, "name": "duration", "type": "str", "derived": false, "description": null }
+                ],
+                "operations": { "create": false, "delete": false, "update": false }
+              }
+            ],
+            "settings": { "managerAccess": false },
+            "categories": []
+          }
+        }
+      ],
+      "id": "20a1a1a1-1111-4aaa-8001-000000000001",
+      "project": "10a1a1a1-1111-4aaa-8001-000000000001",
+      "name": "Hospital Management Demo",
+      "description": ""
+    }
+  ],
+  "id": "10a1a1a1-1111-4aaa-8001-000000000001",
+  "name": "Hospital Management Demo",
+  "description": ""
+}

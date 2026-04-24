@@ -9,7 +9,7 @@ import {
     Tabs,
 } from '@mui/joy';
 import { CircleUserRound, Save, Trash, Wand2 } from "lucide-react";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
@@ -31,6 +31,20 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [searchParams] = useSearchParams();
     const defaultTab = searchParams.get("tab") === "ai-generate" ? 6 : 0;
     const [isSaving, setIsSaving] = useState(false);
+
+    // Seed localStorage from DB whenever interface data loads or changes (e.g. after AI apply)
+    useEffect(() => {
+        if (!isSuccess || !data?.data) return;
+        const iData = typeof data.data === 'string' ? JSON.parse(data.data) : (data.data as any);
+        if (iData?.categories) window.localStorage.setItem('categories', JSON.stringify(iData.categories));
+        if (iData?.pages)      window.localStorage.setItem('pages',      JSON.stringify(iData.pages));
+        if (iData?.sections)   window.localStorage.setItem('sections',   JSON.stringify(iData.sections));
+        if (iData?.settings)   window.localStorage.setItem('settings',   JSON.stringify(iData.settings));
+    }, [data]);
+
+    const dbStyling = isSuccess && data?.data
+        ? ((typeof data.data === 'string' ? JSON.parse(data.data) : (data.data as any))?.styling ?? null)
+        : null;
     //const actorId = data?.actor || '';
     //const [actor, isSuccessActor] = useActor(systemId, actorId);
 
@@ -134,7 +148,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Sections />
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Styling />
+                            <Styling dbStyling={dbStyling} />
                         </TabPanel>
                         <TabPanel value={5}>
                             <Settings />

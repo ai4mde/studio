@@ -2,6 +2,7 @@ import { authAxios } from "$auth/state/auth";
 import { baseURL } from "$shared/globals";
 import { RefreshCw, Sparkles, Check, MessageSquare, Wand2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type VariantSummary = {
     id: string;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
+    const qc = useQueryClient();
     const [prompt, setPrompt] = useState("");
     const [generating, setGenerating] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -117,6 +119,8 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                 variant_id: selectedVariant,
             });
             setApplied(true);
+            // Invalidate interface cache so ShowInterface re-seeds localStorage with new styling
+            qc.invalidateQueries({ queryKey: ["interface", interfaceId] });
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : "Apply failed");

@@ -532,6 +532,17 @@ def apply_variant(request, session_id: str, body: ApplySchema):
         "name": variant["name"],
         "tokens": variant["tokens"],
     }
+    # Sync extracted colors into styling so Styling tab reflects the applied theme
+    _s = _extract_styling_from_tokens(variant["tokens"])
+    existing_styling = data.get("styling", {})
+    data["styling"] = {
+        "selectedStyle": existing_styling.get("selectedStyle", "modern"),
+        "selectedLayout": existing_styling.get("selectedLayout", "sidebar_left"),
+        "backgroundColor": _s.background_color,
+        "textColor": _s.text_color,
+        "accentColor": _s.accent_color,
+        "radius": min(10, _s.radius),
+    }
     data["designerMeta"] = {
         "generatedFrom": "interface_gen",
         "originalPrompt": session["original_prompt"],
