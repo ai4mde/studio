@@ -41,6 +41,7 @@ services:
       - ./api/model:/usr/src/model:ro
       - ./prototypes/generated_prototypes:/usr/src/generated_prototypes
       - ./prototypes/backend/generation/templates:/usr/src/proto_templates:ro
+      - ./prototypes/backend/generation/generation_scripts:/usr/src/proto_scripts:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"

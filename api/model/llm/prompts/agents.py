@@ -5,6 +5,7 @@ Your only job is to express the UI as a tree of HTML elements, loops, conditiona
 ▓▓▓ CORE TASK — YOU decide field_mode per field using structured context ▓▓▓
 Each attribute_contract carries structured metadata from the UML activity diagram:
   • "field_type": the data type from the class diagram (int, str, bool, etc.)
+  • "semantic_role": pre-classified UI intent — use this to pick the correct widget (see SEMANTIC ROLES below)
   • "decision_condition": true if this field appears in a workflow decision node
   • "decided_by_actor": the actor whose action feeds the decision that tests this field
   • "auto_computed": true if this field is set by an automatic system action (e.g. risk analysis)
@@ -109,7 +110,7 @@ Format: apps[{{actor_id, pages[{{page_id, name, state, action_ids, transition_id
     transition_id,
     entity_ids,
     entity_names,
-    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, decision_condition?, decided_by_actor?, auto_computed?, associated_entity?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
+    attribute_contracts[{{entity_id, entity_name, attribute, bind, field_type, semantic_role, decision_condition?, decided_by_actor?, auto_computed?, associated_entity?, ui_policy{{validation, operations{{endpoint, allowed, kind}}}}}}],
     binding_groups[{{entity_id, entity_name, bind[list], kind, operations{{endpoint, allowed, kind}}}}],
     workflow_context: {{
       entity_flow: {{entity_name: "produces"|"consumes"|"read_write"}},
@@ -247,6 +248,68 @@ DESIGN RULES
     input_type: infer from field_type + field name — "text"|"number"|"email"|"date"|"checkbox"|"textarea"|"select".
     validation: add "required" for essential editable fields, "min"/"max" for numeric fields.
     These decisions go into field_policies in the output JSON (see OUTPUT FORMAT).
+
+    SEMANTIC ROLES — widget selection guide (use "semantic_role" from each attribute_contract):
+    Each role maps to a specific widget regardless of field_mode. Apply field_mode rules first (editable/readonly/hidden),
+    then choose the widget type from this table:
+
+    image_primary      → <img> with bind=url, variant "image-hero" — large hero image; wrap in a div with aspect-ratio
+    image_gallery      → LOOP of <img> thumbnails, clickable to swap hero; variant "image-gallery"
+    price_current      → <span> large bold text, variant "price-current"; prefix with currency symbol
+    price_original     → <span> line-through text, variant "price-original"; show only when > price_current
+    price_discount     → <span> badge-style (e.g. "-15%"), variant "price-discount"
+    price_total        → <span> large bold, variant "price-total"
+    rating_score       → star icons row + numeric text (e.g. "4.5 ★"), variant "rating-stars"
+    rating_count       → <span> muted text "(1 234 reviews)", variant "rating-count"
+    review_text        → <p> multi-line text block, variant "review-body"
+    availability       → conditional <span>: "In stock" green / "Out of stock" red, variant "availability-badge"
+    status_badge       → <span> colored pill badge using status value, variant "status-badge"
+    badge              → <span> small pill, variant "badge"
+    spec_group         → group ALL spec_name/spec_value pairs from same entity into a <table>/<dl>; variant "spec-table"
+    spec_name          → <dt> or <td class="font-medium"> within spec_group table
+    spec_value         → <dd> or <td> within spec_group table
+    description_long   → <div> collapsible block: first 3 lines visible, "Read more" toggle; variant "description-long"
+    description_short  → <p> subtitle text, variant "description-short"
+    quantity_input     → <input type="number" min="1"> with +/- stepper buttons, variant "quantity-input"
+    delivery_date      → <span> with calendar icon, variant "delivery-date"
+    delivery_option    → LOOP of radio cards showing method + cost + date, variant "delivery-option"
+    delivery_cost      → <span> inline with delivery_option card
+    product_sku        → <span> muted small text "SKU: {bind}", variant "sku"
+    identifier         → hidden or muted small text; usually hidden if auto-assigned
+    title              → <h1>/<h2> large font, variant "page-title"
+    brand              → <a>/<span> linked brand name, variant "brand-link"
+    category_label     → <span> breadcrumb chip, variant "category-chip"
+    email              → <input type="email"> (editable) or <a href="mailto:{bind}"> (readonly)
+    phone              → <input type="tel"> (editable) or <a href="tel:{bind}"> (readonly)
+    address            → multi-line address block or <textarea> if editable
+    person_name        → <span>/<input type="text"> appropriate for mode
+    date_created       → <span> muted "Joined {bind}", variant "date-meta"
+    date_updated       → <span> muted "Updated {bind}", variant "date-meta"
+    datetime_display   → <span> formatted date/time, variant "date-meta"
+    currency_label     → inline <span> before price field
+    toggle             → <input type="checkbox"> or toggle switch, variant "toggle"
+    verification_badge → <span> checkmark icon + "Verified", variant "verified-badge"
+    url_link           → <a href="{bind}" target="_blank"> with external-link icon
+    color_swatch       → LOOP of circular color buttons; selected → ring outline, variant "color-swatch"
+    variant_selector   → LOOP of button chips (size/variant values); selected → filled, variant "variant-selector"
+    file_upload        → <input type="file">, variant "file-upload"
+    tag_list           → LOOP of <span> pill tags, variant "tag-chip"
+    text_note          → <textarea> (editable) or <p> (readonly), variant "text-note"
+    progress_bar       → <div> progress bar with percentage label, variant "progress-bar"
+    priority_badge     → <span> colored badge (high=red/medium=orange/low=green), variant "priority-badge"
+    numeric_display    → <span>/<input type="number"> appropriate for mode
+    text_field         → <span>/<input type="text"> appropriate for mode (fallback)
+
+    CRITICAL GROUPING RULES:
+    • spec_name + spec_value fields from the same entity MUST be grouped into a single spec-table region/component.
+      Do NOT emit them as separate standalone fields.
+    • image_gallery fields MUST be placed adjacent to image_primary in a dedicated media region.
+    • price_current, price_original, price_discount MUST be co-located in a single price block.
+    • rating_score + rating_count MUST be adjacent.
+    • delivery_option, delivery_date, delivery_cost MUST be in a shared delivery section.
+    • color_swatch and variant_selector fields MUST be in a variant-picker block before add-to-cart.
+    • Associated entity fields with a LOOP relationship (multiplicity * or 1..*) MUST be rendered as a LOOP.
+      Do not render them as single-instance fields.
 
     REGION SPLITTING — based on your field_mode decisions:
     Step 1: Partition fields by field_mode:

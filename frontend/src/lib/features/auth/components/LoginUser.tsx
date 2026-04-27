@@ -13,12 +13,17 @@ import { useLoginStore } from "$auth/state/login";
 export const LoginUser = () => {
     const { login } = useAuthStore();
     const { loading, setLoading, setPage } = useLoginStore();
+    const [error, setError] = React.useState("");
 
-    const onSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
+    const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError("");
         const formData = new FormData(e.currentTarget);
-        login(`${formData.get("username")}`, `${formData.get("password")}`);
+        const result = await login(`${formData.get("username")}`, `${formData.get("password")}`);
+        if (!result.ok) {
+            setError(result.message || "Login failed.");
+        }
         setLoading(false);
     };
 
@@ -50,6 +55,11 @@ export const LoginUser = () => {
                             </button>
                         </FormHelperText>
                     </FormControl>
+                    {error && (
+                        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                            {error}
+                        </p>
+                    )}
                     <div className="flex w-full flex-row gap-1">
                         <Button type="submit" className="w-full">
                             Login

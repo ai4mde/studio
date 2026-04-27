@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import re
+import sys
 import uuid
 from enum import Enum
 from types import SimpleNamespace
@@ -26,6 +27,11 @@ from jinja2 import Environment, FileSystemLoader
 
 from llm.handler import call_openai
 from llm.prompts.agents import AGENT_INTERFACE_VARIANTS, AGENT_INTERFACE_REFINE
+
+# Make the prototype generator's utils package importable
+_PROTO_SCRIPTS_DIR = "/usr/src/proto_scripts"
+if _PROTO_SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _PROTO_SCRIPTS_DIR)
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +116,17 @@ class _LayoutType(Enum):
     SIDEBAR_LEFT = 1; SIDEBAR_RIGHT = 2; TOP_NAV = 3; TOP_NAV_SIDEBAR = 4
 
 _PROTO_TEMPLATES_DIR = "/usr/src/proto_templates"
+
+
+class _MockObj:
+    """Mock model instance for the second-pass Django template rendering."""
+    def __init__(self, id, label, **attrs):
+        self.id = id
+        self._label = label
+        for k, v in attrs.items():
+            setattr(self, k, v)
+    def __str__(self):
+        return self._label
 
 # Tailwind named-color palette → hex (covers all standard colors).
 _TW_COLORS = {
@@ -211,85 +228,232 @@ def _render_style_css(theme: dict) -> str:
         return ""
 
 
-def _detect_screen_type(page_name: str, sections: list[dict]) -> str:
-    """Detect screen type from page name and sections (mirrors screen_type.py)."""
-    name_lower = page_name.lower()
-    if any(kw in name_lower for kw in ("dashboard", "overview", "summary", "home", "analytics")):
-        return "dashboard"
-    if any(kw in name_lower for kw in ("wizard", "setup", "onboarding", "workflow")):
-        if len(sections) >= 2:
-            return "wizard"
-    if any(kw in name_lower for kw in ("modal", "dialog", "popup", "confirm")):
-        return "modal"
-    # form: single section with create-only ops, or name match
-    if any(kw in name_lower for kw in ("form", "register", "signup", "apply", "submit")):
-        return "form"
-    return "list"
+def _build_metadata_json(interface_id: str, interface_data: dict) -> str:
+    """Build the full metadata JSON string from the DB, matching the format
+    expected by the prototype generator's loading_json_utils."""
+    from metadata.models import Interface
+    from diagram.models import Diagram
+
+    iface = Interface.objects.select_related("system").get(pk=interface_id)
+    system = iface.system
+
+    # Build diagrams with nodes and edges (same structure as FullDiagram schema)
+    diagrams = []
+    for diagram in Diagram.objects.filter(system=system).prefetch_related(
+        "nodes__cls", "edges__rel"
+    ):
+        nodes = []
+        for node in diagram.nodes.select_related("cls").all():
+            nodes.append({
+                "id": str(node.id),
+                "cls": node.cls.data,
+                "cls_ptr": str(node.cls.id),
+            })
+
+        edges = []
+        for edge in diagram.edges.select_related("rel").all():
+            edge_dict = {
+                "id": str(edge.id),
+                "rel": edge.rel.data,
+                "rel_ptr": str(edge.rel.id),
+            }
+            src = edge.source
+            tgt = edge.target
+            if src:
+                edge_dict["source_ptr"] = str(src.id)
+            if tgt:
+                edge_dict["target_ptr"] = str(tgt.id)
+            edges.append(edge_dict)
+
+        diagrams.append({
+            "id": str(diagram.id),
+            "name": diagram.name,
+            "type": diagram.type,
+            "nodes": nodes,
+            "edges": edges,
+        })
+
+    # Build the interface entry (flat format: {name, data})
+    metadata = {
+        "diagrams": diagrams,
+        "interfaces": [
+            {"name": iface.name, "data": interface_data},
+        ],
+        "useAuthentication": False,
+    }
+    return json.dumps(metadata)
 
 
-def _render_variant_preview(interface_data: dict, variant: dict, interface_name: str) -> str:
-    """Render a standalone HTML preview using the same template structure
-    as the generated prototypes, ensuring visual parity."""
+def _build_sample_context(section_components) -> dict:
+    """Build sample Django template context with mock model instances."""
+    from datetime import date, datetime
+    from utils.definitions.model import AttributeType
+
+    ctx: dict = {"update_instance": None, "active_process_node_id": None}
+    for sc in section_components:
+        model_key = str(sc.primary_model) if sc.primary_model else "item"
+        mock_list = []
+        for i in range(3):
+            kw = {}
+            for attr in sc.attributes:
+                attr_name = str(attr.name)
+                if attr.type == AttributeType.INTEGER:
+                    kw[attr_name] = 10 + i * 5
+                elif attr.type == AttributeType.FLOAT:
+                    kw[attr_name] = round(10.5 + i * 3.14, 2)
+                elif attr.type == AttributeType.BOOLEAN:
+                    kw[attr_name] = i % 2 == 0
+                elif attr.type == AttributeType.DATE:
+                    kw[attr_name] = date(2024, 1, 10 + i)
+                elif attr.type == AttributeType.DATETIME:
+                    kw[attr_name] = datetime(2024, 1, 10 + i, 9, 0)
+                elif attr.type == AttributeType.EMAIL:
+                    kw[attr_name] = f"user{i + 1}@example.com"
+                elif attr.type == AttributeType.ENUM:
+                    lits = attr.enum_literals or ["Option A", "Option B", "Option C"]
+                    kw[attr_name] = lits[i % len(lits)]
+                else:
+                    kw[attr_name] = f"Sample {i + 1}"
+            mock_list.append(_MockObj(i + 1, f"{sc.display_name} #{i + 1}", **kw))
+        ctx[f"{model_key}_list"] = mock_list
+        for pm in (sc.parent_models or []):
+            pm_key = str(pm).lower().replace(" ", "_")
+            ctx[f"parent_{pm_key}_list"] = [
+                _MockObj(j + 1, f"{pm} #{j + 1}") for j in range(3)
+            ]
+    return ctx
+
+
+def _sanitize_django_template(tpl_str: str) -> str:
+    """Strip Django tags that need URL resolver, CSRF, or staticfiles."""
+    tpl_str = re.sub(r'{%\s*load\s+\w+\s*%}', '', tpl_str)
+    tpl_str = re.sub(r"""{%\s*url\s+['\"][^'"]*['"](?:\s+[^%]*)?\s*%}""", '#', tpl_str)
+    tpl_str = re.sub(r'{%\s*csrf_token\s*%}', '', tpl_str)
+    tpl_str = re.sub(r"""{%\s*static\s+['\"][^'"]*['"]\s*%}""", '', tpl_str)
+    return tpl_str
+
+
+def _combine_django_templates(base_html: str, page_html: str) -> str:
+    """Inline page block contents into base template, avoiding Django inheritance."""
+    for block_name in ("breadcrumbs", "content"):
+        # Extract block content from page template
+        m = re.search(
+            r'{%\s*block\s+' + block_name + r'\s*%}(.*?){%\s*endblock\s*%}',
+            page_html, re.DOTALL,
+        )
+        block_content = m.group(1) if m else ''
+        # Replace the empty block placeholder in the base (use lambda to avoid
+        # backslash interpretation in replacement string)
+        base_html = re.sub(
+            r'{%\s*block\s+' + block_name + r'\s*%}\s*{%\s*endblock\s*%}',
+            lambda _m, c=block_content: c, base_html,
+        )
+    return base_html
+
+
+def _render_variant_preview(interface_data: dict, variant: dict,
+                            interface_name: str, interface_id: str) -> str:
+    """Render a standalone HTML preview using the prototype generator's own
+    data path (loading_json_utils → ApplicationComponent) and templates
+    (base.html.jinja2 + page.html.jinja2) via two-pass rendering:
+      Pass 1 (Jinja2): real generator objects → Django template string
+      Pass 2 (Django): sample data            → final HTML
+    """
+    from django.template import Template as DjangoTemplate, Context
+    from utils.loading_json_utils import get_application_component
+    from utils.sanitization import app_name_sanitization
+    from utils.screen_type import detect_screen_type
+    from utils.definitions.styling import Styling, StyleType, LayoutType
+    from utils.definitions.model import Attribute, AttributeType, CustomMethod, Cardinality
+    from utils.definitions.section_component import SectionComponent, SectionCustomMethod
+    from utils.definitions.page import Page
+    from utils.definitions.category import Category
+    from utils.definitions.application_component import ApplicationComponent
+    from utils.definitions.settings import Settings
+
     tokens = variant.get("tokens", {})
 
-    pages = interface_data.get("pages", [])
-    sections = interface_data.get("sections", [])
+    # Inject variant theme into interface data before building metadata
+    preview_data = dict(interface_data)
+    preview_data["theme"] = {"name": variant.get("name", ""), "tokens": tokens}
 
-    # Resolve first page + its sections
-    first_page = pages[0] if pages else {"name": interface_name, "id": ""}
-    first_page_name = first_page.get("name", interface_name)
-    page_id = first_page.get("id", "")
-
-    page_sections = [s for s in sections if str(s.get("page", "")) == str(page_id)]
-    if not page_sections:
-        page_sections = [s for s in sections if s.get("pageName", "") == first_page_name]
-    if not page_sections:
-        page_sections = [
-            {"name": "Data Overview", "attributes": [
-                {"name": "Name", "type": "str"}, {"name": "Status", "type": "str"},
-                {"name": "Created", "type": "date"}, {"name": "Amount", "type": "int"}
-            ]},
-        ]
-
-    # Normalise attributes to dicts
-    for sec in page_sections:
-        attrs = sec.get("attributes", [])
-        if not attrs:
-            sec["attributes"] = [{"name": "Field 1", "type": "str"}, {"name": "Field 2", "type": "str"}]
-
-    screen_type = _detect_screen_type(first_page_name, page_sections)
-
-    # Determine layout type from interface styling
-    styling = interface_data.get("styling", {})
-    layout_raw = styling.get("selectedLayout", "SIDEBAR_LEFT") or "SIDEBAR_LEFT"
-    layout_type = str(layout_raw).replace(" ", "_").upper()
-
-    categories = interface_data.get("categories", [])
-
-    # Render CSS using same style.css.jinja2 as prototypes
-    theme = {"name": variant.get("name", ""), "tokens": tokens}
-    inline_css = _render_style_css(theme)
-
-    # Render preview using the shared template
+    # Build metadata JSON from DB (diagrams + interface) and get real objects
     try:
-        preview_dir = os.path.dirname(os.path.abspath(__file__))
-        env = Environment(loader=FileSystemLoader(preview_dir))
-        tpl = env.get_template("preview.html.jinja2")
-        return tpl.render(
-            variant_name=variant.get("name", "Preview"),
-            interface_name=interface_name,
-            theme=theme,
-            inline_css=inline_css,
-            layout_type=layout_type,
-            screen_type=screen_type,
-            pages=pages,
-            categories=categories,
-            first_page=first_page,
-            page_sections=page_sections,
+        metadata_json = _build_metadata_json(interface_id, preview_data)
+        app_name = app_name_sanitization(interface_name)
+        app_component = get_application_component(
+            project_name="preview",
+            application_name=app_name,
+            metadata=metadata_json,
+            authentication_present=False,
         )
     except Exception as e:
-        logger.error("Failed to render preview template: %s", e, exc_info=True)
-        return f"<html><body><h1>Preview render error</h1><pre>{e}</pre></body></html>"
+        logger.error("Failed to build ApplicationComponent: %s", e, exc_info=True)
+        return f"<html><body><h1>Preview error (data path)</h1><pre>{e}</pre></body></html>"
+
+    if not app_component.pages:
+        return "<html><body><h1>No pages defined</h1></body></html>"
+
+    # Detect screen types for each page
+    for page in app_component.pages:
+        if not hasattr(page, 'screen_type'):
+            page.screen_type = detect_screen_type(page)
+
+    first_page = app_component.pages[0]
+    theme = app_component.theme or {}
+    inline_css = _render_style_css(theme)
+
+    # ── FIRST PASS: Jinja2 renders generator templates → Django template strings ──
+    try:
+        env = Environment(loader=FileSystemLoader(_PROTO_TEMPLATES_DIR))
+
+        base_tpl = env.get_template("base.html.jinja2")
+        for cls in (Styling, StyleType, LayoutType, Attribute, AttributeType,
+                    SectionComponent, Page, Category, ApplicationComponent,
+                    CustomMethod, SectionCustomMethod, Cardinality, Settings):
+            base_tpl.globals[cls.__name__] = cls
+        base_django = base_tpl.render(
+            application_name=app_name,
+            styling=app_component.styling,
+            theme=theme,
+            pages=app_component.pages,
+            categories=app_component.categories,
+            settings=app_component.settings,
+            authentication_present=False,
+            logo="",
+            global_layout=app_component.global_layout,
+        )
+
+        page_tpl = env.get_template("page.html.jinja2")
+        for cls in (Styling, StyleType, LayoutType, Attribute, AttributeType,
+                    SectionComponent, Page, Category, ApplicationComponent,
+                    CustomMethod, SectionCustomMethod, Cardinality, Settings):
+            page_tpl.globals[cls.__name__] = cls
+        page_django = page_tpl.render(
+            project_name="preview",
+            application_name=app_name,
+            page=first_page,
+            theme=theme,
+        )
+    except Exception as e:
+        logger.error("Jinja2 first-pass failed: %s", e, exc_info=True)
+        return f"<html><body><h1>Preview error (Jinja2 pass)</h1><pre>{e}</pre></body></html>"
+
+    # ── COMBINE & SANITIZE ──
+    combined = _combine_django_templates(base_django, page_django)
+    combined = _sanitize_django_template(combined)
+
+    # Inject inline CSS (replace the now-empty static link)
+    combined = combined.replace("</head>", f"<style>{inline_css}</style>\n</head>")
+
+    # ── SECOND PASS: Django template engine renders with sample data ──
+    sample_ctx = _build_sample_context(first_page.section_components)
+    try:
+        django_tpl = DjangoTemplate(combined)
+        return django_tpl.render(Context(sample_ctx))
+    except Exception as e:
+        logger.error("Django second-pass failed: %s", e, exc_info=True)
+        return f"<html><body><h1>Preview error (Django pass)</h1><pre>{e}</pre></body></html>"
 
 
 # ── Session persistence helpers ──────────────────────────────────────────────
@@ -443,6 +607,23 @@ def get_session(request, session_id: str):
     }
 
 
+@interface_gen_router.get("/{session_id}/variant/{variant_id}/", response={200: dict, 404: ErrorSchema})
+def get_variant_tokens(request, session_id: str, variant_id: str):
+    """Return full variant data including tokens for the Styling editor."""
+    session = _sessions.get(session_id)
+    if not session:
+        return 404, {"error": "Session not found"}
+    variant = next((v for v in session["variants"] if v["id"] == variant_id), None)
+    if not variant:
+        return 404, {"error": "Variant not found"}
+    return {
+        "id": variant["id"],
+        "name": variant["name"],
+        "description": variant.get("description", ""),
+        "tokens": variant.get("tokens", {}),
+    }
+
+
 @interface_gen_router.get("/{session_id}/preview/{variant_id}/", auth=None)
 @xframe_options_exempt
 def preview_variant(request, session_id: str, variant_id: str):
@@ -459,6 +640,7 @@ def preview_variant(request, session_id: str, variant_id: str):
         session["interface_data"],
         variant,
         session["interface_name"],
+        session["interface_id"],
     )
     return HttpResponse(html, content_type="text/html")
 

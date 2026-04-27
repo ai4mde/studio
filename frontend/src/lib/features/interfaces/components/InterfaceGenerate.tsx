@@ -2,7 +2,6 @@ import { authAxios } from "$auth/state/auth";
 import { baseURL } from "$shared/globals";
 import { RefreshCw, Sparkles, Check, MessageSquare, Wand2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 type VariantSummary = {
     id: string;
@@ -13,10 +12,10 @@ type VariantSummary = {
 type Props = {
     interfaceId: string;
     systemId: string;
+    onVariantTokensChange?: (theme: { name: string; tokens: Record<string, string> }) => void;
 };
 
-const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
-    const qc = useQueryClient();
+const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTokensChange }) => {
     const [prompt, setPrompt] = useState("");
     const [generating, setGenerating] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
@@ -30,6 +29,20 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
     const [applied, setApplied] = useState(false);
     const iframeRefs = useRef<Record<string, number>>({});
     const [restoring, setRestoring] = useState(true);
+
+    const pushVariantTheme = async (sid: string, variantId: string, fallbackName: string) => {
+        if (!onVariantTokensChange) return;
+        try {
+            const { data } = await authAxios.get(
+                `/v1/generator/interface-gen/${sid}/variant/${variantId}/`,
+            );
+            onVariantTokensChange({ name: data.name ?? fallbackName, tokens: data.tokens ?? {} });
+        } catch { /* non-critical */ }
+    };
+
+    const syncVariantToStyling = async (sid: string, variantId: string, fallbackName: string) => {
+        await pushVariantTheme(sid, variantId, fallbackName);
+    };
 
     // Restore saved session on mount
     useEffect(() => {
@@ -46,6 +59,11 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                 setSelectedVariant(data.selected_variant_id || null);
                 setPrompt(data.original_prompt || "");
                 if (data.applied) setApplied(true);
+                const selectedId = data.selected_variant_id || (data.variants?.[0]?.id ?? null);
+                if (selectedId) {
+                    const name = data.variants?.find((v: VariantSummary) => v.id === selectedId)?.name ?? "";
+                    await pushVariantTheme(data.session_id, selectedId, name);
+                }
             } catch {
                 // No saved session — that's fine
             } finally {
@@ -71,6 +89,10 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
             }, { timeout: 120000 });
             setSessionId(data.session_id);
             setVariants(data.variants);
+            if (data.variants?.length > 0) {
+                const first = data.variants[0];
+                await pushVariantTheme(data.session_id, first.id, first.name);
+            }
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : "Generation failed");
@@ -102,6 +124,8 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
             iframeRefs.current[selectedVariant] = (iframeRefs.current[selectedVariant] || 0) + 1;
             // Trigger re-render
             setSelectedVariant((prev) => prev);
+            // Re-sync refined tokens to Styling tab
+            await syncVariantToStyling(sessionId!, selectedVariant, data.variant?.name ?? "");
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : "Refinement failed");
@@ -119,8 +143,6 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                 variant_id: selectedVariant,
             });
             setApplied(true);
-            // Invalidate interface cache so ShowInterface re-seeds localStorage with new styling
-            qc.invalidateQueries({ queryKey: ["interface", interfaceId] });
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : "Apply failed");
@@ -233,7 +255,10 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId }) => {
                     return (
                         <button
                             key={v.id}
-                            onClick={() => setSelectedVariant(v.id)}
+                            onClick={() => {
+                                setSelectedVariant(v.id);
+                                syncVariantToStyling(sessionId!, v.id, v.name);
+                            }}
                             className={`relative px-5 py-3 text-sm font-medium transition-colors ${
                                 isActive
                                     ? "text-indigo-600 border-b-2 border-indigo-600 bg-white"

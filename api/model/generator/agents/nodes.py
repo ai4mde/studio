@@ -1319,6 +1319,24 @@ def _build_flow_graph(classifiers: list, relations: list, parser_dsl: dict) -> d
         c["id"]: c for c in classifiers
         if c.get("data", {}).get("type") == "object"
     }
+    # Decision / merge / fork / initial / final nodes are transparent:
+    # states flow through them so downstream actions still see the right from_state.
+    passthrough_types = {"decision", "merge", "fork", "initial", "final", "join"}
+    passthrough_nodes = {
+        c["id"] for c in classifiers
+        if c.get("data", {}).get("type") in passthrough_types
+    }
+
+    # First pass: collect object states entering each passthrough node.
+    passthrough_incoming: dict[str, set[str]] = {}
+    for rel in relations:
+        if rel.get("data", {}).get("type") != "controlflow":
+            continue
+        src, tgt = rel.get("source"), rel.get("target")
+        if src in object_nodes and tgt in passthrough_nodes:
+            s = _norm_state(object_nodes[src].get("data", {}).get("state", ""))
+            if s:
+                passthrough_incoming.setdefault(tgt, set()).add(s)
 
     incoming_object_states: dict[str, set[str]] = {}
     outgoing_object_states: dict[str, set[str]] = {}
@@ -1330,6 +1348,10 @@ def _build_flow_graph(classifiers: list, relations: list, parser_dsl: dict) -> d
         if src in object_nodes and tgt in actions:
             s = _norm_state(object_nodes[src].get("data", {}).get("state", ""))
             if s:
+                incoming_object_states.setdefault(tgt, set()).add(s)
+        # Propagate through passthrough nodes: obj → decision → action
+        if src in passthrough_nodes and tgt in actions:
+            for s in passthrough_incoming.get(src, set()):
                 incoming_object_states.setdefault(tgt, set()).add(s)
         if src in actions and tgt in object_nodes:
             s = _norm_state(object_nodes[tgt].get("data", {}).get("state", ""))
@@ -1356,6 +1378,14 @@ def _build_flow_graph(classifiers: list, relations: list, parser_dsl: dict) -> d
             action_to_state[aid] = out_states[0]
         else:
             action_to_state[aid] = _norm_state(f"{action.get('name', aid)} done")
+
+    # Break feedback loops: if an action's from_state == its to_state it was
+    # reached via a retry/back-edge (e.g. "out-of-stock → re-view product").
+    # Clear the from_state so the action-to-action predecessor pass takes over.
+    for aid in list(action_from_state.keys()):
+        if (action_from_state.get(aid) and
+                action_from_state[aid] == action_to_state.get(aid)):
+            action_from_state[aid] = ""
 
     for aid, action in actions.items():
         if action_from_state.get(aid):
@@ -1474,6 +1504,120 @@ def parser_node(state: PipelineState) -> dict:
             "flow_graph": {"entities": [], "states": [], "actors": [], "transitions": []},
             "error": str(exc),
         }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# Field Semantic Role Classifier
+#   Deterministically annotates each field with a semantic_role string that
+#   tells the UI Designer Agent which widget/layout to use — without having
+#   to re-derive intent from raw field names at prompt time.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_SEMANTIC_ROLE_PATTERNS: list[tuple[list[str], str]] = [
+    # ── Images ────────────────────────────────────────────────────────────────
+    (["image_url", "image", "photo", "thumbnail", "avatar", "picture", "cover", "banner", "logo"], "image_primary"),
+    (["gallery", "images", "photos", "media"], "image_gallery"),
+    # ── Pricing ───────────────────────────────────────────────────────────────
+    (["original_price", "list_price", "retail_price", "was_price", "compare_at_price"], "price_original"),
+    (["price", "cost", "amount", "fee", "rate", "sale_price", "current_price"], "price_current"),
+    (["discount", "savings", "saving"], "price_discount"),
+    # ── Rating / review ───────────────────────────────────────────────────────
+    (["review_count", "reviews_count", "num_reviews", "rating_count"], "rating_count"),
+    (["rating", "score", "stars"], "rating_score"),
+    (["review_text", "review_body", "comment_body"], "review_text"),
+    # ── Status / state / availability ─────────────────────────────────────────
+    (["stock", "in_stock", "available", "availability", "inventory", "quantity_available"], "availability"),
+    (["status", "state", "condition"], "status_badge"),
+    (["badge", "label", "tag", "flag"], "badge"),
+    # ── Specification / attributes table ─────────────────────────────────────
+    (["spec_name", "attribute_name", "spec_key", "property_name"], "spec_name"),
+    (["spec_value", "attribute_value", "spec_val", "property_value"], "spec_value"),
+    (["specs", "specifications", "attributes", "features", "details"], "spec_group"),
+    # ── Long-form text ────────────────────────────────────────────────────────
+    (["short_description", "subtitle", "tagline", "excerpt", "blurb"], "description_short"),
+    (["description", "summary", "overview", "about", "body", "content", "details"], "description_long"),
+    # ── Quantity / counters ───────────────────────────────────────────────────
+    (["quantity", "qty", "units"], "quantity_input"),
+    # ── Delivery / shipping ───────────────────────────────────────────────────
+    (["delivery_date", "estimated_delivery", "arrival_date", "ship_date"], "delivery_date"),
+    (["delivery_option", "shipping_method", "delivery_method"], "delivery_option"),
+    (["delivery_cost", "shipping_cost", "shipping_fee"], "delivery_cost"),
+    # ── Identifier / SKU ──────────────────────────────────────────────────────
+    (["sku", "product_code", "item_code", "barcode", "ean", "isbn", "asin", "gtin"], "product_sku"),
+    (["id", "uuid", "ref", "reference"], "identifier"),
+    # ── Name / title ──────────────────────────────────────────────────────────
+    (["title", "name", "product_name", "item_name", "heading"], "title"),
+    (["brand", "manufacturer", "vendor", "make"], "brand"),
+    (["category", "category_name", "department"], "category_label"),
+    # ── Contact / person ──────────────────────────────────────────────────────
+    (["email", "email_address"], "email"),
+    (["phone", "phone_number", "mobile", "tel"], "phone"),
+    (["address", "street", "city", "zipcode", "postcode", "country"], "address"),
+    (["first_name", "last_name", "full_name", "username", "display_name"], "person_name"),
+    # ── Date / time ───────────────────────────────────────────────────────────
+    (["created_at", "created_date", "joined_at", "registered_at"], "date_created"),
+    (["updated_at", "modified_at", "last_modified"], "date_updated"),
+    (["date", "time", "datetime", "timestamp", "due_date", "expiry_date", "expires_at"], "datetime_display"),
+    # ── Financial ─────────────────────────────────────────────────────────────
+    (["total", "subtotal", "grand_total", "order_total"], "price_total"),
+    (["currency"], "currency_label"),
+    # ── Boolean toggles ───────────────────────────────────────────────────────
+    (["is_active", "is_enabled", "enabled", "active", "visible", "published"], "toggle"),
+    (["is_verified", "verified", "confirmed"], "verification_badge"),
+    # ── URL / link ────────────────────────────────────────────────────────────
+    (["url", "link", "href", "website", "profile_url", "source_url"], "url_link"),
+    # ── Color / variant selectors ─────────────────────────────────────────────
+    (["color", "colour"], "color_swatch"),
+    (["size", "variant", "option"], "variant_selector"),
+    # ── File / document ───────────────────────────────────────────────────────
+    (["file", "attachment", "document", "upload", "pdf"], "file_upload"),
+    # ── Tags ──────────────────────────────────────────────────────────────────
+    (["tags", "keywords", "labels"], "tag_list"),
+    # ── Notes / comments ──────────────────────────────────────────────────────
+    (["note", "notes", "comment", "remarks", "feedback", "message"], "text_note"),
+    # ── Progress ──────────────────────────────────────────────────────────────
+    (["progress", "percentage", "completion", "percent"], "progress_bar"),
+    # ── Priority / urgency ────────────────────────────────────────────────────
+    (["priority", "urgency", "severity", "importance"], "priority_badge"),
+]
+
+
+def _classify_field_semantic_role(
+    field: str, field_type: str = "str", auto_computed: bool = False
+) -> str:
+    """Return a semantic role label for a field based on name + type patterns.
+
+    The returned label is injected into attribute_contracts so the UI
+    Designer Agent can select the correct widget without re-deriving intent.
+    Matching uses underscore-token boundaries to avoid partial-word collisions
+    (e.g. "tag" must not match "tags").
+    """
+    f_lower = field.lower()
+    f_tokens = f_lower.split("_")
+
+    def _token_match(keyword: str) -> bool:
+        kw_tokens = keyword.split("_")
+        n = len(kw_tokens)
+        return any(f_tokens[i:i + n] == kw_tokens for i in range(len(f_tokens) - n + 1))
+
+    for keywords, role in _SEMANTIC_ROLE_PATTERNS:
+        for kw in keywords:
+            if _token_match(kw):
+                # Prevent "price" matching "original_price" / "list_price" etc.
+                if role == "price_current" and any(
+                    _token_match(guard) for guard in ("original", "list", "retail", "was", "compare")
+                ):
+                    continue
+                return role
+    # Fallback by type
+    if field_type in ("bool", "boolean"):
+        return "toggle"
+    if field_type in ("int", "integer", "float", "decimal", "number"):
+        return "numeric_display"
+    if field_type in ("datetime", "date"):
+        return "datetime_display"
+    return "text_field"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1610,12 +1754,16 @@ def _synthesise_pages(parser_dsl: dict) -> dict:
                         bind_expr = f"{entity_name}.{field}"
                         binds.append(bind_expr)
                         fc = fc_by_field.get(field, {})
+                        _ftype = fc.get("type", "str")
                         contract: dict = {
                             "entity_id": eid,
                             "entity_name": entity_name,
                             "attribute": field,
                             "bind": bind_expr,
-                            "field_type": fc.get("type", "str"),
+                            "field_type": _ftype,
+                            "semantic_role": _classify_field_semantic_role(
+                                field, _ftype, bool(fc.get("auto_computed"))
+                            ),
                             "ui_policy": {
                                 "validation": [],
                                 "operations": operation_hint,
@@ -2600,29 +2748,46 @@ def _build_component_schema(app: dict, generator_ast_by_page_id: dict[str, list[
 
 
 def _build_generator_page_semantic_ast(page_name: str, page_type: str, sections: list[dict], activity_name: str | None = None) -> dict:
+    def _region_kind(section: dict) -> str:
+        ops = section.get("operations") or {}
+        if ops.get("create") or ops.get("update"):
+            return "region.form"
+        return "region.detail"
+
+    def _infer_multiplicity(section: dict) -> str:
+        # Associated entities (promoted) are typically multi-instance (LOOP)
+        if section.get("associatedEntity"):
+            return "many"
+        return "one"
+
+    processed_sections = []
+    for section in sections:
+        fields = []
+        for attr in (section.get("attributes") or []):
+            if not isinstance(attr, dict):
+                continue
+            fields.append({
+                "kind": "component.field",
+                "name": attr.get("name", "field"),
+                "fieldType": attr.get("type", "str"),
+                "semanticRole": attr.get("semantic_role", "text_field"),
+                "derived": bool(attr.get("derived", False)),
+                "associatedEntity": bool(attr.get("associated_entity", False)),
+            })
+        processed_sections.append({
+            "kind": _region_kind(section),
+            "entity": section.get("name", "Section"),
+            "entityRef": section.get("class"),
+            "multiplicity": _infer_multiplicity(section),
+            "operations": deepcopy(section.get("operations") or {}),
+            "fields": fields,
+        })
+
     return {
         "kind": f"page.{page_type}",
         "name": page_name,
         "activityName": activity_name,
-        "sections": [
-            {
-                "kind": "region.form" if (section.get("operations") or {}).get("create") or (section.get("operations") or {}).get("update") else "region.detail",
-                "entity": section.get("name", "Section"),
-                "entityRef": section.get("class"),
-                "operations": deepcopy(section.get("operations") or {}),
-                "fields": [
-                    {
-                        "kind": "component.field",
-                        "name": attr.get("name", "field"),
-                        "fieldType": attr.get("type", "str"),
-                        "derived": bool(attr.get("derived", False)),
-                    }
-                    for attr in (section.get("attributes") or [])
-                    if isinstance(attr, dict)
-                ],
-            }
-            for section in sections
-        ],
+        "sections": processed_sections,
     }
 
 
@@ -2945,6 +3110,8 @@ def interface_mapper_node(state: PipelineState) -> dict:
                         "type": raw.get("type", ac.get("field_type", "str")),
                         "derived": raw.get("derived", False),
                         "enum": raw.get("enum"),
+                        "semantic_role": ac.get("semantic_role", "text_field"),
+                        "associated_entity": bool(ac.get("associated_entity", False)),
                     }
                     if raw.get("body") is not None:
                         attr_entry["body"] = raw["body"]
@@ -3067,6 +3234,12 @@ def interface_mapper_node(state: PipelineState) -> dict:
             if page_id in semantic_ast_by_page_id:
                 page["semanticAst"] = deepcopy(semantic_ast_by_page_id[page_id])
 
+        # Find this actor's ui_ir pages to store the raw AST
+        actor_ui_ir_pages = next(
+            (a.get("pages", []) for a in ui_ir.get("apps", []) if a.get("actor_id") == actor_id),
+            [],
+        )
+
         interfaces.append({
             "actor_name": actor_name,
             "actor_id": actor_id,
@@ -3080,6 +3253,8 @@ def interface_mapper_node(state: PipelineState) -> dict:
                 "designerMeta": deepcopy(designer_meta),
                 "componentSchema": component_schema,
                 "settings": settings,
+                # Raw LLM-generated AST preserved for semantic rendering
+                "uiIr": {"pages": deepcopy(actor_ui_ir_pages)},
             },
         })
 

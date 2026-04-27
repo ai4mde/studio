@@ -8,7 +8,7 @@ import {
     TabPanel,
     Tabs,
 } from '@mui/joy';
-import { CircleUserRound, Save, Trash, Wand2 } from "lucide-react";
+import { CircleUserRound, LayoutGrid, Save, Trash, Wand2 } from "lucide-react";
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Categories } from './Categories';
@@ -17,6 +17,7 @@ import { Sections } from './Sections';
 import { Styling } from './Styling';
 import { Settings } from './Settings';
 import InterfaceGenerate from './InterfaceGenerate';
+import Fragment from './Fragment';
 
 
 type Props = {
@@ -31,22 +32,28 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [searchParams] = useSearchParams();
     const defaultTab = searchParams.get("tab") === "ai-generate" ? 6 : 0;
     const [isSaving, setIsSaving] = useState(false);
+    const [liveTheme, setLiveTheme] = useState(null);
+    const [layoutKey, setLayoutKey] = useState(0);
+    const [autoLayoutDone, setAutoLayoutDone] = useState(false);
 
-    // Seed localStorage from DB whenever interface data loads or changes (e.g. after AI apply)
+    // Seed liveTheme from server data once loaded
     useEffect(() => {
-        if (!isSuccess || !data?.data) return;
-        const iData = typeof data.data === 'string' ? JSON.parse(data.data) : (data.data as any);
-        if (iData?.categories) window.localStorage.setItem('categories', JSON.stringify(iData.categories));
-        if (iData?.pages)      window.localStorage.setItem('pages',      JSON.stringify(iData.pages));
-        if (iData?.sections)   window.localStorage.setItem('sections',   JSON.stringify(iData.sections));
-        if (iData?.settings)   window.localStorage.setItem('settings',   JSON.stringify(iData.settings));
-    }, [data]);
+        if (isSuccess && data?.data?.theme && !liveTheme) {
+            setLiveTheme(data.data.theme);
+        }
+    }, [isSuccess]);
 
-    const dbStyling = isSuccess && data?.data
-        ? ((typeof data.data === 'string' ? JSON.parse(data.data) : (data.data as any))?.styling ?? null)
-        : null;
-    //const actorId = data?.actor || '';
-    //const [actor, isSuccessActor] = useActor(systemId, actorId);
+    const handleAutoLayout = () => {
+        if (!data?.data) return;
+        const { pages, sections, categories, styling, settings } = data.data;
+        if (pages?.length)      localStorage.setItem('pages',      JSON.stringify(pages));
+        if (sections?.length)   localStorage.setItem('sections',   JSON.stringify(sections));
+        if (categories?.length) localStorage.setItem('categories', JSON.stringify(categories));
+        if (styling)            localStorage.setItem('styling',    JSON.stringify(styling));
+        if (settings)           localStorage.setItem('settings',   JSON.stringify(settings));
+        setAutoLayoutDone(true);
+        setLayoutKey(k => k + 1);
+    };
 
     const handleDelete = async () => {
         try {
@@ -63,7 +70,6 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         const pages = JSON.parse(localStorage.getItem('pages')) || [];
         const sections = JSON.parse(localStorage.getItem('sections')) || [];
         const settings = JSON.parse(localStorage.getItem('settings')) || {};
-
         setIsSaving(true);
         try {
             await authAxios.put(`/v1/metadata/interfaces/${app_comp}/`, {
@@ -77,6 +83,9 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                     "pages": pages,
                     "sections": sections,
                     "settings": settings,
+                    ...(liveTheme && { "theme": liveTheme }),
+                    ...(data?.data?.designerSession && { "designerSession": data.data.designerSession }),
+                    ...(data?.data?.designerMeta && { "designerMeta": data.data.designerMeta }),
                 },
             });
         } catch (error) {
@@ -102,6 +111,14 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         </span>
                         <div className="flex gap-4 ml-auto">
                             <button
+                                onClick={handleAutoLayout}
+                                title="Load pipeline-generated pages, sections and categories into the editor"
+                                className="flex items-center gap-2 h-[40px] bg-indigo-500 text-white px-3 py-1 rounded-md hover:bg-indigo-600 text-sm font-medium"
+                            >
+                                <LayoutGrid size={16} />
+                                {autoLayoutDone ? "Re-apply Layout" : "Auto Layout"}
+                            </button>
+                            <button
                                 onClick={handleSave}
                                 className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 flex items-center justify-center"
                                 disabled={isSaving}
@@ -109,18 +126,15 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                                 {isSaving ? <CircularProgress /> : <Save />}
                             </button>
                             <button
-                                className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600"
+                                onClick={handleDelete}
+                                className="w-[172px] h-[40px] bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 flex items-center justify-center gap-2"
                             >
-                                <div>
-                                    <button onClick={handleDelete} className="flex items-center gap-2">
-                                        <Trash />
-                                        Delete Interface
-                                    </button>
-                                </div>
+                                <Trash />
+                                Delete Interface
                             </button>
                         </div>
                     </div>
-                    <Tabs defaultValue={defaultTab}>
+                    <Tabs key={layoutKey} defaultValue={defaultTab}>
                         <TabList>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
@@ -136,7 +150,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             </Tab>
                         </TabList>
                         <TabPanel value={0}>
-                            <p>Fragment</p>
+                            <Fragment pages={data?.data?.pages ?? []} />
                         </TabPanel>
                         <TabPanel value={1}>
                             <Categories />
@@ -148,7 +162,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Sections />
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Styling dbStyling={dbStyling} />
+                            <Styling theme={liveTheme} onThemeChange={setLiveTheme} />
                         </TabPanel>
                         <TabPanel value={5}>
                             <Settings />
@@ -158,6 +172,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                                 <InterfaceGenerate
                                     interfaceId={app_comp}
                                     systemId={systemId || ""}
+                                    onVariantTokensChange={setLiveTheme}
                                 />
                             </div>
                         </TabPanel>

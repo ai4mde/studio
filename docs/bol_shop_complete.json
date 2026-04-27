@@ -1,0 +1,2870 @@
+{
+  "id": "a0000001-0000-5000-8000-000000000000",
+  "name": "Bol.com Shopping Platform",
+  "description": "Complete bol.com e-commerce platform model with class, use case, and activity diagrams",
+  "systems": [
+    {
+      "id": "a0000002-0000-5000-8000-000000000000",
+      "name": "Bol.com Online Shop",
+      "description": "Core e-commerce system for bol.com",
+      "project": "a0000001-0000-5000-8000-000000000000",
+      "interfaces": [],
+      "imported_classifiers": [],
+      "diagrams": [
+        {
+          "id": "d0000001-0000-5000-8000-000000000000",
+          "type": "classes",
+          "name": "Bol.com Domain Class Diagram",
+          "description": "Core domain classes for the bol.com e-commerce platform",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "nodes": [
+            {
+              "id": "f0000001-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000001-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000002-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000002-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000003-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000003-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000004-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000004-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1200,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000005-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000005-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1600,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000006-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000006-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 280
+                }
+              }
+            },
+            {
+              "id": "f0000007-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000007-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 280
+                }
+              }
+            },
+            {
+              "id": "f0000008-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000008-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 280
+                }
+              }
+            },
+            {
+              "id": "f0000009-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000009-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1200,
+                  "y": 280
+                }
+              }
+            },
+            {
+              "id": "f0000010-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000010-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1600,
+                  "y": 280
+                }
+              }
+            },
+            {
+              "id": "f0000011-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000011-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 560
+                }
+              }
+            },
+            {
+              "id": "f0000012-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000012-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 560
+                }
+              }
+            },
+            {
+              "id": "f0000013-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "cls": "c0000013-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 560
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e0000001-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000001-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000002-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000002-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000003-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000003-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000004-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000004-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000005-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000005-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000006-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000006-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000007-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000007-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000008-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000008-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000009-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000009-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000010-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000010-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000011-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000011-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000012-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000012-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000013-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000013-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000014-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000014-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000015-0000-5000-8000-000000000000",
+              "diagram": "d0000001-0000-5000-8000-000000000000",
+              "rel": "10000015-0000-5000-8000-000000000000",
+              "data": {}
+            }
+          ]
+        },
+        {
+          "id": "d0000002-0000-5000-8000-000000000000",
+          "type": "usecase",
+          "name": "Bol.com Use Case Diagram",
+          "description": "Use cases for the bol.com e-commerce platform actors",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "nodes": [
+            {
+              "id": "f0000101-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000001-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 200,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000102-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000002-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 0,
+                  "y": 300
+                }
+              }
+            },
+            {
+              "id": "f0000103-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000003-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1300,
+                  "y": 150
+                }
+              }
+            },
+            {
+              "id": "f0000104-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000004-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 1300,
+                  "y": 600
+                }
+              }
+            },
+            {
+              "id": "f0000105-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000005-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 60
+                }
+              }
+            },
+            {
+              "id": "f0000106-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000006-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 180
+                }
+              }
+            },
+            {
+              "id": "f0000107-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000007-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 300
+                }
+              }
+            },
+            {
+              "id": "f0000108-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000008-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 420
+                }
+              }
+            },
+            {
+              "id": "f0000109-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000009-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 540
+                }
+              }
+            },
+            {
+              "id": "f0000110-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000010-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 660
+                }
+              }
+            },
+            {
+              "id": "f0000111-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000011-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 400,
+                  "y": 780
+                }
+              }
+            },
+            {
+              "id": "f0000112-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000012-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 150
+                }
+              }
+            },
+            {
+              "id": "f0000113-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000013-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 450
+                }
+              }
+            },
+            {
+              "id": "f0000114-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "cls": "b0000014-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 800,
+                  "y": 630
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e0000101-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000101-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000102-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000102-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000103-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000103-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000104-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000104-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000105-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000105-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000106-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000106-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000107-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000107-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000108-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000108-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000109-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000109-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000110-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000110-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000111-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000111-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000112-0000-5000-8000-000000000000",
+              "diagram": "d0000002-0000-5000-8000-000000000000",
+              "rel": "10000112-0000-5000-8000-000000000000",
+              "data": {}
+            }
+          ]
+        },
+        {
+          "id": "d0000003-0000-5000-8000-000000000000",
+          "type": "activity",
+          "name": "Purchase Product Activity Diagram",
+          "description": "Activity flow for a customer purchasing a product on bol.com",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "nodes": [
+            {
+              "id": "f0000201-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000001-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 0
+                }
+              }
+            },
+            {
+              "id": "f0000202-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000002-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 100
+                }
+              }
+            },
+            {
+              "id": "f0000203-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000003-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 220
+                }
+              }
+            },
+            {
+              "id": "f0000204-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000004-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 340
+                }
+              }
+            },
+            {
+              "id": "f0000205-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000005-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 460
+                }
+              }
+            },
+            {
+              "id": "f0000206-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000006-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 580
+                }
+              }
+            },
+            {
+              "id": "f0000207-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000007-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": 700
+                }
+              }
+            },
+            {
+              "id": "f0000208-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000008-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 100,
+                  "y": 820
+                }
+              }
+            },
+            {
+              "id": "f0000209-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000009-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 100,
+                  "y": 940
+                }
+              }
+            },
+            {
+              "id": "f0000210-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000010-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 100,
+                  "y": 1060
+                }
+              }
+            },
+            {
+              "id": "f0000211-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000011-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 600,
+                  "y": 760
+                }
+              }
+            },
+            {
+              "id": "f0000212-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000012-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 100,
+                  "y": 1180
+                }
+              }
+            }
+          ],
+          "edges": [
+            {
+              "id": "e0000201-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000201-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000202-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000202-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000203-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000203-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000204-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000204-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000205-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000205-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000206-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000206-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000207-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000207-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000208-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000208-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000209-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000209-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000210-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000210-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000211-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000211-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000212-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000212-0000-5000-8000-000000000000",
+              "data": {}
+            }
+          ]
+        }
+      ],
+      "classifiers": [
+        {
+          "id": "c0000001-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Customer",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique customer identifier",
+                "body": null
+              },
+              {
+                "name": "email",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Login email address",
+                "body": null
+              },
+              {
+                "name": "password_hash",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Hashed password (bcrypt)",
+                "body": null
+              },
+              {
+                "name": "first_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "First name",
+                "body": null
+              },
+              {
+                "name": "last_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Last name",
+                "body": null
+              },
+              {
+                "name": "phone",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Contact phone number",
+                "body": null
+              },
+              {
+                "name": "registered_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Account registration timestamp",
+                "body": null
+              },
+              {
+                "name": "is_active",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether the account is active",
+                "body": null
+              }
+            ],
+            "methods": [
+              {
+                "name": "get_full_name",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Returns first + last name",
+                "parameters": []
+              },
+              {
+                "name": "deactivate",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Deactivates the account",
+                "parameters": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0000002-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Product",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique product identifier",
+                "body": null
+              },
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Product title shown on listings",
+                "body": null
+              },
+              {
+                "name": "brand",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Brand or manufacturer name",
+                "body": null
+              },
+              {
+                "name": "ean",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "European Article Number barcode",
+                "body": null
+              },
+              {
+                "name": "description",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full product description",
+                "body": null
+              },
+              {
+                "name": "price",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Current selling price in EUR",
+                "body": null
+              },
+              {
+                "name": "original_price",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Original price before discount",
+                "body": null
+              },
+              {
+                "name": "discount_pct",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Discount percentage derived from prices",
+                "body": null
+              },
+              {
+                "name": "stock_quantity",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Units available in warehouse",
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "Average customer rating 0-5",
+                "body": null
+              },
+              {
+                "name": "review_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Total number of customer reviews",
+                "body": null
+              },
+              {
+                "name": "image_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Primary product image URL",
+                "body": null
+              },
+              {
+                "name": "weight_kg",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Weight in kilograms",
+                "body": null
+              },
+              {
+                "name": "is_active",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether product is publicly listed",
+                "body": null
+              }
+            ],
+            "methods": [
+              {
+                "name": "is_in_stock",
+                "type": "bool",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Returns true if stock_quantity > 0",
+                "parameters": []
+              },
+              {
+                "name": "apply_discount",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Applies a discount percentage",
+                "parameters": [
+                  {
+                    "name": "pct",
+                    "type": "int"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0000003-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Category",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "category_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique category identifier",
+                "body": null
+              },
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Category display name",
+                "body": null
+              },
+              {
+                "name": "slug",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "URL-safe category identifier",
+                "body": null
+              },
+              {
+                "name": "parent_category_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to parent Category for breadcrumb",
+                "body": null
+              },
+              {
+                "name": "depth",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Depth level in category tree",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000004-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Seller",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "seller_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique seller identifier",
+                "body": null
+              },
+              {
+                "name": "business_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Seller's registered business name",
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "Average seller rating 0-5",
+                "body": null
+              },
+              {
+                "name": "review_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Number of seller reviews",
+                "body": null
+              },
+              {
+                "name": "is_verified",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Bol.com verified seller badge",
+                "body": null
+              },
+              {
+                "name": "ships_from",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Country or region seller ships from",
+                "body": null
+              },
+              {
+                "name": "response_time",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Average seller response time label",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000005-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Cart",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "cart_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique cart identifier",
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Customer",
+                "body": null
+              },
+              {
+                "name": "created_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Cart creation timestamp",
+                "body": null
+              },
+              {
+                "name": "total_price",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "Sum of all CartItem subtotals",
+                "body": null
+              },
+              {
+                "name": "item_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Total number of items in cart",
+                "body": null
+              }
+            ],
+            "methods": [
+              {
+                "name": "clear",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Removes all items from the cart",
+                "parameters": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0000006-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "CartItem",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "cart_item_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique cart item identifier",
+                "body": null
+              },
+              {
+                "name": "cart_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Cart",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "quantity",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Number of units added",
+                "body": null
+              },
+              {
+                "name": "unit_price",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Price at time of adding to cart",
+                "body": null
+              },
+              {
+                "name": "subtotal",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "quantity * unit_price",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000007-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "order_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique order identifier",
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Customer",
+                "body": null
+              },
+              {
+                "name": "status",
+                "type": "str",
+                "enum": "pending,confirmed,shipped,delivered,cancelled",
+                "derived": false,
+                "description": "Current order status",
+                "body": null
+              },
+              {
+                "name": "created_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Order creation timestamp",
+                "body": null
+              },
+              {
+                "name": "updated_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Last update timestamp",
+                "body": null
+              },
+              {
+                "name": "total_amount",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "Sum of all OrderLine subtotals + shipping",
+                "body": null
+              },
+              {
+                "name": "shipping_address_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Address",
+                "body": null
+              }
+            ],
+            "methods": [
+              {
+                "name": "cancel",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Cancels the order if eligible",
+                "parameters": []
+              },
+              {
+                "name": "confirm",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Confirms the order after payment",
+                "parameters": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0000008-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "OrderLine",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "line_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique order line identifier",
+                "body": null
+              },
+              {
+                "name": "order_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Order",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "quantity",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Number of units ordered",
+                "body": null
+              },
+              {
+                "name": "unit_price",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Price at time of order",
+                "body": null
+              },
+              {
+                "name": "subtotal",
+                "type": "str",
+                "enum": null,
+                "derived": true,
+                "description": "quantity * unit_price",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000009-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Payment",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "payment_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique payment identifier",
+                "body": null
+              },
+              {
+                "name": "order_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Order",
+                "body": null
+              },
+              {
+                "name": "method",
+                "type": "str",
+                "enum": "ideal,credit_card,paypal,klarna,gift_card",
+                "derived": false,
+                "description": "Payment method used",
+                "body": null
+              },
+              {
+                "name": "amount",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Total amount charged in EUR",
+                "body": null
+              },
+              {
+                "name": "currency",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Currency code e.g. EUR",
+                "body": null
+              },
+              {
+                "name": "status",
+                "type": "str",
+                "enum": "pending,completed,failed,refunded",
+                "derived": false,
+                "description": "Payment status",
+                "body": null
+              },
+              {
+                "name": "transaction_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "External payment gateway transaction ID",
+                "body": null
+              },
+              {
+                "name": "paid_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Timestamp of successful payment",
+                "body": null
+              }
+            ],
+            "methods": [
+              {
+                "name": "refund",
+                "type": "str",
+                "visibility": "public",
+                "abstract": false,
+                "description": "Initiates a refund",
+                "parameters": []
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0000010-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Review",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "review_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique review identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Customer",
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Star rating 1-5",
+                "body": null
+              },
+              {
+                "name": "title",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Short review title",
+                "body": null
+              },
+              {
+                "name": "body",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full review text",
+                "body": null
+              },
+              {
+                "name": "created_at",
+                "type": "datetime",
+                "enum": null,
+                "derived": false,
+                "description": "Review submission timestamp",
+                "body": null
+              },
+              {
+                "name": "is_verified_purchase",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether reviewer actually bought the product",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000011-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "ProductImage",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "image_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique image identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "image_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full image URL",
+                "body": null
+              },
+              {
+                "name": "thumb_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Thumbnail URL for strip navigation",
+                "body": null
+              },
+              {
+                "name": "alt_text",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Accessibility alt text",
+                "body": null
+              },
+              {
+                "name": "is_primary",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether this is the hero image",
+                "body": null
+              },
+              {
+                "name": "sort_order",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Display order in image strip",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000012-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "DeliveryOption",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "option_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique delivery option identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "method",
+                "type": "str",
+                "enum": "standard,express,pickup_point",
+                "derived": false,
+                "description": "Delivery method",
+                "body": null
+              },
+              {
+                "name": "estimated_days",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Business days until delivery",
+                "body": null
+              },
+              {
+                "name": "cost",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Delivery cost in EUR",
+                "body": null
+              },
+              {
+                "name": "is_free",
+                "type": "bool",
+                "enum": null,
+                "derived": true,
+                "description": "True when cost == 0",
+                "body": null
+              },
+              {
+                "name": "cutoff_time",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Order before this time for same/next day",
+                "body": null
+              },
+              {
+                "name": "return_policy_days",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Days customer has to return product",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "c0000013-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Address",
+            "type": "class",
+            "abstract": false,
+            "leaf": false,
+            "attributes": [
+              {
+                "name": "address_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique address identifier",
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Customer",
+                "body": null
+              },
+              {
+                "name": "street",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Street name",
+                "body": null
+              },
+              {
+                "name": "house_number",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "House/apartment number",
+                "body": null
+              },
+              {
+                "name": "city",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "City name",
+                "body": null
+              },
+              {
+                "name": "postal_code",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Postal/ZIP code",
+                "body": null
+              },
+              {
+                "name": "country",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Country code e.g. NL",
+                "body": null
+              },
+              {
+                "name": "is_default",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether this is the default shipping address",
+                "body": null
+              }
+            ],
+            "methods": []
+          }
+        },
+        {
+          "id": "b0000001-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "name": "Bol.com Online Shop",
+            "type": "system_boundary",
+            "system_id": null,
+            "system_name": null,
+            "height": 1000,
+            "width": 900
+          }
+        },
+        {
+          "id": "b0000002-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": null,
+            "name": "Customer",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "b0000003-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": null,
+            "name": "Seller",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "b0000004-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": null,
+            "name": "System",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "b0000005-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Browse and Search Products",
+            "type": "usecase",
+            "precondition": "Customer is on the bol.com homepage or search page",
+            "postcondition": "Customer sees a list of matching products",
+            "trigger": "Customer enters a search query or browses a category",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000006-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "View Product Detail Page",
+            "type": "usecase",
+            "precondition": "Customer has found a product in search or browse results",
+            "postcondition": "Customer views full product information including images, specs, and reviews",
+            "trigger": "Customer clicks on a product",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000007-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Add Product to Cart",
+            "type": "usecase",
+            "precondition": "Customer is logged in and product is in stock",
+            "postcondition": "Product is added to the customer's cart",
+            "trigger": "Customer clicks 'Add to Cart'",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000008-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Purchase Product",
+            "type": "usecase",
+            "precondition": "Customer has at least one item in the cart and is logged in",
+            "postcondition": "Order is created, payment is processed, and confirmation is sent",
+            "trigger": "Customer proceeds to checkout",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000009-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Track Order",
+            "type": "usecase",
+            "precondition": "Customer has a confirmed order",
+            "postcondition": "Customer sees current delivery status and estimated arrival",
+            "trigger": "Customer navigates to 'My Orders'",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000010-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Write Product Review",
+            "type": "usecase",
+            "precondition": "Customer has received the product (verified purchase)",
+            "postcondition": "Review is submitted and visible on the product page",
+            "trigger": "Customer clicks 'Write a review'",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000011-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Manage Account",
+            "type": "usecase",
+            "precondition": "Customer is logged in",
+            "postcondition": "Account settings or addresses are updated",
+            "trigger": "Customer navigates to 'My Account'",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000012-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Manage Product Listings",
+            "type": "usecase",
+            "precondition": "Seller is logged in with an active seller account",
+            "postcondition": "Product listings are created or updated in the catalogue",
+            "trigger": "Seller navigates to the seller portal",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000013-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Process Payment",
+            "type": "usecase",
+            "precondition": "Customer submits payment details during checkout",
+            "postcondition": "Payment is authorised or declined by the payment gateway",
+            "trigger": "Customer confirms payment",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "b0000014-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "parentNode": "b0000001-0000-5000-8000-000000000000",
+            "namespace": "",
+            "name": "Send Order Confirmation",
+            "type": "usecase",
+            "precondition": "Order has been successfully created after payment",
+            "postcondition": "Confirmation email is sent to the customer",
+            "trigger": "System detects a newly confirmed order",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "ac000001-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "initial",
+            "role": "control",
+            "activity_scope": "activity",
+            "scheduled": false,
+            "schedule": ""
+          }
+        },
+        {
+          "id": "ac000002-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "View Cart",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "Customer has items in the cart",
+            "localPostcondition": "Customer reviews cart contents and total",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Cart",
+              "CartItem"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "ac000003-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Proceed to Checkout",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "Customer is logged in",
+            "localPostcondition": "Checkout wizard is opened",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Cart",
+              "Order"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "ac000004-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Enter Shipping Address",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "Checkout wizard is open",
+            "localPostcondition": "Shipping address is confirmed",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Address",
+              "Order"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "ac000005-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Select Payment Method",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "Shipping address is confirmed",
+            "localPostcondition": "Payment method is chosen (iDEAL, credit card, etc.)",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Payment"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "ac000006-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Process Payment",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": null,
+            "localPrecondition": "Payment method selected and details entered",
+            "localPostcondition": "Payment gateway returns authorisation result",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Payment"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "ac000007-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "decision",
+            "role": "control",
+            "decisionInput": "Payment status == completed?",
+            "decisionInputFlow": "",
+            "page": ""
+          }
+        },
+        {
+          "id": "ac000008-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Create Order",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": null,
+            "localPrecondition": "Payment is completed",
+            "localPostcondition": "Order record created with status 'confirmed'",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Order",
+              "OrderLine",
+              "Cart"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "ac000009-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Send Order Confirmation",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": null,
+            "localPrecondition": "Order is created",
+            "localPostcondition": "Confirmation email sent to customer",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Order",
+              "Customer"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "ac000010-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Update Inventory",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": null,
+            "localPrecondition": "Order confirmation email sent",
+            "localPostcondition": "Product stock_quantity decremented for each order line",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Product",
+              "OrderLine"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "ac000011-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "namespace": "",
+            "name": "Show Payment Error",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "Payment has failed",
+            "localPostcondition": "Error message displayed; customer offered to retry",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "Payment"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": null,
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "ac000012-0000-5000-8000-000000000000",
+          "project": "a0000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "final",
+            "role": "control",
+            "activity_scope": "activity"
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "10000001-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000001-0000-5000-8000-000000000000",
+          "target": "c0000005-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "has",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000002-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000001-0000-5000-8000-000000000000",
+          "target": "c0000007-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "places",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000003-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000001-0000-5000-8000-000000000000",
+          "target": "c0000010-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "writes",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000004-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000001-0000-5000-8000-000000000000",
+          "target": "c0000013-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "has addresses",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000005-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000005-0000-5000-8000-000000000000",
+          "target": "c0000006-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "contains",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000006-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000006-0000-5000-8000-000000000000",
+          "target": "c0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "references",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000007-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000007-0000-5000-8000-000000000000",
+          "target": "c0000008-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "has lines",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000008-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000008-0000-5000-8000-000000000000",
+          "target": "c0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "for product",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000009-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000007-0000-5000-8000-000000000000",
+          "target": "c0000009-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "paid via",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000010-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000007-0000-5000-8000-000000000000",
+          "target": "c0000013-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "ships to",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000011-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000002-0000-5000-8000-000000000000",
+          "target": "c0000003-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "belongs to category",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000012-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000002-0000-5000-8000-000000000000",
+          "target": "c0000004-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "sold by",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000013-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000002-0000-5000-8000-000000000000",
+          "target": "c0000011-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "has images",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000014-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000002-0000-5000-8000-000000000000",
+          "target": "c0000012-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "ships via",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000015-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "c0000010-0000-5000-8000-000000000000",
+          "target": "c0000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "association",
+            "label": "reviews",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000101-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000005-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000102-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000006-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000103-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000007-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000104-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000008-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000105-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000009-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000106-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000010-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000107-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000002-0000-5000-8000-000000000000",
+          "target": "b0000011-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000108-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000003-0000-5000-8000-000000000000",
+          "target": "b0000012-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000109-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000004-0000-5000-8000-000000000000",
+          "target": "b0000013-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000110-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000004-0000-5000-8000-000000000000",
+          "target": "b0000014-0000-5000-8000-000000000000",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000111-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000008-0000-5000-8000-000000000000",
+          "target": "b0000013-0000-5000-8000-000000000000",
+          "data": {
+            "type": "inclusion",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000112-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "b0000008-0000-5000-8000-000000000000",
+          "target": "b0000014-0000-5000-8000-000000000000",
+          "data": {
+            "type": "inclusion",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000201-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000001-0000-5000-8000-000000000000",
+          "target": "ac000002-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000202-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000002-0000-5000-8000-000000000000",
+          "target": "ac000003-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000203-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000003-0000-5000-8000-000000000000",
+          "target": "ac000004-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000204-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000004-0000-5000-8000-000000000000",
+          "target": "ac000005-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000205-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000005-0000-5000-8000-000000000000",
+          "target": "ac000006-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000206-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000006-0000-5000-8000-000000000000",
+          "target": "ac000007-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000207-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000007-0000-5000-8000-000000000000",
+          "target": "ac000008-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "completed",
+              "aggregator": null,
+              "target_class": "f0000206-0000-5000-8000-000000000000",
+              "target_attribute": "status",
+              "target_class_name": "Payment",
+              "target_attribute_type": "str"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000208-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000007-0000-5000-8000-000000000000",
+          "target": "ac000011-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000209-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000011-0000-5000-8000-000000000000",
+          "target": "ac000005-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "retry",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000210-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000008-0000-5000-8000-000000000000",
+          "target": "ac000009-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000211-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000009-0000-5000-8000-000000000000",
+          "target": "ac000010-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "10000212-0000-5000-8000-000000000000",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000010-0000-5000-8000-000000000000",
+          "target": "ac000012-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        }
+      ]
+    }
+  ]
+}

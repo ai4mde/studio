@@ -1,4 +1,4 @@
-from ninja import Router, Query
+from ninja import Router, Query, Schema
 from pydantic import BaseModel
 from django.http import HttpRequest
 
@@ -10,14 +10,18 @@ from metadata.models import System, Classifier
 classifiers = Router()
 
 
+class ErrorSchema(Schema):
+    detail: str
+
+
 class ClassifierExistsResponse(BaseModel):
     exists: bool
 
 
-@classifiers.get("/exists/", response=ClassifierExistsResponse)
+@classifiers.get("/exists/", response={200: ClassifierExistsResponse, 500: ErrorSchema})
 def classifier_exists(request: HttpRequest, name: str = Query(...), ctype: str | None = Query(None)):
     if not request.resolver_match:
-        return 500, "Resolver match not found"
+        return 500, {"detail": "Resolver match not found"}
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
@@ -33,10 +37,10 @@ def classifier_exists(request: HttpRequest, name: str = Query(...), ctype: str |
     return {"exists": q.exists()}
 
 
-@classifiers.get("/", response=MetaClassifiersSchema)
+@classifiers.get("/", response={200: MetaClassifiersSchema, 500: ErrorSchema})
 def get_classifiers(request: HttpRequest):
     if not request.resolver_match:
-        return 500, "Resolver match not found"
+        return 500, {"detail": "Resolver match not found"}
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
@@ -50,21 +54,21 @@ def get_classifiers(request: HttpRequest):
     }
 
 
-@classifiers.get("/{classifier_id}/", response=ClassifierSchema)
+@classifiers.get("/{classifier_id}/", response={200: ClassifierSchema, 404: ErrorSchema, 500: ErrorSchema})
 def read_classifier(request: HttpRequest, classifier_id: str):
     if not request.resolver_match:
-        return 500, "Resolver match not found"
+        return 500, {"detail": "Resolver match not found"}
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
 
     if not system:
-        return 404, "System not found"
+        return 404, {"detail": "System not found"}
     
     try:
         classifier = system.classifiers.get(id=classifier_id)
     except Classifier.DoesNotExist:
-        return 404, "Classifier not found"
+        return 404, {"detail": "Classifier not found"}
 
     return { 
         "id": classifier.id,
@@ -74,16 +78,16 @@ def read_classifier(request: HttpRequest, classifier_id: str):
 
 classes = Router()
 
-@classes.get("/", response=MetaClassifiersSchema)
+@classes.get("/", response={200: MetaClassifiersSchema, 404: ErrorSchema, 500: ErrorSchema})
 def read_classes(request: HttpRequest):
     if not request.resolver_match:
-        return 500, "Resolver match not found"
+        return 500, {"detail": "Resolver match not found"}
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
 
     if not system:
-        return 404, "System not found"
+        return 404, {"detail": "System not found"}
 
     return {
         "classifiers": system.classifiers.filter(data__type='class').order_by('id'),
@@ -92,16 +96,16 @@ def read_classes(request: HttpRequest):
 
 actors = Router()
 
-@actors.get("/", response=MetaClassifiersSchema)
+@actors.get("/", response={200: MetaClassifiersSchema, 404: ErrorSchema, 500: ErrorSchema})
 def read_actors(request: HttpRequest):
     if not request.resolver_match:
-        return 500, "Resolver match not found"
+        return 500, {"detail": "Resolver match not found"}
 
     system_id = request.resolver_match.kwargs.get("system_id")
     system = System.objects.get(id=system_id)
 
     if not system:
-        return 404, "System not found"
+        return 404, {"detail": "System not found"}
 
     return {
         "classifiers": system.classifiers.filter(data__type='actor'),

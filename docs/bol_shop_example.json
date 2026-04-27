@@ -1,0 +1,2901 @@
+{
+  "id": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+  "name": "Bol Shop Project",
+  "description": "Generated from bol_shop_example.json",
+  "systems": [
+    {
+      "id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+      "name": "Bol.com Online Shop",
+      "description": "Primary system for Bol Shop",
+      "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+      "diagrams": [
+        {
+          "id": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+          "type": "classes",
+          "name": "Bol Shop Structure",
+          "description": "Imported structure overview",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "nodes": [
+            {
+              "id": "d97dd01a-c00e-5dd1-aeef-e0b78a782bbf",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "c1def2d7-d4f7-5a12-b19c-79c490ce2931",
+              "data": {"position": {"x": 0, "y": 0}}
+            },
+            {
+              "id": "d728e90d-82b9-5f50-a256-835ff03ac754",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "1feafada-4f0e-550f-a414-563ba43b3d97",
+              "data": {"position": {"x": 340, "y": 0}}
+            },
+            {
+              "id": "19556627-9765-518d-a7d3-f589e4b007bb",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "fd4e30e1-79f0-566c-b626-0b0c8c4eac2c",
+              "data": {"position": {"x": 680, "y": 0}}
+            },
+            {
+              "id": "d5f4edad-a22a-56e5-ac48-ef46b211f723",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "2b11ecc2-cc16-588d-993d-b8bff1d66556",
+              "data": {"position": {"x": 1020, "y": 0}}
+            },
+            {
+              "id": "48654414-4233-58d0-ab7f-b346c041cc4b",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+              "data": {"position": {"x": 0, "y": 220}}
+            },
+            {
+              "id": "198bbde1-c8de-58bb-ac43-204dbb78d797",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "9cc8e4f2-a8e6-5a98-9075-d4f0baabe12a",
+              "data": {"position": {"x": 340, "y": 220}}
+            },
+            {
+              "id": "a29bbf15-2a6f-545a-a29f-3b6bd35cb4c6",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "daab1396-d891-58dd-b735-a8d4ede3daa5",
+              "data": {"position": {"x": 680, "y": 220}}
+            },
+            {
+              "id": "9c35faff-c993-5309-a574-bcf869e9a8f2",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "8a12cf5b-5130-554c-b381-ec212293c1a4",
+              "data": {"position": {"x": 1020, "y": 220}}
+            },
+            {
+              "id": "91ef7d85-e5c7-514a-a119-bdaeda7e2d29",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "92cc2217-4908-5380-bd09-853956d45fc9",
+              "data": {"position": {"x": 0, "y": 440}}
+            },
+            {
+              "id": "ba7948e7-7c1b-52d1-abe7-16ab89fad9d1",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "a206d82a-9d68-53b5-a2d5-ca20a4c87bc7",
+              "data": {"position": {"x": 340, "y": 440}}
+            },
+            {
+              "id": "7153ff37-68a3-5f3d-aa29-c3f296d48487",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "6df487a1-98bf-50e4-86aa-d90a9597c5c0",
+              "data": {"position": {"x": 680, "y": 440}}
+            },
+            {
+              "id": "5b7ede10-b5b1-5ac4-ab95-64d3d738f0a3",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "ba76f6c7-a5f0-535b-acee-f2d7389eeb99",
+              "data": {"position": {"x": 1020, "y": 440}}
+            },
+            {
+              "id": "39f1c7ec-29a0-5fa8-a48d-21e3cd2d30ad",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "eab56fa0-e9bb-5247-8886-7791d9bc3d0e",
+              "data": {"position": {"x": 0, "y": 660}}
+            },
+            {
+              "id": "8672cbe0-77da-5771-a4f9-31ec2f4ddba6",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "fe221768-60bc-5c52-9050-dc9f617a355a",
+              "data": {"position": {"x": 340, "y": 660}}
+            },
+            {
+              "id": "98301c26-b80b-5e5a-a0f1-9b605de3c47d",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "49b3ba77-0589-5c12-b6c0-a185d529b126",
+              "data": {"position": {"x": 680, "y": 660}}
+            },
+            {
+              "id": "d3298945-2199-5444-a4b2-78e014f932b7",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "c3058f1a-7747-536f-8c8a-b1882414dac8",
+              "data": {"position": {"x": 1020, "y": 660}}
+            },
+            {
+              "id": "14500bda-5c26-5dcd-a931-8cb19aafa3e1",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "48525923-d054-5862-a4a9-ff7c340af782",
+              "data": {"position": {"x": 0, "y": 880}}
+            },
+            {
+              "id": "ad093fe8-a81c-5088-afbe-e72438cc9f55",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "66fb7cc7-c966-5448-baf3-710622ad3034",
+              "data": {"position": {"x": 340, "y": 880}}
+            },
+            {
+              "id": "8a357257-effb-518b-a9ed-81a2561b48f2",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "79ea2b61-48df-52fb-9d14-29a746edf684",
+              "data": {"position": {"x": 680, "y": 880}}
+            },
+            {
+              "id": "ffb0d187-428b-50f8-a7fb-d5e9fb8190ad",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "e4ebb7eb-28ba-503d-a163-df373bdfc2fe",
+              "data": {"position": {"x": 1020, "y": 880}}
+            },
+            {
+              "id": "bcce011b-e04c-5995-ad38-0f7a6b74d682",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "7c8640a2-1ab2-5378-96bb-45660dacfb93",
+              "data": {"position": {"x": 0, "y": 1100}}
+            },
+            {
+              "id": "d03b83fc-2974-572b-a223-5314bcf27c3a",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "a65abdb3-5484-5cf9-87d2-1b359e50f02c",
+              "data": {"position": {"x": 340, "y": 1100}}
+            },
+            {
+              "id": "f8e94fb1-7bfe-5a55-a5de-6c8d78da0281",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "06e679f1-5f44-57fd-a53f-01f73e6cac0f",
+              "data": {"position": {"x": 680, "y": 1100}}
+            },
+            {
+              "id": "73e92b31-933d-5acb-a307-bd4368884845",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "5bc90e4a-21a2-5229-b275-127b922536a7",
+              "data": {"position": {"x": 1020, "y": 1100}}
+            },
+            {
+              "id": "8dec30a0-d36a-5d10-a80c-efa493e6d57c",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "453ff65e-d86e-53ea-8eca-ea3a56a0d014",
+              "data": {"position": {"x": 0, "y": 1320}}
+            },
+            {
+              "id": "e47b1edd-53ed-5b0d-af07-1102b60db263",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "ee351cb5-0428-5848-853b-8040d326587f",
+              "data": {"position": {"x": 340, "y": 1320}}
+            },
+            {
+              "id": "68ee77e2-4ef0-5eae-a025-5b123c92645a",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "0575b70f-4062-57e0-b7b7-e2b1af111519",
+              "data": {"position": {"x": 680, "y": 1320}}
+            },
+            {
+              "id": "e5178fd2-45ef-5ea2-a343-467906920c2e",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "0190428e-174f-5db0-9da0-2f28683d1656",
+              "data": {"position": {"x": 1020, "y": 1320}}
+            },
+            {
+              "id": "ef9641af-6635-5709-a591-ae7bde24c679",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "b48c9252-31e0-5a0c-a562-7d80667c37e1",
+              "data": {"position": {"x": 0, "y": 1540}}
+            },
+            {
+              "id": "3b5d7211-d961-540d-a293-d56288659cc5",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "67c63357-2afa-5313-af21-07fa936a4cc2",
+              "data": {"position": {"x": 340, "y": 1540}}
+            },
+            {
+              "id": "26279632-ce9e-52f6-adff-52bb7c7984c3",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "1786066a-f609-56ef-a3c6-ba126fcdfd0a",
+              "data": {"position": {"x": 680, "y": 1540}}
+            },
+            {
+              "id": "36d1f43b-9775-5755-add3-bdfcb1b57be4",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "2eb0d099-5e0b-512a-bd65-2d9216bdf687",
+              "data": {"position": {"x": 1020, "y": 1540}}
+            },
+            {
+              "id": "088ca10b-4f2c-506a-acea-505bd557b94d",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "8f5d8926-0276-50b4-862d-f649d0aba9cc",
+              "data": {"position": {"x": 0, "y": 1760}}
+            },
+            {
+              "id": "0e037bb6-0143-598e-a231-9402dc5b91ff",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "3558e3b5-5502-534c-b6ba-395fcf9b7a3c",
+              "data": {"position": {"x": 340, "y": 1760}}
+            },
+            {
+              "id": "407a2d7c-4e51-5b20-abb8-bcca73be2620",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "941bcb75-4a97-50f0-bcbc-84b4a986ab17",
+              "data": {"position": {"x": 680, "y": 1760}}
+            },
+            {
+              "id": "4bb2714d-1a09-5719-a273-4f82fe7e6afe",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "40d2f5f7-dc3a-5255-a0a1-3261b03d0518",
+              "data": {"position": {"x": 1020, "y": 1760}}
+            },
+            {
+              "id": "36e18238-5194-50b6-ad77-aa203baa5893",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "83adb1ff-d55a-599e-8ac9-3e5c2d68e068",
+              "data": {"position": {"x": 0, "y": 1980}}
+            },
+            {
+              "id": "f0907628-04fb-53ea-a996-b68a337e1cba",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "e1c5c45c-f58e-5f81-92b3-7643dd22c8ad",
+              "data": {"position": {"x": 340, "y": 1980}}
+            },
+            {
+              "id": "72348839-298d-548c-a8cb-244416780a6a",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "e8432885-3ca8-5fc1-a456-cae638105c5e",
+              "data": {"position": {"x": 680, "y": 1980}}
+            },
+            {
+              "id": "43acd7e5-c5d5-5035-a1b5-3ca7139c4bde",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "3ae85d31-7697-5826-ad21-a5d1a7c27651",
+              "data": {"position": {"x": 1020, "y": 1980}}
+            },
+            {
+              "id": "2878859f-7f0d-575f-a597-732ee09a0991",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "aca007f1-4dcb-5224-af73-d1e86d495bb4",
+              "data": {"position": {"x": 0, "y": 2200}}
+            },
+            {
+              "id": "b6c3a605-3e02-5a47-adec-4cd0b8c58f2d",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "b0720d27-ae0e-5d66-9bea-ef62af7cd619",
+              "data": {"position": {"x": 340, "y": 2200}}
+            },
+            {
+              "id": "03180046-dc3a-5036-a458-4649380c9f20",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "f3b818d2-4306-5f9b-b6b2-8b3bed98c782",
+              "data": {"position": {"x": 680, "y": 2200}}
+            },
+            {
+              "id": "828e76f0-59ed-5aca-a839-f92e2abcc54d",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "322600a8-37e2-5ecc-aa2f-fd2f82d13f7c",
+              "data": {"position": {"x": 1020, "y": 2200}}
+            },
+            {
+              "id": "576a1168-085a-5b5b-acb9-252533194fc4",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "5b00110c-f471-5a77-b158-15eafdccdc29",
+              "data": {"position": {"x": 0, "y": 2420}}
+            },
+            {
+              "id": "5258f0d0-14a7-5fba-ac40-1ed9c055fc46",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "ffe6c620-1dd2-5560-87fd-507e1066b4d2",
+              "data": {"position": {"x": 340, "y": 2420}}
+            },
+            {
+              "id": "a133740e-9d51-5815-af02-73295e7d69da",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "1a2c2ca4-8dab-52fe-8a28-acc3132124b8",
+              "data": {"position": {"x": 680, "y": 2420}}
+            },
+            {
+              "id": "fc751590-0eb1-58e3-afdc-2eb03c9ab9a7",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "b14455d3-6111-5b02-b473-0f65544083f3",
+              "data": {"position": {"x": 1020, "y": 2420}}
+            },
+            {
+              "id": "48289606-0031-5f79-a564-6e8f0d1e24e1",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "0e90be3c-433e-5f84-ab15-bc1d15548b2a",
+              "data": {"position": {"x": 0, "y": 2640}}
+            },
+            {
+              "id": "06cff51f-adfb-5e5c-a7e2-bd217f0dedac",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "9a976fe6-7417-58e7-a9a3-e812bf722dc9",
+              "data": {"position": {"x": 340, "y": 2640}}
+            },
+            {
+              "id": "bded72f1-99f3-5b9a-a218-dd45d8e69c36",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "14b313a6-1f59-5b23-8c68-59fc904f360c",
+              "data": {"position": {"x": 680, "y": 2640}}
+            },
+            {
+              "id": "055ddfdf-1441-5ffe-ab02-d5f31bd7f6a0",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "f8a74f3c-d481-5146-b766-1c7257eb728d",
+              "data": {"position": {"x": 1020, "y": 2640}}
+            },
+            {
+              "id": "3d1e5339-30b6-5c7a-abe8-3f8cad3f9c5f",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "6647df25-7b2c-54d0-a93d-efd8565f5e01",
+              "data": {"position": {"x": 0, "y": 2860}}
+            },
+            {
+              "id": "07a25f25-75ae-5011-a053-cadb124b6c92",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "0b281180-b860-5274-a42e-5f085a81d08c",
+              "data": {"position": {"x": 340, "y": 2860}}
+            },
+            {
+              "id": "b7fd6496-c2be-5552-a595-e53033e764c2",
+              "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91",
+              "cls": "1a2801f4-d06a-5769-a24d-51ecae708657",
+              "data": {"position": {"x": 680, "y": 2860}}
+            }
+          ],
+          "edges": [
+            {"id": "30421509-8bbb-52a2-a40b-d3861fd072b6", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "2e2eabe5-c4bf-5bf2-8e3d-03caeabd7394", "data": {}},
+            {"id": "06a64470-c411-5070-ab26-0cd5f6c353b2", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "947aa58b-f2c0-5bbb-bb5b-4a1fb9d82595", "data": {}},
+            {"id": "d73000c4-5fbd-5ce8-a6a3-1c2359cc819a", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "26b09d40-f63a-502c-86e4-ce4d77724764", "data": {}},
+            {"id": "3ae7c647-78ef-5377-a5be-21e51b543cfb", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "a145bc66-cdf8-5da1-b5ea-47078c9032f4", "data": {}},
+            {"id": "899c87c3-a4b1-5022-a1a6-3c503b197376", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "867fb182-699e-550a-98e2-68bbfb368999", "data": {}},
+            {"id": "9fad4019-2b07-5d8b-a161-445f50635cde", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "12dde5f8-3c8d-5d55-836a-2fb350fee814", "data": {}},
+            {"id": "309bc186-e655-5ef1-a534-d65978943950", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "508bde57-a828-5d1f-ade3-bacbaa928363", "data": {}},
+            {"id": "348fda99-8650-5fcb-a789-3bb7949e9923", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "d3c9ff32-e934-5dee-afea-d7fbf1317d23", "data": {}},
+            {"id": "4c2c93e6-edab-5769-aaf6-0042957bc443", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "4b7b3789-9567-59d0-adf4-1cda76bfec17", "data": {}},
+            {"id": "b7feebd2-1247-528a-ac72-8cd429e065b2", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "08c0e5a3-03d1-52c7-9f23-ba759173791f", "data": {}},
+            {"id": "dd30b52d-968d-5f70-a009-1c50f0ad96b5", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "96d5337e-d387-597f-8f86-f0fdecffae96", "data": {}},
+            {"id": "87d4d1de-7dc4-579b-ab19-844479ea6f86", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "c17f271e-f390-59ad-ba38-2370c6738d54", "data": {}},
+            {"id": "9715bfc4-762c-5204-a1f5-9a047b55a1ec", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "b99aa5a6-b1d5-5876-ad9d-43dcdf40ecf1", "data": {}},
+            {"id": "7f5f46ee-327a-5dc6-a7e1-ee98267e4b4d", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "8be57e84-5520-579d-898a-ebd68808789f", "data": {}},
+            {"id": "819a4f35-d52f-5530-a0df-84798254822e", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "0e5668f3-dba6-5a3f-956f-2855a13e97d0", "data": {}},
+            {"id": "0878cedd-4d29-5503-a097-269c6d388d6b", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "2966f236-3d58-5583-b0f7-0b31d1d936aa", "data": {}},
+            {"id": "a6d782b7-082e-5b9b-a9b2-6b521340229b", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "2d4e9735-dbdb-5430-86bb-89a75a662069", "data": {}},
+            {"id": "417c03b4-35bb-5637-a6ef-65587eb0679e", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "41bf93ed-2474-55d3-9078-a3f32e5b8e3a", "data": {}},
+            {"id": "a2aa9f64-4aea-51b5-afcb-088ec19393ca", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "b9cb6c42-f48d-5260-bd28-a30326ebbe8a", "data": {}},
+            {"id": "23d7f102-abfb-5777-a3ae-9d7b2d85e607", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "b5f1df43-42b7-5b8d-8e16-29ad76d53a3b", "data": {}},
+            {"id": "34ff51ec-23cb-54e2-aff5-b64e58b8d69d", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "8ed5d1ef-b10a-520a-a61c-b05bde938d1d", "data": {}},
+            {"id": "014cdbfe-c5dc-5146-a4f7-7767ede1b8c3", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "525a4b16-b361-5d9f-ba31-bac75d2ce9d0", "data": {}},
+            {"id": "60a4ce6a-b9c2-5bc8-ada7-fd5afea56192", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "32b83762-b1ef-51b3-8906-7fae7022af2f", "data": {}},
+            {"id": "965b7ca4-a26c-5f53-af3d-3b9e4aeb479f", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "341dc080-f13b-5655-9be0-05e3e6651831", "data": {}},
+            {"id": "68d630e0-78cc-5590-a560-607208a32d4d", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "c4dffc42-9390-5303-b761-75005aaf468c", "data": {}},
+            {"id": "52f09ed5-4535-59a9-a2cc-a355c3f571a1", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "f600c6a1-228a-503e-9f4c-7b6606e4c432", "data": {}},
+            {"id": "b65710e0-a28f-5ef5-af4b-6700e917a46c", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "861b84c8-56ba-55bd-96d5-d3096e215dfd", "data": {}},
+            {"id": "64180b94-6246-53b0-a6ff-ef0947e84920", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "88555081-c404-5289-8fbd-a04118c18895", "data": {}},
+            {"id": "ca74fc1a-99be-56f8-a8fa-ee067a59296b", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "2a12adc5-87cf-50ff-a843-1db719dd8628", "data": {}},
+            {"id": "902b33b6-6436-5a87-ab79-4d3c5d158731", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "3a4fd59f-ab54-5a07-88f2-a6d05578f653", "data": {}},
+            {"id": "956d05b2-e17d-5a92-ae36-f5a3e19cd493", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "d070cc98-06bb-5bb2-85c6-777c6c36f947", "data": {}},
+            {"id": "69edc5ef-721f-5f77-a81c-399d2b356277", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "61566ba7-b6da-5209-a1ce-61fc7e4eddf7", "data": {}},
+            {"id": "dc064156-ec7e-5a63-a43a-0694c1e059e9", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "c6effdc2-07ff-5a88-8422-320253accd42", "data": {}},
+            {"id": "29d0511c-132e-59e7-a3e5-79cd7b278720", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "5db3b23c-da13-5f25-8ff4-ed1fabbf5cb3", "data": {}},
+            {"id": "f267d215-96e5-5482-a784-bb83af5cba2d", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "f04ef281-3640-56d6-bac9-4e38b85ae1ce", "data": {}},
+            {"id": "4f57478c-bf47-5cd2-aaed-e9d02d34d6b0", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "6b55e661-5895-52e4-97de-a1f64cce1831", "data": {}},
+            {"id": "dffddbd3-3993-50eb-a43d-49ece220baf8", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "2307d0e1-dd1c-5a14-bc54-2c7990a22649", "data": {}},
+            {"id": "3c76dec1-e5c5-58a9-a146-8ce116c1ba83", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "ac31b9f6-6a02-5964-a865-77bfbe18bcd5", "data": {}},
+            {"id": "cc61d051-9eb9-5eb0-a9fb-35dabf27c17b", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "a974d3d4-ad4b-5348-b625-e11c2524ab86", "data": {}},
+            {"id": "3fddfc07-76e8-549c-a9e3-3bdfd160653f", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "6475f168-1c7c-56ec-962b-84dd5dbfce6a", "data": {}},
+            {"id": "242e1d9c-68f3-52a6-afe8-c9fa79e72e07", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "eb46270d-6e5b-5a88-8e92-b54cce02d04f", "data": {}},
+            {"id": "ae54272d-9032-5f66-ad40-53d43766491f", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "951184b4-47bc-5a4b-848d-9a723518761a", "data": {}},
+            {"id": "b1ec7721-e86d-5fad-a68e-f770b4a59e8a", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "e858dc92-bee4-59fc-937b-4a5b14cc80a6", "data": {}},
+            {"id": "beebe774-8c1d-574d-a5a6-ee311d39fa71", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "43abc1cc-563d-5da1-9854-b95d95315eca", "data": {}},
+            {"id": "65623843-4d4a-5dcc-a907-2356029a45b8", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "8293e062-28f3-5b15-9c58-557bc7506089", "data": {}},
+            {"id": "3200f7ef-5f22-5bed-ad4d-477e13a6e182", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "f6e0fcfb-c4e7-5d87-b3a4-489c2c8039ed", "data": {}},
+            {"id": "be3e3867-3327-5a17-a649-140f1bc2aea5", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "251db5d4-4c38-5122-95d2-02d07284eada", "data": {}},
+            {"id": "c6b1e5e8-f18b-5d3e-a316-ba037634bfb7", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "21c044b0-5ce8-56ab-aadd-9f4cc152ede7", "data": {}},
+            {"id": "20b45a14-8cf6-5878-ab0e-55f2698c06b5", "diagram": "c2d1e8d4-6b3a-55b7-9d2f-0d7c8d3e4f91", "rel": "21086d71-1abb-5f12-bf99-37cf6572f445", "data": {}}
+          ]
+        }
+      ],
+      "interfaces": [],
+      "classifiers": [
+        {
+          "id": "c1def2d7-d4f7-5a12-b19c-79c490ce2931",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "name": "Bol.com Online Shop",
+            "type": "system_boundary",
+            "system_id": null,
+            "system_name": null,
+            "height": 2200,
+            "width": 2200
+          }
+        },
+        {
+          "id": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": null,
+            "name": "Customer",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "fd4e30e1-79f0-566c-b626-0b0c8c4eac2c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": null,
+            "name": "Seller",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "2b11ecc2-cc16-588d-993d-b8bff1d66556",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": null,
+            "name": "System",
+            "type": "actor"
+          }
+        },
+        {
+          "id": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Product",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique product identifier",
+                "body": null
+              },
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Product title shown on listings",
+                "body": null
+              },
+              {
+                "name": "brand",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Brand or manufacturer name",
+                "body": null
+              },
+              {
+                "name": "ean",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "European Article Number barcode",
+                "body": null
+              },
+              {
+                "name": "description",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full product description (HTML safe)",
+                "body": null
+              },
+              {
+                "name": "price",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": "Current selling price in EUR",
+                "body": null
+              },
+              {
+                "name": "original_price",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": "Original price before discount",
+                "body": null
+              },
+              {
+                "name": "discount_pct",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Discount percentage derived from prices",
+                "body": null
+              },
+              {
+                "name": "stock_quantity",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Units available in warehouse",
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "float",
+                "enum": null,
+                "derived": true,
+                "description": "Average customer rating 0-5",
+                "body": null
+              },
+              {
+                "name": "review_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Total number of customer reviews",
+                "body": null
+              },
+              {
+                "name": "image_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Primary product image URL",
+                "body": null
+              },
+              {
+                "name": "weight_kg",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": "Weight in kilograms",
+                "body": null
+              },
+              {
+                "name": "is_active",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether product is publicly listed",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "9cc8e4f2-a8e6-5a98-9075-d4f0baabe12a",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "ProductImage",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "image_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique image identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "image_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full image URL (large/zoom version)",
+                "body": null
+              },
+              {
+                "name": "thumb_url",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Thumbnail URL for strip navigation",
+                "body": null
+              },
+              {
+                "name": "alt_text",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Accessibility alt text",
+                "body": null
+              },
+              {
+                "name": "is_primary",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Whether this is the hero image",
+                "body": null
+              },
+              {
+                "name": "sort_order",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Display order in the image strip",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "daab1396-d891-58dd-b735-a8d4ede3daa5",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "ProductSpecification",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "spec_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique spec row identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "group_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Spec group e.g. Dimensions",
+                "body": null
+              },
+              {
+                "name": "spec_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Attribute label e.g. Width",
+                "body": null
+              },
+              {
+                "name": "spec_value",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Attribute value e.g. 42",
+                "body": null
+              },
+              {
+                "name": "spec_unit",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unit of measure e.g. cm",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "8a12cf5b-5130-554c-b381-ec212293c1a4",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "DeliveryOption",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "option_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique delivery option identifier",
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to Product",
+                "body": null
+              },
+              {
+                "name": "method",
+                "type": "str",
+                "enum": [
+                  "standard",
+                  "express",
+                  "pickup_point"
+                ],
+                "derived": false,
+                "description": "Delivery method",
+                "body": null
+              },
+              {
+                "name": "estimated_days",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Business days until delivery",
+                "body": null
+              },
+              {
+                "name": "cost",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": "Delivery cost in EUR",
+                "body": null
+              },
+              {
+                "name": "is_free",
+                "type": "bool",
+                "enum": null,
+                "derived": true,
+                "description": "True when cost == 0",
+                "body": null
+              },
+              {
+                "name": "cutoff_time",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Order before this time for same/next day",
+                "body": null
+              },
+              {
+                "name": "return_policy_days",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Days customer has to return product",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "92cc2217-4908-5380-bd09-853956d45fc9",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Category",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "category_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique category identifier",
+                "body": null
+              },
+              {
+                "name": "name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Category display name",
+                "body": null
+              },
+              {
+                "name": "slug",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "URL-safe category identifier",
+                "body": null
+              },
+              {
+                "name": "parent_category_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "FK to parent Category for breadcrumb",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "a206d82a-9d68-53b5-a2d5-ca20a4c87bc7",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Seller",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "seller_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Unique seller identifier",
+                "body": null
+              },
+              {
+                "name": "business_name",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Seller's registered business name",
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "float",
+                "enum": null,
+                "derived": true,
+                "description": "Average seller rating 0-5",
+                "body": null
+              },
+              {
+                "name": "review_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Number of seller reviews",
+                "body": null
+              },
+              {
+                "name": "is_verified",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Bol.com verified seller badge",
+                "body": null
+              },
+              {
+                "name": "ships_from",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Country or region seller ships from",
+                "body": null
+              },
+              {
+                "name": "response_time",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Avg seller response time label",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "6df487a1-98bf-50e4-86aa-d90a9597c5c0",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Cart",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "cart_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "total_price",
+                "type": "float",
+                "enum": null,
+                "derived": true,
+                "description": "Sum of all CartItem subtotals",
+                "body": null
+              },
+              {
+                "name": "item_count",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Total number of items in cart",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "ba76f6c7-a5f0-535b-acee-f2d7389eeb99",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "CartItem",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "cart_item_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "quantity",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "Number of units",
+                "body": null
+              },
+              {
+                "name": "unit_price",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": "Price locked at time of adding",
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "eab56fa0-e9bb-5247-8886-7791d9bc3d0e",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "WishlistItem",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "wishlist_item_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "added_at",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "fe221768-60bc-5c52-9050-dc9f617a355a",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "order_number",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "total_amount",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "status",
+                "type": "str",
+                "enum": [
+                  "pending",
+                  "confirmed",
+                  "shipped",
+                  "delivered",
+                  "cancelled"
+                ],
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "shipping_address",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "created_at",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "estimated_delivery",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "49b3ba77-0589-5c12-b6c0-a185d529b126",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Payment",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "payment_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "amount",
+                "type": "float",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "method",
+                "type": "str",
+                "enum": [
+                  "ideal",
+                  "credit_card",
+                  "paypal",
+                  "afterpay"
+                ],
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "status",
+                "type": "str",
+                "enum": [
+                  "pending",
+                  "completed",
+                  "failed",
+                  "refunded"
+                ],
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "transaction_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "c3058f1a-7747-536f-8c8a-b1882414dac8",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Review",
+            "type": "class",
+            "attributes": [
+              {
+                "name": "review_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "product_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "customer_id",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              },
+              {
+                "name": "rating",
+                "type": "int",
+                "enum": null,
+                "derived": false,
+                "description": "1 to 5 stars",
+                "body": null
+              },
+              {
+                "name": "title",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Review headline",
+                "body": null
+              },
+              {
+                "name": "comment",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": "Full review text",
+                "body": null
+              },
+              {
+                "name": "verified_purchase",
+                "type": "bool",
+                "enum": null,
+                "derived": false,
+                "description": "Customer actually bought product",
+                "body": null
+              },
+              {
+                "name": "helpful_votes",
+                "type": "int",
+                "enum": null,
+                "derived": true,
+                "description": "Number of helpful votes",
+                "body": null
+              },
+              {
+                "name": "created_at",
+                "type": "str",
+                "enum": null,
+                "derived": false,
+                "description": null,
+                "body": null
+              }
+            ],
+            "methods": [],
+            "abstract": false,
+            "leaf": false
+          }
+        },
+        {
+          "id": "48525923-d054-5862-a4a9-ff7c340af782",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Product",
+            "type": "object",
+            "role": "object",
+            "cls": "class-product-001",
+            "clsName": "Product",
+            "state": "Viewed"
+          }
+        },
+        {
+          "id": "66fb7cc7-c966-5448-baf3-710622ad3034",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Cart",
+            "type": "object",
+            "role": "object",
+            "cls": "class-cart-001",
+            "clsName": "Cart",
+            "state": "Active"
+          }
+        },
+        {
+          "id": "79ea2b61-48df-52fb-9d14-29a746edf684",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "WishlistItem",
+            "type": "object",
+            "role": "object",
+            "cls": "class-wishlistitem-001",
+            "clsName": "WishlistItem",
+            "state": "Added"
+          }
+        },
+        {
+          "id": "e4ebb7eb-28ba-503d-a163-df373bdfc2fe",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "object",
+            "role": "object",
+            "cls": "class-order-001",
+            "clsName": "Order",
+            "state": "Pending"
+          }
+        },
+        {
+          "id": "7c8640a2-1ab2-5378-96bb-45660dacfb93",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "object",
+            "role": "object",
+            "cls": "class-order-001",
+            "clsName": "Order",
+            "state": "Confirmed"
+          }
+        },
+        {
+          "id": "a65abdb3-5484-5cf9-87d2-1b359e50f02c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "object",
+            "role": "object",
+            "cls": "class-order-001",
+            "clsName": "Order",
+            "state": "Shipped"
+          }
+        },
+        {
+          "id": "06e679f1-5f44-57fd-a53f-01f73e6cac0f",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Order",
+            "type": "object",
+            "role": "object",
+            "cls": "class-order-001",
+            "clsName": "Order",
+            "state": "Delivered"
+          }
+        },
+        {
+          "id": "5bc90e4a-21a2-5229-b275-127b922536a7",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Product",
+            "type": "object",
+            "role": "object",
+            "cls": "class-product-001",
+            "clsName": "Product",
+            "state": "Listed"
+          }
+        },
+        {
+          "id": "453ff65e-d86e-53ea-8eca-ea3a56a0d014",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "type": "initial",
+            "role": "control",
+            "activity_scope": "activity",
+            "scheduled": false,
+            "schedule": ""
+          }
+        },
+        {
+          "id": "ee351cb5-0428-5848-853b-8040d326587f",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "type": "decision",
+            "role": "control",
+            "decisionInput": "",
+            "decisionInputFlow": "",
+            "page": ""
+          }
+        },
+        {
+          "id": "0575b70f-4062-57e0-b7b7-e2b1af111519",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "type": "decision",
+            "role": "control",
+            "decisionInput": "",
+            "decisionInputFlow": "",
+            "page": ""
+          }
+        },
+        {
+          "id": "0190428e-174f-5db0-9da0-2f28683d1656",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "type": "final",
+            "role": "control",
+            "activity_scope": "activity"
+          }
+        },
+        {
+          "id": "b48c9252-31e0-5a0c-a562-7d80667c37e1",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Browse products",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001",
+              "class-category-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "67c63357-2afa-5313-af21-07fa936a4cc2",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Search products",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001",
+              "class-category-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "1786066a-f609-56ef-a3c6-ba126fcdfd0a",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View product detail",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "2eb0d099-5e0b-512a-bd65-2d9216bdf687",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View product images",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-productimage-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "8f5d8926-0276-50b4-862d-f649d0aba9cc",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View product specifications",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-productspecification-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "3558e3b5-5502-534c-b6ba-395fcf9b7a3c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View delivery info",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-deliveryoption-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "941bcb75-4a97-50f0-bcbc-84b4a986ab17",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View seller info",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-seller-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "40d2f5f7-dc3a-5255-a0a1-3261b03d0518",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Read product reviews",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-review-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "83adb1ff-d55a-599e-8ac9-3e5c2d68e068",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Browse products in category",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001",
+              "class-category-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "e1c5c45c-f58e-5f81-92b3-7643dd22c8ad",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View more from seller",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001",
+              "class-seller-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "e8432885-3ca8-5fc1-a456-cae638105c5e",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Add to cart",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-cartitem-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "3ae85d31-7697-5826-ad21-a5d1a7c27651",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Add to wishlist",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-wishlistitem-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "aca007f1-4dcb-5224-af73-d1e86d495bb4",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "View cart",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-cart-001",
+              "class-cartitem-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "b0720d27-ae0e-5d66-9bea-ef62af7cd619",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Checkout",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-order-001",
+              "class-payment-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "f3b818d2-4306-5f9b-b6b2-8b3bed98c782",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Process payment",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": "def custom_code(active_process): pass",
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-payment-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-system-001",
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "322600a8-37e2-5ecc-aa2f-fd2f82d13f7c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Confirm order",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": "def custom_code(active_process): pass",
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-order-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-system-001",
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "5b00110c-f471-5a77-b158-15eafdccdc29",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Track order",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-order-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "ffe6c620-1dd2-5560-87fd-507e1066b4d2",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Write review",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-review-001",
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-customer-001",
+            "actorNodeName": "Customer"
+          }
+        },
+        {
+          "id": "1a2c2ca4-8dab-52fe-8a28-acc3132124b8",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Send order confirmation",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": true,
+            "customCode": "def custom_code(active_process): pass",
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-order-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-system-001",
+            "actorNodeName": "System"
+          }
+        },
+        {
+          "id": "b14455d3-6111-5b02-b473-0f65544083f3",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "List product",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001",
+              "class-productimage-001",
+              "class-productspecification-001",
+              "class-deliveryoption-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-seller-001",
+            "actorNodeName": "Seller"
+          }
+        },
+        {
+          "id": "0e90be3c-433e-5f84-ab15-bc1d15548b2a",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "namespace": "",
+            "name": "Manage inventory",
+            "type": "action",
+            "role": "action",
+            "isAutomatic": false,
+            "customCode": null,
+            "localPrecondition": "",
+            "localPostcondition": "",
+            "body": "",
+            "operation": null,
+            "publish": null,
+            "subscribe": null,
+            "classes": [
+              "class-product-001"
+            ],
+            "application_models": null,
+            "page": null,
+            "actorNode": "actor-seller-001",
+            "actorNodeName": "Seller"
+          }
+        },
+        {
+          "id": "9a976fe6-7417-58e7-a9a3-e812bf722dc9",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "Browse and search products",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "14b313a6-1f59-5b23-8c68-59fc904f360c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "View product detail page",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "f8a74f3c-d481-5146-b766-1c7257eb728d",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "Purchase product",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "6647df25-7b2c-54d0-a93d-efd8565f5e01",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "Track order",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "0b281180-b860-5274-a42e-5f085a81d08c",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "Write product review",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        },
+        {
+          "id": "1a2801f4-d06a-5769-a24d-51ecae708657",
+          "project": "789531c4-33f6-5f69-8748-6a9ac1d05131",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "original_system_id": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "data": {
+            "parentNode": "sys-boundary-bol-001",
+            "namespace": "",
+            "name": "Manage product listings",
+            "type": "usecase",
+            "precondition": "",
+            "postcondition": "",
+            "trigger": "",
+            "scenarios": [],
+            "activities": [],
+            "actions": [],
+            "classes": [],
+            "application_model": []
+          }
+        }
+      ],
+      "relations": [
+        {
+          "id": "2e2eabe5-c4bf-5bf2-8e3d-03caeabd7394",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "target": "9a976fe6-7417-58e7-a9a3-e812bf722dc9",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "947aa58b-f2c0-5bbb-bb5b-4a1fb9d82595",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "target": "14b313a6-1f59-5b23-8c68-59fc904f360c",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "26b09d40-f63a-502c-86e4-ce4d77724764",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "target": "f8a74f3c-d481-5146-b766-1c7257eb728d",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "a145bc66-cdf8-5da1-b5ea-47078c9032f4",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "target": "6647df25-7b2c-54d0-a93d-efd8565f5e01",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "867fb182-699e-550a-98e2-68bbfb368999",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1feafada-4f0e-550f-a414-563ba43b3d97",
+          "target": "0b281180-b860-5274-a42e-5f085a81d08c",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "12dde5f8-3c8d-5d55-836a-2fb350fee814",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "fd4e30e1-79f0-566c-b626-0b0c8c4eac2c",
+          "target": "1a2801f4-d06a-5769-a24d-51ecae708657",
+          "data": {
+            "type": "interaction",
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "508bde57-a828-5d1f-ade3-bacbaa928363",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "target": "9cc8e4f2-a8e6-5a98-9075-d4f0baabe12a",
+          "data": {
+            "type": "association",
+            "label": "has images",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "d3c9ff32-e934-5dee-afea-d7fbf1317d23",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "target": "daab1396-d891-58dd-b735-a8d4ede3daa5",
+          "data": {
+            "type": "association",
+            "label": "has specifications",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "4b7b3789-9567-59d0-adf4-1cda76bfec17",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "target": "8a12cf5b-5130-554c-b381-ec212293c1a4",
+          "data": {
+            "type": "association",
+            "label": "ships via",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "08c0e5a3-03d1-52c7-9f23-ba759173791f",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "target": "92cc2217-4908-5380-bd09-853956d45fc9",
+          "data": {
+            "type": "association",
+            "label": "belongs to category",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "96d5337e-d387-597f-8f86-f0fdecffae96",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "target": "a206d82a-9d68-53b5-a2d5-ca20a4c87bc7",
+          "data": {
+            "type": "association",
+            "label": "sold by",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "c17f271e-f390-59ad-ba38-2370c6738d54",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "c3058f1a-7747-536f-8c8a-b1882414dac8",
+          "target": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "data": {
+            "type": "association",
+            "label": "reviews",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "b99aa5a6-b1d5-5876-ad9d-43dcdf40ecf1",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "6df487a1-98bf-50e4-86aa-d90a9597c5c0",
+          "target": "ba76f6c7-a5f0-535b-acee-f2d7389eeb99",
+          "data": {
+            "type": "association",
+            "label": "contains",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "*"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "8be57e84-5520-579d-898a-ebd68808789f",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "ba76f6c7-a5f0-535b-acee-f2d7389eeb99",
+          "target": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "data": {
+            "type": "association",
+            "label": "references",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "0e5668f3-dba6-5a3f-956f-2855a13e97d0",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "eab56fa0-e9bb-5247-8886-7791d9bc3d0e",
+          "target": "448d0eeb-7b58-554b-aaad-e3b9bfd92549",
+          "data": {
+            "type": "association",
+            "label": "saves",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "*",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "2966f236-3d58-5583-b0f7-0b31d1d936aa",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "fe221768-60bc-5c52-9050-dc9f617a355a",
+          "target": "49b3ba77-0589-5c12-b6c0-a185d529b126",
+          "data": {
+            "type": "association",
+            "label": "paid via",
+            "labels": null,
+            "derived": false,
+            "multiplicity": {
+              "source": "1",
+              "target": "1"
+            },
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "2d4e9735-dbdb-5430-86bb-89a75a662069",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "453ff65e-d86e-53ea-8eca-ea3a56a0d014",
+          "target": "b48c9252-31e0-5a0c-a562-7d80667c37e1",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "41bf93ed-2474-55d3-9078-a3f32e5b8e3a",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "b48c9252-31e0-5a0c-a562-7d80667c37e1",
+          "target": "67c63357-2afa-5313-af21-07fa936a4cc2",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "b9cb6c42-f48d-5260-bd28-a30326ebbe8a",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "67c63357-2afa-5313-af21-07fa936a4cc2",
+          "target": "1786066a-f609-56ef-a3c6-ba126fcdfd0a",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "b5f1df43-42b7-5b8d-8e16-29ad76d53a3b",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1786066a-f609-56ef-a3c6-ba126fcdfd0a",
+          "target": "48525923-d054-5862-a4a9-ff7c340af782",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "8ed5d1ef-b10a-520a-a61c-b05bde938d1d",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "2eb0d099-5e0b-512a-bd65-2d9216bdf687",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "525a4b16-b361-5d9f-ba31-bac75d2ce9d0",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "8f5d8926-0276-50b4-862d-f649d0aba9cc",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "32b83762-b1ef-51b3-8906-7fae7022af2f",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "3558e3b5-5502-534c-b6ba-395fcf9b7a3c",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "341dc080-f13b-5655-9be0-05e3e6651831",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "941bcb75-4a97-50f0-bcbc-84b4a986ab17",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "c4dffc42-9390-5303-b761-75005aaf468c",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "40d2f5f7-dc3a-5255-a0a1-3261b03d0518",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "f600c6a1-228a-503e-9f4c-7b6606e4c432",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "83adb1ff-d55a-599e-8ac9-3e5c2d68e068",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "861b84c8-56ba-55bd-96d5-d3096e215dfd",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "e1c5c45c-f58e-5f81-92b3-7643dd22c8ad",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "88555081-c404-5289-8fbd-a04118c18895",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "3ae85d31-7697-5826-ad21-a5d1a7c27651",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "2a12adc5-87cf-50ff-a843-1db719dd8628",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "48525923-d054-5862-a4a9-ff7c340af782",
+          "target": "0575b70f-4062-57e0-b7b7-e2b1af111519",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "3a4fd59f-ab54-5a07-88f2-a6d05578f653",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "0575b70f-4062-57e0-b7b7-e2b1af111519",
+          "target": "e8432885-3ca8-5fc1-a456-cae638105c5e",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": ">",
+              "threshold": "0",
+              "aggregator": null,
+              "target_class": "class-product-001",
+              "target_attribute": "stock_quantity",
+              "target_class_name": "Product",
+              "target_attribute_type": "int"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "d070cc98-06bb-5bb2-85c6-777c6c36f947",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "0575b70f-4062-57e0-b7b7-e2b1af111519",
+          "target": "1786066a-f609-56ef-a3c6-ba126fcdfd0a",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "61566ba7-b6da-5209-a1ce-61fc7e4eddf7",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "3ae85d31-7697-5826-ad21-a5d1a7c27651",
+          "target": "79ea2b61-48df-52fb-9d14-29a746edf684",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "c6effdc2-07ff-5a88-8422-320253accd42",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "e8432885-3ca8-5fc1-a456-cae638105c5e",
+          "target": "66fb7cc7-c966-5448-baf3-710622ad3034",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "5db3b23c-da13-5f25-8ff4-ed1fabbf5cb3",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "66fb7cc7-c966-5448-baf3-710622ad3034",
+          "target": "aca007f1-4dcb-5224-af73-d1e86d495bb4",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "f04ef281-3640-56d6-bac9-4e38b85ae1ce",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "aca007f1-4dcb-5224-af73-d1e86d495bb4",
+          "target": "b0720d27-ae0e-5d66-9bea-ef62af7cd619",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "6b55e661-5895-52e4-97de-a1f64cce1831",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "b0720d27-ae0e-5d66-9bea-ef62af7cd619",
+          "target": "e4ebb7eb-28ba-503d-a163-df373bdfc2fe",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "2307d0e1-dd1c-5a14-bc54-2c7990a22649",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "e4ebb7eb-28ba-503d-a163-df373bdfc2fe",
+          "target": "f3b818d2-4306-5f9b-b6b2-8b3bed98c782",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "ac31b9f6-6a02-5964-a865-77bfbe18bcd5",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "f3b818d2-4306-5f9b-b6b2-8b3bed98c782",
+          "target": "ee351cb5-0428-5848-853b-8040d326587f",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "a974d3d4-ad4b-5348-b625-e11c2524ab86",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "ee351cb5-0428-5848-853b-8040d326587f",
+          "target": "322600a8-37e2-5ecc-aa2f-fd2f82d13f7c",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": false,
+              "operator": "==",
+              "threshold": "completed",
+              "aggregator": null,
+              "target_class": "class-payment-001",
+              "target_attribute": "status",
+              "target_class_name": "Payment",
+              "target_attribute_type": "str"
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "6475f168-1c7c-56ec-962b-84dd5dbfce6a",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "ee351cb5-0428-5848-853b-8040d326587f",
+          "target": "b0720d27-ae0e-5d66-9bea-ef62af7cd619",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": {
+              "isElse": true,
+              "operator": null,
+              "threshold": null,
+              "aggregator": null,
+              "target_class": null,
+              "target_attribute": null,
+              "target_class_name": null,
+              "target_attribute_type": null
+            },
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "eb46270d-6e5b-5a88-8e92-b54cce02d04f",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "322600a8-37e2-5ecc-aa2f-fd2f82d13f7c",
+          "target": "7c8640a2-1ab2-5378-96bb-45660dacfb93",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "951184b4-47bc-5a4b-848d-9a723518761a",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "7c8640a2-1ab2-5378-96bb-45660dacfb93",
+          "target": "1a2c2ca4-8dab-52fe-8a28-acc3132124b8",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "e858dc92-bee4-59fc-937b-4a5b14cc80a6",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "1a2c2ca4-8dab-52fe-8a28-acc3132124b8",
+          "target": "a65abdb3-5484-5cf9-87d2-1b359e50f02c",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "43abc1cc-563d-5da1-9854-b95d95315eca",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "a65abdb3-5484-5cf9-87d2-1b359e50f02c",
+          "target": "5b00110c-f471-5a77-b158-15eafdccdc29",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "8293e062-28f3-5b15-9c58-557bc7506089",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "5b00110c-f471-5a77-b158-15eafdccdc29",
+          "target": "06e679f1-5f44-57fd-a53f-01f73e6cac0f",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "f6e0fcfb-c4e7-5d87-b3a4-489c2c8039ed",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "06e679f1-5f44-57fd-a53f-01f73e6cac0f",
+          "target": "ffe6c620-1dd2-5560-87fd-507e1066b4d2",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "251db5d4-4c38-5122-95d2-02d07284eada",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "ffe6c620-1dd2-5560-87fd-507e1066b4d2",
+          "target": "0190428e-174f-5db0-9da0-2f28683d1656",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "21c044b0-5ce8-56ab-aadd-9f4cc152ede7",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "b14455d3-6111-5b02-b473-0f65544083f3",
+          "target": "5bc90e4a-21a2-5229-b275-127b922536a7",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        },
+        {
+          "id": "21086d71-1abb-5f12-bf99-37cf6572f445",
+          "system": "c117fa2f-0401-5288-b18c-52c447ba7bc1",
+          "source": "5bc90e4a-21a2-5229-b275-127b922536a7",
+          "target": "0e90be3c-433e-5f84-ab15-bc1d15548b2a",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          }
+        }
+      ]
+    }
+  ]
+}
