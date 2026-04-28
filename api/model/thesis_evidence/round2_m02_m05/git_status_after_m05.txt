@@ -1,0 +1,9 @@
+On branch s4386299-thesis-clean
+Your branch is up to date with 'origin/s4386299-thesis-clean'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	llm/tests/test_m05_smoke.py
+	thesis_evidence/round2_m02_m05/
+
+nothing added to commit but untracked files present (use "git add" to track)

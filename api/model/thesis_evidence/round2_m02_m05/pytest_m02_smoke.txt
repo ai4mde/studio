@@ -1,0 +1,59 @@
+Creating test database for alias 'default' ('test_ai4mdestudio')...
+Found 3 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, daphne, drf_yasg, messages, model, staticfiles
+  Apply all migrations: admin, auth, contenttypes, diagram, generator, metadata, prose, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying metadata.0001_initial... OK
+  Applying metadata.0002_relation_system_alter_classifier_id_alter_project_id_and_more... OK
+  Applying metadata.0003_remove_classifier_type_remove_relation_type... OK
+  Applying metadata.0004_alter_classifier_system... OK
+  Applying metadata.0005_interface... OK
+  Applying metadata.0006_interface_data... OK
+  Applying metadata.0007_interface_actor... OK
+  Applying diagram.0001_initial... OK
+  Applying diagram.0002_alter_diagram_id_alter_diagram_system_and_more... OK
+  Applying diagram.0003_alter_edge_rel_alter_node_cls... OK
+  Applying generator.0001_initial... OK
+  Applying generator.0002_rename_container_port_prototype_port_and_more... OK
+  Applying generator.0003_prototype_metadata... OK
+  Applying generator.0004_remove_prototype_port_remove_prototype_running_and_more... OK
+  Applying metadata.0008_release... OK
+  Applying metadata.0009_release_created_at... OK
+  Applying metadata.0010_release_release_notes... OK
+  Applying metadata.0011_classifier_project_alter_classifier_system... OK
+  Applying metadata.0012_remove_release_diagrams_remove_release_interfaces_and_more... OK
+  Applying prose.0001_initial... OK
+  Applying prose.0002_pipeline_step... OK
+  Applying prose.0003_alter_pipeline_step... OK
+  Applying sessions.0001_initial... OK
+System check identified no issues (0 silenced).
+test_m02_ignores_unrelated_classes_and_other_systems (llm.tests.test_m02_smoke.DomainRetrieverSmokeTest.test_m02_ignores_unrelated_classes_and_other_systems) ... ok
+test_m02_rag_context_is_smaller_than_baseline_full_diagram_dump (llm.tests.test_m02_smoke.DomainRetrieverSmokeTest.test_m02_rag_context_is_smaller_than_baseline_full_diagram_dump) ... ok
+test_m02_retrieves_target_related_classes_relations_and_methods (llm.tests.test_m02_smoke.DomainRetrieverSmokeTest.test_m02_retrieves_target_related_classes_relations_and_methods) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.053s
+
+OK
+Destroying test database for alias 'default' ('test_ai4mdestudio')...

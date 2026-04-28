@@ -1,0 +1,226 @@
+import json
+
+from llm.chains.prose_chain import create_prose_chain_runner
+from llm.chains.schemas import (
+    Step1EntitiesOutput,
+    Step2RelationsOutput,
+    Step3ValidationOutput,
+)
+
+
+def step1_clean_response() -> str:
+    return json.dumps(
+        {
+            "entities": [
+                {
+                    "name": "Loan",
+                    "type": "class",
+                    "attributes": [
+                        {
+                            "name": "amount",
+                            "type": "int",
+                            "description": "Requested loan amount",
+                        }
+                    ],
+                    "description": "A loan application",
+                },
+                {
+                    "name": "Applicant",
+                    "type": "class",
+                    "attributes": [
+                        {
+                            "name": "income",
+                            "type": "int",
+                            "description": "Applicant income",
+                        }
+                    ],
+                    "description": "The person applying for the loan",
+                },
+            ]
+        }
+    )
+
+
+def step2_clean_response() -> str:
+    return json.dumps(
+        {
+            "relations": [
+                {
+                    "source": "Loan",
+                    "target": "Applicant",
+                    "type": "association",
+                    "multiplicity": {
+                        "source": "1",
+                        "target": "1",
+                    },
+                    "label": "",
+                    "reasoning": "Each loan application belongs to one applicant.",
+                }
+            ]
+        }
+    )
+
+
+def step3_clean_response() -> str:
+    return json.dumps(
+        {
+            "issues_found": [],
+            "corrected_entities": [
+                {
+                    "name": "Loan",
+                    "type": "class",
+                    "attributes": [
+                        {
+                            "name": "amount",
+                            "type": "int",
+                            "enum": None,
+                            "derived": False,
+                            "description": "Requested loan amount",
+                            "body": None,
+                        }
+                    ],
+                },
+                {
+                    "name": "Applicant",
+                    "type": "class",
+                    "attributes": [
+                        {
+                            "name": "income",
+                            "type": "int",
+                            "enum": None,
+                            "derived": False,
+                            "description": "Applicant income",
+                            "body": None,
+                        }
+                    ],
+                },
+            ],
+            "corrected_relations": [
+                {
+                    "source": "Loan",
+                    "target": "Applicant",
+                    "type": "association",
+                    "multiplicity": {
+                        "source": "1",
+                        "target": "1",
+                    },
+                    "label": "",
+                }
+            ],
+        }
+    )
+
+
+class SequenceLLM:
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.calls = []
+
+    def __call__(self, prompt: str) -> str:
+        self.calls.append(prompt)
+        if not self.responses:
+            raise AssertionError("Unexpected extra LLM call.")
+        return self.responses.pop(0)
+
+
+def test_m05_chain_success_preserves_step_outputs_and_trace():
+    llm = SequenceLLM(
+        [
+            step1_clean_response(),
+            step2_clean_response(),
+            step3_clean_response(),
+        ]
+    )
+    runner = create_prose_chain_runner(llm)
+
+    result = runner.run(
+        {
+            "requirements": "A loan application has an applicant, an amount, and applicant income."
+        }
+    )
+
+    assert result.success is True
+    assert result.failed_step is None
+    assert result.error is None
+
+    assert len(llm.calls) == 3
+    assert len(result.step_details) == 3
+
+    assert isinstance(result.outputs["entities_result"], Step1EntitiesOutput)
+    assert isinstance(result.outputs["relations_result"], Step2RelationsOutput)
+    assert isinstance(result.outputs["validation_result"], Step3ValidationOutput)
+
+    assert result.step_details[0]["step"] == "extract_entities"
+    assert result.step_details[1]["step"] == "infer_relations"
+    assert result.step_details[2]["step"] == "validate_model"
+
+    assert result.step_details[0]["success"] is True
+    assert result.step_details[1]["success"] is True
+    assert result.step_details[2]["success"] is True
+
+    # Inter-step data flow: step 2 prompt must contain entities generated by step 1.
+    assert "Loan" in llm.calls[1]
+    assert "Applicant" in llm.calls[1]
+    assert "amount" in llm.calls[1]
+
+    # Inter-step data flow: step 3 prompt must contain relation generated by step 2.
+    assert "Loan -> Applicant" in llm.calls[2]
+    assert "association" in llm.calls[2]
+
+    # Trace evidence keeps raw responses.
+    assert result.step_details[0]["raw_response"] == step1_clean_response()
+    assert result.step_details[1]["raw_response"] == step2_clean_response()
+    assert result.step_details[2]["raw_response"] == step3_clean_response()
+
+
+def test_m05_chain_failure_is_isolated_to_failed_step():
+    llm = SequenceLLM(
+        [
+            step1_clean_response(),
+            '{"relations": [',
+            step3_clean_response(),
+        ]
+    )
+    runner = create_prose_chain_runner(llm)
+
+    result = runner.run(
+        {
+            "requirements": "A loan application has an applicant, an amount, and applicant income."
+        }
+    )
+
+    assert result.success is False
+    assert result.failed_step == "infer_relations"
+    assert result.error.code == "JSON_DECODE_ERROR"
+
+    # Step 3 should not be called after step 2 fails.
+    assert len(llm.calls) == 2
+    assert len(result.step_details) == 2
+
+    assert result.step_details[0]["step"] == "extract_entities"
+    assert result.step_details[0]["success"] is True
+
+    assert result.step_details[1]["step"] == "infer_relations"
+    assert result.step_details[1]["success"] is False
+    assert result.step_details[1]["error"].code == "JSON_DECODE_ERROR"
+
+    assert "entities_result" in result.outputs
+    assert "relations_result" not in result.outputs
+    assert "validation_result" not in result.outputs
+
+
+def test_m05_chain_reports_template_render_error_for_missing_initial_context():
+    llm = SequenceLLM([])
+    runner = create_prose_chain_runner(llm)
+
+    result = runner.run({})
+
+    assert result.success is False
+    assert result.failed_step == "extract_entities"
+    assert result.error.code == "TEMPLATE_RENDER_ERROR"
+    assert result.error.details["prompt_name"] == "PROSE_STEP1_EXTRACT_ENTITIES"
+
+    # LLM should not be called if prompt rendering fails.
+    assert len(llm.calls) == 0
+    assert result.outputs == {}
+    assert result.step_details == []

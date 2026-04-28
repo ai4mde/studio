@@ -1,0 +1,687 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- /Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/bemmgr/allCodes/thesisProject/studio/api
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 3 items
+
+llm/tests/test_m05_smoke.py::test_m05_chain_success_preserves_step_outputs_and_trace PASSED [ 33%]
+llm/tests/test_m05_smoke.py::test_m05_chain_failure_is_isolated_to_failed_step PASSED [ 66%]
+llm/tests/test_m05_smoke.py::test_m05_chain_reports_template_render_error_for_missing_initial_context PASSED [100%]
+
+============================== 3 passed in 0.23s ===============================
+
+
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % >....                                                                                            
+                "attribute_description": "Calculate a risk score using customer income and product price.",
+                "classifier_metadata": json.dumps(self.order.data),
+                "diagrams_metadata": all_diagrams_dump,
+            }
+        )
+
+        assert "Customer" in rag_prompt
+        assert "Product" in rag_prompt
+        assert "Unrelated" not in rag_prompt
+        assert len(rag_prompt) < len(baseline_prompt)
+PY
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % python -m pip install \
+  django==5.0.2 \
+  django-ninja \
+  psycopg2-binary \
+  django-cors-headers \
+  daphne \
+  channels \
+  drf-yasg \
+  pyjwt \
+  networkx \
+  requests
+Requirement already satisfied: django==5.0.2 in ./.venv-thesis-test/lib/python3.11/site-packages (5.0.2)
+Requirement already satisfied: django-ninja in ./.venv-thesis-test/lib/python3.11/site-packages (1.6.2)
+Requirement already satisfied: psycopg2-binary in ./.venv-thesis-test/lib/python3.11/site-packages (2.9.12)
+Collecting django-cors-headers
+  Using cached django_cors_headers-4.9.0-py3-none-any.whl.metadata (16 kB)
+Collecting daphne
+  Using cached daphne-4.2.1-py3-none-any.whl.metadata (1.7 kB)
+Collecting channels
+  Using cached channels-4.3.2-py3-none-any.whl.metadata (4.7 kB)
+Collecting drf-yasg
+  Using cached drf_yasg-1.21.15-py3-none-any.whl.metadata (17 kB)
+Collecting pyjwt
+  Using cached pyjwt-2.12.1-py3-none-any.whl.metadata (4.1 kB)
+Collecting networkx
+  Using cached networkx-3.6.1-py3-none-any.whl.metadata (6.8 kB)
+Collecting requests
+  Downloading requests-2.33.1-py3-none-any.whl.metadata (4.8 kB)
+Requirement already satisfied: asgiref<4,>=3.7.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from django==5.0.2) (3.11.1)
+Requirement already satisfied: sqlparse>=0.3.1 in ./.venv-thesis-test/lib/python3.11/site-packages (from django==5.0.2) (0.5.5)
+Requirement already satisfied: pydantic<3.0.0,>=2.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from django-ninja) (2.13.3)
+Requirement already satisfied: annotated-types>=0.6.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja) (0.7.0)
+Requirement already satisfied: pydantic-core==2.46.3 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja) (2.46.3)
+Requirement already satisfied: typing-extensions>=4.14.1 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja) (4.15.0)
+Requirement already satisfied: typing-inspection>=0.4.2 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja) (0.4.2)
+Collecting autobahn>=22.4.2 (from daphne)
+  Using cached autobahn-25.12.2.tar.gz (13.9 MB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Collecting twisted>=22.4 (from twisted[tls]>=22.4->daphne)
+  Using cached twisted-25.5.0-py3-none-any.whl.metadata (22 kB)
+Collecting djangorestframework>=3.13 (from drf-yasg)
+  Using cached djangorestframework-3.17.1-py3-none-any.whl.metadata (7.9 kB)
+Collecting inflection>=0.3.1 (from drf-yasg)
+  Using cached inflection-0.5.1-py2.py3-none-any.whl.metadata (1.7 kB)
+Requirement already satisfied: packaging>=21.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from drf-yasg) (26.2)
+Collecting pytz>=2021.1 (from drf-yasg)
+  Using cached pytz-2026.1.post1-py2.py3-none-any.whl.metadata (22 kB)
+Collecting pyyaml>=5.1 (from drf-yasg)
+  Downloading pyyaml-6.0.3-cp311-cp311-macosx_11_0_arm64.whl.metadata (2.4 kB)
+Collecting uritemplate>=3.0.0 (from drf-yasg)
+  Using cached uritemplate-4.2.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting charset_normalizer<4,>=2 (from requests)
+  Downloading charset_normalizer-3.4.7-cp311-cp311-macosx_10_9_universal2.whl.metadata (40 kB)
+Requirement already satisfied: idna<4,>=2.5 in ./.venv-thesis-test/lib/python3.11/site-packages (from requests) (3.13)
+Requirement already satisfied: urllib3<3,>=1.26 in ./.venv-thesis-test/lib/python3.11/site-packages (from requests) (2.6.3)
+Requirement already satisfied: certifi>=2023.5.7 in ./.venv-thesis-test/lib/python3.11/site-packages (from requests) (2026.4.22)
+Collecting cbor2>=5.2.0 (from autobahn>=22.4.2->daphne)
+  Downloading cbor2-6.0.0-cp311-cp311-macosx_11_0_arm64.whl.metadata (5.5 kB)
+Collecting cffi>=2.0.0 (from autobahn>=22.4.2->daphne)
+  Using cached cffi-2.0.0-cp311-cp311-macosx_11_0_arm64.whl.metadata (2.6 kB)
+Collecting cryptography>=3.4.6 (from autobahn>=22.4.2->daphne)
+  Downloading cryptography-47.0.0-cp311-abi3-macosx_10_9_universal2.whl.metadata (4.5 kB)
+Collecting hyperlink>=21.0.0 (from autobahn>=22.4.2->daphne)
+  Using cached hyperlink-21.0.0-py2.py3-none-any.whl.metadata (1.5 kB)
+Collecting msgpack>=1.0.2 (from autobahn>=22.4.2->daphne)
+  Downloading msgpack-1.1.2-cp311-cp311-macosx_11_0_arm64.whl.metadata (8.1 kB)
+Collecting py-ubjson>=0.16.1 (from autobahn>=22.4.2->daphne)
+  Using cached py-ubjson-0.16.1.tar.gz (50 kB)
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Preparing metadata (pyproject.toml) ... done
+Collecting txaio>=25.12.2 (from autobahn>=22.4.2->daphne)
+  Using cached txaio-25.12.2-py3-none-any.whl.metadata (7.0 kB)
+Collecting ujson>=4.0.2 (from autobahn>=22.4.2->daphne)
+  Downloading ujson-5.12.0-cp311-cp311-macosx_11_0_arm64.whl.metadata (9.6 kB)
+Collecting pycparser (from cffi>=2.0.0->autobahn>=22.4.2->daphne)
+  Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Collecting attrs>=22.2.0 (from twisted>=22.4->twisted[tls]>=22.4->daphne)
+  Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+Collecting automat>=24.8.0 (from twisted>=22.4->twisted[tls]>=22.4->daphne)
+  Using cached automat-25.4.16-py3-none-any.whl.metadata (8.4 kB)
+Collecting constantly>=15.1 (from twisted>=22.4->twisted[tls]>=22.4->daphne)
+  Using cached constantly-23.10.4-py3-none-any.whl.metadata (1.8 kB)
+Collecting incremental>=24.7.0 (from twisted>=22.4->twisted[tls]>=22.4->daphne)
+  Using cached incremental-24.11.0-py3-none-any.whl.metadata (9.5 kB)
+Collecting zope-interface>=5 (from twisted>=22.4->twisted[tls]>=22.4->daphne)
+  Downloading zope_interface-8.4-cp311-cp311-macosx_11_0_arm64.whl.metadata (46 kB)
+Collecting pyopenssl>=21.0.0 (from twisted[tls]>=22.4->daphne)
+  Downloading pyopenssl-26.1.0-py3-none-any.whl.metadata (19 kB)
+Collecting service-identity>=18.1.0 (from twisted[tls]>=22.4->daphne)
+  Using cached service_identity-24.2.0-py3-none-any.whl.metadata (5.1 kB)
+Collecting pyasn1 (from service-identity>=18.1.0->twisted[tls]>=22.4->daphne)
+  Using cached pyasn1-0.6.3-py3-none-any.whl.metadata (8.4 kB)
+Collecting pyasn1-modules (from service-identity>=18.1.0->twisted[tls]>=22.4->daphne)
+  Using cached pyasn1_modules-0.4.2-py3-none-any.whl.metadata (3.5 kB)
+Using cached django_cors_headers-4.9.0-py3-none-any.whl (12 kB)
+Using cached daphne-4.2.1-py3-none-any.whl (29 kB)
+Using cached channels-4.3.2-py3-none-any.whl (31 kB)
+Using cached drf_yasg-1.21.15-py3-none-any.whl (4.9 MB)
+Using cached pyjwt-2.12.1-py3-none-any.whl (29 kB)
+Using cached networkx-3.6.1-py3-none-any.whl (2.1 MB)
+Downloading requests-2.33.1-py3-none-any.whl (64 kB)
+Downloading charset_normalizer-3.4.7-cp311-cp311-macosx_10_9_universal2.whl (309 kB)
+Downloading cbor2-6.0.0-cp311-cp311-macosx_11_0_arm64.whl (401 kB)
+Using cached cffi-2.0.0-cp311-cp311-macosx_11_0_arm64.whl (180 kB)
+Downloading cryptography-47.0.0-cp311-abi3-macosx_10_9_universal2.whl (7.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.9/7.9 MB 31.2 MB/s  0:00:00
+Using cached djangorestframework-3.17.1-py3-none-any.whl (898 kB)
+Using cached hyperlink-21.0.0-py2.py3-none-any.whl (74 kB)
+Using cached inflection-0.5.1-py2.py3-none-any.whl (9.5 kB)
+Downloading msgpack-1.1.2-cp311-cp311-macosx_11_0_arm64.whl (84 kB)
+Using cached pytz-2026.1.post1-py2.py3-none-any.whl (510 kB)
+Downloading pyyaml-6.0.3-cp311-cp311-macosx_11_0_arm64.whl (175 kB)
+Using cached twisted-25.5.0-py3-none-any.whl (3.2 MB)
+Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+Using cached automat-25.4.16-py3-none-any.whl (42 kB)
+Using cached constantly-23.10.4-py3-none-any.whl (13 kB)
+Using cached incremental-24.11.0-py3-none-any.whl (21 kB)
+Downloading pyopenssl-26.1.0-py3-none-any.whl (58 kB)
+Using cached service_identity-24.2.0-py3-none-any.whl (11 kB)
+Using cached txaio-25.12.2-py3-none-any.whl (31 kB)
+Downloading ujson-5.12.0-cp311-cp311-macosx_11_0_arm64.whl (53 kB)
+Using cached uritemplate-4.2.0-py3-none-any.whl (11 kB)
+Downloading zope_interface-8.4-cp311-cp311-macosx_11_0_arm64.whl (211 kB)
+Using cached pyasn1-0.6.3-py3-none-any.whl (83 kB)
+Using cached pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+Building wheels for collected packages: autobahn, py-ubjson
+  Building wheel for autobahn (pyproject.toml) ... done
+  Created wheel for autobahn: filename=autobahn-25.12.2-cp311-cp311-macosx_26_0_arm64.whl size=621574 sha256=d33ebe1f798d9ff2b6fc778f9540b3bec0b9c77eaf51388b8eb249b4fb47ff1d
+  Stored in directory: /Users/bemmgr/Library/Caches/pip/wheels/23/c0/85/4b9d74104b3fe6b95b0b2c2ffae5ace8ee266ca0fd56ddba37
+  Building wheel for py-ubjson (pyproject.toml) ... done
+  Created wheel for py-ubjson: filename=py_ubjson-0.16.1-cp311-cp311-macosx_26_0_arm64.whl size=38197 sha256=3d55d16d1862663a8c90255bd9ba85ab44c11da9acd2015a104615421593473d
+  Stored in directory: /Users/bemmgr/Library/Caches/pip/wheels/ea/6d/84/2e549e1b2579fafeab6aa931f7ea74c6a72793ae4ecdea38db
+Successfully built autobahn py-ubjson
+Installing collected packages: pytz, py-ubjson, zope-interface, uritemplate, ujson, txaio, pyyaml, pyjwt, pycparser, pyasn1, networkx, msgpack, inflection, incremental, hyperlink, constantly, charset_normalizer, cbor2, automat, attrs, twisted, requests, pyasn1-modules, djangorestframework, django-cors-headers, channels, cffi, drf-yasg, cryptography, service-identity, pyopenssl, autobahn, daphne
+Successfully installed attrs-26.1.0 autobahn-25.12.2 automat-25.4.16 cbor2-6.0.0 cffi-2.0.0 channels-4.3.2 charset_normalizer-3.4.7 constantly-23.10.4 cryptography-47.0.0 daphne-4.2.1 django-cors-headers-4.9.0 djangorestframework-3.17.1 drf-yasg-1.21.15 hyperlink-21.0.0 incremental-24.11.0 inflection-0.5.1 msgpack-1.1.2 networkx-3.6.1 py-ubjson-0.16.1 pyasn1-0.6.3 pyasn1-modules-0.4.2 pycparser-3.0 pyjwt-2.12.1 pyopenssl-26.1.0 pytz-2026.1.post1 pyyaml-6.0.3 requests-2.33.1 service-identity-24.2.0 twisted-25.5.0 txaio-25.12.2 ujson-5.12.0 uritemplate-4.2.0 zope-interface-8.4
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % DJANGO_SETTINGS_MODULE=model.settings \
+POSTGRES_HOST=localhost \
+python manage.py test llm.tests.test_m02_smoke -v 2
+Found 3 test(s).
+Creating test database for alias 'default' ('test_ai4mdestudio')...
+/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py:407: RuntimeWarning: Normally Django will use a connection to the 'postgres' database to avoid running initialization queries against the production database when it's not needed (for example, when running tests). Django was unable to create a connection to the 'postgres' database and will use the first PostgreSQL database instead.
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 275, in ensure_connection
+    self.connect()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 277, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 402, in _nodb_cursor
+    with super()._nodb_cursor() as cursor:
+  File "/Users/bemmgr/.pyenv/versions/3.11.9/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 708, in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 316, in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 292, in _cursor
+    self.ensure_connection()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 274, in ensure_connection
+    with self.wrap_database_errors:
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 275, in ensure_connection
+    self.connect()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 277, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 275, in ensure_connection
+    self.connect()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 277, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/manage.py", line 22, in <module>
+    main()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 413, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 459, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/commands/test.py", line 68, in handle
+    failures = test_runner.run_tests(test_labels)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/test/runner.py", line 1061, in run_tests
+    old_config = self.setup_databases(
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/test/runner.py", line 959, in setup_databases
+    return _setup_databases(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/test/utils.py", line 203, in setup_databases
+    connection.creation.create_test_db(
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/creation.py", line 62, in create_test_db
+    self._create_test_db(verbosity, autoclobber, keepdb)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/creation.py", line 199, in _create_test_db
+    with self._nodb_cursor() as cursor:
+  File "/Users/bemmgr/.pyenv/versions/3.11.9/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 428, in _nodb_cursor
+    with conn.cursor() as cursor:
+         ^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 316, in cursor
+    return self._cursor()
+           ^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 292, in _cursor
+    self.ensure_connection()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 274, in ensure_connection
+    with self.wrap_database_errors:
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 275, in ensure_connection
+    self.connect()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/base/base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/db/backends/postgresql/base.py", line 277, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/psycopg2/__init__.py", line 122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+django.db.utils.OperationalError: connection to server at "localhost" (::1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+connection to server at "localhost" (127.0.0.1), port 5432 failed: Connection refused
+        Is the server running on that host and accepting TCP/IP connections?
+
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % 
+
+
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose config --services
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+postgres
+studio
+studio-api
+studio-prototypes
+traefik
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose ps -a
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+NAME                         IMAGE                      COMMAND                  SERVICE             CREATED          STATUS                      PORTS
+studio-postgres-1            postgres                   "docker-entrypoint.s…"   postgres            46 seconds ago   Exited (1) 45 seconds ago   
+studio-studio-1              studio-studio              "npm run dev -- --ho…"   studio              46 seconds ago   Up 45 seconds               
+studio-studio-api-1          studio-studio-api          "/entrypoint.sh /usr…"   studio-api          45 seconds ago   Up 45 seconds               
+studio-studio-prototypes-1   studio-studio-prototypes   "/usr/src/prototypes…"   studio-prototypes   45 seconds ago   Up 45 seconds               
+traefik                      traefik:v3.6.7             "/entrypoint.sh --ap…"   traefik             46 seconds ago   Up 45 seconds               0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose logs postgres
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+postgres-1  | Error: in 18+, these Docker images are configured to store database data in a
+postgres-1  |        format which is compatible with "pg_ctlcluster" (specifically, using
+postgres-1  |        major-version-specific directory names).  This better reflects how
+postgres-1  |        PostgreSQL itself works, and how upgrades are to be performed.
+postgres-1  | 
+postgres-1  |        See also https://github.com/docker-library/postgres/pull/1259
+postgres-1  | 
+postgres-1  |        Counter to that, there appears to be PostgreSQL data in:
+postgres-1  |          /var/lib/postgresql/data (unused mount/volume)
+postgres-1  | 
+postgres-1  |        This is usually the result of upgrading the Docker image without
+postgres-1  |        upgrading the underlying database using "pg_upgrade" (which requires both
+postgres-1  |        versions).
+postgres-1  | 
+postgres-1  |        The suggested container configuration for 18+ is to place a single mount
+postgres-1  |        at /var/lib/postgresql which will then place PostgreSQL data in a
+postgres-1  |        subdirectory, allowing usage of "pg_upgrade --link" without mount point
+postgres-1  |        boundary issues.
+postgres-1  | 
+postgres-1  |        See https://github.com/docker-library/postgres/issues/37 for a (long)
+postgres-1  |        discussion around this process, and suggestions for how to do so.
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose down -v
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] down 7/7
+ ✔ Container studio-studio-1            Removed                                                                                                            0.7s
+ ✔ Container studio-studio-prototypes-1 Removed                                                                                                            1.1s
+ ✔ Container traefik                    Removed                                                                                                            0.2s
+ ✔ Container studio-studio-api-1        Removed                                                                                                            0.0s
+ ✔ Container studio-postgres-1          Removed                                                                                                            0.0s
+ ✔ Volume studio_pgsql-data             Removed                                                                                                            0.0s
+ ✔ Network ai4mde_traefik               Removed                                                                                                            0.2s
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose up -d --build
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+[+] Building 1.7s (38/38) FINISHED                                                                                                                             
+ => [internal] load local bake definitions                                                                                                                0.0s
+ => => reading from stdin 1.54kB                                                                                                                          0.0s
+ => [studio internal] load build definition from Dockerfile                                                                                               0.0s
+ => => transferring dockerfile: 195B                                                                                                                      0.0s
+ => [studio-api internal] load build definition from Dockerfile                                                                                           0.0s
+ => => transferring dockerfile: 893B                                                                                                                      0.0s
+ => [studio-prototypes internal] load build definition from Dockerfile                                                                                    0.0s
+ => => transferring dockerfile: 853B                                                                                                                      0.0s
+ => [studio internal] load metadata for docker.io/library/node:18                                                                                         0.7s
+ => [studio-api internal] load metadata for docker.io/library/python:3.12.1                                                                               0.7s
+ => [studio-api internal] load .dockerignore                                                                                                              0.0s
+ => => transferring context: 166B                                                                                                                         0.0s
+ => [studio-prototypes internal] load .dockerignore                                                                                                       0.0s
+ => => transferring context: 2B                                                                                                                           0.0s
+ => [studio internal] load .dockerignore                                                                                                                  0.0s
+ => => transferring context: 52B                                                                                                                          0.0s
+ => [studio 1/5] FROM docker.io/library/node:18@sha256:c6ae79e38498325db67193d391e6ec1d224d96c693a8a4d943498556716d3783                                   0.0s
+ => => resolve docker.io/library/node:18@sha256:c6ae79e38498325db67193d391e6ec1d224d96c693a8a4d943498556716d3783                                          0.0s
+ => [studio internal] load build context                                                                                                                  0.0s
+ => => transferring context: 34.75kB                                                                                                                      0.0s
+ => [studio-api internal] load build context                                                                                                              0.6s
+ => => transferring context: 2.42MB                                                                                                                       0.6s
+ => [studio-api venv 1/6] FROM docker.io/library/python:3.12.1@sha256:a3d69b8412f7068fd060ccc7e175825713d5a767e1e14753e75bce6f746c8a7e                    0.0s
+ => => resolve docker.io/library/python:3.12.1@sha256:a3d69b8412f7068fd060ccc7e175825713d5a767e1e14753e75bce6f746c8a7e                                    0.0s
+ => [studio-prototypes internal] load build context                                                                                                       0.0s
+ => => transferring context: 5.41kB                                                                                                                       0.0s
+ => CACHED [studio-api stage-1 2/5] WORKDIR /usr/src/app                                                                                                  0.0s
+ => CACHED [studio-prototypes stage-1 3/5] RUN apt-get update && apt-get install -y cron                                                                  0.0s
+ => CACHED [studio-api venv 2/6] RUN pip install pipx                                                                                                     0.0s
+ => CACHED [studio-api venv 3/6] RUN pipx install "poetry==1.7.1"                                                                                         0.0s
+ => CACHED [studio-api venv 4/6] RUN pipx ensurepath                                                                                                      0.0s
+ => CACHED [studio-prototypes venv 5/6] COPY pyproject.toml poetry.lock ./                                                                                0.0s
+ => CACHED [studio-prototypes venv 6/6] RUN poetry install --no-dev --no-root --no-interaction --no-ansi                                                  0.0s
+ => CACHED [studio-prototypes stage-1 4/5] COPY --from=venv /.venv /usr/src/.venv                                                                         0.0s
+ => CACHED [studio-prototypes stage-1 5/5] COPY . /usr/src/prototypes                                                                                     0.0s
+ => [studio-prototypes] exporting to image                                                                                                                0.1s
+ => => exporting layers                                                                                                                                   0.0s
+ => => exporting manifest sha256:806fed099bf4d36503dcb5fd56b8b248462bc1c4213c7fd1b581d26899b113f7                                                         0.0s
+ => => exporting config sha256:a1e80f65e952ae88aa14c2728772f9978c35f03f386d2b8e0db4c92478365c02                                                           0.0s
+ => => exporting attestation manifest sha256:a3dc564ff67af8593fa2c5339fdbf572402bef6d9614d93d286af9b45f27bac4                                             0.0s
+ => => exporting manifest list sha256:6a30903c0fddd103a1f365ad1e54b42f8a906f1ce9ce78c055e257e505546fcc                                                    0.0s
+ => => naming to docker.io/library/studio-studio-prototypes:latest                                                                                        0.0s
+ => => unpacking to docker.io/library/studio-studio-prototypes:latest                                                                                     0.0s
+ => CACHED [studio 2/5] WORKDIR /usr/src/app                                                                                                              0.0s
+ => CACHED [studio 3/5] COPY . /usr/src/app                                                                                                               0.0s
+ => CACHED [studio 4/5] RUN npm install --frozen-lockfile                                                                                                 0.0s
+ => CACHED [studio 5/5] RUN npm run build                                                                                                                 0.0s
+ => [studio] exporting to image                                                                                                                           0.1s
+ => => exporting layers                                                                                                                                   0.0s
+ => => exporting manifest sha256:4f0b17a7abda4adcc0ff873864555e4f5bdb446a62efc6aa63122b54e2b3769e                                                         0.0s
+ => => exporting config sha256:fb76f2913430fa7ea69bc5bcb7d620b6d0c3926f51bc8a18613e4f089761d200                                                           0.0s
+ => => exporting attestation manifest sha256:7d13e0a13fb518c09f0eeb7af9022c20edcb7eee266c43882a9a264cb93a1d9b                                             0.0s
+ => => exporting manifest list sha256:76f2660b9f994a522a23f189375ca02185cce7c2aabdd9960c0f6c76397e4824                                                    0.0s
+ => => naming to docker.io/library/studio-studio:latest                                                                                                   0.0s
+ => => unpacking to docker.io/library/studio-studio:latest                                                                                                0.0s
+ => [studio-prototypes] resolving provenance for metadata file                                                                                            0.0s
+ => [studio] resolving provenance for metadata file                                                                                                       0.0s
+ => CACHED [studio-api venv 5/6] COPY pyproject.toml poetry.lock ./                                                                                       0.0s
+ => CACHED [studio-api venv 6/6] RUN poetry install --no-dev --no-root --no-interaction --no-ansi                                                         0.0s
+ => CACHED [studio-api stage-1 3/5] COPY --from=venv /.venv /usr/src/.venv                                                                                0.0s
+ => CACHED [studio-api stage-1 4/5] COPY model /usr/src/model                                                                                             0.0s
+ => CACHED [studio-api stage-1 5/5] COPY entrypoint.sh /entrypoint.sh                                                                                     0.0s
+ => [studio-api] exporting to image                                                                                                                       0.0s
+ => => exporting layers                                                                                                                                   0.0s
+ => => exporting manifest sha256:809b744a4807fdde0ed0f2ee5e3fbad2fe8990657ad29f28c3d92d47a34b7a21                                                         0.0s
+ => => exporting config sha256:8a1f8571a5dffe7c30f7e90fcf91070abb9fb1637fc9d8a8a68a0785df0c85d1                                                           0.0s
+ => => exporting attestation manifest sha256:b508dc616ba7e5afc6bc8297d1e08df96cdbf1c7d29b5e8bf8b392db5639402c                                             0.0s
+ => => exporting manifest list sha256:ddd5dbcf0c85d00a76d2397fc6eb3d5848b58e652bc82929f0cb3f2ea5e48865                                                    0.0s
+ => => naming to docker.io/library/studio-studio-api:latest                                                                                               0.0s
+ => => unpacking to docker.io/library/studio-studio-api:latest                                                                                            0.0s
+ => [studio-api] resolving provenance for metadata file                                                                                                   0.0s
+[+] up 10/10
+ ✔ Image studio-studio                  Built                                                                                                              1.8s
+ ✔ Image studio-studio-api              Built                                                                                                              1.8s
+ ✔ Image studio-studio-prototypes       Built                                                                                                              1.8s
+ ✔ Network ai4mde_traefik               Created                                                                                                            0.0s
+ ✔ Volume studio_pgsql-data             Created                                                                                                            0.0s
+ ✔ Container traefik                    Created                                                                                                            0.1s
+ ✔ Container studio-studio-1            Created                                                                                                            0.1s
+ ✔ Container studio-postgres-1          Created                                                                                                            0.1s
+ ✔ Container studio-studio-prototypes-1 Created                                                                                                            0.0s
+ ✔ Container studio-studio-api-1        Created                                                                                                            0.0s
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose ps -a
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+NAME                         IMAGE                      COMMAND                  SERVICE             CREATED         STATUS         PORTS
+studio-postgres-1            postgres                   "docker-entrypoint.s…"   postgres            5 seconds ago   Up 4 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+studio-studio-1              studio-studio              "npm run dev -- --ho…"   studio              5 seconds ago   Up 4 seconds   
+studio-studio-api-1          studio-studio-api          "/entrypoint.sh /usr…"   studio-api          5 seconds ago   Up 4 seconds   
+studio-studio-prototypes-1   studio-studio-prototypes   "/usr/src/prototypes…"   studio-prototypes   5 seconds ago   Up 4 seconds   
+traefik                      traefik:v3.6.7             "/entrypoint.sh --ap…"   traefik             5 seconds ago   Up 4 seconds   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % cd api/model
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % DJANGO_SETTINGS_MODULE=model.settings \
+POSTGRES_HOST=localhost \
+python manage.py test llm.tests.test_m02_smoke -v 2
+Found 3 test(s).
+Creating test database for alias 'default' ('test_ai4mdestudio')...
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, daphne, drf_yasg, messages, model, staticfiles
+  Apply all migrations: admin, auth, contenttypes, diagram, generator, metadata, prose, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying metadata.0001_initial... OK
+  Applying metadata.0002_relation_system_alter_classifier_id_alter_project_id_and_more... OK
+  Applying metadata.0003_remove_classifier_type_remove_relation_type... OK
+  Applying metadata.0004_alter_classifier_system... OK
+  Applying metadata.0005_interface... OK
+  Applying metadata.0006_interface_data... OK
+  Applying metadata.0007_interface_actor... OK
+  Applying diagram.0001_initial... OK
+  Applying diagram.0002_alter_diagram_id_alter_diagram_system_and_more... OK
+  Applying diagram.0003_alter_edge_rel_alter_node_cls... OK
+  Applying generator.0001_initial... OK
+  Applying generator.0002_rename_container_port_prototype_port_and_more... OK
+  Applying generator.0003_prototype_metadata... OK
+  Applying generator.0004_remove_prototype_port_remove_prototype_running_and_more... OK
+  Applying metadata.0008_release... OK
+  Applying metadata.0009_release_created_at... OK
+  Applying metadata.0010_release_release_notes... OK
+  Applying metadata.0011_classifier_project_alter_classifier_system... OK
+  Applying metadata.0012_remove_release_diagrams_remove_release_interfaces_and_more... OK
+  Applying prose.0001_initial... OK
+  Applying prose.0002_pipeline_step... OK
+  Applying prose.0003_alter_pipeline_step... OK
+  Applying sessions.0001_initial... OK
+Destroying test database for alias 'default' ('test_ai4mdestudio')...
+Traceback (most recent call last):
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/manage.py", line 22, in <module>
+    main()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 413, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 459, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/commands/test.py", line 68, in handle
+    failures = test_runner.run_tests(test_labels)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/test/runner.py", line 1067, in run_tests
+    self.run_checks(databases)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/test/runner.py", line 989, in run_checks
+    call_command("check", verbosity=self.verbosity, databases=databases)
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 459, in execute
+    output = self.handle(*args, **options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/commands/check.py", line 76, in handle
+    self.check(
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/management/base.py", line 486, in check
+    all_issues = checks.run_checks(
+                 ^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/checks/registry.py", line 88, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/checks/urls.py", line 14, in check_url_config
+    return check_resolver(resolver)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/core/checks/urls.py", line 24, in check_resolver
+    return check_method()
+           ^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/urls/resolvers.py", line 519, in check
+    for pattern in self.url_patterns:
+                   ^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/urls/resolvers.py", line 738, in url_patterns
+    patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages/django/urls/resolvers.py", line 731, in urlconf_module
+    return import_module(self.urlconf_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/bemmgr/.pyenv/versions/3.11.9/lib/python3.11/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/model/urls.py", line 3, in <module>
+    from model.api import api
+  File "/Users/bemmgr/allCodes/thesisProject/studio/api/model/model/api.py", line 10, in <module>
+    api = NinjaAPI(
+          ^^^^^^^^^
+TypeError: NinjaAPI.__init__() got an unexpected keyword argument 'csrf'
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % DJANGO_SETTINGS_MODULE=model.settings \
+POSTGRES_HOST=localhost \
+python manage.py test llm.tests.test_m02_smoke -v 2 --skip-checks
+usage: manage.py test [-h] [--noinput] [--failfast] [--testrunner TESTRUNNER] [-t TOP_LEVEL] [-p PATTERN] [--keepdb] [--shuffle [SEED]] [-r] [--debug-mode]
+                      [-d] [--parallel [N]] [--tag TAGS] [--exclude-tag EXCLUDE_TAGS] [--pdb] [-b] [--no-faulthandler] [--timing] [-k TEST_NAME_PATTERNS]
+                      [--version] [-v {0,1,2,3}] [--settings SETTINGS] [--pythonpath PYTHONPATH] [--traceback] [--no-color] [--force-color]
+                      [test_label ...]
+manage.py test: error: unrecognized arguments: --skip-checks
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % cd /Users/bemmgr/allCodes/thesisProject/studio
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % grep -R "django-ninja\|ninja" -n \
+  requirements* \
+  pyproject.toml \
+  setup.cfg \
+  setup.py \
+  api/model/requirements* \
+  api/requirements* \
+  config \
+  2>/dev/null
+zsh: no matches found: requirements*
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % 
+
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % grep -n "django-ninja\|ninja\|django =" api/pyproject.toml
+12:django = "5.0.2"
+14:django-ninja = "^1.1.0"
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % grep -n -A 8 -B 2 'name = "django-ninja"' api/poetry.lock
+511-
+512-[[package]]
+513:name = "django-ninja"
+514-version = "1.2.1"
+515-description = "Django Ninja - Fast Django REST framework"
+516-optional = false
+517-python-versions = ">=3.7"
+518-files = [
+519-    {file = "django_ninja-1.2.1-py3-none-any.whl", hash = "sha256:acb7a0005e84acdb0ae96066c42c7f304f988a078d370e5952382b928bb28a08"},
+520-    {file = "django_ninja-1.2.1.tar.gz", hash = "sha256:667ff27304039d4692421709ae532fd62b16a4d34a969ef850d5cd22cb46090a"},
+521-]
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro studio % cd /Users/bemmgr/allCodes/thesisProject/studio/api/model
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % python -m pip uninstall -y django-ninja
+python -m pip install "django-ninja==1.2.1"
+python -m pip show django-ninja
+Found existing installation: django-ninja 1.6.2
+Uninstalling django-ninja-1.6.2:
+  Successfully uninstalled django-ninja-1.6.2
+Collecting django-ninja==1.2.1
+  Downloading django_ninja-1.2.1-py3-none-any.whl.metadata (6.4 kB)
+Requirement already satisfied: Django>=3.1 in ./.venv-thesis-test/lib/python3.11/site-packages (from django-ninja==1.2.1) (5.0.2)
+Requirement already satisfied: pydantic<3.0.0,>=2.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from django-ninja==1.2.1) (2.13.3)
+Requirement already satisfied: annotated-types>=0.6.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja==1.2.1) (0.7.0)
+Requirement already satisfied: pydantic-core==2.46.3 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja==1.2.1) (2.46.3)
+Requirement already satisfied: typing-extensions>=4.14.1 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja==1.2.1) (4.15.0)
+Requirement already satisfied: typing-inspection>=0.4.2 in ./.venv-thesis-test/lib/python3.11/site-packages (from pydantic<3.0.0,>=2.0->django-ninja==1.2.1) (0.4.2)
+Requirement already satisfied: asgiref<4,>=3.7.0 in ./.venv-thesis-test/lib/python3.11/site-packages (from Django>=3.1->django-ninja==1.2.1) (3.11.1)
+Requirement already satisfied: sqlparse>=0.3.1 in ./.venv-thesis-test/lib/python3.11/site-packages (from Django>=3.1->django-ninja==1.2.1) (0.5.5)
+Downloading django_ninja-1.2.1-py3-none-any.whl (2.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 28.9 MB/s  0:00:00
+Installing collected packages: django-ninja
+Successfully installed django-ninja-1.2.1
+Name: django-ninja
+Version: 1.2.1
+Summary: Django Ninja - Fast Django REST framework
+Home-page: https://django-ninja.dev
+Author: Vitaliy Kucheryaviy
+Author-email: ppr.vitaly@gmail.com
+License: 
+Location: /Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/lib/python3.11/site-packages
+Requires: Django, pydantic
+Required-by: 
+(.venv-thesis-test) (base) bemmgr@bemmgrdeMacBook-Pro model % 
