@@ -44,6 +44,9 @@ django_settings_module = "model.settings"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = [
+    "model/**/migrations/*",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
