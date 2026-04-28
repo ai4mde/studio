@@ -1,8 +1,10 @@
 from typing import List, Optional
 
 from ninja import ModelSchema, Schema
+
+from metadata.api.schemas.project import ImportProject
+from metadata.api.schemas.system import ImportSingleSystem
 from metadata.models import Release
-from metadata.api.schemas import ImportProject, ImportSingleSystem
 
 
 class ReadRelease(ModelSchema):

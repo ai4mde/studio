@@ -1,8 +1,10 @@
-from pydantic import BaseModel, model_validator, ValidationError
-from typing import Literal, Union, Optional
-from metadata.specification.base import RelationBase
+from typing import Literal, Optional, Union
 
 from diagram.models import Node
+from pydantic import BaseModel, ValidationError, model_validator
+
+from metadata.specification.base import RelationBase
+
 
 class ControlFlowCondition(BaseModel):
     isElse: bool

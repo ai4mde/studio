@@ -1,9 +1,11 @@
-from django.urls import reverse
-from rest_framework.test import APITestCase
-from generator.models import Prototype
-from metadata.models import Project, System
-from django.contrib.auth.models import User
 from uuid import uuid4
+
+from django.contrib.auth.models import User
+from django.urls import reverse
+from metadata.models import Project, System
+from rest_framework.test import APITestCase
+
+from generator.models import Prototype
 
 prototype_metadata = {
     "diagrams": [],

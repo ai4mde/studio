@@ -1,9 +1,10 @@
 from typing import List, Optional
 from uuid import UUID
 
-from ninja import ModelSchema, Schema
-from diagram.models import Node
 from metadata.specification import Classifier
+from ninja import ModelSchema, Schema
+
+from diagram.models import Node
 
 
 class NodePosition(Schema):

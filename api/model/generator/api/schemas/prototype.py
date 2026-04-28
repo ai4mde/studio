@@ -1,4 +1,5 @@
 from ninja import ModelSchema
+
 from generator.models import Prototype
 
 

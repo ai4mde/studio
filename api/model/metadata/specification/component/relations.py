@@ -1,9 +1,9 @@
-from typing import Literal, Union, Optional
+from typing import Literal, Optional, Union
 
-from pydantic import model_validator
 from diagram.models import Node
-from metadata.specification.base import RelationBase
+from pydantic import model_validator
 
+from metadata.specification.base import RelationBase
 
 
 class Interface(RelationBase):

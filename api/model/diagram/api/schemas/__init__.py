@@ -1,28 +1,26 @@
 from diagram.api.schemas.diagram import (
-    ImportDiagram,
     CreateDiagram,
+    ExportDiagram,
+    FullDiagram,
+    ImportDiagram,
     ReadDiagram,
     UpdateDiagram,
-    FullDiagram,
-    ExportDiagram,
 )
-
-from diagram.api.schemas.node import (
-    CreateNode,
-    PatchNode,
-    ListNodes,
-    NodeSchema,
-    DiagramUsageItem,
-    ClassifierUsageResponse,
-    RelationUsageResponse,
-)
-
 from diagram.api.schemas.edge import (
     CreateEdge,
-    ListEdges,
     EdgeSchema,
-    UpdateEdge,
+    ListEdges,
     PatchEdge,
+    UpdateEdge,
+)
+from diagram.api.schemas.node import (
+    ClassifierUsageResponse,
+    CreateNode,
+    DiagramUsageItem,
+    ListNodes,
+    NodeSchema,
+    PatchNode,
+    RelationUsageResponse,
 )
 
 __all__ = [

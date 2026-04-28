@@ -1,12 +1,13 @@
-from uuid import UUID
 from enum import Enum
 from typing import List, Optional
+from uuid import UUID
 
 from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
-from .node import CreateNode, NodeSchema, ExportNode, ImportNode
+
 from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
+from .node import CreateNode, ExportNode, ImportNode, NodeSchema
 
 
 class DiagramType(str, Enum):

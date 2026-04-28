@@ -1,7 +1,10 @@
+from typing import Literal, Optional, Union
+
 from pydantic import BaseModel, model_validator
-from typing import Union, Literal, Optional
-from metadata.specification.kernel import NamedElement, NamespacedElement, ParentNode
+
 from metadata.models import Classifier
+from metadata.specification.kernel import NamedElement, NamespacedElement, ParentNode
+
 
 class Actor(NamedElement, ParentNode, BaseModel):
     type: Literal["actor"] = "actor"

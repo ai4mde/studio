@@ -1,5 +1,5 @@
-from typing import Optional
 import uuid
+from typing import Optional
 
 from django.db import models, transaction
 
@@ -114,7 +114,7 @@ class System(ImportMixin):
     @classmethod
     @transaction.atomic
     def import_from_json(cls, data, project: Optional[Project] = None):
-        from diagram.models import Diagram # Prevent circular import
+        from diagram.models import Diagram  # Prevent circular import
         system, _ = cls.upsert_from_json(data)
 
         classifier_ids = []

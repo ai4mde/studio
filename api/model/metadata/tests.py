@@ -1,7 +1,9 @@
 # Create your tests here.
 
 from django.test import TestCase
+
 from metadata.models import Project, System
+
 
 class SystemModelTests(TestCase):
     def test_create_system(self):

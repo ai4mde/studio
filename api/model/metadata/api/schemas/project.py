@@ -1,8 +1,9 @@
 from typing import List, Optional
 
 from ninja import ModelSchema, Schema
-from metadata.models import Project, System
+
 from metadata.api.schemas.system import ExportSystem, ImportSystem
+from metadata.models import Project, System
 
 
 class ReadProject(ModelSchema):

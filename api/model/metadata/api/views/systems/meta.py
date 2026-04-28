@@ -1,8 +1,7 @@
-from ninja import Router
 from django.http import HttpRequest
+from ninja import Router
 
 from metadata.api.schemas import MetaSchema
-
 from metadata.models import System
 
 meta = Router()

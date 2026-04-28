@@ -1,8 +1,8 @@
-from diagram.models import System, Diagram
-from diagram.api.schemas import FullDiagram
-from typing import Dict, Any
-from openai import OpenAI
 import os
+from typing import Any, Dict
+
+from openai import OpenAI
+
 
 def execute_prompt(prompt_path: str, prompt_data: Dict[str, Any] ) -> str:
     try:

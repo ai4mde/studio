@@ -1,9 +1,11 @@
+from typing import List, Literal, Optional, Union
 from uuid import UUID
+
 from pydantic import BaseModel, model_validator
-from typing import Literal, List, Optional, Union
 
 from metadata.models import Classifier
 from metadata.specification.kernel import NamedElement
+
 
 class Internal(BaseModel):
     name: str

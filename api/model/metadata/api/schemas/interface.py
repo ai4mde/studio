@@ -1,6 +1,6 @@
-from typing import Optional
 
-from ninja import Schema, ModelSchema
+from ninja import ModelSchema, Schema
+
 from metadata.models import Interface
 
 

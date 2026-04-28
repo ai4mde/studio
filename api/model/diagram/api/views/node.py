@@ -1,21 +1,25 @@
 from typing import List
-from django.http import HttpRequest
+
 from django.core import serializers
 from django.db.models import Q
-
-from ninja import Router, Schema
+from django.http import HttpRequest
+from llm.handler import llm_handler, remove_reply_markdown
+from metadata.models import Classifier as MetaClassifier
+from metadata.models import Relation
+from metadata.specification import Classifier
+from ninja import Router
 from pydantic import BaseModel
 
 import diagram.api.utils as utils
-
-from diagram.api.schemas import CreateNode, PatchNode, NodeSchema, FullDiagram, DiagramUsageItem, ClassifierUsageResponse
-
-from metadata.specification import Classifier
-from metadata.models import Classifier as MetaClassifier, Relation
-
-from diagram.models import Node, Edge, Diagram
-
-from llm.handler import llm_handler, remove_reply_markdown
+from diagram.api.schemas import (
+    ClassifierUsageResponse,
+    CreateNode,
+    DiagramUsageItem,
+    FullDiagram,
+    NodeSchema,
+    PatchNode,
+)
+from diagram.models import Diagram, Edge, Node
 
 node = Router()
 

@@ -1,13 +1,15 @@
+from typing import Annotated, Optional, Union
 from uuid import UUID
-from typing import Annotated, Union, Optional
+
 from ninja import ModelSchema
 from pydantic.fields import Field
-from .activity import ActivityClassifier, ActivityRelation
-from .classes import ClassClassifier, ClassRelation
-from .usecase import UsecaseClassifier, UsecaseRelation
-from .component import ComponentClassifier, ComponentRelation
 
 import metadata.models as models
+
+from .activity import ActivityClassifier, ActivityRelation
+from .classes import ClassClassifier, ClassRelation
+from .component import ComponentClassifier, ComponentRelation
+from .usecase import UsecaseClassifier, UsecaseRelation
 
 Classifier = Annotated[
     Union[

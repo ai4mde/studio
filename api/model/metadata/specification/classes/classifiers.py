@@ -1,5 +1,6 @@
+from typing import List, Literal, Union
+
 from pydantic import BaseModel
-from typing import Literal, List, Union
 
 from metadata.specification.kernel import (
     Attribute,

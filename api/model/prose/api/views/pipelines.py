@@ -1,14 +1,19 @@
 from typing import List
-from ninja import Router
-from prose.api.schemas.pipelines import PipelineSchema, PipelineRequirementsSchema, PipelineModelSchema, PipelineResultsSchema
+
 from diagram.api.schemas import FullDiagram
-
-from prose.models import Pipeline
 from diagram.models import Diagram
-
 from llm.handler import llm_handler
-from .utils import parse_llm_response
+from ninja import Router
 
+from prose.api.schemas.pipelines import (
+    PipelineModelSchema,
+    PipelineRequirementsSchema,
+    PipelineResultsSchema,
+    PipelineSchema,
+)
+from prose.models import Pipeline
+
+from .utils import parse_llm_response
 
 pipelines = Router()
 

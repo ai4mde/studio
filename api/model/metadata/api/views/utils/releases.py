@@ -1,11 +1,10 @@
-from typing import Dict, Any
 import logging
 import uuid
+from typing import Any, Dict
 
+from diagram.models import Diagram, Edge, Node
 from django.db import transaction
-
-from metadata.models import System, Interface, Release, Classifier, Relation
-from diagram.models import Diagram, Node, Edge
+from metadata.models import Classifier, Interface, Relation, Release, System
 
 DIAGRAM_TYPE_MAP = {
     "classes": "classes",

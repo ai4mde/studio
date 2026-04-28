@@ -1,6 +1,5 @@
-from ninja import Router, Schema
-
 from metadata.specification import Classifier, Relation
+from ninja import Router, Schema
 
 from .views import diagrams
 

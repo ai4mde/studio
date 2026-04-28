@@ -1,8 +1,8 @@
+import metadata.specification as spec
 from django.db.models import Count, Q
+from metadata.models import Relation
 
 from diagram.models import Diagram, Edge, Node
-from metadata.models import Relation
-import metadata.specification as spec
 
 
 def create_edge(diagram: Diagram, data: spec.Relation, source: Node, target: Node):

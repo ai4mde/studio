@@ -1,18 +1,26 @@
 from typing import List
 from uuid import UUID
+
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404
-
+from metadata.specification import Relation
 from ninja import Router
 from pydantic import BaseModel
 
 import diagram.api.utils as utils
-
-from diagram.api.schemas import CreateEdge, EdgeSchema, UpdateEdge, DiagramUsageItem, RelationUsageResponse, PatchEdge
-from diagram.models import Node, Edge, Edge
-from diagram.api.utils.edge import fetch_and_update_edges, remove_edge_from_diagram, delete_relation_everywhere
-from metadata.specification import Relation
-
+from diagram.api.schemas import (
+    CreateEdge,
+    DiagramUsageItem,
+    EdgeSchema,
+    RelationUsageResponse,
+    UpdateEdge,
+)
+from diagram.api.utils.edge import (
+    delete_relation_everywhere,
+    fetch_and_update_edges,
+    remove_edge_from_diagram,
+)
+from diagram.models import Edge, Node
 
 edge = Router()
 

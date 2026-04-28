@@ -1,11 +1,17 @@
 from typing import List
 
 from django.core.exceptions import ObjectDoesNotExist
-
-from metadata.api.schemas import CreateProject, ReadProject, UpdateProject, ExportProject, ImportProject
-from metadata.models import Project
 from ninja import Router
 from ninja.responses import Response
+
+from metadata.api.schemas import (
+    CreateProject,
+    ExportProject,
+    ImportProject,
+    ReadProject,
+    UpdateProject,
+)
+from metadata.models import Project
 
 projects = Router()
 

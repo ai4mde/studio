@@ -1,8 +1,9 @@
-from metadata.models import System, Classifier, Interface
-from metadata.api.schemas import ReadInterface
-from typing import List, Dict, Any, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
+
+from metadata.api.schemas import ReadInterface
+from metadata.models import Classifier, Interface, System
 
 
 class CrudType(Enum):

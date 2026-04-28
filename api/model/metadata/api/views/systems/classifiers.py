@@ -1,11 +1,10 @@
-from ninja import Router, Query
-from pydantic import BaseModel
 from django.http import HttpRequest
+from ninja import Query, Router
+from pydantic import BaseModel
 
 from metadata.api.schemas import MetaClassifiersSchema
+from metadata.models import Classifier, System
 from metadata.specification import ClassifierSchema
-
-from metadata.models import System, Classifier
 
 classifiers = Router()
 

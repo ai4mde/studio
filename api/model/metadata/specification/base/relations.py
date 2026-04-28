@@ -1,5 +1,7 @@
+from typing import List, Optional
+
 from pydantic import BaseModel
-from typing import Optional, List
+
 
 class PositionHandlers(BaseModel):
     x: int

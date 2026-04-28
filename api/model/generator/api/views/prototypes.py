@@ -1,11 +1,13 @@
-from typing import List, Optional, Dict
-from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
-from generator.models import Prototype
+import json
+import os
+from typing import Dict, List, Optional
+
+import requests
 from metadata.models import System
 from ninja import Router
-import json
-import requests
-import os
+
+from generator.api.schemas import CreatePrototype, ReadPrototype, UpdatePrototype
+from generator.models import Prototype
 
 prototypes = Router()
 
