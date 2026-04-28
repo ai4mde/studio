@@ -55,7 +55,7 @@ jobs:
         run: pipx install poetry
 
       - name: Install backend dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --no-root
 
       - name: Run Ruff
         run: poetry run ruff check .
