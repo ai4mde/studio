@@ -61,7 +61,7 @@ jobs:
         run: find model -name "tests.py" -o -path "*/tests/*.py"
 
       - name: Run Django tests
-        run: poetry run python model/manage.py test metadata -v 2
+        run: poetry run python model/manage.py test metadata diagram generator prose prompt -v 2
 
       - name: Run Ruff
         run: poetry run ruff check .
