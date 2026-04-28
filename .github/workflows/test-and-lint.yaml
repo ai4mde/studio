@@ -57,8 +57,11 @@ jobs:
       - name: Install backend dependencies
         run: poetry install --no-interaction --no-root
 
+      - name: Show test files
+        run: find model -name "tests.py" -o -path "*/tests/*.py"
+
       - name: Run Django tests
-        run: poetry run python model/manage.py test
+        run: poetry run python model/manage.py test -v 2
 
       - name: Run Ruff
         run: poetry run ruff check .
