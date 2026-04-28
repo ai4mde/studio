@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.9, pytest-9.0.3, pluggy-1.6.0 -- /Users/bemmgr/allCodes/thesisProject/studio/api/model/.venv-thesis-test/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/bemmgr/allCodes/thesisProject/studio/api
+configfile: pyproject.toml
+plugins: anyio-4.13.0
+collecting ... collected 18 items
+
+llm/tests/test_m01_smoke.py::test_all_registered_templates_resolve_to_existing_files PASSED [  5%]
+llm/tests/test_m01_smoke.py::test_diagram_attribute_template_renders_with_complete_context PASSED [ 11%]
+llm/tests/test_m01_smoke.py::test_missing_context_key_raises_explicit_undefined_error PASSED [ 16%]
+llm/tests/test_m01_smoke.py::test_rag_template_renders_related_classes_and_methods PASSED [ 22%]
+llm/tests/test_m01_smoke.py::test_m01_attribute_template_is_functionally_equivalent_to_baseline_constant PASSED [ 27%]
+llm/tests/test_m01_smoke.py::test_m01_method_template_is_functionally_equivalent_to_baseline_constant PASSED [ 33%]
+llm/tests/test_m04_smoke.py::test_json_parser_accepts_clean_fenced_and_preamble_json[\n{\n  "classifiers": [\n    {\n      "name": "Loan",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "amount",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Requested loan amount",\n          "body": null\n        }\n      ]\n    },\n    {\n      "name": "Applicant",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "income",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Applicant income",\n          "body": null\n        }\n      ]\n    }\n  ],\n  "relations": [\n    {\n      "source": "Loan",\n      "target": "Applicant",\n      "type": "association",\n      "multiplicity": {\n        "source": "1",\n        "target": "1"\n      }\n    }\n  ]\n}\n] PASSED [ 38%]
+llm/tests/test_m04_smoke.py::test_json_parser_accepts_clean_fenced_and_preamble_json[```json\n\n{\n  "classifiers": [\n    {\n      "name": "Loan",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "amount",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Requested loan amount",\n          "body": null\n        }\n      ]\n    },\n    {\n      "name": "Applicant",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "income",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Applicant income",\n          "body": null\n        }\n      ]\n    }\n  ],\n  "relations": [\n    {\n      "source": "Loan",\n      "target": "Applicant",\n      "type": "association",\n      "multiplicity": {\n        "source": "1",\n        "target": "1"\n      }\n    }\n  ]\n}\n\n```] PASSED [ 44%]
+llm/tests/test_m04_smoke.py::test_json_parser_accepts_clean_fenced_and_preamble_json[Here is the response:\n\n{\n  "classifiers": [\n    {\n      "name": "Loan",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "amount",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Requested loan amount",\n          "body": null\n        }\n      ]\n    },\n    {\n      "name": "Applicant",\n      "type": "class",\n      "attributes": [\n        {\n          "name": "income",\n          "type": "int",\n          "enum": null,\n          "derived": false,\n          "description": "Applicant income",\n          "body": null\n        }\n      ]\n    }\n  ],\n  "relations": [\n    {\n      "source": "Loan",\n      "target": "Applicant",\n      "type": "association",\n      "multiplicity": {\n        "source": "1",\n        "target": "1"\n      }\n    }\n  ]\n}\n\nThanks.] PASSED [ 50%]
+llm/tests/test_m04_smoke.py::test_json_parser_reports_empty_response PASSED [ 55%]
+llm/tests/test_m04_smoke.py::test_json_parser_reports_no_json_text_as_decode_error PASSED [ 61%]
+llm/tests/test_m04_smoke.py::test_json_parser_reports_json_decode_error_for_truncated_json PASSED [ 66%]
+llm/tests/test_m04_smoke.py::test_json_parser_reports_schema_validation_error_for_wrong_schema PASSED [ 72%]
+llm/tests/test_m04_smoke.py::test_code_parser_accepts_python_fenced_code PASSED [ 77%]
+llm/tests/test_m04_smoke.py::test_code_parser_accepts_no_fence_valid_python PASSED [ 83%]
+llm/tests/test_m04_smoke.py::test_code_parser_rejects_explanation_plus_code_as_syntax_error PASSED [ 88%]
+llm/tests/test_m04_smoke.py::test_code_parser_reports_python_syntax_error PASSED [ 94%]
+llm/tests/test_m04_smoke.py::test_code_parser_reports_short_plain_text PASSED [100%]
+
+============================== 18 passed in 0.07s ==============================
