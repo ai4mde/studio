@@ -232,13 +232,14 @@ export const Sections: React.FC<Props> = () => {
                                     </div>
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Primary Class</h3>
-                                        <div className="flex gap-2">
+                                        <div className="flex max-w-full flex-wrap gap-2">
                                             {isSuccessClasses && (
                                                 classes.map((e) => (
                                                     <Chip
                                                         key={e.id}
                                                         onClick={() => toggleClass(index, e)}
                                                         color={selectedClass === e.id ? 'primary' : 'neutral'}
+                                                        sx={{ maxWidth: '100%' }}
                                                     >
                                                         {e.data.name}
                                                     </Chip>
