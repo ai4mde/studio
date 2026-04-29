@@ -3,11 +3,13 @@ Interface UI Generation API — generate 3 style variants for an interface,
 preview them, and refine via human-in-the-loop.
 
 Endpoints:
-  POST /interface-gen/generate/                          Start variant generation
-  GET  /interface-gen/{session_id}/                      Get session state + variants
-  GET  /interface-gen/{session_id}/preview/{variant_id}/ Preview HTML for a variant
-  POST /interface-gen/{session_id}/refine/                Refine a selected variant
-  POST /interface-gen/{session_id}/apply/                 Apply variant to the interface
+  POST /interface-gen/generate/                                  Start variant generation
+  GET  /interface-gen/{session_id}/                              Get session state + variants
+  GET  /interface-gen/{session_id}/preview/{variant_id}/         Preview HTML for a variant
+  POST /interface-gen/{session_id}/refine/                       Refine a selected variant
+  POST /interface-gen/{session_id}/apply/                        Apply variant to the interface
+  GET  /interface-gen/restore/{interface_id}/                    Restore saved session
+  POST /interface-gen/{interface_id}/composition/override/       Manual region/binding override
 """
 import json
 import logging
@@ -58,6 +60,14 @@ class ApplySchema(Schema):
     variant_id: str
 
 
+class CompositionOverrideSchema(Schema):
+    page_id: str
+    section_id: Optional[str] = None          # required for binding-level changes
+    new_region_id: Optional[str] = None       # move section to this region
+    new_component_variant: Optional[str] = None  # change component variant
+    new_skeleton_id: Optional[str] = None     # swap entire page skeleton
+
+
 class ErrorSchema(Schema):
     error: str
 
@@ -74,30 +84,110 @@ def _parse_json_response(raw: str) -> dict:
 
 
 def _build_page_structure(interface_data: dict) -> str:
-    """Summarise the interface's page/section structure for the LLM."""
+    """Summarise the interface's page/section structure for the LLM, including IDs."""
     pages = interface_data.get("pages", [])
     sections = interface_data.get("sections", [])
+    sections_by_id = {s.get("id", ""): s for s in sections if isinstance(s, dict) and s.get("id")}
     lines = []
     for page in pages:
         name = page.get("name", "Unnamed")
-        lines.append(f"Page: {name}")
-        # find sections belonging to this page
         page_id = page.get("id", "")
-        page_sections = [s for s in sections if str(s.get("page", "")) == str(page_id)]
-        if not page_sections:
-            # try matching by name
-            page_sections = [s for s in sections if s.get("pageName", "") == name]
-        for sec in page_sections:
+        lines.append(f"Page: {name} [id: {page_id}]")
+
+        # Collect section IDs for this page: prefer explicit sections[] refs, then fallback matches
+        page_section_ids: list[str] = []
+        for ref in page.get("sections", []):
+            if isinstance(ref, dict):
+                sec_id = ref.get("value") or ref.get("id", "")
+                if sec_id:
+                    page_section_ids.append(sec_id)
+        if not page_section_ids:
+            matched = [s for s in sections if str(s.get("page", "")) == str(page_id)]
+            if not matched:
+                matched = [s for s in sections if s.get("pageName", "") == name]
+            page_section_ids = [s.get("id", "") for s in matched if s.get("id")]
+
+        for sec_id in page_section_ids:
+            sec = sections_by_id.get(sec_id)
+            if not sec:
+                continue
             sec_name = sec.get("name", "Section")
+            ops = sec.get("operations") or {}
+            op_list = [k for k, v in ops.items() if v]
             attrs = sec.get("attributes", [])
             attr_names = [a.get("name", "") for a in attrs if a.get("name")]
+            line = f"  Section: {sec_name} [id: {sec_id}]"
+            if op_list:
+                line += f" — Operations: {', '.join(op_list)}"
             if attr_names:
-                lines.append(f"  Section: {sec_name} — Fields: {', '.join(attr_names)}")
-            else:
-                lines.append(f"  Section: {sec_name}")
+                line += f" — Fields: {', '.join(attr_names)}"
+            lines.append(line)
+
     if not lines:
         lines.append("(No page structure defined yet)")
     return "\n".join(lines)
+
+
+def _extract_variant_structure_payload(variant: dict, session: dict) -> dict:
+    payload: dict = {
+        "selectedVariantId": variant.get("id"),
+    }
+
+    candidate_variants = session.get("variants") or []
+    if isinstance(candidate_variants, list):
+        payload["candidateVariants"] = [v for v in candidate_variants if isinstance(v, dict)]
+
+    composition = variant.get("composition")
+    if isinstance(composition, dict) and composition:
+        # Start with the selected variant's pagesById
+        merged_composition: dict = dict(composition)
+
+        # Build candidateVariantsByPageId so the pipeline can show the full
+        # set of layout options per page in preview/composition-preview.
+        candidates_by_page: dict = {}
+        for v in payload["candidateVariants"]:
+            v_id = v.get("id", "")
+            v_comp = v.get("composition") or {}
+            if not isinstance(v_comp, dict):
+                continue
+            for page_id, page_comp in (v_comp.get("pagesById") or {}).items():
+                if not isinstance(page_comp, dict):
+                    continue
+                if page_id not in candidates_by_page:
+                    candidates_by_page[page_id] = []
+                candidates_by_page[page_id].append({"id": v_id, "composition": page_comp})
+        if candidates_by_page:
+            merged_composition["candidateVariantsByPageId"] = candidates_by_page
+
+        payload["composition"] = merged_composition
+
+    return payload
+
+
+def _apply_structure_payload(interface_data: dict, structure_payload: dict) -> dict:
+    merged = dict(interface_data) if isinstance(interface_data, dict) else {}
+
+    selected_variant_id = structure_payload.get("selectedVariantId")
+    if selected_variant_id:
+        merged["selectedVariantId"] = selected_variant_id
+        # Also stamp each page dict so the pipeline can resolve composition per-page
+        pages = merged.get("pages")
+        if isinstance(pages, list):
+            merged["pages"] = [
+                {**p, "selectedVariantId": selected_variant_id}
+                if isinstance(p, dict) else p
+                for p in pages
+            ]
+
+    candidate_variants = structure_payload.get("candidateVariants")
+    if isinstance(candidate_variants, list):
+        merged["candidateVariants"] = candidate_variants
+
+    composition = structure_payload.get("composition")
+    if isinstance(composition, dict) and composition:
+        merged["composition"] = composition
+
+    return merged
 
 
 def _get_token(tokens: dict, key: str, fallback: str = "") -> str:
@@ -351,8 +441,27 @@ def _combine_django_templates(base_html: str, page_html: str) -> str:
     return base_html
 
 
+def _composition_summary(variant: dict) -> dict:
+    """Return a compact structural summary of a variant's composition for the frontend."""
+    comp = variant.get("composition") or {}
+    pages_by_id = comp.get("pagesById") or {}
+    pages = []
+    for page_id, page_comp in pages_by_id.items():
+        if not isinstance(page_comp, dict):
+            continue
+        pages.append({
+            "page_id": page_id,
+            "skeleton_id": page_comp.get("skeleton_id", ""),
+            "page_archetype": page_comp.get("page_archetype", ""),
+            "region_count": len(page_comp.get("region_order") or []),
+            "binding_count": len(page_comp.get("bindings") or []),
+        })
+    return {"pages": pages}
+
+
 def _render_variant_preview(interface_data: dict, variant: dict,
-                            interface_name: str, interface_id: str) -> str:
+                            interface_name: str, interface_id: str,
+                            page_index: int = 0) -> str:
     """Render a standalone HTML preview using the prototype generator's own
     data path (loading_json_utils → ApplicationComponent) and templates
     (base.html.jinja2 + page.html.jinja2) via two-pass rendering:
@@ -374,7 +483,10 @@ def _render_variant_preview(interface_data: dict, variant: dict,
     tokens = variant.get("tokens", {})
 
     # Inject variant theme into interface data before building metadata
-    preview_data = dict(interface_data)
+    preview_data = _apply_structure_payload(
+        interface_data,
+        _extract_variant_structure_payload(variant, {"variants": [variant]}),
+    )
     preview_data["theme"] = {"name": variant.get("name", ""), "tokens": tokens}
 
     # Build metadata JSON from DB (diagrams + interface) and get real objects
@@ -399,7 +511,8 @@ def _render_variant_preview(interface_data: dict, variant: dict,
         if not hasattr(page, 'screen_type'):
             page.screen_type = detect_screen_type(page)
 
-    first_page = app_component.pages[0]
+    safe_index = max(0, min(page_index, len(app_component.pages) - 1))
+    first_page = app_component.pages[safe_index]
     theme = app_component.theme or {}
     inline_css = _render_style_css(theme)
 
@@ -561,6 +674,26 @@ def generate_variants(request, body: GenerateSchema):
     if not variants or len(variants) < 3:
         return 400, {"error": "LLM did not produce 3 variants"}
 
+    # Convert composition_pages list into {pagesById} dict that the pipeline reads
+    for variant in variants:
+        comp_pages = variant.pop("composition_pages", None)
+        if isinstance(comp_pages, list) and comp_pages:
+            pages_by_id = {}
+            for cp in comp_pages:
+                if not isinstance(cp, dict):
+                    continue
+                page_id = cp.get("page_id", "")
+                if not page_id:
+                    continue
+                pages_by_id[page_id] = {
+                    "page_archetype": cp.get("page_archetype", ""),
+                    "skeleton_id": cp.get("skeleton_id", ""),
+                    "region_order": cp.get("region_order") or [],
+                    "bindings": cp.get("bindings") or [],
+                }
+            if pages_by_id:
+                variant["composition"] = {"pagesById": pages_by_id}
+
     session_id = str(uuid.uuid4())
     _sessions[session_id] = {
         "session_id": session_id,
@@ -589,19 +722,34 @@ def generate_variants(request, body: GenerateSchema):
 
 @interface_gen_router.get("/{session_id}/", response={200: dict, 404: ErrorSchema})
 def get_session(request, session_id: str):
-    """Get current state of a generation session."""
+    """Get current state of a generation session, including composition summaries."""
     session = _sessions.get(session_id)
     if not session:
         return 404, {"error": "Session not found"}
+
+    # Collect page names for multi-page preview navigation
+    iface_data = session.get("interface_data") or {}
+    page_names = [
+        {"id": p.get("id", ""), "name": p.get("name", "")}
+        for p in (iface_data.get("pages") or [])
+        if isinstance(p, dict) and p.get("id")
+    ]
 
     return {
         "session_id": session_id,
         "interface_id": session["interface_id"],
         "original_prompt": session["original_prompt"],
         "selected_variant_id": session["selected_variant_id"],
-        "refine_history": session["refine_history"],
+        "refine_history": [h["prompt"] if isinstance(h, dict) else h for h in session["refine_history"]],
+        "applied": session.get("applied", False),
+        "pages": page_names,
         "variants": [
-            {"id": v["id"], "name": v["name"], "description": v["description"]}
+            {
+                "id": v["id"],
+                "name": v["name"],
+                "description": v["description"],
+                "composition_summary": _composition_summary(v),
+            }
             for v in session["variants"]
         ],
     }
@@ -609,7 +757,7 @@ def get_session(request, session_id: str):
 
 @interface_gen_router.get("/{session_id}/variant/{variant_id}/", response={200: dict, 404: ErrorSchema})
 def get_variant_tokens(request, session_id: str, variant_id: str):
-    """Return full variant data including tokens for the Styling editor."""
+    """Return full variant data including tokens and composition for the Styling editor."""
     session = _sessions.get(session_id)
     if not session:
         return 404, {"error": "Session not found"}
@@ -621,13 +769,15 @@ def get_variant_tokens(request, session_id: str, variant_id: str):
         "name": variant["name"],
         "description": variant.get("description", ""),
         "tokens": variant.get("tokens", {}),
+        "composition": variant.get("composition"),
+        "composition_summary": _composition_summary(variant),
     }
 
 
 @interface_gen_router.get("/{session_id}/preview/{variant_id}/", auth=None)
 @xframe_options_exempt
-def preview_variant(request, session_id: str, variant_id: str):
-    """Render preview HTML for a specific variant."""
+def preview_variant(request, session_id: str, variant_id: str, page_index: int = 0):
+    """Render preview HTML for a specific variant and optional page index."""
     session = _sessions.get(session_id)
     if not session:
         return HttpResponse("<h1>Session not found</h1>", status=404, content_type="text/html")
@@ -641,13 +791,14 @@ def preview_variant(request, session_id: str, variant_id: str):
         variant,
         session["interface_name"],
         session["interface_id"],
+        page_index=page_index,
     )
     return HttpResponse(html, content_type="text/html")
 
 
 @interface_gen_router.post("/{session_id}/refine/", response={200: dict, 404: ErrorSchema, 400: ErrorSchema})
 def refine_variant(request, session_id: str, body: RefineSchema):
-    """Refine a selected variant with a follow-up prompt."""
+    """Refine a selected variant — supports both style and structural composition changes."""
     session = _sessions.get(session_id)
     if not session:
         return 404, {"error": "Session not found"}
@@ -656,13 +807,45 @@ def refine_variant(request, session_id: str, body: RefineSchema):
     if not variant:
         return 400, {"error": f"Variant {body.variant_id} not found"}
 
+    # Snapshot state before refinement for undo history
+    before_snapshot = {
+        "tokens": dict(variant.get("tokens") or {}),
+        "composition": json.loads(json.dumps(variant.get("composition"))) if variant.get("composition") else None,
+        "name": variant.get("name", ""),
+        "description": variant.get("description", ""),
+    }
+
+    # Build composition context for the LLM
+    current_comp = variant.get("composition") or {}
+    pages_by_id = current_comp.get("pagesById") or {}
+    comp_lines = []
+    for pid, pc in pages_by_id.items():
+        if not isinstance(pc, dict):
+            continue
+        skel = pc.get("skeleton_id", "?")
+        bindings = pc.get("bindings") or []
+        comp_lines.append(f"  Page {pid}: skeleton={skel}")
+        for b in bindings:
+            comp_lines.append(f"    {b.get('region_id','?')} ← {b.get('section_id','?')} [{b.get('capability','?')}]")
+    current_composition_str = "\n".join(comp_lines) if comp_lines else "(no composition)"
+
+    current_skeleton_ids = ", ".join(
+        pc.get("skeleton_id", "") for pc in pages_by_id.values() if isinstance(pc, dict)
+    ) or "(none)"
+
+    iface_data = session.get("interface_data") or {}
+    page_structure = _build_page_structure(iface_data)
+
     prompt = AGENT_INTERFACE_REFINE.format(
         system_name=session["system_name"],
         interface_name=session["interface_name"],
         original_prompt=session["original_prompt"],
         variant_name=variant["name"],
         variant_description=variant.get("description", ""),
+        current_skeleton_id=current_skeleton_ids,
         current_tokens=json.dumps(variant["tokens"], indent=2),
+        current_composition=current_composition_str,
+        page_structure=page_structure,
         refine_prompt=body.prompt,
     )
 
@@ -678,22 +861,63 @@ def refine_variant(request, session_id: str, body: RefineSchema):
     variant["description"] = result.get("description", variant.get("description", ""))
     variant["tokens"] = result.get("tokens", variant["tokens"])
 
+    # Apply structural composition changes if the LLM returned them
+    structural_changed = False
+    new_comp_pages = result.get("composition_pages")
+    if isinstance(new_comp_pages, list) and new_comp_pages:
+        pages_by_id_new = {}
+        for cp in new_comp_pages:
+            if not isinstance(cp, dict):
+                continue
+            pid = cp.get("page_id", "")
+            if not pid:
+                continue
+            pages_by_id_new[pid] = {
+                "page_archetype": cp.get("page_archetype", ""),
+                "skeleton_id": cp.get("skeleton_id", ""),
+                "region_order": cp.get("region_order") or [],
+                "bindings": cp.get("bindings") or [],
+            }
+        if pages_by_id_new:
+            variant["composition"] = {"pagesById": pages_by_id_new}
+            structural_changed = True
+
     session["selected_variant_id"] = body.variant_id
-    session["refine_history"].append(body.prompt)
+
+    # Store snapshot in history (text prompt + before/after state)
+    after_snapshot = {
+        "tokens": dict(variant.get("tokens") or {}),
+        "composition": json.loads(json.dumps(variant.get("composition"))) if variant.get("composition") else None,
+        "name": variant.get("name", ""),
+        "description": variant.get("description", ""),
+    }
+    session["refine_history"].append({
+        "prompt": body.prompt,
+        "variant_id": body.variant_id,
+        "structural_changed": structural_changed,
+        "before": before_snapshot,
+        "after": after_snapshot,
+    })
 
     # Persist updated session to DB
     _persist_session(session_id)
 
     return {
         "session_id": session_id,
-        "variant": {"id": variant["id"], "name": variant["name"], "description": variant["description"]},
-        "refine_history": session["refine_history"],
+        "variant": {
+            "id": variant["id"],
+            "name": variant["name"],
+            "description": variant["description"],
+            "composition_summary": _composition_summary(variant),
+        },
+        "structural_changed": structural_changed,
+        "refine_history": [h["prompt"] if isinstance(h, dict) else h for h in session["refine_history"]],
     }
 
 
 @interface_gen_router.post("/{session_id}/apply/", response={200: dict, 404: ErrorSchema, 400: ErrorSchema})
 def apply_variant(request, session_id: str, body: ApplySchema):
-    """Apply the selected variant's theme to the interface and persist."""
+    """Apply the selected variant's theme and structure metadata to the interface and persist."""
     from metadata.models import Interface
 
     session = _sessions.get(session_id)
@@ -714,6 +938,8 @@ def apply_variant(request, session_id: str, body: ApplySchema):
         "name": variant["name"],
         "tokens": variant["tokens"],
     }
+    structure_payload = _extract_variant_structure_payload(variant, session)
+    data = _apply_structure_payload(data, structure_payload)
     # Sync extracted colors into styling so Styling tab reflects the applied theme
     _s = _extract_styling_from_tokens(variant["tokens"])
     existing_styling = data.get("styling", {})
@@ -731,10 +957,39 @@ def apply_variant(request, session_id: str, body: ApplySchema):
         "variantId": variant["id"],
         "variantName": variant["name"],
         "refineHistory": session["refine_history"],
+        "selectedVariantId": structure_payload.get("selectedVariantId"),
     }
+
+    # Write composition directly onto each page.composition as well (robustness:
+    # retrieve_page_composition() prefers page.composition over the top-level pagesById)
+    comp_pages_by_id = (structure_payload.get("composition") or {}).get("pagesById") or {}
+    if comp_pages_by_id:
+        updated_pages = []
+        for p in data.get("pages") or []:
+            if isinstance(p, dict):
+                pid = p.get("id", "")
+                if pid in comp_pages_by_id:
+                    p = {**p, "composition": comp_pages_by_id[pid]}
+            updated_pages.append(p)
+        data["pages"] = updated_pages
+
     # Mark session as applied (keep it so the design page can restore it)
     session["applied"] = True
     session["selected_variant_id"] = body.variant_id
+    session_interface_data: dict = {}
+    if isinstance(session.get("interface_data"), dict):
+        session_interface_data = session["interface_data"]
+    session_interface_data = _apply_structure_payload(session_interface_data, structure_payload)
+    session_interface_data.update({
+        "theme": data["theme"],
+        "styling": data["styling"] if "styling" in data else data.get("styling"),
+        "designerMeta": data["designerMeta"],
+        "selectedVariantId": data.get("selectedVariantId"),
+    })
+    # Mirror page.composition into session data too
+    if data.get("pages"):
+        session_interface_data["pages"] = data["pages"]
+    session["interface_data"] = session_interface_data
     iface.data = data
     iface.save(update_fields=["data"])
 
@@ -756,15 +1011,109 @@ def restore_session(request, interface_id: str):
         return 404, {"error": "No saved session for this interface"}
 
     session = _sessions[session_id]
+    iface_data_r = session.get("interface_data") or {}
+    page_names_r = [
+        {"id": p.get("id", ""), "name": p.get("name", "")}
+        for p in (iface_data_r.get("pages") or [])
+        if isinstance(p, dict) and p.get("id")
+    ]
     return {
         "session_id": session_id,
         "interface_id": session["interface_id"],
         "original_prompt": session["original_prompt"],
         "selected_variant_id": session["selected_variant_id"],
-        "refine_history": session["refine_history"],
+        "refine_history": [h["prompt"] if isinstance(h, dict) else h for h in session["refine_history"]],
         "applied": session.get("applied", False),
+        "pages": page_names_r,
         "variants": [
-            {"id": v["id"], "name": v["name"], "description": v["description"]}
+            {
+                "id": v["id"],
+                "name": v["name"],
+                "description": v["description"],
+                "composition_summary": _composition_summary(v),
+            }
             for v in session["variants"]
         ],
+    }
+
+
+@interface_gen_router.post("/{interface_id}/composition/override/", response={200: dict, 400: ErrorSchema, 404: ErrorSchema})
+def override_composition(request, interface_id: str, body: CompositionOverrideSchema):
+    """Manually override region/section placement or component variant in the applied composition.
+
+    - Move a section to a different region: provide section_id + new_region_id.
+    - Change a binding's component variant: provide section_id + new_component_variant.
+    - Swap the entire page skeleton: provide new_skeleton_id (resets region_order).
+    Changes are persisted directly to Interface.data without going through the LLM.
+    """
+    from metadata.models import Interface
+    from generator.composition import SKELETON_REGISTRY
+
+    try:
+        iface = Interface.objects.get(pk=interface_id)
+    except Interface.DoesNotExist:
+        return 404, {"error": f"Interface {interface_id} not found"}
+
+    data = iface.data if isinstance(iface.data, dict) else {}
+
+    pages = data.get("pages") or []
+    page = next((p for p in pages if isinstance(p, dict) and p.get("id") == body.page_id), None)
+    if not page:
+        return 400, {"error": f"Page {body.page_id} not found in this interface"}
+
+    # Resolve the active composition: page-level first, then top-level pagesById
+    composition = page.get("composition") or {}
+    top_comp = data.get("composition") or {}
+    if not composition and isinstance(top_comp, dict):
+        composition = (top_comp.get("pagesById") or {}).get(body.page_id) or {}
+    if not composition:
+        return 400, {"error": "No composition found for this page — apply a variant first"}
+
+    composition = dict(composition)
+
+    # ── Skeleton swap ─────────────────────────────────────────────────────────
+    if body.new_skeleton_id:
+        sk = SKELETON_REGISTRY.get(body.new_skeleton_id)
+        if not sk:
+            return 400, {"error": f"Skeleton {body.new_skeleton_id!r} is not in the registry"}
+        composition["skeleton_id"] = body.new_skeleton_id
+        composition["page_archetype"] = sk.archetype
+        composition["region_order"] = list(sk.region_order)
+
+    # ── Binding-level override ────────────────────────────────────────────────
+    if body.section_id:
+        if not body.new_region_id and not body.new_component_variant:
+            return 400, {"error": "Provide new_region_id and/or new_component_variant when specifying section_id"}
+
+        bindings = list(composition.get("bindings") or [])
+        idx = next(
+            (i for i, b in enumerate(bindings) if isinstance(b, dict) and b.get("section_id") == body.section_id),
+            None,
+        )
+        if idx is None:
+            return 400, {"error": f"Section {body.section_id} not found in composition bindings"}
+
+        binding = dict(bindings[idx])
+        if body.new_region_id:
+            binding["region_id"] = body.new_region_id
+        if body.new_component_variant:
+            binding["component_variant"] = body.new_component_variant
+        bindings[idx] = binding
+        composition["bindings"] = bindings
+
+    # ── Persist back ─────────────────────────────────────────────────────────
+    updated_pages = [
+        {**p, "composition": composition} if isinstance(p, dict) and p.get("id") == body.page_id else p
+        for p in pages
+    ]
+    pages_by_id = dict((top_comp.get("pagesById") or {}))
+    pages_by_id[body.page_id] = composition
+    updated_top_comp = {**top_comp, "pagesById": pages_by_id}
+
+    iface.data = {**data, "pages": updated_pages, "composition": updated_top_comp}
+    iface.save(update_fields=["data"])
+
+    return {
+        "page_id": body.page_id,
+        "composition": composition,
     }

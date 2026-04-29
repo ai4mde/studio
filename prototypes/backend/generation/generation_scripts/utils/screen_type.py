@@ -35,6 +35,17 @@ def detect_screen_type(page: "Page") -> str:
     if getattr(page, "type", "normal") == "activity":
         return "activity"
 
+    active_composition = getattr(page, "active_composition", {}) or {}
+    page_archetype = str(active_composition.get("page_archetype") or "").lower()
+    if page_archetype in {"dashboard", "analytics-dashboard"}:
+        return "dashboard"
+    if page_archetype in {"wizard", "checkout-wizard", "onboarding-wizard"}:
+        return "wizard"
+    if page_archetype in {"modal", "dialog"}:
+        return "modal"
+    if page_archetype in {"form", "detail-form"}:
+        return "form"
+
     name_lower = page.name.lower()
 
     if any(kw in name_lower for kw in _DASHBOARD_KEYWORDS):

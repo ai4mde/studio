@@ -1,13 +1,24 @@
 import { authAxios } from "$auth/state/auth";
 import { baseURL } from "$shared/globals";
-import { RefreshCw, Sparkles, Check, MessageSquare, Wand2 } from "lucide-react";
+import { RefreshCw, Sparkles, Check, MessageSquare, Wand2, Layout, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
 type VariantSummary = {
     id: string;
     name: string;
     description: string;
+    composition_summary?: {
+        pages: Array<{
+            page_id: string;
+            skeleton_id: string;
+            page_archetype: string;
+            region_count: number;
+            binding_count: number;
+        }>;
+    };
 };
+
+type PageInfo = { id: string; name: string };
 
 type Props = {
     interfaceId: string;
@@ -15,20 +26,50 @@ type Props = {
     onVariantTokensChange?: (theme: { name: string; tokens: Record<string, string> }) => void;
 };
 
+function SkeletonBadge({ skeletonId }: { skeletonId: string }) {
+    if (!skeletonId) return null;
+    const parts = skeletonId.split("/");
+    const label = parts[parts.length - 1] ?? skeletonId;
+    return (
+        <span className="inline-flex items-center gap-1 rounded bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 text-[10px] font-mono text-indigo-600">
+            <Layout size={9} />
+            {label}
+        </span>
+    );
+}
+
+function CompositionSummaryBar({ variant }: { variant: VariantSummary }) {
+    const pages = variant.composition_summary?.pages ?? [];
+    if (pages.length === 0) return null;
+    return (
+        <div className="flex items-center gap-2 flex-wrap px-1">
+            {pages.map((p) => (
+                <SkeletonBadge key={p.page_id} skeletonId={p.skeleton_id} />
+            ))}
+        </div>
+    );
+}
+
 const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTokensChange }) => {
     const [prompt, setPrompt] = useState("");
     const [generating, setGenerating] = useState(false);
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [variants, setVariants] = useState<VariantSummary[]>([]);
+    const [pages, setPages] = useState<PageInfo[]>([]);
     const [selectedVariant, setSelectedVariant] = useState<string | null>(null);
+    const [selectedPageIndex, setSelectedPageIndex] = useState(0);
     const [refinePrompt, setRefinePrompt] = useState("");
     const [refining, setRefining] = useState(false);
     const [applying, setApplying] = useState(false);
     const [error, setError] = useState("");
     const [refineHistory, setRefineHistory] = useState<string[]>([]);
     const [applied, setApplied] = useState(false);
-    const iframeRefs = useRef<Record<string, number>>({});
+    const iframeKeys = useRef<Record<string, number>>({});
     const [restoring, setRestoring] = useState(true);
+
+    const bumpIframe = (variantId: string) => {
+        iframeKeys.current[variantId] = (iframeKeys.current[variantId] || 0) + 1;
+    };
 
     const pushVariantTheme = async (sid: string, variantId: string, fallbackName: string) => {
         if (!onVariantTokensChange) return;
@@ -38,10 +79,6 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
             );
             onVariantTokensChange({ name: data.name ?? fallbackName, tokens: data.tokens ?? {} });
         } catch { /* non-critical */ }
-    };
-
-    const syncVariantToStyling = async (sid: string, variantId: string, fallbackName: string) => {
-        await pushVariantTheme(sid, variantId, fallbackName);
     };
 
     // Restore saved session on mount
@@ -55,6 +92,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                 if (cancelled) return;
                 setSessionId(data.session_id);
                 setVariants(data.variants || []);
+                setPages(data.pages || []);
                 setRefineHistory(data.refine_history || []);
                 setSelectedVariant(data.selected_variant_id || null);
                 setPrompt(data.original_prompt || "");
@@ -78,8 +116,10 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
         setGenerating(true);
         setError("");
         setVariants([]);
+        setPages([]);
         setSessionId(null);
         setSelectedVariant(null);
+        setSelectedPageIndex(0);
         setRefineHistory([]);
         setApplied(false);
         try {
@@ -89,6 +129,12 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
             }, { timeout: 120000 });
             setSessionId(data.session_id);
             setVariants(data.variants);
+            // Fetch session to get pages list and full composition_summary
+            try {
+                const { data: sess } = await authAxios.get(`/v1/generator/interface-gen/${data.session_id}/`);
+                setPages(sess.pages || []);
+                if (sess.variants) setVariants(sess.variants);
+            } catch { /* non-critical */ }
             if (data.variants?.length > 0) {
                 const first = data.variants[0];
                 await pushVariantTheme(data.session_id, first.id, first.name);
@@ -106,26 +152,25 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
         setRefining(true);
         setError("");
         try {
+            const activeVariantId = selectedVariant;
             const { data } = await authAxios.post(
                 `/v1/generator/interface-gen/${sessionId}/refine/`,
-                { variant_id: selectedVariant, prompt: refinePrompt.trim() },
+                { variant_id: activeVariantId, prompt: refinePrompt.trim() },
                 { timeout: 120000 },
             );
-            // Update variant info
             const updated = data.variant;
             setVariants((prev) =>
                 prev.map((v) =>
-                    v.id === updated.id ? { ...v, name: updated.name, description: updated.description } : v,
+                    v.id === updated.id
+                        ? { ...v, name: updated.name, description: updated.description, composition_summary: updated.composition_summary }
+                        : v,
                 ),
             );
             setRefineHistory(data.refine_history || []);
             setRefinePrompt("");
-            // Force iframe refresh
-            iframeRefs.current[selectedVariant] = (iframeRefs.current[selectedVariant] || 0) + 1;
-            // Trigger re-render
-            setSelectedVariant((prev) => prev);
-            // Re-sync refined tokens to Styling tab
-            await syncVariantToStyling(sessionId!, selectedVariant, data.variant?.name ?? "");
+            bumpIframe(activeVariantId);
+            setSelectedVariant((prev) => prev); // force re-render
+            await pushVariantTheme(sessionId, activeVariantId, updated.name ?? "");
         } catch (err) {
             console.error(err);
             setError(err instanceof Error ? err.message : "Refinement failed");
@@ -167,14 +212,15 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                     <Wand2 size={40} className="text-indigo-400" />
                     <h2 className="text-lg font-semibold text-gray-800">AI Interface Generator</h2>
                     <p className="text-sm text-gray-500 text-center max-w-md">
-                        Describe how you want the interface to look. The AI will generate 3 distinct style variants for you to preview and refine.
+                        Describe the interface style. The AI will generate 3 structurally distinct layout variants —
+                        each with a different page skeleton and section arrangement — for you to compare, refine, and apply.
                     </p>
                 </div>
                 <div className="w-full max-w-lg flex flex-col gap-3">
                     <textarea
                         className="w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                         rows={4}
-                        placeholder="e.g. Modern dark theme with purple accents, clean typography, rounded cards with subtle shadows..."
+                        placeholder="e.g. Modern e-commerce product page — dark hero section, prominent buy-box, tabbed specifications below..."
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                         onKeyDown={(e) => {
@@ -193,12 +239,12 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                         {generating ? (
                             <>
                                 <RefreshCw size={16} className="animate-spin" />
-                                Generating 3 Variants…
+                                Generating 3 Layout Variants…
                             </>
                         ) : (
                             <>
                                 <Sparkles size={16} />
-                                Generate 3 Variants
+                                Generate 3 Layout Variants
                             </>
                         )}
                     </button>
@@ -213,20 +259,16 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
         );
     }
 
-    // Applied — don't show a separate screen, continue showing variants
-    // The "applied" badge is shown in the header below
-
-    // Auto-select first variant as the active tab
     const activeTab = selectedVariant || (variants.length > 0 ? variants[0].id : null);
+    const activeVariant = variants.find((v) => v.id === activeTab) ?? null;
 
-    // Session active — show variants as tabs with large preview
     return (
         <div className="flex flex-col" style={{ height: "calc(100vh - 200px)" }}>
             {/* Header row */}
             <div className="flex items-center justify-between shrink-0 px-4 py-2 border-b bg-gray-50">
                 <div className="flex items-center gap-2 truncate max-w-md">
                     <p className="text-xs text-gray-400 truncate">
-                        Prompt: &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
+                        &ldquo;{variants.length > 0 ? prompt : "..."}&rdquo;
                     </p>
                     {applied && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-50 border border-green-200 px-2 py-0.5 text-xs font-medium text-green-700">
@@ -238,7 +280,9 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                     onClick={() => {
                         setSessionId(null);
                         setVariants([]);
+                        setPages([]);
                         setSelectedVariant(null);
+                        setSelectedPageIndex(0);
                         setRefineHistory([]);
                         setApplied(false);
                     }}
@@ -249,7 +293,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
             </div>
 
             {/* Variant tabs */}
-            <div className="flex items-center shrink-0 border-b bg-white">
+            <div className="flex items-start shrink-0 border-b bg-white overflow-x-auto">
                 {variants.map((v) => {
                     const isActive = activeTab === v.id;
                     return (
@@ -257,30 +301,66 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                             key={v.id}
                             onClick={() => {
                                 setSelectedVariant(v.id);
-                                syncVariantToStyling(sessionId!, v.id, v.name);
+                                pushVariantTheme(sessionId!, v.id, v.name);
                             }}
-                            className={`relative px-5 py-3 text-sm font-medium transition-colors ${
+                            className={`flex flex-col gap-0.5 px-4 py-2.5 text-sm font-medium transition-colors text-left shrink-0 ${
                                 isActive
                                     ? "text-indigo-600 border-b-2 border-indigo-600 bg-white"
                                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                             }`}
                         >
-                            <span>{v.name}</span>
-                            <span className="ml-2 text-xs font-normal text-gray-400 hidden sm:inline">
-                                {v.description && v.description.length > 50
-                                    ? v.description.slice(0, 50) + "…"
-                                    : v.description}
+                            <span className="flex items-center gap-1.5">
+                                {v.name}
                             </span>
+                            <CompositionSummaryBar variant={v} />
+                            {v.description && (
+                                <span className="text-[10px] font-normal text-gray-400 max-w-[200px] truncate hidden sm:block">
+                                    {v.description}
+                                </span>
+                            )}
                         </button>
                     );
                 })}
             </div>
 
+            {/* Page navigation (shown only when interface has multiple pages) */}
+            {pages.length > 1 && (
+                <div className="shrink-0 flex items-center gap-1 px-3 py-1.5 border-b bg-gray-50 overflow-x-auto">
+                    <button
+                        onClick={() => setSelectedPageIndex((i) => Math.max(0, i - 1))}
+                        disabled={selectedPageIndex === 0}
+                        className="p-0.5 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                    >
+                        <ChevronLeft size={14} />
+                    </button>
+                    {pages.map((p, idx) => (
+                        <button
+                            key={p.id}
+                            onClick={() => setSelectedPageIndex(idx)}
+                            className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${
+                                idx === selectedPageIndex
+                                    ? "bg-indigo-100 text-indigo-700"
+                                    : "text-gray-500 hover:bg-gray-100"
+                            }`}
+                        >
+                            {p.name || `Page ${idx + 1}`}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => setSelectedPageIndex((i) => Math.min(pages.length - 1, i + 1))}
+                        disabled={selectedPageIndex === pages.length - 1}
+                        className="p-0.5 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                    >
+                        <ChevronRight size={14} />
+                    </button>
+                </div>
+            )}
+
             {/* Large preview area */}
             <div className="flex-1 min-h-0 bg-gray-100 overflow-hidden">
                 {variants.map((v) => {
                     const isActive = activeTab === v.id;
-                    const refreshKey = iframeRefs.current[v.id] || 0;
+                    const refreshKey = (iframeKeys.current[v.id] || 0) * 100 + selectedPageIndex;
                     return (
                         <div
                             key={v.id}
@@ -288,7 +368,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                         >
                             <iframe
                                 key={`${v.id}_${refreshKey}`}
-                                src={`${baseURL}/v1/generator/interface-gen/${sessionId}/preview/${v.id}/`}
+                                src={`${baseURL}/v1/generator/interface-gen/${sessionId}/preview/${v.id}/?page_index=${selectedPageIndex}`}
                                 className="w-full h-full border-0"
                                 style={{ minHeight: "500px" }}
                                 sandbox="allow-same-origin allow-scripts"
@@ -306,7 +386,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                     <input
                         type="text"
                         className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300"
-                        placeholder={`Refine "${variants.find((v) => v.id === activeTab)?.name || ""}" — e.g. darker background, rounder buttons...`}
+                        placeholder={`Refine "${activeVariant?.name ?? ""}" — style: "darker bg, rounded buttons" or layout: "move filters to sidebar"`}
                         value={refinePrompt}
                         onChange={(e) => setRefinePrompt(e.target.value)}
                         onKeyDown={(e) => {
@@ -346,7 +426,7 @@ const InterfaceGenerate: React.FC<Props> = ({ interfaceId, systemId, onVariantTo
                         ) : (
                             <Check size={14} />
                         )}
-                        {applied ? "Re-apply Theme" : "Apply Theme"}
+                        {applied ? "Re-apply Layout + Theme" : "Apply Layout + Theme"}
                     </button>
                 </div>
 

@@ -1,0 +1,349 @@
+{
+  "classifiers": [
+    { "id": "actor-customer-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": null, "name": "Customer", "type": "actor" } },
+    { "id": "actor-guest-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": null, "name": "Guest", "type": "actor" } },
+    { "id": "actor-seller-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": null, "name": "Seller", "type": "actor" } },
+    { "id": "actor-system-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": null, "name": "System", "type": "actor" } },
+
+    { "id": "sys-boundary-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "name": "Bol.com Shop System", "type": "system_boundary", "height": 1600, "width": 1600 } },
+
+    { "id": "cls-customer-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Customer", "type": "class", "attributes": [
+      { "name": "email", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "first_name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "last_name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "phone", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-product-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Product", "type": "class", "attributes": [
+      { "name": "name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "brand", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "description", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "rating", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "review_count", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "in_stock", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-product-variant-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "ProductVariant", "type": "class", "attributes": [
+      { "name": "color", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "size", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "sku", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "original_price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "discount", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "quantity_available", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "image_url", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-product-image-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "ProductImage", "type": "class", "attributes": [
+      { "name": "image_url", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "alt_text", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "is_primary", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-category-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Category", "type": "class", "attributes": [
+      { "name": "name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "slug", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-seller-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Seller", "type": "class", "attributes": [
+      { "name": "name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "rating", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "review_count", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "description", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Cart", "type": "class", "attributes": [
+      { "name": "total_price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "item_count", "type": "int", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-cart-item-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "CartItem", "type": "class", "attributes": [
+      { "name": "quantity", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "unit_price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "subtotal", "type": "int", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-order-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Order", "type": "class", "attributes": [
+      { "name": "order_number", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "status", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "total_price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "created_at", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-order-item-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "OrderItem", "type": "class", "attributes": [
+      { "name": "product_name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "quantity", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "unit_price", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "subtotal", "type": "int", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-review-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Review", "type": "class", "attributes": [
+      { "name": "rating", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "title", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "body", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "created_at", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "verified_purchase", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-payment-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Payment", "type": "class", "attributes": [
+      { "name": "payment_method", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "amount", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "status", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "transaction_id", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-address-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Address", "type": "class", "attributes": [
+      { "name": "street", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "city", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "postcode", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "country", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "is_default", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-wishlist-item-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "WishlistItem", "type": "class", "attributes": [
+      { "name": "added_at", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-coupon-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Coupon", "type": "class", "attributes": [
+      { "name": "code", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "discount", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "discount_type", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "min_order_value", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "valid_until", "type": "str", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-shipping-policy-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "ShippingPolicy", "type": "class", "attributes": [
+      { "name": "name", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "delivery_date", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "delivery_cost", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "is_express", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "cls-return-policy-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "ReturnPolicy", "type": "class", "attributes": [
+      { "name": "days_to_return", "type": "int", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "description", "type": "str", "enum": null, "derived": false, "description": null, "body": null },
+      { "name": "free_return", "type": "bool", "enum": null, "derived": false, "description": null, "body": null }
+    ], "methods": [], "abstract": false, "leaf": false } },
+
+    { "id": "uc-browse-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Browse Products", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-search-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Search Products", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-filter-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Filter Products", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-view-product-detail-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "View Product Detail", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-select-variant-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Select Product Variant", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-add-to-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Add to Cart", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-add-to-wishlist-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Add to Wishlist", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-view-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "View Cart", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-apply-coupon-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Apply Coupon", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-checkout-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Checkout", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-place-order-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Place Order", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-track-order-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Track Order", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-write-review-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Write Review", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-manage-account-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Manage Account", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-manage-addresses-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Manage Addresses", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-view-wishlist-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "View Wishlist", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+    { "id": "uc-submit-return-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "parentNode": "sys-boundary-001", "namespace": "", "name": "Submit Return Request", "type": "usecase", "precondition": "", "postcondition": "", "trigger": "", "scenarios": [], "activities": [], "actions": [], "classes": [], "application_model": [] } },
+
+    { "id": "v1-ctl-initial-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "initial", "role": "control", "activity_scope": "activity", "scheduled": false, "schedule": "" } },
+    { "id": "v1-ctl-fork-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "fork", "role": "control" } },
+    { "id": "v1-ctl-join-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "join", "role": "control" } },
+    { "id": "v1-ctl-decision-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "add_to_cart_or_wishlist", "decisionInputFlow": "", "page": "" } },
+    { "id": "v1-ctl-merge-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v1-ctl-final-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "final", "role": "control", "activity_scope": "activity" } },
+
+    { "id": "v1-act-browse-category-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Browse Category", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-search-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Search Products", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-filter-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Filter Products", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-sort-products-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Sort Products", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-view-product-list-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Product List", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-view-product-detail-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Product Detail", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-select-variant-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Select Variant", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-add-to-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Add to Cart", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v1-act-add-to-wishlist-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Add to Wishlist", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+
+    { "id": "v1-obj-product-list-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Product", "type": "object", "role": "object", "cls": "cls-product-001", "clsName": "Product", "state": "Listed" } },
+    { "id": "v1-obj-product-detail-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Product", "type": "object", "role": "object", "cls": "cls-product-001", "clsName": "Product", "state": "Viewed" } },
+    { "id": "v1-obj-variant-selected-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "ProductVariant", "type": "object", "role": "object", "cls": "cls-product-variant-001", "clsName": "ProductVariant", "state": "Selected" } },
+    { "id": "v1-obj-cart-item-added-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "CartItem", "type": "object", "role": "object", "cls": "cls-cart-item-001", "clsName": "CartItem", "state": "Added" } },
+    { "id": "v1-obj-wishlist-item-added-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "WishlistItem", "type": "object", "role": "object", "cls": "cls-wishlist-item-001", "clsName": "WishlistItem", "state": "Added" } },
+
+    { "id": "v2-ctl-initial-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "initial", "role": "control", "activity_scope": "activity", "scheduled": false, "schedule": "" } },
+    { "id": "v2-ctl-decision-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "cart_empty", "decisionInputFlow": "", "page": "" } },
+    { "id": "v2-ctl-merge-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v2-ctl-decision-coupon-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "has_coupon", "decisionInputFlow": "", "page": "" } },
+    { "id": "v2-ctl-merge-coupon-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v2-ctl-fork-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "fork", "role": "control" } },
+    { "id": "v2-ctl-join-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "join", "role": "control" } },
+    { "id": "v2-ctl-decision-payment-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "payment_approved", "decisionInputFlow": "", "page": "" } },
+    { "id": "v2-ctl-merge-final-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v2-ctl-final-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "final", "role": "control", "activity_scope": "activity" } },
+
+    { "id": "v2-act-view-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Cart", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-browse-empty-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Browse Products from Empty Cart", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-review-cart-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Review Cart", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-apply-coupon-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Apply Coupon", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-select-shipping-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Select Shipping", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-enter-payment-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Enter Payment Details", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-review-summary-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Review Order Summary", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-confirm-order-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Confirm Order", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v2-act-validate-order-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Validate Order", "type": "action", "role": "action", "isAutomatic": true, "customCode": "def custom_code(active_process): pass", "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-system-001", "actorNodeName": "System" } },
+    { "id": "v2-act-process-payment-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Process Payment", "type": "action", "role": "action", "isAutomatic": true, "customCode": "def custom_code(active_process): pass", "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-system-001", "actorNodeName": "System" } },
+    { "id": "v2-act-send-confirmation-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Send Order Confirmation", "type": "action", "role": "action", "isAutomatic": true, "customCode": "def custom_code(active_process): pass", "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-system-001", "actorNodeName": "System" } },
+    { "id": "v2-act-show-payment-error-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Show Payment Error", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+
+    { "id": "v2-obj-cart-empty-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Cart", "type": "object", "role": "object", "cls": "cls-cart-001", "clsName": "Cart", "state": "Empty" } },
+    { "id": "v2-obj-cart-filled-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Cart", "type": "object", "role": "object", "cls": "cls-cart-001", "clsName": "Cart", "state": "Filled" } },
+    { "id": "v2-obj-order-pending-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Order", "type": "object", "role": "object", "cls": "cls-order-001", "clsName": "Order", "state": "Pending" } },
+    { "id": "v2-obj-payment-processing-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Payment", "type": "object", "role": "object", "cls": "cls-payment-001", "clsName": "Payment", "state": "Processing" } },
+    { "id": "v2-obj-order-confirmed-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Order", "type": "object", "role": "object", "cls": "cls-order-001", "clsName": "Order", "state": "Confirmed" } },
+    { "id": "v2-obj-payment-failed-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Payment", "type": "object", "role": "object", "cls": "cls-payment-001", "clsName": "Payment", "state": "Failed" } },
+
+    { "id": "v3-ctl-initial-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "initial", "role": "control", "activity_scope": "activity", "scheduled": false, "schedule": "" } },
+    { "id": "v3-ctl-decision-new-user-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "is_new_user", "decisionInputFlow": "", "page": "" } },
+    { "id": "v3-ctl-merge-login-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v3-ctl-fork-dashboard-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "fork", "role": "control" } },
+    { "id": "v3-ctl-join-dashboard-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "join", "role": "control" } },
+    { "id": "v3-ctl-decision-return-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "decision", "role": "control", "decisionInput": "wants_return", "decisionInputFlow": "", "page": "" } },
+    { "id": "v3-ctl-merge-return-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "merge", "role": "control", "merge_spec": "", "is_combine_duplicate": false, "page": "" } },
+    { "id": "v3-ctl-final-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "type": "final", "role": "control", "activity_scope": "activity" } },
+
+    { "id": "v3-act-login-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Login", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-register-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Register", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-view-dashboard-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Dashboard", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-view-order-history-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Order History", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-view-wishlist-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "View Wishlist", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-edit-profile-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Edit Profile", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-submit-return-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Submit Return Request", "type": "action", "role": "action", "isAutomatic": false, "customCode": null, "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-customer-001", "actorNodeName": "Customer" } },
+    { "id": "v3-act-update-account-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Update Account", "type": "action", "role": "action", "isAutomatic": true, "customCode": "def custom_code(active_process): pass", "localPrecondition": "", "localPostcondition": "", "body": "", "operation": null, "publish": null, "subscribe": null, "classes": null, "application_models": null, "page": null, "actorNode": "actor-system-001", "actorNodeName": "System" } },
+
+    { "id": "v3-obj-customer-anonymous-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Customer", "type": "object", "role": "object", "cls": "cls-customer-001", "clsName": "Customer", "state": "Anonymous" } },
+    { "id": "v3-obj-customer-registered-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Customer", "type": "object", "role": "object", "cls": "cls-customer-001", "clsName": "Customer", "state": "Registered" } },
+    { "id": "v3-obj-customer-authenticated-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Customer", "type": "object", "role": "object", "cls": "cls-customer-001", "clsName": "Customer", "state": "Authenticated" } },
+    { "id": "v3-obj-order-list-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Order", "type": "object", "role": "object", "cls": "cls-order-001", "clsName": "Order", "state": "Listed" } },
+    { "id": "v3-obj-wishlist-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "WishlistItem", "type": "object", "role": "object", "cls": "cls-wishlist-item-001", "clsName": "WishlistItem", "state": "Listed" } },
+    { "id": "v3-obj-profile-updated-001", "system_id": "bol-shop-system-001", "system_name": "Bol.com Shop", "data": { "namespace": "", "name": "Customer", "type": "object", "role": "object", "cls": "cls-customer-001", "clsName": "Customer", "state": "Profile Updated" } }
+  ],
+
+  "relations": [
+    { "id": "rel-int-customer-browse-001", "source": "actor-customer-001", "target": "uc-browse-products-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-search-001", "source": "actor-customer-001", "target": "uc-search-products-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-filter-001", "source": "actor-customer-001", "target": "uc-filter-products-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-view-detail-001", "source": "actor-customer-001", "target": "uc-view-product-detail-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-select-variant-001", "source": "actor-customer-001", "target": "uc-select-variant-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-add-cart-001", "source": "actor-customer-001", "target": "uc-add-to-cart-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-add-wishlist-001", "source": "actor-customer-001", "target": "uc-add-to-wishlist-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-view-cart-001", "source": "actor-customer-001", "target": "uc-view-cart-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-apply-coupon-001", "source": "actor-customer-001", "target": "uc-apply-coupon-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-checkout-001", "source": "actor-customer-001", "target": "uc-checkout-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-place-order-001", "source": "actor-customer-001", "target": "uc-place-order-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-track-order-001", "source": "actor-customer-001", "target": "uc-track-order-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-write-review-001", "source": "actor-customer-001", "target": "uc-write-review-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-manage-account-001", "source": "actor-customer-001", "target": "uc-manage-account-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-manage-addresses-001", "source": "actor-customer-001", "target": "uc-manage-addresses-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-view-wishlist-001", "source": "actor-customer-001", "target": "uc-view-wishlist-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-customer-submit-return-001", "source": "actor-customer-001", "target": "uc-submit-return-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-guest-browse-001", "source": "actor-guest-001", "target": "uc-browse-products-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-guest-search-001", "source": "actor-guest-001", "target": "uc-search-products-001", "data": { "type": "interaction", "position_handlers": [] } },
+    { "id": "rel-int-guest-view-detail-001", "source": "actor-guest-001", "target": "uc-view-product-detail-001", "data": { "type": "interaction", "position_handlers": [] } },
+
+    { "id": "rel-assoc-product-variant-001", "source": "cls-product-001", "target": "cls-product-variant-001", "data": { "type": "association", "label": "has variants", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-image-001", "source": "cls-product-001", "target": "cls-product-image-001", "data": { "type": "association", "label": "has images", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-category-001", "source": "cls-product-001", "target": "cls-category-001", "data": { "type": "association", "label": "belongs to", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-seller-001", "source": "cls-product-001", "target": "cls-seller-001", "data": { "type": "association", "label": "sold by", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-review-001", "source": "cls-product-001", "target": "cls-review-001", "data": { "type": "association", "label": "has reviews", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-shipping-001", "source": "cls-product-001", "target": "cls-shipping-policy-001", "data": { "type": "association", "label": "ships via", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-product-return-001", "source": "cls-product-001", "target": "cls-return-policy-001", "data": { "type": "association", "label": "governed by", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-category-parent-001", "source": "cls-category-001", "target": "cls-category-001", "data": { "type": "association", "label": "parent category", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "0..1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-cart-cartitem-001", "source": "cls-cart-001", "target": "cls-cart-item-001", "data": { "type": "association", "label": "contains", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-cartitem-variant-001", "source": "cls-cart-item-001", "target": "cls-product-variant-001", "data": { "type": "association", "label": "references", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-customer-cart-001", "source": "cls-customer-001", "target": "cls-cart-001", "data": { "type": "association", "label": "owns", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-customer-order-001", "source": "cls-customer-001", "target": "cls-order-001", "data": { "type": "association", "label": "places", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-customer-address-001", "source": "cls-customer-001", "target": "cls-address-001", "data": { "type": "association", "label": "has", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-customer-wishlist-001", "source": "cls-customer-001", "target": "cls-wishlist-item-001", "data": { "type": "association", "label": "saves", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-customer-review-001", "source": "cls-customer-001", "target": "cls-review-001", "data": { "type": "association", "label": "writes", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-wishlist-variant-001", "source": "cls-wishlist-item-001", "target": "cls-product-variant-001", "data": { "type": "association", "label": "references", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-order-orderitem-001", "source": "cls-order-001", "target": "cls-order-item-001", "data": { "type": "association", "label": "contains", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "*" }, "position_handlers": [] } },
+    { "id": "rel-assoc-order-payment-001", "source": "cls-order-001", "target": "cls-payment-001", "data": { "type": "association", "label": "paid via", "labels": null, "derived": false, "multiplicity": { "source": "1", "target": "0..1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-order-address-001", "source": "cls-order-001", "target": "cls-address-001", "data": { "type": "association", "label": "ships to", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+    { "id": "rel-assoc-orderitem-variant-001", "source": "cls-order-item-001", "target": "cls-product-variant-001", "data": { "type": "association", "label": "ordered", "labels": null, "derived": false, "multiplicity": { "source": "*", "target": "1" }, "position_handlers": [] } },
+
+    { "id": "v1-cf-001", "source": "v1-ctl-initial-001", "target": "v1-act-browse-category-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-002", "source": "v1-act-browse-category-001", "target": "v1-act-search-products-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-003", "source": "v1-act-search-products-001", "target": "v1-ctl-fork-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-004", "source": "v1-ctl-fork-001", "target": "v1-act-filter-products-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-005", "source": "v1-ctl-fork-001", "target": "v1-act-sort-products-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-006", "source": "v1-act-filter-products-001", "target": "v1-ctl-join-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-007", "source": "v1-act-sort-products-001", "target": "v1-ctl-join-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-008", "source": "v1-ctl-join-001", "target": "v1-act-view-product-list-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-009", "source": "v1-act-view-product-list-001", "target": "v1-obj-product-list-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-010", "source": "v1-obj-product-list-001", "target": "v1-act-view-product-detail-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-011", "source": "v1-act-view-product-detail-001", "target": "v1-obj-product-detail-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-012", "source": "v1-obj-product-detail-001", "target": "v1-act-select-variant-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-013", "source": "v1-act-select-variant-001", "target": "v1-obj-variant-selected-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-014", "source": "v1-obj-variant-selected-001", "target": "v1-ctl-decision-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-015", "source": "v1-ctl-decision-001", "target": "v1-act-add-to-cart-001", "data": { "type": "controlflow", "guard": "cart", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-016", "source": "v1-ctl-decision-001", "target": "v1-act-add-to-wishlist-001", "data": { "type": "controlflow", "guard": "wishlist", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-017", "source": "v1-act-add-to-cart-001", "target": "v1-obj-cart-item-added-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-018", "source": "v1-act-add-to-wishlist-001", "target": "v1-obj-wishlist-item-added-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-019", "source": "v1-obj-cart-item-added-001", "target": "v1-ctl-merge-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-020", "source": "v1-obj-wishlist-item-added-001", "target": "v1-ctl-merge-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v1-cf-021", "source": "v1-ctl-merge-001", "target": "v1-ctl-final-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+
+    { "id": "v2-cf-001", "source": "v2-ctl-initial-001", "target": "v2-act-view-cart-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-002", "source": "v2-act-view-cart-001", "target": "v2-ctl-decision-cart-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-003", "source": "v2-ctl-decision-cart-001", "target": "v2-act-browse-empty-cart-001", "data": { "type": "controlflow", "guard": "empty", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-004", "source": "v2-ctl-decision-cart-001", "target": "v2-act-review-cart-001", "data": { "type": "controlflow", "guard": "has_items", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-005", "source": "v2-act-browse-empty-cart-001", "target": "v2-obj-cart-empty-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-006", "source": "v2-act-review-cart-001", "target": "v2-obj-cart-filled-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-007", "source": "v2-obj-cart-empty-001", "target": "v2-ctl-merge-cart-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-008", "source": "v2-obj-cart-filled-001", "target": "v2-ctl-merge-cart-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-009", "source": "v2-ctl-merge-cart-001", "target": "v2-ctl-decision-coupon-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-010", "source": "v2-ctl-decision-coupon-001", "target": "v2-act-apply-coupon-001", "data": { "type": "controlflow", "guard": "yes", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-011", "source": "v2-ctl-decision-coupon-001", "target": "v2-ctl-merge-coupon-001", "data": { "type": "controlflow", "guard": "no", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-012", "source": "v2-act-apply-coupon-001", "target": "v2-ctl-merge-coupon-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-013", "source": "v2-ctl-merge-coupon-001", "target": "v2-act-select-shipping-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-014", "source": "v2-act-select-shipping-001", "target": "v2-ctl-fork-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-015", "source": "v2-ctl-fork-001", "target": "v2-act-enter-payment-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-016", "source": "v2-ctl-fork-001", "target": "v2-act-review-summary-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-017", "source": "v2-act-enter-payment-001", "target": "v2-ctl-join-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-018", "source": "v2-act-review-summary-001", "target": "v2-ctl-join-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-019", "source": "v2-ctl-join-001", "target": "v2-act-confirm-order-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-020", "source": "v2-act-confirm-order-001", "target": "v2-obj-order-pending-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-021", "source": "v2-obj-order-pending-001", "target": "v2-act-validate-order-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-022", "source": "v2-act-validate-order-001", "target": "v2-obj-payment-processing-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-023", "source": "v2-obj-payment-processing-001", "target": "v2-act-process-payment-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-024", "source": "v2-act-process-payment-001", "target": "v2-ctl-decision-payment-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-025", "source": "v2-ctl-decision-payment-001", "target": "v2-act-send-confirmation-001", "data": { "type": "controlflow", "guard": "approved", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-026", "source": "v2-ctl-decision-payment-001", "target": "v2-act-show-payment-error-001", "data": { "type": "controlflow", "guard": "declined", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-027", "source": "v2-act-send-confirmation-001", "target": "v2-obj-order-confirmed-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-028", "source": "v2-act-show-payment-error-001", "target": "v2-obj-payment-failed-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-029", "source": "v2-obj-order-confirmed-001", "target": "v2-ctl-merge-final-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-030", "source": "v2-obj-payment-failed-001", "target": "v2-ctl-merge-final-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v2-cf-031", "source": "v2-ctl-merge-final-001", "target": "v2-ctl-final-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+
+    { "id": "v3-cf-001", "source": "v3-ctl-initial-001", "target": "v3-act-login-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-002", "source": "v3-act-login-001", "target": "v3-obj-customer-anonymous-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-003", "source": "v3-obj-customer-anonymous-001", "target": "v3-ctl-decision-new-user-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-004", "source": "v3-ctl-decision-new-user-001", "target": "v3-act-register-001", "data": { "type": "controlflow", "guard": "new_user", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-005", "source": "v3-ctl-decision-new-user-001", "target": "v3-ctl-merge-login-001", "data": { "type": "controlflow", "guard": "existing_user", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-006", "source": "v3-act-register-001", "target": "v3-obj-customer-registered-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-007", "source": "v3-obj-customer-registered-001", "target": "v3-ctl-merge-login-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-008", "source": "v3-ctl-merge-login-001", "target": "v3-act-view-dashboard-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-009", "source": "v3-act-view-dashboard-001", "target": "v3-obj-customer-authenticated-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-010", "source": "v3-obj-customer-authenticated-001", "target": "v3-ctl-fork-dashboard-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-011", "source": "v3-ctl-fork-dashboard-001", "target": "v3-act-view-order-history-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-012", "source": "v3-ctl-fork-dashboard-001", "target": "v3-act-view-wishlist-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-013", "source": "v3-ctl-fork-dashboard-001", "target": "v3-act-edit-profile-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-014", "source": "v3-act-view-order-history-001", "target": "v3-obj-order-list-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-015", "source": "v3-act-view-wishlist-001", "target": "v3-obj-wishlist-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-016", "source": "v3-act-edit-profile-001", "target": "v3-obj-profile-updated-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-017", "source": "v3-obj-order-list-001", "target": "v3-ctl-join-dashboard-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-018", "source": "v3-obj-wishlist-001", "target": "v3-ctl-join-dashboard-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-019", "source": "v3-obj-profile-updated-001", "target": "v3-ctl-join-dashboard-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-020", "source": "v3-ctl-join-dashboard-001", "target": "v3-ctl-decision-return-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-021", "source": "v3-ctl-decision-return-001", "target": "v3-act-submit-return-001", "data": { "type": "controlflow", "guard": "yes", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-022", "source": "v3-ctl-decision-return-001", "target": "v3-ctl-merge-return-001", "data": { "type": "controlflow", "guard": "no", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-023", "source": "v3-act-submit-return-001", "target": "v3-ctl-merge-return-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-024", "source": "v3-ctl-merge-return-001", "target": "v3-act-update-account-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } },
+    { "id": "v3-cf-025", "source": "v3-act-update-account-001", "target": "v3-ctl-final-001", "data": { "type": "controlflow", "guard": "", "weight": "", "condition": null, "is_directed": true, "position_handlers": [] } }
+  ]
+}

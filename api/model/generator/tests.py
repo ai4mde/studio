@@ -5,7 +5,13 @@ from generator.models import Prototype
 from generator.api.views.pipeline import (
     _collect_page_ast_nodes,
     _page_preview_subtitle,
+    _render_composition_preview,
     _render_page_body,
+    _resolve_page_active_composition,
+)
+from generator.api.views.interface_gen import (
+    _apply_structure_payload,
+    _extract_variant_structure_payload,
 )
 from metadata.models import Project, System
 from django.contrib.auth.models import User
@@ -39,7 +45,13 @@ class PipelinePreviewRenderHelpersTests(SimpleTestCase):
             ]
         }
         nodes = _collect_page_ast_nodes(page)
-        self.assertEqual([n["text"] for n in nodes], ["Region title", "Region body"])
+        # Each region is wrapped in a div container with data-region and children
+        self.assertEqual(len(nodes), 2)
+        self.assertEqual(nodes[0]["tag"], "div")
+        self.assertEqual(nodes[0]["attrs"]["data-region"], "r1")
+        self.assertEqual(nodes[0]["children"][0]["text"], "Region title")
+        self.assertEqual(nodes[1]["attrs"]["data-region"], "r2")
+        self.assertEqual(nodes[1]["children"][0]["text"], "Region body")
 
     def test_collect_page_ast_nodes_from_components(self):
         page = {
@@ -54,7 +66,12 @@ class PipelinePreviewRenderHelpersTests(SimpleTestCase):
             ]
         }
         nodes = _collect_page_ast_nodes(page)
-        self.assertEqual([n["text"] for n in nodes], ["One", "Two"])
+        # Region is wrapped in a div container; component AST nodes are collected as children
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0]["tag"], "div")
+        self.assertEqual(nodes[0]["attrs"]["data-region"], "r1")
+        children = nodes[0]["children"]
+        self.assertEqual([c["text"] for c in children], ["One", "Two"])
 
     def test_render_page_body_falls_back_to_under_construction(self):
         page = {"action_ids": ["act1", "act2"]}
@@ -68,6 +85,128 @@ class PipelinePreviewRenderHelpersTests(SimpleTestCase):
             "action_ids": ["act1"],
         }
         self.assertEqual(_page_preview_subtitle(page), "2 region(s)")
+
+    def test_resolve_page_active_composition_prefers_explicit_composition(self):
+        page = {
+            "composition": {"page_archetype": "product-detail", "skeleton_id": "explicit"},
+            "selectedVariantId": "variant-b",
+            "candidateVariants": [
+                {"id": "variant-b", "composition": {"page_archetype": "dashboard", "skeleton_id": "candidate"}},
+            ],
+        }
+
+        active = _resolve_page_active_composition(page)
+
+        self.assertEqual(active["skeleton_id"], "explicit")
+
+    def test_render_page_body_uses_composition_preview_when_ast_missing(self):
+        page = {
+            "selectedVariantId": "variant-a",
+            "candidateVariants": [
+                {
+                    "id": "variant-a",
+                    "composition": {
+                        "page_archetype": "product-detail",
+                        "skeleton_id": "product-detail-buybox-right",
+                        "region_order": ["hero_primary", "supporting"],
+                        "bindings": [
+                            {
+                                "section_id": "section-gallery",
+                                "capability": "gallery",
+                                "component_variant": "carousel-gallery",
+                                "region_id": "hero_primary",
+                            },
+                            {
+                                "section_id": "section-related-products",
+                                "capability": "related-items",
+                                "component_variant": "product-recommendation-carousel",
+                                "region_id": "supporting",
+                            },
+                        ],
+                    },
+                }
+            ],
+        }
+
+        html = _render_page_body(page)
+
+        self.assertIn("composition-preview", html)
+        self.assertIn("hero primary", html)
+        self.assertIn("section-gallery", html)
+        self.assertIn("product-detail-buybox-right", html)
+
+
+class InterfaceGenStructureHelpersTests(SimpleTestCase):
+
+    def test_extract_variant_structure_payload_includes_candidates_and_composition(self):
+        variant = {
+            "id": "variant-conversion-first",
+            "composition": {"pagesById": {
+                "page-1": {"page_archetype": "product-detail", "skeleton_id": "product-detail-buybox-right"},
+            }},
+        }
+        session = {
+            "variants": [
+                variant,
+                {"id": "variant-exploration-first",
+                 "composition": {"pagesById": {
+                     "page-1": {"page_archetype": "product-detail", "skeleton_id": "product-detail-stack"},
+                 }}},
+            ]
+        }
+
+        payload = _extract_variant_structure_payload(variant, session)
+
+        self.assertEqual(payload["selectedVariantId"], "variant-conversion-first")
+        self.assertEqual(len(payload["candidateVariants"]), 2)
+        # pagesById from selected variant is preserved
+        self.assertEqual(
+            payload["composition"]["pagesById"]["page-1"]["skeleton_id"],
+            "product-detail-buybox-right",
+        )
+        # candidateVariantsByPageId built from all session variants
+        cands = payload["composition"]["candidateVariantsByPageId"]["page-1"]
+        self.assertEqual(len(cands), 2)
+        ids = [c["id"] for c in cands]
+        self.assertIn("variant-conversion-first", ids)
+        self.assertIn("variant-exploration-first", ids)
+
+    def test_extract_variant_structure_payload_no_candidates_by_page_when_no_pagesById(self):
+        """Variants without pagesById composition should not produce candidateVariantsByPageId."""
+        variant = {"id": "variant-a", "composition": {"page_archetype": "detail", "skeleton_id": "detail-card"}}
+        session = {"variants": [variant]}
+
+        payload = _extract_variant_structure_payload(variant, session)
+
+        self.assertNotIn("candidateVariantsByPageId", payload.get("composition", {}))
+
+    def test_apply_structure_payload_merges_selected_variant_and_composition(self):
+        interface_data = {
+            "pages": [{
+                "id": "page-1",
+                "name": "Product detail",
+            }],
+            "theme": {"name": "Original"},
+        }
+        structure_payload = {
+            "selectedVariantId": "variant-conversion-first",
+            "candidateVariants": [{"id": "variant-conversion-first"}, {"id": "variant-compact-detail"}],
+            "composition": {
+                "pagesById": {"page-1": {"page_archetype": "product-detail", "skeleton_id": "product-detail-buybox-right"}},
+            },
+        }
+
+        merged = _apply_structure_payload(interface_data, structure_payload)
+
+        self.assertEqual(merged["selectedVariantId"], "variant-conversion-first")
+        self.assertEqual(len(merged["candidateVariants"]), 2)
+        self.assertEqual(
+            merged["composition"]["pagesById"]["page-1"]["page_archetype"],
+            "product-detail",
+        )
+        self.assertEqual(merged["theme"]["name"], "Original")
+        # selectedVariantId is also stamped on each page dict
+        self.assertEqual(merged["pages"][0]["selectedVariantId"], "variant-conversion-first")
 
 class PrototypeAPITests(APITestCase):
 

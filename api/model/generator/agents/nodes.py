@@ -3155,6 +3155,20 @@ def interface_mapper_node(state: PipelineState) -> dict:
                 for sec_name, sec_attrs, sec_ops in sub_sections:
                     section_id = str(_uuid.uuid4())
 
+                    from generator.composition import infer_section_capability as _infer_cap
+                    _sec_roles = [a.get("semantic_role", "") for a in sec_attrs if a.get("semantic_role")]
+                    _has_create = bool(sec_ops.get("create")) if isinstance(sec_ops, dict) else False
+                    _has_update = bool(sec_ops.get("update")) if isinstance(sec_ops, dict) else False
+                    _has_list = bool(sec_ops.get("list")) if isinstance(sec_ops, dict) else False
+                    _cap = _infer_cap(
+                        section_id=section_id,
+                        section_name=sec_name,
+                        semantic_roles=_sec_roles,
+                        has_list_op=_has_list,
+                        has_create_op=_has_create,
+                        has_update_op=_has_update,
+                    )
+
                     sections_out.append({
                         "id": section_id,
                         "name": sec_name,
@@ -3162,6 +3176,8 @@ def interface_mapper_node(state: PipelineState) -> dict:
                         "class": entity_id,
                         "attributes": sec_attrs,
                         "operations": sec_ops,
+                        "capability": _cap.capability,
+                        "component_variant": _cap.component_variant,
                     })
 
                     page_sections_data.append({
@@ -3171,6 +3187,8 @@ def interface_mapper_node(state: PipelineState) -> dict:
                         "class": entity_id,
                         "attributes": deepcopy(sec_attrs),
                         "operations": deepcopy(sec_ops),
+                        "capability": _cap.capability,
+                        "component_variant": _cap.component_variant,
                     })
 
                     page_section_refs.append({

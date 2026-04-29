@@ -496,34 +496,38 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     continue
 
                 for page_section in page["sections"]:
+                    if not isinstance(page_section, dict):
+                        continue
                     section = None
-                    page_section_id = page_section["value"]
+                    page_section_id = page_section.get("value") or page_section.get("id", "")
                     for application_section in component_data.get("sections", []):
-                        if application_section["id"] == page_section_id:
+                        if isinstance(application_section, dict) and application_section.get("id") == page_section_id:
                             section = application_section
-                    
+
                     if not section:
                         continue
 
+                    ops = section.get("operations") or {}
+                    class_ref = section.get("class", "")
                     sec = SectionComponent(
-                        id = section["id"],
-                        name = section["name"],
+                        id = section.get("id", ""),
+                        name = section.get("name", ""),
                         application = application_name,
                         page = page_name,
-                        primary_model = find_model_by_class_ptr(metadata, section["class"]), # TODO: there might be a quicker method than this
-                        parent_models = find_parent_models_by_id(metadata, section["class"]), # TODO: quicker method?
+                        primary_model = find_model_by_class_ptr(metadata, class_ref) if class_ref else None,
+                        parent_models = find_parent_models_by_id(metadata, class_ref) if class_ref else [],
                         attributes = retrieve_section_attributes(metadata, section),
-                        has_create_operation = section["operations"]["create"],
-                        has_delete_operation = section["operations"]["delete"],
-                        has_update_operation = section["operations"]["update"],
+                        has_create_operation = bool(ops.get("create", False)),
+                        has_delete_operation = bool(ops.get("delete", False)),
+                        has_update_operation = bool(ops.get("update", False)),
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"],
+                        text = section.get("text", ""),
                         links = retrieve_section_links(section, component_data),
                     )
                     out.append(sec)
             return out
-    except:
-        raise Exception("Failed to retrieve section components from metadata: parsing error")
+    except Exception as _exc:
+        raise Exception(f"Failed to retrieve section components from metadata: {_exc}") from _exc
 
     return out
 
@@ -551,10 +555,353 @@ def retrieve_categories(application_name: str, metadata: str) -> List[Category]:
                     name = category["name"],
                 )
                 out.append(cat)
-    except:
-        raise Exception("Failed to retrieve pages from metadata: parsing error")
+    except Exception as _exc:
+        raise Exception(f"Failed to retrieve categories from metadata: {_exc}") from _exc
 
     return out
+
+
+def retrieve_page_composition(component_data: dict, page: dict, component_schema_page: dict | None = None) -> dict:
+    if not isinstance(page, dict):
+        return {}
+
+    composition = page.get("composition")
+    if isinstance(composition, dict):
+        return composition
+
+    if isinstance(component_schema_page, dict):
+        schema_composition = component_schema_page.get("composition")
+        if isinstance(schema_composition, dict):
+            return schema_composition
+
+    top_level_composition = component_data.get("composition")
+    if isinstance(top_level_composition, dict) and page.get("id"):
+        compositions_by_page_id = top_level_composition.get("pagesById")
+        if isinstance(compositions_by_page_id, dict):
+            page_composition = compositions_by_page_id.get(page["id"])
+            if isinstance(page_composition, dict):
+                return page_composition
+
+    return {}
+
+
+def _normalize_section_actions(section: dict) -> list[str]:
+    operations = section.get("operations") or {}
+    actions = []
+    if operations.get("create"):
+        actions.append("create")
+    if operations.get("update"):
+        actions.append("update")
+    if operations.get("delete"):
+        actions.append("delete")
+    for method in section.get("methods", []):
+        if isinstance(method, dict) and method.get("name"):
+            actions.append(str(method["name"]))
+    return actions
+
+
+def _infer_section_capability_profile(section: dict, metadata: str) -> dict:
+    section_name = str(section.get("name") or "")
+    section_text = str(section.get("text") or "")
+    content = f"{section_name} {section_text}".lower()
+    attributes = section.get("attributes") or []
+    attribute_names = [str(attribute.get("name") or "").lower() for attribute in attributes if isinstance(attribute, dict)]
+    actions = _normalize_section_actions(section)
+    class_ref = section.get("class")
+    data_source = find_model_by_class_ptr(metadata, class_ref) if isinstance(class_ref, str) else None
+
+    capability = "detail-form"
+    component_family = "form"
+    prominence = "secondary"
+    tags = []
+
+    if any(keyword in content for keyword in ["gallery", "image", "media", "photo"]):
+        capability = "gallery"
+        component_family = "gallery"
+        prominence = "primary"
+        tags.extend(["media", "visual"])
+    elif any(keyword in content for keyword in ["summary", "overview", "hero", "headline"]):
+        capability = "hero-summary"
+        component_family = "summary"
+        prominence = "primary"
+        tags.extend(["headline", "overview"])
+    elif any(keyword in content for keyword in ["price", "buy", "cart", "checkout", "purchase"]):
+        capability = "primary-actions"
+        component_family = "actions"
+        prominence = "primary"
+        tags.extend(["conversion", "transaction"])
+    elif any(keyword in content for keyword in ["spec", "attribute", "detail", "feature"]) or len(attributes) >= 5:
+        capability = "attributes"
+        component_family = "attributes"
+        prominence = "secondary"
+        tags.extend(["details", "structured-data"])
+    elif any(keyword in content for keyword in ["related", "recommend", "similar"]):
+        capability = "related-items"
+        component_family = "related-items"
+        prominence = "supporting"
+        tags.extend(["recommendation", "discovery"])
+    elif any(keyword in content for keyword in ["review", "rating", "feedback"]):
+        capability = "reviews"
+        component_family = "reviews"
+        prominence = "supporting"
+        tags.extend(["social-proof"])
+    elif any(keyword in content for keyword in ["filter", "search"]):
+        capability = "filters"
+        component_family = "filters"
+        prominence = "secondary"
+        tags.extend(["search", "refinement"])
+    elif any(keyword in content for keyword in ["table", "list", "catalog", "items"]):
+        capability = "table-list"
+        component_family = "table"
+        prominence = "secondary"
+        tags.extend(["collection"])
+    elif any(keyword in content for keyword in ["timeline", "history", "activity"]):
+        capability = "timeline"
+        component_family = "timeline"
+        prominence = "supporting"
+        tags.extend(["workflow", "history"])
+
+    if any(action in actions for action in ["create", "delete", "update"]):
+        tags.append("crud")
+    if any(name in attribute_names for name in ["price", "amount", "total"]):
+        tags.append("pricing")
+    if any(name in attribute_names for name in ["image", "photo", "thumbnail"]):
+        tags.append("media")
+
+    return {
+        "section_id": section.get("id", ""),
+        "section_name": section_name,
+        "capability": capability,
+        "component_family": component_family,
+        "prominence": prominence,
+        "data_source": data_source,
+        "actions": actions,
+        "tags": sorted(set(tag for tag in tags if tag)),
+    }
+
+
+def retrieve_page_capability_profiles(component_data: dict, page: dict, metadata: str) -> list[dict]:
+    explicit_profiles = page.get("capabilityProfiles")
+    if isinstance(explicit_profiles, list):
+        return [profile for profile in explicit_profiles if isinstance(profile, dict)]
+
+    derived_profiles = []
+    sections_by_id = {
+        section.get("id", ""): section
+        for section in component_data.get("sections", [])
+        if isinstance(section, dict)
+    }
+
+    for page_section in page.get("sections", []):
+        if not isinstance(page_section, dict):
+            continue
+        section_id = page_section.get("value")
+        if not isinstance(section_id, str):
+            continue
+        section = sections_by_id.get(section_id)
+        if not isinstance(section, dict):
+            continue
+        derived_profiles.append(_infer_section_capability_profile(section, metadata))
+
+    return derived_profiles
+
+
+def _infer_page_archetype(page: dict, capability_profiles: list[dict]) -> str:
+    layout = page.get("layout")
+    if isinstance(layout, dict):
+        page_archetype = layout.get("pageArchetype")
+        if isinstance(page_archetype, str) and page_archetype:
+            return page_archetype
+
+    category = page.get("category")
+    if isinstance(category, dict):
+        category_value = category.get("value")
+        if isinstance(category_value, dict):
+            category_name = category_value.get("name")
+            if isinstance(category_name, str) and category_name:
+                lowered = category_name.lower()
+                if "dashboard" in lowered:
+                    return "dashboard"
+                if "product" in lowered or "shop" in lowered or "commerce" in lowered:
+                    return "product-detail"
+
+    capability_names = {str(profile.get("capability") or "") for profile in capability_profiles}
+    if "gallery" in capability_names and ("primary-actions" in capability_names or "hero-summary" in capability_names):
+        return "product-detail"
+    if "table-list" in capability_names and "filters" in capability_names:
+        return "list-detail"
+    if "timeline" in capability_names:
+        return "workflow-review"
+    return "detail"
+
+
+def _bindings_for_profiles(capability_profiles: list[dict], region_map: dict[str, str]) -> list[dict]:
+    bindings = []
+    used_regions = {}
+    for index, profile in enumerate(capability_profiles, start=1):
+        capability = str(profile.get("capability") or "detail-form")
+        component_family = str(profile.get("component_family") or "form")
+        region_id = region_map.get(capability, region_map.get(component_family, region_map.get("default", "main")))
+        if capability == "hero-summary" and used_regions.get(region_id):
+            region_id = region_map.get("summary_fallback", region_id)
+        used_regions[region_id] = used_regions.get(region_id, 0) + 1
+        bindings.append({
+            "section_id": profile.get("section_id", ""),
+            "capability": capability,
+            "component_family": component_family,
+            "region_id": region_id,
+            "component_variant": f"{component_family}-default",
+            "priority": index * 10,
+            "visibility": "default",
+        })
+    return bindings
+
+
+def _build_default_candidate_variants(page: dict, capability_profiles: list[dict]) -> list[dict]:
+    page_id = str(page.get("id") or "")
+    page_name = str(page.get("name") or "")
+    page_archetype = _infer_page_archetype(page, capability_profiles)
+
+    strategies = [
+        {
+            "id": f"{page_id}-conversion-first",
+            "label": "Conversion first",
+            "strategy": "Prioritize the primary summary and action regions near the top of the page.",
+            "skeleton_id": f"{page_archetype}-conversion-first",
+            "region_order": ["hero_primary", "hero_secondary", "detail_main", "supporting"],
+            "region_map": {
+                "gallery": "hero_primary",
+                "hero-summary": "hero_secondary",
+                "primary-actions": "hero_secondary",
+                "attributes": "detail_main",
+                "related-items": "supporting",
+                "reviews": "supporting",
+                "filters": "detail_main",
+                "table": "detail_main",
+                "table-list": "detail_main",
+                "timeline": "supporting",
+                "default": "detail_main",
+                "summary_fallback": "detail_main",
+            },
+            "rationale": [
+                "Good default for task completion and commerce-heavy pages.",
+                "Keeps primary actions close to the strongest summary content."
+            ],
+        },
+        {
+            "id": f"{page_id}-exploration-first",
+            "label": "Exploration first",
+            "strategy": "Allocate more surface to browsing and discovery before presenting dense detail or action blocks.",
+            "skeleton_id": f"{page_archetype}-exploration-first",
+            "region_order": ["hero_primary", "discovery", "detail_main", "action_rail"],
+            "region_map": {
+                "gallery": "hero_primary",
+                "hero-summary": "discovery",
+                "primary-actions": "action_rail",
+                "attributes": "detail_main",
+                "related-items": "discovery",
+                "reviews": "detail_main",
+                "filters": "discovery",
+                "table": "detail_main",
+                "table-list": "detail_main",
+                "timeline": "detail_main",
+                "default": "detail_main",
+                "summary_fallback": "detail_main",
+            },
+            "rationale": [
+                "Useful for content-rich flows where users compare and explore before acting.",
+                "Moves discovery-oriented regions ahead of strong action prompts."
+            ],
+        },
+        {
+            "id": f"{page_id}-compact-detail",
+            "label": "Compact detail",
+            "strategy": "Compress supporting content into denser detail regions with a narrow summary rail.",
+            "skeleton_id": f"{page_archetype}-compact-detail",
+            "region_order": ["summary_rail", "detail_main", "detail_tabs", "supporting"],
+            "region_map": {
+                "gallery": "detail_main",
+                "hero-summary": "summary_rail",
+                "primary-actions": "summary_rail",
+                "attributes": "detail_tabs",
+                "related-items": "supporting",
+                "reviews": "detail_tabs",
+                "filters": "summary_rail",
+                "table": "detail_main",
+                "table-list": "detail_main",
+                "timeline": "supporting",
+                "default": "detail_main",
+                "summary_fallback": "detail_main",
+            },
+            "rationale": [
+                "Fits dense business or admin pages with a lot of structured detail.",
+                "Creates a stable side rail for summary and key actions."
+            ],
+        },
+    ]
+
+    variants = []
+    for strategy in strategies:
+        variants.append({
+            "id": strategy["id"],
+            "label": strategy["label"],
+            "strategy": strategy["strategy"],
+            "skeleton_id": strategy["skeleton_id"],
+            "rationale": strategy["rationale"],
+            "composition": {
+                "page_id": page_id,
+                "page_name": page_name,
+                "page_archetype": page_archetype,
+                "selected_variant_id": strategy["id"],
+                "skeleton_id": strategy["skeleton_id"],
+                "region_order": strategy["region_order"],
+                "bindings": _bindings_for_profiles(capability_profiles, strategy["region_map"]),
+                "notes": [strategy["strategy"]],
+            },
+        })
+    return variants
+
+
+def retrieve_page_candidate_compositions(component_data: dict, page: dict, capability_profiles: list[dict]) -> list[dict]:
+    explicit_candidates = page.get("candidateVariants")
+    if isinstance(explicit_candidates, list):
+        return [variant for variant in explicit_candidates if isinstance(variant, dict)]
+
+    top_level_composition = component_data.get("composition")
+    if isinstance(top_level_composition, dict):
+        candidates_by_page_id = top_level_composition.get("candidateVariantsByPageId")
+        page_id = page.get("id")
+        if isinstance(candidates_by_page_id, dict) and isinstance(page_id, str):
+            explicit_page_candidates = candidates_by_page_id.get(page_id)
+            if isinstance(explicit_page_candidates, list):
+                return [variant for variant in explicit_page_candidates if isinstance(variant, dict)]
+
+    return _build_default_candidate_variants(page, capability_profiles)
+
+
+def retrieve_active_page_composition(page: dict, composition: dict, candidate_compositions: list[dict]) -> dict:
+    if isinstance(composition, dict) and composition:
+        return composition
+
+    selected_variant_id = page.get("selectedVariantId")
+    if isinstance(selected_variant_id, str):
+        for variant in candidate_compositions:
+            if not isinstance(variant, dict):
+                continue
+            if variant.get("id") != selected_variant_id:
+                continue
+            variant_composition = variant.get("composition")
+            if isinstance(variant_composition, dict):
+                return variant_composition
+
+    for variant in candidate_compositions:
+        if not isinstance(variant, dict):
+            continue
+        variant_composition = variant.get("composition")
+        if isinstance(variant_composition, dict):
+            return variant_composition
+
+    return {}
 
 
 
@@ -583,24 +930,52 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
             }
 
             for page in component_data["pages"]:
+                if not isinstance(page, dict):
+                    continue
                 category = None
-                if page["category"] != None:
-                    category = page["category"]["value"]["name"]
+                raw_cat = page.get("category")
+                if isinstance(raw_cat, dict):
+                    cat_val = raw_cat.get("value")
+                    if isinstance(cat_val, dict):
+                        category = cat_val.get("name")
+                    elif isinstance(cat_val, str):
+                        category = cat_val
+                elif isinstance(raw_cat, str):
+                    category = raw_cat
                 component_schema_page = component_schema_pages.get(page.get("id", ""), {})
+                capability_profiles = retrieve_page_capability_profiles(component_data, page, metadata)
+                composition = retrieve_page_composition(component_data, page, component_schema_page)
+                candidate_compositions = retrieve_page_candidate_compositions(component_data, page, capability_profiles)
+                raw_action = page.get("action")
+                activity_name = None
+                if isinstance(raw_action, dict):
+                    activity_name = raw_action.get("label")
+                raw_type = page.get("type")
+                if isinstance(raw_type, dict):
+                    _tv = raw_type.get("value", "normal")
+                elif isinstance(raw_type, str):
+                    _tv = raw_type
+                else:
+                    _tv = "normal"
+                page_type = "activity" if _tv == "activity" else "normal"
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
                     application = sanitized_application_label,
                     category = category,
-                    activity_name = page['action']['label'] if page.get('action') else None,
-                    type = page["type"]['value'] if page.get('type') else 'normal',
+                    activity_name = activity_name,
+                    type = page_type,
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata),
                     render_ast = page.get("renderAst") or page.get("ast") or component_schema_page.get("renderAst") or component_schema_page.get("ast") or [],
                     semantic_ast = page.get("semanticAst") or component_schema_page.get("semanticAst") or {},
+                    composition = composition,
+                    capability_profiles = capability_profiles,
+                    candidate_compositions = candidate_compositions,
+                    active_composition = retrieve_active_page_composition(page, composition, candidate_compositions),
                 )
                 out.append(pg)
-    except:
-        raise Exception("Failed to retrieve pages from metadata: parsing error")
+    except Exception as _exc:
+        raise Exception(f"Failed to retrieve pages from metadata: {_exc}") from _exc
 
     return out
 

@@ -521,6 +521,85 @@
     color: {{ styling.background_color }};
 }
 
+/* ══════════════════════════════════════════ */
+/* ██  Composition Regions                ██ */
+/* ══════════════════════════════════════════ */
+.composition-region {
+    margin-bottom: 28px;
+    padding: 18px;
+    border: 1px solid #e7e7e7;
+    border-radius: {{ styling.radius }}px;
+    background: color-mix(in srgb, {{ styling.background_color }} 92%, {{ styling.accent_color }} 8%);
+}
+
+.composition-region + .composition-region {
+    margin-top: 8px;
+}
+
+.composition-region-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.composition-region-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: capitalize;
+}
+
+.composition-region[data-region-id="hero_primary"],
+.composition-region[data-region-id="hero_secondary"] {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.composition-region[data-region-id="hero_primary"] {
+    background: linear-gradient(135deg, color-mix(in srgb, {{ styling.accent_color }} 16%, white 84%), {{ styling.background_color }});
+}
+
+.composition-region[data-region-id="hero_secondary"] {
+    border-style: dashed;
+}
+
+.composition-region[data-region-id="detail_main"] {
+    background: {{ styling.background_color }};
+}
+
+.composition-region[data-region-id="detail_tabs"] {
+    background: color-mix(in srgb, {{ styling.background_color }} 96%, #000 4%);
+}
+
+.composition-region[data-region-id="supporting"] {
+    opacity: 0.96;
+}
+
+.composition-region[data-region-id="summary_rail"],
+.composition-region[data-region-id="action_rail"] {
+    max-width: 420px;
+    margin-left: auto;
+    background: color-mix(in srgb, {{ styling.background_color }} 88%, {{ styling.accent_color }} 12%);
+}
+
+.composition-region .section-body {
+    margin-top: 10px;
+}
+
+@media (min-width: 1080px) {
+    .composition-region[data-region-id="hero_primary"],
+    .composition-region[data-region-id="hero_secondary"] {
+        display: inline-block;
+        vertical-align: top;
+        width: calc(50% - 10px);
+    }
+
+    .composition-region[data-region-id="hero_primary"] {
+        margin-right: 20px;
+    }
+}
+
 {% if styling.layout_type == LayoutType.TOP_NAV %}
 .topnav {
     display: flex;

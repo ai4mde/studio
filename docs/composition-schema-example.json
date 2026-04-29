@@ -1,0 +1,115 @@
+{
+  "templateSkeleton": {
+    "id": "product-detail-buybox-right",
+    "archetype": "product-detail",
+    "label": "Gallery left, buy box right",
+    "description": "Conversion-first product detail skeleton with media on the left and purchase summary on the right.",
+    "viewport": "responsive",
+    "regions": [
+      {
+        "id": "hero_media",
+        "label": "Hero media",
+        "allowed_families": ["gallery", "hero"],
+        "min_items": 1,
+        "max_items": 1,
+        "required": true
+      },
+      {
+        "id": "hero_buybox",
+        "label": "Hero buy box",
+        "allowed_families": ["summary", "pricing", "actions", "trust-signals"],
+        "min_items": 1,
+        "max_items": 4,
+        "required": true
+      },
+      {
+        "id": "detail_tabs",
+        "label": "Detail tabs",
+        "allowed_families": ["attributes", "reviews", "tabs", "custom"],
+        "min_items": 1,
+        "max_items": 4,
+        "required": true
+      },
+      {
+        "id": "related_content",
+        "label": "Related content",
+        "allowed_families": ["related-items", "reviews", "trust-signals", "custom"],
+        "min_items": 0,
+        "max_items": 3,
+        "required": false
+      }
+    ],
+    "responsive_rules": [
+      "hero_media and hero_buybox collapse into a single column below 1024px",
+      "detail_tabs becomes stacked sections on mobile"
+    ],
+    "prominence_rules": [
+      "pricing and primary actions must remain above the fold",
+      "gallery should be visually paired with the summary block"
+    ],
+    "source": {
+      "kind": "curated",
+      "reference": "bol-style-v1"
+    }
+  },
+  "sectionCapabilityProfile": {
+    "section_id": "section-product-summary",
+    "section_name": "Product summary",
+    "capability": "hero-summary",
+    "component_family": "summary",
+    "prominence": "primary",
+    "data_source": "Product",
+    "actions": ["add_to_cart", "save_for_later"],
+    "tags": ["commerce", "conversion", "headline"]
+  },
+  "pageComposition": {
+    "page_id": "page-product-detail",
+    "page_name": "Product detail",
+    "page_archetype": "product-detail",
+    "selected_variant_id": "variant-conversion-first",
+    "skeleton_id": "product-detail-buybox-right",
+    "region_order": ["hero_media", "hero_buybox", "detail_tabs", "related_content"],
+    "bindings": [
+      {
+        "section_id": "section-gallery",
+        "capability": "gallery",
+        "component_family": "gallery",
+        "region_id": "hero_media",
+        "component_variant": "carousel-gallery",
+        "priority": 10,
+        "visibility": "default"
+      },
+      {
+        "section_id": "section-product-summary",
+        "capability": "hero-summary",
+        "component_family": "summary",
+        "region_id": "hero_buybox",
+        "component_variant": "headline-summary",
+        "priority": 10,
+        "visibility": "default"
+      },
+      {
+        "section_id": "section-buy-actions",
+        "capability": "primary-actions",
+        "component_family": "actions",
+        "region_id": "hero_buybox",
+        "component_variant": "sticky-buy-box",
+        "priority": 20,
+        "visibility": "default"
+      },
+      {
+        "section_id": "section-specifications",
+        "capability": "attributes",
+        "component_family": "attributes",
+        "region_id": "detail_tabs",
+        "component_variant": "specification-table",
+        "priority": 10,
+        "visibility": "default"
+      }
+    ],
+    "notes": [
+      "The buy box remains above the fold on desktop.",
+      "Detailed attributes move into tabs to keep the hero compact."
+    ]
+  }
+}

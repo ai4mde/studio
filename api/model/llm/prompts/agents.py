@@ -680,7 +680,7 @@ Return ONLY valid JSON. Zero explanation. Zero markdown outside the JSON.
 
 # ── Interface variant generation (3 variants from designer prompt) ────────────
 
-AGENT_INTERFACE_VARIANTS = """You are a UI theme designer generating 3 distinct interface style variants for a web application.
+AGENT_INTERFACE_VARIANTS = """You are a UI/UX architect generating 3 structurally distinct layout variants for a web interface.
 
 The UI designer has provided this direction:
 {designer_prompt}
@@ -692,14 +692,55 @@ CURRENT PAGE STRUCTURE:
 {page_structure}
 
 YOUR TASK:
-Generate 3 visually distinct theme variants based on the designer's prompt. Each variant should:
-1. Have a very different visual identity (color palette, typography feel, spacing, shadows)
-2. Be cohesive and professional
-3. Follow the designer's intent from their prompt
-4. Include all necessary Tailwind CSS tokens for rendering
+Generate 3 variants that are STRUCTURALLY different first — each must use a different skeleton_id and
+arrange sections into different regions. Visual tokens should complement each layout strategy.
+The 3 structural strategies to follow:
 
-The variants should cover a range of aesthetics — e.g. one might be minimal/clean, another bold/colorful,
-another dark/sophisticated — while all respecting the designer's direction.
+  Variant 1 — CONVERSION-FIRST: Emphasise the primary action prominently. Put media/gallery front and
+    centre, place price/CTA in a dedicated action_rail or hero_secondary, push supporting details below.
+    Best skeleton choices: *-/buybox-right, cart/split-summary, dashboard/stat-grid
+    Visual style: high contrast, bold accent colour, strong CTA buttons.
+
+  Variant 2 — EXPLORATION-FIRST: Optimise for browsing and discovery. Lead with filters or navigation
+    in a sidebar, use a card grid or rich media layout for items, de-emphasise hard CTAs.
+    Best skeleton choices: data-list/filter-sidebar, data-list/card-grid, product-detail/media-focus,
+    account/sidebar-nav
+    Visual style: spacious, neutral palette, discovery-friendly layout.
+
+  Variant 3 — COMPACT / STRUCTURED: Dense information layout for power users. Use tabs to group related
+    sections, keep the layout single-column or with a narrow summary rail.
+    Best skeleton choices: account/tabbed, product-detail/stack, data-list/standard, detail-form/card
+    Visual style: professional, muted palette, efficient use of space.
+
+STRUCTURAL RULES (enforced):
+- Each variant MUST use a DIFFERENT skeleton_id. Using the same skeleton_id in two variants is invalid.
+- All pages with sections must have composition_pages entries.
+- Use ONLY page_id and section_id values from CURRENT PAGE STRUCTURE.
+- bindings must map every section that appears in that page to a region.
+
+AVAILABLE REGIONS:
+  hero_primary   — primary featured content (media gallery, hero image)
+  hero_secondary — secondary hero content (quick summary, key action)
+  detail_main    — main content area (primary form, main data table, description)
+  detail_tabs    — tabbed secondary sections
+  supporting     — supplementary content (related items, recommendations)
+  summary_rail   — narrow right sidebar: filter panel, summary info
+  action_rail    — narrow right sidebar: CTA and action controls
+
+AVAILABLE PAGE ARCHETYPES:
+  dashboard | data-list | product-detail | profile-detail | detail-form | wizard-form | cart | landing | modal-action
+
+REGISTERED SKELETON IDs — use EXACTLY one of these per variant:
+  product-detail/buybox-right | product-detail/stack | product-detail/media-focus
+  data-list/filter-sidebar | data-list/standard | data-list/card-grid
+  cart/split-summary | cart/empty-state
+  account/sidebar-nav | account/tabbed
+  dashboard/stat-grid | dashboard/full-width
+  wizard-form/stepper | detail-form/card
+
+AVAILABLE CAPABILITIES (role a section plays):
+  gallery | stat-cards | data-table | form-fields | related-items | activity-feed
+  featured-content | rich-text | navigation | filters | actions
 
 TOKEN KEY NAMING:
   page.body       — <body> classes: background, text color, font family
@@ -715,7 +756,7 @@ TOKEN KEY NAMING:
   element.heading            — section headings
   element.th                 — table header cells
   element.td                 — table body cells
-  region.form                — form wrapper region (standalone form + wizard step forms)
+  region.form                — form wrapper region
   region.header              — page header region
   region.nav                 — navigation region
   region.sidebar             — sidebar region
@@ -724,22 +765,20 @@ TOKEN KEY NAMING:
   region.wizard.step         — wizard step indicator: circles + connectors
   region.modal               — modal/dialog card: compact, elevated shadow
 
-SCREEN TYPE STYLING — each page has a screen type affecting its layout:
-  dashboard  → stat cards (component.card) in a grid (region.dashboard), recent-items tables below.
-               Cards show large numbers with subtle labels. Executive-dashboard feel: spacious, data-forward.
-  form       → standalone full-page form (region.form). Centered, generous spacing, clear hierarchy.
-  wizard     → multi-step form (region.wizard). Step indicator with numbered circles + connectors.
-               Active step = accent color, completed = success muted, future = gray.
-  modal      → centered dialog (region.modal). Compact width, elevated shadow, clear zones.
-  list       → default CRUD table + search + pagination (component.table + element.th/td).
+SCREEN TYPE STYLING:
+  dashboard  → stat cards in a grid (region.dashboard), data-forward feel.
+  form       → standalone full-page form (region.form), centered, generous spacing.
+  wizard     → multi-step form (region.wizard), step indicator with numbered circles.
+  modal      → centered dialog (region.modal), compact width, elevated shadow.
+  list       → CRUD table + search + pagination (component.table).
 
 OUTPUT FORMAT — return ONLY valid JSON:
 {{
   "variants": [
     {{
       "id": "variant_1",
-      "name": "<descriptive name, e.g. 'Arctic Minimal'>",
-      "description": "<2-sentence description of the visual style>",
+      "name": "<strategy-led name, e.g. 'Conversion Focused'>",
+      "description": "<2 sentences: first sentence describes the layout strategy, second the visual style>",
       "tokens": {{
         "page.body": "<tailwind classes>",
         "page.main": "<tailwind classes>",
@@ -761,23 +800,39 @@ OUTPUT FORMAT — return ONLY valid JSON:
         "region.wizard": "<tailwind classes>",
         "region.wizard.step": "<tailwind classes>",
         "region.modal": "<tailwind classes>"
-      }}
+      }},
+      "composition_pages": [
+        {{
+          "page_id": "<id from page structure above>",
+          "page_archetype": "<archetype>",
+          "skeleton_id": "<archetype/layout-descriptor>",
+          "region_order": ["<region_id>", "..."],
+          "bindings": [
+            {{
+              "region_id": "<region_id>",
+              "section_id": "<id from page structure above>",
+              "capability": "<capability>",
+              "component_variant": "<descriptive variant name>"
+            }}
+          ]
+        }}
+      ]
     }},
-    {{ "id": "variant_2", ... }},
-    {{ "id": "variant_3", ... }}
+    {{ "id": "variant_2", "name": "...", "description": "...", "tokens": {{}}, "composition_pages": [] }},
+    {{ "id": "variant_3", "name": "...", "description": "...", "tokens": {{}}, "composition_pages": [] }}
   ]
 }}
 
 RULES:
-- Values must be Tailwind CSS utility class strings only (space-separated).
-- Be consistent within each variant but visually distinct across variants.
-- Each variant should feel like a complete, polished design system.
+- EACH variant MUST use a DIFFERENT skeleton_id — this is the primary requirement.
+- Token values must be Tailwind CSS utility class strings only (space-separated).
 - All token keys listed above MUST be present in every variant.
+- composition_pages must cover all pages that have sections.
 - Return ONLY valid JSON. No explanation. No markdown.
 """
 
 
-AGENT_INTERFACE_REFINE = """You are a UI theme designer refining an existing interface style variant.
+AGENT_INTERFACE_REFINE = """You are a UI/UX architect refining an existing interface layout variant.
 
 SYSTEM: {system_name}
 INTERFACE: {interface_name}
@@ -788,20 +843,46 @@ ORIGINAL DESIGNER PROMPT:
 CURRENT VARIANT:
 Name: {variant_name}
 Description: {variant_description}
+Current skeleton: {current_skeleton_id}
 Current tokens:
 {current_tokens}
+
+Current composition (section → region bindings per page):
+{current_composition}
 
 REFINEMENT REQUEST FROM DESIGNER:
 {refine_prompt}
 
 YOUR TASK:
-Update the variant's theme tokens based on the refinement request.
-Keep the variant's overall identity but apply the requested changes.
+Apply the refinement request. You may update EITHER tokens (visual style) OR composition (layout
+structure) OR both, depending on what the designer asked for.
+
+Style refinement examples: "darker background", "rounder buttons", "more spacing"
+Structural refinement examples: "move filters to a sidebar", "use tabs for the details", "show gallery
+full width", "use a different skeleton", "make it more compact"
+
+If the request is structural, update composition_pages with the new skeleton_id, region_order, and
+bindings. You may change to any skeleton from the registered list. If the request is style-only, leave
+composition_pages as null.
+
+REGISTERED SKELETON IDs (for structural changes):
+  product-detail/buybox-right | product-detail/stack | product-detail/media-focus
+  data-list/filter-sidebar | data-list/standard | data-list/card-grid
+  cart/split-summary | cart/empty-state
+  account/sidebar-nav | account/tabbed
+  dashboard/stat-grid | dashboard/full-width
+  wizard-form/stepper | detail-form/card
+
+AVAILABLE REGIONS: hero_primary | hero_secondary | detail_main | detail_tabs | supporting | summary_rail | action_rail
+AVAILABLE CAPABILITIES: gallery | stat-cards | data-table | form-fields | related-items | activity-feed | featured-content | rich-text | navigation | filters | actions
+
+Current page structure (for section_id references):
+{page_structure}
 
 OUTPUT FORMAT — return ONLY valid JSON:
 {{
   "name": "<updated name>",
-  "description": "<updated 2-sentence description>",
+  "description": "<updated 2-sentence description: layout strategy first, then visual style>",
   "tokens": {{
     "page.body": "<tailwind classes>",
     "page.main": "<tailwind classes>",
@@ -823,12 +904,14 @@ OUTPUT FORMAT — return ONLY valid JSON:
     "region.wizard": "<tailwind classes>",
     "region.wizard.step": "<tailwind classes>",
     "region.modal": "<tailwind classes>"
-  }}
+  }},
+  "composition_pages": null
 }}
 
+For structural changes, replace null with a list of page composition objects (same format as generation).
 RULES:
 - Preserve tokens the designer did not ask to change.
-- Apply refinement to relevant tokens only.
-- Values must be Tailwind CSS utility class strings only.
+- Use only page_id and section_id values from the page structure above.
+- Token values must be Tailwind CSS utility class strings only.
 - Return ONLY valid JSON. No explanation. No markdown.
 """
