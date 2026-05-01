@@ -6,8 +6,8 @@ from ninja import ModelSchema, Schema
 
 from diagram.models import Diagram, Node
 
-from .edge import CreateEdge, EdgeSchema, ExportEdge, ImportEdge
-from .node import CreateNode, ExportNode, ImportNode, NodeSchema
+from .edge import EdgeSchema, ExportEdge, ImportEdge
+from .node import ExportNode, ImportNode, NodeSchema
 
 
 class DiagramType(str, Enum):
