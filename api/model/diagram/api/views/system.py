@@ -12,7 +12,7 @@ system = Router()
 @system.get("/{uuid:system_id}/", response=List[FullDiagram])
 def get_diagrams(request: HttpRequest, system_id: str):
     system = System.objects.get(id=system_id)
-    if system == None:
+    if system is None:
         return 405, "Failed to resolve system."
     return Diagram.objects.filter(system=system)
 

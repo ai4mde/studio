@@ -46,8 +46,6 @@ def relation_usage(request, edge_id: str):
         return 404, "Edge not found"
 
     rel = edge.rel
-    rel_label = (rel.data or {}).get("label") or (rel.data or {}).get("type") or str(rel.id)
-
     edges = Edge.objects.select_related("diagram", "diagram__system").filter(rel=rel)
 
     seen = set()

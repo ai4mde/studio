@@ -184,7 +184,6 @@ def import_node(request: HttpRequest, classifier_id: str):
 
     # Map of classifier id -> node
     nodes = diagram.nodes.select_related("cls").all()
-    classifier_ids_in_diagram = [n.cls_id for n in nodes]
     nodes_by_classifier_id = {str(n.cls_id): n for n in nodes}
 
     relations = Relation.objects.filter(

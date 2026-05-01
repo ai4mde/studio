@@ -123,11 +123,6 @@ class FullDiagram(ReadDiagram):
         return Diagram.objects.filter(system=obj.system.id).exclude(id=obj.id)
 
 
-class ImportDiagram(CreateDiagram):
-    nodes: List[CreateNode]
-    edges: List[CreateEdge]
-
-
 class ExportDiagram(ModelSchema):
     nodes: List[ExportNode] = []
     edges: List[ExportEdge] = []

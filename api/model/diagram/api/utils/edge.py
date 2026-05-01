@@ -15,7 +15,7 @@ def create_edge(diagram: Diagram, data: spec.Relation, source: Node, target: Nod
     )
 
     # Create the edge in the current diagram
-    edge = Edge.objects.create(
+    Edge.objects.create(
         diagram=diagram,
         rel=relation,
         data={},
