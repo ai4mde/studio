@@ -2,12 +2,35 @@ from flask import Flask, redirect, request, abort
 from multiprocessing import Manager, Lock
 import subprocess
 import os
+import re
+import tempfile
 import time
 import socket
 import signal
 import sys
+import jinja2
 
 app = Flask(__name__)
+
+
+def _run_sh(path: str, args: list, **kwargs):
+    """Execute a shell script after stripping Windows CRLF line endings.
+
+    Scripts are volume-mounted from a Windows host so they may contain \\r\\n.
+    We write a de-CRLF'd copy to /tmp so we never mutate the mounted file.
+    """
+    with open(path, 'r', errors='replace') as f:
+        src = f.read().replace('\r\n', '\n').replace('\r', '\n')
+    with tempfile.NamedTemporaryFile(
+        mode='w', suffix='.sh', delete=False, dir='/tmp'
+    ) as tmp:
+        tmp.write(src)
+        tmp_path = tmp.name
+    os.chmod(tmp_path, 0o755)
+    try:
+        return subprocess.run([tmp_path] + args, **kwargs)
+    finally:
+        os.unlink(tmp_path)
 
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 
@@ -108,8 +131,9 @@ def generate_prototype():
     name = data.get('name')
     system = data.get('system')
     metadata = data.get('metadata')
+    variant_id = data.get('variant_id', '1')
     try:
-        subprocess.run([GENERATOR_PATH, id, system, name, metadata], check=True)
+        _run_sh(GENERATOR_PATH, [id, system, name, metadata, variant_id], check=True)
     except subprocess.CalledProcessError:
         return f"Failed to generate prototype, id={id}", 500
 
@@ -117,7 +141,7 @@ def generate_prototype():
     if 'database_prototype_name' in data:
         database_prototype_name = data.get('database_prototype_name')
         try:
-            subprocess.run([COPY_DATABASE_PATH, database_prototype_name, name, system], check=True)
+            _run_sh(COPY_DATABASE_PATH, [database_prototype_name, name, system], check=True)
         except subprocess.CalledProcessError:
             return f"Failed to copy database from {database_prototype_name} to {name}", 500
     return f"Generated {name} prototype", 200
@@ -133,10 +157,83 @@ def remove_prototype():
     if "id" in running_prototype and running_prototype["id"] == id:
         stop_prototype()
     try:
-        subprocess.run([REMOVER_PATH, id, name, system], check=True)
+        _run_sh(REMOVER_PATH, [id, name, system], check=True)
     except subprocess.CalledProcessError:
         return f"Failed to remove {name} prototype, id={id}", 500
     return f"Removed {name} prototype, id={id}", 200
+
+
+TEMPLATES_DIR = "/usr/src/prototypes/backend/generation/templates"
+
+_PREVIEW_SAMPLE = {
+    'application_name': 'MyApp',
+    'settings': {'manager_access': False},
+    'categories': [],
+    'pages': [],
+    'page': {
+        'display_name': 'Products',
+        'category': 'Shop',
+        'type': 'normal',
+        'section_components': [
+            {
+                'display_name': 'Featured Items',
+                'attributes': ['name', 'category', 'price'],
+                'primary_model_list': [
+                    {'name': 'Product Alpha', 'category': 'Electronics', 'price': '29.99'},
+                    {'name': 'Product Beta',  'category': 'Fashion',     'price': '59.99'},
+                    {'name': 'Product Gamma', 'category': 'Books',       'price': '14.99'},
+                    {'name': 'Product Delta', 'category': 'Home',        'price': '89.99'},
+                    {'name': 'Product Epsilon','category': 'Sports',     'price': '45.00'},
+                    {'name': 'Product Zeta',  'category': 'Electronics', 'price': '199.99'},
+                ],
+            }
+        ],
+    },
+}
+
+
+@app.after_request
+def _cors(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
+
+@app.route('/preview_template', methods=['GET'])
+def preview_template():
+    variant = request.args.get('variant', '1')
+    if variant not in ('1', '2', '3'):
+        abort(400)
+
+    path = os.path.join(TEMPLATES_DIR, f'page_v{variant}.html.jinja2')
+    if not os.path.exists(path):
+        abort(404)
+
+    with open(path, 'r') as f:
+        content = f.read()
+
+    # Strip Jinja2 template-inheritance wrappers — page_vN templates are
+    # designed as code-gen sources that extend a Django base; we want only
+    # the block content for a self-contained preview.
+    content = re.sub(r'\{%-?\s*extends\b[^\%]*%\}\s*\n?', '', content)
+    content = re.sub(r'\{%-?\s*block\s+content\s*-?%\}\s*\n?', '', content)
+    content = re.sub(r'\{%-?\s*endblock\b[^\%]*-?%\}\s*\n?', '', content)
+
+    full_html = (
+        '<!doctype html><html><head>'
+        '<meta charset="UTF-8">'
+        '<script src="https://cdn.tailwindcss.com"></script>'
+        '</head><body>'
+        + content +
+        '</body></html>'
+    )
+
+    env = jinja2.Environment()
+    try:
+        rendered = env.from_string(full_html).render(**_PREVIEW_SAMPLE)
+    except Exception as exc:
+        return str(exc), 500, {'Content-Type': 'text/plain'}
+
+    return rendered, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
 if __name__ == '__main__':

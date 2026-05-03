@@ -11,6 +11,7 @@ import {
 import { CircleUserRound, Save, Trash } from "lucide-react";
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { AgentDesign } from './AgentDesign';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
@@ -105,6 +106,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                     </div>
                     <Tabs>
                         <TabList>
+                            <Tab>Agent Design</Tab>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
                             <Tab>Pages</Tab>
@@ -113,21 +115,24 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Settings</Tab>
                         </TabList>
                         <TabPanel value={0}>
-                            <p>Fragment</p>
+                            <AgentDesign interfaceId={app_comp} />
                         </TabPanel>
                         <TabPanel value={1}>
-                            <Categories />
+                            <p>Fragment</p>
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Pages actorName = {data?.name}/>
+                            <Categories />
                         </TabPanel>
                         <TabPanel value={3}>
-                            <Sections />
+                            <Pages actorName = {data?.name}/>
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Styling />
+                            <Sections />
                         </TabPanel>
                         <TabPanel value={5}>
+                            <Styling />
+                        </TabPanel>
+                        <TabPanel value={6}>
                             <Settings />
                         </TabPanel>
                     </Tabs>

@@ -74,6 +74,14 @@ class SectionCustomMethod():
         return self.name
 
 
+DEFAULT_SECTION_STYLE = {
+    "color": "blue",
+    "density": "normal",
+    "radius": "xl",
+    "columns": "3",
+    "card_style": "elevated",
+}
+
 class SectionComponent():
     """Definition of a Section Component. A Section Component is a component
     on a page on which the end user can act on the attributes of a model."""
@@ -81,16 +89,18 @@ class SectionComponent():
             self,
             id: str,
             name: str,
-            application: str, # TODO: reference
-            page: str, # TODO: refrenec
-            primary_model: Model, # TODO: reference
-            parent_models: List[str], # TODO: implement
+            application: str,
+            page: str,
+            primary_model: Model,
+            parent_models: List[str],
             attributes: List[SectionAttribute],
             text: str,
             has_create_operation: bool = False,
             has_delete_operation: bool = False,
             has_update_operation: bool = False,
             custom_methods = List[SectionCustomMethod],
+            layout: str = "table",
+            style: Optional[dict] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -105,6 +115,8 @@ class SectionComponent():
         self.has_update_operation = has_update_operation
         self.custom_methods = custom_methods
         self.text = parse_section_text(text)
+        self.layout = layout or "table"
+        self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
 
     def __str__(self):
         return self.name

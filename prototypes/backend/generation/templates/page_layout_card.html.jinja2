@@ -1,0 +1,240 @@
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block content %}{% endraw %}
+
+{# ── Style resolution (baked into generated template at generation time) ── #}
+{% set color_map = {
+  "blue":   {"btn": "bg-blue-600 hover:bg-blue-700", "light": "bg-blue-50", "text": "text-blue-600", "border": "border-blue-200", "label": "text-blue-700", "ring": "focus:ring-blue-500"},
+  "green":  {"btn": "bg-green-600 hover:bg-green-700", "light": "bg-green-50", "text": "text-green-600", "border": "border-green-200", "label": "text-green-700", "ring": "focus:ring-green-500"},
+  "purple": {"btn": "bg-purple-600 hover:bg-purple-700", "light": "bg-purple-50", "text": "text-purple-600", "border": "border-purple-200", "label": "text-purple-700", "ring": "focus:ring-purple-500"},
+  "orange": {"btn": "bg-orange-500 hover:bg-orange-600", "light": "bg-orange-50", "text": "text-orange-500", "border": "border-orange-200", "label": "text-orange-700", "ring": "focus:ring-orange-400"},
+  "rose":   {"btn": "bg-rose-600 hover:bg-rose-700", "light": "bg-rose-50", "text": "text-rose-600", "border": "border-rose-200", "label": "text-rose-700", "ring": "focus:ring-rose-500"},
+  "slate":  {"btn": "bg-slate-700 hover:bg-slate-800", "light": "bg-slate-50", "text": "text-slate-600", "border": "border-slate-200", "label": "text-slate-700", "ring": "focus:ring-slate-500"},
+} %}
+{% set c = color_map.get(color, color_map["blue"]) %}
+
+{% set radius_map = {"none": "rounded-none", "sm": "rounded-sm", "md": "rounded-md", "lg": "rounded-lg", "xl": "rounded-xl", "2xl": "rounded-2xl"} %}
+{% set r = radius_map.get(radius, "rounded-xl") %}
+
+{% set density_map = {
+  "compact":  {"gap": "gap-2", "p": "p-3", "text": "text-xs", "gap_section": "mb-8"},
+  "normal":   {"gap": "gap-4", "p": "p-4", "text": "text-sm", "gap_section": "mb-12"},
+  "spacious": {"gap": "gap-6", "p": "p-6", "text": "text-base", "gap_section": "mb-16"},
+} %}
+{% set d = density_map.get(density, density_map["normal"]) %}
+
+{% set card_style_map = {
+  "flat":     "bg-white border border-gray-100",
+  "elevated": "bg-white shadow-md",
+  "outlined": "bg-white border-2 border-gray-200",
+} %}
+{% set cs = card_style_map.get(card_style, card_style_map["elevated"]) %}
+
+{% set col_map = {"1": "grid-cols-1", "2": "grid-cols-1 sm:grid-cols-2", "3": "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3", "4": "grid-cols-2 lg:grid-cols-4"} %}
+{% set grid = col_map.get(columns, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
+
+<div class="{{ d.p }} max-w-full">
+    {% if page.type == 'activity' %}<h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>{% endif %}
+
+    {%- for section_component in page.section_components %}
+    <div class="{{ d.gap_section }}">
+
+        {% if page.type != 'activity' %}
+        <h2 class="text-xl font-semibold text-gray-800 mb-1">{{ section_component.display_name }}</h2>
+        {% endif %}
+
+        {% if page.type == 'activity' %}
+        <p class="text-gray-600 mb-4">{{ loop.index }}. {{ section_component.text }}</p>
+        {% else %}
+        <p class="text-gray-500 mb-4 {{ d.text }}">{{ section_component.text }}</p>
+        {% endif %}
+
+        <div class="grid {{ grid }} {{ d.gap }}">
+
+            {#- ITEM CARDS #}
+            {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+            <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3">
+
+                {#- UPDATE FORM (shows when this item is being edited) #}
+                {% if section_component.has_update_operation -%}
+                {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
+                    {% raw %}{% csrf_token %}{% endraw %}
+                    {% for attribute in section_component.attributes %}
+                    {% if attribute.updatable and not attribute.derived %}
+                    <div class="flex flex-col gap-1">
+                        <label class="{{ d.text }} font-medium text-gray-500 uppercase tracking-wide">{{ attribute }}</label>
+                        {% if attribute.type == AttributeType.STRING %}
+                        <input type="text" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                        {%- elif attribute.type == AttributeType.INTEGER %}
+                        <input type="number" name="{{ attribute }}" id="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                        {%- elif attribute.type == AttributeType.BOOLEAN %}
+                        <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} class="h-4 w-4 rounded">
+                        {%- elif attribute.type == AttributeType.ENUM %}
+                        <select name="{{ attribute }}" id="{{ attribute }}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                            {% for literal in attribute.enum_literals %}
+                            <option value="{{ literal }}">{{ literal }}</option>
+                            {% endfor %}
+                        </select>
+                        {%- endif %}
+                    </div>
+                    {% else %}
+                    <div class="flex flex-col gap-0.5">
+                        <span class="{{ d.text }} text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+                        {% if attribute.type == AttributeType.BOOLEAN %}
+                        <input type="checkbox" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+                        {% else %}
+                        <span class="{{ d.text }} text-gray-700">{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                    {% for parent_model in section_component.parent_models %}
+                    <div class="flex flex-col gap-1">
+                        <label class="{{ d.text }} font-medium text-gray-500 uppercase tracking-wide">{{ parent_model }}</label>
+                        <select name="{{ parent_model }}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                            {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                            {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                            {% raw %}{% endfor %}{% endraw %}
+                        </select>
+                    </div>
+                    {% endfor %}
+                    <div class="flex gap-2 mt-2">
+                        <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+                        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" class="flex-1 text-center bg-gray-100 text-gray-700 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-200">Cancel</a>
+                    </div>
+                </form>
+                {% raw %}{% else %}{% endraw %}
+                {% endif -%}
+
+                {#- DISPLAY VALUES (inside Django else when not editing) #}
+                {% for attribute in section_component.attributes -%}
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+                    {% if attribute.type == AttributeType.BOOLEAN -%}
+                    <input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+                    {%- else %}
+                    <span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+                    {% endif -%}
+                </div>
+                {% endfor -%}
+                {% for parent_model in section_component.parent_models -%}
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ parent_model }}</span>
+                    <span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</span>
+                </div>
+                {% endfor -%}
+
+                {#- ACTION BUTTONS #}
+                <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+                    {%- if section_component.has_update_operation %}
+                    {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
+                    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
+                        <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+                        <button type="submit" class="w-full flex items-center justify-center gap-1 {{ d.text }} font-medium {{ c.text }} hover:opacity-80 py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H6C4.94 4 3.92 4.42 3.17 5.17C2.42 5.92 2 6.94 2 8V18C2 19.06 2.42 20.08 3.17 20.83C3.92 21.58 4.94 22 6 22H17C19.21 22 20 20.2 20 18V13"/><path d="M21.28 6.4L11.74 15.94C10.79 16.89 7.97 17.33 7.34 16.7C6.71 16.07 7.14 13.25 8.09 12.3L17.64 2.75"/></svg>
+                            Edit
+                        </button>
+                    </form>
+                    {% raw %}{% endif %}{% endraw %}
+                    {% endif -%}
+
+                    {%- if section_component.has_delete_operation %}
+                    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1">
+                        {% raw %}{% csrf_token %}{% endraw %}
+                        <button type="submit" class="w-full flex items-center justify-center gap-1 {{ d.text }} font-medium text-red-500 hover:text-red-700 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7H20"/><path d="M6 10V18C6 19.66 7.34 21 9 21H15C16.66 21 18 19.66 18 18V10"/><path d="M9 5C9 3.9 9.9 3 11 3H13C14.1 3 15 3.9 15 5V7H9V5Z"/></svg>
+                            Delete
+                        </button>
+                    </form>
+                    {% endif -%}
+
+                    {%- for custom_method in section_component.custom_methods %}
+                    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get" class="flex-1">
+                        <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ custom_method }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+                        <button type="submit" class="w-full {{ d.text }} font-medium text-gray-600 py-1.5 px-3 {{ r }} border border-gray-200 hover:bg-gray-50 transition-colors">{{ custom_method }}</button>
+                    </form>
+                    {% endfor -%}
+                </div>
+
+                {%- if section_component.has_update_operation %}
+                {% raw %}{% endif %}{% endraw %}
+                {% endif -%}
+
+            </div>
+            {% raw %}{% endfor %}{% endraw %}
+
+            {#- CREATE FORM CARD #}
+            {%- if section_component.has_create_operation %}
+            {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
+            <div class="{{ c.light }} {{ r }} border-2 border-dashed {{ c.border }} {{ d.p }} flex flex-col gap-2">
+                <h4 class="{{ d.text }} font-semibold {{ c.label }} mb-1">New {{ section_component.display_name }}</h4>
+                <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
+                    {% raw %}{% csrf_token %}{% endraw %}
+                    {% for attribute in section_component.attributes -%}
+                    {% if not attribute.derived -%}
+                    <div class="flex flex-col gap-1">
+                        <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ attribute }}</label>
+                        {% if attribute.type == AttributeType.STRING -%}
+                        <input type="text" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                        {% elif attribute.type == AttributeType.INTEGER -%}
+                        <input type="number" name="{{ attribute }}" id="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                        {% elif attribute.type == AttributeType.BOOLEAN -%}
+                        <input type="checkbox" name="{{ attribute }}" id="{{ attribute }}" class="h-4 w-4 rounded">
+                        {% elif attribute.type == AttributeType.ENUM -%}
+                        <select name="{{ attribute }}" id="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                            {% for literal in attribute.enum_literals %}
+                            <option value="{{ literal }}">{{ literal }}</option>
+                            {% endfor %}
+                        </select>
+                        {%- endif %}
+                    </div>
+                    {% endif -%}
+                    {% endfor -%}
+                    {% for parent_model in section_component.parent_models -%}
+                    <div class="flex flex-col gap-1">
+                        <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ parent_model }}</label>
+                        <select name="{{ parent_model }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+                            {% raw %}{%{% endraw %} for i in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+                            {% raw %}<option value="{{ i.id }}">{{ i }}</option>{% endraw %}
+                            {% raw %}{% endfor %}{% endraw %}
+                        </select>
+                    </div>
+                    {% endfor -%}
+                    <div class="flex gap-2 mt-2">
+                        <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+                        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-50 border border-gray-200">Cancel</a>
+                    </div>
+                </form>
+            </div>
+            {% raw %}{% endif %}{% endraw %}
+            {% endif -%}
+
+        </div>
+
+        {#- CREATE BUTTON #}
+        {%- if section_component.has_create_operation %}
+        {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" method="get" class="mt-4">
+            <input type="hidden" name="create_{{ section_component }}" value="true">
+            <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add {{ section_component.display_name }}
+            </button>
+        </form>
+        {% raw %}{% endif %}{% endraw %}
+        {%- endif %}
+
+    </div>
+    {% endfor %}
+
+    {% if page.type == 'activity' %}
+    <div class="fixed bottom-6 right-6">
+        <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" class="bg-green-600 text-white font-semibold py-3 px-6 {{ r }} shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% raw %}{% endblock %}{% endraw %}

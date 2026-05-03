@@ -8,6 +8,13 @@ class ActionClasses(BaseModel):
     input: list[str] = []  # TODO: Should refer to an existing class with uuid
     output: list[str] = []  # TODO: Should refer to an existing class with uuid
 
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_list(cls, v):
+        if isinstance(v, list):
+            return {"input": v, "output": []}
+        return v
+
 
 class Action(NamedElement, NamespacedElement, BaseModel):
     type: Literal["action"] = "action"

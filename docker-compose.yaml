@@ -19,7 +19,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
   postgres:
-    image: postgres
+    image: postgres:17
     env_file: config/postgres.env
     volumes:
       - pgsql-data:/var/lib/postgresql/data
@@ -39,6 +39,7 @@ services:
       - ai4mde_traefik
     volumes:
       - ./api/model:/usr/src/model:ro
+      - ./prototypes/backend/generation/templates:/usr/src/templates:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.localhost`)"

@@ -1,0 +1,128 @@
+{% extends "{{ application_name }}_base.html" %}
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+    <!-- Blue bol.com style Header -->
+    <header class="bg-blue-600 text-white p-4 shadow-md mb-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">{{ application_name | title }}</h1>
+            <div class="flex-1 mx-8">
+                <input type="text" class="w-full p-2 rounded text-gray-800" placeholder="Search products, brands and more...">
+            </div>
+            <div class="flex space-x-4">
+                <span class="cursor-pointer">Account</span>
+                <span class="cursor-pointer">Cart</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto flex">
+        <!-- Sidebar -->
+        <aside class="w-64 mr-8 hidden md:block">
+            <div class="bg-white p-4 rounded shadow-sm">
+                <h3 class="font-bold border-b pb-2 mb-4">Categories</h3>
+                <ul class="space-y-2">
+                    <li class="text-blue-600 cursor-pointer hover:underline">All {{ page.display_name }}</li>
+                    {% if page.category %}<li class="text-gray-600 cursor-pointer">{{ page.category }}</li>{% endif %}
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-800">{{ page.display_name }}</h2>
+                {% if page.type != 'activity' %}
+                <div class="flex space-x-2">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onclick="document.getElementById('modal-create').classList.remove('hidden')">
+                        Add New
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            {# Render section components dynamically #}
+            {% for section in page.section_components %}
+                <section class="mb-8 bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition">
+                    <h3 class="font-bold text-xl text-gray-900 mb-4 border-b pb-2">{{ section.display_name }}</h3>
+                    
+                    {# Logic for rendering items based on section type and operations #}
+                    {% if section.has_create_operation %}
+                        {# Display create button or form as per page.html.jinja2 structure #}
+                        {# For simplicity in this variant, we'll keep the modal trigger #}
+                    {% endif %}
+
+                    {% if section.attributes %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {# This loop structure might need adjustment based on how items are actually passed. #}
+                            {# If section.primary_model_list is provided, we iterate over it. #}
+                            {# If not, we might need to infer items or show a placeholder. #}
+                            {# For now, we adapt to display attributes per item if available #}
+                            {% if section.primary_model_list %}
+                                {% for item in section.primary_model_list %}
+                                <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition border border-transparent hover:border-blue-400 group">
+                                    <div class="aspect-square bg-gray-100 rounded mb-4 flex items-center justify-center text-gray-400">
+                                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    {# Dynamically display attributes for the item #}
+                                    {% for attribute in section.attributes %}
+                                        {% if loop.first %} {# Use first attribute for main display, e.g. name #}
+                                            <h3 class="font-bold text-gray-900 group-hover:text-blue-600 transition truncate">{{ item[attribute.name] | default('Unnamed Item') }}</h3>
+                                        {% elif attribute.name == 'price' %} {# Specific handling for price for this variant #}
+                                            <p class="text-lg font-bold text-blue-700">€{{ item[attribute.name] | default('0.00') }}</p>
+                                        {% else %}
+                                            {# Other attributes can be displayed in a less prominent way or omitted for this variant's style #}
+                                            {# For now, we will just display them simply if they exist #}
+                                            <p class="text-sm text-gray-500">{{ attribute.verbose_name | default(attribute.name) }}: {{ item[attribute.name] | default('N/A') }}</p>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    <div class="mt-2 flex justify-between items-end">
+                                        <div>
+                                            <p class="text-sm text-gray-500">{{ section.display_name }}</p>
+                                            {# Displaying price again, ideally this logic should be within the attribute loop #}
+                                            {% set price_attribute = section.attributes | selectattr('name', 'equalto', 'price') | first %}
+                                            {% if price_attribute and not loop.first %} {# Avoid double printing price if it was already handled #}
+                                                <p class="text-lg font-bold text-blue-700">€{{ item[price_attribute.name] | default('0.00') }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            {# Operations like delete would be handled here #}
+                                            {% if section.has_delete_operation %}
+                                            <form action="{% url '{{ application_name }}:{{ page }}_{{ section }}_delete' item.id %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="text-red-500 hover:text-red-700"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                {# Fallback if primary_model_list is empty or not used, display attributes directly if no items #}
+                                {# This part might need more context on how items are structured #}
+                                <p class="text-gray-500">No items to display for this section.</p>
+                            {% endif %}
+                        </div> {# End grid #}
+                    {% elif section.has_create_operation %}
+                        {# If no attributes but create operation is allowed, show a placeholder for creation interface #}
+                        <p class="text-gray-500">Section for creating new items (details to be added).</p>
+                    {% endif %}
+                </section>
+            {% endfor %}
+        </main>
+    </div>
+</div>
+
+<!-- Simple Create Modal -->
+<div id="modal-create" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Add Item</h3>
+            <button onclick="document.getElementById('modal-create').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <!-- Logic for dynamic forms would go here, simplified for demo -->
+        <p class="text-sm text-gray-600 mb-4">Functional CRUD forms remain mapped to the metadata.</p>
+        <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save</button>
+    </div>
+</div>
+{% endblock %}

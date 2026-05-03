@@ -14,6 +14,7 @@ import {
     Switch,
     Typography
 } from "@mui/joy";
+import { LayoutGrid, AlignJustify, Table2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import CryptoJS from 'crypto-js';
 import { useAtom } from "jotai";
@@ -51,6 +52,8 @@ export const CreatePrototype: React.FC = () => {
     const [databaseHash, setDatabaseHash] = useState<string | null>(null);
     const [databasePrototypes, setDatabasePrototypes] = useState([]);
     const [selectedDatabasePrototype, setSelectedDatabasePrototype] = useState(null);
+    const [layout, setLayout] = useState<'card' | 'list' | 'table'>('table');
+    const [color, setColor] = useState<string>('blue');
 
     useEffect(() => {
         if (isSuccessInterfaces && interfaces) {
@@ -138,6 +141,7 @@ export const CreatePrototype: React.FC = () => {
             "diagrams": diagrams,
             "interfaces": selectedInterfaces,
             "useAuthentication": useAuthentication,
+            "layout_config": { layout, style: { color, density: "normal", columns: 3, radius: "xl", card_style: "elevated" } },
         };
 
         const alphanumericRegex = /^[a-zA-Z0-9]+$/;
@@ -236,6 +240,45 @@ export const CreatePrototype: React.FC = () => {
                             value={selectedDatabasePrototype}
                             onChange={setSelectedDatabasePrototype}
                         />
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel>Layout</FormLabel>
+                        <div className="flex gap-2">
+                            {([
+                                { value: 'card', label: 'Card', icon: <LayoutGrid size={14} /> },
+                                { value: 'list', label: 'List', icon: <AlignJustify size={14} /> },
+                                { value: 'table', label: 'Table', icon: <Table2 size={14} /> },
+                            ] as const).map(opt => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setLayout(opt.value)}
+                                    className={`flex items-center gap-1 px-3 py-1.5 rounded border text-xs font-medium transition-all ${
+                                        layout === opt.value
+                                            ? 'bg-blue-600 text-white border-blue-600'
+                                            : 'bg-white text-neutral-700 border-neutral-300 hover:border-blue-400'
+                                    }`}
+                                >
+                                    {opt.icon}{opt.label}
+                                </button>
+                            ))}
+                        </div>
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel>Color</FormLabel>
+                        <div className="flex gap-2">
+                            {(['blue', 'green', 'purple', 'orange', 'rose', 'slate'] as const).map(c => (
+                                <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => setColor(c)}
+                                    title={c}
+                                    className={`w-6 h-6 rounded-full transition-all ${
+                                        { blue: 'bg-blue-500', green: 'bg-green-500', purple: 'bg-purple-500', orange: 'bg-orange-500', rose: 'bg-rose-500', slate: 'bg-slate-500' }[c]
+                                    } ${color === c ? 'ring-2 ring-offset-1 ring-blue-500 scale-110' : 'opacity-60 hover:opacity-100'}`}
+                                />
+                            ))}
+                        </div>
                     </FormControl>
                     <FormControl>
                         <span className="flex flex-row items-center gap-2">

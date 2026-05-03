@@ -371,7 +371,7 @@ export const Sections: React.FC<Props> = () => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [] };
+                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
 
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {

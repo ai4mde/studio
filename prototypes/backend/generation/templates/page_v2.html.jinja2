@@ -1,0 +1,48 @@
+{% extends "{{ application_name }}_base.html" %}
+{% block content %}
+<div class="bg-white min-h-screen text-gray-900 font-sans">
+    <!-- Clean Minimalist Top Nav -->
+    <nav class="border-b border-gray-100 py-6 px-8 flex justify-between items-center">
+        <div class="text-2xl font-black tracking-tight uppercase">{{ application_name }}</div>
+        <div class="hidden md:flex space-x-12 font-medium text-sm tracking-widest uppercase">
+            <a href="#" class="border-b-2 border-black pb-1">Collection</a>
+            <a href="#" class="hover:text-gray-500 transition">About</a>
+            <a href="#" class="hover:text-gray-500 transition">Support</a>
+        </div>
+        <div class="flex items-center space-x-6">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-8 py-16">
+        <div class="mb-16 text-center">
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-gray-400 mb-4">{{ page.category | default('Overview') }}</p>
+            <h2 class="text-5xl font-light tracking-tight">{{ page.display_name }}</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+            {% for section in page.section_components %}
+                {% for item in section.primary_model_list %}
+                <div class="group cursor-pointer">
+                    <div class="relative aspect-[4/5] bg-gray-50 overflow-hidden mb-6">
+                        <div class="absolute inset-0 bg-gray-200 animate-pulse group-hover:hidden"></div>
+                        <!-- Content placeholder -->
+                        <div class="absolute inset-0 flex items-center justify-center text-gray-300 opacity-0 group-hover:opacity-100 transition duration-500">
+                            <button class="bg-white text-black px-6 py-3 text-xs font-bold uppercase tracking-widest hover:bg-black hover:text-white transition">Quick View</button>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-sm font-bold uppercase tracking-wider">{{ item.name | default('Modern Piece') }}</h3>
+                            <span class="text-sm font-medium">€{{ item.price | default('0.00') }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 uppercase tracking-tighter">{{ section.display_name }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %}

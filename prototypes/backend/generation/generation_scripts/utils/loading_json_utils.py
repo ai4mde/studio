@@ -216,14 +216,16 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         name = section["name"],
                         application = application_name,
                         page = page_name,
-                        primary_model = find_model_by_class_ptr(metadata, section["class"]), # TODO: there might be a quicker method than this
-                        parent_models = find_parent_models_by_id(metadata, section["class"]), # TODO: quicker method?
+                        primary_model = find_model_by_class_ptr(metadata, section["class"]),
+                        parent_models = find_parent_models_by_id(metadata, section["class"]),
                         attributes = retrieve_section_attributes(metadata, section),
                         has_create_operation = section["operations"]["create"],
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"]
+                        text = section["text"],
+                        layout = section.get("layout", "table"),
+                        style = section.get("style", None),
                     )
                     out.append(sec)
             return out

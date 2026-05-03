@@ -1,60 +1,77 @@
 {% raw %}{% load static %}{% endraw %}
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{{ application_name }}</title>
-            <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
-    </head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ application_name | capitalize }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
+</head>
 
-    <body>
-        <div class="header">
-            <div class="logo">
-                <img src='{{ logo }}'>
-            </div>
-            <h1>{{ application_name | capitalize }}</h1>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <!-- Top bar -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            {% if logo %}<img src="{{ logo }}" class="h-8 w-auto">{% endif %}
+            <span class="text-lg font-semibold text-gray-800">{{ application_name | capitalize }}</span>
         </div>
-            <div class="menu">
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}">Home</a>
-                {% if settings.manager_access %}
-                <b>Manager</b>
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}">Activity log</a>
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}">User assignment</a>
-                {% endif %}
-                {% for category in categories %}
-                <b>{{ category }}</b>
-                {% for page in pages %}
-                {% if page.type == 'normal'%}
-                {% if page.category == category.name %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
-                    }}</a>
-                {% endif %}
-                {% endif %}
-                {% endfor %}
-                {% endfor %}
+        {% if authentication_present -%}
+        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-gray-500 hover:text-gray-800 transition-colors">Logout</a>
+        {%- else -%}
+        <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-gray-500 hover:text-gray-800 transition-colors">Other Application</a>
+        {%- endif %}
+    </header>
 
-                <br>
+    <div class="flex flex-1">
 
-                {% for page in pages %}
-                {% if page.category in ["", none] and page.type != 'activity' %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}">{{ page.display_name
-                    }}</a>
-                {% endif %}
-                {% endfor %}
+        <!-- Sidebar nav -->
+        <nav class="w-56 shrink-0 bg-white border-r border-gray-200 py-4 flex flex-col gap-1">
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+               class="mx-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                Home
+            </a>
 
-                {% if authentication_present -%}
-                {% raw %}<a href="{% url 'logout' %}">Logout</a>{% endraw %}
-                {% else -%}
-                {% raw %}<a href="{% url 'noauth_home-homerender' %}">Other Application</a>{% endraw %}
-                {% endif -%}
+            {% if settings.manager_access %}
+            <div class="mx-2 mt-2 px-3 py-1">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Manager</span>
             </div>
-    
-    <div class="content">
-        {% raw %}
-        {% block content %}
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}"
+               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">Activity log</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}"
+               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">User assignment</a>
+            {% endif %}
 
-        {% endblock %}
-        {% endraw %}
+            {% for category in categories %}
+            <div class="mx-2 mt-3 px-3 py-1">
+                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
+            </div>
+            {% for page in pages %}
+            {% if page.type == 'normal' and page.category == category.name %}
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
+               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                {{ page.display_name }}
+            </a>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+
+            {% for page in pages %}
+            {% if page.category in ["", none] and page.type != 'activity' %}
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
+               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                {{ page.display_name }}
+            </a>
+            {% endif %}
+            {% endfor %}
+        </nav>
+
+        <!-- Main content -->
+        <main class="flex-1 overflow-auto p-6">
+            {% raw %}{% block content %}{% endblock %}{% endraw %}
+        </main>
+
     </div>
-    </body>
+</body>
 </html>

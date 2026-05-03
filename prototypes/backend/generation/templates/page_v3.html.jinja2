@@ -1,0 +1,84 @@
+{% extends "{{ application_name }}_base.html" %}
+{% block content %}
+<div class="bg-slate-900 min-h-screen text-slate-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-white">{{ application_name | upper }}</h1>
+                <p class="text-slate-400 text-sm mt-1">Industrial-grade Transaction Management</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="bg-slate-800 rounded-full px-4 py-2 flex items-center space-x-2 border border-slate-700">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-mono uppercase">System Online</span>
+                </div>
+                <button class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded font-bold text-sm transition shadow-lg shadow-indigo-500/20" onclick="document.getElementById('modal-create').classList.remove('hidden')">
+                    NEW RECORD
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl">
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Items</p>
+                <p class="text-4xl font-mono text-white">024</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-xl">
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Active Volume</p>
+                <p class="text-4xl font-mono text-white">€1.2M</p>
+            </div>
+            <div class="bg-indigo-900/30 border border-indigo-500/30 p-6 rounded-xl">
+                <p class="text-indigo-300 text-xs font-bold uppercase tracking-wider mb-2">Selected Mode</p>
+                <p class="text-4xl font-mono text-white">PRO</p>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+            <div class="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                <h2 class="font-bold text-lg">{{ page.display_name }} Master Log</h2>
+                <div class="flex space-x-2">
+                    <input type="text" placeholder="Filter records..." class="bg-slate-900 border border-slate-600 rounded px-3 py-1 text-xs focus:border-indigo-500 outline-none">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-slate-500 text-xs font-bold uppercase tracking-widest bg-slate-900/50">
+                            {% for section in page.section_components %}
+                                {% if loop.first %}
+                                    {% for attribute in section.attributes %}
+                                    <th class="px-6 py-4 border-b border-slate-700">{{ attribute }}</th>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                            <th class="px-6 py-4 border-b border-slate-700 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm font-mono">
+                        {% for section in page.section_components %}
+                            {% for item in section.primary_model_list %}
+                            <tr class="hover:bg-slate-700/50 transition border-b border-slate-700/50 group">
+                                {% for attribute in section.attributes %}
+                                <td class="px-6 py-4">
+                                    <span class="text-slate-300">{{ item[attribute] | default('---') }}</span>
+                                </td>
+                                {% endfor %}
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition">
+                                        <button class="text-indigo-400 hover:text-white">Edit</button>
+                                        <button class="text-red-400 hover:text-white">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

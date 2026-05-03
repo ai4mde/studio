@@ -14,20 +14,23 @@ ENV PYTHONFAULTHANDLER=1 \
     POETRY_NO_INTERACTION=1 \
     PATH="$PATH:/root/.local/bin"
 
+WORKDIR /usr/src
 RUN pip install pipx
 RUN pipx install "poetry==$POETRY_VERSION"
 RUN pipx ensurepath
 
 COPY pyproject.toml poetry.lock ./
+RUN poetry lock --no-update 2>/dev/null || poetry lock
 RUN poetry install --no-dev --no-root --no-interaction --no-ansi
 
 FROM python:3.12.1
 WORKDIR /usr/src/app
 
-COPY --from=venv /.venv /usr/src/.venv
+COPY --from=venv /usr/src/.venv /usr/src/.venv
 COPY model /usr/src/model
 COPY entrypoint.sh /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
 ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "/usr/src/model/manage.py", "runserver", "0.0.0.0:8000" ]
+CMD [ "python", "/usr/src/model/manage.py", "runserver", "0.0.0.0:8000" ]

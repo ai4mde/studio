@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>{{ page.display_name }} — Preview</title>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+
+{%- set _cm = {
+  "blue":   {"btn":"bg-blue-600","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","th":"bg-blue-600 text-white"},
+  "green":  {"btn":"bg-green-600","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","th":"bg-green-600 text-white"},
+  "purple": {"btn":"bg-purple-600","light":"bg-purple-50","text":"text-purple-600","border":"border-purple-200","label":"text-purple-700","th":"bg-purple-600 text-white"},
+  "orange": {"btn":"bg-orange-500","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","th":"bg-orange-500 text-white"},
+  "rose":   {"btn":"bg-rose-600","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","th":"bg-rose-600 text-white"},
+  "slate":  {"btn":"bg-slate-700","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","th":"bg-slate-700 text-white"},
+} -%}
+{%- set _rm = {"none":"rounded-none","sm":"rounded-sm","md":"rounded-md","lg":"rounded-lg","xl":"rounded-xl","2xl":"rounded-2xl"} -%}
+{%- set _dm = {
+  "compact":  {"gap":"gap-2","p":"p-3","text":"text-xs","sec":"mb-6"},
+  "normal":   {"gap":"gap-4","p":"p-4","text":"text-sm","sec":"mb-10"},
+  "spacious": {"gap":"gap-6","p":"p-6","text":"text-base","sec":"mb-14"},
+} -%}
+{%- set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-300"} -%}
+{%- set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} -%}
+{%- set _mock_opacities = ["1", "0.8", "0.6"] -%}
+
+<header class="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
+  <div class="flex items-center gap-3">
+    <h1 class="text-xl font-bold text-gray-800">{{ page.display_name }}</h1>
+    {%- if page.type == 'activity' and page.activity_name %}
+    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activity: {{ page.activity_name }}</span>
+    {%- endif %}
+  </div>
+</header>
+
+<main class="px-8 py-6 max-w-6xl mx-auto">
+
+{%- for section_component in page.section_components %}
+{%- set _s  = section_component.style %}
+{%- set c   = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
+{%- set r   = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
+{%- set d   = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
+{%- set cs  = _csm.get(_s.get("card_style","elevated"), _csm["elevated"]) %}
+{%- set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
+{%- set lay = section_component.layout %}
+
+<div class="{{ d.sec }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+
+  <div class="flex items-center gap-3 mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">{{ section_component.display_name }}</h2>
+    <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase tracking-wide font-medium">{{ lay }}</span>
+  </div>
+
+  {%- if section_component.text %}
+  <div class="{{ d.text }} text-gray-500 mb-4">{{ section_component.text }}</div>
+  {%- endif %}
+
+{# ══ CARD ══ #}
+{%- if lay == "card" %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for row in range(3) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-2" style="opacity: {{ _mock_opacities[row] }}">
+      {%- for attribute in section_component.attributes %}
+      <div class="flex flex-col gap-0.5">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- if attribute.type == AttributeType.BOOLEAN %}
+        <input type="checkbox" {% if row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5" />
+        {%- elif attribute.type == AttributeType.ENUM %}
+        <span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+        {%- elif attribute.type == AttributeType.INTEGER %}
+        <span class="{{ d.text }} font-medium text-gray-700">{{ row * 7 + 12 }}</span>
+        {%- else %}
+        <span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ row + 1 }}</span>
+        {%- endif %}
+      </div>
+      {%- endfor %}
+      <div class="flex gap-2 mt-auto pt-2 border-t border-gray-100">
+        {%- if section_component.has_update_operation %}
+        <button class="{{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">Edit</button>
+        {%- endif %}
+        {%- if section_component.has_delete_operation %}
+        <button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} border border-red-200">Delete</button>
+        {%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
+{# ══ LIST ══ #}
+{%- elif lay == "list" %}
+  <div class="flex flex-col {{ d.gap }}">
+    {%- for row in range(3) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[row] }}">
+      <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
+        {%- for attribute in section_component.attributes %}
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+          {%- if attribute.type == AttributeType.BOOLEAN %}
+          <input type="checkbox" {% if row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5" />
+          {%- elif attribute.type == AttributeType.ENUM %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ row * 7 + 12 }}</span>
+          {%- else %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ row + 1 }}</span>
+          {%- endif %}
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="flex gap-2 shrink-0">
+        {%- if section_component.has_update_operation %}
+        <button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">Edit</button>
+        {%- endif %}
+        {%- if section_component.has_delete_operation %}
+        <button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} border border-red-200">Delete</button>
+        {%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
+{# ══ TABLE ══ #}
+{%- else %}
+  <div class="overflow-x-auto {{ r }} border border-gray-200">
+    <table class="min-w-full text-left">
+      <thead>
+        <tr>
+          {%- for attribute in section_component.attributes %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
+          {%- endfor %}
+          {%- for parent_model in section_component.parent_models %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
+          {%- endfor %}
+          {%- if section_component.has_update_operation or section_component.has_delete_operation %}
+          <th class="{{ c.th }} {{ d.text }} px-4 py-3"></th>
+          {%- endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        {%- for row in range(3) %}
+        <tr class="hover:bg-gray-50" style="opacity: {{ _mock_opacities[row] }}">
+          {%- for attribute in section_component.attributes %}
+          <td class="px-4 py-3 {{ d.text }} text-gray-700">
+            {%- if attribute.type == AttributeType.BOOLEAN %}
+            <input type="checkbox" {% if row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded" />
+            {%- elif attribute.type == AttributeType.ENUM %}
+            {{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}
+            {%- elif attribute.type == AttributeType.INTEGER %}
+            {{ row * 7 + 12 }}
+            {%- else %}
+            {{ attribute }} {{ row + 1 }}
+            {%- endif %}
+          </td>
+          {%- endfor %}
+          {%- for parent_model in section_component.parent_models %}
+          <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
+          {%- endfor %}
+          {%- if section_component.has_update_operation or section_component.has_delete_operation %}
+          <td class="px-4 py-3">
+            <div class="flex gap-2">
+              {%- if section_component.has_update_operation %}
+              <button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded border {{ c.border }} bg-white">Edit</button>
+              {%- endif %}
+              {%- if section_component.has_delete_operation %}
+              <button class="{{ d.text }} text-red-500 py-1 px-3 rounded border border-red-200">Delete</button>
+              {%- endif %}
+            </div>
+          </td>
+          {%- endif %}
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+{%- endif %}
+
+  {%- if section_component.has_create_operation %}
+  <button class="mt-4 flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} bg-white hover:bg-gray-50 transition-colors">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+    Add {{ section_component.display_name }}
+  </button>
+  {%- endif %}
+
+</div>
+{%- endfor %}
+
+{%- if page.type == 'activity' %}
+<div class="fixed bottom-6 right-6">
+  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">
+    Complete task
+  </button>
+</div>
+{%- endif %}
+
+</main>
+
+<script>
+(function() {
+  var style = document.createElement('style');
+  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
+  document.head.appendChild(style);
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+      el.classList.add('si-selected');
+      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

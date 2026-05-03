@@ -53,11 +53,13 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
         metadata=prototype.metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
+    layout_config = prototype.metadata.get('layout_config') if isinstance(prototype.metadata, dict) else None
     data = {
         'id': str(new_prototype.id),
         'name': prototype.name,
         'system': str(prototype.system),
-        'metadata': json.dumps(prototype.metadata)
+        'metadata': json.dumps(prototype.metadata),
+        'variant_id': json.dumps(layout_config) if layout_config else '1',
     }
     # TODO: database retrieval should be done using ids
     if database_prototype_name and database_prototype_name != "":

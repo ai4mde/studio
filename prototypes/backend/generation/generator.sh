@@ -4,6 +4,7 @@ export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
 export METADATA="$4"
+export VARIANT_ID="$5"
 export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
@@ -94,7 +95,7 @@ create_new_django_app() {
         exit 1
     fi
     python -m django startapp "$app"
-    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_application.py" "$PROJECT_NAME" "$app" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM" "$VARIANT_ID"
     update_global_app_settings "$app"
 }
 

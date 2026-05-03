@@ -3,6 +3,7 @@ from .system import ReadSystem, UpdateSystem, CreateSystem, ExportSystem, Import
 from .interface import ReadInterface, UpdateInterface, CreateInterface
 from .release import ReadRelease, ImportRelease, ExportRelease, CreateRelease, ImportReleaseSystem
 from .meta import MetaSchema, MetaClassifiersSchema, MetaRelationsSchema, ExportClassifier, ExportRelation
+from .generator import GeneratePrototypeRequest, GeneratePrototypeResponse, GeneratedFile
 
 __all__ = [
     "ReadProject",
@@ -29,4 +30,7 @@ __all__ = [
     "CreateRelease",
     "ExportClassifier",
     "ExportRelation",
+    "GeneratePrototypeRequest",
+    "GeneratePrototypeResponse",
+    "GeneratedFile",
 ]
