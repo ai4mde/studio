@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
+from django.contrib.contenttypes.models import ContentType
 
 {# Create, Update, Delete views #}
 {% for page in pages -%}
@@ -40,9 +41,19 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
+        if _pk_{{ parent_model }}:
+            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=_pk_{{ parent_model }})
         {% endfor -%}
         {% if page.type == 'activity' %}
+        {% for parent_model in section_component.parent_models -%}
+        if not getattr(instance, '{{ parent_model }}_id', None):
+            _apn_{{ parent_model }} = get_object_or_404(ActiveProcessNode, pk=self.kwargs.get('active_process_node_id'))
+            _ct_{{ parent_model }} = ContentType.objects.get_for_model({{ parent_model }})
+            _ami_{{ parent_model }} = _apn_{{ parent_model }}.active_process.associated_model_instances.filter(content_type=_ct_{{ parent_model }}).first()
+            if _ami_{{ parent_model }}:
+                instance.{{ parent_model }}_id = _ami_{{ parent_model }}.instance_id
+        {% endfor -%}
         instance.save()
         active_process_node = get_object_or_404(
             ActiveProcessNode,
@@ -84,7 +95,9 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% endif -%}
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
-        instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=self.request.POST.get('{{ parent_model }}'))
+        _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
+        if _pk_{{ parent_model }}:
+            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=_pk_{{ parent_model }})
         {% endfor -%}
         return super().form_valid(form)
 {% endif -%}

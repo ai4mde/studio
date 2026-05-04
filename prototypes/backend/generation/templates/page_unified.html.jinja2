@@ -18,11 +18,18 @@
 } %}
 {% set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-200"} %}
 {% set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} %}
+{% set _pm = {
+  "vertical": "flex flex-col",
+  "horizontal": "flex flex-row flex-wrap items-start",
+  "vertical-reverse": "flex flex-col-reverse",
+  "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
+} %}
 
 {% if page.type == 'activity' %}
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
+<div class="{{ _pm.get(page.layout, 'flex flex-col') }} {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
 {# ── Resolve per-section style ── #}
 {% set _s  = section_component.style %}
@@ -33,7 +40,7 @@
 {% set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
 {% set lay = section_component.layout %}
 
-<div class="{{ d.sec }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+<div class="{% if page.layout in ['vertical', 'vertical-reverse'] %}{{ d.sec }}{% endif %} {% if page.layout in ['horizontal', 'horizontal-reverse'] %}flex-1 min-w-[300px]{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
 
   {% if page.type != 'activity' %}
   <div class="flex items-center justify-between mb-3">
@@ -102,7 +109,7 @@
         {%- endif %}
       </div>
 
-      {%- if section_component.has_update_operation %}{% raw %}{% endif %}{% endraw %}{% endif -%}
+      {%- if section_component.has_update_operation %}{% raw %}{% endif %}{% endraw %}{%- endif %}
     </div>
     {% raw %}{% endfor %}{% endraw %}
 
@@ -122,6 +129,17 @@
           {%- endif %}
         </div>
         {% endif %}{% endfor %}
+        {% for parent_model in section_component.parent_models %}
+        <div class="flex flex-col gap-1">
+          <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ parent_model }}</label>
+          <select name="{{ parent_model }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+            <option value="">Select {{ parent_model }}</option>
+            {% raw %}{%{% endraw %} for item in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+            <option value="{% raw %}{{{% endraw %} item.id {% raw %}}}{% endraw %}">{% raw %}{{{% endraw %} item {% raw %}}}{% endraw %}</option>
+            {% raw %}{% endfor %}{% endraw %}
+          </select>
+        </div>
+        {% endfor %}
         <div class="flex gap-2 mt-2">
           <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} py-2 {{ r }} border border-gray-200 text-center">Cancel</a>
@@ -205,7 +223,7 @@
 
       {%- if section_component.has_update_operation %}{% raw %}{% endif %}{% endraw %}{% endif -%}
     </div>
-    {% raw %}{% endfor %}{% endfor %}{% endraw %}
+    {% raw %}{% endfor %}{% endraw %}
 
     {%- if section_component.has_create_operation %}
     {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
@@ -366,7 +384,6 @@
         </tr>
         {% raw %}{% endif %}{% endraw %}
         {%- endif %}
-
       </tbody>
     </table>
   </div>
@@ -388,6 +405,7 @@
 
 </div>
 {%- endfor %}
+</div>
 
 {% if page.type == 'activity' %}
 <div class="fixed bottom-6 right-6">

@@ -285,6 +285,17 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 category = None
                 if page["category"] != None:
                     category = page["category"]["value"]["name"]
+
+                layout_field = page.get("layout")
+                page_layout = layout_field.get("value") if isinstance(layout_field, dict) else layout_field
+                if not page_layout:
+                    page_layout = "vertical"
+
+                gap_field = page.get("gap")
+                page_gap = gap_field.get("value") if isinstance(gap_field, dict) else gap_field
+                if not page_gap:
+                    page_gap = "normal"
+
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
@@ -292,7 +303,9 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     category = category,
                     activity_name = page['action']['label'] if page.get('action') else None,
                     type = page["type"]['value'] if page.get('type') else 'normal',
-                    section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata)
+                    section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata),
+                    layout = str(page_layout),
+                    gap = str(page_gap),
                 )
                 out.append(pg)
     except:

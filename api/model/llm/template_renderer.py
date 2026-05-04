@@ -80,13 +80,15 @@ class _SectionComponent:
 
 
 class _Page:
-    def __init__(self, name, display_name, type_, activity_name, category, section_components):
+    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal"):
         self.name = name
         self.display_name = display_name
         self.type = type_
         self.activity_name = activity_name
         self.category = category
         self.section_components = section_components
+        self.layout = layout or "vertical"
+        self.gap = gap or "normal"
 
     def __str__(self):
         return self.name
@@ -198,6 +200,12 @@ def render_layout(
         type_field = p_raw.get("type")
         page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
 
+        layout_field = p_raw.get("layout")
+        page_layout = layout_field.get("value", "vertical") if isinstance(layout_field, dict) else (str(layout_field) if layout_field else "vertical")
+
+        gap_field = p_raw.get("gap")
+        page_gap = gap_field.get("value", "normal") if isinstance(gap_field, dict) else (str(gap_field) if gap_field else "normal")
+
         action_field = p_raw.get("action")
         activity_name = action_field.get("label") if isinstance(action_field, dict) else None
 
@@ -208,6 +216,8 @@ def render_layout(
             activity_name=activity_name,
             category=None,
             section_components=section_components,
+            layout=page_layout,
+            gap=page_gap,
         ))
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
@@ -309,6 +319,13 @@ def render_preview(
 
         type_field = p_raw.get("type")
         page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
+
+        layout_field = p_raw.get("layout")
+        page_layout = layout_field.get("value", "vertical") if isinstance(layout_field, dict) else (str(layout_field) if layout_field else "vertical")
+
+        gap_field = p_raw.get("gap")
+        page_gap = gap_field.get("value", "normal") if isinstance(gap_field, dict) else (str(gap_field) if gap_field else "normal")
+
         action_field = p_raw.get("action")
         activity_name = action_field.get("label") if isinstance(action_field, dict) else None
 
@@ -319,6 +336,8 @@ def render_preview(
             activity_name=activity_name,
             category=None,
             section_components=section_components,
+            layout=page_layout,
+            gap=page_gap,
         ))
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))

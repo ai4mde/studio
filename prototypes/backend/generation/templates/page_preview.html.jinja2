@@ -24,6 +24,12 @@
 } -%}
 {%- set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-300"} -%}
 {%- set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} -%}
+{%- set _pm = {
+  "vertical": "flex flex-col",
+  "horizontal": "flex flex-row flex-wrap items-start",
+  "vertical-reverse": "flex flex-col-reverse",
+  "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
+} -%}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] -%}
 
 <header class="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
@@ -37,6 +43,7 @@
 
 <main class="px-8 py-6 max-w-6xl mx-auto">
 
+<div class="{{ _pm.get(page.layout, 'flex flex-col') }} {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
 {%- set _s  = section_component.style %}
 {%- set c   = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
@@ -46,7 +53,7 @@
 {%- set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
 {%- set lay = section_component.layout %}
 
-<div class="{{ d.sec }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+<div class="{% if page.layout in ['vertical', 'vertical-reverse'] %}{{ d.sec }}{% endif %} {% if page.layout in ['horizontal', 'horizontal-reverse'] %}flex-1 min-w-[300px]{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
 
   <div class="flex items-center gap-3 mb-3">
     <h2 class="text-xl font-semibold text-gray-800">{{ section_component.display_name }}</h2>
@@ -185,6 +192,7 @@
 
 </div>
 {%- endfor %}
+</div>
 
 {%- if page.type == 'activity' %}
 <div class="fixed bottom-6 right-6">
