@@ -52,6 +52,9 @@
 {%- set cs  = _csm.get(_s.get("card_style","elevated"), _csm["elevated"]) %}
 {%- set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
 {%- set lay = section_component.layout %}
+{%- set has_attrs = section_component.attributes|length > 0 %}
+{%- set has_methods = section_component.custom_methods|length > 0 %}
+{%- set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
 
 <div class="{% if page.layout in ['vertical', 'vertical-reverse'] %}{{ d.sec }}{% endif %} {% if page.layout in ['horizontal', 'horizontal-reverse'] %}flex-1 min-w-[300px]{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
 
@@ -64,8 +67,53 @@
   <div class="{{ d.text }} text-gray-500 mb-4">{{ section_component.text }}</div>
   {%- endif %}
 
+{# ══ ACTION PANEL (generic fallback for method-only sections) ══ #}
+{%- if eff_lay == "action_panel" %}
+{%- if section_component.custom_methods|length == 1 %}
+  <button class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">{{ section_component.custom_methods[0] }}</button>
+{%- else %}
+  <div class="flex flex-wrap gap-2">
+    {%- for method in section_component.custom_methods %}
+    <button class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">{{ method }}</button>
+    {%- endfor %}
+  </div>
+{%- endif %}
+
+{# ══ DETAIL ══ #}
+{%- elif eff_lay == "detail" %}
+  <div class="flex flex-col {{ d.gap }}">
+    {%- for row in range(3) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100" style="opacity: {{ _mock_opacities[row] }}">
+      <div class="grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
+        {%- for attribute in section_component.attributes %}
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+          {%- if attribute.type == AttributeType.BOOLEAN %}
+          <input type="checkbox" {% if row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5" />
+          {%- elif attribute.type == AttributeType.ENUM %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ row * 7 + 12 }}</span>
+          {%- else %}
+          <span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ row + 1 }}</span>
+          {%- endif %}
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+        {%- if section_component.has_update_operation %}
+        <button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">Edit</button>
+        {%- endif %}
+        {%- if section_component.has_delete_operation %}
+        <button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} border border-red-200">Delete</button>
+        {%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
 {# ══ CARD ══ #}
-{%- if lay == "card" %}
+{%- elif eff_lay == "card" %}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for row in range(3) %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-2" style="opacity: {{ _mock_opacities[row] }}">
@@ -96,7 +144,7 @@
   </div>
 
 {# ══ LIST ══ #}
-{%- elif lay == "list" %}
+{%- elif eff_lay == "list" %}
   <div class="flex flex-col {{ d.gap }}">
     {%- for row in range(3) %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[row] }}">
@@ -129,7 +177,7 @@
   </div>
 
 {# ══ TABLE ══ #}
-{%- else %}
+{%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
       <thead>
@@ -181,9 +229,13 @@
       </tbody>
     </table>
   </div>
+{%- else %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
+    Unsupported section layout: {{ lay }}
+  </div>
 {%- endif %}
 
-  {%- if section_component.has_create_operation %}
+  {%- if section_component.has_create_operation and eff_lay != "action_panel" %}
   <button class="mt-4 flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} bg-white hover:bg-gray-50 transition-colors">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
     Add {{ section_component.display_name }}

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
@@ -53,6 +55,10 @@ create_workflow_engine_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "workflow_engine"
     python "${WORKDIR}/generation_scripts/generate_workflow_engine.py" "$PROJECT_NAME" "$METADATA" "$PROJECT_SYSTEM" "$AUTH_PRESENT"
+    if ! grep -q "class StartProcessView" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/views.py"; then
+        echo "Error: workflow_engine/views.py generation failed (StartProcessView missing)."
+        exit 1
+    fi
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py

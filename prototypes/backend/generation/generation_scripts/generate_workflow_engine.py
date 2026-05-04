@@ -18,7 +18,12 @@ def main():
     if not generate_models(system_id, project_name, metadata):
         raise Exception("Failed to generate models")
 
-    cron_jobs = generate_data(system_id, project_name, metadata)
+    try:
+        cron_jobs = generate_data(system_id, project_name, metadata)
+    except Exception as e:
+        # Keep prototype generation resilient even when workflow activity metadata is incomplete.
+        print(f"Warning: workflow_engine data generation failed: {e}")
+        cron_jobs = []
 
     if not generate_cron_jobs(system_id, project_name, cron_jobs):
         raise Exception("Failed to generate cron jobs")

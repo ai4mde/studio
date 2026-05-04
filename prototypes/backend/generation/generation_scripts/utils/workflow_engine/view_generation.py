@@ -1,3 +1,4 @@
+import os
 from utils.file_generation import generate_output_file
 from utils.loading_json_utils import retrieve_manager_roles
 
@@ -13,6 +14,14 @@ def generate_views(system_id: str, project_name: str, metadata: str, authenticat
     }
 
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
+        # Validate the output is not the empty django startapp stub
+        with open(OUTPUT_FILE_PATH, "r") as f:
+            content = f.read()
+        if "StartProcessView" not in content:
+            raise Exception(
+                f"Generated {project_name}/workflow_engine/views.py is missing StartProcessView — "
+                "template rendering may have failed silently."
+            )
         return True
     
     raise Exception(f"Failed to generate {project_name}/workflow_engine/views.py")

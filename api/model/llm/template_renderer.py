@@ -60,7 +60,7 @@ class _Attribute:
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
-                 layout="table", style=None):
+                 layout="table", style=None, custom_methods=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -74,6 +74,7 @@ class _SectionComponent:
         self.layout = layout or "table"
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.style["columns"] = str(self.style.get("columns", "3"))
+        self.custom_methods = custom_methods or []
 
     def __str__(self):
         return self.name
@@ -113,6 +114,18 @@ def _parse_text(text: str) -> str:
     text = re.sub(r'_(.+?)_', r'<em>\1</em>', text)
     text = text.replace("\n", "<br>")
     return text
+
+
+def _parse_custom_methods(section_raw: Dict) -> List[str]:
+    methods = []
+    for method_raw in section_raw.get("methods", []) or []:
+        if isinstance(method_raw, dict):
+            method_name = method_raw.get("name") or method_raw.get("label") or method_raw.get("value")
+            if method_name:
+                methods.append(str(method_name))
+        elif method_raw:
+            methods.append(str(method_raw))
+    return methods
 
 
 def render_layout(
@@ -195,6 +208,7 @@ def render_layout(
                 text=_parse_text(s_raw.get("text", "")),
                 layout=sec_layout,
                 style=sec_style,
+                custom_methods=_parse_custom_methods(s_raw),
             ))
 
         type_field = p_raw.get("type")
@@ -315,6 +329,7 @@ def render_preview(
                 text=_parse_text(s_raw.get("text", "")),
                 layout=sec_layout,
                 style=sec_style,
+                custom_methods=_parse_custom_methods(s_raw),
             ))
 
         type_field = p_raw.get("type")

@@ -5,7 +5,7 @@ import { AlignJustify, Code2, Eye, LayoutGrid, Loader2, RefreshCw, Table2 } from
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useLocalStorage from './useLocalStorage';
 
-type LayoutOption = 'card' | 'list' | 'table';
+type LayoutOption = 'card' | 'list' | 'table' | 'detail';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
 
@@ -17,6 +17,7 @@ const LAYOUT_OPTIONS: { value: LayoutOption; label: string; icon: React.ReactNod
     { value: 'card', label: 'Card', icon: <LayoutGrid size={13} /> },
     { value: 'list', label: 'List', icon: <AlignJustify size={13} /> },
     { value: 'table', label: 'Table', icon: <Table2 size={13} /> },
+    { value: 'detail', label: 'Detail', icon: <Code2 size={13} /> },
 ];
 
 const COLOR_OPTIONS: ColorOption[] = ['blue', 'green', 'purple', 'orange', 'rose', 'slate'];
@@ -129,6 +130,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
     const secDensity: DensityOption = (secStyle.density as DensityOption) || 'normal';
     const secColumns = String(secStyle.columns ?? '3');
+    const isMethodOnly = !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
 
     const currentPage = (pages as any[])[previewPageIndex];
     const pageLayout = currentPage?.layout?.value || 'vertical';
@@ -176,8 +178,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {s.name || 'Unnamed'}
                                 </span>
-                                <span style={{ fontSize: 11, color: '#6b7280', flexShrink: 0, marginLeft: 4 }}>
-                                    {s.layout || 'table'}
+                                <span style={{ fontSize: 11, color: !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280', flexShrink: 0, marginLeft: 4 }}>
+                                    {!(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
                                 </span>
                             </button>
                         ))}
@@ -228,14 +230,21 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                             </Typography>
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
-                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {LAYOUT_OPTIONS.map(opt => (
-                                    <button key={opt.value} style={{ ...btnBase, ...active(secLayout === opt.value) }}
-                                        onClick={() => updateSection(selectedSection.id, 'layout', opt.value)}>
-                                        {opt.icon}{opt.label}
-                                    </button>
-                                ))}
-                            </div>
+                            {isMethodOnly ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                                    <span style={{ ...btnBase, ...active(true), cursor: 'default', pointerEvents: 'none' }}>Action Panel</span>
+                                    <span style={{ fontSize: 11, color: '#9ca3af' }}>auto — no attributes</span>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                    {LAYOUT_OPTIONS.map(opt => (
+                                        <button key={opt.value} style={{ ...btnBase, ...active(secLayout === opt.value) }}
+                                            onClick={() => updateSection(selectedSection.id, 'layout', opt.value)}>
+                                            {opt.icon}{opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Color</p>
                             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>

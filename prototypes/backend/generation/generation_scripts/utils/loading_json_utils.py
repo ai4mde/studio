@@ -211,19 +211,22 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     if not section:
                         continue
 
+                    section_class = section.get("class")
+                    operations = section.get("operations") or {}
+
                     sec = SectionComponent(
                         id = section["id"],
                         name = section["name"],
                         application = application_name,
                         page = page_name,
-                        primary_model = find_model_by_class_ptr(metadata, section["class"]),
-                        parent_models = find_parent_models_by_id(metadata, section["class"]),
+                        primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None,
+                        parent_models = find_parent_models_by_id(metadata, section_class) if section_class else [],
                         attributes = retrieve_section_attributes(metadata, section),
-                        has_create_operation = section["operations"]["create"],
-                        has_delete_operation = section["operations"]["delete"],
-                        has_update_operation = section["operations"]["update"],
+                        has_create_operation = bool(operations.get("create", False)),
+                        has_delete_operation = bool(operations.get("delete", False)),
+                        has_update_operation = bool(operations.get("update", False)),
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"],
+                        text = section.get("text", ""),
                         layout = section.get("layout", "table"),
                         style = section.get("style", None),
                     )

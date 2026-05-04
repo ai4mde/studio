@@ -45,6 +45,30 @@ lock = Lock()
 running_prototype = manager.dict()
 
 
+def _is_pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _is_port_accepting(port: int, host: str = "127.0.0.1", timeout: float = 0.5) -> bool:
+    try:
+        with socket.create_connection((host, int(port)), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def _running_prototype_is_healthy() -> bool:
+    if "id" not in running_prototype:
+        return False
+    pid = int(running_prototype["pid"])
+    port = int(running_prototype["port"])
+    return _is_pid_alive(pid) and _is_port_accepting(port)
+
+
 def stop_prototype():
     with lock:
         if "id" in running_prototype:
@@ -62,7 +86,7 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
 
         prototype_path = os.path.join(ROOT_DIR, prototype_system, prototype_name)
         if not os.path.isdir(prototype_path):
-            return None
+            return None, "prototype_dir_not_found"
         
         process = subprocess.Popen(
             ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
@@ -70,14 +94,24 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
             stdout=sys.stdout,
             stderr=sys.stderr,
         )
-        time.sleep(2)
-        if process.poll() is not None:
-            return None
+        ready = False
+        for _ in range(16):
+            if process.poll() is not None:
+                break
+            if _is_port_accepting(RUNNING_PROTOTYPE_PORT):
+                ready = True
+                break
+            time.sleep(0.5)
+
+        if not ready:
+            if process.poll() is None:
+                process.terminate()
+            return None, "prototype_startup_failed"
 
         running_prototype["id"] = prototype_id
         running_prototype["pid"] = process.pid
         running_prototype["port"] = RUNNING_PROTOTYPE_PORT
-        return process, RUNNING_PROTOTYPE_PORT
+        return (process, RUNNING_PROTOTYPE_PORT), None
 
 
 @app.route('/run', methods=['POST'])
@@ -87,12 +121,14 @@ def run_prototype():
     id = data.get('id')
     name = data.get('name')
     system = data.get('system')
-    result = start_prototype(id, name, system)
+    result, error_code = start_prototype(id, name, system)
     if result:
         _, port = result
         return redirect(f"{RUNNING_PROTOTYPE_PROTO}{RUNNING_PROTOTYPE_HOST}:{RUNNING_PROTOTYPE_PORT}", code=307)
     else:
-        abort(404)
+        if error_code == "prototype_dir_not_found":
+            abort(404)
+        return "Prototype failed to start. Check studio-prototypes logs for Django errors.", 500
 
 
 @app.route('/stop_prototypes', methods=['POST'])
@@ -104,6 +140,9 @@ def stop_prototypes():
 @app.route('/active_prototype', methods=['GET'])
 def get_active_prototype():
     with lock:
+        if "id" in running_prototype and not _running_prototype_is_healthy():
+            running_prototype.clear()
+
         if "id" in running_prototype:
             return {
                 "prototype_id": running_prototype["id"],
