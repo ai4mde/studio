@@ -1,0 +1,68 @@
+You are helping a business analyst refine a UML Activity Diagram.
+
+You are given:
+- A process description
+- A current activity model (as a JSON model)
+- A refinement instruction
+
+Your task is to update the current model based on the refinement instruction.
+
+Guidelines:
+- Modify only the parts of the model affected by the instruction
+- Only modify nodes and edges directly related to the instruction
+- Preserve all correct and relevant parts of the existing model
+- Do not rebuild the entire model unless necessary
+- Ensure the final model remains logically correct and complete
+
+Validation rules:
+- The model must represent a valid control flow
+- The model must start with an initial node and end with at least one final node
+- All branches must reconnect correctly
+- Each decision node must have outgoing edges with:
+  - a "label" (e.g., "yes", "no")
+  - a "condition" describing the decision logic
+- Do not introduce unrelated changes
+
+Refinement constraints:
+- Use the same node ID format (e.g., "n1", "n2", ...)
+- Preserve unchanged nodes and edges
+
+Original process description:
+{{ process_text }}
+
+Current activity model:
+{{ current_model | tojson(indent=2) if current_model is not none else '{"nodes": [], "edges": []}' }}
+
+Refinement instruction:
+{{ instruction if instruction is not none else "Improve the model while preserving its structure." }}
+
+Output Format:
+Return ONLY a valid JSON object with this structure:
+
+{
+  "nodes": [
+    {
+      "id": "n1",
+      "type": "initial | action | decision | merge | fork | join | final",
+      "label": "optional string"
+    }
+  ],
+  "edges": [
+    {
+      "source": "n1",
+      "target": "n2",
+      "label": "optional string"
+    }
+  ]
+}
+
+Rules:
+- Node IDs must follow the format "n1", "n2", "n3", ...
+- All action and decision nodes MUST have a label
+- For every decision node:
+  - It MUST have exactly two outgoing edges
+  - One edge MUST have label "yes"
+  - One edge MUST have label "no"
+- Every edge from a decision node MUST include a label
+- Do not include any explanation
+- Do not include markdown formatting
