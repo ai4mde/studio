@@ -11,7 +11,7 @@ Core entry point
 - building the LLM prompt
 - calling the LLM
 - parsing the returned JSON
-- validating the resulting activity graph
+- validating the resulting activity model
 
 Debugging / tests
 -----------------
@@ -31,7 +31,7 @@ for downstream/product usage.
 
 Multiple candidates (not a separate pipeline stage)
 ---------------------------------------------------
-``generate_initial_candidates`` returns N clean graphs by calling
+``generate_initial_candidates`` returns N clean models by calling
 ``model_activity(process_text=...)`` **N times** — same core operation as
 single-shot generation; there is no extra “multi-generation” layer beyond
 those repeated calls. No refinement and no AI4MDE conversion here.
@@ -50,6 +50,9 @@ import json
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from pydantic import ValidationError
+
+from .activity_model import ActivityModel
 from .handler import call_openai
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
 from .prompt_builder import build_activity_prompt
@@ -58,7 +61,7 @@ ActivityDebugResult = Dict[str, Any]
 
 
 def _is_clean_format(model: Any) -> bool:
-    """Check if the model is in clean format (nodes + edges at top level)."""
+    # Check if the model is in clean format (nodes + edges at top level).
     return (
         isinstance(model, dict)
         and isinstance(model.get("nodes"), list)
@@ -73,10 +76,10 @@ def _unwrap_ai4mde_model(model: Any) -> dict:
 
 
 def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
-    """
-    Extract a clean activity graph from AI4MDE format for use in prompts.
-    Maps classifier IDs to simple ids (n1, n2, ...).
-    """
+    
+    # Extract a clean activity model from AI4MDE format for use in prompts.
+    # Maps classifier IDs to simple ids (n1, n2, ...).
+  
     ai4mde = _unwrap_ai4mde_model(ai4mde)
     diagrams = ai4mde.get("diagrams") or []
     if not diagrams:
@@ -133,14 +136,14 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
 
 
 def _get_clean_model(model: dict) -> dict:
-    """Return the model in clean format, converting from AI4MDE if needed."""
+    # Return the model in clean format, converting from AI4MDE if needed.
     if _is_clean_format(model):
         return model
     return _extract_clean_from_ai4mde(model)
 
 
 def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
-    """Extract system_id, diagram_id, name, description, project from AI4MDE format."""
+    # Extract system_id, diagram_id, name, description, project from AI4MDE format.
     ai4mde = _unwrap_ai4mde_model(ai4mde)
     system_id = str(ai4mde.get("id", "System"))
     name = str(ai4mde.get("name", "GeneratedActivity"))
@@ -154,41 +157,22 @@ def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
 
 
 def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
-    """
-    Parse LLM output and validate the clean activity graph schema (nodes / edges).
-    """
+    
+    # Parse LLM output and validate the clean activity model schema (nodes / edges).
     try:
-        parsed = json.loads(raw_output)
-    except json.JSONDecodeError:
-        raise ValueError("LLM activity modelling output is not valid JSON.")
-
-    if not isinstance(parsed, dict) or "nodes" not in parsed or "edges" not in parsed:
+        parsed = ActivityModel.model_validate_json(raw_output)
+    except ValidationError as exc:
         raise ValueError(
-            "LLM activity modelling output does not follow required schema.")
-    if not isinstance(parsed.get("nodes"), list) or not isinstance(parsed.get("edges"), list):
+            f"LLM activity modelling output failed Pydantic validation: {exc}"
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError("LLM activity modelling output is not valid JSON.") from exc
+    except ValueError as exc:
         raise ValueError(
-            "LLM activity modelling output does not follow required schema.")
+            f"LLM activity modelling output failed semantic validation: {exc}"
+        ) from exc
 
-    for node in parsed["nodes"]:
-        if not isinstance(node, dict):
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if "id" not in node or "type" not in node:
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if node.get("type") == "action" and "name" not in node:
-            raise ValueError(
-                "LLM activity modelling output: action nodes must have a name.")
-
-    for edge in parsed["edges"]:
-        if not isinstance(edge, dict):
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-        if "source" not in edge or "target" not in edge:
-            raise ValueError(
-                "LLM activity modelling output does not follow required schema.")
-
-    return parsed
+    return parsed.model_dump(exclude_none=True)
 
 
 def _default_activity_llm_caller(prompt: str) -> str:
@@ -211,9 +195,9 @@ def _activity_llm_roundtrip(
     *,
     llm_caller: Optional[Callable[[str], str]] = None,
 ) -> tuple[str, str, dict]:
-    """
-    Build prompt, call LLM, parse and validate. Returns (prompt, raw_response, graph).
-    """
+    
+    # Build prompt, call LLM, parse and validate. Returns (prompt, raw_response, model).
+    
     clean_current: Optional[dict] = None
     if current_model is not None:
         clean_current = _get_clean_model(current_model)
@@ -275,7 +259,7 @@ It is responsible for:
 - building the LLM prompt
 - calling the LLM
 - parsing the returned JSON
-- validating the resulting activity graph
+- validating the resulting activity model
 
 All generation, refinement, and multi-candidate flows should go through this function.
 
@@ -295,7 +279,7 @@ process_text : str
     Natural language description of the process.
 
 current_model : dict, optional
-    Existing activity graph to refine.
+    Existing activity model to refine.
 
 instruction : str, optional
     Additional guidance for refinement.
@@ -303,7 +287,7 @@ instruction : str, optional
 Returns
 -------
 dict
-    A single validated activity graph with the structure:
+    A single validated activity model with the structure:
     {
         "nodes": [...],
         "edges": [...]
@@ -311,7 +295,7 @@ dict
 
 debug : bool, optional
     If True, return the same structure as :func:`debug_model_activity` instead
-    of only the graph.
+    of only the model.
 
 llm_caller : callable, optional
     ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
@@ -330,7 +314,7 @@ llm_caller : callable, optional
 
 def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
     """
-    Return N independent clean activity graphs for the same ``process_text``.
+    Return N independent clean activity models for the same ``process_text``.
 
     Implementation is **only** repeated calls to ``model_activity(process_text=...)``
     (generation mode). Multi-candidate output is not a separate pipeline: it is
@@ -349,7 +333,7 @@ def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
     Returns
     -------
     list of dict
-        Each element is a clean graph ``{"nodes": [...], "edges": [...]}``.
+        Each element is a clean model ``{"nodes": [...], "edges": [...]}``.
     """
     if n <= 0:
         return []
@@ -441,7 +425,7 @@ Refine **one** activity model per call (after human selection of a single candid
 Overview
 --------
 `refine_activity_model` is a wrapper around `model_activity`.
-It performs refinement of an existing activity graph and converts
+It performs refinement of an existing activity model and converts
 the result into AI4MDE system format for downstream usage.
 
 Behavior
@@ -449,7 +433,7 @@ Behavior
 - Takes the original process description and a current activity model
   (either clean format or AI4MDE JSON).
 - Applies the refinement instruction via the core modelling pipeline.
-- Produces an updated clean activity graph.
+- Produces an updated clean activity model.
 - Converts the result into full AI4MDE system JSON
   (including project, system, diagram, and metadata).
 
@@ -461,7 +445,7 @@ process_text : str
     Original process description.
 
 current_model : dict
-    Existing activity model (clean graph or AI4MDE JSON).
+    Existing activity model (clean model or AI4MDE JSON).
 
 refinement_instruction : str
     Instruction specifying how the model should be updated.
