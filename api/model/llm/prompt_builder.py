@@ -79,7 +79,11 @@ def build_activity_prompt(
         The final prompt string.
     """
 
-    template = _env.get_template("activity_prompt.jinja")
+    if current_model is None and refinement_instruction is None:
+        template = _env.get_template("activity_baseline_prompt.jinja")
+    else:
+        template = _env.get_template("activity_refinement_prompt.jinja")
+
     return template.render(
         process_text=process_text,
         current_model=current_model,
