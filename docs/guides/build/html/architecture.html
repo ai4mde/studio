@@ -261,12 +261,12 @@
 </ul>
 <p>The application uses Traefik to route incoming traffic to the appropriate Docker container. When the project is run, you can connect to the containers via the following URLs:</p>
 <ul class="simple">
-<li><p><strong>Frontend:</strong> <a class="reference internal" href="#ai4mde.localhost"><span class="xref myst">ai4mde.localhost</span></a></p></li>
-<li><p><strong>API:</strong> <a class="reference internal" href="#api.ai4mde.localhost"><span class="xref myst">api.ai4mde.localhost</span></a></p></li>
+<li><p><strong>Frontend:</strong> <a class="reference external" href="http://ai4mde.localhost">ai4mde.localhost</a></p></li>
+<li><p><strong>API:</strong> <a class="reference external" href="http://api.ai4mde.localhost/api/v1/docs#/">api.ai4mde.localhost</a></p></li>
 <li><p><strong>Prototypes</strong>:</p>
 <ul>
-<li><p><strong>API:</strong> <a class="reference internal" href="#prototypes_api.ai4mde.localhost"><span class="xref myst">prototypes_api.ai4mde.localhost</span></a></p></li>
-<li><p><strong>Running prototype:</strong> <a class="reference internal" href="#prototype.ai4mde.localhost"><span class="xref myst">prototype.ai4mde.localhost</span></a></p></li>
+<li><p><strong>API:</strong> <a class="reference external" href="http://prototypes_api.ai4mde.localhost">prototypes_api.ai4mde.localhost</a></p></li>
+<li><p><strong>Running prototype:</strong> <a class="reference external" href="http://prototype.ai4mde.localhost">prototype.ai4mde.localhost</a></p></li>
 </ul>
 </li>
 <li><p><strong>Chatbot:</strong> TODO</p></li>
@@ -347,7 +347,7 @@
 </section>
 <section id="database">
 <h3>Database<a class="headerlink" href="#database" title="Link to this heading">¶</a></h3>
-<p>As a database, the official PostgreSQL Docker image is used (see: <a class="reference external" href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a>). The database is exposed to <code class="docutils literal notranslate"><span class="pre">port</span> <span class="pre">5432</span></code>, which the Django backend can connect to (see <code class="docutils literal notranslate"><span class="pre">DATABASES</span></code> at <a class="reference internal" href="#../api/model/model/settings.py"><span class="xref myst">/api/model/model/settings.py</span></a>):</p>
+<p>As a database, the official PostgreSQL Docker image is used (see: <a class="reference external" href="https://hub.docker.com/_/postgres/">https://hub.docker.com/_/postgres/</a>). The database is exposed to <code class="docutils literal notranslate"><span class="pre">port</span> <span class="pre">5432</span></code>, which the Django backend can connect to (see <code class="docutils literal notranslate"><span class="pre">DATABASES</span></code> at <a class="reference download internal" download="" href="_downloads/8cf2ea363e2ef39e6912c3428cacee6a/settings.py"><span class="xref download myst">/api/model/model/settings.py</span></a>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
 <span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -366,7 +366,7 @@
 </section>
 <section id="frontend">
 <h3>Frontend<a class="headerlink" href="#frontend" title="Link to this heading">¶</a></h3>
-<p>A React frontend is implemented in which end users can directly and intuitively manage and edit UML diagrams, and generate and manage software prototypes. This frontend can be accessed via <a class="reference internal" href="#ai4mde.localhost"><span class="xref myst">ai4mde.localhost</span></a></p>
+<p>A React frontend is implemented in which end users can directly and intuitively manage and edit UML diagrams, and generate and manage software prototypes. This frontend can be accessed via <a class="reference external" href="http://ai4mde.localhost">ai4mde.localhost</a></p>
 <section id="tech-stack">
 <h4>Tech stack<a class="headerlink" href="#tech-stack" title="Link to this heading">¶</a></h4>
 <ul class="simple">
@@ -415,7 +415,7 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">generate_prototype</span></code> invokes the generation architecture with a JSON string of the metadata that is to be used for generation.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">remove_prototype</span></code> removes all files corresponding to a Django prototype.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_prototype</span></code> runs a prototype in the Docker container. A running prototype can be accessed via <a class="reference internal" href="#prototype.ai4mde.localhost"><span class="xref myst">prototype.ai4mde.localhost</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_prototype</span></code> runs a prototype in the Docker container. A running prototype can be accessed via <a class="reference external" href="http://prototype.ai4mde.localhost">prototype.ai4mde.localhost</a></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stop_prototypes</span></code> stops the currently running prototypes.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">status_prototype</span></code> returns whether a prototype is currently running.</p></li>
 </ul>

@@ -17,7 +17,7 @@
 A project is the root of the metadata model. A project ecapsulates systems, releases (system versions), diagrams, metadata, user interfaces, and prototypes. A project defines the context of a combination of all other models. In practice, a project is a company/organization.
 
 **Example:** Supermarket
-**Definition:** [/api/model/metadata/models.py](../api/model/metadata/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/metadata/models.py)
 
 **Properties:**
 - `id`
@@ -28,7 +28,7 @@ A project is the root of the metadata model. A project ecapsulates systems, rele
 A system is a subdivision of a project. A system ecapsulates diagrams, metadata, user interfaces, and prototypes. A system defines the context of a combination of these models. In practice, a system is a fragment of a company/organization.
 
 **Example:** Webshop Order System
-**Definition:** [/api/model/metadata/models.py](../api/model/metadata/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/metadata/models.py)
 
 **Properties:**
 - `id`
@@ -40,7 +40,7 @@ A system is a subdivision of a project. A system ecapsulates diagrams, metadata,
 A release is a snapshot of a system in time. It is static and cannot be changed. It expresses the state of a system during a specific period in development.
 
 **Example:** Weather Forecast System v1.6.3
-**Definition:** [/api/model/metadata/models.py](../api/model/metadata/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/metadata/models.py)
 
 **Properties:**
 - `id`
@@ -57,7 +57,7 @@ A release is a snapshot of a system in time. It is static and cannot be changed.
 A diagram represents a UML diagram. Currently supported diagram types are: `Class`, `Use Case` & `Activity`. A diagram is a set of `nodes`and `edges`, which are the vertex and edge elements of the graph. A diagram falls under a system, and describes the technical details of the system. More information on UML can be found on their website: [https://www.uml.org/](https://www.uml.org/)
 
 **Example:** UML Activity Diagram
-**Definition:** [/api/model/diagram/models.py](../api/model/diagram/models.py)
+**Definition:** [/api/model/diagram/models.py](../../../api/model/diagram/models.py)
 
 **Properties:**
 - `id`
@@ -88,7 +88,7 @@ A node is a vertex in a diagram. It can represent many things, depending on the 
 - `Merge`
 
 **Example:** Payment (Class) / Customer (Actor)
-**Definition:** [/api/model/diagram/models.py](../api/model/diagram/models.py)
+**Definition:** [/api/model/diagram/models.py](../../../api/model/diagram/models.py)
 
 **Properties:**
 - `id`
@@ -116,7 +116,7 @@ An edge is a line in a diagram. It can represent many things, depending on the t
 - `Connection`
 
 **Example:** Interaction between Manager (Actor) and Order Product (Use Case)
-**Definition:** [/api/model/diagram/models.py](../api/model/diagram/models.py)
+**Definition:** [/api/model/diagram/models.py](../../../api/model/diagram/models.py)
 
 **Properties:**
 - `id`
@@ -130,7 +130,7 @@ The actual information of an edge (`relation`)  has been split from the line (`e
 ### Classifier
 A classifier contains the data of a node in a diagram. It's data property is a JSON blob that can represent many things, depending on the type of the corresponding node.
 
-**Definition:** [/api/model/metadata/models.py](../api/model/metadata/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/metadata/models.py)
 
 **Properties:**
 - `id`
@@ -140,7 +140,7 @@ A classifier contains the data of a node in a diagram. It's data property is a J
 ### Relation
 A relation contains the data of an edge in a diagram. It's data property is a JSON blob that can represent many things, depending on the type of the corresponding edge.
 
-**Definition:** [/api/model/metadata/models.py](../api/model/metadata/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/metadata/models.py)
 
 **Properties:**
 - `id`
@@ -153,7 +153,7 @@ A relation contains the data of an edge in a diagram. It's data property is a JS
 A user interface is a component in a system that an actor can interact with. It is a set of pages, categories and styling, which are all stored in a JSON blob.
 
 **Example:** Manager component in a web shop
-**Definition:** [/api/model/metadata/models.py](../api/model/diagram/models.py)
+**Definition:** [/api/model/metadata/models.py](../../../api/model/diagram/models.py)
 
 **Properties:**
 - `id`
@@ -199,7 +199,7 @@ Styling describes the appearance of a user interface. It is used to generate .cs
 A prototype is a basic software implementation of a system, which can be launched and interacted with. A prototype object is used to generate an actual software implementation in the `prototypes` Docker container.
 
 **Example:** To Do application prototype
-**Definition:** [/api/model/generator/models.py](../api/model/generator/models.py)
+**Definition:** [/api/model/generator/models.py](../../../api/model/generator/models.py)
 
 **Properties:**
 - `id`

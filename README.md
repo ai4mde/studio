@@ -19,7 +19,7 @@
 AI4MDE is an open-source research initiative at [LIACS](https://liacs.leidenuniv.nl/) that aims to bridge the gap between AI and Model-Driven Engineering. AI4MDE is a web-based environment in which users can design and manage UML Class, Activity, and Use Case Diagrams via a user-friendly interface. The platform provides the option to generate fully functional Django software prototypes from these diagrams.  
 
 ## ⚡️ Quick start
-To get up and running with the AI4MDE tool in no time, use the code below. For more explanations and environment requirements, read [docs/setup.md](./docs/setup.md) (you will need Docker, Git, and, if you are on Windows, WSL).
+To get up and running with the AI4MDE tool in no time, use the code below. For more explanations and environment requirements, read [docs/guides/source/setup.md](./docs/guides/source/setup.md) (you will need Docker, Git, and, if you are on Windows, WSL).
 
 ```bash
 # Ensure that you have the Docker installed
@@ -43,8 +43,16 @@ docker compose down
 Now visit [http://ai4mde.localhost](http://ai4mde.localhost).
 <b>The login credentials can be found in `config/api.env`.</b>
 
-- For explanations on using the diagram modelling features, see [docs/users-guide.md](./docs/users-guide.md).
+- For explanations on using the diagram modelling features, see [docs/guides/source/users-guide.md](./docs/guides/source/users-guide.md).
 
-- For an overview of the technical architecture, see [docs/architecture.md](./docs/architecture.md).
+- For an overview of the technical architecture, see [docs/guides/source/architecture.md](./docs/guides/source/architecture.md).
 
 - You can report issues using our [bug reporting board](https://github.com/orgs/ai4mde/projects/12). This is public for viewing, but requires us to add you as a collaborator in order to post a new issue. Please, contact someone from the course support team in order to be added.
+
+## Expended Manual
+
+[//]: # (CI/CD pipelines: Systems like GitHub Actions expose the branch name as an environment variable &#40;e.g., GITHUB_REF_NAME&#41; which you can template into docs.)
+To view the current branch manual on github go to this [link](https://html-preview.github.io/?url=https://github.com/ai4mde/studio/blob/develop-manual/docs/index.html).
+
+If you want to view your local manual you can open [/docs/index.html](http://localhost:63342/AI4MDE/docs/). To update your local manual run `./ci/build_docs.sh`
+

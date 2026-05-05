@@ -27,11 +27,11 @@ AI4MDE is a web-based application designed for AI-enhanced Model-Driven Engineer
 - **Chatbot**: A container that runs a Flowise chatbot.
 
 The application uses Traefik to route incoming traffic to the appropriate Docker container. When the project is run, you can connect to the containers via the following URLs:
-- **Frontend:** [ai4mde.localhost](ai4mde.localhost)
-- **API:** [api.ai4mde.localhost](api.ai4mde.localhost)
+- **Frontend:** [ai4mde.localhost](http://ai4mde.localhost)
+- **API:** [api.ai4mde.localhost](http://api.ai4mde.localhost/api/v1/docs#/)
 - **Prototypes**:
-    - **API:** [prototypes_api.ai4mde.localhost](prototypes_api.ai4mde.localhost)
-    - **Running prototype:** [prototype.ai4mde.localhost](prototype.ai4mde.localhost)
+    - **API:** [prototypes_api.ai4mde.localhost](http://prototypes_api.ai4mde.localhost)
+    - **Running prototype:** [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost)
 - **Chatbot:** TODO
 
 
@@ -78,7 +78,7 @@ def create_project(request, project: CreateProject):
     - The endpoint's logic is performed here. Ninja serializes the return value using the `ReadProject` schema to generate the response.
 
 ### Database
-As a database, the official PostgreSQL Docker image is used (see: [https://hub.docker.com/_/postgres/](https://hub.docker.com/_/postgres/)). The database is exposed to `port 5432`, which the Django backend can connect to (see `DATABASES` at [/api/model/model/settings.py](../api/model/model/settings.py)):
+As a database, the official PostgreSQL Docker image is used (see: [https://hub.docker.com/_/postgres/](https://hub.docker.com/_/postgres/)). The database is exposed to `port 5432`, which the Django backend can connect to (see `DATABASES` at [/api/model/model/settings.py](../../../api/model/model/settings.py)):
 
 ```python
 
@@ -97,7 +97,7 @@ DATABASES = {
 ```
 
 ### Frontend
-A React frontend is implemented in which end users can directly and intuitively manage and edit UML diagrams, and generate and manage software prototypes. This frontend can be accessed via [ai4mde.localhost](ai4mde.localhost)
+A React frontend is implemented in which end users can directly and intuitively manage and edit UML diagrams, and generate and manage software prototypes. This frontend can be accessed via [ai4mde.localhost](http://ai4mde.localhost)
 
 #### Tech stack
 - `npm` for depedency management ([https://docs.npmjs.com/](https://docs.npmjs.com/))
@@ -127,7 +127,7 @@ Currently, Django software prototypes can be generated using the metadata of a s
 The Flask API can be found under `/prototypes/backend/api.py`. It has the following endpoints:
 - `generate_prototype` invokes the generation architecture with a JSON string of the metadata that is to be used for generation.
 - `remove_prototype` removes all files corresponding to a Django prototype.
-- `run_prototype` runs a prototype in the Docker container. A running prototype can be accessed via [prototype.ai4mde.localhost](prototype.ai4mde.localhost)
+- `run_prototype` runs a prototype in the Docker container. A running prototype can be accessed via [prototype.ai4mde.localhost](http://prototype.ai4mde.localhost)
 - `stop_prototypes` stops the currently running prototypes.
 - `status_prototype` returns whether a prototype is currently running.
 

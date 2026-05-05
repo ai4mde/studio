@@ -113,8 +113,8 @@ See this example of how to create a loan approval decision flow.
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/decision_flow1.png" style="width: 30%; height: auto;">
-    <img src="./img/decision_flow2.png" style="width: 60%; height: auto;">
+    <img src="./_static/img/decision_flow1.png" style="width: 30%; height: auto;">
+    <img src="./_static/img/decision_flow2.png" style="width: 60%; height: auto;">
   </span>
 </p>
 
@@ -137,8 +137,8 @@ In order to add further internal nodes for a Component Diagram node, right-click
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/parent.png" style="height: 220px; width: auto;">
-    <img src="./img/internals.png" style="height: 220px; width: auto;">
+    <img src="./_static/img/parent.png" style="height: 220px; width: auto;">
+    <img src="./_static/img/internals.png" style="height: 220px; width: auto;">
   </span>
 </p>
 
@@ -157,7 +157,7 @@ You can save snapshots of your project under the <b>Versions</b> tab. This is a 
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/version1.png" style="height: 330px; width: auto;">
+    <img src="./_static/img/version1.png" style="height: 330px; width: auto;">
   </span>
 </p>
 
@@ -169,7 +169,7 @@ To create a new version, click on the <b>New version</b> button. Select the <b>F
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/version2.png" style="height: 400px; width: auto;">
+    <img src="./_static/img/version2.png" style="height: 400px; width: auto;">
   </span>
 </p>
 
@@ -183,7 +183,7 @@ You can use this tab to export projects or systems. You have two options:
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/version3.png" style="height: 450px; width: auto;">
+    <img src="./_static/img/version3.png" style="height: 450px; width: auto;">
   </span>
 </p>
 
@@ -196,7 +196,7 @@ To import an entirely new project, go to the <b>Projects</b> page, and use the <
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/version6.png" style="height: 200px; width: auto;">
+    <img src="./_static/img/version6.png" style="height: 200px; width: auto;">
   </span>
 </p>
 
@@ -210,7 +210,7 @@ In both cases, you will need to choose a version name, and upload the JSON file 
 
 <p align="center">
   <span style="display: inline-flex; gap: 20px; align-items: center; justify-content: center;">
-    <img src="./img/version4.png" style="height: 500px;">
-    <img src="./img/version5.png" style="height: 500px;">
+    <img src="./_static/img/version4.png" style="height: 500px;">
+    <img src="./_static/img/version5.png" style="height: 500px;">
   </span>
 </p>
