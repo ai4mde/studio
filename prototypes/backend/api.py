@@ -183,6 +183,16 @@ def generate_prototype():
             _run_sh(COPY_DATABASE_PATH, [database_prototype_name, name, system], check=True)
         except subprocess.CalledProcessError:
             return f"Failed to copy database from {database_prototype_name} to {name}", 500
+        # The copied database may be from an older schema version; re-run migrate
+        # so any new tables (e.g. shared_models_user) are created without losing data.
+        prototype_path = os.path.join(ROOT_DIR, system, name)
+        result = subprocess.run(
+            ["python", "manage.py", "migrate", "--skip-checks"],
+            cwd=prototype_path,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            return f"Failed to migrate database after copy for {name}", 500
     return f"Generated {name} prototype", 200
 
 

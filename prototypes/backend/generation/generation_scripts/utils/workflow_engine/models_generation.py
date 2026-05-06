@@ -7,9 +7,9 @@ def generate_models(system_id: str, project_name: str, metadata: str) -> bool:
     MODELS_PY_FILE_PATH = "/usr/src/prototypes/backend/generation/workflow_engine/models.py"
     OUTPUT_FILE_PATH = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/models.py"
     models = [model.name for model in retrieve_models(metadata)]
-    
+
     properties = read_template_file(TEMPLATE_PATH).render(models=models)
-    imports = f"from shared_models.models import {', '.join(models)}"
+    imports = f"from shared_models.models import {', '.join(models)}" if models else ""
 
     with open(MODELS_PY_FILE_PATH, "r") as f:
         models_file_content = f.read()

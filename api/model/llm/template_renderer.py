@@ -18,6 +18,8 @@ DEFAULT_SECTION_STYLE = {
     "radius": "xl",
     "columns": "3",
     "card_style": "elevated",
+    "image_position": "top",
+    "image_size": "md",
 }
 
 CLICK_SCRIPT = """
@@ -43,6 +45,7 @@ class AttributeType(IntEnum):
     STRING = 2
     BOOLEAN = 3
     ENUM = 4
+    IMAGE = 5
 
 
 class _Attribute:
@@ -169,6 +172,8 @@ def render_layout(
                     attr_type = AttributeType.BOOLEAN
                 elif type_str == "enum":
                     attr_type = AttributeType.ENUM
+                elif type_str == "image":
+                    attr_type = AttributeType.IMAGE
                 else:
                     attr_type = AttributeType.STRING
 
@@ -295,6 +300,8 @@ def render_preview(
                     attr_type = AttributeType.BOOLEAN
                 elif type_str == "enum":
                     attr_type = AttributeType.ENUM
+                elif type_str == "image":
+                    attr_type = AttributeType.IMAGE
                 else:
                     attr_type = AttributeType.STRING
 

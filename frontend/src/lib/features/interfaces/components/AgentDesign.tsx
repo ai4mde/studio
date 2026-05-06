@@ -8,6 +8,8 @@ import useLocalStorage from './useLocalStorage';
 type LayoutOption = 'card' | 'list' | 'table' | 'detail';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
+type ImagePositionOption = 'left' | 'top' | 'right';
+type ImageSizeOption = 'sm' | 'md' | 'lg';
 
 interface AgentDesignProps {
     interfaceId?: string | null;
@@ -130,6 +132,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
     const secDensity: DensityOption = (secStyle.density as DensityOption) || 'normal';
     const secColumns = String(secStyle.columns ?? '3');
+    const secImagePosition: ImagePositionOption = (secStyle.image_position as ImagePositionOption) || 'top';
+    const secImageSize: ImageSizeOption = (secStyle.image_size as ImageSizeOption) || 'md';
     const isMethodOnly = !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
 
     const currentPage = (pages as any[])[previewPageIndex];
@@ -283,6 +287,43 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                                             </button>
                                         ))}
                                     </div>
+                                </>
+                            )}
+
+                            {secLayout === 'detail' && (
+                                <>
+                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Position</p>
+                                    <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                        {([
+                                            { value: 'left', label: 'Left' },
+                                            { value: 'top', label: 'Top' },
+                                            { value: 'right', label: 'Right' },
+                                        ] as { value: ImagePositionOption; label: string }[]).map(opt => (
+                                            <button key={opt.value}
+                                                style={{ ...btnBase, ...active(secImagePosition === opt.value), padding: '3px 7px', fontSize: 11 }}
+                                                onClick={() => updateSection(selectedSection.id, 'image_position', opt.value)}>
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {secImagePosition !== 'top' && (
+                                        <>
+                                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Size</p>
+                                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                                {([
+                                                    { value: 'sm', label: 'Small' },
+                                                    { value: 'md', label: 'Medium' },
+                                                    { value: 'lg', label: 'Large' },
+                                                ] as { value: ImageSizeOption; label: string }[]).map(opt => (
+                                                    <button key={opt.value}
+                                                        style={{ ...btnBase, ...active(secImageSize === opt.value), padding: '3px 7px', fontSize: 11 }}
+                                                        onClick={() => updateSection(selectedSection.id, 'image_size', opt.value)}>
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
                                 </>
                             )}
                         </>

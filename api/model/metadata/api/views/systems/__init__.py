@@ -1,16 +1,15 @@
-from ninja import Router
+from ninja import Router, Schema
 
 from typing import List, Optional
 from django.core.exceptions import ObjectDoesNotExist
+from ninja.responses import Response
 
-from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSingleSystem
+from metadata.api.schemas import CreateSystem, ReadSystem, UpdateSystem, ExportSingleSystem, ImportSingleSystem
 from metadata.models import Project, System
 from .meta import meta
 from .classifiers import classifiers, classes, actors
 from .relations import relations, classifier_relations
 from .node import nodes
-
-from ninja import Router, Schema
 
 systems = Router()
 
@@ -65,6 +64,17 @@ def export_systems(request):
     system_ids = request.GET.getlist("system_ids")
     systems_qs = System.objects.filter(id__in=system_ids)
     return systems_qs
+
+
+@systems.post("/import/")
+def import_systems(request, payload: List[ImportSingleSystem]):
+    try:
+        systems_data = [s.dict() for s in payload]
+        for system_data in systems_data:
+            System.import_from_json(system_data)
+        return Response({"status": "success", "count": len(systems_data)}, status=200)
+    except Exception as e:
+        return Response({"status": "error", "message": str(e)}, status=400)
 
 
 systems.add_router("/{uuid:system_id}/meta", meta, tags=["metadata"])

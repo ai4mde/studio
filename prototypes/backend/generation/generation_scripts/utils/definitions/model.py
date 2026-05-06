@@ -27,6 +27,7 @@ class AttributeType(Enum):
     ENUM = 4
     FOREIGN_MODEL = 5
     NONE = 6
+    IMAGE = 7
 
 
 class Cardinality(Enum):

@@ -50,12 +50,19 @@ def get_enum_literals(metadata: str, class_id: str) -> List[str]:
 
 
 def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
-    for diagram in json.loads(metadata)["diagrams"]:
+    metadata_json = json.loads(metadata)
+    for diagram in metadata_json["diagrams"]:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if node["cls_ptr"] == class_id:
+            if str(node["cls_ptr"]) == str(class_id):
                 return model_name_sanitization(node["cls"]["name"])
+    # Fallback: resolve from flat classifiers list added during generation
+    for classifier in metadata_json.get("classifiers", []):
+        if str(classifier["id"]) == str(class_id):
+            name = classifier.get("data", {}).get("name")
+            if name:
+                return model_name_sanitization(name)
     return None
 
 
@@ -152,6 +159,8 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         elif attribute["type"] == "enum":
             attribute_type  = AttributeType.ENUM
             enum_literals = get_enum_literals(metadata, attribute["enum"])
+        elif attribute["type"] == "image":
+            attribute_type  = AttributeType.IMAGE
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attribute["name"]),

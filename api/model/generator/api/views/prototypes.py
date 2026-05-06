@@ -45,20 +45,30 @@ def read_prototype(request, id):
 
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
+    system = System.objects.get(pk=prototype.system)
     new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
-        system=System.objects.get(pk=prototype.system),
+        system=system,
         database_hash=prototype.database_hash,
         metadata=prototype.metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
     layout_config = prototype.metadata.get('layout_config') if isinstance(prototype.metadata, dict) else None
+
+    # Enrich metadata with system classifiers so the generator can resolve model
+    # names even when no class diagram is present in the metadata.
+    enriched_metadata = dict(prototype.metadata) if isinstance(prototype.metadata, dict) else {}
+    enriched_metadata['classifiers'] = [
+        {"id": str(c.id), "data": c.data}
+        for c in system.classifiers.filter(data__type='class')
+    ]
+
     data = {
         'id': str(new_prototype.id),
         'name': prototype.name,
         'system': str(prototype.system),
-        'metadata': json.dumps(prototype.metadata),
+        'metadata': json.dumps(enriched_metadata),
         'variant_id': json.dumps(layout_config) if layout_config else '1',
     }
     # TODO: database retrieval should be done using ids

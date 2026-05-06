@@ -25,7 +25,23 @@ class GetTokenSchema(Schema):
     password: str
 
 
-@api.post("/auth/token", auth=None, tags=["authentication"])
+class TokenResponseSchema(Schema):
+    token: str
+    id: str
+    email: str
+    username: str
+
+
+class MessageResponseSchema(Schema):
+    message: str
+
+
+@api.post(
+    "/auth/token",
+    auth=None,
+    tags=["authentication"],
+    response={200: TokenResponseSchema, 403: MessageResponseSchema},
+)
 def get_token(request, body: GetTokenSchema, response: HttpResponse):
     user, token = create_token(body.username, body.password)
     if user and token:
@@ -36,7 +52,7 @@ def get_token(request, body: GetTokenSchema, response: HttpResponse):
         )
         return {
             "token": token,
-            "id": user.id,
+            "id": str(user.id),
             "email": user.email,
             "username": user.username,
         }

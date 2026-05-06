@@ -36,7 +36,8 @@ class Action(NamedElement, NamespacedElement, BaseModel):
     @model_validator(mode="after")
     def set_actor_node_name(cls, values):
         if values.actorNode:
-            values.actorNodeName = Node.objects.get(id=values.actorNode).cls.data.get("name", "Unknown actor")
+            node = Node.objects.filter(id=values.actorNode).first()
+            values.actorNodeName = node.cls.data.get("name", "Unknown actor") if node else "Unknown actor"
         return values
 
 ActionClassifier = Action

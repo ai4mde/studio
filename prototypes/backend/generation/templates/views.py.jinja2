@@ -141,8 +141,13 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     template_name='{{ application_name }}_{{ page }}.html'
+    {% if models_on_pages[page]['primary_models'][0] -%}
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
+    {% else -%}
+    def get_queryset(self):
+        return []
+    {% endif -%}
 
     {% if page.type == 'activity' -%}
     def get_queryset(self):

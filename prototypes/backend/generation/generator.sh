@@ -124,9 +124,9 @@ create_django_apps() {
 
 run_migrations() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
-    python "manage.py" "makemigrations"
+    python "manage.py" "makemigrations" "--skip-checks"
     cp "${WORKDIR}/workflow_engine/0002_populate_workflow_engine.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/migrations"
-    python "manage.py" "migrate"
+    python "manage.py" "migrate" "--skip-checks"
 }
 
 add_cron_jobs() {
