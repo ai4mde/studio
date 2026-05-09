@@ -63,7 +63,7 @@ class _Attribute:
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
-                 layout="table", style=None, custom_methods=None):
+                 layout="table", style=None, custom_methods=None, col_span=12):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -78,6 +78,7 @@ class _SectionComponent:
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.style["columns"] = str(self.style.get("columns", "3"))
         self.custom_methods = custom_methods or []
+        self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
 
     def __str__(self):
         return self.name
@@ -214,6 +215,7 @@ def render_layout(
                 layout=sec_layout,
                 style=sec_style,
                 custom_methods=_parse_custom_methods(s_raw),
+                col_span=int(s_raw.get("col_span", 12)),
             ))
 
         type_field = p_raw.get("type")
@@ -337,6 +339,7 @@ def render_preview(
                 layout=sec_layout,
                 style=sec_style,
                 custom_methods=_parse_custom_methods(s_raw),
+                col_span=int(s_raw.get("col_span", 12)),
             ))
 
         type_field = p_raw.get("type")

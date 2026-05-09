@@ -30,7 +30,7 @@
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
-<div class="{{ _pm.get(page.layout, 'flex flex-col') }} {{ _dm.get(page.gap, _dm['normal']).gap }}">
+<div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
 {# ── Resolve per-section style ── #}
 {% set _s  = section_component.style %}
@@ -43,8 +43,11 @@
 {% set has_attrs = section_component.attributes|length > 0 %}
 {% set has_methods = section_component.custom_methods|length > 0 %}
 {% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
+{% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else section_component.primary_model + '_list' %}
 
-<div class="{% if page.layout in ['vertical', 'vertical-reverse'] %}{{ d.sec }}{% endif %} {% if page.layout in ['horizontal', 'horizontal-reverse'] %}flex-1 min-w-[300px]{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
+
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
 
   {% if page.type != 'activity' %}
   <div class="flex items-center justify-between mb-3">
@@ -79,7 +82,7 @@
 
   <div class="flex flex-col {{ d.gap }}">
 
-    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
     {% if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
       {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
@@ -145,41 +148,6 @@
     </div>
     {% endif %}
     {% raw %}{% empty %}{% endraw %}
-    {% for mock_idx in range(3) %}
-    {% if img_pos in ["left", "right"] %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start" style="opacity: {{ (1.0 - mock_idx * 0.25)|round(2) }}">
-      {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-      <div class="{{ img_w }} flex-shrink-0">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="image" class="w-full h-56 object-cover {{ r }}" />
-      </div>
-      {%- endif %}
-      <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {%- for attribute in section_component.attributes %}
-        {%- if attribute.type != AttributeType.IMAGE %}
-        <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          <span class="{{ d.text }} font-medium text-gray-200">———</span>
-        </div>
-        {%- endif %}
-        {%- endfor %}
-        <div class="sm:col-span-2 flex gap-2 pt-3 border-t border-gray-100"></div>
-      </div>
-    </div>
-    {% else %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100" style="opacity: {{ (1.0 - mock_idx * 0.25)|round(2) }}">
-      <div class="grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {%- for attribute in section_component.attributes %}
-        <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          {%- if attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-200">———</span>
-          {%- endif %}
-        </div>
-        {%- endfor %}
-      </div>
-    </div>
-    {% endif %}
-    {% endfor %}
     {% raw %}{% endfor %}{% endraw %}
 
   </div>
@@ -190,7 +158,7 @@
   <div class="grid {{ col }} {{ d.gap }}">
 
     {# Item cards #}
-    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3">
 
       {%- if section_component.has_update_operation %}
@@ -226,6 +194,9 @@
       {%- endfor %}
 
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+        {%- if section_component.view_detail_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>
+        {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
@@ -245,19 +216,6 @@
       {%- if section_component.has_update_operation %}{% raw %}{% endif %}{% endraw %}{%- endif %}
     </div>
     {% raw %}{% empty %}{% endraw %}
-    {% for mock_idx in range(3) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ (1.0 - mock_idx * 0.25)|round(2) }}">
-      {%- for attribute in section_component.attributes %}
-      <div class="flex flex-col gap-0.5">
-        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-        {%- if attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">
-        {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" disabled class="h-4 w-4 rounded">
-        {%- else %}<span class="{{ d.text }} font-medium text-gray-200">———</span>
-        {%- endif %}
-      </div>
-      {%- endfor %}
-    </div>
-    {% endfor %}
     {% raw %}{% endfor %}{% endraw %}
 
     {%- if section_component.has_create_operation %}
@@ -315,7 +273,7 @@
 
   <div class="flex flex-col {{ d.gap }}">
 
-    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4">
 
       {%- if section_component.has_update_operation %}
@@ -352,6 +310,9 @@
       </div>
 
       <div class="flex gap-2 shrink-0">
+        {%- if section_component.view_detail_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+        {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -371,20 +332,6 @@
       {%- if section_component.has_update_operation %}{% raw %}{% endif %}{% endraw %}{% endif -%}
     </div>
     {% raw %}{% empty %}{% endraw %}
-    {% for mock_idx in range(3) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ (1.0 - mock_idx * 0.25)|round(2) }}">
-      <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
-        {%- for attribute in section_component.attributes %}
-        <div class="flex flex-col gap-0.5">
-          <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" disabled class="h-4 w-4 rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-200">———</span>
-          {%- endif %}
-        </div>
-        {%- endfor %}
-      </div>
-    </div>
-    {% endfor %}
     {% raw %}{% endfor %}{% endraw %}
 
     {%- if section_component.has_create_operation %}
@@ -437,14 +384,14 @@
           {% for parent_model in section_component.parent_models %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100">
 
-        {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ section_component.primary_model }}_list {% raw %}%}{% endraw %}
+        {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
         <tr class="{{ c.light }}">
@@ -491,9 +438,12 @@
           {% for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
+              {%- if section_component.view_detail_page %}
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+              {%- endif %}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -551,6 +501,56 @@
   </div>
 
   {%- if section_component.has_create_operation and eff_lay != "action_panel" %}
+  {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+    <input type="hidden" name="create_{{ section_component }}" value="true">
+    <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add {{ section_component.display_name }}
+    </button>
+  </form>
+  {% raw %}{% endif %}{% endraw %}
+  {%- endif %}
+
+{# ════════════════════════ GALLERY ════════════════════════ #}
+{% elif eff_lay == "gallery" %}
+{% set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{% set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+
+  <div class="grid {{ col }} {{ d.gap }}">
+
+    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+    <div class="{{ cs }} {{ r }} overflow-hidden group relative">
+      {%- if img_attrs %}
+      <div class="aspect-square overflow-hidden">
+        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop'{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+      </div>
+      {%- endif %}
+      {%- if text_attrs %}
+      <div class="{{ d.p_sm }} flex flex-col gap-0.5">
+        {%- for attribute in text_attrs %}
+        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {%- if section_component.view_detail_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors text-xs">View</a>
+        {%- endif %}
+        {%- if section_component.has_delete_operation %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          {% raw %}{% csrf_token %}{% endraw %}
+          <button type="submit" class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 transition-colors text-xs">Delete</button>
+        </form>
+        {%- endif %}
+      </div>
+    </div>
+    {% raw %}{% empty %}{% endraw %}
+    {% raw %}{% endfor %}{% endraw %}
+
+  </div>
+
+  {%- if section_component.has_create_operation %}
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">

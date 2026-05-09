@@ -25,12 +25,7 @@
 {%- set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-300"} -%}
 {%- set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} -%}
 {%- set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} -%}
-{%- set _pm = {
-  "vertical": "flex flex-col",
-  "horizontal": "flex flex-row flex-wrap items-start",
-  "vertical-reverse": "flex flex-col-reverse",
-  "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
-} -%}
+{%- set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} -%}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] -%}
 
 <header class="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
@@ -44,7 +39,7 @@
 
 <main class="px-8 py-6 max-w-6xl mx-auto">
 
-<div class="{{ _pm.get(page.layout, 'flex flex-col') }} {{ _dm.get(page.gap, _dm['normal']).gap }}">
+<div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
 {%- set _s  = section_component.style %}
 {%- set c   = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
@@ -57,7 +52,7 @@
 {%- set has_methods = section_component.custom_methods|length > 0 %}
 {%- set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
 
-<div class="{% if page.layout in ['vertical', 'vertical-reverse'] %}{{ d.sec }}{% endif %} {% if page.layout in ['horizontal', 'horizontal-reverse'] %}flex-1 min-w-[300px]{% endif %}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
 
   <div class="flex items-center gap-3 mb-3">
     <h2 class="text-xl font-semibold text-gray-800">{{ section_component.display_name }}</h2>
@@ -276,6 +271,27 @@
       </tbody>
     </table>
   </div>
+{# ══ GALLERY ══ #}
+{%- elif eff_lay == "gallery" %}
+{%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for row in range(4) %}
+    <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[row] if row < 3 else '0.4' }}">
+      <div class="aspect-square overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+      </div>
+      {%- if text_attrs %}
+      <div class="p-2 flex flex-col gap-0.5">
+        {%- for attribute in text_attrs %}
+        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{{ attribute }} {{ row + 1 }}</span>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+    </div>
+    {%- endfor %}
+  </div>
+
 {%- else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     Unsupported section layout: {{ lay }}

@@ -21,6 +21,7 @@ export const Sections: React.FC<Props> = () => {
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [newText, setNewText] = useState('');
+    const [newRelationField, setNewRelationField] = useState('');
     const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', []);
     const [pencelClick, setPencelClick] = useState(false);
     const [pencelClickText, setPencelClickText] = useState(false);
@@ -71,6 +72,7 @@ export const Sections: React.FC<Props> = () => {
             setNewText('');
         }
 
+        setNewRelationField(data[index].relation_field || '');
         setEditIndex(index);
     };
 
@@ -112,6 +114,25 @@ export const Sections: React.FC<Props> = () => {
 
     const handleTextCancel = () => {
         setPencelClickText(false);
+    };
+
+    const handleRelatedToChange = (index: number, sectionId: string) => {
+        const newData = [...data];
+        newData[index].related_to = sectionId || null;
+        setData(newData);
+    };
+
+    const handleRelationFieldChange = (index: number, value: string) => {
+        setNewRelationField(value);
+        const newData = [...data];
+        newData[index].relation_field = value || null;
+        setData(newData);
+    };
+
+    const handleViewDetailPageChange = (index: number, pageName: string) => {
+        const newData = [...data];
+        newData[index].view_detail_page = pageName || null;
+        setData(newData);
     };
 
     const handleMinus = () => {
@@ -341,6 +362,46 @@ export const Sections: React.FC<Props> = () => {
                                             </>
                                         )}
                                     </FormControl>
+                                    <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">Related To</h3>
+                                        <p className="text-xs text-gray-500">Show items related to the selected section's object (e.g. same category).</p>
+                                        <select
+                                            value={data[index].related_to || ''}
+                                            onChange={(e) => handleRelatedToChange(index, e.target.value)}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            <option value="">None</option>
+                                            {data.filter((_, i) => i !== index).map((sec) => (
+                                                <option key={sec.id} value={sec.id}>{sec.name}</option>
+                                            ))}
+                                        </select>
+                                        {data[index].related_to && (
+                                            <div className="space-y-1">
+                                                <label className="text-xs text-gray-500">Relation field (optional, auto-detected if blank)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newRelationField}
+                                                    onChange={(e) => handleRelationFieldChange(index, e.target.value)}
+                                                    placeholder="e.g. category"
+                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                />
+                                            </div>
+                                        )}
+                                    </FormControl>
+                                    <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">View Detail Page</h3>
+                                        <p className="text-xs text-gray-500">Each item links to this page, passing its ID as a parameter.</p>
+                                        <select
+                                            value={data[index].view_detail_page || ''}
+                                            onChange={(e) => handleViewDetailPageChange(index, e.target.value)}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            <option value="">None</option>
+                                            {pages.filter((p) => p.single_record).map((p) => (
+                                                <option key={p.id} value={p.name}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    </FormControl>
                                     <Divider />
                                     <div className="flex gap-2">
                                         <button
@@ -371,7 +432,7 @@ export const Sections: React.FC<Props> = () => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
+                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
 
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {

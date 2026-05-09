@@ -1,15 +1,16 @@
 import { authAxios } from '$auth/state/auth';
 import { Button, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Eye, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Eye, GalleryHorizontal, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useLocalStorage from './useLocalStorage';
 
-type LayoutOption = 'card' | 'list' | 'table' | 'detail';
+type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
 type ImagePositionOption = 'left' | 'top' | 'right';
 type ImageSizeOption = 'sm' | 'md' | 'lg';
+type ColSpanOption = 12 | 6 | 4 | 3;
 
 interface AgentDesignProps {
     interfaceId?: string | null;
@@ -20,6 +21,14 @@ const LAYOUT_OPTIONS: { value: LayoutOption; label: string; icon: React.ReactNod
     { value: 'list', label: 'List', icon: <AlignJustify size={13} /> },
     { value: 'table', label: 'Table', icon: <Table2 size={13} /> },
     { value: 'detail', label: 'Detail', icon: <Code2 size={13} /> },
+    { value: 'gallery', label: 'Gallery', icon: <GalleryHorizontal size={13} /> },
+];
+
+const COL_SPAN_OPTIONS: { value: ColSpanOption; label: string }[] = [
+    { value: 12, label: 'Full' },
+    { value: 6,  label: '1/2' },
+    { value: 4,  label: '1/3' },
+    { value: 3,  label: '1/4' },
 ];
 
 const COLOR_OPTIONS: ColorOption[] = ['blue', 'green', 'purple', 'orange', 'rose', 'slate'];
@@ -88,10 +97,11 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
     }, [sections, pages, previewPageIndex, interfaceId, doRefreshPreview]);
 
-    const updateSection = useCallback((sectionId: string, field: string, value: string) => {
+    const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
             if (field === 'layout') return { ...s, layout: value };
+            if (field === 'col_span') return { ...s, col_span: value };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
         }));
     }, [setSections]);
@@ -128,6 +138,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
     };
 
     const secLayout: LayoutOption = (selectedSection?.layout as LayoutOption) || 'table';
+    const secColSpan: ColSpanOption = (selectedSection?.col_span as ColSpanOption) ?? 12;
     const secStyle = selectedSection?.style || {};
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
     const secDensity: DensityOption = (secStyle.density as DensityOption) || 'normal';
@@ -240,7 +251,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                                     <span style={{ fontSize: 11, color: '#9ca3af' }}>auto — no attributes</span>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
                                     {LAYOUT_OPTIONS.map(opt => (
                                         <button key={opt.value} style={{ ...btnBase, ...active(secLayout === opt.value) }}
                                             onClick={() => updateSection(selectedSection.id, 'layout', opt.value)}>
@@ -249,6 +260,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                                     ))}
                                 </div>
                             )}
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Width</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {COL_SPAN_OPTIONS.map(opt => (
+                                    <button key={opt.value} style={{ ...btnBase, ...active(secColSpan === opt.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'col_span', opt.value)}>
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Color</p>
                             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>

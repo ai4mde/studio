@@ -101,6 +101,10 @@ class SectionComponent():
             custom_methods = List[SectionCustomMethod],
             layout: str = "table",
             style: Optional[dict] = None,
+            related_to_section_id: Optional[str] = None,
+            relation_field: Optional[str] = None,
+            view_detail_page: Optional[str] = None,
+            col_span: int = 12,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -117,6 +121,10 @@ class SectionComponent():
         self.text = parse_section_text(text)
         self.layout = layout or "table"
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
+        self.related_to_section_id = related_to_section_id
+        self.relation_field = relation_field
+        self.view_detail_page = view_detail_page
+        self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
 
     def __str__(self):
         return self.name

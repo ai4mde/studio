@@ -86,3 +86,12 @@ export const useAuthStore = create(
         },
     ),
 );
+
+// Restore Authorization header after page reload or Vite HMR by subscribing to persisted state
+useAuthStore.subscribe((state) => {
+    if (state.bearerToken) {
+        authAxios.defaults.headers.common.Authorization = `Bearer ${state.bearerToken}`;
+    } else {
+        delete authAxios.defaults.headers.common.Authorization;
+    }
+});

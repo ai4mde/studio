@@ -65,12 +65,18 @@ class ActivityDiagramParser:
     
     @cached_property
     def actors(self) -> dict[str, str]:
-        """Returns id of the actors associated with their name"""
-        return {
-            actor_node['id']: app_name_sanitization(actor_node['cls']['name'])
-            for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams'])
-            for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes'])
-        }
+        """Returns id of the actors associated with their name.
+        Maps both diagram node id and cls_ptr (classifier id) so that
+        activity actorNode fields referencing either format are resolved.
+        """
+        result = {}
+        for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams']):
+            for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes']):
+                name = app_name_sanitization(actor_node['cls']['name'])
+                result[actor_node['id']] = name
+                if actor_node.get('cls_ptr'):
+                    result[actor_node['cls_ptr']] = name
+        return result
     
     @cached_property
     def interface_map(self) -> dict[str, str]:

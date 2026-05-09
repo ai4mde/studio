@@ -152,9 +152,15 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% if page.type == 'activity' -%}
     def get_queryset(self):
         return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+    {% elif page.single_record and models_on_pages[page]['primary_models'][0] -%}
+    def get_queryset(self):
+        _id = self.request.GET.get('instance_id_{{ models_on_pages[page]['primary_models'][0] }}')
+        if _id:
+            return {{ models_on_pages[page]['primary_models'][0] }}.objects.filter(id=_id)
+        return {{ models_on_pages[page]['primary_models'][0] }}.objects.none()
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' %}
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
@@ -173,9 +179,34 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
         {% endfor %}
         {% endif %}
+        {% for section in page.section_components -%}
+        {% if section.related_to_section_id -%}
+        {% set _src_sections = page.section_components | selectattr('id', 'equalto', section.related_to_section_id) | list -%}
+        {% if _src_sections -%}
+        {% set _src = _src_sections[0] -%}
+        {% set _ns = namespace(fk_field=None, same_model=False) -%}
+        {% if section.relation_field -%}
+        {% set _ns.fk_field = section.relation_field -%}
+        {% set _ns.same_model = (section.primary_model == _src.primary_model) -%}
+        {% elif section.primary_model == _src.primary_model -%}
+        {% for pm in section.parent_models -%}{% if pm in _src.parent_models and not _ns.fk_field -%}{% set _ns.fk_field = pm.lower() %}{% set _ns.same_model = true %}{% endif -%}{% endfor -%}
+        {% elif _src.primary_model in section.parent_models -%}
+        {% set _ns.fk_field = _src.primary_model.lower() -%}
+        {% endif -%}
+        {% if _ns.fk_field -%}
+        _src_{{ _src.primary_model }} = {{ _src.primary_model }}.objects.filter(id=self.request.GET.get('instance_id_{{ _src.primary_model }}')).first()
+        {% if _ns.same_model -%}
+        context['related_{{ section.name }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}.{{ _ns.fk_field }}).exclude(id=_src_{{ _src.primary_model }}.id) if _src_{{ _src.primary_model }} and getattr(_src_{{ _src.primary_model }}, '{{ _ns.fk_field }}_id', None) else {{ section.primary_model }}.objects.none()
+        {% else -%}
+        context['related_{{ section.name }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
+        {% endif -%}
+        {% endif -%}
+        {% endif -%}
+        {% endif -%}
+        {% endfor -%}
         return context
 
-    {% endif -%}
+{% endif -%}
 {% endfor -%}
 
 

@@ -1,5 +1,5 @@
 from typing import List, Dict
-from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization, attribute_name_sanitization
+from utils.sanitization import app_name_sanitization, model_name_sanitization, category_name_sanitization, attribute_name_sanitization, page_name_sanitization
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.section_component import SectionComponent, SectionAttribute, SectionCustomMethod
 from utils.definitions.page import Page
@@ -238,6 +238,10 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         text = section.get("text", ""),
                         layout = section.get("layout", "table"),
                         style = section.get("style", None),
+                        related_to_section_id = section.get("related_to", None),
+                        relation_field = section.get("relation_field", None),
+                        view_detail_page = page_name_sanitization(section["view_detail_page"]) if section.get("view_detail_page") else None,
+                        col_span = int(section.get("col_span", 12)),
                     )
                     out.append(sec)
             return out
@@ -318,6 +322,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata),
                     layout = str(page_layout),
                     gap = str(page_gap),
+                    single_record = bool(page.get("single_record", False)),
                 )
                 out.append(pg)
     except:
