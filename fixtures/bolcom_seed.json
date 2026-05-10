@@ -1,0 +1,385 @@
+[
+{
+  "model": "shared_models.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$WGZ1no8csrxEsI8oscQnoa$uGW1XfXJG9xTe42ie4lD4uSEEvz/207Xg24+tV8XhsQ=",
+    "last_login": "2026-05-09T13:49:53.475Z",
+    "is_superuser": false,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-09T13:00:00.503Z",
+    "is_Seller": false,
+    "is_System": false,
+    "is_Customer": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "shared_models.seller",
+  "pk": 1,
+  "fields": {
+    "seller_id": "sel-001",
+    "business_name": "TechStore NL",
+    "rating": "4.8",
+    "review_count": 2341,
+    "is_verified": true,
+    "ships_from": "Amsterdam",
+    "response_time": "< 1 hour"
+  }
+},
+{
+  "model": "shared_models.cart",
+  "pk": 1,
+  "fields": {
+    "cart_id": "cart-001",
+    "customer_id": "1",
+    "total_price": "€ 699,00",
+    "item_count": 1,
+    "Customer": 1
+  }
+},
+{
+  "model": "shared_models.order",
+  "pk": 1,
+  "fields": {
+    "order_id": "ord-001",
+    "customer_id": "1",
+    "status": "Confirmed",
+    "total_amount": "€ 699,00",
+    "shipping_address_id": "1",
+    "Customer": 1,
+    "Payment": 1,
+    "Address": 1
+  }
+},
+{
+  "model": "shared_models.payment",
+  "pk": 1,
+  "fields": {
+    "payment_id": "pay-001",
+    "order_id": "ord-001",
+    "method": "iDEAL",
+    "amount": "€ 699,00",
+    "currency": "EUR",
+    "status": "pending",
+    "transaction_id": "TXN-20260509-001"
+  }
+},
+{
+  "model": "shared_models.review",
+  "pk": 1,
+  "fields": {
+    "review_id": "rev-001",
+    "product_id": "prod-001",
+    "customer_id": "cust-001",
+    "rating": 5,
+    "title": "Excellent value!",
+    "body": "This laptop exceeded my expectations. Fast boot, great display, battery lasts all day.",
+    "is_verified_purchase": true,
+    "Customer": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.review",
+  "pk": 2,
+  "fields": {
+    "review_id": "rev-002",
+    "product_id": "prod-001",
+    "customer_id": "cust-001",
+    "rating": 4,
+    "title": "Good performance",
+    "body": "Runs smoothly for daily tasks. Fan gets loud under heavy load but overall satisfied.",
+    "is_verified_purchase": true,
+    "Customer": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.review",
+  "pk": 3,
+  "fields": {
+    "review_id": "rev-003",
+    "product_id": "prod-001",
+    "customer_id": "cust-001",
+    "rating": 5,
+    "title": "Perfect for students",
+    "body": "Lightweight and fast. Perfect for university. The screen quality is superb.",
+    "is_verified_purchase": false,
+    "Customer": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.review",
+  "pk": 4,
+  "fields": {
+    "review_id": "rev-004",
+    "product_id": "prod-001",
+    "customer_id": "cust-001",
+    "rating": 3,
+    "title": "Decent but warm",
+    "body": "Works fine but runs warm after extended use. Would recommend a cooling pad.",
+    "is_verified_purchase": true,
+    "Customer": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 1,
+  "fields": {
+    "image_id": "img-001",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&h=600&fit=crop",
+    "alt_text": "ASUS VivoBook front view",
+    "is_primary": true,
+    "sort_order": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 2,
+  "fields": {
+    "image_id": "img-002",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=600&fit=crop",
+    "alt_text": "Keyboard close-up",
+    "is_primary": false,
+    "sort_order": 2,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 3,
+  "fields": {
+    "image_id": "img-003",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600&h=600&fit=crop",
+    "alt_text": "Side port view",
+    "is_primary": false,
+    "sort_order": 3,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 4,
+  "fields": {
+    "image_id": "img-004",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=600&h=600&fit=crop",
+    "alt_text": "Open lid display",
+    "is_primary": false,
+    "sort_order": 4,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 5,
+  "fields": {
+    "image_id": "img-005",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1484788984921-03950022c9ef?w=600&h=600&fit=crop",
+    "alt_text": "Touchpad detail",
+    "is_primary": false,
+    "sort_order": 5,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 6,
+  "fields": {
+    "image_id": "img-006",
+    "product_id": "prod-001",
+    "thumb_url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=600&h=600&fit=crop",
+    "alt_text": "Full setup",
+    "is_primary": false,
+    "sort_order": 6,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.customer",
+  "pk": 1,
+  "fields": {
+    "customer_id": "cust-001",
+    "email": "jan@example.com",
+    "password_hash": "",
+    "first_name": "Jan",
+    "last_name": "de Vries",
+    "phone": "+31612345678",
+    "is_active": true
+  }
+},
+{
+  "model": "shared_models.deliveryoption",
+  "pk": 1,
+  "fields": {
+    "option_id": "del-001",
+    "product_id": "prod-001",
+    "method": "Standard Delivery",
+    "estimated_days": 2,
+    "cost": "??3,99",
+    "is_free": false,
+    "cutoff_time": "23:00",
+    "return_policy_days": 0,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.deliveryoption",
+  "pk": 2,
+  "fields": {
+    "option_id": "del-002",
+    "product_id": "prod-001",
+    "method": "Free Delivery",
+    "estimated_days": 3,
+    "cost": "??0,00",
+    "is_free": true,
+    "cutoff_time": "21:00",
+    "return_policy_days": 0,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.deliveryoption",
+  "pk": 3,
+  "fields": {
+    "option_id": "del-003",
+    "product_id": "prod-001",
+    "method": "Express Delivery",
+    "estimated_days": 1,
+    "cost": "??9,99",
+    "is_free": false,
+    "cutoff_time": "14:00",
+    "return_policy_days": 0,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.address",
+  "pk": 1,
+  "fields": {
+    "address_id": "addr-001",
+    "customer_id": "1",
+    "street": "Taksteeg",
+    "house_number": "7",
+    "city": "Amsterdam",
+    "postal_code": "1012 PB",
+    "country": "Netherlands",
+    "is_default": true,
+    "Customer": 1
+  }
+},
+{
+  "model": "shared_models.orderline",
+  "pk": 1,
+  "fields": {
+    "line_id": "ol-001",
+    "order_id": "1",
+    "product_id": "1",
+    "quantity": 1,
+    "unit_price": "€ 699,00",
+    "subtotal": "€ 699,00",
+    "Order": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.cartitem",
+  "pk": 1,
+  "fields": {
+    "cart_item_id": "ci-001",
+    "cart_id": "1",
+    "product_id": "1",
+    "quantity": 1,
+    "unit_price": "€ 699,00",
+    "subtotal": "€ 699,00",
+    "Cart": 1,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.product",
+  "pk": 1,
+  "fields": {
+    "product_id": "prod-001",
+    "name": "ASUS VivoBook 15 Laptop",
+    "brand": "ASUS",
+    "ean": "8717306853798",
+    "description": "High-performance laptop with AMD Ryzen 7, 16GB RAM, 512GB SSD and a 15.6\" Full HD display. Perfect for work and entertainment.",
+    "price": "??699,00",
+    "original_price": "??849,00",
+    "discount_pct": 18,
+    "stock_quantity": 47,
+    "rating": "4.3",
+    "review_count": 1284,
+    "weight_kg": "1.8",
+    "is_active": true,
+    "Category": 1,
+    "Seller": 1
+  }
+},
+{
+  "model": "shared_models.category",
+  "pk": 1,
+  "fields": {
+    "category_id": "cat-001",
+    "name": "Laptops",
+    "slug": "laptops",
+    "parent_category_id": "",
+    "depth": 1
+  }
+},
+{
+  "model": "shared_models.relatedproduct",
+  "pk": 1,
+  "fields": {
+    "product_id": "rel-001",
+    "name": "Lenovo IdeaPad 3",
+    "price": 579,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.relatedproduct",
+  "pk": 2,
+  "fields": {
+    "product_id": "rel-002",
+    "name": "HP Pavilion 15",
+    "price": 649,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.relatedproduct",
+  "pk": 3,
+  "fields": {
+    "product_id": "rel-003",
+    "name": "Acer Aspire 5",
+    "price": 529,
+    "Product": 1
+  }
+},
+{
+  "model": "shared_models.relatedproduct",
+  "pk": 4,
+  "fields": {
+    "product_id": "rel-004",
+    "name": "Dell Inspiron 15",
+    "price": 719,
+    "Product": 1
+  }
+}
+]
