@@ -47,21 +47,29 @@ chosen AI4MDE or clean model).
 Baseline (single model) stays in `baseline_generator` only.
 """
 import json
+import logging
+import os
+import re
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from pydantic import ValidationError
 
 from .activity_model import ActivityModel
-from .handler import call_openai
+from .handler import call_openai, _activity_response_format
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
 from .prompt_builder import build_activity_prompt
 
 ActivityDebugResult = Dict[str, Any]
+logger = logging.getLogger(__name__)
+DEFAULT_ACTIVITY_OPENAI_MODEL = os.environ.get(
+    "OPENAI_ACTIVITY_MODEL",
+    "gpt-4o-mini-2024-07-18",
+)
 
 
 def _is_clean_format(model: Any) -> bool:
-    # Check if the model is in clean format (nodes + edges at top level).
+# Check if the model is in clean format (nodes + edges at top level).
     return (
         isinstance(model, dict)
         and isinstance(model.get("nodes"), list)
@@ -156,17 +164,74 @@ def _get_ai4mde_metadata(ai4mde: dict) -> tuple:
     return system_id, diagram_id, name, description, project_id_str
 
 
+def _strip_markdown_fences(text: str) -> str:
+    stripped = text.strip()
+    fence_match = re.match(
+        r"^\s*```(?:json)?\s*(.*?)\s*```\s*$",
+        stripped,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    if fence_match:
+        return fence_match.group(1).strip()
+    return stripped
+
+
+def _extract_first_json_region(text: str) -> Optional[str]:
+    decoder = json.JSONDecoder()
+    for index, char in enumerate(text):
+        if char not in "[{":
+            continue
+        candidate = text[index:].lstrip()
+        leading_trim = len(text[index:]) - len(candidate)
+        try:
+            _, end = decoder.raw_decode(candidate)
+        except json.JSONDecodeError:
+            continue
+        start = index + leading_trim
+        return text[start:start + end]
+    return None
+
+
+def _prepare_json_payload(raw_output: str) -> str:
+    cleaned = raw_output.strip()
+    candidates = [cleaned]
+
+    fence_stripped = _strip_markdown_fences(cleaned)
+    if fence_stripped != cleaned:
+        candidates.append(fence_stripped)
+
+    for candidate in list(candidates):
+        extracted = _extract_first_json_region(candidate)
+        if extracted and extracted not in candidates:
+            candidates.append(extracted)
+
+    for candidate in candidates:
+        try:
+            json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+        if candidate != raw_output:
+            logger.debug("Recovered JSON payload from fallback generation output.")
+        return candidate
+
+    return raw_output
+
+
 def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
     
     # Parse LLM output and validate the clean activity model schema (nodes / edges).
+    json_payload = _prepare_json_payload(raw_output)
     try:
-        parsed = ActivityModel.model_validate_json(raw_output)
+        json.loads(json_payload)
+    except json.JSONDecodeError as exc:
+        raise ValueError("LLM activity modelling output is not valid JSON.") from exc
+
+    try:
+        parsed = ActivityModel.model_validate_json(json_payload)
     except ValidationError as exc:
         raise ValueError(
             f"LLM activity modelling output failed Pydantic validation: {exc}"
         ) from exc
-    except json.JSONDecodeError as exc:
-        raise ValueError("LLM activity modelling output is not valid JSON.") from exc
     except ValueError as exc:
         raise ValueError(
             f"LLM activity modelling output failed semantic validation: {exc}"
@@ -176,7 +241,11 @@ def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
 
 
 def _default_activity_llm_caller(prompt: str) -> str:
-    return call_openai("gpt-4o-mini", prompt)
+    return call_openai(
+        DEFAULT_ACTIVITY_OPENAI_MODEL,
+        prompt,
+        response_format=_activity_response_format(),
+    )
 
 
 def _build_debug_result(prompt: str, raw_output: str, parsed: dict) -> ActivityDebugResult:
