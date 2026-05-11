@@ -17,10 +17,9 @@ Guidelines:
 Validation rules:
 - The model must represent a valid control flow
 - The model must start with an initial node and end with at least one final node
-- All branches must reconnect correctly
-- Each decision node must have outgoing edges with:
-  - a "label" (e.g., "yes", "no")
-  - a "condition" describing the decision logic
+- Keep the graph structurally valid after your edits
+- Use edge labels such as "yes" / "no" when they clarify decision branches
+- Include edge conditions when they are helpful for expressing branch logic
 - Do not introduce unrelated changes
 
 Refinement constraints:
@@ -44,25 +43,26 @@ Return ONLY a valid JSON object with this structure:
     {
       "id": "n1",
       "type": "initial | action | decision | merge | fork | join | final",
-      "label": "optional string"
+      "name": "required for action nodes",
+      "label": "optional string for display text such as a decision question"
     }
   ],
   "edges": [
     {
       "source": "n1",
       "target": "n2",
-      "label": "optional string"
+      "type": "optional: control | object",
+      "label": "optional branch text such as yes / no",
+      "condition": "optional branch logic"
     }
   ]
 }
 
 Rules:
 - Node IDs must follow the format "n1", "n2", "n3", ...
-- All action and decision nodes MUST have a label
-- For every decision node:
-  - It MUST have exactly two outgoing edges
-  - One edge MUST have label "yes"
-  - One edge MUST have label "no"
-- Every edge from a decision node MUST include a label
+- Action nodes should use `name`
+- Decision nodes may use `label` for the decision question
+- Decision branch text belongs on outgoing edges using `label`
+- Preserve useful existing labels and conditions unless the refinement instruction requires changing them
 - Do not include any explanation
 - Do not include markdown formatting

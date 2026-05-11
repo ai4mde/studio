@@ -1,81 +1,111 @@
 {# Activity diagram LLM prompt — with few-shot examples #}
 
 You are an expert in UML Activity Diagram modelling.
-You are given the following process description:
+
+Given the following process description:
+
 {{ process_text }}
 
-Your task is to generate a complete UML Activity Diagram represented as a single JSON model.
-The model must:
-- Represent a complete control flow from start to end
-- Include all relevant actions
-- Use appropriate control flow structures (decision, parallel, loop)
+Generate a complete UML Activity Diagram as a single JSON model.
 
-Modeling procedure (follow in order):
+The model should:
+- Represent the complete control flow from start to end
+- Include all relevant actions
+- Use appropriate UML control flow structures
+- Keep the graph connected whenever possible
+- Prefer a usable graph over overfitting imperfect structures
+
+-----------------------------------
+Output Format
+-----------------------------------
+
+Return a JSON object with the following structure:
+
+{
+  "nodes": [],
+  "edges": []
+}
+
+Allowed node types:
+- initial
+- action
+- decision
+- merge
+- fork
+- join
+- final
+
+Node ID rules:
+- Use IDs in the format:
+  n1, n2, n3, ...
+
+Edge format:
+{
+  "source": "n1",
+  "target": "n2",
+  "label": "yes"
+}
+
+Use edge labels when they help clarify branch outcomes, such as:
+- yes
+- no
+- retry
+
+-----------------------------------
+Modeling Procedure
+-----------------------------------
+
 1. Identify all actions in logical order
 2. Construct the main sequence from start to end
 3. Add decision nodes for conditional logic
-4. Create edges with clear labels
-5. Merge edges (Single Action Node Rule): If the process flows back to a previously identified action, do NOT create a duplicate node. First, route all incoming edges into a single merge node, then connect that merge node to the target action.
-6. Add parallel structures using fork and join if needed
-7. Add loops when repetition occurs
-8. Ensure the model forms one connected flow
-9. Each decision node must have outgoing edges with:
-   - a "label" (e.g., "yes", "no") describing the decision logic
+4. Add branch labels when helpful
+5. Reuse existing actions when possible instead of duplicating identical steps
+6. Add fork and join nodes for parallel behavior
+7. Model loops using decisions and backward flows
+8. Reconnect branches appropriately
+9. Ensure the final graph forms one connected flow
 
-Control flow structures include:
-- Sequence (ordered execution of actions)
-- Decision (using labeled edges)
-- Parallel (simultaneous execution using fork and join)
-- Loop (repetition based on labels)
+-----------------------------------
+Validation Rules
+-----------------------------------
 
-Validation rules:
-- Must start with an initial node
-- Must end with at least one final node
-- Use appropriate control flow structures when needed:
-  - decision
-  - merge
-  - fork
-  - join
-  - loop-like control flow using decision nodes
-- The model must start with an initial node
+- The model must start with one initial node
 - The model must end with at least one final node
-- All nodes must be connected
-- All edges must reconnect correctly
+- Decision branches should reconnect using merge nodes
+- Parallel branches should reconnect using join nodes
+- Loops must include an exit condition
+- Every edge must connect valid nodes
 
-
-
+-----------------------------------
 Sequence Structure
-Rules
-- A sequence represents a logical order of actions from start to end
-- Actions must be arranged in the correct temporal order
-- Each action should follow logically from the previous one
-- Do not skip intermediate steps if they are described in the text
-- The sequence should form a continuous path without breaks
+-----------------------------------
 
-Keywords
-Sequence relationships are often indicated by the following words or phrases:
-- "after"
-- "then"
-- "next"
-- "subsequently"
-- "once"
-- "when"
-- "before"
-These keywords indicate the order in which actions should occur.
-- All edges must reconnect correctly when appropriate
+Rules:
+- Represent actions in logical temporal order
+- Do not omit important intermediate steps
+- Maintain a continuous flow from start to end
 
-The following examples show how sequence structures are represented in JSON model.
+Common indicators:
+- after
+- then
+- next
+- subsequently
+- before
+- once
+- when
 
-Example1:
+Example:
+
 Text:
 "After the customer submits an order, the system validates the order. Then the manager reviews the order."
+
 Output:
 {
   "nodes": [
     {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "label": "submit order"},
-    {"id": "n3", "type": "action", "label": "validate order"},
-    {"id": "n4", "type": "action", "label": "review order"},
+    {"id": "n2", "type": "action", "name": "submit order"},
+    {"id": "n3", "type": "action", "name": "validate order"},
+    {"id": "n4", "type": "action", "name": "review order"},
     {"id": "n5", "type": "final"}
   ],
   "edges": [
@@ -86,105 +116,38 @@ Output:
   ]
 }
 
-Example2: 
-Text:
-"When the payment is received, the system confirms the order. After that, the warehouse prepares the shipment."
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "label": "payment received"},
-    {"id": "n3", "type": "action", "label": "confirm order"},
-    {"id": "n4", "type": "action", "label": "prepare shipment"},
-    {"id": "n5", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3"},
-    {"source": "n3", "target": "n4"},
-    {"source": "n4", "target": "n5"}
-  ]
-}
-
+-----------------------------------
 Decision Structure
-Rules
-1. When to create a decision
-- A decision node must be created when the process includes a label.
+-----------------------------------
 
-2. Decision edges
-- Each decision must have exactly two outgoing edges:
-  - One for YES
-  - One for NO
+Rules:
+- Use decision nodes for conditional logic
+- Decision nodes typically have two or more outgoing edges
+- Use branch labels such as "yes" and "no" when helpful
+- Nested conditions should use separate decision nodes
+- Branches should reconnect using merge nodes
 
-3. Edge labeling (CRITICAL)
-- Every outgoing edge from a decision node MUST have a label.
-- Missing labels make the diagram invalid.
-- Labels must clearly represent the label (e.g., "yes", "no", ">10000").
+Common indicators:
+- if
+- whether
+- otherwise
+- else
+- depending on
 
-4. Nested labels
-- If multiple labels depend on each other:
-  - Represent each label as a separate decision node
-  - Connect them sequentially
-  - Do NOT combine them into one node
+Example:
 
-5. Edge validity
-- Each edge must contain valid actions.
-- The process must not end inside a decision edge unless explicitly specified.
-
-6. Merge requirement
-- All edges must merge back into a single flow before continuing.
-
-7. Label format
-- Use simple, concise labels (e.g., "yes", "no")
-- Do NOT use technical terms like "yes/no" if the context uses "yes/no"
-
-Keywords
-Decision structures are often indicated by:
-- "if"
-- "whether"
-- "depending on"
-- "in case"
-- "if ... then"
-- "otherwise"
-- "else"
-These keywords indicate that the flow should split into different edges.
-
-The following examples show how decision structures are represented in JSON model.
-Example 1 (Simple)
-Text:
-"If the payment is successful, the system confirms the order. Otherwise, the order is cancelled."
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "decision", "label": "payment successful?"},
-    {"id": "n3", "type": "action", "label": "confirm order"},
-    {"id": "n4", "type": "action", "label": "cancel order"},
-    {"id": "n5", "type": "merge"},
-    {"id": "n6", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3", "label": "yes"},
-    {"source": "n2", "target": "n4", "label": "no"},
-    {"source": "n3", "target": "n5"},
-    {"source": "n4", "target": "n5"},
-    {"source": "n5", "target": "n6"}
-  ]
-}
-
-Example 2 (Medium - Nested Decision)
 Text:
 "If the order is above 2000 EUR, the manager reviews it. If approved, the order is processed. Otherwise, it is rejected."
+
 Output:
 {
   "nodes": [
     {"id": "n1", "type": "initial"},
     {"id": "n2", "type": "decision", "label": "order > 2000?"},
-    {"id": "n3", "type": "action", "label": "review order"},
+    {"id": "n3", "type": "action", "name": "review order"},
     {"id": "n4", "type": "decision", "label": "approved?"},
-    {"id": "n5", "type": "action", "label": "process order"},
-    {"id": "n6", "type": "action", "label": "reject order"},
+    {"id": "n5", "type": "action", "name": "process order"},
+    {"id": "n6", "type": "action", "name": "reject order"},
     {"id": "n7", "type": "merge"},
     {"id": "n8", "type": "final"}
   ],
@@ -206,84 +169,34 @@ Output:
   ]
 }
 
-Example 3 (Complex)
-Text:
-"If the customer is registered, proceed to payment. Otherwise, create an account. If payment fails, retry once, otherwise cancel the order."
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-
-    {"id": "n2", "type": "decision", "label": "registered?"},
-    {"id": "n3", "type": "action", "label": "proceed to payment"},
-    {"id": "n4", "type": "action", "label": "create account"},
-
-    {"id": "n5", "type": "decision", "label": "payment success?"},
-    {"id": "n6", "type": "action", "label": "confirm order"},
-    {"id": "n7", "type": "action", "label": "retry payment"},
-
-    {"id": "n8", "type": "decision", "label": "retry success?"},
-    {"id": "n9", "type": "action", "label": "cancel order"},
-
-    {"id": "n10", "type": "merge"},
-    {"id": "n11", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-
-    {"source": "n2", "target": "n3", "label": "yes"},
-    {"source": "n2", "target": "n4", "label": "no"},
-
-    {"source": "n4", "target": "n3"},
-
-    {"source": "n3", "target": "n5"},
-
-    {"source": "n5", "target": "n6", "label": "yes"},
-    {"source": "n5", "target": "n7", "label": "no"},
-
-    {"source": "n7", "target": "n8"},
-
-    {"source": "n8", "target": "n6", "label": "yes"},
-    {"source": "n8", "target": "n9", "label": "no"},
-
-    {"source": "n6", "target": "n10"},
-    {"source": "n9", "target": "n10"},
-
-    {"source": "n10", "target": "n11"}
-  ]
-}
-
+-----------------------------------
 Parallel Structure
-Rules
-- A parallel structure is used when multiple actions occur simultaneously
-- A fork node must be used to split the flow into parallel edges
-- Each edge represents an independent action that can occur at the same time
-- All parallel edges must eventually join back into a single flow using a join node
-- Do not use decision nodes for parallel behavior
-- Parallel edges should not depend on each other
-- After the join node, the process continues as a single sequence
+-----------------------------------
 
-Keywords
-Parallel structures are often indicated by:
-- "in parallel"
-- "simultaneously"
-- "at the same time"
-- "meanwhile"
-- "concurrently"
-These keywords indicate that multiple actions should occur at the same time.
+Rules:
+- Use fork nodes to split parallel flows
+- Parallel branches should execute independently
+- Reconnect parallel branches using a join node
 
-The following examples show how parallel structures are represented in JSON model.
+Common indicators:
+- in parallel
+- simultaneously
+- at the same time
+- meanwhile
+- concurrently
 
-Example 1
+Example:
+
 Text:
 "The system processes the payment and updates the inventory at the same time."
+
 Output:
 {
   "nodes": [
     {"id": "n1", "type": "initial"},
     {"id": "n2", "type": "fork"},
-    {"id": "n3", "type": "action", "label": "process payment"},
-    {"id": "n4", "type": "action", "label": "update inventory"},
+    {"id": "n3", "type": "action", "name": "process payment"},
+    {"id": "n4", "type": "action", "name": "update inventory"},
     {"id": "n5", "type": "join"},
     {"id": "n6", "type": "final"}
   ],
@@ -297,39 +210,35 @@ Output:
   ]
 }
 
+-----------------------------------
 Loop Structure
-Rules
-- A loop is used when a set of actions is repeated based on a label
-- A loop must be modeled using a decision node and a backward flow
-- The loop label must be clearly defined (e.g., retry success?, valid?, completed?)
-- One edge continues the loop (back to a previous action)
-- The other edge exits the loop and continues the main flow
-- The loop must not create infinite cycles without an exit label
-- After exiting the loop, the process must continue normally
+-----------------------------------
 
-Keywords
-Loop structures are often indicated by:
-- "until"
-- "while"
-- "repeat"
-- "retry"
-- "again"
-- "if not ... then repeat"
-- "keep ... until"
-These keywords indicate that actions should be repeated based on a label.
+Rules:
+- Model loops using decision nodes and backward edges
+- One branch continues the loop
+- Another branch exits the loop
+- Loops must include an exit condition
 
-The following examples show how loop structures are represented in JSON model.
-Example 1
+Common indicators:
+- until
+- while
+- retry
+- repeat
+- again
+
+Example:
+
 Text:
 "If the payment fails, retry the payment until it succeeds."
-Output format:
-Return ONLY a valid JSON model with this structure:
+
+Output:
 {
   "nodes": [
     {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "label": "process payment"},
+    {"id": "n2", "type": "action", "name": "process payment"},
     {"id": "n3", "type": "decision", "label": "payment successful?"},
-    {"id": "n4", "type": "action", "label": "retry payment"},
+    {"id": "n4", "type": "action", "name": "retry payment"},
     {"id": "n5", "type": "final"}
   ],
   "edges": [
@@ -341,75 +250,79 @@ Return ONLY a valid JSON model with this structure:
   ]
 }
 
-Overall Example
-The following example demonstrates how multiple control flow structures (decision, nested decision, and merging) are combined.
+-----------------------------------
+Integrated Example
+-----------------------------------
+
 Text:
-A customer enters an order.
-If the order total is more than 10000 euros:
-- The manager reviews the order.
-- If the order is approved, the inventory manager allocates the stock.
-- Otherwise, the order is cancelled.
-If the order total is not more than 10000 euros:
-- The inventory manager allocates the stock.
-After stock allocation:
-- If the stock level is too low, the product is reordered.
+
+"When a job application is submitted, the HR system first checks whether the application is complete.
+
+If the application is incomplete, the system requests missing information from the applicant and then ends the process.
+
+If the application is complete, the system evaluates the candidate's qualifications.
+
+If the candidate meets the minimum requirements, the application is forwarded to a hiring manager.
+If the candidate does not meet the requirements, the application is rejected.
+
+After the application is forwarded, two activities happen in parallel:
+the hiring manager reviews the application and HR schedules an interview.
+
+Once both activities are completed, the system records the evaluation result.
+
+Finally, the process ends."
 
 Output:
 {
   "nodes": [
     {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "label": "enter order"},
-    {"id": "n3", "type": "decision", "label": "order total > 10000?"},
-    {"id": "n4", "type": "action", "label": "review order"},
-    {"id": "n5", "type": "decision", "label": "order approved?"},
-    {"id": "n6", "type": "action", "label": "cancel order"},
-    {"id": "n7", "type": "merge"}, // Used to merge edges with values ​​>10000 (approved) and <=10000.
-    {"id": "n8", "type": "action", "label": "allocate stock"}, // The only action node
-    {"id": "n9", "type": "decision", "label": "stock level low?"},
-    {"id": "n10", "type": "action", "label": "reorder product"},
-    {"id": "n11", "type": "merge"},
-    {"id": "n12", "type": "final"}
+    {"id": "n2", "type": "action", "name": "check application completeness"},
+    {"id": "n3", "type": "decision", "label": "application complete?"},
+
+    {"id": "n4", "type": "action", "name": "request missing information"},
+
+    {"id": "n5", "type": "action", "name": "evaluate qualifications"},
+    {"id": "n6", "type": "decision", "label": "meets requirements?"},
+
+    {"id": "n7", "type": "action", "name": "forward to hiring manager"},
+    {"id": "n8", "type": "action", "name": "reject application"},
+
+    {"id": "n9", "type": "merge"},
+
+    {"id": "n10", "type": "fork"},
+    {"id": "n11", "type": "action", "name": "manager reviews application"},
+    {"id": "n12", "type": "action", "name": "schedule interview"},
+    {"id": "n13", "type": "join"},
+
+    {"id": "n14", "type": "action", "name": "record evaluation result"},
+    {"id": "n15", "type": "final"}
   ],
   "edges": [
     {"source": "n1", "target": "n2"},
     {"source": "n2", "target": "n3"},
-    {"source": "n3", "target": "n4", "label": "yes"},
-    {"source": "n3", "target": "n7", "label": "no"}, // directly connect to merge
-    {"source": "n4", "target": "n5"},
-    {"source": "n5", "target": "n7", "label": "yes"}, // Approved applications will be redirected to the merge page.
-    {"source": "n5", "target": "n6", "label": "no"},
-    {"source": "n6", "target": "n11"}, // Cancelled applications will skip allocate and directly merge to the end.
-    {"source": "n7", "target": "n8"},
+
+    {"source": "n3", "target": "n4", "label": "no"},
+    {"source": "n3", "target": "n5", "label": "yes"},
+
+    {"source": "n5", "target": "n6"},
+
+    {"source": "n6", "target": "n7", "label": "yes"},
+    {"source": "n6", "target": "n8", "label": "no"},
+
+    {"source": "n7", "target": "n9"},
     {"source": "n8", "target": "n9"},
-    {"source": "n9", "target": "n10", "label": "yes"},
-    {"source": "n9", "target": "n11", "label": "no"},
+
+    {"source": "n9", "target": "n10"},
+
     {"source": "n10", "target": "n11"},
-    {"source": "n11", "target": "n12"}
+    {"source": "n10", "target": "n12"},
+
+    {"source": "n11", "target": "n13"},
+    {"source": "n12", "target": "n13"},
+
+    {"source": "n13", "target": "n14"},
+    {"source": "n14", "target": "n15"},
+
+    {"source": "n4", "target": "n15"}
   ]
 }
-
-Output Format:
-Return ONLY a valid JSON model that strictly follows the structure below.
-Do not include any explanation, text, or markdown formatting.
-{
-  "nodes": [
-    {
-      "id": "string",
-      "type": "initial | action | decision | merge | fork | join | final",
-      "label": "string (optional)"
-    }
-  ],
-  "edges": [
-    {
-      "source": "n1",
-      "target": "n2",
-      "label": "string (optional)"
-    }
-  ]
-}
-
-Rules:
-- Node IDs must use the format "n1", "n2", "n3", ...
-- Use "label" for action, object, and decision descriptions when helpful
-- Use edge "label" for edge labels such as "yes" or "no"
-- Do not include any explanation
