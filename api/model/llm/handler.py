@@ -1,6 +1,8 @@
+import logging
 import os
 import json
 import time
+import traceback
 import uuid
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -13,6 +15,8 @@ except ImportError:
 from openai import OpenAI
 from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
 from llm.prompts.prose import PROSE_GENERATE_METADATA
+
+logger = logging.getLogger(__name__)
 
 ACTIVITY_SCHEMA: Dict[str, Any] = {
     "type": "object",
@@ -67,7 +71,6 @@ ACTIVITY_SCHEMA: Dict[str, Any] = {
     "required": ["nodes", "edges"],
     "additionalProperties": False,
 }
-
 
 def _debug_log(run_id: str, hypothesis_id: str, location: str, message: str, data: Dict[str, Any]) -> None:
     """
@@ -148,7 +151,13 @@ def _extract_message_content(chat_completion: Any) -> Optional[str]:
     return None
 
 
-def call_openai(model: str, prompt: str) -> str:
+def call_openai(
+    model: str,
+    prompt: str,
+    *,
+    response_format: Optional[Dict[str, Any]] = None,
+    require_structured_output: bool = False,
+) -> str:
     run_id = f"call_openai_{uuid.uuid4().hex[:8]}"
     # region agent log
     _debug_log(run_id, "H1", "handler.py:call_openai:entry", "Entered call_openai", {
@@ -170,13 +179,15 @@ def call_openai(model: str, prompt: str) -> str:
             ],
             "model": model,
         }
-        use_structured_output = model in {"gpt-4o-mini", "gpt-4o"} and _is_activity_prompt(prompt)
+        structured_response_format = response_format
+        if structured_response_format is None and model in {"gpt-4o-mini", "gpt-4o"} and _is_activity_prompt(prompt):
+            structured_response_format = _activity_response_format()
 
-        if use_structured_output:
+        if structured_response_format is not None:
             try:
                 chat_completion = client.chat.completions.create(
                     **request_kwargs,
-                    response_format=_activity_response_format(),
+                    response_format=structured_response_format,
                 )
                 content = _extract_message_content(chat_completion)
                 if not content:
@@ -190,9 +201,18 @@ def call_openai(model: str, prompt: str) -> str:
                 })
                 return content
             except Exception as structured_error:
+                if require_structured_output:
+                    raise ValueError(
+                        "Structured output request failed before a valid JSON response was returned."
+                    ) from structured_error
+                logger.warning(
+                    "Structured output request failed; falling back to unconstrained generation.",
+                    exc_info=True,
+                )
                 _debug_log(run_id, "H1B", "handler.py:call_openai:structured_fallback", "Structured OpenAI call failed, falling back to default chat completion", {
                     "error_type": type(structured_error).__name__,
                     "error_text": str(structured_error),
+                    "traceback": traceback.format_exc(),
                 })
 
         chat_completion = client.chat.completions.create(**request_kwargs)

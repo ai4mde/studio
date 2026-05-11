@@ -53,6 +53,55 @@ def test_convert_emits_classifiers_relations_and_passes_validate() -> None:
         assert c.get("original_system_id") is None
 
 
+def test_convert_maps_clean_edge_types_to_ai4mde_relation_types() -> None:
+    clean = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "Act"},
+            {"id": "n3", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2", "type": "control"},
+            {"source": "n2", "target": "n3"},
+        ],
+    }
+    export = convert_to_ai4mde(
+        clean_model=clean,
+        system_id=str(uuid.uuid4()),
+        diagram_id=str(uuid.uuid4()),
+        project_id=str(uuid.uuid4()),
+    )
+    out = unwrap_ai4mde_systems_export(export)
+    assert [relation["data"]["type"] for relation in out["relations"]] == [
+        "controlflow",
+        "controlflow",
+    ]
+    validate_ai4mde_json(out)
+
+
+def test_convert_maps_object_edges_to_objectflow() -> None:
+    clean = {
+        "nodes": [
+            {"id": "n1", "type": "object"},
+            {"id": "n2", "type": "action", "name": "Use object"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2", "type": "object"},
+        ],
+    }
+    export = convert_to_ai4mde(
+        clean_model=clean,
+        system_id=str(uuid.uuid4()),
+        diagram_id=str(uuid.uuid4()),
+        project_id=str(uuid.uuid4()),
+    )
+    out = unwrap_ai4mde_systems_export(export)
+    relation = out["relations"][0]["data"]
+    assert relation["type"] == "objectflow"
+    assert relation["cls"] == out["diagrams"][0]["nodes"][0]["cls"]
+    validate_ai4mde_json(out)
+
+
 def test_convert_with_project_id_matches_system_and_classifiers_and_array_wrap() -> None:
     clean = {
         "nodes": [

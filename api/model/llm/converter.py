@@ -18,8 +18,16 @@ REFERENCE_TOP_LEVEL_KEYS = {
 }
 REFERENCE_CLASSIFIER_KEYS = {"data", "id", "original_system_id", "project", "system"}
 REFERENCE_RELATION_KEYS = {"data", "id", "source", "system", "target"}
-REFERENCE_RELATION_DATA_KEYS = {
+REFERENCE_CONTROLFLOW_DATA_KEYS = {
     "condition",
+    "guard",
+    "is_directed",
+    "position_handlers",
+    "type",
+    "weight",
+}
+REFERENCE_OBJECTFLOW_DATA_KEYS = {
+    "cls",
     "guard",
     "is_directed",
     "position_handlers",
@@ -43,6 +51,14 @@ REFERENCE_ACTION_KEYS = {
 }
 REFERENCE_INITIAL_KEYS = {"activity_scope", "role", "schedule", "scheduled", "type"}
 REFERENCE_FINAL_KEYS = {"activity_scope", "role", "type"}
+
+EDGE_TYPE_MAPPING = {
+    "control": "controlflow",
+    "object": "objectflow",
+    # Accept legacy values without changing them again.
+    "controlflow": "controlflow",
+    "objectflow": "objectflow",
+}
 
 
 def _derive_role(node_type: str) -> str:
@@ -160,7 +176,23 @@ def validate_ai4mde_json(model: Union[Dict[str, Any], List[Dict[str, Any]]]) -> 
         data = r.get("data")
         if not isinstance(data, dict):
             raise ValueError(f"relation {rsid} data must be a dict")
-        _validate_exact_keys(set(data.keys()), REFERENCE_RELATION_DATA_KEYS, f"relation {rsid} data")
+        relation_type = str(data.get("type") or "")
+        if relation_type == "controlflow":
+            _validate_exact_keys(
+                set(data.keys()),
+                REFERENCE_CONTROLFLOW_DATA_KEYS,
+                f"relation {rsid} data",
+            )
+        elif relation_type == "objectflow":
+            _validate_exact_keys(
+                set(data.keys()),
+                REFERENCE_OBJECTFLOW_DATA_KEYS,
+                f"relation {rsid} data",
+            )
+        else:
+            raise ValueError(
+                f"relation {rsid} data.type {relation_type!r} is not a valid AI4MDE activity relation type"
+            )
 
     node_ids: Set[str] = set()
     edge_ids: Set[str] = set()
@@ -249,6 +281,7 @@ def convert_to_ai4mde(
     relations: List[Dict[str, Any]] = []
 
     classifier_id_by_clean_id: Dict[str, str] = {}
+    node_type_by_clean_id: Dict[str, str] = {}
 
     if not project_id or not str(project_id).strip():
         raise ValueError("project_id is required and must refer to an existing Project")
@@ -308,13 +341,15 @@ def convert_to_ai4mde(
         }
 
         classifier_id_by_clean_id[original_id] = cls_id
+        node_type_by_clean_id[original_id] = node_type
         nodes.append(node_payload)
 
     for edge in clean_model.get("edges", []):
         rel_id = str(uuid.uuid4())
         edge_id = str(uuid.uuid4())
 
-        edge_type = edge.get("type") or "controlflow"
+        clean_edge_type = str(edge.get("type") or "control")
+        edge_type = EDGE_TYPE_MAPPING.get(clean_edge_type, clean_edge_type)
         raw_condition = edge.get("condition")
         guard = str(raw_condition) if raw_condition is not None else ""
         condition_value = None
@@ -335,16 +370,38 @@ def convert_to_ai4mde(
                 f"(known: {list(classifier_id_by_clean_id.keys())})"
             )
 
-        rel_payload: Dict[str, Any] = {
-            "id": rel_id,
-            "data": {
+        if edge_type == "controlflow":
+            relation_data: Dict[str, Any] = {
                 "type": edge_type,
                 "guard": guard,
                 "weight": "",
                 "condition": condition_value,
                 "is_directed": True,
                 "position_handlers": [],
-            },
+            }
+        elif edge_type == "objectflow":
+            object_cls = ""
+            if node_type_by_clean_id.get(source_original) == "object":
+                object_cls = source_cls
+            elif node_type_by_clean_id.get(target_original) == "object":
+                object_cls = target_cls
+
+            relation_data = {
+                "type": edge_type,
+                "guard": guard,
+                "weight": "",
+                "cls": object_cls,
+                "is_directed": True,
+                "position_handlers": [],
+            }
+        else:
+            raise ValueError(
+                f"edge type {clean_edge_type!r} is not supported for AI4MDE conversion"
+            )
+
+        rel_payload: Dict[str, Any] = {
+            "id": rel_id,
+            "data": relation_data,
             "system": system_id,
             "source": source_cls,
             "target": target_cls,
