@@ -3,7 +3,8 @@
 export PROJECT_ID=$1
 export PROJECT_SYSTEM=$2
 export PROJECT_NAME=$3
-export METADATA="$4"
+export METADATA_FILE="$4"
+export METADATA="$(cat "$METADATA_FILE")"
 export WORKDIR=/usr/src/prototypes/backend/generation
 export OUTDIR=/usr/src/prototypes/generated_prototypes
 export ROOT=/usr/src/prototypes/
