@@ -162,7 +162,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Settings</Tab>
                         </TabList>
                         <TabPanel value={0}>
-                            <AgentDesign interfaceId={app_comp} />
+                            <AgentDesign interfaceId={app_comp} systemId={systemId} />
                         </TabPanel>
                         <TabPanel value={1}>
                             <p>Fragment</p>

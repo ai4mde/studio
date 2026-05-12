@@ -1,8 +1,29 @@
-import sys
-sys.path.insert(0, '/usr/src/prototypes/generated_prototypes/a0000002-0000-5000-8000-000000000000/c')
-import os, django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'c.settings')
+import sys, os
+
+system_id   = os.environ.get('PROTOTYPE_SYSTEM', '')
+project_name = os.environ.get('PROTOTYPE_NAME', '')
+
+if not system_id or not project_name:
+    print(f'ERROR: PROTOTYPE_SYSTEM and PROTOTYPE_NAME must be set', flush=True)
+    sys.exit(1)
+
+proto_path  = f'/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}'
+print(f'Seeding prototype: {project_name}  path: {proto_path}', flush=True)
+
+if not os.path.isdir(proto_path):
+    print(f'ERROR: prototype directory not found: {proto_path}', flush=True)
+    sys.exit(1)
+
+if proto_path not in sys.path:
+    sys.path.insert(0, proto_path)
+
+os.environ['DJANGO_SETTINGS_MODULE'] = f'{project_name}.settings'
+
+import django
 django.setup()
+
+from django.conf import settings as _dj_settings
+print(f'Database: {_dj_settings.DATABASES["default"]["NAME"]}', flush=True)
 
 from shared_models.models import (
     User, Category, Seller, Product, ProductImage,
@@ -26,8 +47,10 @@ cat_audio   = Category.objects.create(category_id='cat-004', name='Audio',      
 print('Created 4 categories.')
 
 # Sellers
-User.objects.create_user(username='techstore',  password='demo1234', email='techstore@bol.com',  is_Seller=True)
-User.objects.create_user(username='gadgetshop', password='demo1234', email='gadgetshop@bol.com', is_Seller=True)
+_u, _created = User.objects.get_or_create(username='techstore',  defaults=dict(email='techstore@bol.com',  is_Seller=True))
+if _created: _u.set_password('demo1234'); _u.save()
+_u, _created = User.objects.get_or_create(username='gadgetshop', defaults=dict(email='gadgetshop@bol.com', is_Seller=True))
+if _created: _u.set_password('demo1234'); _u.save()
 seller1 = Seller.objects.create(seller_id='sel-001', business_name='TechStore NL', rating='4.8', review_count=1240, is_verified=True, ships_from='Amsterdam', response_time='< 1 hour')
 seller2 = Seller.objects.create(seller_id='sel-002', business_name='GadgetShop',   rating='4.5', review_count=873,  is_verified=True, ships_from='Rotterdam',  response_time='< 2 hours')
 print('Created 2 sellers.')
@@ -117,8 +140,10 @@ for prod in products:
 print('Created related products.')
 
 # Customers
-User.objects.create_user(username='jan_devries',  password='demo1234', email='jan@example.com',  first_name='Jan',  last_name='de Vries', is_Customer=True)
-User.objects.create_user(username='emma_bakker', password='demo1234', email='emma@example.com', first_name='Emma', last_name='Bakker',   is_Customer=True)
+_u, _created = User.objects.get_or_create(username='jan_devries',  defaults=dict(email='jan@example.com',  first_name='Jan',  last_name='de Vries', is_Customer=True))
+if _created: _u.set_password('demo1234'); _u.save()
+_u, _created = User.objects.get_or_create(username='emma_bakker', defaults=dict(email='emma@example.com', first_name='Emma', last_name='Bakker',   is_Customer=True))
+if _created: _u.set_password('demo1234'); _u.save()
 cust1 = Customer.objects.create(customer_id='cust-001', email='jan@example.com',  first_name='Jan',  last_name='de Vries', phone='+31 6 1234 5678', is_active=True)
 cust2 = Customer.objects.create(customer_id='cust-002', email='emma@example.com', first_name='Emma', last_name='Bakker',   phone='+31 6 9876 5432', is_active=True)
 print('Created 2 customers.')
@@ -156,7 +181,8 @@ addr2 = Address.objects.create(address_id='addr-002', customer_id='cust-002',
 print('Created 2 addresses.')
 
 # System user
-User.objects.create_user(username='system', password='demo1234', email='system@bol.com', is_System=True)
+_u, _created = User.objects.get_or_create(username='system', defaults=dict(email='system@bol.com', is_System=True))
+if _created: _u.set_password('demo1234'); _u.save()
 print('Created system user.')
 
 print()
@@ -170,10 +196,3 @@ print(f'Customers:     {Customer.objects.count()}')
 print(f'Reviews:       {Review.objects.count()}')
 print(f'Addresses:     {Address.objects.count()}')
 print(f'Users:         {User.objects.count()}')
-print()
-print('Login accounts:')
-print('  Customer: jan_devries  / demo1234')
-print('  Customer: emma_bakker  / demo1234')
-print('  Seller:   techstore    / demo1234')
-print('  Seller:   gadgetshop   / demo1234')
-print('  System:   system       / demo1234')

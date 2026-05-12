@@ -160,7 +160,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return {{ models_on_pages[page]['primary_models'][0] }}.objects.none()
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list %}
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or page.single_record %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
@@ -175,9 +175,26 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
         {% endif -%}
         {% if page.type != 'activity' -%}
+        {% if page.single_record and models_on_pages[page]['primary_models'][0] -%}
+        {% set _ns_p = namespace(model=models_on_pages[page]['primary_models'][0], section=page.section_components[0]) -%}
+        _primary_id = self.request.GET.get('instance_id_{{ _ns_p.model }}')
+        _primary_obj = {{ _ns_p.model }}.objects.filter(id=_primary_id).first() if _primary_id else None
+        {% for section in page.section_components[1:] -%}
+        {% if section.primary_model -%}
+        {% if _ns_p.model in section.parent_models -%}
+        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.none()
+        {% elif section.primary_model in _ns_p.section.parent_models -%}
+        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.none()
+        {% else -%}
+        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.all()
+        {% endif -%}
+        {% endif -%}
+        {% endfor -%}
+        {% else -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
         context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
-        {% endfor %}
+        {% endfor -%}
+        {% endif -%}
         {% endif %}
         {% for section in page.section_components -%}
         {% if section.related_to_section_id -%}

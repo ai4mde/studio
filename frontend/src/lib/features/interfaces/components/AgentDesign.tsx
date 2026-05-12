@@ -1,8 +1,9 @@
 import { authAxios } from '$auth/state/auth';
 import { Button, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Eye, GalleryHorizontal, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
 
 type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery';
@@ -14,6 +15,7 @@ type ColSpanOption = 12 | 6 | 4 | 3;
 
 interface AgentDesignProps {
     interfaceId?: string | null;
+    systemId?: string | null;
 }
 
 const LAYOUT_OPTIONS: { value: LayoutOption; label: string; icon: React.ReactNode }[] = [
@@ -37,7 +39,7 @@ const COLOR_HEX: Record<ColorOption, string> = {
     orange: '#f97316', rose: '#f43f5e', slate: '#64748b',
 };
 
-export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
+export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
 
@@ -46,12 +48,18 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
+    const [isSeedingData, setIsSeedingData] = useState(false);
+    const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
+    const [liveKey, setLiveKey] = useState(0);
+    const [liveUser, setLiveUser] = useState('jan_devries');
 
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Capture latest sections/pages/previewPageIndex for the debounced callback
     const latestState = useRef({ sections, pages, previewPageIndex });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex }; }, [sections, pages, previewPageIndex]);
@@ -89,6 +97,52 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
         }
     }, [interfaceId]);
 
+    const checkAndSwitchLive = useCallback(async () => {
+        try {
+            const res = await authAxios.get('/v1/generator/prototypes/active_prototype/');
+            if (res.data?.running === true) {
+                setPreviewMode('live');
+            } else {
+                setPreviewMode('design');
+            }
+        } catch {
+            setPreviewMode('design');
+        }
+    }, []);
+
+    const handleSeedData = useCallback(async () => {
+        setIsSeedingData(true);
+        setSeedStatus('idle');
+        try {
+            const params = systemId ? `?system_id=${systemId}` : '';
+            await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
+            setSeedStatus('ok');
+            setLiveUser('jan_devries');
+            setLiveKey((k: number) => k + 1);
+            checkAndSwitchLive();
+        } catch {
+            setSeedStatus('error');
+        } finally {
+            setIsSeedingData(false);
+            setTimeout(() => setSeedStatus('idle'), 3000);
+        }
+    }, [systemId, checkAndSwitchLive]);
+
+    const doHotReload = useCallback(async () => {
+        if (!interfaceId) return;
+        const { sections: secs, pages: pgs } = latestState.current;
+        try {
+            await authAxios.post('/v1/generator/prototypes/hot_reload/', {
+                interface_id: interfaceId,
+                sections: secs,
+                pages: pgs,
+            });
+            setLiveKey((k: number) => k + 1);
+        } catch {
+            // fail silently — live prototype may not be running
+        }
+    }, [interfaceId]);
+
     // Debounce: refresh 600 ms after any sections/pages/page-index change
     useEffect(() => {
         if (!interfaceId) return;
@@ -96,6 +150,14 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
         refreshTimer.current = setTimeout(doRefreshPreview, 600);
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
     }, [sections, pages, previewPageIndex, interfaceId, doRefreshPreview]);
+
+    // Debounce: hot-reload live prototype 800 ms after sections/pages change
+    useEffect(() => {
+        if (!interfaceId || previewMode !== 'live') return;
+        if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current);
+        hotReloadTimer.current = setTimeout(doHotReload, 800);
+        return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
+    }, [sections, pages, interfaceId, previewMode, doHotReload]);
 
     const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
@@ -125,7 +187,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
         try {
             const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/generate/`, {
                 prompt,
-                model: 'gemini-1.5-pro',
+                model: 'gpt-4o-mini',
             });
             const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
             if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
@@ -380,8 +442,20 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
 
                 {/* Toolbar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 12, color: '#9ca3af', marginRight: 4 }}>Preview</span>
-                    {(pages as any[]).map((p: any, idx: number) => (
+                    {/* Design / Live toggle */}
+                    <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', marginRight: 4 }}>
+                        {(['design', 'live'] as const).map(mode => (
+                            <button key={mode} onClick={() => mode === 'live' ? checkAndSwitchLive() : setPreviewMode(mode)}
+                                style={{
+                                    padding: '2px 10px', fontSize: 12, cursor: 'pointer', border: 'none',
+                                    background: previewMode === mode ? '#1d4ed8' : '#fff',
+                                    color: previewMode === mode ? '#fff' : '#6b7280',
+                                }}>
+                                {mode === 'design' ? 'Design' : 'Live'}
+                            </button>
+                        ))}
+                    </div>
+                    {previewMode === 'design' && (pages as any[]).map((p: any, idx: number) => (
                         <button key={idx} onClick={() => setPreviewPageIndex(idx)}
                             style={{
                                 padding: '2px 10px', borderRadius: 10, fontSize: 12, cursor: 'pointer',
@@ -393,17 +467,43 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
                         </button>
                     ))}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {isRefreshing && <Loader2 size={14} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
-                        <button onClick={doRefreshPreview}
-                            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
-                            <RefreshCw size={12} />Refresh
+                        {previewMode === 'design' && isRefreshing && <Loader2 size={14} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
+                        {previewMode === 'design' && (
+                            <button onClick={doRefreshPreview}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
+                                <RefreshCw size={12} />Refresh
+                            </button>
+                        )}
+                        {previewMode === 'live' && (
+                            <button onClick={() => setLiveKey((k: number) => k + 1)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 12 }}>
+                                <RefreshCw size={12} />Refresh
+                            </button>
+                        )}
+                        <button onClick={handleSeedData} disabled={isSeedingData}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isSeedingData ? 'default' : 'pointer',
+                                border: `1px solid ${seedStatus === 'ok' ? '#86efac' : seedStatus === 'error' ? '#fca5a5' : '#d1d5db'}`,
+                                background: seedStatus === 'ok' ? '#f0fdf4' : seedStatus === 'error' ? '#fef2f2' : '#fff',
+                                color: seedStatus === 'ok' ? '#16a34a' : seedStatus === 'error' ? '#dc2626' : '#374151',
+                                opacity: isSeedingData ? 0.6 : 1,
+                            }}>
+                            {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
+                            {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
                         </button>
                     </div>
                 </div>
 
                 {/* iframe */}
                 <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
-                    {previewHtml ? (
+                    {previewMode === 'live' ? (
+                        <iframe
+                            key={`live-${liveKey}`}
+                            src={`${prototypeURL}/autologin?as=${liveUser}`}
+                            title="Live prototype"
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                        />
+                    ) : previewHtml ? (
                         <iframe
                             key={`${interfaceId}-${previewPageIndex}`}
                             srcDoc={previewHtml}

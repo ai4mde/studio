@@ -36,6 +36,7 @@ create_new_django_project() {
 update_django_project_settings() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "ALLOWED_HOSTS += ['*']" >> settings.py
+    echo "MIDDLEWARE = [m for m in MIDDLEWARE if 'XFrameOptionsMiddleware' not in m]" >> settings.py
     echo "from django.urls import include" >> urls.py
     
     if [ "$AUTH_PRESENT" = "True" ]; then
@@ -62,7 +63,7 @@ create_workflow_engine_app() {
     cp "${WORKDIR}/workflow_engine/urls.py" "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/workflow_engine/"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "INSTALLED_APPS += ['workflow_engine', 'django_crontab']" >> settings.py
-    echo "urlpatterns += [path('workflow_engine', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
+    echo "urlpatterns += [path('workflow_engine/', include('workflow_engine.urls', namespace='workflow_engine'))]" >> urls.py
 }   
 
 create_authentication_app() {

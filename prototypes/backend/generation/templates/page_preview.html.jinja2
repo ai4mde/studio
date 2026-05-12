@@ -27,6 +27,7 @@
 {%- set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} -%}
 {%- set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} -%}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] -%}
+{%- set _mock_rows = 1 if page.single_record else 3 -%}
 
 <header class="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
   <div class="flex items-center gap-3">
@@ -80,7 +81,7 @@
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
   <div class="flex flex-col {{ d.gap }}">
-    {%- for row in range(3) %}
+    {%- for row in range(1) %}
     {%- if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start border border-gray-100" style="opacity: {{ _mock_opacities[row] }}">
       {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
@@ -151,7 +152,7 @@
 {# ══ CARD ══ #}
 {%- elif eff_lay == "card" %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for row in range(3) %}
+    {%- for row in range(_mock_rows) %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-2" style="opacity: {{ _mock_opacities[row] }}">
       {%- for attribute in section_component.attributes %}
       <div class="flex flex-col gap-0.5">
@@ -170,6 +171,9 @@
       </div>
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-2 border-t border-gray-100">
+        {%- if section_component.view_detail_page %}
+        <a href="#" class="{{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">View →</a>
+        {%- endif %}
         {%- if section_component.has_update_operation %}
         <button class="{{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">Edit</button>
         {%- endif %}
@@ -184,8 +188,8 @@
 {# ══ LIST ══ #}
 {%- elif eff_lay == "list" %}
   <div class="flex flex-col {{ d.gap }}">
-    {%- for row in range(3) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[row] }}">
+    {%- for row in range(_mock_rows) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[row] if row < 3 else '0.4' }}">
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
         {%- for attribute in section_component.attributes %}
         <div class="flex flex-col gap-0.5">
@@ -205,6 +209,9 @@
         {%- endfor %}
       </div>
       <div class="flex gap-2 shrink-0">
+        {%- if section_component.view_detail_page %}
+        <a href="#" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white font-medium">View →</a>
+        {%- endif %}
         {%- if section_component.has_update_operation %}
         <button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} bg-white">Edit</button>
         {%- endif %}
@@ -234,8 +241,8 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 bg-white">
-        {%- for row in range(3) %}
-        <tr class="hover:bg-gray-50" style="opacity: {{ _mock_opacities[row] }}">
+        {%- for row in range(_mock_rows) %}
+        <tr class="hover:bg-gray-50" style="opacity: {{ _mock_opacities[row] if row < 3 else '0.4' }}">
           {%- for attribute in section_component.attributes %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">
             {%- if attribute.type == AttributeType.BOOLEAN %}
@@ -254,9 +261,12 @@
           {%- for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
           {%- endfor %}
-          {%- if section_component.has_update_operation or section_component.has_delete_operation %}
+          {%- if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
+              {%- if section_component.view_detail_page %}
+              <button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded border {{ c.border }} bg-white font-medium">View →</button>
+              {%- endif %}
               {%- if section_component.has_update_operation %}
               <button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded border {{ c.border }} bg-white">Edit</button>
               {%- endif %}
@@ -276,7 +286,7 @@
 {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for row in range(4) %}
+    {%- for row in range(_mock_rows if page.single_record else 4) %}
     <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[row] if row < 3 else '0.4' }}">
       <div class="aspect-square overflow-hidden">
         <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />

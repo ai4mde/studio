@@ -10,7 +10,6 @@ from jinja2 import Environment, FileSystemLoader
 
 TEMPLATE_DIR = "/usr/src/templates"
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
-PREVIEW_TEMPLATE = "page_preview.html.jinja2"
 
 DEFAULT_SECTION_STYLE = {
     "color": "blue",
@@ -63,7 +62,7 @@ class _Attribute:
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
-                 layout="table", style=None, custom_methods=None, col_span=12):
+                 layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -79,13 +78,14 @@ class _SectionComponent:
         self.style["columns"] = str(self.style.get("columns", "3"))
         self.custom_methods = custom_methods or []
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
+        self.view_detail_page = view_detail_page
 
     def __str__(self):
         return self.name
 
 
 class _Page:
-    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal"):
+    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal", single_record=False):
         self.name = name
         self.display_name = display_name
         self.type = type_
@@ -94,6 +94,7 @@ class _Page:
         self.section_components = section_components
         self.layout = layout or "vertical"
         self.gap = gap or "normal"
+        self.single_record = single_record
 
     def __str__(self):
         return self.name
@@ -132,17 +133,7 @@ def _parse_custom_methods(section_raw: Dict) -> List[str]:
     return methods
 
 
-def render_layout(
-    interface_data: Dict,
-    classifiers: List[Dict],
-    layout_config: Optional[Dict],
-    interface_name: str = "interface",
-    inject_click_handlers: bool = False,
-) -> List[Dict]:
-    """
-    Render layout templates from interface.data using per-section layout/style.
-    Returns a list of {path, content, type} dicts.
-    """
+def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: str, layout_config: Optional[Dict] = None):
     classifier_map: Dict[str, Dict] = {
         str(c["id"]): c.get("data", {}) for c in (classifiers or [])
     }
@@ -193,7 +184,6 @@ def render_layout(
 
             ops = s_raw.get("operations", {})
 
-            # Per-section layout/style — override with layout_config if provided (legacy global mode)
             sec_layout = s_raw.get("layout", "table")
             sec_style = {**DEFAULT_SECTION_STYLE, **(s_raw.get("style") or {})}
             if layout_config and not s_raw.get("layout"):
@@ -216,6 +206,7 @@ def render_layout(
                 style=sec_style,
                 custom_methods=_parse_custom_methods(s_raw),
                 col_span=int(s_raw.get("col_span", 12)),
+                view_detail_page=s_raw.get("view_detail_page"),
             ))
 
         type_field = p_raw.get("type")
@@ -239,7 +230,20 @@ def render_layout(
             section_components=section_components,
             layout=page_layout,
             gap=page_gap,
+            single_record=bool(p_raw.get("single_record", False)),
         ))
+
+    return app_name, pages
+
+
+def render_layout(
+    interface_data: Dict,
+    classifiers: List[Dict],
+    layout_config: Optional[Dict],
+    interface_name: str = "interface",
+    inject_click_handlers: bool = False,
+) -> List[Dict]:
+    app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config)
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)
@@ -267,112 +271,19 @@ def render_preview(
     classifiers: List[Dict],
     interface_name: str = "interface",
 ) -> List[Dict]:
-    """
-    Render standalone preview HTML (with mock data) for iframe display in AgentDesign.
-    Returns a list of {path, content, type} dicts — one per page.
-    Unlike render_layout(), the output is complete HTML (not Django templates).
-    """
-    classifier_map: Dict[str, Dict] = {
-        str(c["id"]): c.get("data", {}) for c in (classifiers or [])
-    }
-
-    sections_raw = interface_data.get("sections", [])
-    section_by_id: Dict[str, Dict] = {s["id"]: s for s in sections_raw}
-
-    app_name = _sanitize(interface_name)
-
-    pages = []
-    for p_raw in interface_data.get("pages", []):
-        section_components = []
-        for ref in p_raw.get("sections", []):
-            sec_id = ref.get("value") if isinstance(ref, dict) else str(ref)
-            s_raw = section_by_id.get(sec_id)
-            if not s_raw:
-                continue
-
-            cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
-            primary_model = _sanitize(cls_data.get("name", "item")) if cls_data else "item"
-
-            attributes = []
-            for attr_raw in s_raw.get("attributes", []):
-                type_str = attr_raw.get("type", "str")
-                if type_str == "int":
-                    attr_type = AttributeType.INTEGER
-                elif type_str == "bool":
-                    attr_type = AttributeType.BOOLEAN
-                elif type_str == "enum":
-                    attr_type = AttributeType.ENUM
-                elif type_str == "image":
-                    attr_type = AttributeType.IMAGE
-                else:
-                    attr_type = AttributeType.STRING
-
-                enum_literals = []
-                if attr_type == AttributeType.ENUM and attr_raw.get("enum"):
-                    enum_cls = classifier_map.get(str(attr_raw["enum"]), {})
-                    enum_literals = [str(lit) for lit in enum_cls.get("literals", [])]
-
-                attributes.append(_Attribute(
-                    name=_sanitize(attr_raw.get("name", "")),
-                    type_=attr_type,
-                    enum_literals=enum_literals,
-                    updatable=True,
-                    derived=bool(attr_raw.get("derived", False)),
-                ))
-
-            ops = s_raw.get("operations", {})
-            sec_layout = s_raw.get("layout", "table")
-            sec_style = {**DEFAULT_SECTION_STYLE, **(s_raw.get("style") or {})}
-            sec_style["columns"] = str(sec_style.get("columns", "3"))
-
-            section_components.append(_SectionComponent(
-                id=s_raw.get("id", ""),
-                name=_sanitize(s_raw.get("name", "")),
-                display_name=s_raw.get("name", ""),
-                primary_model=primary_model,
-                parent_models=[],
-                attributes=attributes,
-                has_create_operation=bool(ops.get("create", False)),
-                has_update_operation=bool(ops.get("update", False)),
-                has_delete_operation=bool(ops.get("delete", False)),
-                text=_parse_text(s_raw.get("text", "")),
-                layout=sec_layout,
-                style=sec_style,
-                custom_methods=_parse_custom_methods(s_raw),
-                col_span=int(s_raw.get("col_span", 12)),
-            ))
-
-        type_field = p_raw.get("type")
-        page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
-
-        layout_field = p_raw.get("layout")
-        page_layout = layout_field.get("value", "vertical") if isinstance(layout_field, dict) else (str(layout_field) if layout_field else "vertical")
-
-        gap_field = p_raw.get("gap")
-        page_gap = gap_field.get("value", "normal") if isinstance(gap_field, dict) else (str(gap_field) if gap_field else "normal")
-
-        action_field = p_raw.get("action")
-        activity_name = action_field.get("label") if isinstance(action_field, dict) else None
-
-        pages.append(_Page(
-            name=_sanitize(p_raw.get("name", "")),
-            display_name=p_raw.get("name", ""),
-            type_=page_type,
-            activity_name=activity_name,
-            category=None,
-            section_components=section_components,
-            layout=page_layout,
-            gap=page_gap,
-        ))
+    app_name, pages = _parse_pages(interface_data, classifiers, interface_name)
+    tokens = interface_data.get("tokens", {})
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
-    template = env.get_template(PREVIEW_TEMPLATE)
+    template = env.get_template(UNIFIED_TEMPLATE)
 
     output_files = []
     for page in pages:
         rendered = template.render(
             page=page,
             AttributeType=AttributeType,
+            preview_mode=True,
+            tokens=tokens,
         )
         output_files.append({
             "path": f"preview/{app_name}_{page.name}.html",

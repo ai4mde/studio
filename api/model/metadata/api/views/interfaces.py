@@ -34,7 +34,6 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
     system = interface.system
 
     # Template-based path: skip LLM when no prompt or when override data is provided.
-    # Always renders via page_preview.html.jinja2 → standalone HTML suitable for iframe display.
     if not payload.prompt or payload.interface_data_override is not None:
         interface_data = payload.interface_data_override or interface.data or {}
         classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
@@ -48,62 +47,113 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             "files": files,
         }
 
-    # Construct system metadata for LLM path
-    diagrams_data = []
-    for d in system.diagrams.all():
-        nodes_data = []
-        for node in d.nodes.select_related('cls').all():
-            nodes_data.append({
-                "id": str(node.id),
-                "cls_ptr": str(node.cls_id),
-                "cls": node.cls.data,
-                "data": node.data,
-            })
-        edges_data = []
-        for edge in d.edges.select_related('rel').all():
-            src_node = d.nodes.filter(cls=edge.rel.source_id).first()
-            tgt_node = d.nodes.filter(cls=edge.rel.target_id).first()
-            edges_data.append({
-                "id": str(edge.id),
-                "rel": edge.rel.data,
-                "source_ptr": str(src_node.id) if src_node else None,
-                "target_ptr": str(tgt_node.id) if tgt_node else None,
-                "data": edge.data,
-            })
-        diagrams_data.append({"id": str(d.id), "name": d.name, "type": d.type, "nodes": nodes_data, "edges": edges_data})
+    # --- 4-Agent Pipeline Implementation ---
+    
+    # 1. Context Preparation
+    # Renderer expects this format: list of {"id": ..., "data": ...}
+    renderer_classifiers = [dict(id=str(c.id), data=c.data) for c in system.classifiers.all()]
+    
+    # LLM context (simplified and explicit for better reasoning)
+    llm_classifiers = []
+    for c in system.classifiers.all():
+        llm_classifiers.append({
+            "id": str(c.id),
+            "name": c.data.get("name"),
+            "type": c.data.get("type"),
+            "attributes": [
+                {"id": a.get("id"), "name": a.get("name")} 
+                for a in c.data.get("attributes", [])
+            ]
+        })
 
-    system_data = {
+    system_context = {
         "id": str(system.id),
-        "name": system.name,
-        "description": system.description,
-        "project": str(system.project_id),
-        "diagrams": diagrams_data,
-        "classifiers": [dict(id=str(c.id), data=c.data) for c in system.classifiers.all()],
-        "relations": [dict(id=str(r.id), data=r.data, source=str(r.source_id), target=str(r.target_id)) for r in system.relations.all()],
-        "interfaces": [dict(id=str(i.id), name=i.name, description=i.description, data=i.data) for i in system.interfaces.all()]
+        "system_name": system.name,
+        "available_entities": llm_classifiers,
+        "relations": [
+            {
+                "id": str(r.id), 
+                "source_class_id": str(r.source_id), 
+                "target_class_id": str(r.target_id),
+                "type": r.data.get("type")
+            } for r in system.relations.all()
+        ]
     }
-
+    
     interface_metadata = {
         "id": str(interface.id),
         "name": interface.name,
-        "description": interface.description,
         "data": interface.data
     }
 
-    input_data = {
-        "metadata": json.dumps(system_data, indent=2),
-        "prompt": payload.prompt,
-        "interface_metadata": json.dumps(interface_metadata, indent=2)
-    }
-
-    response_text = llm_handler("GEMINI_MAKE_PROTOTYPE", model=payload.model, input_data=input_data)
-    clean_json = remove_reply_markdown(response_text)
-
-    try:
-        result = json.loads(clean_json)
-        return result
-    except Exception as e:
-        raise Exception(f"Failed to parse LLM response as JSON: {e}\nResponse: {clean_json}")
+    # 1. Strategist
+    strat_resp = llm_handler("STRATEGIST", model=payload.model, input_data={
+        "metadata": json.dumps(system_context),
+        "interface_metadata": json.dumps(interface_metadata),
+        "prompt": payload.prompt
+    })
+    strategy_data = json.loads(remove_reply_markdown(strat_resp))
+    strategy = strategy_data.get("strategy", "")
+    
+    # 2. Architect (Structure)
+    arch_resp = llm_handler("ARCHITECT", model=payload.model, input_data={
+        "metadata": json.dumps(system_context),
+        "strategy": strategy,
+        "interface_json": json.dumps({
+            "pages": interface.data.get("pages", []),
+            "sections": interface.data.get("sections", [])
+        })
+    })
+    arch_json = json.loads(remove_reply_markdown(arch_resp))
+    
+    # 3. Stylist (Aesthetics)
+    style_resp = llm_handler("STYLIST", model=payload.model, input_data={
+        "strategy": strategy,
+        "styling_json": json.dumps(interface.data.get("styling", {}))
+    })
+    style_json = json.loads(remove_reply_markdown(style_resp))
+    
+    # Merge Results Surgically
+    new_interface_data = interface.data.copy()
+    
+    # Update Structure
+    if isinstance(arch_json, dict):
+        if "pages" in arch_json: new_interface_data["pages"] = arch_json["pages"]
+        if "sections" in arch_json: new_interface_data["sections"] = arch_json["sections"]
+    
+    # Update Aesthetics
+    if isinstance(style_json, dict):
+        if "styling" in style_json: new_interface_data["styling"] = style_json["styling"]
+        if "tokens" in style_json: new_interface_data["tokens"] = style_json["tokens"]
+    
+    # 4. Integrity Validation
+    valid_resp = llm_handler("INTEGRITY", model=payload.model, input_data={
+        "metadata": json.dumps(system_context),
+        "proposed_json": json.dumps(new_interface_data)
+    })
+    validation = json.loads(remove_reply_markdown(valid_resp))
+    
+    if validation.get("status") == "APPROVED":
+        final_data = validation.get("final_json") or new_interface_data
+        # Update database
+        interface.data = final_data
+        interface.save()
+        
+        # Render Preview
+        files = render_preview(
+            interface_data=final_data,
+            classifiers=renderer_classifiers,
+            interface_name=interface.name,
+        )
+        return {
+            "message": validation.get("feedback", "AI Generation Successful."),
+            "files": files,
+        }
+    else:
+        return {
+            "message": f"Validation Failed: {validation.get('feedback')}",
+            "files": []
+        }
 
 
 @interfaces.get("/{uuid:id}/", response=ReadInterface)

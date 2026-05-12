@@ -12,7 +12,7 @@ class GeneratePrototypeResponse(Schema):
 
 class GeneratePrototypeRequest(Schema):
     prompt: str = ""
-    model: str = "gemini-1.5-flash"
+    model: str = "gpt-4o-mini"
     layout_config: Optional[Dict[str, Any]] = None
     interface_data_override: Optional[Dict[str, Any]] = None
     inject_click_handlers: bool = False

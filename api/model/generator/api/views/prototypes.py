@@ -1,11 +1,12 @@
-from typing import List, Optional, Dict
+from typing import Any, List, Optional, Dict
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
 from metadata.models import System
-from ninja import Router
+from ninja import Router, Schema
+from ninja.errors import HttpError
 import json
-import requests
 import os
+import requests
 
 prototypes = Router()
 
@@ -175,6 +176,89 @@ def get_active_prototype(request):
     STATUS_URL = f"{PROTOTYPE_API_URL}/active_prototype"
     response = requests.get(STATUS_URL)
     return response.json()
+
+
+@prototypes.post("/seed/", response=str)
+def seed_prototype_data(request, system_id: Optional[str] = None):
+    SEED_URL = f"{PROTOTYPE_API_URL}/seed"
+    seed_data = {}
+    if system_id:
+        proto = Prototype.objects.filter(system__id=system_id).order_by('-id').first()
+        if proto:
+            seed_data = {'system': str(proto.system.id), 'name': proto.name}
+    try:
+        response = requests.post(SEED_URL, json=seed_data, timeout=120)
+    except Exception as e:
+        raise Exception(f"Failed to reach prototype API: {e}")
+    if response.status_code != 200:
+        raise Exception(response.text or "Seed failed")
+    return response.text
+
+
+class HotReloadPayload(Schema):
+    interface_id: str
+    sections: Optional[List[Any]] = None
+    pages: Optional[List[Any]] = None
+
+
+@prototypes.post("/hot_reload/")
+def hot_reload_templates(request, payload: HotReloadPayload):
+    from metadata.models import Interface
+    from model.llm.template_renderer import render_layout
+
+    # Fetch active prototype info
+    try:
+        status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype").json()
+    except Exception as e:
+        raise HttpError(502, f"Could not reach prototype API: {e}")
+
+    if not status.get("running"):
+        raise HttpError(404, "No prototype running")
+
+    proto_system = status.get("system", "")
+    proto_name = status.get("name", "")
+    if not proto_system or not proto_name:
+        raise HttpError(500, "Active prototype missing system/name")
+
+    proto_path = f"/usr/src/prototypes/generated_prototypes/{proto_system}/{proto_name}"
+
+    # Load interface
+    try:
+        iface = Interface.objects.get(pk=payload.interface_id)
+    except Interface.DoesNotExist:
+        raise HttpError(404, "Interface not found")
+
+    interface_data = dict(iface.data or {})
+    if payload.sections is not None:
+        interface_data["sections"] = payload.sections
+    if payload.pages is not None:
+        interface_data["pages"] = payload.pages
+
+    classifiers = [
+        {"id": str(c.id), "data": c.data}
+        for c in iface.system.classifiers.filter(data__type='class')
+    ]
+
+    files = render_layout(interface_data, classifiers, None, interface_name=iface.name)
+
+    updated = 0
+    for f in files:
+        # f["path"] = "templates/customer_browse_products.html"
+        # Actual path: {proto_path}/Customer/templates/Customer_Browse_Products.html
+        rel = f["path"]  # e.g. "templates/customer_browse_products.html"
+        basename = rel.split("/")[-1]  # "customer_browse_products.html"
+        stem, ext = basename.rsplit(".", 1)
+        parts = stem.split("_")
+        title_parts = [p.capitalize() for p in parts]
+        title_filename = "_".join(title_parts) + "." + ext  # "Customer_Browse_Products.html"
+        app_dir = title_parts[0]  # "Customer"
+        dest = os.path.join(proto_path, app_dir, "templates", title_filename)
+        if os.path.exists(dest):
+            with open(dest, "w") as wf:
+                wf.write(f["content"])
+            updated += 1
+
+    return {"updated": updated}
 
 
 __all__ = ["prototypes"]

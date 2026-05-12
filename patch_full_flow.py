@@ -24,8 +24,9 @@ def style(color, density='normal', card_style='elevated', columns='3',
 
 def sec(name, cls, layout, col_span, color, attrs, operations,
         density='normal', columns='3', card_style='elevated',
-        radius='xl', text='', image_position='top', image_size='md'):
-    return {
+        radius='xl', text='', image_position='top', image_size='md',
+        view_detail_page=None):
+    d = {
         'id': sid(),
         'name': name,
         'class': cls,
@@ -36,6 +37,9 @@ def sec(name, cls, layout, col_span, color, attrs, operations,
         'attributes': attrs,
         'operations': operations,
     }
+    if view_detail_page:
+        d['view_detail_page'] = view_detail_page
+    return d
 
 def page(name, sections, type_='normal', single_record=False,
          layout='vertical', gap='normal', action=None, category=None):
@@ -61,7 +65,7 @@ def activity_action(node_id, name):
 C_IFACE_ID = 'ec58bb5b-fb1a-44c4-b9ff-dbc0c2a8944c'
 
 # Keep existing Product Detail sections (IDs stay the same for stability)
-existing_gallery  = {'id': 'ff75e05d-a84e-426a-8565-7ac46d2ef7d6', 'name': 'Product Gallery',  'class': 'c0000011-0000-5000-8000-000000000000', 'layout': 'gallery',  'col_span': 6,  'text': '', 'style': style('blue',   columns='3'), 'attributes': [attr('image_url','image'), attr('alt_text')],              'operations': ops()}
+existing_gallery  = {'id': 'ff75e05d-a84e-426a-8565-7ac46d2ef7d6', 'name': 'Product Gallery',  'class': 'c0000011-0000-5000-8000-000000000000', 'layout': 'gallery',  'col_span': 6,  'text': '', 'style': style('blue',   columns='3'), 'attributes': [attr('thumb_url','image'), attr('alt_text')],              'operations': ops()}
 existing_product  = {'id': 'f5b8d016196245e196ee24c9845cf656',        'name': 'Product Info',    'class': 'c0000002-0000-5000-8000-000000000000', 'layout': 'detail',  'col_span': 6,  'text': '', 'style': style('blue',   image_position='top', image_size='md'), 'attributes': [attr('name'), attr('brand'), attr('price'), attr('original_price'), attr('discount_pct','int'), attr('rating'), attr('review_count','int'), attr('description'), attr('stock_quantity','int'), attr('image_url','image')], 'operations': ops()}
 existing_delivery = {'id': '25871a09-7b35-4a25-bc5c-b340b889f509',   'name': 'Delivery Options','class': 'c0000012-0000-5000-8000-000000000000', 'layout': 'list',    'col_span': 12, 'text': '', 'style': style('green',  density='compact', columns='3', card_style='flat'), 'attributes': [attr('method'), attr('estimated_days','int'), attr('cost'), attr('is_free','bool'), attr('cutoff_time')], 'operations': ops()}
 existing_seller   = {'id': '41e4c4b5-08ed-4e5d-8b35-bfe468fa6485',   'name': 'Seller Info',     'class': 'c0000004-0000-5000-8000-000000000000', 'layout': 'card',    'col_span': 12, 'text': '', 'style': style('slate',  columns='1', card_style='outlined'), 'attributes': [attr('business_name'), attr('rating'), attr('is_verified','bool'), attr('ships_from'), attr('response_time')], 'operations': ops()}
@@ -75,6 +79,7 @@ s_product_list = sec(
     [attr('image_url','image'), attr('name'), attr('brand'), attr('price'),
      attr('original_price'), attr('rating'), attr('discount_pct','int')],
     ops(), columns='4', card_style='elevated',
+    view_detail_page='Product Detail',
 )
 s_category_filter = sec(
     'Categories', 'c0000003-0000-5000-8000-000000000000',
@@ -87,6 +92,7 @@ s_featured = sec(
     'card', 9, 'blue',
     [attr('image_url','image'), attr('name'), attr('price'), attr('rating')],
     ops(), columns='3', card_style='elevated',
+    view_detail_page='Product Detail',
 )
 
 # ── Product Detail: Add to Cart ───────────────────────────────────────────────
@@ -163,7 +169,7 @@ p_home = page(
 )
 p_product_detail = page(
     'Product Detail',
-    [existing_gallery, existing_product, s_add_to_cart,
+    [existing_product, existing_gallery, s_add_to_cart,
      existing_delivery, existing_seller, existing_reviews, existing_related],
     type_='normal', single_record=True,
     layout='vertical', gap='normal', category=cat_product,

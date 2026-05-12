@@ -1,5 +1,26 @@
+{% if preview_mode -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>{{ page.display_name }} — Preview</title>
+</head>
+<body class="{{ tokens.get('page.body.bg', 'bg-gray-100') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
+<header class="{{ tokens.get('region.header.bg', 'bg-white') }} border-b border-gray-200 px-8 {{ tokens.get('page.header.height', 'py-4') }} shadow-sm">
+  <div class="flex items-center gap-3">
+    <h1 class="text-xl font-bold {{ tokens.get('page.body.text', 'text-gray-800') }}">{{ page.display_name }}</h1>
+    {%- if page.type == 'activity' and page.activity_name %}
+    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activity: {{ page.activity_name }}</span>
+    {%- endif %}
+  </div>
+</header>
+<main class="px-8 py-6 {{ tokens.get('page.container.max_width', 'max-w-6xl') }} mx-auto">
+{%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
+{%- endif %}
 
 {# ── Global lookup maps (defined once, used per section) ── #}
 {% set _cm = {
@@ -25,8 +46,10 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
+{%- set _mock_rows = 1 if page.single_record else 3 %}
+{%- set _mock_opacities = ["1", "0.8", "0.6"] %}
 
-{% if page.type == 'activity' %}
+{% if page.type == 'activity' and not preview_mode %}
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
@@ -58,6 +81,222 @@
   {% if section_component.text %}
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
+
+{# ════════════════════════ PREVIEW MODE ════════════════════════ #}
+{% if preview_mode %}
+
+{# ════ PREVIEW: ACTION PANEL ════ #}
+{% if eff_lay == "action_panel" %}
+{% if section_component.custom_methods|length == 1 %}
+  <button type="button" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
+    {{ section_component.custom_methods[0] }}
+  </button>
+{% else %}
+  <div class="flex flex-wrap gap-2">
+    {% for method in section_component.custom_methods %}
+    <button type="button" class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
+      {{ method }}
+    </button>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{# ════ PREVIEW: DETAIL ════ #}
+{%- elif eff_lay == "detail" %}
+{%- set img_pos = _s.get("image_position", "top") %}
+{%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
+  <div class="flex flex-col {{ d.gap }}">
+    {%- for _mock_row in range(1) %}
+    {%- if img_pos in ["left", "right"] %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
+      {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+      <div class="{{ img_w }} flex-shrink-0">
+        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full h-56 object-cover {{ r }}" />
+      </div>
+      {%- endif %}
+      <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
+        {%- for attribute in section_component.attributes %}
+        {%- if attribute.type != AttributeType.IMAGE %}
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- endif %}
+        </div>
+        {%- endif %}
+        {%- endfor %}
+        <div class="sm:col-span-2 flex gap-2 pt-3 border-t border-gray-100">
+          {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
+          {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
+        </div>
+      </div>
+    </div>
+    {%- else %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
+      <div class="grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
+        {%- for attribute in section_component.attributes %}
+        <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
+          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full max-h-64 object-contain rounded mt-1" />
+          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- endif %}
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+        {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
+      </div>
+    </div>
+    {%- endif %}
+    {%- endfor %}
+  </div>
+
+{# ════ PREVIEW: CARD ════ #}
+{%- elif eff_lay == "card" %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for _mock_row in range(_mock_rows) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- for attribute in section_component.attributes %}
+      <div class="flex flex-col gap-0.5">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
+        {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+        {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+        {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=300&fit=crop" alt="Mock" class="w-full max-h-48 object-contain rounded mt-1">
+        {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {%- endif %}
+      </div>
+      {%- endfor %}
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>{%- endif %}
+        {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
+{# ════ PREVIEW: LIST ════ #}
+{%- elif eff_lay == "list" %}
+  <div class="flex flex-col {{ d.gap }}">
+    {%- for _mock_row in range(_mock_rows) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
+        {%- for attribute in section_component.attributes %}
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-10 h-10 object-cover rounded mt-0.5">
+          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- endif %}
+        </div>
+        {%- endfor %}
+      </div>
+      <div class="flex gap-2 shrink-0">
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>{%- endif %}
+        {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
+{# ════ PREVIEW: TABLE ════ #}
+{%- elif eff_lay == "table" %}
+  <div class="overflow-x-auto {{ r }} border border-gray-200">
+    <table class="min-w-full text-left">
+      <thead>
+        <tr>
+          {% for attribute in section_component.attributes %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
+          {% endfor %}
+          {% for parent_model in section_component.parent_models %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
+          {% endfor %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        {%- for _mock_row in range(_mock_rows) %}
+        <tr class="hover:bg-gray-50 transition-colors" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+          {%- for attribute in section_component.attributes %}
+          <td class="px-4 py-3 {{ d.text }} text-gray-700">
+            {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+            {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}
+            {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
+            {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-8 h-8 object-cover rounded">
+            {%- else %}{{ attribute }} {{ _mock_row + 1 }}
+            {%- endif %}
+          </td>
+          {%- endfor %}
+          {%- for parent_model in section_component.parent_models %}
+          <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
+          {%- endfor %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          <td class="px-4 py-3">
+            <div class="flex gap-2">
+              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</button>{%- endif %}
+              {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
+              {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{# ════ PREVIEW: GALLERY ════ #}
+{%- elif eff_lay == "gallery" %}
+{%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for _mock_row in range(_mock_rows if page.single_record else 4) %}
+    <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      <div class="aspect-square overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ _mock_row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+      </div>
+      {%- if text_attrs %}
+      <div class="{{ d.p_sm }} flex flex-col gap-0.5">
+        {%- for attribute in text_attrs %}
+        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} text-xs">View</a>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+
+{%- else %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
+    Unsupported section layout: {{ lay }}
+  </div>
+{%- endif %}
+
+  {%- if section_component.has_create_operation and eff_lay != "action_panel" %}
+  <button class="mt-4 flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} bg-white hover:{{ c.light }} transition-colors">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+    Add {{ section_component.display_name }}
+  </button>
+  {%- endif %}
+
+{# ════════════════════════ GENERATION MODE ════════════════════════ #}
+{% else %}
 
 {# ════════════════════════ ACTION PANEL ════════════════════════ #}
 {% if eff_lay == "action_panel" %}
@@ -187,7 +426,7 @@
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-        {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop'{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">
+        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop{% endif %}"{% endraw %} alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">{% raw %}{% endwith %}{% endraw %}
         {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
         {%- endif %}
       </div>
@@ -567,12 +806,39 @@
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# ════════════════════════ END LAYOUTS ════════════════════════ #}
+{# ════════════════════════ END GENERATION LAYOUTS ════════════════════════ #}
+
+{% endif %}{# end preview_mode branch #}
 
 </div>
 {%- endfor %}
 </div>
 
+{% if preview_mode %}
+{%- if page.type == 'activity' %}
+<div class="fixed bottom-6 right-6">
+  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
+</div>
+{%- endif %}
+</main>
+<script>
+(function() {
+  var style = document.createElement('style');
+  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
+  document.head.appendChild(style);
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+      el.classList.add('si-selected');
+      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+    });
+  });
+})();
+</script>
+</body>
+</html>
+{% else %}
 {% if page.type == 'activity' %}
 <div class="fixed bottom-6 right-6">
   <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
@@ -583,3 +849,4 @@
 {% endif %}
 
 {% raw %}{% endblock %}{% endraw %}
+{% endif %}

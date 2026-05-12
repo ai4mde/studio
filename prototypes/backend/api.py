@@ -111,6 +111,8 @@ def start_prototype(prototype_id: str, prototype_name: str, prototype_system: st
         running_prototype["id"] = prototype_id
         running_prototype["pid"] = process.pid
         running_prototype["port"] = RUNNING_PROTOTYPE_PORT
+        running_prototype["system"] = prototype_system
+        running_prototype["name"] = prototype_name
         return (process, RUNNING_PROTOTYPE_PORT), None
 
 
@@ -149,7 +151,9 @@ def get_active_prototype():
                 "running": True,
                 "pid": running_prototype["pid"],
                 "ip": socket.gethostbyname(socket.gethostname()),
-                "port": running_prototype["port"]
+                "port": running_prototype["port"],
+                "system": running_prototype.get("system", ""),
+                "name": running_prototype.get("name", ""),
             }
         else:
             return {
@@ -196,9 +200,85 @@ def generate_prototype():
     return f"Generated {name} prototype", 200
 
 
+@app.route('/seed', methods=['POST'])
+def seed_prototype_data():
+    SEED_SCRIPT = '/usr/src/prototypes/backend/seed_prototype.py'
+    if not os.path.exists(SEED_SCRIPT):
+        return 'Seed script not found', 404
+
+    req_data     = request.json or {}
+    # Prefer the currently-running prototype; fall back to what the caller provided.
+    system_id    = running_prototype.get('system') or req_data.get('system', '')
+    project_name = running_prototype.get('name')   or req_data.get('name', '')
+    if not system_id or not project_name:
+        return 'No prototype is running — start a prototype first, then seed', 400
+
+    proto_path = os.path.join(ROOT_DIR, system_id, project_name)
+    if not os.path.isdir(proto_path):
+        return f'Prototype directory not found: {proto_path}', 404
+
+    env = os.environ.copy()
+    env['PROTOTYPE_SYSTEM'] = system_id
+    env['PROTOTYPE_NAME']   = project_name
+    env['DJANGO_SETTINGS_MODULE'] = f'{project_name}.settings'
+
+    result = subprocess.run(
+        ['python', SEED_SCRIPT],
+        capture_output=True, text=True, timeout=90, env=env,
+    )
+    if result.returncode != 0:
+        return result.stderr or 'Seed failed', 500
+
+    _patch_autologin(proto_path, project_name)
+    return result.stdout or 'Seeded OK', 200
+
+
+def _patch_autologin(proto_path: str, project_name: str):
+    AUTOLOGIN_VIEW = '''
+def autologin(request):
+    from django.contrib.auth import login as _login
+    username = request.GET.get('as', '')
+    user = User.objects.filter(username=username).first() if username else None
+    if user is None:
+        user = User.objects.filter(is_superuser=False).first()
+    if user:
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        _login(request, user)
+        for field in [f.name for f in user._meta.get_fields()
+                      if f.name.startswith('is_') and f.name not in ('is_superuser', 'is_staff', 'is_active')]:
+            if getattr(user, field, False):
+                return redirect(f'/{field[3:].lower()}/')
+    return redirect('/')
+'''
+    views_path = os.path.join(proto_path, 'authentication', 'views.py')
+    urls_path  = os.path.join(proto_path, 'authentication', 'urls.py')
+
+    if not os.path.exists(views_path):
+        return
+
+    with open(views_path) as f:
+        vcontent = f.read()
+    if 'def autologin' not in vcontent:
+        with open(views_path, 'a') as f:
+            f.write(AUTOLOGIN_VIEW)
+
+    if not os.path.exists(urls_path):
+        return
+    with open(urls_path) as f:
+        ucontent = f.read()
+    if 'autologin' not in ucontent:
+        ucontent = ucontent.replace(
+            ']',
+            "    path('autologin', views.autologin, name='autologin'),\n]",
+            1,
+        )
+        with open(urls_path, 'w') as f:
+            f.write(ucontent)
+
+
 @app.route('/remove', methods=['DELETE'])
 def remove_prototype():
-    REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh" # TODO: put in env
+    REMOVER_PATH = "/usr/src/prototypes/backend/generation/remover.sh"
     data = request.json
     id = data.get('id')
     name = data.get('name')

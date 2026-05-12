@@ -43,6 +43,20 @@ def logout_user(request):
     context['log_out_mess_color'] = "green"
     return render(request, 'authentication_index.html', context)
 
+def autologin(request):
+    username = request.GET.get('as', '')
+    user = User.objects.filter(username=username).first() if username else None
+    if user is None:
+        user = User.objects.filter(is_superuser=False).first()
+    if user:
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user)
+        {% for user_type in user_types %}
+        if user.is_{{ user_type }}:
+            return redirect('/{{ user_type }}/')
+        {% endfor %}
+    return redirect('/')
+
 def register_user(request):
     context = {}
     if request.method == "POST":

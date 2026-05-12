@@ -509,7 +509,7 @@
               "data": {
                 "position": {
                   "x": 300,
-                  "y": 0
+                  "y": -380
                 }
               }
             },
@@ -633,6 +633,39 @@
                   "y": 1180
                 }
               }
+            },
+            {
+              "id": "f0000213-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000013-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": -260
+                }
+              }
+            },
+            {
+              "id": "f0000214-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000014-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": -140
+                }
+              }
+            },
+            {
+              "id": "f0000215-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "cls": "ac000015-0000-5000-8000-000000000000",
+              "data": {
+                "position": {
+                  "x": 300,
+                  "y": -20
+                }
+              }
             }
           ],
           "edges": [
@@ -707,11 +740,29 @@
               "diagram": "d0000003-0000-5000-8000-000000000000",
               "rel": "10000212-0000-5000-8000-000000000000",
               "data": {}
+            },
+            {
+              "id": "e0000213-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000213-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000214-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000214-0000-5000-8000-000000000000",
+              "data": {}
+            },
+            {
+              "id": "e0000215-0000-5000-8000-000000000000",
+              "diagram": "d0000003-0000-5000-8000-000000000000",
+              "rel": "10000215-0000-5000-8000-000000000000",
+              "data": {}
             }
           ],
           "id": "d0000003-0000-5000-8000-000000000000",
           "type": "activity",
-          "name": "Purchase Product Activity Diagram",
+          "name": "Full Shopping Flow Activity Diagram",
           "description": "Activity flow for a customer purchasing a product on bol.com",
           "system": "a0000002-0000-5000-8000-000000000000"
         }
@@ -2245,6 +2296,81 @@
           }
         },
         {
+          "id": "ac000013-0000-5000-8000-000000000000",
+          "project": "f3d1c958-af29-45b5-82cd-9145f5912423",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "body": "",
+            "name": "Browse Products",
+            "page": null,
+            "role": "action",
+            "type": "action",
+            "classes": ["Product", "Category"],
+            "publish": null,
+            "actorNode": "b0000002-0000-5000-8000-000000000000",
+            "namespace": "",
+            "operation": null,
+            "subscribe": null,
+            "customCode": null,
+            "isAutomatic": false,
+            "actorNodeName": "Customer",
+            "localPrecondition": "Customer is on the homepage or search page",
+            "application_models": null,
+            "localPostcondition": "Customer sees a list of matching products"
+          }
+        },
+        {
+          "id": "ac000014-0000-5000-8000-000000000000",
+          "project": "f3d1c958-af29-45b5-82cd-9145f5912423",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "body": "",
+            "name": "View Product Detail",
+            "page": null,
+            "role": "action",
+            "type": "action",
+            "classes": ["Product", "ProductImage", "DeliveryOption", "Review"],
+            "publish": null,
+            "actorNode": "b0000002-0000-5000-8000-000000000000",
+            "namespace": "",
+            "operation": null,
+            "subscribe": null,
+            "customCode": null,
+            "isAutomatic": false,
+            "actorNodeName": "Customer",
+            "localPrecondition": "Customer has selected a product from the list",
+            "application_models": null,
+            "localPostcondition": "Customer views full product information including images, specs, and reviews"
+          }
+        },
+        {
+          "id": "ac000015-0000-5000-8000-000000000000",
+          "project": "f3d1c958-af29-45b5-82cd-9145f5912423",
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "original_system_id": "a0000002-0000-5000-8000-000000000000",
+          "data": {
+            "body": "",
+            "name": "Add to Cart",
+            "page": null,
+            "role": "action",
+            "type": "action",
+            "classes": ["Cart", "CartItem", "Product"],
+            "publish": null,
+            "actorNode": "b0000002-0000-5000-8000-000000000000",
+            "namespace": "",
+            "operation": null,
+            "subscribe": null,
+            "customCode": null,
+            "isAutomatic": false,
+            "actorNodeName": "Customer",
+            "localPrecondition": "Customer is logged in and product is in stock",
+            "application_models": null,
+            "localPostcondition": "Product is added to the customer's cart"
+          }
+        },
+        {
           "id": "c0000005-0000-5000-8000-000000000000",
           "project": "f3d1c958-af29-45b5-82cd-9145f5912423",
           "system": "a0000002-0000-5000-8000-000000000000",
@@ -2742,7 +2868,7 @@
           },
           "system": "a0000002-0000-5000-8000-000000000000",
           "source": "ac000001-0000-5000-8000-000000000000",
-          "target": "ac000002-0000-5000-8000-000000000000"
+          "target": "ac000013-0000-5000-8000-000000000000"
         },
         {
           "id": "10000202-0000-5000-8000-000000000000",
@@ -2915,6 +3041,48 @@
           "system": "a0000002-0000-5000-8000-000000000000",
           "source": "ac000010-0000-5000-8000-000000000000",
           "target": "ac000012-0000-5000-8000-000000000000"
+        },
+        {
+          "id": "10000213-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000013-0000-5000-8000-000000000000",
+          "target": "ac000014-0000-5000-8000-000000000000"
+        },
+        {
+          "id": "10000214-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000014-0000-5000-8000-000000000000",
+          "target": "ac000015-0000-5000-8000-000000000000"
+        },
+        {
+          "id": "10000215-0000-5000-8000-000000000000",
+          "data": {
+            "type": "controlflow",
+            "guard": "",
+            "weight": "",
+            "condition": null,
+            "is_directed": true,
+            "position_handlers": []
+          },
+          "system": "a0000002-0000-5000-8000-000000000000",
+          "source": "ac000015-0000-5000-8000-000000000000",
+          "target": "ac000002-0000-5000-8000-000000000000"
         },
         {
           "id": "dcd64989-94ef-4bd3-b712-b3510363b181",
