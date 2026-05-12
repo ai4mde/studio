@@ -275,7 +275,8 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
         for application_component in json.loads(metadata)["interfaces"]:
             if "pages" not in application_component["value"]["data"]: # empty interface
                 continue
-            if app_name_sanitization(application_component["label"]) != application_name:
+            sanitized_application_label = app_name_sanitization(application_component["label"])
+            if sanitized_application_label != application_name:
                 continue
 
             for page in application_component["value"]["data"]["pages"]:
@@ -285,7 +286,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
-                    application = application_component["label"],
+                    application = sanitized_application_label,
                     category = category,
                     activity_name = page['action']['label'] if page.get('action') else None,
                     type = page["type"]['value'] if page.get('type') else 'normal',

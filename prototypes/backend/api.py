@@ -6,6 +6,8 @@ import time
 import socket
 import signal
 import sys
+import json
+import tempfile
 
 app = Flask(__name__)
 
@@ -108,10 +110,24 @@ def generate_prototype():
     name = data.get('name')
     system = data.get('system')
     metadata = data.get('metadata')
-    try:
-        subprocess.run([GENERATOR_PATH, id, system, name, metadata], check=True)
-    except subprocess.CalledProcessError:
-        return f"Failed to generate prototype, id={id}", 500
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        metadata_path = f"{temp_dir}/metadata.json"
+
+        with open(metadata_path, 'w', encoding='utf-8') as f:
+            # Already serialized as a JSON string
+            if isinstance(metadata, str):
+                f.write(metadata)
+            # Not serialized, serialize it
+            else:
+                json.dump(metadata, f)
+
+        try:
+            subprocess.run([GENERATOR_PATH, id, system, name, metadata_path], check=True)
+        except subprocess.CalledProcessError:
+            return f"Failed to generate prototype, id={id}", 500
+        except OSError as e:
+            return f"Failed to start generator process: {e}", 500
 
     # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:
