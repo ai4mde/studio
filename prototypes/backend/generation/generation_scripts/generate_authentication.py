@@ -11,7 +11,11 @@ def main():
         raise Exception("Invalid number of system arguments.")
     
     project_name = project_name_sanitization(sys.argv[1])
-    metadata = sys.argv[2]
+
+    metadata_path = sys.argv[2]
+    with open(metadata_path, 'r', encoding='utf-8') as f:
+        metadata = f.read()
+
     system_id = sys.argv[3]
 
     if not generate_auth_views(project_name, metadata, system_id):
