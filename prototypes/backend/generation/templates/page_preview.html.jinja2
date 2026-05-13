@@ -152,7 +152,7 @@
 {# ══ CARD ══ #}
 {%- elif eff_lay == "card" %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for row in range(_mock_rows) %}
+    {%- for row in range(3) %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-2" style="opacity: {{ _mock_opacities[row] }}">
       {%- for attribute in section_component.attributes %}
       <div class="flex flex-col gap-0.5">
@@ -164,7 +164,7 @@
         {%- elif attribute.type == AttributeType.INTEGER %}
         <span class="{{ d.text }} font-medium text-gray-700">{{ row * 7 + 12 }}</span>
         {%- elif attribute.type == AttributeType.IMAGE %}
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=300&fit=crop" alt="Mock" class="w-full max-h-48 object-cover rounded mt-1" />
+        <img src="https://picsum.photos/seed/{{ section_component.id }}-{{ row }}/400/300" alt="Mock" class="w-full max-h-48 object-cover rounded mt-1" />
         {%- else %}
         <span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ row + 1 }}</span>
         {%- endif %}
@@ -286,10 +286,10 @@
 {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for row in range(_mock_rows if page.single_record else 4) %}
+    {%- for row in range(6) %}
     <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[row] if row < 3 else '0.4' }}">
       <div class="aspect-square overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+        <img src="https://picsum.photos/seed/{{ section_component.id }}-{{ row }}/400/400" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
       </div>
       {%- if text_attrs %}
       <div class="p-2 flex flex-col gap-0.5">

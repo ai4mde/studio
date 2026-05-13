@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>AI4MDE Thesis Presentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/black.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .agent-box { @apply border-2 p-4 rounded-lg bg-slate-800 text-center; }
+        .agent-title { @apply font-bold text-blue-400 mb-2 text-lg; }
+        .token-tag { @apply text-xs bg-indigo-900 text-indigo-200 px-2 py-1 rounded m-1 inline-block border border-indigo-700; }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Title -->
+            <section data-background-gradient="linear-gradient(to bottom, #1e293b, #0f172a)">
+                <h1 class="text-6xl font-extrabold mb-4">AI4MDE</h1>
+                <h3 class="text-2xl text-blue-300">Intelligent UI Generation via Multi-Agent Orchestration</h3>
+                <p class="text-gray-400 mt-8">Automated Prototyping for Model-Driven Engineering</p>
+                <div class="mt-12 text-sm text-gray-500 italic">Thesis Presentation & Project Showcase</div>
+            </section>
+
+            <!-- Slide 2: The Challenge -->
+            <section>
+                <h3>Challenges in Automated UI Generation</h3>
+                <div class="grid grid-cols-2 gap-8 text-left">
+                    <div class="bg-red-900/20 p-6 rounded-xl border border-red-900/50">
+                        <h4 class="text-red-400 font-bold mb-4 text-xl">Traditional MDE Bottlenecks</h4>
+                        <ul class="text-sm space-y-2">
+                            <li><strong>Rigid Styling:</strong> Only basic HTML tables and layouts.</li>
+                            <li><strong>Inflexible Patterns:</strong> No automatic adaptation to business semantics.</li>
+                            <li><strong>High Maintenance:</strong> Style changes require manual template rewrites.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-900/20 p-6 rounded-xl border border-green-900/50">
+                        <h4 class="text-green-400 font-bold mb-4 text-xl">AI Integration Hurdles</h4>
+                        <ul class="text-sm space-y-2">
+                            <li><strong>Hallucinations:</strong> AI invents non-existent UUIDs/Attribute IDs.</li>
+                            <li><strong>Aesthetic Drift:</strong> Inconsistent CSS classes across generations.</li>
+                            <li><strong>Logic Gaps:</strong> UI decoupling from core UML business models.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 3: Core Innovation: 4-Agent Pipeline -->
+            <section>
+                <h3>Core Innovation: 4-Agent Pipeline</h3>
+                <p class="text-sm text-gray-400 mb-6">Transitioning from "Raw Code Generation" to "Semantic JSON Filling"</p>
+                <div class="grid grid-cols-4 gap-4 mt-4">
+                    <div class="agent-box border-yellow-500/50">
+                        <div class="agent-title">Strategist</div>
+                        <p class="text-xs text-gray-300 italic">Intent Analysis</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Translates natural language into a structured execution plan.</p>
+                    </div>
+                    <div class="agent-box border-blue-500/50">
+                        <div class="agent-title">Architect</div>
+                        <p class="text-xs text-gray-300 italic">Structure Builder</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Determines screen types (Wizard/Grid) and binds UML IDs.</p>
+                    </div>
+                    <div class="agent-box border-pink-500/50">
+                        <div class="agent-title">Stylist</div>
+                        <p class="text-xs text-gray-300 italic">Visual Expert</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Manages 18 Semantic Tokens to map intent to Tailwind classes.</p>
+                    </div>
+                    <div class="agent-box border-green-500/50">
+                        <div class="agent-title">Validator</div>
+                        <p class="text-xs text-gray-300 italic">Logic Guard</p>
+                        <p class="text-[10px] text-gray-400 mt-2">Eliminates hallucinations and ensures 100% UML compliance.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 4: Semantic Design Tokens -->
+            <section>
+                <h3>The 18-Token Semantic Schema</h3>
+                <div class="text-left bg-slate-900 p-8 rounded-2xl border border-slate-700">
+                    <div class="mb-4">
+                        <span class="text-blue-400 font-bold text-sm">Tier 1: Page (Layout)</span>
+                        <div class="flex flex-wrap">
+                            <span class="token-tag">page.body.bg</span><span class="token-tag">page.body.text</span><span class="token-tag">page.container.max_width</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-pink-400 font-bold text-sm">Tier 2: Component (Containers)</span>
+                        <div class="flex flex-wrap">
+                            <span class="token-tag">component.card.bg</span><span class="token-tag">component.card.shadow</span><span class="token-tag">component.nav.active</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <span class="text-yellow-400 font-bold text-sm">Tier 3: Element (Interactive)</span>
+                        <div class="flex flex-wrap">
+                            <span class="token-tag">element.button.primary</span><span class="token-tag">element.input.border</span><span class="token-tag">element.text.accent</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-400 mt-6">Ensures 1:1 visual parity between Designer Previews and Production Prototypes.</p>
+            </section>
+
+            <!-- Slide 5: Guardrails & Self-Correction -->
+            <section>
+                <h3>Security & Reliability: Self-Healing Logic</h3>
+                <div class="flex flex-col items-center">
+                    <div class="flex items-center gap-6 mb-8">
+                        <div class="bg-red-500/10 border border-red-500/50 p-4 rounded text-xs text-red-300">Hallucinated ID: "uuid-unknown"</div>
+                        <div class="text-2xl text-gray-600">➔</div>
+                        <div class="bg-blue-500/20 border border-blue-500/50 p-4 rounded text-xs font-bold text-blue-300">Validator heals to: "original_entity_id"</div>
+                    </div>
+                    <div class="text-left text-sm text-gray-300 space-y-4 max-w-2xl">
+                        <p>✅ <strong>UML Consistency:</strong> Automated verification against Class & Use Case models.</p>
+                        <p>✅ <strong>Workflow Awareness:</strong> Activity models determine field states (Read-only/Editable).</p>
+                        <p>✅ <strong>Self-Correction:</strong> Validator fixes minor LLM errors via semantic lookup tables.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Conclusion -->
+            <section data-background-color="#1e293b">
+                <h3>Impact & Future Work</h3>
+                <ul class="text-left text-lg space-y-6">
+                    <li>🚀 <strong>10x Efficiency:</strong> Instant prototyping from high-level design intent.</li>
+                    <li>🎨 <strong>Design Democratization:</strong> Professional UI generation for non-designers.</li>
+                    <li>🛠️ <strong>Full Lifecycle:</strong> From UML diagrams to functional prototypes in a single loop.</li>
+                </ul>
+                <div class="mt-12">
+                    <h4 class="text-blue-400 font-bold">Thank You for Your Attention!</h4>
+                    <p class="text-sm text-gray-500">Any Questions?</p>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            transition: 'slide'
+        });
+    </script>
+</body>
+</html>

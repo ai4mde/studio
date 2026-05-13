@@ -1,7 +1,7 @@
-import { authAxios } from '$auth/state/auth';
-import { Button, Typography } from '@mui/joy';
+import { authAxios, useAuthStore } from '$auth/state/auth';
+import { Button, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, LayoutGrid, Loader2, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -51,6 +51,20 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
+    const [isFullScreen, setIsFullScreen] = useState(false);
+
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const toggleBrowserFullScreen = () => {
+        if (!containerRef.current) return;
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
     const [liveKey, setLiveKey] = useState(0);
     const [liveUser, setLiveUser] = useState('jan_devries');
 
@@ -183,15 +197,63 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         const prompt = currentPrompt;
         setCurrentPrompt('');
         setIsLoadingAgent(true);
-        setAgentStatus('');
+        setAgentStatus('Initiating... (启动中...)');
+
         try {
-            const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/generate/`, {
-                prompt,
-                model: 'gpt-4o-mini',
+            const bearerToken = useAuthStore.getState().bearerToken;
+            const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
+            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const response = await fetch(`${base}/v1/metadata/interfaces/${interfaceId}/generate/`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authHeader ? { Authorization: authHeader } : {}),
+                },
+                body: JSON.stringify({
+                    prompt,
+                    model: 'gpt-4o-mini',
+                }),
             });
-            const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
-            if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
-            setAgentStatus(res.data.message || 'Done.');
+
+
+            if (!response.ok) {
+                const errText = await response.text();
+                setAgentStatus(`Error ${response.status}: ${errText.slice(0, 200)}`);
+                return;
+            }
+
+            if (!response.body) throw new Error('Streaming not supported');
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const chunk = JSON.parse(line);
+                        if (chunk.status && chunk.status !== 'Done') {
+                            setAgentStatus(chunk.status);
+                        }
+                        if (chunk.status === 'Done') {
+                            const htmlFiles = (chunk.files || []).filter((f: any) => f.path.endsWith('.html'));
+                            if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
+                            setAgentStatus(chunk.message || 'Complete.');
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse chunk', e);
+                    }
+                }
+            }
         } catch (e: any) {
             setAgentStatus(`Error: ${e.message}`);
         } finally {
@@ -225,10 +287,28 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     });
 
     return (
-        <div style={{ display: 'flex', height: '72vh', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+        <div ref={containerRef} style={{ 
+            display: 'flex', 
+            height: isFullScreen ? '90vh' : '72vh', 
+            border: '1px solid #e5e7eb', 
+            borderRadius: 8, 
+            overflow: 'hidden',
+            background: '#fff',
+            transition: 'all 0.3s ease-in-out'
+        }}>
 
             {/* -- LEFT PANEL -- */}
-            <div style={{ width: 272, flexShrink: 0, borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', background: '#f9fafb', overflow: 'hidden' }}>
+            <div style={{ 
+                width: isFullScreen ? 0 : 272, 
+                flexShrink: 0, 
+                borderRight: isFullScreen ? 'none' : '1px solid #e5e7eb', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                background: '#f9fafb', 
+                overflow: 'hidden',
+                transition: 'all 0.3s ease-in-out',
+                opacity: isFullScreen ? 0 : 1
+            }}>
 
                 {/* Section list */}
                 <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #e5e7eb' }}>
@@ -414,10 +494,43 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 </div>
 
                 {/* AI generate */}
-                <div style={{ borderTop: '1px solid #e5e7eb', padding: 10 }}>
-                    <Typography level="title-sm" sx={{ mb: 1, fontSize: 13 }}>AI Generate</Typography>
+                <div style={{ borderTop: '1px solid #e5e7eb', padding: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Typography level="title-sm" sx={{ fontSize: 13 }}>AI Generate</Typography>
+                        <Tooltip title="Try these commands to change layout or style" variant="soft">
+                            <span style={{ fontSize: 11, color: '#2563eb', cursor: 'help', display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Info size={12} /> Prompting Guide
+                            </span>
+                        </Tooltip>
+                    </div>
+
+                    {/* Example Prompt Chips */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                        {[
+                            'Dark mode with emerald accents',
+                            'Convert to multi-step Wizard',
+                            'Modern style with large border radius',
+                            'Split layout: Details left, List right',
+                            'Compact density and flat card style',
+                        ].map(suggestion => (
+                            <button
+                                key={suggestion}
+                                onClick={() => setCurrentPrompt(suggestion)}
+                                style={{
+                                    fontSize: 10, padding: '2px 8px', borderRadius: 12,
+                                    background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe',
+                                    cursor: 'pointer', whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+
                     {agentStatus && (
-                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px' }}>{agentStatus}</p>
+                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4 }}>
+                            {agentStatus}
+                        </p>
                     )}
                     <div style={{ display: 'flex', gap: 6 }}>
                         <input
@@ -427,7 +540,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             onChange={e => setCurrentPrompt(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
                             disabled={isLoadingAgent}
-                            style={{ flex: 1, padding: '5px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', outline: 'none' }}
+                            style={{ flex: 1, padding: '6px 10px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', outline: 'none' }}
                         />
                         <Button size="sm" onClick={handleSendMessage}
                             loading={isLoadingAgent} disabled={!currentPrompt.trim() || isLoadingAgent}>
@@ -468,6 +581,19 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     ))}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {previewMode === 'design' && isRefreshing && <Loader2 size={14} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
+
+                        {/* Full Screen Toggles */}
+                        <div style={{ display: 'flex', gap: 2, marginRight: 4 }}>
+                            <button onClick={() => setIsFullScreen(!isFullScreen)} title={isFullScreen ? "Exit Focus Mode" : "Focus Mode (Hide Sidebar)"}
+                                style={{ display: 'flex', alignItems: 'center', padding: '4px', borderRadius: 6, border: '1px solid #d1d5db', background: isFullScreen ? '#eff6ff' : '#fff', cursor: 'pointer', color: isFullScreen ? '#1d4ed8' : '#6b7280' }}>
+                                {isFullScreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                            </button>
+                            <button onClick={toggleBrowserFullScreen} title="Browser Fullscreen"
+                                style={{ display: 'flex', alignItems: 'center', padding: '4px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', color: '#6b7280' }}>
+                                <Monitor size={14} />
+                            </button>
+                        </div>
+
                         {previewMode === 'design' && (
                             <button onClick={doRefreshPreview}
                                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 12 }}>

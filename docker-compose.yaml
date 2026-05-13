@@ -32,9 +32,12 @@ services:
     depends_on: ["postgres"]
     build:
       context: api
+    command: ["python", "/usr/src/model/manage.py", "runserver", "--noreload", "0.0.0.0:8000"]
     env_file:
       - config/api.env
       - config/secrets.env
+    environment:
+      - INTERNAL_API_KEY=studio-internal-service-key
     networks:
       - ai4mde_traefik
     volumes:
@@ -67,6 +70,24 @@ services:
       - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
+
+  gemini-make-agent:
+    build:
+      context: api/model/gemini-make-agent
+    env_file:
+      - config/secrets.env
+    environment:
+      - METADATA_API_BASE=http://studio-api:8000/api/v1/metadata
+      - METADATA_API_KEY=studio-internal-service-key
+      - ALLOW_ORIGINS=http://ai4mde.localhost
+      - SESSION_SERVICE_URI=memory://
+    networks:
+      - ai4mde_traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.localhost`)"
+      - "traefik.http.routers.gemini-agent.entrypoints=web"
+      - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
 
   studio:
     build:

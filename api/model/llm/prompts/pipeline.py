@@ -36,11 +36,27 @@ Current Interface JSON (PRESERVE THESE UNLESS ASKED TO CHANGE):
 
 Tasks:
 1. Modify the 'pages' and 'sections' arrays based on the strategy.
-2. IMPORTANT: You MUST return the FULL 'pages' and 'sections' arrays. 
-3. PRESERVATION RULE: If a page or section exists in the 'Current Interface JSON' and is NOT being modified, you MUST include it in your output exactly as it is. DO NOT delete existing components unless explicitly told to.
-4. Use exact UUIDs for 'class' and 'attributes'.
+2. Choose a 'layout' for each page (Must be one of):
+   - 'vertical': Stacked downwards (default).
+   - 'vertical-reverse': Stacked upwards.
+   - 'horizontal': Side-by-side (left to right).
+   - 'horizontal-reverse': Side-by-side (right to left).
+3. Choose a 'layout' for each section (Must be one of):
+   - 'table': Standard data grid (default).
+   - 'list': Vertical list items.
+   - 'card': Grid of cards.
+   - 'detail': Key-value pair detail view.
+   - 'gallery': Media-centric grid.
+4. IMPORTANT: You MUST return the FULL 'pages' and 'sections' arrays. 
+5. PRESERVATION RULE: If a page or section exists in the 'Current Interface JSON' and is NOT being modified, you MUST include it in your output exactly as it is.
+6. Use exact UUIDs for 'class' and 'attributes'.
 
-Output ONLY the updated FULL 'pages' and 'sections' part of the JSON.
+Output Format:
+{{
+    "pages": [...],
+    "sections": [...],
+    "change_summary": "Technical summary of fields changed (e.g., Set section layout to card, reordered pages)"
+}}
 """
 
 STYLIST_PROMPT = """
@@ -57,9 +73,13 @@ Current Styling JSON:
 Tasks:
 1. Populate/Modify the 'styling' object (radius, text_color, accent_color).
 2. Fill the 'tokens' dictionary using exactly 18 semantic keys.
-3. Each token MUST be a valid Tailwind CSS class.
 
-Output ONLY the updated 'styling' and 'tokens' part of the JSON.
+Output Format:
+{{
+    "styling": {{...}},
+    "tokens": {{...}},
+    "change_summary": "Technical summary of style fields changed (e.g., Set page.body.bg to bg-slate-900, updated primary button color)"
+}}
 """
 
 INTEGRITY_PROMPT = """

@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 
 from django.conf import settings
@@ -24,10 +25,13 @@ def create_token(username: str, password: str):
 
 def user_from_token(token: str):
     if token:
-        payload = decode(token, settings.SECRET_KEY, algorithms=["HS256"])
-        if payload:
-            user_cls = get_user_model()
-            return user_cls.objects.get(id=payload.get("uid"))
+        try:
+            payload = decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            if payload:
+                user_cls = get_user_model()
+                return user_cls.objects.get(id=payload.get("uid"))
+        except Exception:
+            return None
 
 
 class CookieToken(APIKeyCookie):
@@ -40,7 +44,22 @@ class BearerToken(HttpBearer):
         return user_from_token(key)
 
 
-auth = [CookieToken(csrf=False), BearerToken()]
+class _ServicePrincipal:
+    """Sentinel returned for internal service-to-service calls."""
+    is_authenticated = True
+    id = None
+    username = "internal-service"
+
+
+class InternalServiceKey(HttpBearer):
+    def authenticate(self, _, key):
+        internal_key = os.environ.get("INTERNAL_API_KEY")
+        if internal_key and key == internal_key:
+            return _ServicePrincipal()
+        return None
+
+
+auth = [CookieToken(csrf=False), BearerToken(), InternalServiceKey()]
 
 __all__ = [
     "create_token",

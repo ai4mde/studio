@@ -23,9 +23,16 @@ from app.app_utils.telemetry import setup_telemetry
 from app.app_utils.typing import Feedback
 
 setup_telemetry()
-_, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-logger = logging_client.logger(__name__)
+try:
+    _, project_id = google.auth.default()
+    logging_client = google_cloud_logging.Client()
+    cloud_logger = logging_client.logger(__name__)
+except Exception:
+    cloud_logger = None
+
+import logging as python_logging
+logger = python_logging.getLogger(__name__)
+
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
@@ -34,9 +41,7 @@ allow_origins = (
 logs_bucket_name = os.environ.get("LOGS_BUCKET_NAME")
 
 AGENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# In-memory session configuration - no persistent storage
-session_service_uri = None
-
+session_service_uri = os.environ.get("SESSION_SERVICE_URI")
 artifact_service_uri = f"gs://{logs_bucket_name}" if logs_bucket_name else None
 
 app: FastAPI = get_fast_api_app(
@@ -45,7 +50,6 @@ app: FastAPI = get_fast_api_app(
     artifact_service_uri=artifact_service_uri,
     allow_origins=allow_origins,
     session_service_uri=session_service_uri,
-    otel_to_cloud=True,
 )
 app.title = "gemini-make-agent"
 app.description = "API for interacting with the Agent gemini-make-agent"
@@ -61,7 +65,15 @@ def collect_feedback(feedback: Feedback) -> dict[str, str]:
     Returns:
         Success message
     """
-    logger.log_struct(feedback.model_dump(), severity="INFO")
+    if cloud_logger:
+        try:
+            cloud_logger.log_struct(feedback.model_dump(), severity="INFO")
+        except Exception as e:
+            logger.error(f"Failed to log to Cloud Logging: {e}")
+            logger.info(f"Feedback: {feedback.model_dump()}")
+    else:
+        logger.info(f"Feedback: {feedback.model_dump()}")
+        
     return {"status": "success"}
 
 
