@@ -112,7 +112,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             classifiers=renderer_classifiers,
             interface_name=interface.name,
         )
-        yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful."}) + "\n"
+        yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
 
     resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
     resp['X-Accel-Buffering'] = 'no'

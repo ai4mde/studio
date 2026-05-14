@@ -6,9 +6,6 @@ from openai import OpenAI
 from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
 from llm.prompts.prose import PROSE_GENERATE_METADATA
 from llm.prompts.generator import GEMINI_MAKE_PROTOTYPE
-from llm.prompts.pipeline import STRATEGIST_PROMPT, ARCHITECT_PROMPT, STYLIST_PROMPT, INTEGRITY_PROMPT
-from llm.prompts.styling import UI_TOKEN_SCHEMA
-
 
 def remove_reply_markdown(reply: str) -> str:
     # Handle both ```json ... ``` and ``` ... ```
@@ -105,15 +102,6 @@ def llm_handler(prompt_name: str, model: str = "llama-3.3-70b-versatile", input_
         prompt = PROSE_GENERATE_METADATA.format(data=input_data)
     elif prompt_name == "GEMINI_MAKE_PROTOTYPE":
         prompt = GEMINI_MAKE_PROTOTYPE.format(**input_data)
-    elif prompt_name == "STRATEGIST":
-        prompt = STRATEGIST_PROMPT.format(**input_data)
-    elif prompt_name == "ARCHITECT":
-        prompt = ARCHITECT_PROMPT.format(**input_data)
-    elif prompt_name == "STYLIST":
-        input_data["token_schema"] = UI_TOKEN_SCHEMA
-        prompt = STYLIST_PROMPT.format(**input_data)
-    elif prompt_name == "INTEGRITY":
-        prompt = INTEGRITY_PROMPT.format(**input_data)
     else:
         raise Exception("Invalid prompt name")
     

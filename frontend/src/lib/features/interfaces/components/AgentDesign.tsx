@@ -248,6 +248,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             const htmlFiles = (chunk.files || []).filter((f: any) => f.path.endsWith('.html'));
                             if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
                             setAgentStatus(chunk.message || 'Complete.');
+                            const freshData = chunk.interface_data || {};
+                            if (freshData.sections) setSections(freshData.sections);
+                            if (freshData.pages) setPages(freshData.pages);
                         }
                     } catch (e) {
                         console.error('Failed to parse chunk', e);
