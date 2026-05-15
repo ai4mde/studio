@@ -119,6 +119,122 @@ export const Sections: React.FC<Props> = () => {
     const handleRelatedToChange = (index: number, sectionId: string) => {
         const newData = [...data];
         newData[index].related_to = sectionId || null;
+        const sourceSection = newData.find((section) => section.id === sectionId);
+        if (sectionId) {
+            const sameClass = sourceSection?.class && sourceSection.class === newData[index].class;
+            newData[index].relationship = {
+                ...(newData[index].relationship || {}),
+                mode: sameClass ? 'same_parent' : 'direct',
+            };
+            if (sameClass) {
+                newData[index].query = {
+                    ...(newData[index].query || {}),
+                    exclude_source: newData[index].query?.exclude_source ?? true,
+                };
+            }
+        } else {
+            delete newData[index].relationship;
+            delete newData[index].relation_field;
+            setNewRelationField('');
+        }
+        setData(newData);
+    };
+
+    const handleRelationshipModeChange = (index: number, mode: string) => {
+        const newData = [...data];
+        newData[index].relationship = {
+            ...(newData[index].relationship || {}),
+            mode,
+        };
+        if (mode !== 'same_parent') {
+            delete newData[index].relationship.via;
+        } else {
+            newData[index].query = {
+                ...(newData[index].query || {}),
+                exclude_source: newData[index].query?.exclude_source ?? true,
+            };
+        }
+        setData(newData);
+    };
+
+    const handleRelationshipViaChange = (index: number, classId: string) => {
+        const newData = [...data];
+        newData[index].relationship = {
+            ...(newData[index].relationship || { mode: 'same_parent' }),
+            via: classId || null,
+        };
+        setData(newData);
+    };
+
+    const handleQueryExcludeSourceChange = (index: number, checked: boolean) => {
+        const newData = [...data];
+        newData[index].query = {
+            ...(newData[index].query || {}),
+            exclude_source: checked,
+        };
+        setData(newData);
+    };
+
+    const handleQueryNumberChange = (index: number, key: 'limit' | 'offset', value: string) => {
+        const newData = [...data];
+        const parsed = Number.parseInt(value, 10);
+        newData[index].query = {
+            ...(newData[index].query || {}),
+            [key]: Number.isNaN(parsed) ? null : parsed,
+        };
+        setData(newData);
+    };
+
+    const handleAddOrderBy = (index: number) => {
+        const newData = [...data];
+        const firstField = classAttributes[0]?.name || '';
+        newData[index].query = {
+            ...(newData[index].query || {}),
+            order_by: [...(newData[index].query?.order_by || []), { field: firstField, direction: 'asc' }],
+        };
+        setData(newData);
+    };
+
+    const handleOrderByChange = (index: number, orderIndex: number, key: 'field' | 'direction', value: string) => {
+        const newData = [...data];
+        const orderBy = [...(newData[index].query?.order_by || [])];
+        orderBy[orderIndex] = { ...(orderBy[orderIndex] || {}), [key]: value };
+        newData[index].query = { ...(newData[index].query || {}), order_by: orderBy };
+        setData(newData);
+    };
+
+    const handleRemoveOrderBy = (index: number, orderIndex: number) => {
+        const newData = [...data];
+        const orderBy = [...(newData[index].query?.order_by || [])];
+        orderBy.splice(orderIndex, 1);
+        newData[index].query = { ...(newData[index].query || {}), order_by: orderBy };
+        setData(newData);
+    };
+
+    const handleAddFilter = (index: number) => {
+        const newData = [...data];
+        const firstField = classAttributes[0]?.name || '';
+        newData[index].query = {
+            ...(newData[index].query || {}),
+            filter_logic: 'and',
+            filters: [...(newData[index].query?.filters || []), { field: firstField, operator: 'eq', value: '' }],
+        };
+        setData(newData);
+    };
+
+    const handleFilterChange = (index: number, filterIndex: number, key: 'field' | 'operator' | 'value', value: string) => {
+        const newData = [...data];
+        const filters = [...(newData[index].query?.filters || [])];
+        filters[filterIndex] = { ...(filters[filterIndex] || {}), [key]: value };
+        newData[index].query = { ...(newData[index].query || {}), filter_logic: 'and', filters };
+        setData(newData);
+    };
+
+    const handleRemoveFilter = (index: number, filterIndex: number) => {
+        const newData = [...data];
+        const filters = [...(newData[index].query?.filters || [])];
+        filters.splice(filterIndex, 1);
+        newData[index].query = { ...(newData[index].query || {}), filters };
         setData(newData);
     };
 
@@ -377,7 +493,31 @@ export const Sections: React.FC<Props> = () => {
                                         </select>
                                         {data[index].related_to && (
                                             <div className="space-y-1">
-                                                <label className="text-xs text-gray-500">Relation field (optional, auto-detected if blank)</label>
+                                                <label className="text-xs text-gray-500">Relationship mode</label>
+                                                <select
+                                                    value={data[index].relationship?.mode || 'direct'}
+                                                    onChange={(e) => handleRelationshipModeChange(index, e.target.value)}
+                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                >
+                                                    <option value="direct">Direct relationship</option>
+                                                    <option value="same_parent">Same parent</option>
+                                                </select>
+                                                {data[index].relationship?.mode === 'same_parent' && (
+                                                    <>
+                                                        <label className="text-xs text-gray-500">Via class</label>
+                                                        <select
+                                                            value={data[index].relationship?.via || ''}
+                                                            onChange={(e) => handleRelationshipViaChange(index, e.target.value)}
+                                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                        >
+                                                            <option value="">Auto-detect if possible</option>
+                                                            {isSuccessClasses && classes.map((cls) => (
+                                                                <option key={cls.id} value={cls.id}>{cls.data.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </>
+                                                )}
+                                                <label className="text-xs text-gray-500">Relation field override (optional, auto-detected if blank)</label>
                                                 <input
                                                     type="text"
                                                     value={newRelationField}
@@ -387,6 +527,136 @@ export const Sections: React.FC<Props> = () => {
                                                 />
                                             </div>
                                         )}
+                                    </FormControl>
+                                    <FormControl className="space-y-2">
+                                        <h3 className="text-xl font-bold">Query</h3>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div className="space-y-1">
+                                                <label className="text-xs text-gray-500">Limit</label>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    value={data[index].query?.limit || ''}
+                                                    onChange={(e) => handleQueryNumberChange(index, 'limit', e.target.value)}
+                                                    placeholder="e.g. 4"
+                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs text-gray-500">Offset</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    value={data[index].query?.offset || ''}
+                                                    onChange={(e) => handleQueryNumberChange(index, 'offset', e.target.value)}
+                                                    placeholder="0"
+                                                    className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                />
+                                            </div>
+                                        </div>
+                                        {data[index].related_to && (
+                                            <label className="flex items-center gap-2 text-xs text-gray-500">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={data[index].query?.exclude_source ?? false}
+                                                    onChange={(e) => handleQueryExcludeSourceChange(index, e.target.checked)}
+                                                />
+                                                Exclude current item
+                                            </label>
+                                        )}
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label className="text-xs text-gray-500">Sort</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddOrderBy(index)}
+                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            {(data[index].query?.order_by || []).map((order, orderIndex) => (
+                                                <div key={orderIndex} className="flex gap-1">
+                                                    <select
+                                                        value={order.field || ''}
+                                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'field', e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
+                                                    >
+                                                        {classAttributes.map((attr) => (
+                                                            <option key={attr.name} value={attr.name}>{attr.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <select
+                                                        value={order.direction || 'asc'}
+                                                        onChange={(e) => handleOrderByChange(index, orderIndex, 'direction', e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-20"
+                                                    >
+                                                        <option value="asc">Asc</option>
+                                                        <option value="desc">Desc</option>
+                                                    </select>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveOrderBy(index, orderIndex)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                                    >
+                                                        X
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label className="text-xs text-gray-500">Filters (AND)</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddFilter(index)}
+                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            {(data[index].query?.filters || []).map((filter, filterIndex) => (
+                                                <div key={filterIndex} className="grid grid-cols-[1fr_78px_1fr_28px] gap-1">
+                                                    <select
+                                                        value={filter.field || ''}
+                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'field', e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                                    >
+                                                        {classAttributes.map((attr) => (
+                                                            <option key={attr.name} value={attr.name}>{attr.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <select
+                                                        value={filter.operator || 'eq'}
+                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'operator', e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs"
+                                                    >
+                                                        <option value="eq">=</option>
+                                                        <option value="neq">!=</option>
+                                                        <option value="lt">&lt;</option>
+                                                        <option value="lte">&lt;=</option>
+                                                        <option value="gt">&gt;</option>
+                                                        <option value="gte">&gt;=</option>
+                                                        <option value="contains">has</option>
+                                                        <option value="in">in</option>
+                                                        <option value="isnull">null</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        value={filter.value || ''}
+                                                        onChange={(e) => handleFilterChange(index, filterIndex, 'value', e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveFilter(index, filterIndex)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                                    >
+                                                        X
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </FormControl>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">View Detail Page</h3>

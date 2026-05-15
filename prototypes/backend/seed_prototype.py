@@ -180,6 +180,23 @@ addr2 = Address.objects.create(address_id='addr-002', customer_id='cust-002',
     postal_code='3011 AD', country='Netherlands', is_default=True, Customer=cust2)
 print('Created 2 addresses.')
 
+# Carts and orders
+cart1 = Cart.objects.create(cart_id='cart-001', customer_id=cust1.customer_id, total_price='EUR 1448', item_count=2, Customer=cust1)
+cart2 = Cart.objects.create(cart_id='cart-002', customer_id=cust2.customer_id, total_price='EUR 379', item_count=1, Customer=cust2)
+CartItem.objects.create(cart_item_id='ci-001', cart_id=cart1.cart_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Cart=cart1, Product=p1)
+CartItem.objects.create(cart_item_id='ci-002', cart_id=cart1.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart1, Product=p6)
+CartItem.objects.create(cart_item_id='ci-003', cart_id=cart2.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart2, Product=p6)
+print('Created 2 carts and 3 cart items.')
+
+pay1 = Payment.objects.create(payment_id='pay-001', order_id='ord-001', method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
+pay2 = Payment.objects.create(payment_id='pay-002', order_id='ord-002', method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
+order1 = Order.objects.create(order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
+order2 = Order.objects.create(order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
+OrderLine.objects.create(line_id='line-001', order_id=order1.order_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Product=p1, Order=order1)
+OrderLine.objects.create(line_id='line-002', order_id=order1.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order1)
+OrderLine.objects.create(line_id='line-003', order_id=order2.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order2)
+print('Created 2 payments, 2 orders, and 3 order lines.')
+
 # System user
 _u, _created = User.objects.get_or_create(username='system', defaults=dict(email='system@bol.com', is_System=True))
 if _created: _u.set_password('demo1234'); _u.save()
@@ -195,4 +212,9 @@ print(f'Delivery opts: {DeliveryOption.objects.count()}')
 print(f'Customers:     {Customer.objects.count()}')
 print(f'Reviews:       {Review.objects.count()}')
 print(f'Addresses:     {Address.objects.count()}')
+print(f'Carts:         {Cart.objects.count()}')
+print(f'Cart items:    {CartItem.objects.count()}')
+print(f'Payments:      {Payment.objects.count()}')
+print(f'Orders:        {Order.objects.count()}')
+print(f'Order lines:   {OrderLine.objects.count()}')
 print(f'Users:         {User.objects.count()}')

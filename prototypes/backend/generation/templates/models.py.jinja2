@@ -85,6 +85,32 @@ class {{ model.name }}(models.Model):
     {% if custom_method.body_is_valid -%}
 
     {{ custom_method.body | replace('\n','\n    ') -}}
+    {% elif custom_method.action == "cart.add_item" -%}
+
+    def {{ custom_method.call_name }}(self, quantity=1):
+        quantity = int(quantity or 1)
+        if quantity < 1:
+            quantity = 1
+        cart = Cart.objects.first()
+        if not cart:
+            return False
+        existing = CartItem.objects.filter(Cart=cart, Product=self).first()
+        if existing:
+            existing.quantity = (existing.quantity or 0) + quantity
+            existing.subtotal = existing.unit_price
+            existing.save()
+            return True
+        CartItem.objects.create(
+            cart_item_id=f"ci-{CartItem.objects.count() + 1:03d}",
+            cart_id=cart.cart_id,
+            product_id=self.product_id,
+            quantity=quantity,
+            unit_price=self.price,
+            subtotal=self.price,
+            Cart=cart,
+            Product=self,
+        )
+        return True
     {% endif -%}
     {% endfor %}
 {% endfor %}

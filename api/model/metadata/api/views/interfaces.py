@@ -39,11 +39,19 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
     if not payload.prompt or payload.interface_data_override is not None:
         interface_data = payload.interface_data_override or interface.data or {}
         classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
-        files = render_preview(interface_data=interface_data, classifiers=classifiers, interface_name=interface.name)
+        relations = [
+            {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
+            for r in system.relations.all()
+        ]
+        files = render_preview(interface_data=interface_data, classifiers=classifiers, relations=relations, interface_name=interface.name)
         return {"message": f"Generated {len(files)} page(s).", "files": files}
 
     def stream_generator():
         renderer_classifiers = [dict(id=str(c.id), data=c.data) for c in system.classifiers.all()]
+        renderer_relations = [
+            {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
+            for r in system.relations.all()
+        ]
 
         yield json.dumps({"status": "Connecting to agent... (连接 AI 中...)"}) + "\n"
 
@@ -110,6 +118,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
         files = render_preview(
             interface_data=interface.data,
             classifiers=renderer_classifiers,
+            relations=renderer_relations,
             interface_name=interface.name,
         )
         yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"

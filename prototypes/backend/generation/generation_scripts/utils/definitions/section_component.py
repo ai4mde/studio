@@ -2,6 +2,7 @@ from typing import List, Optional
 from utils.definitions.model import Model, AttributeType
 from utils.sanitization import section_name_sanitization
 import ast
+import re
 from re import sub
 
 def parse_section_text(text: str) -> str:
@@ -48,10 +49,9 @@ class SectionAttribute():
     
 
 def extract_call_name(body: str) -> str:
-    start = body.find("def ") + len("def ")
-    end = body.find("(self)")
-    if start and end:
-        return body[start:end].strip()
+    match = re.search(r"def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(", body or "")
+    if match:
+        return match.group(1)
     return None
 
 
@@ -59,14 +59,21 @@ class SectionCustomMethod():
     def __init__(
             self,
             name: str,
-            body: str
+            body: str = None,
+            parameters = None,
+            action: str = None,
+            target_model: str = None,
+            call_name: str = None,
     ):
         self.name = name
-        self.call_name = extract_call_name(body)
+        self.call_name = call_name or extract_call_name(body) or section_name_sanitization(name).lower()
+        self.parameters = parameters or []
+        self.action = action
+        self.target_model = target_model
         try:
-            ast.parse(body)
+            ast.parse(body or "")
             self.body = body
-            self.body_is_valid = True
+            self.body_is_valid = bool(body)
         except SyntaxError:
             self.body_is_valid = False
 
@@ -103,6 +110,7 @@ class SectionComponent():
             style: Optional[dict] = None,
             related_to_section_id: Optional[str] = None,
             relation_field: Optional[str] = None,
+            query: Optional[dict] = None,
             view_detail_page: Optional[str] = None,
             col_span: int = 12,
     ):
@@ -123,6 +131,8 @@ class SectionComponent():
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.related_to_section_id = related_to_section_id
         self.relation_field = relation_field
+        self.query = query or {}
+        self.query_literal = repr(self.query)
         self.view_detail_page = view_detail_page
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
 

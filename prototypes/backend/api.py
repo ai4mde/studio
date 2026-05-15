@@ -32,6 +32,20 @@ def _run_sh(path: str, args: list, **kwargs):
     finally:
         os.unlink(tmp_path)
 
+
+def _run_generator(path: str, id: str, system: str, name: str, metadata: str, variant_id: str, **kwargs):
+    metadata_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode='w', suffix='.json', delete=False, dir='/tmp'
+        ) as tmp:
+            tmp.write(metadata or '')
+            metadata_path = tmp.name
+        return _run_sh(path, [id, system, name, f"@{metadata_path}", variant_id], **kwargs)
+    finally:
+        if metadata_path and os.path.exists(metadata_path):
+            os.unlink(metadata_path)
+
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 
 RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
@@ -176,7 +190,7 @@ def generate_prototype():
     metadata = data.get('metadata')
     variant_id = data.get('variant_id', '1')
     try:
-        _run_sh(GENERATOR_PATH, [id, system, name, metadata, variant_id], check=True)
+        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id, check=True)
     except subprocess.CalledProcessError:
         return f"Failed to generate prototype, id={id}", 500
 

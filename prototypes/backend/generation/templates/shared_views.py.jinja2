@@ -2,6 +2,7 @@ from django.apps import apps
 from django.shortcuts import get_object_or_404
 from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
 from django.views import View
+import inspect
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 
@@ -82,7 +83,14 @@ class GenericListView(GenericViewMixin, ListView):
             _, model, method = key.split("_", 2)
             if model_instance := apps.get_model('shared_models', model):
                 instance = get_object_or_404(model_instance, pk=self.request.GET[key])
-                getattr(instance, method)()
+                custom_method = getattr(instance, method)
+                signature = inspect.signature(custom_method)
+                kwargs = {
+                    name: self.request.GET[name]
+                    for name in signature.parameters
+                    if name in self.request.GET
+                }
+                custom_method(**kwargs)
                 break
 
 class GenericCreateView(GenericViewMixin, CreateView):

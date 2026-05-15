@@ -21,6 +21,9 @@ DEFAULT_SECTION_STYLE = {
     "image_size": "md",
 }
 
+SOURCE_PARENT_MULTIPLICITIES = {("*", "1"), ("1..*", "1")}
+TARGET_PARENT_MULTIPLICITIES = {("1", "*"), ("1", "1..*")}
+
 CLICK_SCRIPT = """
 <script>
 (function() {
@@ -62,7 +65,8 @@ class _Attribute:
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
-                 layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None):
+                 layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
+                 related_to_section_id=None, relation_field=None, query=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -79,6 +83,9 @@ class _SectionComponent:
         self.custom_methods = custom_methods or []
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
         self.view_detail_page = view_detail_page
+        self.related_to_section_id = related_to_section_id
+        self.relation_field = relation_field
+        self.query = query or {}
 
     def __str__(self):
         return self.name
@@ -133,7 +140,62 @@ def _parse_custom_methods(section_raw: Dict) -> List[str]:
     return methods
 
 
-def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: str, layout_config: Optional[Dict] = None):
+def _parse_query(section_raw: Dict) -> Dict:
+    query = dict(section_raw.get("query") or {})
+    relationship = section_raw.get("relationship") or {}
+    if "limit" not in query and relationship.get("limit") is not None:
+        query["limit"] = relationship.get("limit")
+    if "exclude_source" not in query and relationship.get("exclude_source") is not None:
+        query["exclude_source"] = relationship.get("exclude_source")
+    return query
+
+
+def _relation_data(relation: Dict) -> Dict:
+    return relation.get("data", relation)
+
+
+def _relation_endpoint(relation: Dict, key: str) -> Optional[str]:
+    value = relation.get(key)
+    if isinstance(value, dict):
+        return str(value.get("id")) if value.get("id") else None
+    return str(value) if value else None
+
+
+def _infer_parent_models(class_id: str, classifiers: List[Dict], relations: Optional[List[Dict]]) -> List[str]:
+    if not class_id or not relations:
+        return []
+
+    classifier_names = {
+        str(c["id"]): _sanitize(c.get("data", {}).get("name", ""))
+        for c in (classifiers or [])
+    }
+
+    out = []
+    for relation in relations:
+        data = _relation_data(relation)
+        if data.get("type") != "association":
+            continue
+
+        source_id = _relation_endpoint(relation, "source")
+        target_id = _relation_endpoint(relation, "target")
+        multiplicity = data.get("multiplicity") or {}
+        source_mult = str(multiplicity.get("source", ""))
+        target_mult = str(multiplicity.get("target", ""))
+
+        parent_id = None
+        if source_id == str(class_id) and (source_mult, target_mult) in SOURCE_PARENT_MULTIPLICITIES:
+            parent_id = target_id
+        elif target_id == str(class_id) and (source_mult, target_mult) in TARGET_PARENT_MULTIPLICITIES:
+            parent_id = source_id
+
+        parent_name = classifier_names.get(str(parent_id)) if parent_id else None
+        if parent_name and parent_name not in out:
+            out.append(parent_name)
+
+    return out
+
+
+def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: str, layout_config: Optional[Dict] = None, relations: Optional[List[Dict]] = None):
     classifier_map: Dict[str, Dict] = {
         str(c["id"]): c.get("data", {}) for c in (classifiers or [])
     }
@@ -154,6 +216,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
             cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
             primary_model = _sanitize(cls_data.get("name", "item")) if cls_data else "item"
+            parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
 
             attributes = []
             for attr_raw in s_raw.get("attributes", []):
@@ -196,7 +259,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 name=_sanitize(s_raw.get("name", "")),
                 display_name=s_raw.get("name", ""),
                 primary_model=primary_model,
-                parent_models=[],
+                parent_models=parent_models,
                 attributes=attributes,
                 has_create_operation=bool(ops.get("create", False)),
                 has_update_operation=bool(ops.get("update", False)),
@@ -207,6 +270,9 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 custom_methods=_parse_custom_methods(s_raw),
                 col_span=int(s_raw.get("col_span", 12)),
                 view_detail_page=s_raw.get("view_detail_page"),
+                related_to_section_id=s_raw.get("related_to"),
+                relation_field=s_raw.get("relation_field"),
+                query=_parse_query(s_raw),
             ))
 
         type_field = p_raw.get("type")
@@ -242,8 +308,9 @@ def render_layout(
     layout_config: Optional[Dict],
     interface_name: str = "interface",
     inject_click_handlers: bool = False,
+    relations: Optional[List[Dict]] = None,
 ) -> List[Dict]:
-    app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config)
+    app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)
@@ -270,8 +337,9 @@ def render_preview(
     interface_data: Dict,
     classifiers: List[Dict],
     interface_name: str = "interface",
+    relations: Optional[List[Dict]] = None,
 ) -> List[Dict]:
-    app_name, pages = _parse_pages(interface_data, classifiers, interface_name)
+    app_name, pages = _parse_pages(interface_data, classifiers, interface_name, relations=relations)
     tokens = interface_data.get("tokens", {})
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))

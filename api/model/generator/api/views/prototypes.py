@@ -239,7 +239,11 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         for c in iface.system.classifiers.filter(data__type='class')
     ]
 
-    files = render_layout(interface_data, classifiers, None, interface_name=iface.name)
+    relations = [
+        {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
+        for r in iface.system.relations.all()
+    ]
+    files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
 
     updated = 0
     for f in files:

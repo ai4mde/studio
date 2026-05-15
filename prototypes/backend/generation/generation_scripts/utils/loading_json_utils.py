@@ -11,8 +11,16 @@ import json
 from uuid import uuid4
 
 
+def resolve_metadata_arg(metadata: str) -> str:
+    if isinstance(metadata, str) and metadata.startswith("@"):
+        with open(metadata[1:], "r", encoding="utf-8") as f:
+            return f.read()
+    return metadata
+
+
 def get_apps(metadata: str) -> str:
     '''Returns a string with all application component names, and spaces inbetween'''
+    metadata = resolve_metadata_arg(metadata)
     apps = []
     
     try:
@@ -184,7 +192,11 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
     for custom_method in section["methods"]:
         mtd = SectionCustomMethod(
             name = custom_method["name"],
-            body = custom_method["body"]
+            body = custom_method.get("body"),
+            parameters = custom_method.get("parameters", []),
+            action = custom_method.get("action"),
+            target_model = custom_method.get("target_model"),
+            call_name = custom_method.get("call_name"),
         )
         out.append(mtd)
     
@@ -222,6 +234,12 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
 
                     section_class = section.get("class")
                     operations = section.get("operations") or {}
+                    query = dict(section.get("query") or {})
+                    relationship = section.get("relationship") or {}
+                    if "limit" not in query and relationship.get("limit") is not None:
+                        query["limit"] = relationship.get("limit")
+                    if "exclude_source" not in query and relationship.get("exclude_source") is not None:
+                        query["exclude_source"] = relationship.get("exclude_source")
 
                     sec = SectionComponent(
                         id = section["id"],
@@ -240,6 +258,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         style = section.get("style", None),
                         related_to_section_id = section.get("related_to", None),
                         relation_field = section.get("relation_field", None),
+                        query = query,
                         view_detail_page = page_name_sanitization(section["view_detail_page"]) if section.get("view_detail_page") else None,
                         col_span = int(section.get("col_span", 12)),
                     )

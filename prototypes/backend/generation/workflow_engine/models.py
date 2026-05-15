@@ -214,7 +214,9 @@ class Rule(models.Model):
             raise ValueError(f"Rule {self.id} references a non-existing action node: {node_id}")
 
     def _evaluate_condition(self, active_process: "ActiveProcess", condition: Condition) -> bool:
-        target_property_name = f"{condition.target_class_name.lower()}s"
+        # Multi-word class names (e.g. "Process Payment") → take last word ("Payment") → "payments"
+        class_name = condition.target_class_name.strip().split()[-1].lower()
+        target_property_name = f"{class_name}s"
         target_objects = getattr(active_process, target_property_name, None)
 
         if target_objects is None or not isinstance(target_objects, QuerySet):

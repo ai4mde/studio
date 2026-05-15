@@ -4,7 +4,7 @@ from utils.view_generation import generate_views
 from utils.url_generation import generate_urls
 from utils.template_generation import generate_templates # Import generate_templates
 from utils.styling_generation import generate_styling
-from utils.loading_json_utils import get_application_component
+from utils.loading_json_utils import get_application_component, resolve_metadata_arg
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
 
     project_name = project_name_sanitization(sys.argv[1])
     application_name = app_name_sanitization(sys.argv[2])
-    metadata = sys.argv[3]
+    metadata = resolve_metadata_arg(sys.argv[3])
     authentication_present = sys.argv[4] == "True"
     system_id = sys.argv[5]
     variant_id = sys.argv[6] # Get the variant ID

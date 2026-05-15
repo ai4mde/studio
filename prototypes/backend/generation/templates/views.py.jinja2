@@ -6,6 +6,65 @@ from shared_models.views import GenericListView, GenericCreateView, GenericUpdat
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 from django.contrib.contenttypes.models import ContentType
 
+def _coerce_query_value(value):
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered == 'true':
+            return True
+        if lowered == 'false':
+            return False
+        if lowered == 'none' or lowered == 'null':
+            return None
+    return value
+
+def _apply_section_query(qs, query, source_obj=None):
+    query = query or {}
+    operator_map = {
+        'eq': '',
+        'neq': '',
+        'lt': '__lt',
+        'lte': '__lte',
+        'gt': '__gt',
+        'gte': '__gte',
+        'contains': '__icontains',
+        'in': '__in',
+        'isnull': '__isnull',
+    }
+    for condition in query.get('filters') or []:
+        field = condition.get('field')
+        operator = condition.get('operator', 'eq')
+        if not field or operator not in operator_map:
+            continue
+        lookup = f"{field}{operator_map[operator]}"
+        value = _coerce_query_value(condition.get('value'))
+        if operator == 'in' and not isinstance(value, (list, tuple)):
+            value = [v.strip() for v in str(value).split(',') if v.strip()]
+        if operator == 'neq':
+            qs = qs.exclude(**{lookup: value})
+        else:
+            qs = qs.filter(**{lookup: value})
+    if query.get('exclude_source') and source_obj is not None:
+        qs = qs.exclude(id=getattr(source_obj, 'id', None))
+    order_fields = []
+    for item in query.get('order_by') or []:
+        field = item.get('field')
+        if not field:
+            continue
+        direction = item.get('direction', 'asc')
+        order_fields.append(f"-{field}" if direction == 'desc' else field)
+    if order_fields:
+        try:
+            qs = qs.order_by(*order_fields)
+        except Exception:
+            pass
+    offset = query.get('offset') or 0
+    limit = query.get('limit')
+    if limit:
+        return qs[offset:offset + limit]
+    if offset:
+        return qs[offset:]
+    return qs
+
 {# Create, Update, Delete views #}
 {% for page in pages -%}
 {% for section_component in page.section_components -%}
@@ -42,8 +101,12 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% endfor -%}
         {% for parent_model in section_component.parent_models -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
+        if not _pk_{{ parent_model }}:
+            _pk_{{ parent_model }} = self.request.POST.get('instance_id_{{ parent_model }}')
         if _pk_{{ parent_model }}:
             instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=_pk_{{ parent_model }})
+        elif not getattr(instance, '{{ parent_model }}_id', None):
+            instance.{{ parent_model }} = {{ parent_model }}.objects.first()
         {% endfor -%}
         {% if page.type == 'activity' %}
         {% for parent_model in section_component.parent_models -%}
@@ -151,13 +214,20 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
 
     {% if page.type == 'activity' -%}
     def get_queryset(self):
-        return self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+        _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+        qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
+        return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
     {% elif page.single_record and models_on_pages[page]['primary_models'][0] -%}
     def get_queryset(self):
         _id = self.request.GET.get('instance_id_{{ models_on_pages[page]['primary_models'][0] }}')
         if _id:
-            return {{ models_on_pages[page]['primary_models'][0] }}.objects.filter(id=_id)
+            qs = {{ models_on_pages[page]['primary_models'][0] }}.objects.filter(id=_id)
+            return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
         return {{ models_on_pages[page]['primary_models'][0] }}.objects.none()
+    {% elif models_on_pages[page]['primary_models'][0] and page.section_components and page.section_components[0].query -%}
+    def get_queryset(self):
+        qs = {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
+        return _apply_section_query(qs, {{ page.section_components[0].query_literal }})
     {% endif -%}
 
     {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or page.single_record %}
@@ -169,7 +239,12 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% if page.type == 'activity' -%}
         {% if models_on_pages[page]['primary_models'] | length > 1 -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        context['{{ primary_model }}_list'] = self.active_process_node.active_process.{{ primary_model.lower() }}s
+        _associated_{{ primary_model }}_qs = self.active_process_node.active_process.{{ primary_model.lower() }}s
+        {% set _sections_for_model = page.section_components | selectattr('primary_model', 'equalto', primary_model) | list -%}
+        context['{{ primary_model }}_list'] = _apply_section_query(
+            _associated_{{ primary_model }}_qs if _associated_{{ primary_model }}_qs.exists() else {{ primary_model }}.objects.all(),
+            {{ _sections_for_model[0].query_literal if _sections_for_model else '{}' }},
+        )
         {% endfor -%}
         {% endif -%}
         context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
@@ -182,11 +257,16 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% for section in page.section_components[1:] -%}
         {% if section.primary_model -%}
         {% if _ns_p.model in section.parent_models -%}
-        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.none()
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.none()
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
         {% elif section.primary_model in _ns_p.section.parent_models -%}
-        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.none()
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.none()
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
         {% else -%}
-        context['{{ section.primary_model }}_list'] = {{ section.primary_model }}.objects.all()
+        {% if section.primary_model != _ns_p.model -%}
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.all()
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        {% endif -%}
         {% endif -%}
         {% endif -%}
         {% endfor -%}
@@ -206,17 +286,18 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% set _ns.fk_field = section.relation_field -%}
         {% set _ns.same_model = (section.primary_model == _src.primary_model) -%}
         {% elif section.primary_model == _src.primary_model -%}
-        {% for pm in section.parent_models -%}{% if pm in _src.parent_models and not _ns.fk_field -%}{% set _ns.fk_field = pm.lower() %}{% set _ns.same_model = true %}{% endif -%}{% endfor -%}
+        {% for pm in section.parent_models -%}{% if pm in _src.parent_models and not _ns.fk_field -%}{% set _ns.fk_field = pm %}{% set _ns.same_model = true %}{% endif -%}{% endfor -%}
         {% elif _src.primary_model in section.parent_models -%}
-        {% set _ns.fk_field = _src.primary_model.lower() -%}
+        {% set _ns.fk_field = _src.primary_model -%}
         {% endif -%}
         {% if _ns.fk_field -%}
         _src_{{ _src.primary_model }} = {{ _src.primary_model }}.objects.filter(id=self.request.GET.get('instance_id_{{ _src.primary_model }}')).first()
         {% if _ns.same_model -%}
-        context['related_{{ section.name }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}.{{ _ns.fk_field }}).exclude(id=_src_{{ _src.primary_model }}.id) if _src_{{ _src.primary_model }} and getattr(_src_{{ _src.primary_model }}, '{{ _ns.fk_field }}_id', None) else {{ section.primary_model }}.objects.none()
+        _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}.{{ _ns.fk_field }}).exclude(id=_src_{{ _src.primary_model }}.id) if _src_{{ _src.primary_model }} and getattr(_src_{{ _src.primary_model }}, '{{ _ns.fk_field }}_id', None) else {{ section.primary_model }}.objects.none()
         {% else -%}
-        context['related_{{ section.name }}_list'] = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
+        _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
         {% endif -%}
+        context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }})
         {% endif -%}
         {% endif -%}
         {% endif -%}
