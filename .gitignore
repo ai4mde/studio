@@ -1,0 +1,51 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+.Python
+
+# Environment / secrets
+*.env
+!*.env.example
+
+# Node / frontend
+node_modules/
+.npm
+frontend/.next/
+frontend/dist/
+frontend/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# DB / runtime
+*.sqlite3
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+.dockerignore
+
+# Misc
+*.bak
+*.tmp
+.cache/
