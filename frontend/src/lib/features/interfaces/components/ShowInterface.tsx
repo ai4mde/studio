@@ -17,6 +17,7 @@ import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { Styling } from './Styling';
 import { Settings } from './Settings';
+import { PageRegions } from './PageRegions';
 
 
 type Props = {
@@ -157,6 +158,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
                             <Tab>Pages</Tab>
+                            <Tab>Page Layout</Tab>
                             <Tab>Section Components</Tab>
                             <Tab>Styling</Tab>
                             <Tab>Settings</Tab>
@@ -174,12 +176,15 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Pages actorName = {data?.name}/>
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Sections />
+                            <PageRegions />
                         </TabPanel>
                         <TabPanel value={5}>
-                            <Styling />
+                            <Sections />
                         </TabPanel>
                         <TabPanel value={6}>
+                            <Styling />
+                        </TabPanel>
+                        <TabPanel value={7}>
                             <Settings />
                         </TabPanel>
                     </Tabs>

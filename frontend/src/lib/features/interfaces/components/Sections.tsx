@@ -384,6 +384,24 @@ export const Sections: React.FC<Props> = () => {
                                                 ))}
                                         </div>
                                     </div>
+                                    <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">Position</h3>
+                                        <select
+                                            value={data[index].position || 'main'}
+                                            onChange={(e) => {
+                                                const newData = [...data];
+                                                newData[index].position = e.target.value;
+                                                setData(newData);
+                                            }}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            <option value="header">Header</option>
+                                            <option value="hero">Hero</option>
+                                            <option value="main">Main</option>
+                                            <option value="sidebar">Sidebar</option>
+                                            <option value="footer">Footer</option>
+                                        </select>
+                                    </FormControl>
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Operations</h3>
                                         <div className="flex gap-2">

@@ -12,6 +12,19 @@ type DensityOption = 'compact' | 'normal' | 'spacious';
 type ImagePositionOption = 'left' | 'top' | 'right';
 type ImageSizeOption = 'sm' | 'md' | 'lg';
 type ColSpanOption = 12 | 6 | 4 | 3;
+type PositionOption = 'header' | 'hero' | 'main' | 'sidebar' | 'footer';
+type ShadowOption = 'none' | 'sm' | 'md' | 'lg' | 'xl';
+type BorderOption = 'none' | 'light' | 'colored' | 'strong';
+type BgOption = 'white' | 'light' | 'gray' | 'dark';
+type HeaderStyleOption = 'default' | 'large' | 'small' | 'colored' | 'hidden';
+
+const POSITION_OPTIONS: { value: PositionOption; label: string; bg: string; color: string; border: string }[] = [
+    { value: 'header',  label: 'Header',  bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+    { value: 'hero',    label: 'Hero',    bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' },
+    { value: 'main',    label: 'Main',    bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+    { value: 'sidebar', label: 'Sidebar', bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+    { value: 'footer',  label: 'Footer',  bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+];
 
 interface AgentDesignProps {
     interfaceId?: string | null;
@@ -272,6 +285,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const secColumns = String(secStyle.columns ?? '3');
     const secImagePosition: ImagePositionOption = (secStyle.image_position as ImagePositionOption) || 'top';
     const secImageSize: ImageSizeOption = (secStyle.image_size as ImageSizeOption) || 'md';
+    const secShadow: ShadowOption = (secStyle.shadow as ShadowOption) || 'none';
+    const secBorder: BorderOption = (secStyle.border as BorderOption) || 'none';
+    const secBg: BgOption = (secStyle.bg as BgOption) || 'white';
+    const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
     const isMethodOnly = !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
 
     const currentPage = (pages as any[])[previewPageIndex];
@@ -322,7 +339,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 Add sections in the Section Components tab first.
                             </p>
                         )}
-                        {(sections as any[]).map((s: any) => (
+                        {(sections as any[]).map((s: any) => {
+                            const posOpt = POSITION_OPTIONS.find(p => p.value === (s.position || 'main')) ?? POSITION_OPTIONS[2];
+                            return (
                             <button
                                 key={s.id}
                                 onClick={() => setSelectedSectionId(s.id === selectedSectionId ? null : s.id)}
@@ -335,14 +354,26 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                     fontSize: 13, color: '#1f2937',
                                 }}
                             >
-                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                     {s.name || 'Unnamed'}
                                 </span>
-                                <span style={{ fontSize: 11, color: !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280', flexShrink: 0, marginLeft: 4 }}>
-                                    {!(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
+                                <span style={{ display: 'flex', gap: 3, flexShrink: 0, marginLeft: 4, alignItems: 'center' }}>
+                                    {(s.position && s.position !== 'main') && (
+                                        <span style={{
+                                            fontSize: 9, padding: '1px 5px', borderRadius: 8,
+                                            background: posOpt.bg, color: posOpt.color, border: `1px solid ${posOpt.border}`,
+                                            fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+                                        }}>
+                                            {posOpt.label}
+                                        </span>
+                                    )}
+                                    <span style={{ fontSize: 11, color: !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280' }}>
+                                        {!(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
+                                    </span>
                                 </span>
                             </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -406,6 +437,28 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 </div>
                             )}
 
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Position</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
+                                {POSITION_OPTIONS.map(opt => {
+                                    const curPos = selectedSection.position || 'main';
+                                    const isActive = curPos === opt.value;
+                                    return (
+                                        <button key={opt.value}
+                                            onClick={() => setSections((prev: any[]) => prev.map((s: any) =>
+                                                s.id === selectedSection.id ? { ...s, position: opt.value } : s
+                                            ))}
+                                            style={{
+                                                ...btnBase, padding: '3px 7px', fontSize: 11,
+                                                background: isActive ? opt.bg : '#fff',
+                                                color: isActive ? opt.color : '#374151',
+                                                border: `1px solid ${isActive ? opt.border : '#d1d5db'}`,
+                                            }}>
+                                            {opt.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Width</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
                                 {COL_SPAN_OPTIONS.map(opt => (
@@ -438,6 +491,52 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                     <button key={d} style={{ ...btnBase, ...active(secDensity === d), padding: '3px 7px', fontSize: 11 }}
                                         onClick={() => updateSection(selectedSection.id, 'density', d)}>
                                         {d}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shadow</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['none', 'sm', 'md', 'lg', 'xl'] as ShadowOption[]).map(s => (
+                                    <button key={s} style={{ ...btnBase, ...active(secShadow === s), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'shadow', s)}>
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Border</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['none', 'light', 'colored', 'strong'] as BorderOption[]).map(b => (
+                                    <button key={b} style={{ ...btnBase, ...active(secBorder === b), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'border', b)}>
+                                        {b}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['white', 'light', 'gray', 'dark'] as BgOption[]).map(b => (
+                                    <button key={b} style={{ ...btnBase, ...active(secBg === b), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'bg', b)}>
+                                        {b}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Title</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {([
+                                    { value: 'default', label: 'Default' },
+                                    { value: 'large',   label: 'Large' },
+                                    { value: 'small',   label: 'Small' },
+                                    { value: 'colored', label: 'Colored' },
+                                    { value: 'hidden',  label: 'Hidden' },
+                                ] as { value: HeaderStyleOption; label: string }[]).map(opt => (
+                                    <button key={opt.value} style={{ ...btnBase, ...active(secHeaderStyle === opt.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'header_style', opt.value)}>
+                                        {opt.label}
                                     </button>
                                 ))}
                             </div>

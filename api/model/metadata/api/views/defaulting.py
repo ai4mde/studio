@@ -191,6 +191,7 @@ def build_data_sections(default_use_case_objects: List[DefaultUsecase]) -> List[
             "attributes": build_data_section_attributes(use_case),
             "operations": build_data_section_operations(use_case),
             "text": "",
+            "position": "main",
         }
         out.append(section)
     return out

@@ -37,7 +37,11 @@
   "normal":   {"gap":"gap-4","p":"p-4","p_sm":"p-3","text":"text-sm","sec":"mb-12"},
   "spacious": {"gap":"gap-6","p":"p-6","p_sm":"p-4","text":"text-base","sec":"mb-16"},
 } %}
-{% set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-200"} %}
+{% set _csm  = {"flat":"border border-gray-100","elevated":"shadow-md","outlined":"border-2 border-gray-200"} %}
+{% set _shm  = {"none":"","sm":"shadow-sm","md":"shadow-md","lg":"shadow-lg","xl":"shadow-xl"} %}
+{% set _bom  = {"none":"","light":"border border-gray-200","strong":"border-2 border-gray-400"} %}
+{% set _bgm  = {"white":"bg-white","gray":"bg-gray-50","dark":"bg-gray-800"} %}
+{% set _hdsm = {"default":"text-xl font-semibold text-gray-800","large":"text-2xl font-bold text-gray-900","small":"text-xs font-medium text-gray-500 uppercase tracking-widest"} %}
 {% set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} %}
 {% set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} %}
 {% set _pm = {
@@ -56,13 +60,21 @@
 <div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
 {# ── Resolve per-section style ── #}
-{% set _s  = section_component.style %}
-{% set c   = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
-{% set r   = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
-{% set d   = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
-{% set cs  = _csm.get(_s.get("card_style","elevated"), _csm["elevated"]) %}
-{% set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
-{% set lay = section_component.layout %}
+{% set _s   = section_component.style %}
+{% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
+{% set r    = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
+{% set d    = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
+{% set col  = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
+{% set lay  = section_component.layout %}
+{% set _bg_key  = _s.get("bg","white") %}
+{% set _sec_bg  = c.light if _bg_key == "light" else _bgm.get(_bg_key,"bg-white") %}
+{% set _sec_sh  = _shm.get(_s.get("shadow","none"),"") %}
+{% set _bor_key = _s.get("border","none") %}
+{% set _sec_bor = ("border-2 " ~ c.border) if _bor_key == "colored" else _bom.get(_bor_key,"") %}
+{% set _hs_key  = _s.get("header_style","default") %}
+{% set _hs_hide = _hs_key == "hidden" %}
+{% set _hs      = _hdsm.get(_hs_key, ("text-xl font-bold " ~ c.text)) %}
+{% set cs       = (_sec_bg ~ " " ~ _csm.get(_s.get("card_style","elevated"),"shadow-md") ~ " " ~ _sec_sh ~ " " ~ _sec_bor)|trim %}
 {% set has_attrs = section_component.attributes|length > 0 %}
 {% set has_methods = section_component.custom_methods|length > 0 %}
 {% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
@@ -72,11 +84,11 @@
 
 {% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}">
 
-  {% if page.type != 'activity' %}
+  {% if page.type != 'activity' and not _hs_hide %}
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-xl font-semibold text-gray-800">{{ section_component.display_name }}</h2>
+    <h2 class="{{ _hs }}">{{ section_component.display_name }}</h2>
   </div>
   {% endif %}
 
@@ -875,6 +887,62 @@
 </div>
 {%- endif %}
 </main>
+<script>
+(function() {
+  var grid = document.querySelector('main > .grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = { header: [], hero: [], main: [], sidebar: [], footer: [] };
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (byPos[pos]) byPos[pos].push(el); else byPos.main.push(el);
+  });
+  var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
+  if (!hasNonMain) return;
+
+  var gap = 'gap-4';
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+
+  if (byPos.header.length) {
+    var headerEl = document.createElement('div');
+    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
+    wrap.appendChild(headerEl);
+  }
+
+  if (byPos.hero.length) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 px-8 py-8 grid grid-cols-12 gap-4';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+
+  var hasSidebar = byPos.sidebar.length > 0;
+  var contentRow = document.createElement('div');
+  contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
+  var mainGrid = document.createElement('div');
+  mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+  byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
+  contentRow.appendChild(mainGrid);
+  if (hasSidebar) {
+    var sidebarEl = document.createElement('aside');
+    sidebarEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+    byPos.sidebar.forEach(function(el) { el.className = 'w-full'; sidebarEl.appendChild(el); });
+    contentRow.appendChild(sidebarEl);
+  }
+  wrap.appendChild(contentRow);
+
+  if (byPos.footer.length) {
+    var footerEl = document.createElement('div');
+    footerEl.className = 'border-t pt-6 grid grid-cols-12 gap-4';
+    byPos.footer.forEach(function(el) { footerEl.appendChild(el); });
+    wrap.appendChild(footerEl);
+  }
+
+  grid.parentNode.replaceChild(wrap, grid);
+})();
+</script>
 <script>
 (function() {
   var style = document.createElement('style');

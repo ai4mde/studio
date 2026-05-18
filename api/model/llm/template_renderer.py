@@ -66,7 +66,7 @@ class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
                  layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
-                 related_to_section_id=None, relation_field=None, query=None):
+                 related_to_section_id=None, relation_field=None, query=None, position="main"):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -86,6 +86,7 @@ class _SectionComponent:
         self.related_to_section_id = related_to_section_id
         self.relation_field = relation_field
         self.query = query or {}
+        self.position = position or "main"
 
     def __str__(self):
         return self.name
@@ -214,6 +215,10 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             if not s_raw:
                 continue
 
+            # Skip sections that are explicitly hidden
+            if s_raw.get("visible") is False:
+                continue
+
             cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
             primary_model = _sanitize(cls_data.get("name", "item")) if cls_data else "item"
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
@@ -273,6 +278,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 related_to_section_id=s_raw.get("related_to"),
                 relation_field=s_raw.get("relation_field"),
                 query=_parse_query(s_raw),
+                position=s_raw.get("position", "main"),
             ))
 
         type_field = p_raw.get("type")
