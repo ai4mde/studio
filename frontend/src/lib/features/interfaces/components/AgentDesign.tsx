@@ -16,6 +16,7 @@ type ColSpanOption = 12 | 6 | 4 | 3;
 interface AgentDesignProps {
     interfaceId?: string | null;
     systemId?: string | null;
+    interfaceName?: string | null;
 }
 
 const LAYOUT_OPTIONS: { value: LayoutOption; label: string; icon: React.ReactNode }[] = [
@@ -39,7 +40,7 @@ const COLOR_HEX: Record<ColorOption, string> = {
     orange: '#f97316', rose: '#f43f5e', slate: '#64748b',
 };
 
-export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
+export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId, interfaceName }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
 
@@ -50,6 +51,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [autoSeed, setAutoSeed] = useLocalStorage(`autoSeed-${systemId}`, false);
+    const autoSeedDoneRef = useRef(false);
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -66,7 +69,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     };
     const [liveKey, setLiveKey] = useState(0);
-    const [liveUser, setLiveUser] = useState('jan_devries');
+    const liveUser = interfaceName ?? 'autologin';
 
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
@@ -74,6 +77,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const handleSeedDataRef = useRef<() => void>(() => {});
     // Capture latest sections/pages/previewPageIndex for the debounced callback
     const latestState = useRef({ sections, pages, previewPageIndex });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex }; }, [sections, pages, previewPageIndex]);
@@ -115,14 +119,21 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         try {
             const res = await authAxios.get('/v1/generator/prototypes/active_prototype/');
             if (res.data?.running === true) {
-                setPreviewMode('live');
+                setPreviewMode(prev => {
+                    if (prev !== 'live' && autoSeed && !autoSeedDoneRef.current) {
+                        autoSeedDoneRef.current = true;
+                        setTimeout(() => handleSeedDataRef.current(), 0);
+                    }
+                    return 'live';
+                });
             } else {
+                autoSeedDoneRef.current = false;
                 setPreviewMode('design');
             }
         } catch {
             setPreviewMode('design');
         }
-    }, []);
+    }, [autoSeed]);
 
     const handleSeedData = useCallback(async () => {
         setIsSeedingData(true);
@@ -131,7 +142,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             const params = systemId ? `?system_id=${systemId}` : '';
             await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
             setSeedStatus('ok');
-            setLiveUser('jan_devries');
             setLiveKey((k: number) => k + 1);
             checkAndSwitchLive();
         } catch {
@@ -141,6 +151,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setTimeout(() => setSeedStatus('idle'), 3000);
         }
     }, [systemId, checkAndSwitchLive]);
+    handleSeedDataRef.current = handleSeedData;
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
@@ -609,17 +620,29 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 <RefreshCw size={12} />Refresh
                             </button>
                         )}
-                        <button onClick={handleSeedData} disabled={isSeedingData}
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isSeedingData ? 'default' : 'pointer',
-                                border: `1px solid ${seedStatus === 'ok' ? '#86efac' : seedStatus === 'error' ? '#fca5a5' : '#d1d5db'}`,
-                                background: seedStatus === 'ok' ? '#f0fdf4' : seedStatus === 'error' ? '#fef2f2' : '#fff',
-                                color: seedStatus === 'ok' ? '#16a34a' : seedStatus === 'error' ? '#dc2626' : '#374151',
-                                opacity: isSeedingData ? 0.6 : 1,
-                            }}>
-                            {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
-                            {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
-                        </button>
+                        {/* Auto-seed toggle */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 8px', borderRadius: 6, border: '1px solid #d1d5db', background: '#fff', fontSize: 12 }}>
+                            <Database size={12} style={{ color: autoSeed ? '#16a34a' : '#9ca3af' }} />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', color: '#374151', userSelect: 'none' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={!!autoSeed}
+                                    onChange={e => {
+                                        const checked = e.target.checked;
+                                        setAutoSeed(checked);
+                                        if (checked && previewMode === 'live') {
+                                            autoSeedDoneRef.current = true;
+                                            handleSeedDataRef.current();
+                                        }
+                                    }}
+                                    style={{ accentColor: '#16a34a', cursor: 'pointer' }}
+                                />
+                                Auto-seed
+                            </label>
+                            {isSeedingData && <Loader2 size={11} style={{ color: '#6b7280', animation: 'spin 1s linear infinite' }} />}
+                            {seedStatus === 'ok' && <span style={{ color: '#16a34a' }}>✓</span>}
+                            {seedStatus === 'error' && <span style={{ color: '#dc2626' }}>✗</span>}
+                        </div>
                     </div>
                 </div>
 
@@ -628,7 +651,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     {previewMode === 'live' ? (
                         <iframe
                             key={`live-${liveKey}`}
-                            src={`${prototypeURL}/autologin?as=${liveUser}`}
+                            src={`${prototypeURL}/autologin?role=${liveUser}`}
                             title="Live prototype"
                             style={{ width: '100%', height: '100%', border: 'none' }}
                         />

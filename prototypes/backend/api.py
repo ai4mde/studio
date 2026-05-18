@@ -8,6 +8,9 @@ import time
 import socket
 import signal
 import sys
+import json
+import urllib.request
+import urllib.error
 import jinja2
 
 app = Flask(__name__)
@@ -221,7 +224,6 @@ def seed_prototype_data():
         return 'Seed script not found', 404
 
     req_data     = request.json or {}
-    # Prefer the currently-running prototype; fall back to what the caller provided.
     system_id    = running_prototype.get('system') or req_data.get('system', '')
     project_name = running_prototype.get('name')   or req_data.get('name', '')
     if not system_id or not project_name:
@@ -230,6 +232,24 @@ def seed_prototype_data():
     proto_path = os.path.join(ROOT_DIR, system_id, project_name)
     if not os.path.isdir(proto_path):
         return f'Prototype directory not found: {proto_path}', 404
+
+    # Generate seed_data.json via Claude if models.py is present
+    models_py = os.path.join(proto_path, 'shared_models', 'models.py')
+    seed_json_path = os.path.join(ROOT_DIR, system_id, 'seed_data.json')
+    if os.path.exists(models_py):
+        with open(models_py) as f:
+            models_content = f.read()
+        role_fields = re.findall(r'is_\w+\s*=\s*models\.BooleanField', models_content)
+        role_names = [m.split('=')[0].strip() for m in role_fields
+                      if m.split('=')[0].strip() not in ('is_superuser', 'is_staff', 'is_active')]
+        seed_data = _generate_seed_data(models_content, role_names)
+        if seed_data:
+            with open(seed_json_path, 'w') as f:
+                json.dump(seed_data, f, indent=2)
+        else:
+            return 'Failed to generate seed data — check ANTHROPIC_API_KEY', 500
+    else:
+        return f'models.py not found at {models_py}', 404
 
     env = os.environ.copy()
     env['PROTOTYPE_SYSTEM'] = system_id
@@ -245,6 +265,70 @@ def seed_prototype_data():
 
     _patch_autologin(proto_path, project_name)
     return result.stdout or 'Seeded OK', 200
+
+
+def _generate_seed_data(models_content: str, role_fields: list | None = None) -> dict | None:
+    api_key = os.environ.get('OPENAI_API_KEY', '').strip('"').strip("'")
+    if not api_key:
+        print('[seed] OPENAI_API_KEY not set', flush=True)
+        return None
+
+    prompt = f"""Given these Django models, generate a seed_data.json with 4–6 realistic records per model.
+
+Models:
+```python
+{models_content}
+```
+
+Output ONLY valid JSON (no markdown fences, no explanation) with this exact structure:
+{{
+  "order": ["ModelA", "ModelB", ...],
+  "users": [
+    {{"username": "alice", "email": "alice@demo.com", "{role_fields[0] if role_fields else 'is_RoleName'}": true}}
+  ],
+  "records": {{
+    "ModelA": [
+      {{"field1": "value", "field2": 42, "field3": true}}
+    ]
+  }}
+}}
+
+Rules:
+1. "order" lists models from least-dependent to most-dependent (FK targets before FK sources).
+2. Do NOT include "User" in "records" — user accounts go in "users" only.
+3. For *_id CharField fields that reference other models, use IDs that match records you create.
+4. Do NOT include ForeignKey object fields (the capitalized field names like Appointment = ForeignKey(...)) — only set the plain CharField/IntegerField/BooleanField values.
+5. BooleanField → JSON true/false. IntegerField → JSON number.
+6. Use realistic domain-appropriate data (real names, medical terms, product names, etc.).
+7. Only include fields that exist in the model definition.
+8. For "users", the ONLY valid role boolean fields are: {', '.join(role_fields) if role_fields else 'check the User model'}. Do NOT invent other is_* fields."""
+
+    payload = json.dumps({
+        'model': 'gpt-4o',
+        'max_tokens': 4096,
+        'messages': [
+            {'role': 'system', 'content': 'You are a data generator. Output only valid JSON, no extra text.'},
+            {'role': 'user', 'content': prompt},
+        ],
+        'response_format': {'type': 'json_object'},
+    }).encode()
+    req = urllib.request.Request(
+        'https://api.openai.com/v1/chat/completions',
+        data=payload,
+        headers={
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            body = json.loads(resp.read().decode())
+        text = body['choices'][0]['message']['content'].strip()
+        return json.loads(text)
+    except Exception as e:
+        print(f'[seed] OpenAI generation failed: {e}', flush=True)
+        return None
 
 
 def _patch_autologin(proto_path: str, project_name: str):

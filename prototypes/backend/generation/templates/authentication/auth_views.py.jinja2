@@ -2,16 +2,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from shared_models.models import User
 
-{% for user_type in user_types %}
-def create_{{ user_type }}(request):
+
+def create_user(request):
     username = request.POST['username']
     password = request.POST['password']
-    {% for user_type in user_types %}
-    is_{{ user_type }} = (request.POST['user_type'] == '{{ user_type }}')
-    {% endfor %}
-    User.objects.create_user(username=username, password=password, 
-    {%- for user_type in user_types %}is_{{ user_type }}=is_{{ user_type }}{% if not loop.last %}, {% endif %}{% endfor -%})
-{%- endfor %}
+    role = request.POST.get('user_type', '')
+    extra = {f"is_{role}": True} if role else {}
+    User.objects.create_user(username=username, password=password, **extra)
 
 def login_user(request):
     context = {}
@@ -22,10 +19,8 @@ def login_user(request):
         if user is not None:
             login(request, user)
             request.session['user'] = username
-            {% for user_type in user_types %}
-            if user.is_{{ user_type }}:
-                return redirect('/{{ user_type }}/')
-            {% endfor %}
+            if user.roles:
+                return redirect(f'/{user.roles[0]}/')
             context['auth_mess'] = "Incorrect user type!"
             context['auth_mess_color'] = "red"
             return render(request, 'authentication_index.html', context)
@@ -35,7 +30,7 @@ def login_user(request):
             return render(request, 'authentication_index.html', context)
     else:
         return render(request, 'authentication_index.html', context)
-    
+
 def logout_user(request):
     context = {}
     logout(request)
@@ -45,16 +40,17 @@ def logout_user(request):
 
 def autologin(request):
     username = request.GET.get('as', '')
+    role = request.GET.get('role', '')
     user = User.objects.filter(username=username).first() if username else None
+    if user is None and role:
+        user = User.objects.filter(**{f"is_{role}": True}).first()
     if user is None:
         user = User.objects.filter(is_superuser=False).first()
     if user:
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
-        {% for user_type in user_types %}
-        if user.is_{{ user_type }}:
-            return redirect('/{{ user_type }}/')
-        {% endfor %}
+        if user.roles:
+            return redirect(f'/{user.roles[0]}/')
     return redirect('/')
 
 def register_user(request):
@@ -62,23 +58,13 @@ def register_user(request):
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
-        {% for user_type in user_types %}
-        is_{{ user_type }} = (request.POST['user_type'] == '{{ user_type }}')
-        {% endfor %}
+        role = request.POST.get('user_type', '')
         if User.objects.filter(username=username).exists():
             context['reg_mess'] = "User " + username + " already exists!"
             context['reg_mess_color'] = "red"
             return render(request, 'authentication_index.html', context)
-        {% if user_types != [] -%} 
-        {% for user_type in user_types -%}
-        if request.POST['user_type'] == '{{ user_type }}':
-            create_{{ user_type }}(request)
-        {% endfor -%}
-        {% else -%}
-        User.objects.create_user(username=username, password=password {% for user_type in user_types -%} 
-        {% if loop.first %}, {% endif -%} is_{{ user_type }}=is_{{ user_type }}{% if not loop.last %}, {% endif %}{% endfor -%}
-                                )
-        {% endif -%}
+        extra = {f"is_{role}": True} if role else {}
+        User.objects.create_user(username=username, password=password, **extra)
         context['reg_mess'] = "Successfuly created user: " + username
         context['reg_mess_color'] = "green"
         return render(request, 'authentication_index.html', context)

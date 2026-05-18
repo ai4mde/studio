@@ -137,7 +137,7 @@ class ActivityDiagramParser:
             next_nodes=[edge.target_node for edge in outgoing_edges],
             conditions=[edge.condition for edge in outgoing_edges],
             incoming_edges_count=incoming_edges_count,
-            url=self.interface_map.get(current_node['id']),
+            url=self.interface_map.get(current_node['id']) or self.interface_map.get(current_node.get('cls_ptr')),
             custom_code=current_node['cls'].get('customCode'),
         )
         self.nodes[node_id] = node
@@ -149,6 +149,8 @@ class ActivityDiagramParser:
 
     def parse_activity_diagram(self, diagram: dict[str, Any]) -> tuple[CronJob | None, dict[str, Node] | None]:
         """Parse an activity diagram starting from the initial node"""
+        # Reset per-diagram state so multiple diagrams don't share the same nodes dict.
+        self.nodes = {}
         start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
@@ -157,7 +159,9 @@ class ActivityDiagramParser:
             process_id=self.process_id,
             schedule=start_node['cls'].get('schedule', '')
         ) if start_node['cls'].get('scheduled', False) and start_node['cls'].get('schedule', '') else None
-        return cron_job, self.create_nodes(diagram, start_node['id'])
+        nodes = self.create_nodes(diagram, start_node['id'])
+        # Return a snapshot copy so later resets of self.nodes don't mutate this diagram's data.
+        return cron_job, dict(nodes) if nodes is not None else None
 
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
@@ -322,6 +326,9 @@ class ActivityDiagramParser:
             # Add the start node to the process
             process['start'] = start_node
             process_entries.append(process)
+
+            # Restore this diagram's node snapshot so create_rules can look them up.
+            self.nodes = diagram.nodes
 
             # Create the rules connecting the action nodes
             rule_entries.extend(self.create_rules())

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "web-retrieval-mcp": {
+      "command": "node",
+      "args": ["/Users/ruikeyuan/Desktop/人工項目/web-retrieval-mcp/build/index.js"]
+    }
+  }
+}

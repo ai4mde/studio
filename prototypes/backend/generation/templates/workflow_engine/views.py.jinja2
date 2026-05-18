@@ -18,7 +18,9 @@ class StartProcessView(GenericView):
         ).select_related("action_node").first()
         if not active_process_node:
             return redirect(f"/{request.user.roles[0]}")
-        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        if active_process_node.action_node.actor in request.user.roles:
+            return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        return redirect(f"/{request.user.roles[0]}")
 
 
 class RedirectToProcessView(GenericView):

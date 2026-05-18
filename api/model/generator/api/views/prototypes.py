@@ -174,8 +174,11 @@ def run_prototype(request, prototype_id):
 @prototypes.get("/active_prototype/")
 def get_active_prototype(request):
     STATUS_URL = f"{PROTOTYPE_API_URL}/active_prototype"
-    response = requests.get(STATUS_URL)
-    return response.json()
+    try:
+        response = requests.get(STATUS_URL, timeout=5)
+        return response.json()
+    except Exception:
+        return {"running": False}
 
 
 @prototypes.post("/seed/", response=str)
@@ -204,7 +207,7 @@ class HotReloadPayload(Schema):
 @prototypes.post("/hot_reload/")
 def hot_reload_templates(request, payload: HotReloadPayload):
     from metadata.models import Interface
-    from model.llm.template_renderer import render_layout
+    from llm.template_renderer import render_layout
 
     # Fetch active prototype info
     try:
