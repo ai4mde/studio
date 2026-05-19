@@ -50,7 +50,7 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{%- set _mock_rows = 1 if page.single_record else 3 %}
+{%- set _mock_rows = 3 %}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] %}
 
 {% if page.type == 'activity' and not preview_mode %}
@@ -80,7 +80,8 @@
 {% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
 {% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else section_component.primary_model + '_list' %}
 {% set query_limit = section_component.query.get("limit") %}
-{% set section_mock_rows = query_limit if query_limit else (3 if section_component.related_to_section_id else _mock_rows) %}
+{% set _base_mock = 3 %}
+{% set section_mock_rows = query_limit if query_limit else _base_mock %}
 
 {% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
 
@@ -103,7 +104,7 @@
 {% if eff_lay == "action_panel" %}
 {% if section_component.custom_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_component.custom_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
@@ -119,7 +120,7 @@
   <div class="flex flex-wrap gap-2">
     {% for method in section_component.custom_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
@@ -296,7 +297,7 @@
 {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for _mock_row in range(section_mock_rows if page.single_record else 4) %}
+    {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       <div class="aspect-square overflow-hidden">
         <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ _mock_row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
@@ -336,7 +337,7 @@
 {% if eff_lay == "action_panel" %}
 {% if section_component.custom_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_component.custom_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
@@ -352,7 +353,7 @@
   <div class="flex flex-col gap-3">
     {% for method in section_component.custom_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
@@ -633,7 +634,7 @@
       <h4 class="{{ d.text }} font-semibold {{ c.label }} w-full">New {{ section_component.display_name }}</h4>
       <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3 w-full">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% if page.single_record and section_component.primary_model -%}
+        {% if section_component.primary_model -%}
         <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
         {% endif -%}
         {% for attribute in section_component.attributes %}{% if not attribute.derived %}
@@ -657,7 +658,7 @@
     {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-2">
       <input type="hidden" name="create_{{ section_component }}" value="true">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
       <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
@@ -803,7 +804,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
     <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
@@ -856,7 +857,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
     <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">

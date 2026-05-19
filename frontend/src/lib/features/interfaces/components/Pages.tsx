@@ -26,7 +26,6 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
     const [selectedLayout, setSelectedLayout] = useLocalStorage('selectedLayout', '');
     const [selectedGap, setSelectedGap] = useLocalStorage('selectedGap', '');
     const [selectedAction, setSelectedAction] = useLocalStorage('selectedAction', '');
-    const [selectedSingleRecord, setSelectedSingleRecord] = useLocalStorage('selectedSingleRecord', false);
     const [sections, , isSuccessSections] = useLocalStorage('sections', []);
     const [selectedSections, setSelectedSections] = useLocalStorage('selectedSections', []);
     const [pencilClick, setPencilClick] = useState(false);
@@ -99,7 +98,6 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
         } else {
             setSelectedGap({ label: 'Normal', value: 'normal' });
         }
-        setSelectedSingleRecord(!!data[index]?.single_record);
     };
 
     const handleMinus = () => {
@@ -170,21 +168,6 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
         }
     }, [selectedGap]);
 
-    useEffect(() => {
-        if (editIndex !== -1 && data[editIndex] !== undefined) {
-            setSelectedSingleRecord(!!data[editIndex].single_record);
-        } else {
-            setSelectedSingleRecord(false);
-        }
-    }, [editIndex]);
-
-    useEffect(() => {
-        if (editIndex !== -1) {
-            const newData = [...data];
-            newData[editIndex].single_record = selectedSingleRecord;
-            setData(newData);
-        }
-    }, [selectedSingleRecord]);
 
     const handlePencilClick = () => {
         setPencilClick(true);
@@ -283,19 +266,6 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                                             onChange={setSelectedGap}
                                         />
                                     </FormControl>
-                                    {selectedPageType.value === 'normal' && (
-                                        <FormControl className="space-y-1">
-                                            <h3 className="text-xl font-bold">Single Record</h3>
-                                            <div>
-                                                <Chip
-                                                    onClick={() => setSelectedSingleRecord(!selectedSingleRecord)}
-                                                    color={selectedSingleRecord ? 'primary' : 'neutral'}
-                                                >
-                                                    {selectedSingleRecord ? 'On' : 'Off'}
-                                                </Chip>
-                                            </div>
-                                        </FormControl>
-                                    )}
                                     {selectedPageType.value === 'normal' && isSuccessCategories && (
                                         <FormControl className="space-y-1">
                                             <h3 className="text-xl font-bold">Category</h3>

@@ -93,7 +93,7 @@ class _SectionComponent:
 
 
 class _Page:
-    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal", single_record=False):
+    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal"):
         self.name = name
         self.display_name = display_name
         self.type = type_
@@ -102,7 +102,6 @@ class _Page:
         self.section_components = section_components
         self.layout = layout or "vertical"
         self.gap = gap or "normal"
-        self.single_record = single_record
 
     def __str__(self):
         return self.name
@@ -302,7 +301,6 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             section_components=section_components,
             layout=page_layout,
             gap=page_gap,
-            single_record=bool(p_raw.get("single_record", False)),
         ))
 
     return app_name, pages

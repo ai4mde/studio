@@ -685,7 +685,7 @@ export const Sections: React.FC<Props> = () => {
                                             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
                                         >
                                             <option value="">None</option>
-                                            {pages.filter((p) => p.single_record).map((p) => (
+                                            {pages.filter((p) => !p.type || p.type?.value !== 'activity').map((p) => (
                                                 <option key={p.id} value={p.name}>{p.name}</option>
                                             ))}
                                         </select>

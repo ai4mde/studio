@@ -341,7 +341,6 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata),
                     layout = str(page_layout),
                     gap = str(page_gap),
-                    single_record = bool(page.get("single_record", False)),
                 )
                 out.append(pg)
     except:
