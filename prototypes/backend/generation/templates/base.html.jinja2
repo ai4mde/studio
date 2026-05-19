@@ -8,51 +8,44 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
 </head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
 
-<body class="bg-gray-50 min-h-screen flex flex-col">
-
-    <!-- Top bar -->
-    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+    <!-- Header -->
+    <header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ styling.accent_color or '#1e3a5f' }};">
         <div class="flex items-center gap-3">
             {% if logo %}<img src="{{ logo }}" class="h-8 w-auto">{% endif %}
-            <span class="text-lg font-semibold text-gray-800">{{ application_name | capitalize }}</span>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
+                {{ application_name | capitalize }}
+            </a>
         </div>
         {% if authentication_present -%}
-        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-gray-500 hover:text-gray-800 transition-colors">Logout</a>
+        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
         {%- else -%}
-        <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-gray-500 hover:text-gray-800 transition-colors">Other Application</a>
+        <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Other Application</a>
         {%- endif %}
     </header>
 
-    <div class="flex flex-1">
-
-        <!-- Sidebar nav -->
-        <nav class="w-56 shrink-0 bg-white border-r border-gray-200 py-4 flex flex-col gap-1">
+    <!-- Nav bar -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
-               class="mx-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
-                Home
-            </a>
+               class="hover:text-gray-900 transition-colors">Home</a>
 
             {% if settings.manager_access %}
-            <div class="mx-2 mt-2 px-3 py-1">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Manager</span>
-            </div>
+            <span class="text-gray-300">|</span>
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}"
-               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">Activity log</a>
+               class="hover:text-gray-900 transition-colors">Activity log</a>
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}"
-               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">User assignment</a>
+               class="hover:text-gray-900 transition-colors">User assignment</a>
             {% endif %}
 
             {% for category in categories %}
-            <div class="mx-2 mt-3 px-3 py-1">
-                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
-            </div>
+            <span class="text-gray-300">|</span>
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
             {% for page in pages %}
             {% if page.type == 'normal' and page.category == category.name %}
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
-               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                {{ page.display_name }}
-            </a>
+               class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
             {% endif %}
             {% endfor %}
             {% endfor %}
@@ -60,18 +53,16 @@
             {% for page in pages %}
             {% if page.category in ["", none] and page.type != 'activity' %}
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
-               class="mx-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                {{ page.display_name }}
-            </a>
+               class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
             {% endif %}
             {% endfor %}
-        </nav>
+        </div>
+    </nav>
 
-        <!-- Main content -->
-        <main class="flex-1 overflow-auto p-6">
-            {% raw %}{% block content %}{% endblock %}{% endraw %}
-        </main>
+    <!-- Main content -->
+    <main class="flex-1 w-full max-w-7xl mx-auto py-6 px-4">
+        {% raw %}{% block content %}{% endblock %}{% endraw %}
+    </main>
 
-    </div>
 </body>
 </html>

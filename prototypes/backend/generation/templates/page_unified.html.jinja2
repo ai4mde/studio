@@ -7,16 +7,75 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <title>{{ page.display_name }} — Preview</title>
 </head>
-<body class="{{ tokens.get('page.body.bg', 'bg-gray-100') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
-<header class="{{ tokens.get('region.header.bg', 'bg-white') }} border-b border-gray-200 px-8 {{ tokens.get('page.header.height', 'py-4') }} shadow-sm">
-  <div class="flex items-center gap-3">
-    <h1 class="text-xl font-bold {{ tokens.get('page.body.text', 'text-gray-800') }}">{{ page.display_name }}</h1>
-    {%- if page.type == 'activity' and page.activity_name %}
-    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activity: {{ page.activity_name }}</span>
-    {%- endif %}
+<body class="{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
+{%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
+{%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _header_secs = [] %}
+{%- set _footer_secs = [] %}
+{%- for sc in page.section_components %}
+  {%- if sc.position == 'header' %}{% set _ = _header_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'footer' %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
+{%- endfor %}
+
+{# ── site-nav: render header section components ── #}
+{%- for sc in _header_secs %}
+{%- if sc.layout == 'site-nav' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header">
+<!-- promo strip -->
+<div style="background-color:{{ _accent_hex }};" class="px-6 py-1 flex items-center justify-between text-xs text-white select-none">
+  <div class="flex items-center gap-6">
+    {%- for m in sc.custom_methods[:3] %}
+    <span>{{ m }}</span>
+    {%- else %}
+    <span><strong>Gratis</strong> verzending vanaf €25,-</span>
+    <span><strong>Bezorging</strong> zelfde dag of 's avonds*</span>
+    <span><strong>Gratis</strong> retourneren</span>
+    {%- endfor %}
+  </div>
+  {%- if sc.custom_methods|length > 3 %}
+  <span class="font-semibold cursor-pointer" style="color:#ffd700;">{{ sc.custom_methods[3] }} →</span>
+  {%- endif %}
+</div>
+<!-- main header bar -->
+<header class="bg-white px-6 py-3 flex items-center gap-4 shadow-sm">
+  <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</a>
+  <div class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input class="flex-1 px-4 py-2 text-sm outline-none text-gray-500 bg-white" placeholder="{{ sc.text or 'Search...' }}" type="text" readonly />
+    <button class="px-4 py-2.5" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+  <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+    <span class="cursor-pointer hover:opacity-75">Inloggen</span>
+    <span class="cursor-pointer hover:opacity-75 text-lg">♡</span>
+    <span class="relative cursor-pointer text-lg">🛒<span class="absolute -top-2 -right-2 text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center" style="background:#e5c100;color:#333;">0</span></span>
   </div>
 </header>
-<main class="px-8 py-6 {{ tokens.get('page.container.max_width', 'max-w-6xl') }} mx-auto">
+<!-- nav bar -->
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+  <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
+    <div class="flex items-center gap-1">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Categorieën ▾
+      </span>
+      {%- for p in (all_pages or []) %}
+      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:' ~ _accent_hex ~ ';color:' ~ _accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endfor %}
+    </div>
+    <div class="flex items-center gap-4 text-gray-500 text-xs">
+      <span class="cursor-pointer hover:text-blue-800">Zakelijk</span>
+      <span class="cursor-pointer hover:text-blue-800">Klantenservice</span>
+      <span class="cursor-pointer">🇳🇱 NL ▾</span>
+    </div>
+  </div>
+</nav>
+</div>
+{%- endif %}
+{%- endfor %}
+
+<main class="px-6 py-6 max-w-7xl mx-auto">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
@@ -52,13 +111,20 @@
 } %}
 {%- set _mock_rows = 3 %}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] %}
+{%- set _mock_imgs = [
+  "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=400&fit=crop",
+  "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=400&fit=crop"
+] %}
 
 {% if page.type == 'activity' and not preview_mode %}
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
 <div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
-{%- for section_component in page.section_components %}
+{%- for section_component in page.section_components if not (preview_mode and section_component.layout in ('site-nav', 'site-footer')) %}
 {# ── Resolve per-section style ── #}
 {% set _s   = section_component.style %}
 {% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
@@ -146,7 +212,7 @@
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
       {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
       <div class="{{ img_w }} flex-shrink-0">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full h-56 object-cover {{ r }}" />
+        <img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock image" class="w-full h-56 object-cover {{ r }}" />
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
@@ -177,7 +243,7 @@
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full max-h-64 object-contain rounded mt-1" />
+          {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock image" class="w-full max-h-64 object-contain rounded mt-1" />
           {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
           {%- endif %}
         </div>
@@ -203,7 +269,7 @@
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-        {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=300&fit=crop" alt="Mock" class="w-full max-h-48 object-contain rounded mt-1">
+        {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock" class="w-full max-h-48 object-contain rounded mt-1">
         {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
         {%- endif %}
       </div>
@@ -229,7 +295,7 @@
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-10 h-10 object-cover rounded mt-0.5">
+          {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock" class="w-10 h-10 object-cover rounded mt-0.5">
           {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
           {%- endif %}
         </div>
@@ -269,7 +335,7 @@
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
-            {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-8 h-8 object-cover rounded">
+            {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock" class="w-8 h-8 object-cover rounded">
             {%- else %}{{ attribute }} {{ _mock_row + 1 }}
             {%- endif %}
           </td>
@@ -300,7 +366,7 @@
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       <div class="aspect-square overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ _mock_row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+        <img src="{{ _mock_imgs[_mock_row % 5] }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
       </div>
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
@@ -887,9 +953,9 @@
   <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
 </div>
 {%- endif %}
-</main>
 <script>
 (function() {
+  var accentHex = '{{ tokens.get("accent.hex", "#0000a4") }}';
   var grid = document.querySelector('main > .grid');
   if (!grid) return;
   var secs = Array.from(grid.children);
@@ -914,7 +980,8 @@
 
   if (byPos.hero.length) {
     var heroEl = document.createElement('div');
-    heroEl.className = 'bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 px-8 py-8 grid grid-cols-12 gap-4';
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    heroEl.style.cssText = 'background:linear-gradient(135deg,#fffbe6 0%,#fff9c4 50%,#fef3c7 100%);padding:40px 48px;';
     byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
     wrap.appendChild(heroEl);
   }
@@ -936,8 +1003,12 @@
 
   if (byPos.footer.length) {
     var footerEl = document.createElement('div');
-    footerEl.className = 'border-t pt-6 grid grid-cols-12 gap-4';
-    byPos.footer.forEach(function(el) { footerEl.appendChild(el); });
+    footerEl.className = 'mt-8 rounded-xl overflow-hidden';
+    var footerInner = document.createElement('div');
+    footerInner.className = 'grid grid-cols-12 gap-4 px-8 py-6 bg-white border-t-4';
+    footerInner.style.borderColor = accentHex;
+    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
+    footerEl.appendChild(footerInner);
     wrap.appendChild(footerEl);
   }
 
@@ -959,6 +1030,81 @@
   });
 })();
 </script>
+</main>
+
+{# ── site-footer: render footer section components ── #}
+{%- for sc in _footer_secs %}
+{%- if sc.layout == 'site-footer' %}
+<footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
+  <!-- Service & contact strip -->
+  <div class="px-8 py-5 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
+    <span class="text-white font-bold text-lg">Service &amp; contact</span>
+    <div class="flex items-center gap-6 text-sm text-white opacity-80">
+      {%- for m in sc.custom_methods %}
+      <span class="cursor-pointer hover:opacity-100">{{ m }}</span>
+      {%- else %}
+      <span class="cursor-pointer hover:opacity-100">Volg je bestelling, betaal facturen of retourneer een artikel</span>
+      <span class="cursor-pointer hover:opacity-100">Onze klantenservice is dag en nacht open</span>
+      {%- endfor %}
+    </div>
+  </div>
+  <!-- Footer link columns from attributes -->
+  <div class="bg-white px-8 py-8 text-sm border-t border-gray-100">
+    {%- if sc.text %}
+    {{ sc.text }}
+    {%- else %}
+    <div class="grid grid-cols-4 gap-8">
+      <div>
+        <h4 class="font-bold text-gray-800 mb-3">Klantenservice</h4>
+        <ul class="space-y-2 text-gray-600">
+          <li class="cursor-pointer hover:underline">Contact opnemen</li>
+          <li class="cursor-pointer hover:underline">Bestellen &amp; Leveren</li>
+          <li class="cursor-pointer hover:underline">Betalen</li>
+          <li class="cursor-pointer hover:underline">Retourneren</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold text-gray-800 mb-3">Over {{ _brand_name }}</h4>
+        <ul class="space-y-2 text-gray-600">
+          <li class="cursor-pointer hover:underline">De voordelen</li>
+          <li class="cursor-pointer hover:underline">Nieuws</li>
+          <li class="cursor-pointer hover:underline">De app</li>
+          <li class="cursor-pointer hover:underline">Werken bij ons</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold text-gray-800 mb-3">Zakendoen</h4>
+        <ul class="space-y-2 text-gray-600">
+          <li class="cursor-pointer hover:underline">Zakelijk verkopen</li>
+          <li class="cursor-pointer hover:underline">Zakelijk bestellen</li>
+          <li class="cursor-pointer hover:underline">Adverteren</li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold text-gray-800 mb-3">Volg ons</h4>
+        <div class="flex items-center gap-3 text-gray-500 text-lg">
+          <span class="cursor-pointer hover:text-blue-600">f</span>
+          <span class="cursor-pointer hover:text-pink-500">📷</span>
+          <span class="cursor-pointer hover:text-red-500">▶</span>
+          <span class="cursor-pointer hover:text-blue-700">in</span>
+        </div>
+      </div>
+    </div>
+    {%- endif %}
+  </div>
+  <!-- Bottom brand strip -->
+  <div class="bg-white border-t border-gray-200 py-8 flex flex-col items-center gap-2">
+    <div class="text-4xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+    <div class="flex items-center gap-4 text-xs text-gray-400 mt-2">
+      <span class="cursor-pointer hover:underline">Algemene voorwaarden</span>
+      <span>|</span><span class="cursor-pointer hover:underline">Privacy</span>
+      <span>|</span><span class="cursor-pointer hover:underline">Cookies</span>
+    </div>
+  </div>
+</footer>
+{%- endif %}
+{%- endfor %}
+
 </body>
 </html>
 {% else %}

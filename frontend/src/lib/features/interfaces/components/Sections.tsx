@@ -385,6 +385,26 @@ export const Sections: React.FC<Props> = () => {
                                         </div>
                                     </div>
                                     <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">Layout</h3>
+                                        <select
+                                            value={data[index].layout || 'table'}
+                                            onChange={(e) => {
+                                                const newData = [...data];
+                                                newData[index].layout = e.target.value;
+                                                setData(newData);
+                                            }}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            <option value="table">Table</option>
+                                            <option value="card">Card</option>
+                                            <option value="gallery">Gallery</option>
+                                            <option value="list">List</option>
+                                            <option value="detail">Detail</option>
+                                            <option value="site-nav">Site Nav (header chrome)</option>
+                                            <option value="site-footer">Site Footer (footer chrome)</option>
+                                        </select>
+                                    </FormControl>
+                                    <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Position</h3>
                                         <select
                                             value={data[index].position || 'main'}
@@ -439,17 +459,43 @@ export const Sections: React.FC<Props> = () => {
                                         />
                                     </div>
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Custom Operations</h3>
-                                        <Multiselect
-                                            options={classCustomMethods}
-                                            displayValue='name'
-                                            placeholder="Select methods..."
-                                            showCheckbox={true}
-                                            style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                            selectedValues={selectedCustomMethods}
-                                            onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
-                                            onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
-                                        />
+                                        <h3 className="text-xl font-bold">
+                                            {['site-nav', 'site-footer'].includes(data[index].layout) ? 'Methods (one per line)' : 'Custom Operations'}
+                                        </h3>
+                                        {['site-nav', 'site-footer'].includes(data[index].layout) ? (
+                                            <>
+                                                <p className="text-xs text-gray-400">
+                                                    {data[index].layout === 'site-nav'
+                                                        ? 'Lines 1-3: promo strip items. Line 4: right-side highlight text.'
+                                                        : 'Each line becomes a service-bar link in the footer.'}
+                                                </p>
+                                                <Textarea
+                                                    minRows={4}
+                                                    maxRows={6}
+                                                    placeholder={"Gratis verzending vanaf €25,-\nBezorging zelfde dag*\nGratis retourneren\nSelect — Ontdek nu de 4 voordelen"}
+                                                    value={(data[index].methods || []).map((m: any) =>
+                                                        typeof m === 'string' ? m : (m?.name || m?.label || '')
+                                                    ).join('\n')}
+                                                    onChange={(e) => {
+                                                        const lines = e.target.value.split('\n').map((l: string) => ({ name: l }));
+                                                        const newData = [...data];
+                                                        newData[index].methods = lines;
+                                                        setData(newData);
+                                                    }}
+                                                />
+                                            </>
+                                        ) : (
+                                            <Multiselect
+                                                options={classCustomMethods}
+                                                displayValue='name'
+                                                placeholder="Select methods..."
+                                                showCheckbox={true}
+                                                style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
+                                                selectedValues={selectedCustomMethods}
+                                                onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
+                                                onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
+                                            />
+                                        )}
                                     </FormControl>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Text</h3>

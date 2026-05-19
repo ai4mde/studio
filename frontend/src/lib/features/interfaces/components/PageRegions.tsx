@@ -116,7 +116,7 @@ export const PageRegions: React.FC<Props> = () => {
                         <button
                           onClick={() => toggleSectionVisibility(section.id)}
                           className="p-1 hover:bg-gray-100 rounded-md transition"
-                          title={section.visible === false ? '显示' : '隐藏'}
+                          title={section.visible === false ? 'show' : 'hide'}
                         >
                           {section.visible === false ? (
                             <EyeOff size={18} className="text-gray-400" />

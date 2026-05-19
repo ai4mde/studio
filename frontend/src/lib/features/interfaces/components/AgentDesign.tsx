@@ -55,6 +55,7 @@ const COLOR_HEX: Record<ColorOption, string> = {
 export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
+    const [styling] = useLocalStorage('styling', {});
 
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [previewHtml, setPreviewHtml] = useState<string>('');
@@ -87,9 +88,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    // Capture latest sections/pages/previewPageIndex for the debounced callback
-    const latestState = useRef({ sections, pages, previewPageIndex });
-    useEffect(() => { latestState.current = { sections, pages, previewPageIndex }; }, [sections, pages, previewPageIndex]);
+    // Capture latest sections/pages/previewPageIndex/styling for the debounced callback
+    const latestState = useRef({ sections, pages, previewPageIndex, styling });
+    useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling }; }, [sections, pages, previewPageIndex, styling]);
 
     const selectedSection = (sections as any[]).find((s: any) => s.id === selectedSectionId);
 
@@ -106,12 +107,12 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const doRefreshPreview = useCallback(async () => {
         if (!interfaceId) return;
-        const { sections: secs, pages: pgs, previewPageIndex: idx } = latestState.current;
+        const { sections: secs, pages: pgs, previewPageIndex: idx, styling: stl } = latestState.current;
         setIsRefreshing(true);
         try {
             const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/generate/`, {
                 prompt: '',
-                interface_data_override: { sections: secs, pages: pgs },
+                interface_data_override: { sections: secs, pages: pgs, ...(stl && Object.keys(stl).length ? { styling: stl } : {}) },
                 inject_click_handlers: true,
             });
             const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
@@ -170,13 +171,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     }, [interfaceId]);
 
-    // Debounce: refresh 600 ms after any sections/pages/page-index change
+    // Debounce: refresh 600 ms after any sections/pages/page-index/styling change
     useEffect(() => {
         if (!interfaceId) return;
         if (refreshTimer.current) clearTimeout(refreshTimer.current);
         refreshTimer.current = setTimeout(doRefreshPreview, 600);
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
-    }, [sections, pages, previewPageIndex, interfaceId, doRefreshPreview]);
+    }, [sections, pages, previewPageIndex, styling, interfaceId, doRefreshPreview]);
 
     // Debounce: hot-reload live prototype 800 ms after sections/pages change
     useEffect(() => {

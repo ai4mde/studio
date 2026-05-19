@@ -23,6 +23,7 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
         "categories": categories,
         "authentication_present": application_component.authentication_present,
         "settings": application_component.settings,
+        "styling": application_component.styling,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

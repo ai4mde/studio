@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Page 2 — Preview</title>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+
+
+
+<main class="px-6 py-6 max-w-7xl mx-auto">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="grid grid-cols-12 gap-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="a484bd07-28d4-425f-b02e-3151f44cceb2" data-section-name="a sec" data-position="main">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">a sec</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+  <div class="overflow-x-auto rounded-xl border border-gray-200">
+    <table class="min-w-full text-left">
+      <thead>
+        <tr>
+          
+          <th class="bg-blue-600 text-white text-sm font-semibold px-4 py-3 uppercase tracking-wider">review_id</th>
+          
+          <th class="bg-blue-600 text-white text-sm font-semibold px-4 py-3 uppercase tracking-wider">title</th>
+          
+          <th class="bg-blue-600 text-white text-sm font-semibold px-4 py-3 uppercase tracking-wider">comment</th>
+          
+          <th class="bg-blue-600 text-white text-sm font-semibold px-4 py-3 uppercase tracking-wider">created_at</th>
+          
+          
+          
+          <th class="bg-blue-600 text-white text-sm font-semibold px-4 py-3"></th>
+          
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100 bg-white">
+        <tr class="hover:bg-gray-50 transition-colors" style="opacity: 1">
+          <td class="px-4 py-3 text-sm text-gray-700">review_id 1
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">title 1
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">comment 1
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">created_at 1
+          </td>
+          
+          <td class="px-4 py-3">
+            <div class="flex gap-2"><button class="text-sm text-blue-600 py-1 px-3 rounded hover:bg-blue-50 border border-blue-200 transition-colors">Edit</button>
+            </div>
+          </td>
+          
+        </tr>
+        <tr class="hover:bg-gray-50 transition-colors" style="opacity: 0.8">
+          <td class="px-4 py-3 text-sm text-gray-700">review_id 2
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">title 2
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">comment 2
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">created_at 2
+          </td>
+          
+          <td class="px-4 py-3">
+            <div class="flex gap-2"><button class="text-sm text-blue-600 py-1 px-3 rounded hover:bg-blue-50 border border-blue-200 transition-colors">Edit</button>
+            </div>
+          </td>
+          
+        </tr>
+        <tr class="hover:bg-gray-50 transition-colors" style="opacity: 0.6">
+          <td class="px-4 py-3 text-sm text-gray-700">review_id 3
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">title 3
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">comment 3
+          </td>
+          <td class="px-4 py-3 text-sm text-gray-700">created_at 3
+          </td>
+          
+          <td class="px-4 py-3">
+            <div class="flex gap-2"><button class="text-sm text-blue-600 py-1 px-3 rounded hover:bg-blue-50 border border-blue-200 transition-colors">Edit</button>
+            </div>
+          </td>
+          
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+
+
+
+
+</div>
+</div>
+
+
+<script>
+(function() {
+  var accentHex = '#F5F5F4';
+  var grid = document.querySelector('main > .grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = { header: [], hero: [], main: [], sidebar: [], footer: [] };
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (byPos[pos]) byPos[pos].push(el); else byPos.main.push(el);
+  });
+  var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
+  if (!hasNonMain) return;
+
+  var gap = 'gap-4';
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+
+  if (byPos.header.length) {
+    var headerEl = document.createElement('div');
+    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
+    wrap.appendChild(headerEl);
+  }
+
+  if (byPos.hero.length) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    heroEl.style.cssText = 'background:linear-gradient(135deg,#fffbe6 0%,#fff9c4 50%,#fef3c7 100%);padding:40px 48px;';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+
+  var hasSidebar = byPos.sidebar.length > 0;
+  var contentRow = document.createElement('div');
+  contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
+  var mainGrid = document.createElement('div');
+  mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+  byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
+  contentRow.appendChild(mainGrid);
+  if (hasSidebar) {
+    var sidebarEl = document.createElement('aside');
+    sidebarEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+    byPos.sidebar.forEach(function(el) { el.className = 'w-full'; sidebarEl.appendChild(el); });
+    contentRow.appendChild(sidebarEl);
+  }
+  wrap.appendChild(contentRow);
+
+  if (byPos.footer.length) {
+    var footerEl = document.createElement('div');
+    footerEl.className = 'mt-8 rounded-xl overflow-hidden';
+    var footerInner = document.createElement('div');
+    footerInner.className = 'grid grid-cols-12 gap-4 px-8 py-6 bg-white border-t-4';
+    footerInner.style.borderColor = accentHex;
+    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
+    footerEl.appendChild(footerInner);
+    wrap.appendChild(footerEl);
+  }
+
+  grid.parentNode.replaceChild(wrap, grid);
+})();
+</script>
+<script>
+(function() {
+  var style = document.createElement('style');
+  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
+  document.head.appendChild(style);
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+      el.classList.add('si-selected');
+      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+    });
+  });
+})();
+</script>
+</main>
+
+
+
+</body>
+</html>
