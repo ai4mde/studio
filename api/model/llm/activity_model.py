@@ -18,17 +18,6 @@ class Node(BaseModel):
     label: Optional[str] = None
     partition: Optional[str] = None
 
-    @model_validator(mode="before")
-    @classmethod
-    def populate_action_name_from_label(cls, data: object) -> object:
-        if not isinstance(data, dict):
-            return data
-        if data.get("type") == "action" and not data.get("name") and data.get("label"):
-            normalized = dict(data)
-            normalized["name"] = data["label"]
-            return normalized
-        return data
-
 
 class Edge(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -38,22 +27,6 @@ class Edge(BaseModel):
     type: EdgeType = "control"
     label: Optional[str] = None
     condition: Optional[str] = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def normalize_legacy_edge_types(cls, data: object) -> object:
-        if not isinstance(data, dict):
-            return data
-        edge_type = data.get("type")
-        if edge_type == "controlflow":
-            normalized = dict(data)
-            normalized["type"] = "control"
-            return normalized
-        if edge_type == "objectflow":
-            normalized = dict(data)
-            normalized["type"] = "object"
-            return normalized
-        return data
 
 
 class ActivityModel(BaseModel):
