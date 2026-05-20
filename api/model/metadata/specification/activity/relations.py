@@ -38,6 +38,7 @@ class ControlFlow(RelationBase):
     is_directed: bool = True
     guard: str = ""
     weight: str = ""
+    label: Optional[str] = None
     condition: Optional[ControlFlowCondition] = None
     type: Literal["controlflow"] = "controlflow"
 
