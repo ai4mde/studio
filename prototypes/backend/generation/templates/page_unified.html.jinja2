@@ -1613,8 +1613,8 @@
 
 {% if preview_mode %}
 {%- if page.type == 'activity' %}
-<div class="fixed bottom-6 right-6">
-  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
+<div class="flex justify-end mt-8 px-2">
+  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow hover:bg-green-700 transition-colors">{{ page.activity_name or page.display_name }}</button>
 </div>
 {%- endif %}
 <script>
@@ -1797,10 +1797,10 @@
 </html>
 {% else %}
 {% if page.type == 'activity' %}
-<div class="fixed bottom-6 right-6">
+<div class="flex justify-end mt-8 px-2">
   <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
     {% raw %}{% csrf_token %}{% endraw %}
-    <button type="submit" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
+    <button type="submit" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow hover:bg-green-700 transition-colors">{{ page.activity_name or page.display_name }}</button>
   </form>
 </div>
 {% endif %}
