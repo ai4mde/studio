@@ -9,7 +9,7 @@
           },
           {
             "type": "command",
-            "command": "bash -c 'cd \"$(git rev-parse --show-toplevel)\" && if [ -n \"$(git status --short)\" ]; then git add -A && msg=$(git diff --cached --name-only | head -4 | tr \"\\n\" \" \" | xargs) && git commit -m \"auto: ${msg:-update}\" && git push origin $(git branch --show-current); fi'"
+            "command": "bash -c 'cd \"$(git rev-parse --show-toplevel)\" && branch=$(git branch --show-current) && case \"$branch\" in develop-uilayout|develop-uilayout-revise) if [ -n \"$(git status --short)\" ]; then git add -A && msg=$(git diff --cached --name-only | head -4 | tr \"\\n\" \" \" | xargs) && git commit -m \"auto: ${msg:-update}\" && git push origin \"$branch\"; fi ;; esac'"
           },
           {
             "type": "command",
