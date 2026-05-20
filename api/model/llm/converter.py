@@ -22,6 +22,7 @@ REFERENCE_CONTROLFLOW_DATA_KEYS = {
     "condition",
     "guard",
     "is_directed",
+    "label",
     "position_handlers",
     "type",
     "weight",
@@ -49,8 +50,12 @@ REFERENCE_ACTION_KEYS = {
     "role",
     "type",
 }
-REFERENCE_INITIAL_KEYS = {"activity_scope", "role", "schedule", "scheduled", "type"}
-REFERENCE_FINAL_KEYS = {"activity_scope", "role", "type"}
+REFERENCE_INITIAL_KEYS = {"activity_scope", "role", "schedule", "scheduled", "type", "name", "label"}
+REFERENCE_FINAL_KEYS = {"activity_scope", "role", "type", "name", "label"}
+REFERENCE_DECISION_KEYS = {"decisionInput", "decisionInputFlow", "page", "role", "type", "name", "label"}
+REFERENCE_FORK_KEYS = {"height", "width", "role", "type", "name", "label"}
+REFERENCE_JOIN_KEYS = {"join_spec", "height", "width", "is_combine_duplicate", "role", "type", "name", "label"}
+REFERENCE_MERGE_KEYS = {"merge_spec", "is_combine_duplicate", "page", "role", "type", "name", "label"}
 
 EDGE_TYPE_MAPPING = {
     "control": "controlflow",
@@ -75,6 +80,13 @@ def _validate_exact_keys(actual: set[str], expected: set[str], label: str) -> No
     if actual != expected:
         missing = sorted(expected - actual)
         extra = sorted(actual - expected)
+        raise ValueError(f"{label} keys mismatch: missing={missing}, extra={extra}")
+
+
+def _validate_allowed_keys(actual: set[str], required: set[str], optional: set[str], label: str) -> None:
+    missing = sorted(required - actual)
+    extra = sorted(actual - (required | optional))
+    if missing or extra:
         raise ValueError(f"{label} keys mismatch: missing={missing}, extra={extra}")
 
 
@@ -145,6 +157,14 @@ def validate_ai4mde_json(model: Union[Dict[str, Any], List[Dict[str, Any]]]) -> 
             _validate_exact_keys(set(data.keys()), REFERENCE_INITIAL_KEYS, f"classifier {sid} initial data")
         elif node_type == "final":
             _validate_exact_keys(set(data.keys()), REFERENCE_FINAL_KEYS, f"classifier {sid} final data")
+        elif node_type == "decision":
+            _validate_exact_keys(set(data.keys()), REFERENCE_DECISION_KEYS, f"classifier {sid} decision data")
+        elif node_type == "fork":
+            _validate_exact_keys(set(data.keys()), REFERENCE_FORK_KEYS, f"classifier {sid} fork data")
+        elif node_type == "join":
+            _validate_exact_keys(set(data.keys()), REFERENCE_JOIN_KEYS, f"classifier {sid} join data")
+        elif node_type == "merge":
+            _validate_exact_keys(set(data.keys()), REFERENCE_MERGE_KEYS, f"classifier {sid} merge data")
 
     rel_ids: Set[str] = set()
     for i, r in enumerate(relations):
@@ -178,9 +198,10 @@ def validate_ai4mde_json(model: Union[Dict[str, Any], List[Dict[str, Any]]]) -> 
             raise ValueError(f"relation {rsid} data must be a dict")
         relation_type = str(data.get("type") or "")
         if relation_type == "controlflow":
-            _validate_exact_keys(
+            _validate_allowed_keys(
                 set(data.keys()),
-                REFERENCE_CONTROLFLOW_DATA_KEYS,
+                REFERENCE_CONTROLFLOW_DATA_KEYS - {"label"},
+                {"label"},
                 f"relation {rsid} data",
             )
         elif relation_type == "objectflow":
@@ -297,7 +318,8 @@ def convert_to_ai4mde(
         node_id = str(uuid.uuid4())
 
         node_type = str(node.get("type", "action"))
-        node_name = node.get("name")
+        node_name = node.get("name") or node.get("label")
+        node_label = node.get("label") or node.get("name")
         role = _derive_role(node_type)
 
         base_data: Dict[str, Any] = {
@@ -307,6 +329,8 @@ def convert_to_ai4mde(
 
         if node_type in {"initial", "final"}:
             base_data["activity_scope"] = "activity"
+            base_data["name"] = str(node_name or "")
+            base_data["label"] = str(node_label or "")
             if node_type == "initial":
                 base_data["schedule"] = ""
                 base_data["scheduled"] = False
@@ -318,6 +342,30 @@ def convert_to_ai4mde(
             base_data["localPostcondition"] = ""
             base_data["namespace"] = ""
             base_data["isAutomatic"] = False
+        elif node_type == "decision":
+            base_data["name"] = str(node_name or "")
+            base_data["label"] = str(node_label or "")
+            base_data["decisionInput"] = ""
+            base_data["decisionInputFlow"] = ""
+            base_data["page"] = ""
+        elif node_type == "fork":
+            base_data["name"] = str(node_name or "")
+            base_data["label"] = str(node_label or "")
+            base_data["height"] = 8
+            base_data["width"] = 56
+        elif node_type == "join":
+            base_data["name"] = str(node_name or "")
+            base_data["label"] = str(node_label or "")
+            base_data["join_spec"] = ""
+            base_data["height"] = 8
+            base_data["width"] = 56
+            base_data["is_combine_duplicate"] = False
+        elif node_type == "merge":
+            base_data["name"] = str(node_name or "")
+            base_data["label"] = str(node_label or "")
+            base_data["merge_spec"] = ""
+            base_data["is_combine_duplicate"] = False
+            base_data["page"] = ""
 
         cls_payload: Dict[str, Any] = {
             "id": cls_id,
@@ -379,6 +427,8 @@ def convert_to_ai4mde(
                 "is_directed": True,
                 "position_handlers": [],
             }
+            if edge.get("label"):
+                relation_data["label"] = edge["label"]
         elif edge_type == "objectflow":
             object_cls = ""
             if node_type_by_clean_id.get(source_original) == "object":
