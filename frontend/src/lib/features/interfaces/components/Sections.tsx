@@ -54,6 +54,7 @@ export const Sections: React.FC<Props> = () => {
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
     const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
+    const [customAttr, setCustomAttr] = useState('');
 
 
     const handleEdit = async (index: number) => {
@@ -321,11 +322,23 @@ export const Sections: React.FC<Props> = () => {
     };
 
     const handleAttributeRemove = (selectedList, selectedItem, sectionIndex: number) => {
-        const updatedAttributes = selectedAttributes.filter(attr => attr !== selectedItem);
+        const updatedAttributes = selectedAttributes.filter(attr => 
+            (typeof attr === 'string' ? attr : attr.name) !== (typeof selectedItem === 'string' ? selectedItem : selectedItem.name)
+        );
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
         setData(newData);
+    };
+
+    const handleAddCustomAttribute = (sectionIndex: number) => {
+        if (!customAttr) return;
+        const updatedAttributes = [...selectedAttributes, { name: customAttr }];
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+        setCustomAttr('');
     };
 
     const handleCustomMethodSelect = (selectedList, selectedItem, sectionIndex: number) => {
@@ -440,6 +453,21 @@ export const Sections: React.FC<Props> = () => {
                                             onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
+                                        <div className="flex gap-1 mt-1">
+                                            <input
+                                                type="text"
+                                                value={customAttr}
+                                                onChange={(e) => setCustomAttr(e.target.value)}
+                                                placeholder="Custom path (e.g. seller.name)"
+                                                className="border border-gray-300 rounded-md px-2 py-1 text-xs flex-1 min-w-0"
+                                            />
+                                            <button
+                                                onClick={() => handleAddCustomAttribute(index)}
+                                                className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
                                     </div>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">
@@ -623,15 +651,19 @@ export const Sections: React.FC<Props> = () => {
                                             </div>
                                             {(data[index].query?.order_by || []).map((order, orderIndex) => (
                                                 <div key={orderIndex} className="flex gap-1">
-                                                    <select
+                                                    <input
+                                                        type="text"
+                                                        list={`attr-list-${index}`}
                                                         value={order.field || ''}
                                                         onChange={(e) => handleOrderByChange(index, orderIndex, 'field', e.target.value)}
+                                                        placeholder="field"
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
-                                                    >
+                                                    />
+                                                    <datalist id={`attr-list-${index}`}>
                                                         {classAttributes.map((attr) => (
                                                             <option key={attr.name} value={attr.name}>{attr.name}</option>
                                                         ))}
-                                                    </select>
+                                                    </datalist>
                                                     <select
                                                         value={order.direction || 'asc'}
                                                         onChange={(e) => handleOrderByChange(index, orderIndex, 'direction', e.target.value)}
@@ -663,15 +695,14 @@ export const Sections: React.FC<Props> = () => {
                                             </div>
                                             {(data[index].query?.filters || []).map((filter, filterIndex) => (
                                                 <div key={filterIndex} className="grid grid-cols-[1fr_78px_1fr_28px] gap-1">
-                                                    <select
+                                                    <input
+                                                        type="text"
+                                                        list={`attr-list-${index}`}
                                                         value={filter.field || ''}
                                                         onChange={(e) => handleFilterChange(index, filterIndex, 'field', e.target.value)}
+                                                        placeholder="field"
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
-                                                    >
-                                                        {classAttributes.map((attr) => (
-                                                            <option key={attr.name} value={attr.name}>{attr.name}</option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                     <select
                                                         value={filter.operator || 'eq'}
                                                         onChange={(e) => handleFilterChange(index, filterIndex, 'operator', e.target.value)}

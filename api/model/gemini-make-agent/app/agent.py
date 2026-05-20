@@ -126,7 +126,7 @@ Patch shape (only include changed fields):
     "id": "...", 
     "layout": "card", 
     "attributes": ["name", "price", "seller.name"],
-    "query": {{"limit": 5, "order_by": ["-price"]}},
+    "query": {{"limit": 5, "order_by": [{{"field": "price", "direction": "desc"}}]}},
     "style": {{"color": "blue"}}
   }}],
   "pages":    [{{"id": "...", "layout": {{"value": "horizontal"}}, "gap": {{"value": "compact"}}}}],
@@ -141,6 +141,7 @@ Rules:
 - NEVER modify: sections[].class, sections[].operations, sections[].name.
 - Always keep "id" in every section/page entry in the patch.
 - Call apply_interface_patch exactly once with the complete combined patch.
+
 """,
     tools=[interface_config_tool, update_interface_patch_tool, system_context_tool],
     sub_agents=[seed_agent],
