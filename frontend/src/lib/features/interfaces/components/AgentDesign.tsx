@@ -7,6 +7,7 @@ import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
 
 type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery' | 'filter' | 'form'
+    | 'activity_action'
     | 'promo-bar' | 'logo' | 'search-bar' | 'icon-actions' | 'nav-links' | 'main-header' | 'minimal-header'
     | 'service-bar' | 'link-grid' | 'brand-strip'
     | 'site-nav' | 'site-footer';
@@ -38,6 +39,7 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
     form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label'],
+    activity_action: ['activity_label', 'activity_variant', 'activity_align', 'activity_size'],
 };
 
 const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
@@ -78,6 +80,7 @@ const LAYOUT_GROUPS: LayoutGroup[] = [
         { value: 'gallery', label: 'Gallery', icon: <GalleryHorizontal size={13} /> },
         { value: 'filter',  label: 'Filter',  icon: <AlignJustify size={13} /> },
         { value: 'form',    label: 'Form',    icon: <Code2 size={13} /> },
+        { value: 'activity_action', label: 'Activity Button', icon: <Code2 size={13} /> },
     ]},
     { label: 'Header', options: [
         { value: 'promo-bar',      label: 'Promo Bar',    icon: <Monitor size={13} /> },
@@ -110,6 +113,26 @@ const COLOR_HEX: Record<ColorOption, string> = {
     orange: '#f97316', rose: '#f43f5e', slate: '#64748b',
 };
 
+const getPageTypeValue = (page: any) => typeof page?.type === 'string' ? page.type : page?.type?.value;
+const isActivityActionSection = (section: any) => section?.type === 'activity_action' || section?.layout === 'activity_action';
+const makeActivityActionSection = (page: any) => {
+    const label = page?.action?.label || page?.name || 'Complete step';
+    return {
+        id: `activity-action-${page?.id || label}`,
+        name: label,
+        label,
+        type: 'activity_action',
+        layout: 'activity_action',
+        class: '',
+        operations: { create: false, update: false, delete: false },
+        attributes: [],
+        methods: [],
+        col_span: 12,
+        position: 'main',
+        style: { variant: 'button', align: 'right', size: 'lg' },
+    };
+};
+
 export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
@@ -117,6 +140,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [previewHtml, setPreviewHtml] = useState<string>('');
+    const [previewError, setPreviewError] = useState('');
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
@@ -150,6 +174,43 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const latestState = useRef({ sections, pages, previewPageIndex, styling });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling }; }, [sections, pages, previewPageIndex, styling]);
 
+    useEffect(() => {
+        const pageList = pages as any[];
+        const sectionList = sections as any[];
+        if (!Array.isArray(pageList) || !Array.isArray(sectionList) || pageList.length === 0) return;
+
+        let changed = false;
+        const nextSections = [...sectionList];
+        const nextPages = pageList.map((page: any) => {
+            if (getPageTypeValue(page) !== 'activity') return page;
+            const refs = page.sections || [];
+            const hasActivityButton = refs.some((ref: any) => {
+                const sectionId = typeof ref === 'string' ? ref : ref?.value;
+                const section = nextSections.find((s: any) => s.id === sectionId);
+                return isActivityActionSection(section);
+            });
+            if (hasActivityButton) return page;
+
+            const activityButton = makeActivityActionSection(page);
+            if (!nextSections.some((s: any) => s.id === activityButton.id)) {
+                nextSections.push(activityButton);
+            }
+            changed = true;
+            return {
+                ...page,
+                sections: [
+                    ...refs,
+                    { label: activityButton.name, value: activityButton.id },
+                ],
+            };
+        });
+
+        if (changed) {
+            setSections(nextSections);
+            setPages(nextPages);
+        }
+    }, [pages, sections, setPages, setSections]);
+
     const selectedSection = (sections as any[]).find((s: any) => s.id === selectedSectionId);
 
     // postMessage -> select section from iframe click
@@ -167,6 +228,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         if (!interfaceId) return;
         const { sections: secs, pages: pgs, previewPageIndex: idx, styling: stl } = latestState.current;
         setIsRefreshing(true);
+        setPreviewError('');
         try {
             const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/generate/`, {
                 prompt: '',
@@ -175,9 +237,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             });
             const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
             const html = htmlFiles[idx]?.content ?? htmlFiles[0]?.content;
-            if (html) setPreviewHtml(html);
-        } catch {
-            // fail silently - preview is best-effort
+            if (html) {
+                setPreviewHtml(html);
+            } else {
+                setPreviewError('Preview generated no HTML files.');
+            }
+        } catch (error: any) {
+            setPreviewError(error?.response?.data?.detail || error?.message || 'Preview generation failed.');
         } finally {
             setIsRefreshing(false);
         }
@@ -250,6 +316,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             if (s.id !== sectionId) return s;
             if (field === 'layout') return { ...s, layout: value };
             if (field === 'col_span') return { ...s, col_span: value };
+            if (field === 'label') return { ...s, label: value, name: value || s.name };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
         }));
     }, [setSections]);
@@ -352,7 +419,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const secBorder: BorderOption = (secStyle.border as BorderOption) || 'none';
     const secBg: BgOption = (secStyle.bg as BgOption) || 'white';
     const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
-    const isMethodOnly = !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
+    const isActivityAction = selectedSection?.type === 'activity_action' || selectedSection?.layout === 'activity_action';
+    const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
 
     const layoutControls: readonly string[] = CHROME_LAYOUTS.includes(secLayout)
         ? ['methods']
@@ -360,7 +428,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const hasControl = (c: string) => layoutControls.includes(c);
 
     const currentPage = (pages as any[])[previewPageIndex];
-    const getPageTypeValue = (page: any) => typeof page?.type === 'string' ? page.type : page?.type?.value;
     const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
     const pageLayout = currentPage?.layout?.value || 'vertical';
     const pageGap = currentPage?.gap?.value || 'normal';
@@ -491,7 +558,12 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             </Typography>
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
-                            {isMethodOnly ? (
+                            {isActivityAction ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                                    <span style={{ ...btnBase, ...active(true), cursor: 'default', pointerEvents: 'none' }}>Activity Button</span>
+                                    <span style={{ fontSize: 11, color: '#9ca3af' }}>workflow step action</span>
+                                </div>
+                            ) : isMethodOnly ? (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
                                     <span style={{ ...btnBase, ...active(true), cursor: 'default', pointerEvents: 'none' }}>Action Panel</span>
                                     <span style={{ fontSize: 11, color: '#9ca3af' }}>auto — no attributes</span>
@@ -728,6 +800,41 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             /></>)}
 
+                            {hasControl('activity_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Button Label</p>
+                            <input type="text" placeholder="e.g. Complete step"
+                                value={selectedSection.label ?? selectedSection.name ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('activity_variant') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Variant</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {(['button','wizard_next','link','fab','auto'] as const).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active((secStyle.variant || 'button') === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'variant', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('activity_align') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Align</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['left','center','right'] as const).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active((secStyle.align || 'right') === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'align', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('activity_size') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Size</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['sm','md','lg'] as const).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active((secStyle.size || 'lg') === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'size', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
                             {hasControl('methods') && (
                                 <>
                                     <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Methods (one per line)</p>
@@ -907,7 +1014,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             title="Live prototype"
                             style={{ width: '100%', height: '100%', border: 'none' }}
                         />
-                    ) : previewHtml ? (
+                    ) : previewHtml && !previewError ? (
                         <iframe
                             key={`${interfaceId}-${previewPageIndex}`}
                             srcDoc={previewHtml}
@@ -918,7 +1025,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                             <p style={{ fontSize: 13, color: '#9ca3af' }}>
-                                {(sections as any[]).length === 0
+                                {previewError
+                                    ? previewError
+                                    : (sections as any[]).length === 0
                                     ? 'Add sections and pages to see a preview.'
                                     : (pages as any[]).length === 0
                                         ? 'Add pages in the Pages tab to see a preview.'

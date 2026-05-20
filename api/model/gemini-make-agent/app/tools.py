@@ -196,13 +196,50 @@ def run_seed_script(python_code: str) -> str:
         return f"Error calling seed_script endpoint: {e}"
 
 
-# Register tools for ADK
+def get_available_paths(system_id: str, class_id: str, depth=2) -> str:
+    """Recursively traverse relationships to return all valid attribute paths for a class."""
+    try:
+        system_json = get_system_context(system_id)
+        if system_json.startswith("Error"):
+            return system_json
+        
+        system_data = json.loads(system_json)
+        classifiers = {c["id"]: c for c in system_data.get("classifiers", [])}
+        relations = system_data.get("relations", [])
+        
+        def traverse(cid, current_path, current_depth):
+            if current_depth > depth:
+                return []
+            
+            paths = []
+            cls = classifiers.get(cid)
+            if not cls:
+                return []
+            
+            # Add attributes of current class
+            for attr in cls.get("data", {}).get("attributes", []):
+                attr_name = attr.get("name")
+                paths.append(f"{current_path}{attr_name}".lstrip("."))
+            
+            # Recurse through relations
+            for rel in relations:
+                source_id = rel.get("source")
+                target_id = rel.get("target")
+                rel_name = rel.get("name", "").lower()
+                
+                if source_id == cid:
+                    new_path = f"{current_path}{rel_name}."
+                    paths.extend(traverse(target_id, new_path, current_depth + 1))
+            
+            return paths
+
+        return json.dumps(list(set(traverse(class_id, "", 0))))
+    except Exception as e:
+        return f"Error computing paths: {e}"
+
+# Register tools
 system_context_tool = FunctionTool(func=get_system_context)
 interface_config_tool = FunctionTool(func=get_interface_config)
-update_interface_tool = FunctionTool(func=update_interface_data)
 update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
-list_templates_tool = FunctionTool(func=list_existing_templates)
-read_template_tool = FunctionTool(func=read_template_file)
-write_template_tool = FunctionTool(func=write_prototype_template)
-verify_logic_tool = FunctionTool(func=verify_template_logic)
 run_seed_script_tool = FunctionTool(func=run_seed_script)
+get_available_paths_tool = FunctionTool(func=get_available_paths)

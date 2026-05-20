@@ -2,147 +2,763 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>AI4MDE Thesis Presentation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reset.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/theme/black.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI-driven Smart User Interface Generation from UML Models</title>
     <style>
-        .agent-box { @apply border-2 p-4 rounded-lg bg-slate-800 text-center; }
-        .agent-title { @apply font-bold text-blue-400 mb-2; }
-        .token-tag { @apply text-xs bg-indigo-900 text-indigo-200 px-2 py-1 rounded m-1 inline-block; }
+        :root {
+            --ink: #172033;
+            --muted: #64748b;
+            --paper: #fbfcff;
+            --line: #d7deea;
+            --blue: #2359c4;
+            --teal: #0f8f83;
+            --rose: #c74362;
+            --amber: #b8751d;
+            --navy: #101827;
+            --soft: #f1f5fa;
+            --code: #111827;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: #e8edf5;
+            color: var(--ink);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            display: grid;
+            grid-template-rows: 1fr auto;
+        }
+
+        .deck {
+            width: min(100vw, 1280px);
+            height: min(100vh, 720px);
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+            background: var(--paper);
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 28px 80px rgba(15, 23, 42, 0.18);
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            display: none;
+            grid-template-rows: auto 1fr;
+            gap: 26px;
+            padding: 54px 64px 62px;
+            background:
+                linear-gradient(90deg, rgba(35, 89, 196, 0.055), transparent 42%),
+                radial-gradient(circle at 96% 10%, rgba(15, 143, 131, 0.12), transparent 28%),
+                var(--paper);
+        }
+
+        .slide.active { display: grid; }
+
+        .title, .closing {
+            color: #f8fafc;
+            background:
+                linear-gradient(135deg, rgba(16, 24, 39, 0.98), rgba(28, 46, 79, 0.96)),
+                var(--navy);
+        }
+
+        h1, h2, h3, p { margin: 0; letter-spacing: 0; }
+
+        h1 {
+            max-width: 1080px;
+            font-size: 58px;
+            line-height: 1.02;
+        }
+
+        h2 {
+            max-width: 1040px;
+            font-size: 39px;
+            line-height: 1.08;
+        }
+
+        h3 {
+            font-size: 21px;
+            line-height: 1.18;
+        }
+
+        .kicker {
+            margin-bottom: 10px;
+            color: var(--blue);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .title .kicker, .closing .kicker { color: #74e0d3; }
+
+        .subtitle {
+            max-width: 900px;
+            margin-top: 22px;
+            color: #d9e4f2;
+            font-size: 22px;
+            line-height: 1.38;
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr auto;
+            align-items: end;
+            gap: 28px;
+            color: #c8d3e4;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        .content {
+            min-height: 0;
+            display: grid;
+            align-content: center;
+        }
+
+        .lead {
+            max-width: 980px;
+            color: var(--muted);
+            font-size: 22px;
+            line-height: 1.42;
+        }
+
+        .title .lead, .closing .lead { color: #d9e4f2; }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .closing .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .card h3 { margin-bottom: 12px; color: #111827; }
+        .closing .card h3 { color: #f8fafc; }
+
+        ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.38;
+        }
+
+        .closing ul { color: #d8e2f0; }
+        li + li { margin-top: 9px; }
+
+        .metric {
+            display: grid;
+            gap: 8px;
+            padding: 18px;
+            border-radius: 8px;
+            border-left: 5px solid var(--blue);
+            background: var(--soft);
+        }
+
+        .metric strong {
+            color: var(--ink);
+            font-size: 27px;
+            line-height: 1.05;
+        }
+
+        .metric span {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.35;
+        }
+
+        .pipeline {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .step {
+            min-height: 156px;
+            padding: 16px;
+            border-radius: 8px;
+            color: #fff;
+            display: grid;
+            align-content: space-between;
+            position: relative;
+        }
+
+        .step::after {
+            content: "";
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid currentColor;
+            opacity: 0.55;
+            transform: translateY(-50%);
+        }
+
+        .step:last-child::after { display: none; }
+        .step h3 { color: inherit; font-size: 18px; }
+        .step p { color: rgba(255, 255, 255, 0.88); font-size: 14px; line-height: 1.34; }
+
+        .step-role {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            opacity: 0.62;
+        }
+
+        .step-link {
+            font-size: 12px;
+            color: rgba(255,255,255,0.80);
+            text-decoration: underline;
+        }
+
+        .step-link:hover { color: #fff; }
+
+        .pipeline-loops { margin-top: 3px; }
+        .s1 { background: #1f4d8f; color: #1f4d8f; }
+        .s2 { background: #0f766e; color: #0f766e; }
+        .s3 { background: #6d4bd2; color: #6d4bd2; }
+        .s4 { background: #a76719; color: #a76719; }
+        .s5 { background: #b93456; color: #b93456; }
+
+        .dsl-layout {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 18px;
+            align-items: stretch;
+            min-height: 450px;
+        }
+
+        .agent-graph {
+            display: grid;
+            grid-template-columns: 0.9fr 1.25fr 1fr;
+            grid-template-rows: repeat(3, minmax(88px, auto));
+            gap: 18px 42px;
+            align-items: stretch;
+            position: relative;
+        }
+
+        .agent-node {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.84);
+            padding: 15px;
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+            position: relative;
+            z-index: 1;
+        }
+
+        .agent-node.primary {
+            background: #10213b;
+            border-color: #1d4ed8;
+            color: #eff6ff;
+            display: grid;
+            align-content: center;
+        }
+
+        .agent-node h3 {
+            margin-bottom: 7px;
+            color: inherit;
+            font-size: 18px;
+        }
+
+        .agent-node p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.32;
+        }
+
+        .agent-node.primary p { color: #cbd5e1; }
+
+        .agent-node code {
+            background: rgba(37, 99, 235, 0.12);
+        }
+
+        .agent-node.primary code {
+            background: rgba(255, 255, 255, 0.14);
+            color: #bfdbfe;
+        }
+
+        .span-rows { grid-row: 1 / span 3; }
+        .middle { grid-column: 2; grid-row: 2; }
+        .right-top { grid-column: 3; grid-row: 1; }
+        .right-mid { grid-column: 3; grid-row: 2; }
+        .right-bottom { grid-column: 3; grid-row: 3; }
+
+        .edge {
+            position: absolute;
+            height: 2px;
+            background: #94a3b8;
+            transform-origin: left center;
+            z-index: 0;
+        }
+
+        .edge::after {
+            content: "";
+            position: absolute;
+            right: -1px;
+            top: 50%;
+            width: 0;
+            height: 0;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 9px solid #94a3b8;
+            transform: translateY(-50%);
+        }
+
+        .e1 { width: 128px; left: 26.5%; top: 50%; }
+        .e2 { width: 124px; left: 58.5%; top: 24%; transform: rotate(-19deg); }
+        .e3 { width: 122px; left: 58.5%; top: 50%; }
+        .e4 { width: 126px; left: 58.5%; top: 76%; transform: rotate(19deg); }
+        .e5 {
+            width: 118px;
+            left: 58.5%;
+            top: 58%;
+            transform: rotate(180deg);
+            background: #0f8f83;
+        }
+
+        .e5::after { border-left-color: #0f8f83; }
+
+        pre {
+            margin: 0;
+            height: 100%;
+            max-height: 455px;
+            overflow: auto;
+            padding: 18px;
+            border-radius: 8px;
+            background: var(--code);
+            color: #dbeafe;
+            font: 13px/1.42 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            white-space: pre;
+            scrollbar-color: #64748b #1f2937;
+            scrollbar-width: thin;
+        }
+
+        pre::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        pre::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 999px;
+        }
+
+        pre::-webkit-scrollbar-thumb {
+            background: #64748b;
+            border-radius: 999px;
+            border: 2px solid #1f2937;
+        }
+
+        pre::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        code {
+            padding: 2px 5px;
+            border-radius: 5px;
+            background: #e7edf6;
+            color: #1e3a8a;
+            font: 0.92em "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        }
+
+        .closing code { background: rgba(255, 255, 255, 0.14); color: #bfdbfe; }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 20px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 31px;
+            padding: 6px 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            background: #fff;
+            color: #334155;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .footer {
+            position: absolute;
+            left: 64px;
+            right: 64px;
+            bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            color: #7a8799;
+            font-size: 13px;
+        }
+
+        .title .footer, .closing .footer { color: rgba(226, 232, 240, 0.72); }
+
+        .controls {
+            width: min(100vw, 1280px);
+            margin: 12px auto 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        button {
+            appearance: none;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #111827;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font: inherit;
+            font-weight: 750;
+            cursor: pointer;
+        }
+
+        button:hover { border-color: #94a3b8; background: #f8fafc; }
+        button:disabled { opacity: 0.45; cursor: default; }
+
+        .progress {
+            flex: 1;
+            height: 8px;
+            border-radius: 999px;
+            background: #cfd8e7;
+            overflow: hidden;
+        }
+
+        .bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--teal));
+            transition: width 180ms ease;
+        }
+
+        .blue { border-left-color: var(--blue); }
+        .teal { border-left-color: var(--teal); }
+        .rose { border-left-color: var(--rose); }
+        .amber { border-left-color: var(--amber); }
+
+        @media (max-width: 900px) {
+            .deck { width: 100vw; height: 100vh; border: 0; }
+            .slide { padding: 32px 24px 58px; overflow-y: auto; }
+            h1 { font-size: 39px; }
+            h2 { font-size: 30px; }
+            .subtitle, .lead { font-size: 18px; }
+            .meta, .grid-2, .grid-3, .pipeline, .dsl-layout, .agent-graph { grid-template-columns: 1fr; }
+            .agent-graph { grid-template-rows: auto; }
+            .span-rows, .middle, .right-top, .right-mid, .right-bottom { grid-column: auto; grid-row: auto; }
+            .edge { display: none; }
+            .step::after { display: none; }
+            pre { max-height: none; overflow: auto; }
+            .footer { left: 24px; right: 24px; }
+            .controls { display: none; }
+        }
     </style>
 </head>
 <body>
-    <div class="reveal">
-        <div class="slides">
-            
-            <!-- Slide 1: Title -->
-            <section data-background-gradient="linear-gradient(to bottom, #1e293b, #0f172a)">
-                <h1 class="text-5xl font-extrabold mb-4">AI4MDE</h1>
-                <h3 class="text-2xl text-blue-300">基于多代理编排的智能 UI 生成系统</h3>
-                <p class="text-gray-400 mt-8">面向模型驱动工程 (MDE) 的自动化原型设计</p>
-                <div class="mt-12 text-sm text-gray-500">Presentation for Thesis Defense</div>
-            </section>
+    <main class="deck" aria-live="polite">
+        <section class="slide title active">
+            <div class="content">
+                <p class="kicker">Bachelor Thesis Presentation</p>
+                <h1>AI-driven Smart User Interface Generation from UML Models</h1>
+                <p class="subtitle">Generating OOUI-aware interface metadata from UML models for model-driven Django prototype generation.</p>
+            </div>
+            <div class="meta">
+                <div><strong>Ruike Yuan</strong><br>Opleiding Informatica, LIACS</div>
+                <div>First supervisor: Guus Ramakers<br>Second supervisor: Jan van Rijn<br>Third supervisor: Lisa Tweedie</div>
+                <div>20 May 2026</div>
+            </div>
+            <div class="footer"><span>AI4MDE Studio</span><span>1 / 6</span></div>
+        </section>
 
-            <!-- Slide 2: The Challenge -->
-            <section>
-                <h3>现状与挑战</h3>
-                <div class="grid grid-cols-2 gap-8 text-left">
-                    <div class="bg-red-900/20 p-6 rounded-xl border border-red-900/50">
-                        <h4 class="text-red-400 font-bold mb-4">传统 MDE 瓶颈</h4>
-                        <ul class="text-sm space-y-2">
-                            <li>样式死板：只能生成基础的 HTML 表格。</li>
-                            <li>布局僵化：无法根据业务语义自动分栏或引导。</li>
-                            <li>难以迭代：修改样式需要重新编写后端模板。</li>
+        <section class="slide">
+            <header>
+                <p class="kicker">Problem and Goal</p>
+                <h2>Rule-based generation works, but it misses design intent</h2>
+            </header>
+            <div class="content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Research problem</h3>
+                        <ul>
+                            <li>Current mappings from UML to interface metadata are fixed and predictable.</li>
+                            <li>Generated UIs have limited awareness of roles, workflows, objects, and usability intent.</li>
+                            <li>Enterprise scenarios need multi-user, task-driven, object-centered interfaces.</li>
                         </ul>
                     </div>
-                    <div class="bg-green-900/20 p-6 rounded-xl border border-green-900/50">
-                        <h4 class="text-green-400 font-bold mb-4">AI 介入的难题</h4>
-                        <ul class="text-sm space-y-2">
-                            <li>内容幻觉：AI 经常捏造不存在的属性 ID。</li>
-                            <li>审美不可控：生成的 HTML 样式难以统一。</li>
-                            <li>逻辑冲突：UI 与 UML 业务模型脱节。</li>
+                    <div class="card">
+                        <h3>Research objective</h3>
+                        <ul>
+                            <li>Use LLM reasoning to generate richer interface metadata from class, use case, and activity models.</li>
+                            <li>Apply OOUI principles while remaining compatible with AI4MDE's Django generator.</li>
+                            <li>Support human-in-the-loop refinement for designer feedback.</li>
                         </ul>
                     </div>
                 </div>
-            </section>
+                <div class="tag-row">
+                    <span class="tag">Model-Driven Engineering</span>
+                    <span class="tag">UML Metadata</span>
+                    <span class="tag">OOUI</span>
+                    <span class="tag">LLM Guardrails</span>
+                    <span class="tag">Django Prototype</span>
+                </div>
+            </div>
+            <div class="footer"><span>Problem statement</span><span>2 / 6</span></div>
+        </section>
 
-            <!-- Slide 3: Core Innovation: 4-Agent Pipeline -->
-            <section>
-                <h3>核心创新：4-Agent 协同流程</h3>
-                <div class="grid grid-cols-4 gap-4 mt-8">
-                    <div class="agent-box border-yellow-500/50">
-                        <div class="agent-title">Strategist</div>
-                        <p class="text-xs text-gray-300">意图解析<br>将自然语言指令<br>转化为执行计划</p>
+        <section class="slide">
+            <header>
+                <p class="kicker">Proposed Pipeline</p>
+                <h2>From UML metadata to selectable, refinable UI candidates</h2>
+            </header>
+            <div class="content">
+                <div class="pipeline">
+                    <div class="step s1"><span class="step-role">Input Layer</span><h3>1. Input</h3><p>UML class, use case &amp; activity metadata plus designer prompt.</p></div>
+                    <div class="step s2"><span class="step-role">LLM Reasoning</span><h3>2. Reason</h3><p>LLM applies roles, workflow state, OOUI concepts, and design constraints.</p></div>
+                    <div class="step s3"><span class="step-role">Candidate Generation</span><h3>3. Generate</h3><p>Produce 3 candidate Interface DSLs. Pick one → generate 3 refined variations.</p><a href="http://localhost:3000" target="_blank" class="step-link">Open Studio →</a></div>
+                    <div class="step s4"><span class="step-role">Validation Rules</span><h3>4. Validate</h3><p>Check schema, class IDs, attributes, operations, and supported layout values.</p></div>
+                    <div class="step s5"><span class="step-role">Live Prototype</span><h3>5. Render</h3><p>Django generator creates a running web UI; test in browser.</p><a href="http://localhost:8000" target="_blank" class="step-link">Open Prototype →</a></div>
+                </div>
+                <div class="pipeline-loops" aria-hidden="true">
+                    <svg viewBox="0 0 500 34" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:34px;">
+                        <line x1="250" y1="0" x2="250" y2="28" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <line x1="450" y1="0" x2="450" y2="28" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <line x1="50" y1="28" x2="450" y2="28" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <line x1="50" y1="28" x2="50" y2="7" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <polygon points="44,9 50,1 56,9" fill="#64748b"/>
+                        <text x="150" y="24" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">iterate from step 3</text>
+                        <text x="375" y="24" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">or from live</text>
+                    </svg>
+                </div>
+                <div class="grid-3" style="margin-top: 24px;">
+                    <div class="metric blue"><strong>H1</strong><span>Generated metadata can reflect OOUI principles.</span></div>
+                    <div class="metric teal"><strong>H2</strong><span>Metadata can support multi-user enterprise workflows.</span></div>
+                    <div class="metric rose"><strong>H3</strong><span>Human feedback can iteratively improve UI alignment.</span></div>
+                </div>
+            </div>
+            <div class="footer"><span>Research pipeline</span><span>3 / 6</span></div>
+        </section>
+
+        <section class="slide">
+            <header>
+                <p class="kicker">Interface Metadata DSL</p>
+                <h2>Domain-Specific Language keeps AI output expressive and structured</h2>
+            </header>
+            <div class="content dsl-layout">
+                <pre>{
+  "interface": {
+    "name": "Order Management",
+    "actor": "Administrator",
+    "intent": "manage orders and inventory"
+  },
+  "pages": [
+    {
+      "id": "orders-page",
+      "name": "Orders",
+      "object": "Order",
+      "layout": { "type": "master-detail", "gap": "normal" },
+      "sections": ["order-list", "order-detail"]
+    }
+  ],
+  "sections": [
+    {
+      "id": "order-detail",
+      "class": "Order",
+      "objectRole": "primary-object",
+      "attributes": ["status", "totalPrice", "createdAt"],
+      "operations": ["Update", "Delete"],
+      "workflow": {
+        "activity": "Process Order",
+        "state": "Processing",
+        "editableWhen": "actor == Administrator"
+      },
+      "ui": {
+        "component": "detail-panel",
+        "colSpan": 6,
+        "density": "normal"
+      }
+    }
+  ],
+  "tokens": {
+    "page.body.bg": "bg-slate-50",
+    "component.card.border": "border-slate-200",
+    "element.button.primary": "bg-blue-700"
+  }
+}</pre>
+                <div class="card">
+                    <h3>Design principles</h3>
+                    <ul>
+                        <li><strong>Object-centered:</strong> pages are organized around domain objects such as Order, Product, or Customer.</li>
+                        <li><strong>Role-aware:</strong> actors from use case models determine visible operations and permissions.</li>
+                        <li><strong>Workflow-aware:</strong> activity model states guide editable/read-only UI behavior.</li>
+                        <li><strong>Constrained styling:</strong> tokens allow visual variation without unrestricted generated code.</li>
+                        <li><strong>Validation-ready:</strong> every class, attribute, operation, and layout value can be checked before rendering.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer"><span>Designed metadata DSL</span><span>4 / 6</span></div>
+        </section>
+
+        <section class="slide">
+            <header>
+                <p class="kicker">Agent Design</p>
+                <h2>Current agent covers pipeline steps 1–2 · Steps 3–5 planned</h2>
+            </header>
+            <div class="content">
+                <div class="agent-graph">
+                    <div class="edge e1"></div>
+                    <div class="edge e2"></div>
+                    <div class="edge e3"></div>
+                    <div class="edge e4"></div>
+                    <div class="edge e5"></div>
+
+                    <div class="agent-node span-rows">
+                        <h3>User request</h3>
+                        <p><code>interface_id=&lt;uuid&gt;</code><br><code>user_request=&lt;design change&gt;</code></p>
+                        <p style="margin-top: 10px;">Example: change layout, density, theme color, section style, or design tokens.</p>
                     </div>
-                    <div class="agent-box border-blue-500/50">
-                        <div class="agent-title">Architect</div>
-                        <p class="text-xs text-gray-300">布局构建<br>决定页面模式<br>(Wizard/Grid/Split)<br>绑定数据 ID</p>
+
+                    <div class="agent-node primary middle">
+                        <h3>ADK Root Agent</h3>
+                        <p><code>gemini_make_agent</code></p>
+                        <p style="margin-top: 8px;">Analyzes the request and builds one complete patch for the interface metadata.</p>
                     </div>
-                    <div class="agent-box border-pink-500/50">
-                        <div class="agent-title">Stylist</div>
-                        <p class="text-xs text-gray-300">审美表达<br>操作 18 个语义 Token<br>映射 Tailwind 类</p>
+
+                    <div class="agent-node right-top">
+                        <h3>Read tool</h3>
+                        <p><code>get_interface_config</code> fetches the current pages, sections, styling, and tokens from the metadata API.</p>
                     </div>
-                    <div class="agent-box border-green-500/50">
-                        <div class="agent-title">Validator</div>
-                        <p class="text-xs text-gray-300">逻辑闭环<br>纠正 ID 幻觉<br>确保 100% 合规性</p>
+
+                    <div class="agent-node right-mid">
+                        <h3>Patch tool</h3>
+                        <p><code>apply_interface_patch</code> persists layout/style/token changes while preserving structural fields.</p>
+                    </div>
+
+                    <div class="agent-node right-bottom">
+                        <h3>Tests</h3>
+                        <p>ADK streaming smoke test checks agent events. <code>MockModel</code> DSL test checks deterministic JSON parsing.</p>
                     </div>
                 </div>
-                <div class="mt-8 text-sm text-gray-400">
-                    从生成“代码”转向生成“语义化 JSON 配置”
+                <div class="tag-row">
+                    <span class="tag">Guardrail: preserve class</span>
+                    <span class="tag">Guardrail: preserve attributes</span>
+                    <span class="tag">Guardrail: preserve operations</span>
+                    <span class="tag">One patch per request</span>
+                    <span class="tag" style="border-color:#94a3b8;color:#94a3b8;">Planned: candidate generation agent (step 3)</span>
+                    <span class="tag" style="border-color:#94a3b8;color:#94a3b8;">Planned: validation agent (step 4)</span>
                 </div>
-            </section>
+            </div>
+            <div class="footer"><span>Agent design and tests</span><span>5 / 6</span></div>
+        </section>
 
-            <!-- Slide 4: Semantic Tokens -->
-            <section>
-                <h3>18 个语义化设计 Token</h3>
-                <div class="text-left bg-slate-900 p-8 rounded-2xl border border-slate-700">
-                    <div class="mb-4">
-                        <span class="text-blue-400 font-bold">Tier 1: Page</span>
-                        <div class="flex flex-wrap">
-                            <span class="token-tag">body.bg</span><span class="token-tag">body.text</span><span class="token-tag">container.max_width</span>
-                        </div>
+        <section class="slide closing">
+            <header>
+                <p class="kicker">Evaluation and Contribution</p>
+                <h2>Measuring whether AI-generated UI metadata improves MDE prototyping</h2>
+            </header>
+            <div class="content">
+                <div class="grid-3">
+                    <div class="card">
+                        <h3>Study setup</h3>
+                        <ul>
+                            <li>2 UI designers and 5 university students.</li>
+                        </ul>
                     </div>
-                    <div class="mb-4">
-                        <span class="text-pink-400 font-bold">Tier 2: Component</span>
-                        <div class="flex flex-wrap">
-                            <span class="token-tag">card.bg</span><span class="token-tag">card.shadow</span><span class="token-tag">nav.active</span>
-                        </div>
+                    <div class="card">
+                        <h3>Metrics</h3>
+                        <ul>
+                            <li>Usability and satisfaction scores.</li>
+                        </ul>
                     </div>
-                    <div class="mb-4">
-                        <span class="text-yellow-400 font-bold">Tier 3: Element</span>
-                        <div class="flex flex-wrap">
-                            <span class="token-tag">button.primary</span><span class="token-tag">input.border</span><span class="token-tag">text.accent</span>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-sm text-gray-400 mt-6">通过 Token 实现预览与真实系统的 1:1 样式同步</p>
-            </section>
-
-            <!-- Slide 5: Guardrails & Self-Correction -->
-            <section>
-                <h3>安全防线：Guardrails 与自动修复</h3>
-                <div class="flex flex-col items-center">
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="bg-red-500/10 border border-red-500/50 p-4 rounded text-xs">AI 捏造 ID: "uuid-999"</div>
-                        <div class="text-2xl">➔</div>
-                        <div class="bg-blue-500/20 border border-blue-500/50 p-4 rounded text-xs font-bold">Validator 自动修正为: "prod_price_id"</div>
-                    </div>
-                    <div class="text-left text-sm text-gray-300 space-y-4 max-w-2xl">
-                        <p>✅ **UML 一致性检查**：确保所有 UI 字段都在 Class Diagram 中有定义。</p>
-                        <p>✅ **流程感知**：Activity Diagram 中的数据流决定字段是否只读。</p>
-                        <p>✅ **自愈机制**：如果 AI 逻辑正确但 ID 填错，系统会自动通过名称空间找回正确 ID。</p>
+                    <div class="card">
+                        <h3>Contribution</h3>
+                        <ul>
+                            <li>LLM prompt and validation method for UML-to-UI generation.</li>
+                        </ul>
                     </div>
                 </div>
-            </section>
+                <p class="subtitle" style="margin-top: 28px; font-size: 32px; font-weight: 700; color: #f8fafc;">Thank you!</p>
+                <p class="lead" style="margin-top: 10px; font-size: 17px;">Looking for test participants (~1 hr) — e-commerce or hospital case study. Interested? Come talk to me after.</p>
+            </div>
+            <div class="footer"><span>Ruike Yuan · LIACS</span><span>6 / 6</span></div>
+        </section>
+    </main>
 
-            <!-- Slide 6: Conclusion -->
-            <section data-background-color="#1e293b">
-                <h3>结论与展望</h3>
-                <ul class="text-left text-lg space-y-6">
-                    <li>🚀 **效率提升**：原型设计速度提升 10 倍以上。</li>
-                    <li>🎨 **设计对齐**：通过 4-Agent 协作，非设计师也能生成专业级 UI。</li>
-                    <li>🛠️ **工业价值**：实现了从 UML 需求到高保真原型的全自动闭环。</li>
-                </ul>
-                <div class="mt-12">
-                    <h4 class="text-blue-400">Thank You!</h4>
-                </div>
-            </section>
+    <nav class="controls" aria-label="Presentation controls">
+        <button id="prev" type="button">Previous</button>
+        <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+        <span id="counter">1 / 6</span>
+        <button id="next" type="button">Next</button>
+    </nav>
 
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.3.1/reveal.min.js"></script>
     <script>
-        Reveal.initialize({
-            hash: true,
-            controls: true,
-            progress: true,
-            center: true,
-            transition: 'slide'
+        const slides = Array.from(document.querySelectorAll(".slide"));
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+        const bar = document.getElementById("bar");
+        const counter = document.getElementById("counter");
+        let current = 0;
+
+        function show(index) {
+            current = Math.max(0, Math.min(index, slides.length - 1));
+            slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+            counter.textContent = `${current + 1} / ${slides.length}`;
+            bar.style.width = `${((current + 1) / slides.length) * 100}%`;
+            prev.disabled = current === 0;
+            next.disabled = current === slides.length - 1;
+            history.replaceState(null, "", `#${current + 1}`);
+        }
+
+        prev.addEventListener("click", () => show(current - 1));
+        next.addEventListener("click", () => show(current + 1));
+        window.addEventListener("keydown", (event) => {
+            if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+                event.preventDefault();
+                show(current + 1);
+            }
+            if (["ArrowLeft", "PageUp", "Backspace"].includes(event.key)) {
+                event.preventDefault();
+                show(current - 1);
+            }
+            if (event.key === "Home") show(0);
+            if (event.key === "End") show(slides.length - 1);
         });
+
+        const fromHash = Number.parseInt(window.location.hash.replace("#", ""), 10);
+        show(Number.isFinite(fromHash) ? fromHash - 1 : 0);
     </script>
 </body>
 </html>

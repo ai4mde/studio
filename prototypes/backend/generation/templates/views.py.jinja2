@@ -17,6 +17,21 @@ def _coerce_query_value(value):
             return None
     return value
 
+def _safe_select_related(qs, *fields):
+    valid_fields = []
+    for field in fields:
+        try:
+            model_field = qs.model._meta.get_field(field)
+        except Exception:
+            continue
+        if getattr(model_field, "is_relation", False) and (
+            getattr(model_field, "many_to_one", False) or getattr(model_field, "one_to_one", False)
+        ):
+            valid_fields.append(field)
+    if valid_fields:
+        return qs.select_related(*valid_fields)
+    return qs
+
 def _apply_section_query(qs, query, source_obj=None):
     query = query or {}
     operator_map = {
@@ -260,7 +275,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
             {%- endfor %}
         {%- endif %}
         {%- if select_related_fields %}
-        qs = qs.select_related({% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
         {%- endif %}
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% elif models_on_pages[page]['primary_models'][0] -%}
@@ -291,7 +306,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
             {%- endfor %}
         {%- endif %}
         {%- if select_related_fields %}
-        qs = qs.select_related({% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
         {%- endif %}
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}

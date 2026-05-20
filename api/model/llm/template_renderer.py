@@ -30,13 +30,15 @@ CLICK_SCRIPT = """
   var style = document.createElement('style');
   style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
   document.head.appendChild(style);
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    el.addEventListener('click', function(e) {
-      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-      el.classList.add('si-selected');
-      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
-    });
-  });
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest && e.target.closest('[data-section-id]');
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+    el.classList.add('si-selected');
+    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+  }, true);
 })();
 </script>
 """
@@ -51,12 +53,15 @@ class AttributeType(IntEnum):
 
 
 class _Attribute:
-    def __init__(self, name, type_, enum_literals, updatable, derived):
+    def __init__(self, name, type_, enum_literals, updatable, derived, is_link=False, render_as="text", action=None):
         self.name = name
         self.type = type_
         self.enum_literals = enum_literals
         self.updatable = updatable
         self.derived = derived
+        self.is_link = is_link
+        self.render_as = render_as
+        self.action = action or {"type": "none"}
 
     def __str__(self):
         return self.name
@@ -112,7 +117,7 @@ def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionCo
         has_create_operation=False, has_update_operation=False, has_delete_operation=False,
         text="",
         col_span=int(s.get("col_span", 12)),
-        position=s.get("position", "footer"),
+        position=s.get("position", "main"),
         style={"variant": variant, "size": raw_style.get("size", "lg"), "align": raw_style.get("align", "right")},
         component_type="activity_action",
         label=label,
@@ -259,7 +264,12 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
             attributes = []
             for attr_raw in s_raw.get("attributes", []):
-                type_str = attr_raw.get("type", "str")
+                if isinstance(attr_raw, str):
+                    attr_data = {"name": attr_raw}
+                else:
+                    attr_data = attr_raw or {}
+
+                type_str = attr_data.get("type", "str")
                 if type_str == "int":
                     attr_type = AttributeType.INTEGER
                 elif type_str == "bool":
@@ -272,16 +282,22 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     attr_type = AttributeType.STRING
 
                 enum_literals = []
-                if attr_type == AttributeType.ENUM and attr_raw.get("enum"):
-                    enum_cls = classifier_map.get(str(attr_raw["enum"]), {})
+                if attr_type == AttributeType.ENUM and attr_data.get("enum"):
+                    enum_cls = classifier_map.get(str(attr_data["enum"]), {})
                     enum_literals = [str(lit) for lit in enum_cls.get("literals", [])]
 
+                render_config = attr_data.get("render") or {}
+                render_as = render_config.get("as") or attr_data.get("render_as") or ("link" if attr_data.get("is_link") else "text")
+                action = attr_data.get("action") or ({"type": "navigate"} if attr_data.get("is_link") else {"type": "none"})
                 attributes.append(_Attribute(
-                    name=_sanitize(attr_raw.get("name", "")),
+                    name=_sanitize(attr_data.get("name", "")),
                     type_=attr_type,
                     enum_literals=enum_literals,
                     updatable=True,
-                    derived=bool(attr_raw.get("derived", False)),
+                    derived=bool(attr_data.get("derived", False)),
+                    is_link=bool(attr_data.get("is_link")) or render_as == "link",
+                    render_as=render_as,
+                    action=action,
                 ))
 
             ops = s_raw.get("operations", {})

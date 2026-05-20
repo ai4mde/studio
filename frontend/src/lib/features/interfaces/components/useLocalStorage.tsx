@@ -19,6 +19,29 @@ const useLocalStorage = (key, initialValue) => {
         }
     }, [storedValue, initialValue]);
 
+    useEffect(() => {
+        const handleStorage = (event) => {
+            if (event.key !== key) return;
+            try {
+                setStoredValue(event.newValue ? JSON.parse(event.newValue) : initialValue);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        const handleLocalUpdate = (event) => {
+            if (event.detail?.key !== key) return;
+            setStoredValue(event.detail.value);
+        };
+
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener('interface-local-storage-updated', handleLocalUpdate);
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener('interface-local-storage-updated', handleLocalUpdate);
+        };
+    }, [initialValue, key]);
+
     const setValue = value => {
         try {
             const valueToStore = value instanceof Function ? value(storedValue) : value;

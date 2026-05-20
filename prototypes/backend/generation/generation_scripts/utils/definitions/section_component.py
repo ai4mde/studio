@@ -37,7 +37,9 @@ class SectionAttribute():
             enum_literals: Optional[List[str]],
             updatable: bool,
             derived: bool = False,
-            is_link: bool = False
+            is_link: bool = False,
+            render_as: str = "text",
+            action: Optional[dict] = None
     ):
         self.name = name
         self.type = type
@@ -45,6 +47,8 @@ class SectionAttribute():
         self.updatable = updatable
         self.derived = derived
         self.is_link = is_link
+        self.render_as = render_as
+        self.action = action or {"type": "none"}
 
     def __str__(self):
         return self.name
@@ -120,6 +124,8 @@ class SectionComponent():
             view_detail_page: Optional[str] = None,
             col_span: int = 12,
             position: Optional[str] = None,
+            component_type: str = "data",
+            label: Optional[str] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -143,6 +149,8 @@ class SectionComponent():
         self.view_detail_page = view_detail_page
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
         self.position = position or 'main'
+        self.component_type = component_type
+        self.label = label or name
 
     def __str__(self):
         return self.name

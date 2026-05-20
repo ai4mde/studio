@@ -1,6 +1,6 @@
 from google.adk.agents import Agent
 from google.adk.apps import App
-from app.tools import interface_config_tool, update_interface_patch_tool, system_context_tool, run_seed_script_tool
+from app.tools import interface_config_tool, update_interface_patch_tool, system_context_tool, run_seed_script_tool, get_available_paths_tool
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
@@ -9,7 +9,23 @@ Layout fields (sections/pages):
   sections[].position      : "main" | "sidebar" | "header" | "footer"
 
 Data & Query fields:
-  sections[].attributes    : list of attribute names. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
+  sections[].attributes    : list of attribute names OR objects. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
+    Attribute object shape:
+      {name: string, render: {as: "text" | "link" | "button" | "badge"}, action: {type: string}}
+      Backward-compatible shortcut: {name: string, is_link: bool}
+    Render modes:
+      text   = normal field value
+      link   = clickable field value for detail/navigation affordance
+      button = field value styled as a button
+      badge  = compact status/category pill
+    Action types:
+      none      = no interaction
+      navigate  = go to a target page/detail affordance; may include targetPageId and params
+      operation = trigger a custom operation; include class/operation/operationId and params when known
+      copy      = copy the field value
+      filter    = filter list content by this field/value
+      expand    = expand long text
+      tooltip   = show explanatory hover text; include tooltip
   sections[].query.limit   : number
   sections[].query.offset  : number
   sections[].query.order_by: list of field names (e.g. ["-created_at", "name"])
@@ -112,20 +128,27 @@ Message format: interface_id=<uuid> user_request=<design change description>
 
 1. Call get_interface_config(interface_id=<uuid>) to get the current data.
 2. Analyze the request and determine all needed changes (layout, style, data mapping, queries, tokens).
-3. If data mapping (attributes) or queries are requested, call get_system_context(system_id) to find valid fields and relations.
+3. If data mapping or queries are requested:
+   a. Call get_system_context(system_id) to find valid fields and relations.
+   b. Call get_available_paths(system_id, class_id) to get valid paths.
 4. Build ONE patch dict with only the changed fields.
 5. Call apply_interface_patch(interface_id=<uuid>, patch=<patch_dict>) EXACTLY ONCE to persist.
 
 Path Binding (Multi-class mapping):
-To show data from related classes, use dot-notation in sections[].attributes (e.g. "seller.name"). 
-Only use paths that exist in the system relations (e.g. if Product has a relation to Seller).
+To show data from related classes, use dot-notation in attributes (e.g. "seller.name").
+For field rendering, prefer render.as:
+- Text field: "name" or {{"name": "name", "render": {{"as": "text"}}}}
+- Link navigation field: {{"name": "seller.name", "render": {{"as": "link"}}, "action": {{"type": "navigate", "targetPageId": "seller-detail"}}}}
+- Button operation field: {{"name": "order.status", "render": {{"as": "button"}}, "action": {{"type": "operation", "class": "Order", "operation": "approve"}}}}
+- Badge/status field: {{"name": "status", "render": {{"as": "badge"}}, "action": {{"type": "filter", "field": "status"}}}}
+- Text utility field: {{"name": "customer.email", "render": {{"as": "text"}}, "action": {{"type": "copy"}}}}
+Backward compatibility: if the user explicitly says is_link, {{"name": "seller.name", "is_link": true}} is also valid.
 
 Patch shape (only include changed fields):
 {{
   "sections": [{{
     "id": "...", 
-    "layout": "card", 
-    "attributes": ["name", "price", "seller.name"],
+    "attributes": ["name", {{"name": "seller.name", "render": {{"as": "link"}}, "action": {{"type": "navigate", "targetPageId": "seller-detail"}}}}, {{"name": "status", "render": {{"as": "badge"}}, "action": {{"type": "filter", "field": "status"}}}}],
     "query": {{"limit": 5, "order_by": [{{"field": "price", "direction": "desc"}}]}},
     "style": {{"color": "blue"}}
   }}],
@@ -141,9 +164,8 @@ Rules:
 - NEVER modify: sections[].class, sections[].operations, sections[].name.
 - Always keep "id" in every section/page entry in the patch.
 - Call apply_interface_patch exactly once with the complete combined patch.
-
 """,
-    tools=[interface_config_tool, update_interface_patch_tool, system_context_tool],
+    tools=[interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool],
     sub_agents=[seed_agent],
 )
 

@@ -81,6 +81,8 @@ services:
       - METADATA_API_KEY=studio-internal-service-key
       - ALLOW_ORIGINS=http://ai4mde.localhost
       - SESSION_SERVICE_URI=memory://
+    volumes:
+      - ./api/model/gemini-make-agent/app:/code/app:ro
     networks:
       - ai4mde_traefik
     labels:

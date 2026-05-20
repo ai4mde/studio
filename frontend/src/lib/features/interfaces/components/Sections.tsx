@@ -36,6 +36,55 @@ const METHODS_HINTS: Record<string, string> = {
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
 
+const FIELD_RENDER_OPTIONS = [
+    { value: 'text', label: 'Text' },
+    { value: 'link', label: 'Link' },
+    { value: 'button', label: 'Button' },
+    { value: 'badge', label: 'Badge' },
+];
+
+const FIELD_ACTION_OPTIONS = [
+    { value: 'none', label: 'None' },
+    { value: 'navigate', label: 'Navigate' },
+    { value: 'operation', label: 'Operation' },
+    { value: 'copy', label: 'Copy' },
+    { value: 'filter', label: 'Filter' },
+    { value: 'expand', label: 'Expand' },
+    { value: 'tooltip', label: 'Tooltip' },
+];
+
+const ACTIVITY_ACTION_VARIANTS = [
+    { value: 'button', label: 'Button' },
+    { value: 'wizard_next', label: 'Wizard next' },
+    { value: 'link', label: 'Link' },
+    { value: 'fab', label: 'Floating' },
+    { value: 'auto', label: 'Auto' },
+];
+
+const ACTIVITY_ACTION_ALIGNS = [
+    { value: 'left', label: 'Left' },
+    { value: 'center', label: 'Center' },
+    { value: 'right', label: 'Right' },
+];
+
+const ACTIVITY_ACTION_SIZES = [
+    { value: 'sm', label: 'Small' },
+    { value: 'md', label: 'Medium' },
+    { value: 'lg', label: 'Large' },
+];
+
+const getAttributeName = (attr: any) => typeof attr === 'string' ? attr : attr?.name;
+const getAttributeRenderAs = (attr: any) => {
+    if (typeof attr === 'string') return 'text';
+    return attr?.render?.as || (attr?.is_link ? 'link' : 'text');
+};
+const getAttributeAction = (attr: any) => {
+    if (typeof attr === 'string') return { type: 'none' };
+    return attr?.action || { type: attr?.is_link ? 'navigate' : 'none' };
+};
+const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...(attr || {}) };
+const isActivityActionSection = (section: any) => section?.type === 'activity_action' || section?.layout === 'activity_action';
+
 export const Sections: React.FC<Props> = () => {
     const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('sections', []);
@@ -55,6 +104,16 @@ export const Sections: React.FC<Props> = () => {
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
     const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
     const [customAttr, setCustomAttr] = useState('');
+    const [availablePaths, setAvailablePaths] = useState<string[]>([]);
+
+    React.useEffect(() => {
+        if (isSuccessClasses && classes) {
+            const allPaths: string[] = classes.flatMap((cls: any) => 
+                (cls.data?.attributes || []).map((attr: any) => `${cls.data.name.toLowerCase()}.${attr.name}`)
+            );
+            setAvailablePaths([...new Set(allPaths)]);
+        }
+    }, [isSuccessClasses, classes]);
 
 
     const handleEdit = async (index: number) => {
@@ -331,14 +390,30 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
-    const handleAttributeLinkToggle = (sectionIndex: number, attrIndex: number) => {
+    const handleAttributeRenderChange = (sectionIndex: number, attrIndex: number, renderAs: string) => {
         const updatedAttributes = [...selectedAttributes];
-        const attr = updatedAttributes[attrIndex];
-        if (typeof attr === 'string') {
-            updatedAttributes[attrIndex] = { name: attr, is_link: true };
-        } else {
-            updatedAttributes[attrIndex] = { ...attr, is_link: !attr.is_link };
-        }
+        const attr = normalizeAttribute(updatedAttributes[attrIndex]);
+        updatedAttributes[attrIndex] = {
+            ...attr,
+            render: { ...(attr.render || {}), as: renderAs },
+            is_link: renderAs === 'link',
+            action: attr.action || { type: renderAs === 'link' ? 'navigate' : 'none' },
+        };
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+    };
+
+    const updateAttributeAction = (sectionIndex: number, attrIndex: number, patch: Record<string, any>) => {
+        const updatedAttributes = [...selectedAttributes];
+        const attr = normalizeAttribute(updatedAttributes[attrIndex]);
+        const nextAction = { ...(attr.action || { type: 'none' }), ...patch };
+        updatedAttributes[attrIndex] = {
+            ...attr,
+            action: nextAction,
+            is_link: nextAction.type === 'navigate' && getAttributeRenderAs(attr) === 'link',
+        };
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
@@ -347,7 +422,7 @@ export const Sections: React.FC<Props> = () => {
 
     const handleAddCustomAttribute = (sectionIndex: number) => {
         if (!customAttr) return;
-        const updatedAttributes = [...selectedAttributes, { name: customAttr }];
+        const updatedAttributes = [...selectedAttributes, { name: customAttr, render: { as: 'text' }, action: { type: 'none' } }];
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
@@ -377,6 +452,17 @@ export const Sections: React.FC<Props> = () => {
         setSelectedCustomMethods(updatedMethods);
         const newData = [...data];
         newData[sectionIndex].methods = updatedMethods;
+        setData(newData);
+    };
+
+    const handleActivityActionChange = (sectionIndex: number, patch: Record<string, any>) => {
+        const newData = [...data];
+        const section = { ...newData[sectionIndex] };
+        if (patch.style) {
+            section.style = { ...(section.style || {}), ...patch.style };
+            delete patch.style;
+        }
+        newData[sectionIndex] = { ...section, ...patch };
         setData(newData);
     };
 
@@ -424,6 +510,49 @@ export const Sections: React.FC<Props> = () => {
                                             </FormControl>
                                         )}
                                     </div>
+                                    {isActivityActionSection(data[index]) ? (
+                                    <FormControl className="space-y-2">
+                                        <h3 className="text-xl font-bold">Activity Button</h3>
+                                        <p className="text-xs text-gray-500">This section completes the current workflow step. Place it on activity pages just like other sections.</p>
+                                        <label className="text-xs text-gray-500">Button label</label>
+                                        <input
+                                            type="text"
+                                            value={data[index].label || data[index].name || ''}
+                                            onChange={(e) => handleActivityActionChange(index, { label: e.target.value, name: e.target.value || data[index].name })}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        />
+                                        <label className="text-xs text-gray-500">Variant</label>
+                                        <select
+                                            value={data[index].style?.variant || 'button'}
+                                            onChange={(e) => handleActivityActionChange(index, { style: { variant: e.target.value } })}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            {ACTIVITY_ACTION_VARIANTS.map(option => (
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            ))}
+                                        </select>
+                                        <label className="text-xs text-gray-500">Align</label>
+                                        <select
+                                            value={data[index].style?.align || 'right'}
+                                            onChange={(e) => handleActivityActionChange(index, { style: { align: e.target.value } })}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            {ACTIVITY_ACTION_ALIGNS.map(option => (
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            ))}
+                                        </select>
+                                        <label className="text-xs text-gray-500">Size</label>
+                                        <select
+                                            value={data[index].style?.size || 'lg'}
+                                            onChange={(e) => handleActivityActionChange(index, { style: { size: e.target.value } })}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            {ACTIVITY_ACTION_SIZES.map(option => (
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            ))}
+                                        </select>
+                                    </FormControl>
+                                    ) : (<>
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Primary Class</h3>
                                         <div className="flex max-w-full flex-wrap gap-2">
@@ -477,27 +606,70 @@ export const Sections: React.FC<Props> = () => {
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
                                         <div className="mt-2 space-y-1">
-                                            {selectedAttributes.map((attr, attrIdx) => (
-                                                <div key={attrIdx} className="flex items-center justify-between bg-stone-50 px-2 py-1 rounded-md border border-stone-200">
-                                                    <span className="text-xs truncate max-w-[180px]">{typeof attr === 'string' ? attr : attr.name}</span>
-                                                    <button 
-                                                        onClick={() => handleAttributeLinkToggle(index, attrIdx)}
-                                                        title="Toggle link to detail"
-                                                        className={`p-1 rounded-md ${ (typeof attr === 'object' && attr.is_link) ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100' }`}
-                                                    >
-                                                        <LinkIcon size={14} />
-                                                    </button>
-                                                </div>
-                                            ))}
+                                            {selectedAttributes.map((attr, attrIdx) => {
+                                                const action = getAttributeAction(attr);
+                                                return (
+                                                    <div key={attrIdx} className="bg-stone-50 px-2 py-1 rounded-md border border-stone-200 space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs truncate flex-1 min-w-0">{getAttributeName(attr)}</span>
+                                                            {getAttributeRenderAs(attr) === 'link' && <LinkIcon size={13} className="text-blue-600" />}
+                                                            <select
+                                                                value={getAttributeRenderAs(attr)}
+                                                                onChange={(e) => handleAttributeRenderChange(index, attrIdx, e.target.value)}
+                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs"
+                                                                title="Field render mode"
+                                                            >
+                                                                {FIELD_RENDER_OPTIONS.map(option => (
+                                                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                                                ))}
+                                                            </select>
+                                                            <select
+                                                                value={action.type || 'none'}
+                                                                onChange={(e) => updateAttributeAction(index, attrIdx, { type: e.target.value })}
+                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs"
+                                                                title="Field action"
+                                                            >
+                                                                {FIELD_ACTION_OPTIONS.map(option => (
+                                                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        {action.type !== 'none' && (
+                                                            <input
+                                                                type="text"
+                                                                value={action.targetPageId || action.operation || action.field || action.tooltip || ''}
+                                                                onChange={(e) => {
+                                                                    const key = action.type === 'navigate' ? 'targetPageId'
+                                                                        : action.type === 'operation' ? 'operation'
+                                                                            : action.type === 'tooltip' ? 'tooltip'
+                                                                                : 'field';
+                                                                    updateAttributeAction(index, attrIdx, { [key]: e.target.value });
+                                                                }}
+                                                                placeholder={
+                                                                    action.type === 'navigate' ? 'target page id/name'
+                                                                        : action.type === 'operation' ? 'operation name'
+                                                                            : action.type === 'tooltip' ? 'tooltip text'
+                                                                                : 'field/value'
+                                                                }
+                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                         <div className="flex gap-1 mt-1">
                                             <input
                                                 type="text"
+                                                list="available-paths"
                                                 value={customAttr}
                                                 onChange={(e) => setCustomAttr(e.target.value)}
-                                                placeholder="Custom path (e.g. seller.name)"
+                                                placeholder="e.g. seller.name"
                                                 className="border border-gray-300 rounded-md px-2 py-1 text-xs flex-1 min-w-0"
                                             />
+                                            <datalist id="available-paths">
+                                                {availablePaths.map(path => <option key={path} value={path} />)}
+                                            </datalist>
                                             <button
                                                 onClick={() => handleAddCustomAttribute(index)}
                                                 className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600"
@@ -606,7 +778,8 @@ export const Sections: React.FC<Props> = () => {
                                             </>
                                         )}
                                     </FormControl>
-                                    {!CHROME_LAYOUTS.includes(data[index].layout) && (<>
+                                    </>)}
+                                    {!isActivityActionSection(data[index]) && !CHROME_LAYOUTS.includes(data[index].layout) && (<>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Related To</h3>
                                         <p className="text-xs text-gray-500">Show items related to the selected section's object (e.g. same category).</p>
@@ -846,6 +1019,30 @@ export const Sections: React.FC<Props> = () => {
                         className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"
                     >
                         <Plus />
+                    </button>
+                    <button
+                        onClick={() => {
+                            const name = `Activity Button ${data.length + 1}`;
+                            const newSection = {
+                                id: window.crypto.randomUUID(),
+                                name,
+                                label: 'Complete step',
+                                type: 'activity_action',
+                                layout: 'activity_action',
+                                class: "",
+                                operations: { "create": false, "update": false, "delete": false },
+                                attributes: [],
+                                methods: [],
+                                col_span: 12,
+                                position: 'main',
+                                style: { variant: 'button', align: 'right', size: 'lg' },
+                            };
+                            setData([...data, newSection]);
+                        }}
+                        className="flex h-fit min-w-28 flex-col gap-1 overflow-hidden text-ellipsis rounded-md bg-green-100 px-3 py-4 text-xs font-semibold text-green-800 hover:bg-green-200"
+                    >
+                        <Plus size={18} />
+                        Activity button
                     </button>
                 </div>
             )}

@@ -1,4 +1,4 @@
-﻿{% if preview_mode -%}
+{% if preview_mode -%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,8 +32,23 @@
 </header>
 {%- endif %}
 
+{# â”€â”€ ACTIVITY ACTION (header-position workflow button) â”€â”€ #}
+{%- if sc.component_type == 'activity_action' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="activity_action" class="px-6 py-3 bg-white border-b border-gray-100">
+  <div class="flex justify-end">
+    {%- if page.type == 'activity' and not preview_mode %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- else %}
+    <button type="button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
+    {%- endif %}
+  </div>
+</div>
+
 {# â”€â”€ PROMO BAR (promo-bar / promo-strip) â”€â”€ #}
-{%- if sc.layout in ('promo-bar', 'promo-strip') %}
+{%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
 <div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
   <div class="flex items-center gap-6">
@@ -207,6 +222,7 @@
 {% set _bgm  = {"white":"bg-white","gray":"bg-gray-50","dark":"bg-gray-800"} %}
 {% set _hdsm = {"default":"text-xl font-semibold text-gray-800","large":"text-2xl font-bold text-gray-900","small":"text-xs font-medium text-gray-500 uppercase tracking-widest"} %}
 {% set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} %}
+{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
 {% set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} %}
 {% set _pm = {
   "vertical": "flex flex-col",
@@ -322,53 +338,133 @@
 {%- set _aa_size    = section_component.style.get('size', 'lg') %}
 {%- set _aa_py      = 'py-4 px-8 text-base' if _aa_size == 'lg' else ('py-2 px-4 text-sm' if _aa_size == 'sm' else 'py-3 px-6 text-sm') %}
 {%- set _aa_justify = 'justify-end' if _aa_align == 'right' else ('justify-center' if _aa_align == 'center' else ('justify-start' if _aa_align == 'left' else '')) %}
-<div class=”{{ _spanm.get(section_component.col_span, 'col-span-12') }}” data-section-id=”{{ section_component.id }}” data-section-name=”{{ section_component.display_name }}” data-position=”{{ section_component.position or 'footer' }}” data-layout=”activity_action”>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action">
 {%- if not preview_mode %}
   {%- if _aa_variant == 'fab' %}
-  <div class=”fixed bottom-6 right-6 z-50”>
-    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+  <div class="fixed bottom-6 right-6 z-50">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
-      <button type=”submit” class=”bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors”>{{ section_component.label }}</button>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors">{{ section_component.label }}</button>
     </form>
   </div>
   {%- elif _aa_variant == 'link' %}
-  <div class=”flex {{ _aa_justify }} mt-4”>
-    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+  <div class="flex {{ _aa_justify }} mt-4">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
-      <button type=”submit” class=”text-blue-600 hover:underline font-medium {{ _aa_py }}”>{{ section_component.label }} →</button>
+      <button type="submit" class="text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} →</button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
-  <div class=”flex items-center justify-between border-t border-gray-200 pt-4 mt-4”>
-    <a href=”javascript:history.back()” class=”text-sm text-gray-500 hover:text-gray-700”>← Back</a>
-    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+  <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">← Back</a>
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
-      <button type=”submit” class=”bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors”>{{ section_component.label }} →</button>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} →</button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
-  <div class=”hidden”>
-    <form id=”auto-complete-form” action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+  <div class="hidden">
+    <form id="auto-complete-form" action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
     </form>
   </div>
   <script>setTimeout(function(){ document.getElementById('auto-complete-form').submit(); }, 1500);</script>
   {%- else %}{# default: button #}
-  <div class=”flex {{ _aa_justify }} mt-6”>
-    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+  <div class="flex {{ _aa_justify }} mt-6">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
-      <button type=”submit” class=”bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors”>{{ section_component.label }}</button>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
     </form>
   </div>
   {%- endif %}
 {%- else %}{# preview_mode #}
-  <div class=”flex {{ _aa_justify }} mt-6”>
-    <button type=”button” class=”bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default”>{{ section_component.label }}</button>
+  <div class="flex {{ _aa_justify }} mt-6">
+    <button type="button" class="bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default">{{ section_component.label }}</button>
   </div>
 {%- endif %}
 </div>
 {%- else %}
 {# â”€â”€ Resolve per-section style â”€â”€ #}
+{%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
+  {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
+  {%- set action = attribute.action if attribute.action is defined else {} -%}
+  {%- set action_type = action.get('type', 'none') -%}
+  {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
+  {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
+  {%- set nav_target = action.get('targetPageId') or action.get('targetPage') or '#' -%}
+  {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
+  {%- set field_name = action.get('field') or attribute -%}
+  {%- set value_html -%}
+  {%- if render_as == 'badge' -%}
+    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ label }}</span>
+  {%- elif render_as == 'button' -%}
+    <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ label }}</span>
+  {%- elif render_as == 'link' or attribute.is_link -%}
+    <span class="{{ d.text }} font-medium {{ c.text }} hover:underline" title="{{ tooltip }}">{{ label }}</span>
+  {%- else -%}
+    <span class="{{ d.text }} font-medium text-gray-700" title="{{ tooltip }}">{{ label }}</span>
+  {%- endif -%}
+  {%- endset -%}
+  {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
+    <a href="{{ nav_target if nav_target.startswith('/') or nav_target.startswith('#') else '#' }}" data-target-page="{{ nav_target }}" class="inline-flex">{{ value_html }}</a>
+  {%- elif action_type == 'operation' -%}
+    <button type="button" data-operation="{{ operation_name }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'copy' -%}
+    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('{{ label }}')" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'filter' -%}
+    <button type="button" data-filter-field="{{ field_name }}" data-filter-value="{{ label }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'expand' -%}
+    <details class="inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ label }}</span></details>
+  {%- else -%}
+    {{ value_html }}
+  {%- endif -%}
+{%- endmacro %}
+
+{%- macro _field_value_bound(attribute, object_name, c, d, r, application_name, page, section_component, allow_link=False) -%}
+  {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
+  {%- set action = attribute.action if attribute.action is defined else {} -%}
+  {%- set action_type = action.get('type', 'none') -%}
+  {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
+  {%- set target_page = action.get('targetPage') or section_component.view_detail_page -%}
+  {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
+  {%- set operation_class = action.get('class') or section_component.primary_model -%}
+  {%- set field_name = action.get('field') or attribute -%}
+  {%- set row_value -%}{% raw %}{{{% endraw %} {{ object_name }}.{{ attribute }} {% raw %}}}{% endraw %}{%- endset -%}
+  {%- set row_id -%}{% raw %}{{{% endraw %} {{ object_name }}.id {% raw %}}}{% endraw %}{%- endset -%}
+  {%- set value_html -%}
+  {%- if render_as == 'badge' -%}
+    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- elif render_as == 'button' -%}
+    <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- elif render_as == 'link' or attribute.is_link -%}
+    <span class="{{ d.text }} font-medium {{ c.text }} hover:underline" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- else -%}
+    <span class="{{ d.text }} font-medium text-gray-800" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- endif -%}
+  {%- endset -%}
+  {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
+    {%- if target_page %}
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="inline-flex">{{ value_html }}</a>
+    {%- else -%}
+    {{ value_html }}
+    {%- endif -%}
+  {%- elif action_type == 'operation' -%}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="inline-flex">
+      <input type="hidden" name="instance_id_{{ operation_class }}" value="{{ row_id }}">
+      <input type="hidden" name="custom_{{ operation_class }}_{{ operation_name }}" value="{{ row_id }}">
+      <button type="submit" class="inline-flex">{{ value_html }}</button>
+    </form>
+  {%- elif action_type == 'copy' -%}
+    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.copyValue)" data-copy-value="{{ row_value }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'filter' -%}
+    <a href="?{{ field_name }}={{ row_value|urlencode }}" data-filter-field="{{ field_name }}" class="inline-flex">{{ value_html }}</a>
+  {%- elif action_type == 'expand' -%}
+    <details class="inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ row_value }}</span></details>
+  {%- else -%}
+    {{ value_html }}
+  {%- endif -%}
+{%- endmacro %}
+
 {% set _s   = section_component.style %}
 {% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
 {% set r    = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
@@ -407,8 +503,6 @@
 {# â”€â”€ Shared mock data â”€â”€ #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
-
-{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
 
 <div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}">
 
@@ -482,7 +576,8 @@
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -503,7 +598,8 @@
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-full h-48 rounded mt-1 bg-gray-50"></div>
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -576,7 +672,7 @@
     <div class="{{ cs }} {{ r }} p-3 flex items-center gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       {%- if _iattrs %}<div class="w-12 h-12 bg-gray-50 rounded flex-shrink-0"></div>{%- endif %}
       <div class="flex-1 min-w-0">
-        {%- for attribute in _tattrs[:2] %}<span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800 truncate{% else %}text-gray-400 text-xs{% endif %} block">{{ attribute }} {{ _mock_row + 1 }}</span>{%- endfor %}
+        {%- for attribute in _tattrs[:2] %}<div class="block">{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}</div>{%- endfor %}
       </div>
       <div class="flex gap-1 shrink-0">
         {%- if section_component.view_detail_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
@@ -598,7 +694,7 @@
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
         {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-full h-40 bg-gray-50 rounded mt-1"></div>
-        {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
@@ -653,7 +749,8 @@
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-10 h-10 bg-gray-50 rounded mt-0.5"></div>
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -694,7 +791,7 @@
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
             {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-8 h-8 bg-gray-50 rounded"></div>
-            {%- else %}{{ attribute }} {{ _mock_row + 1 }}
+            {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
             {%- endif %}
           </td>
           {%- endfor %}
@@ -729,7 +826,7 @@
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
@@ -958,7 +1055,7 @@
         <div class="flex flex-col gap-1">
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -987,7 +1084,7 @@
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -1084,8 +1181,8 @@
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}% endif %}"{% endraw %} alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">{% raw %}{% endwith %}{% endraw %}
-        {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">{% raw %}{% endwith %}{% endraw %}
+        {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
@@ -1297,7 +1394,7 @@
         <div class="flex flex-col gap-0.5">
           <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -1434,7 +1531,7 @@
           {% for attribute in section_component.attributes %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">
             {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-            {% else %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}{% endif %}
+            {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}{% endif %}
           </td>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
@@ -1534,7 +1631,7 @@
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
@@ -1751,14 +1848,15 @@
   var style = document.createElement('style');
   style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
   document.head.appendChild(style);
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    el.addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-      el.classList.add('si-selected');
-      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
-    });
-  });
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest && e.target.closest('[data-section-id]');
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+    el.classList.add('si-selected');
+    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+  }, true);
 })();
 </script>
 </main>
@@ -1775,7 +1873,21 @@
 </div>
 {%- endif %}
 
-{%- if sc.layout in ('service-strip', 'service-bar') %}
+{%- if sc.component_type == 'activity_action' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="activity_action" class="bg-white border-t border-gray-100 px-8 py-6">
+  <div class="flex justify-end">
+    {%- if page.type == 'activity' and not preview_mode %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- else %}
+    <button type="button" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
+    {%- endif %}
+  </div>
+</div>
+
+{%- elif sc.layout in ('service-strip', 'service-bar') %}
 {# Screenshot match: blue bar â€” "Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
