@@ -3,7 +3,8 @@
     "allow": [
       "Bash(curl -s \"http://api.ai4mde.localhost/api/v1/\")",
       "Bash(curl -s \"http://api.ai4mde.localhost/\")",
-      "Bash(curl -s -X POST \"http://api.ai4mde.localhost/api/v1/auth/token\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin\"}')"
+      "Bash(curl -s -X POST \"http://api.ai4mde.localhost/api/v1/auth/token\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin\"}')",
+      "Bash(docker exec *)"
     ]
   }
 }

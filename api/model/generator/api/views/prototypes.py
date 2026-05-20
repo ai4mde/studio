@@ -239,7 +239,6 @@ def seed_prototype_ai(request, system_id: str):
                     "session_id": session_id,
                     "new_message": {"role": "user", "parts": [{"text": prompt}]},
                     "streaming": True,
-                    "agent_name": "seed_agent",
                 },
                 stream=True,
                 timeout=300,

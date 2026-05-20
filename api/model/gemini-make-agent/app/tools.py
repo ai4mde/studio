@@ -134,7 +134,7 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                 sid = str(ps.get("id", ""))
                 if sid not in section_map:
                     continue
-                for field in ("layout", "col_span", "position"):
+                for field in ("layout", "col_span", "position", "attributes", "query"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:

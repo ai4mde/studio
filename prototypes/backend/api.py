@@ -327,6 +327,14 @@ def autologin(request):
     with open(urls_path) as f:
         ucontent = f.read()
     if 'autologin' not in ucontent:
+        # Ensure the last path() entry before ] ends with a comma
+        import re as _re
+        ucontent = _re.sub(
+            r'(path\([^)]+\))\s*\n(\s*\])',
+            lambda m: m.group(1) + ',\n' + m.group(2)
+            if not m.group(1).rstrip().endswith(',') else m.group(0),
+            ucontent,
+        )
         ucontent = ucontent.replace(
             ']',
             "    path('autologin', views.autologin, name='autologin'),\n]",

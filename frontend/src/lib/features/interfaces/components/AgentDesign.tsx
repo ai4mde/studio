@@ -360,6 +360,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const hasControl = (c: string) => layoutControls.includes(c);
 
     const currentPage = (pages as any[])[previewPageIndex];
+    const getPageTypeValue = (page: any) => typeof page?.type === 'string' ? page.type : page?.type?.value;
+    const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
     const pageLayout = currentPage?.layout?.value || 'vertical';
     const pageGap = currentPage?.gap?.value || 'normal';
 
@@ -830,12 +832,29 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     {previewMode === 'design' && (pages as any[]).map((p: any, idx: number) => (
                         <button key={idx} onClick={() => setPreviewPageIndex(idx)}
                             style={{
-                                padding: '2px 10px', borderRadius: 10, fontSize: 12, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 5,
+                                padding: '2px 8px', borderRadius: 10, fontSize: 12, cursor: 'pointer',
                                 background: previewPageIndex === idx ? '#dbeafe' : '#f3f4f6',
                                 color: previewPageIndex === idx ? '#1d4ed8' : '#6b7280',
                                 border: 'none',
                             }}>
-                            {p.name || `Page ${idx + 1}`}
+                            <span>{p.name || `Page ${idx + 1}`}</span>
+                            {isActivityPage(p) && (
+                                <span style={{
+                                    fontSize: 9,
+                                    lineHeight: '14px',
+                                    padding: '0 6px',
+                                    borderRadius: 999,
+                                    background: '#dcfce7',
+                                    color: '#15803d',
+                                    border: '1px solid #86efac',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.03em',
+                                }}>
+                                    Activity
+                                </span>
+                            )}
                         </button>
                     ))}
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
