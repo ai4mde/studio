@@ -4,6 +4,7 @@ from generator.models import Prototype
 from metadata.models import System
 from ninja import Router, Schema
 from ninja.errors import HttpError
+from django.http import StreamingHttpResponse
 import json
 import os
 import requests
@@ -193,6 +194,75 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
     if response.status_code != 200:
         raise Exception(response.text or "Seed failed")
     return response.text
+
+
+ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+
+
+@prototypes.post("/seed_ai/")
+def seed_prototype_ai(request, system_id: str):
+    """Stream seed-data generation via the ADK seed_agent."""
+    import uuid as _uuid
+
+    proto = Prototype.objects.filter(system__id=system_id).order_by('-id').first()
+    if not proto:
+        raise HttpError(404, "No prototype found for this system")
+
+    project_name = proto.name
+
+    def stream():
+        yield json.dumps({"status": "Connecting to seed agent..."}) + "\n"
+
+        user_id = system_id
+        session_id = str(_uuid.uuid4())
+        try:
+            resp = requests.post(
+                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
+                json={"state": {"system_id": system_id}},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            session_id = resp.json().get("id", session_id)
+        except Exception as e:
+            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+            return
+
+        prompt = f"system_id={system_id} project_name={project_name}"
+        yield json.dumps({"status": "Generating seed data..."}) + "\n"
+
+        try:
+            with requests.post(
+                f"{ADK_AGENT_URL}/run_sse",
+                json={
+                    "app_name": "app",
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
+                    "streaming": True,
+                    "agent_name": "seed_agent",
+                },
+                stream=True,
+                timeout=300,
+            ) as r:
+                r.raise_for_status()
+                for line in r.iter_lines():
+                    if not line:
+                        continue
+                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                    if line_str.startswith("data: "):
+                        try:
+                            event = json.loads(line_str[6:])
+                            if event.get("author") == "seed_agent":
+                                yield json.dumps({"status": "Seeding..."}) + "\n"
+                        except Exception:
+                            pass
+        except Exception as e:
+            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
+            return
+
+        yield json.dumps({"status": "done", "message": "Seed data generated successfully."}) + "\n"
+
+    return StreamingHttpResponse(stream(), content_type="application/x-ndjson")
 
 
 class HotReloadPayload(Schema):

@@ -1,6 +1,6 @@
 from google.adk.agents import Agent
 from google.adk.apps import App
-from app.tools import interface_config_tool, update_interface_patch_tool
+from app.tools import interface_config_tool, update_interface_patch_tool, system_context_tool, run_seed_script_tool
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
@@ -84,6 +84,45 @@ Rules:
 - Call apply_interface_patch exactly once with the complete combined patch.
 """,
     tools=[interface_config_tool, update_interface_patch_tool],
+)
+
+seed_agent = Agent(
+    name="seed_agent",
+    model="openai/gpt-4o",
+    instruction="""You generate and run seed data for a running Django prototype.
+
+Message format: system_id=<uuid> project_name=<name>
+
+Workflow:
+1. Call get_system_context(system_id=<uuid>) to get all classifiers (models) and their attributes.
+2. Build a self-contained Python seed script that:
+   a. Starts with Django setup boilerplate using the provided project_name and system_id.
+   b. Imports models from shared_models.models.
+   c. For each model, checks the row count first — skip if count > 0 (delta seeding).
+   d. Creates 3–6 realistic, related records per empty model.
+   e. Respects FK relationships: create parent models before child models.
+   f. Uses print() to report what was created.
+3. Call run_seed_script(python_code=<script>) to execute it.
+
+Django setup boilerplate every script must start with:
+```
+import sys, os
+proto_path = '/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}'
+if proto_path not in sys.path:
+    sys.path.insert(0, proto_path)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{project_name}.settings')
+import django; django.setup()
+from shared_models.models import *
+```
+Replace {system_id} and {project_name} with the actual values from the message.
+
+Rules:
+- Only call run_seed_script ONCE with the complete script.
+- Never truncate the script — include all model creation code.
+- Use realistic domain-appropriate data (not "test1", "foo", "bar").
+- String field values must match any enum constraints visible in classifier attributes.
+""",
+    tools=[system_context_tool, run_seed_script_tool],
 )
 
 app = App(name="app", root_agent=root_agent)

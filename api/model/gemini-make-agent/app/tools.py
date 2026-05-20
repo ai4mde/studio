@@ -4,6 +4,7 @@ import json
 from google.adk.tools import FunctionTool
 
 METADATA_API_BASE = os.getenv("METADATA_API_BASE", "http://studio-api:8000/api/v1/metadata")
+PROTOTYPE_API_BASE = os.getenv("PROTOTYPE_API_BASE", "http://studio-prototypes:8010")
 _METADATA_API_KEY = os.getenv("METADATA_API_KEY")
 _AUTH_HEADERS = {"Authorization": f"Bearer {_METADATA_API_KEY}"} if _METADATA_API_KEY else {}
 TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../prototypes/backend/generation/templates"))
@@ -174,6 +175,27 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
         return f"Error patching interface: {e}"
 
 
+def run_seed_script(python_code: str) -> str:
+    """Execute a Python seed script in the currently running prototype's Django context.
+
+    The script must be self-contained: it should import Django models from
+    shared_models.models and use them to create objects. Delta-checking
+    (skipping non-empty models) should be done inside the script.
+    Returns stdout on success or an error message.
+    """
+    try:
+        resp = requests.post(
+            f"{PROTOTYPE_API_BASE}/seed_script",
+            json={"script": python_code},
+            timeout=120,
+        )
+        if resp.ok:
+            return resp.text or "Seeded OK"
+        return f"Seed failed ({resp.status_code}): {resp.text}"
+    except Exception as e:
+        return f"Error calling seed_script endpoint: {e}"
+
+
 # Register tools for ADK
 system_context_tool = FunctionTool(func=get_system_context)
 interface_config_tool = FunctionTool(func=get_interface_config)
@@ -183,3 +205,4 @@ list_templates_tool = FunctionTool(func=list_existing_templates)
 read_template_tool = FunctionTool(func=read_template_file)
 write_template_tool = FunctionTool(func=write_prototype_template)
 verify_logic_tool = FunctionTool(func=verify_template_logic)
+run_seed_script_tool = FunctionTool(func=run_seed_script)
