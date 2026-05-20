@@ -15,11 +15,12 @@ For multiple options before selection, call
 ``model_activity`` calls — not a separate generator module).
 """
 import json
+from typing import Optional
 
 from .refinement_generator import model_activity
 
 
-def generate_activity_model(process_text: str) -> dict:
+def generate_activity_model(process_text: str, *, use_sketch: Optional[bool] = None) -> dict:
     """
     Generate one clean activity diagram from natural-language process text.
 
@@ -34,7 +35,7 @@ def generate_activity_model(process_text: str) -> dict:
         A validated activity diagram with nodes and edges.
         ``model_activity`` (prompt → LLM → validate).
     """
-    return model_activity(process_text=process_text)
+    return model_activity(process_text=process_text, use_sketch=use_sketch)
 
 
 def export_activity_model(model: dict) -> None:

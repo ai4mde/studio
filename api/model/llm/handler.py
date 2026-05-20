@@ -13,8 +13,8 @@ except ImportError:
     Groq = None  # type: ignore[misc, assignment]
 
 from openai import OpenAI
-from llm.prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
-from llm.prompts.prose import PROSE_GENERATE_METADATA
+from .prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
+from .prompts.prose import PROSE_GENERATE_METADATA
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +40,11 @@ ACTIVITY_SCHEMA: Dict[str, Any] = {
                             "object",
                         ],
                     },
-                    "name": {"type": "string"},
-                    "label": {"type": "string"},
-                    "partition": {"type": "string"},
+                    "name": {"type": ["string", "null"]},
+                    "label": {"type": ["string", "null"]},
+                    "partition": {"type": ["string", "null"]},
                 },
-                "required": ["id", "type"],
+                "required": ["id", "type", "name", "label", "partition"],
                 "additionalProperties": False,
             },
         },
@@ -60,15 +60,64 @@ ACTIVITY_SCHEMA: Dict[str, Any] = {
                         "enum": ["control", "object"],
                         "default": "control",
                     },
-                    "label": {"type": "string"},
-                    "condition": {"type": "string"},
+                    "label": {"type": ["string", "null"]},
+                    "condition": {"type": ["string", "null"]},
                 },
-                "required": ["source", "target"],
+                "required": ["source", "target", "type", "label", "condition"],
                 "additionalProperties": False,
             },
         },
     },
     "required": ["nodes", "edges"],
+    "additionalProperties": False,
+}
+
+ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "main_flow": {
+            "type": "array",
+            "items": {"type": "string"},
+        },
+        "control_blocks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": ["decision", "loop", "parallel"],
+                    },
+                    "entry_after": {"type": ["string", "null"]},
+                    "branches": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "label": {"type": "string"},
+                                "returns_to_main_flow": {"type": "boolean"},
+                            },
+                            "required": ["label", "returns_to_main_flow"],
+                            "additionalProperties": False,
+                        },
+                    },
+                    "requires_merge": {"type": "boolean"},
+                    "exit_to": {"type": ["string", "null"]},
+                    "notes": {"type": ["string", "null"]},
+                },
+                "required": [
+                    "type",
+                    "entry_after",
+                    "branches",
+                    "requires_merge",
+                    "exit_to",
+                    "notes",
+                ],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["main_flow", "control_blocks"],
     "additionalProperties": False,
 }
 
@@ -127,6 +176,17 @@ def _activity_response_format() -> Dict[str, Any]:
         "json_schema": {
             "name": "activity_model",
             "schema": ACTIVITY_SCHEMA,
+            "strict": True,
+        },
+    }
+
+
+def _activity_sketch_response_format() -> Dict[str, Any]:
+    return {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "activity_sketch",
+            "schema": ACTIVITY_SKETCH_SCHEMA,
             "strict": True,
         },
     }

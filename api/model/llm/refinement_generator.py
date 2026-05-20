@@ -56,9 +56,12 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from pydantic import ValidationError
 
 from .activity_model import ActivityModel
-from .handler import call_openai, _activity_response_format
+from .activity_sketch_model import ActivitySketch
+from .handler import call_openai, _activity_response_format, _activity_sketch_response_format
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
-from .prompt_builder import build_activity_prompt
+from .normalization import normalize_activity_graph
+from .prompt_builder import build_activity_prompt, build_activity_sketch_prompt
+from .sketch_alignment import validate_graph_against_sketch
 
 ActivityDebugResult = Dict[str, Any]
 logger = logging.getLogger(__name__)
@@ -140,7 +143,7 @@ def _extract_clean_from_ai4mde(ai4mde: dict) -> dict:
                 edge_data["type"] = edge_type
             clean_edges.append(edge_data)
 
-    return {"nodes": clean_nodes, "edges": clean_edges}
+    return normalize_activity_graph({"nodes": clean_nodes, "edges": clean_edges})
 
 
 def _get_clean_model(model: dict) -> dict:
@@ -222,12 +225,14 @@ def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
     # Parse LLM output and validate the clean activity model schema (nodes / edges).
     json_payload = _prepare_json_payload(raw_output)
     try:
-        json.loads(json_payload)
+        parsed_json = json.loads(json_payload)
     except json.JSONDecodeError as exc:
         raise ValueError("LLM activity modelling output is not valid JSON.") from exc
 
+    normalized_payload = normalize_activity_graph(parsed_json)
+
     try:
-        parsed = ActivityModel.model_validate_json(json_payload)
+        parsed = ActivityModel.model_validate(normalized_payload)
     except ValidationError as exc:
         raise ValueError(
             f"LLM activity modelling output failed Pydantic validation: {exc}"
@@ -235,6 +240,23 @@ def _parse_and_validate_activity_graph_json(raw_output: str) -> dict:
     except ValueError as exc:
         raise ValueError(
             f"LLM activity modelling output failed semantic validation: {exc}"
+        ) from exc
+
+    return parsed.model_dump(exclude_none=True)
+
+
+def _parse_and_validate_activity_sketch_json(raw_output: str) -> dict:
+    json_payload = _prepare_json_payload(raw_output)
+    try:
+        parsed_json = json.loads(json_payload)
+    except json.JSONDecodeError as exc:
+        raise ValueError("LLM activity sketch output is not valid JSON.") from exc
+
+    try:
+        parsed = ActivitySketch.model_validate(parsed_json)
+    except ValidationError as exc:
+        raise ValueError(
+            f"LLM activity sketch output failed Pydantic validation: {exc}"
         ) from exc
 
     return parsed.model_dump(exclude_none=True)
@@ -248,13 +270,63 @@ def _default_activity_llm_caller(prompt: str) -> str:
     )
 
 
-def _build_debug_result(prompt: str, raw_output: str, parsed: dict) -> ActivityDebugResult:
-    return {
+def _default_activity_sketch_llm_caller(prompt: str) -> str:
+    return call_openai(
+        DEFAULT_ACTIVITY_OPENAI_MODEL,
+        prompt,
+        response_format=_activity_sketch_response_format(),
+    )
+
+
+def _build_debug_result(
+    prompt: str,
+    raw_output: str,
+    parsed: dict,
+    *,
+    sketch: Optional[dict] = None,
+    sketch_alignment: Optional[dict] = None,
+) -> ActivityDebugResult:
+    result: ActivityDebugResult = {
         "prompt": prompt,
         "raw_response": raw_output,
         "parsed": parsed,
         "model": parsed,
     }
+    if sketch is not None:
+        result["sketch"] = sketch
+    if sketch_alignment is not None:
+        result["sketch_alignment"] = sketch_alignment
+    return result
+
+
+def _should_use_sketch(
+    *,
+    current_model: Optional[dict],
+    instruction: Optional[str],
+    llm_caller: Optional[Callable[[str], str]],
+    use_sketch: Optional[bool],
+) -> bool:
+    if current_model is not None or instruction is not None:
+        return False
+    if use_sketch is not None:
+        return use_sketch
+    return llm_caller is None
+
+
+def _generate_activity_sketch(
+    process_text: str,
+    *,
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+) -> tuple[str, str, dict]:
+    prompt = build_activity_sketch_prompt(process_text)
+    caller = (
+        sketch_llm_caller
+        if sketch_llm_caller is not None
+        else _default_activity_sketch_llm_caller
+    )
+    raw_output = caller(prompt)
+    parsed = _parse_and_validate_activity_sketch_json(raw_output)
+    return prompt, raw_output, parsed
 
 
 def _activity_llm_roundtrip(
@@ -263,24 +335,45 @@ def _activity_llm_roundtrip(
     instruction: Optional[str] = None,
     *,
     llm_caller: Optional[Callable[[str], str]] = None,
-) -> tuple[str, str, dict]:
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+    use_sketch: Optional[bool] = None,
+) -> tuple[Optional[dict], Optional[dict], str, str, dict]:
     
-    # Build prompt, call LLM, parse and validate. Returns (prompt, raw_response, model).
+    # Build prompt, call LLM, parse and validate.
+    # Returns (sketch, sketch_alignment, prompt, raw_response, model).
     
     clean_current: Optional[dict] = None
     if current_model is not None:
         clean_current = _get_clean_model(current_model)
 
+    sketch: Optional[dict] = None
+    if _should_use_sketch(
+        current_model=current_model,
+        instruction=instruction,
+        llm_caller=llm_caller,
+        use_sketch=use_sketch,
+    ):
+        _, _, sketch = _generate_activity_sketch(
+            process_text,
+            sketch_llm_caller=sketch_llm_caller,
+        )
+
     prompt = build_activity_prompt(
         process_text=process_text,
         current_model=clean_current,
         refinement_instruction=instruction,
+        activity_sketch=sketch,
     )
 
     caller = llm_caller if llm_caller is not None else _default_activity_llm_caller
     raw_output = caller(prompt)
     parsed = _parse_and_validate_activity_graph_json(raw_output)
-    return prompt, raw_output, parsed
+    sketch_alignment = (
+        validate_graph_against_sketch(sketch, parsed)
+        if sketch is not None
+        else None
+    )
+    return sketch, sketch_alignment, prompt, raw_output, parsed
 
 
 def debug_model_activity(
@@ -289,6 +382,8 @@ def debug_model_activity(
     instruction: Optional[str] = None,
     *,
     llm_caller: Optional[Callable[[str], str]] = None,
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+    use_sketch: Optional[bool] = None,
 ) -> ActivityDebugResult:
     """
     Same pipeline as ``model_activity``, but returns intermediates for debugging
@@ -300,14 +395,23 @@ def debug_model_activity(
         ``prompt`` — text sent to the LLM
         ``raw_response`` — string returned by the LLM (before JSON parse)
         ``parsed`` / ``model`` — validated ``{"nodes": [...], "edges": [...]}``
+        ``sketch_alignment`` — diagnostic sketch-versus-graph alignment report when sketching is enabled
     """
-    prompt, raw_output, parsed = _activity_llm_roundtrip(
+    sketch, sketch_alignment, prompt, raw_output, parsed = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
+        sketch_llm_caller=sketch_llm_caller,
+        use_sketch=use_sketch,
     )
-    return _build_debug_result(prompt, raw_output, parsed)
+    return _build_debug_result(
+        prompt,
+        raw_output,
+        parsed,
+        sketch=sketch,
+        sketch_alignment=sketch_alignment,
+    )
 
 
 def model_activity(
@@ -317,6 +421,8 @@ def model_activity(
     *,
     debug: bool = False,
     llm_caller: Optional[Callable[[str], str]] = None,
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+    use_sketch: Optional[bool] = None,
 ) -> Union[dict, ActivityDebugResult]:
     """
 Core function for activity-diagram LLM modelling.
@@ -370,18 +476,31 @@ llm_caller : callable, optional
     ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
     offline debugging only.
 """
-    prompt, raw_output, parsed = _activity_llm_roundtrip(
+    sketch, sketch_alignment, prompt, raw_output, parsed = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
+        sketch_llm_caller=sketch_llm_caller,
+        use_sketch=use_sketch,
     )
     if debug:
-        return _build_debug_result(prompt, raw_output, parsed)
+        return _build_debug_result(
+            prompt,
+            raw_output,
+            parsed,
+            sketch=sketch,
+            sketch_alignment=sketch_alignment,
+        )
     return parsed
 
 
-def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
+def generate_initial_candidates(
+    process_text: str,
+    n: int = 3,
+    *,
+    use_sketch: Optional[bool] = None,
+) -> List[dict]:
     """
     Return N independent clean activity models for the same ``process_text``.
 
@@ -409,7 +528,7 @@ def generate_initial_candidates(process_text: str, n: int = 3) -> List[dict]:
 
     models: List[dict] = []
     for _ in range(n):
-        models.append(model_activity(process_text=process_text))
+        models.append(model_activity(process_text=process_text, use_sketch=use_sketch))
     return models
 
 
@@ -418,6 +537,7 @@ def generate_and_convert_candidates(
     n: int = 3,
     *,
     project_id: str,
+    use_sketch: Optional[bool] = None,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -447,7 +567,7 @@ def generate_and_convert_candidates(
         Each element is ``{"clean": <nodes/edges dict>, "ai4mde": <AI4MDE export list>}``.
         Each candidate uses a new ``system_id`` and ``diagram_id`` but the same project id.
     """
-    cleans = generate_initial_candidates(process_text, n=n)
+    cleans = generate_initial_candidates(process_text, n=n, use_sketch=use_sketch)
     results: List[Dict[str, Any]] = []
     for i, clean in enumerate(cleans, start=1):
         system_id = str(uuid.uuid4())
@@ -469,6 +589,7 @@ def generate_candidates_with_conversion(
     n: int = 3,
     *,
     project_id: str,
+    use_sketch: Optional[bool] = None,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -476,6 +597,7 @@ def generate_candidates_with_conversion(
         process_text,
         n=n,
         project_id=project_id,
+        use_sketch=use_sketch,
         name_prefix=name_prefix,
         description_template=description_template,
     )
