@@ -38,6 +38,7 @@ def build_activity_prompt(
     process_text: str,
     current_model: Optional[Dict[str, Any]] = None,
     refinement_instruction: Optional[str] = None,
+    activity_sketch: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
     Build a prompt for activity modelling.
@@ -88,4 +89,16 @@ def build_activity_prompt(
         process_text=process_text,
         current_model=current_model,
         instruction=refinement_instruction,
+        activity_sketch=activity_sketch,
     ).rstrip() + "\n"
+
+
+def build_activity_sketch_prompt(process_text: str) -> str:
+    """
+    Build a lightweight topology-sketch prompt for initial generation.
+
+    This prompt is only used before baseline graph generation and does not
+    produce nodes/edges or AI4MDE JSON.
+    """
+    template = _env.get_template("activity_sketch_prompt.jinja")
+    return template.render(process_text=process_text).rstrip() + "\n"

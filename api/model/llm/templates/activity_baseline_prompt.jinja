@@ -1,25 +1,58 @@
-{# Activity diagram LLM prompt — with few-shot examples #}
-
-You are an expert in UML Activity Diagram modelling.
+You are realizing a UML Activity Diagram into valid graph JSON.
 
 Given the following process description:
 
 {{ process_text }}
 
-Generate a complete UML Activity Diagram as a single JSON model.
+{% if activity_sketch %}
+Use the following topology plan as authoritative.
+The topology plan defines the intended high-level control-flow structure.
+Do not redesign the control flow unless the process text clearly contradicts the plan.
 
-The model should:
-- Represent the complete control flow from start to end
-- Include all relevant actions
-- Use appropriate UML control flow structures
-- Keep the graph connected whenever possible
-- Prefer a usable graph over overfitting imperfect structures
+Topology plan:
+{{ activity_sketch | tojson(indent=2) }}
+
+Topology adherence rules:
+- Use the topology plan as authoritative
+- Preserve the planned main flow and control-block ordering whenever possible
+- Do not invent new decision, loop, fork, join, or merge structures unless needed to keep the graph valid or unless the process text clearly contradicts the plan
+- If a control block has `requires_merge=true`, realize an appropriate closure before continuing:
+  decision -> merge
+  parallel -> join
+- If a block has `exit_to`, reconnect the block to that later main-flow action whenever possible
+- If a loop block has `loop_back_to`, realize a backward edge to that earlier action
+- Treat retry-validation patterns as loops rather than branch-and-rejoin structures
+- Do not add a merge node merely because one branch loops back to an earlier action
+- Only use a merge for a decision when multiple forward branches truly rejoin into the same continuation flow
+- Branches marked `returns_to_main_flow=true` should normally reconnect to the main flow instead of ending abruptly
+- Loop blocks should preserve a backward flow together with an exit path
+- If the topology plan is slightly underspecified, make the smallest valid completion that preserves its structure
+
+{% else %}
+No topology plan was provided.
+Create a valid UML Activity Diagram directly from the process text.
+{% endif %}
+
+Your task is to realize the topology into valid graph JSON.
+
+Realization responsibilities:
+- assign node IDs
+- create graph nodes and edges
+- add branch labels where helpful
+- realize actions mentioned in the process text
+- satisfy schema constraints
+- preserve the provided structure whenever possible
+
+Minimal completion behavior:
+- You may add small connector details needed to produce a valid connected graph
+- Prefer minimal completion over topology redesign
+- If the process text clearly contradicts the topology plan, follow the process text while staying as close to the plan as possible
 
 -----------------------------------
 Output Format
 -----------------------------------
 
-Return a JSON object with the following structure:
+Return ONLY a valid JSON object with this structure:
 
 {
   "nodes": [],
@@ -36,293 +69,31 @@ Allowed node types:
 - final
 
 Node ID rules:
-- Use IDs in the format:
-  n1, n2, n3, ...
+- Use IDs in the format `n1`, `n2`, `n3`, ...
+- Every node ID must be unique
 
-Edge format:
-{
-  "source": "n1",
-  "target": "n2",
-  "label": "yes"
-}
+Node realization rules:
+- Use `initial` for the start of the process
+- Use `final` for process completion
+- Use `action` nodes with `name`
+- Use `decision` nodes when the topology plan contains a decision block
+- Use `merge` nodes to close decision branches when required
+- Use `fork` and `join` nodes to realize parallel blocks
+- For retry loops, realize the retry branch as a backward edge instead of a merge-based rejoin
 
-Use edge labels when they help clarify branch outcomes, such as:
-- yes
-- no
-- retry
+Edge realization rules:
+- Every edge must connect valid node IDs
+- Use edge labels such as `yes`, `no`, `retry`, or short branch names when helpful
+- Decision branches should normally use labels on outgoing edges
+- Keep the graph connected whenever possible
 
------------------------------------
-Modeling Procedure
------------------------------------
-
-1. Identify all actions in logical order
-2. Construct the main sequence from start to end
-3. Add decision nodes for conditional logic
-4. Add branch labels when helpful
-5. Reuse existing actions when possible instead of duplicating identical steps
-6. Add fork and join nodes for parallel behavior
-7. Model loops using decisions and backward flows
-8. Reconnect branches appropriately
-9. Ensure the final graph forms one connected flow
-
------------------------------------
-Validation Rules
------------------------------------
-
+Validation rules:
 - The model must start with one initial node
 - The model must end with at least one final node
-- Decision branches should reconnect using merge nodes
-- Parallel branches should reconnect using join nodes
-- Loops must include an exit condition
 - Every edge must connect valid nodes
+- Decision branches should reconnect using merge nodes when the topology plan expects closure
+- Parallel branches should reconnect using join nodes when the topology plan expects closure
+- Loops must include an exit path
 
------------------------------------
-Sequence Structure
------------------------------------
-
-Rules:
-- Represent actions in logical temporal order
-- Do not omit important intermediate steps
-- Maintain a continuous flow from start to end
-
-Common indicators:
-- after
-- then
-- next
-- subsequently
-- before
-- once
-- when
-
-Example:
-
-Text:
-"After the customer submits an order, the system validates the order. Then the manager reviews the order."
-
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "name": "submit order"},
-    {"id": "n3", "type": "action", "name": "validate order"},
-    {"id": "n4", "type": "action", "name": "review order"},
-    {"id": "n5", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3"},
-    {"source": "n3", "target": "n4"},
-    {"source": "n4", "target": "n5"}
-  ]
-}
-
------------------------------------
-Decision Structure
------------------------------------
-
-Rules:
-- Use decision nodes for conditional logic
-- Decision nodes typically have two or more outgoing edges
-- Use branch labels such as "yes" and "no" when helpful
-- Nested conditions should use separate decision nodes
-- Branches should reconnect using merge nodes
-
-Common indicators:
-- if
-- whether
-- otherwise
-- else
-- depending on
-
-Example:
-
-Text:
-"If the order is above 2000 EUR, the manager reviews it. If approved, the order is processed. Otherwise, it is rejected."
-
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "decision", "label": "order > 2000?"},
-    {"id": "n3", "type": "action", "name": "review order"},
-    {"id": "n4", "type": "decision", "label": "approved?"},
-    {"id": "n5", "type": "action", "name": "process order"},
-    {"id": "n6", "type": "action", "name": "reject order"},
-    {"id": "n7", "type": "merge"},
-    {"id": "n8", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-
-    {"source": "n2", "target": "n3", "label": "yes"},
-    {"source": "n2", "target": "n5", "label": "no"},
-
-    {"source": "n3", "target": "n4"},
-
-    {"source": "n4", "target": "n5", "label": "yes"},
-    {"source": "n4", "target": "n6", "label": "no"},
-
-    {"source": "n5", "target": "n7"},
-    {"source": "n6", "target": "n7"},
-
-    {"source": "n7", "target": "n8"}
-  ]
-}
-
------------------------------------
-Parallel Structure
------------------------------------
-
-Rules:
-- Use fork nodes to split parallel flows
-- Parallel branches should execute independently
-- Reconnect parallel branches using a join node
-
-Common indicators:
-- in parallel
-- simultaneously
-- at the same time
-- meanwhile
-- concurrently
-
-Example:
-
-Text:
-"The system processes the payment and updates the inventory at the same time."
-
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "fork"},
-    {"id": "n3", "type": "action", "name": "process payment"},
-    {"id": "n4", "type": "action", "name": "update inventory"},
-    {"id": "n5", "type": "join"},
-    {"id": "n6", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3"},
-    {"source": "n2", "target": "n4"},
-    {"source": "n3", "target": "n5"},
-    {"source": "n4", "target": "n5"},
-    {"source": "n5", "target": "n6"}
-  ]
-}
-
------------------------------------
-Loop Structure
------------------------------------
-
-Rules:
-- Model loops using decision nodes and backward edges
-- One branch continues the loop
-- Another branch exits the loop
-- Loops must include an exit condition
-
-Common indicators:
-- until
-- while
-- retry
-- repeat
-- again
-
-Example:
-
-Text:
-"If the payment fails, retry the payment until it succeeds."
-
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "name": "process payment"},
-    {"id": "n3", "type": "decision", "label": "payment successful?"},
-    {"id": "n4", "type": "action", "name": "retry payment"},
-    {"id": "n5", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3"},
-    {"source": "n3", "target": "n5", "label": "yes"},
-    {"source": "n3", "target": "n4", "label": "no"},
-    {"source": "n4", "target": "n2", "label": "retry"}
-  ]
-}
-
------------------------------------
-Integrated Example
------------------------------------
-
-Text:
-
-"When a job application is submitted, the HR system first checks whether the application is complete.
-
-If the application is incomplete, the system requests missing information from the applicant and then ends the process.
-
-If the application is complete, the system evaluates the candidate's qualifications.
-
-If the candidate meets the minimum requirements, the application is forwarded to a hiring manager.
-If the candidate does not meet the requirements, the application is rejected.
-
-After the application is forwarded, two activities happen in parallel:
-the hiring manager reviews the application and HR schedules an interview.
-
-Once both activities are completed, the system records the evaluation result.
-
-Finally, the process ends."
-
-Output:
-{
-  "nodes": [
-    {"id": "n1", "type": "initial"},
-    {"id": "n2", "type": "action", "name": "check application completeness"},
-    {"id": "n3", "type": "decision", "label": "application complete?"},
-
-    {"id": "n4", "type": "action", "name": "request missing information"},
-
-    {"id": "n5", "type": "action", "name": "evaluate qualifications"},
-    {"id": "n6", "type": "decision", "label": "meets requirements?"},
-
-    {"id": "n7", "type": "action", "name": "forward to hiring manager"},
-    {"id": "n8", "type": "action", "name": "reject application"},
-
-    {"id": "n9", "type": "merge"},
-
-    {"id": "n10", "type": "fork"},
-    {"id": "n11", "type": "action", "name": "manager reviews application"},
-    {"id": "n12", "type": "action", "name": "schedule interview"},
-    {"id": "n13", "type": "join"},
-
-    {"id": "n14", "type": "action", "name": "record evaluation result"},
-    {"id": "n15", "type": "final"}
-  ],
-  "edges": [
-    {"source": "n1", "target": "n2"},
-    {"source": "n2", "target": "n3"},
-
-    {"source": "n3", "target": "n4", "label": "no"},
-    {"source": "n3", "target": "n5", "label": "yes"},
-
-    {"source": "n5", "target": "n6"},
-
-    {"source": "n6", "target": "n7", "label": "yes"},
-    {"source": "n6", "target": "n8", "label": "no"},
-
-    {"source": "n7", "target": "n9"},
-    {"source": "n8", "target": "n9"},
-
-    {"source": "n9", "target": "n10"},
-
-    {"source": "n10", "target": "n11"},
-    {"source": "n10", "target": "n12"},
-
-    {"source": "n11", "target": "n13"},
-    {"source": "n12", "target": "n13"},
-
-    {"source": "n13", "target": "n14"},
-    {"source": "n14", "target": "n15"},
-
-    {"source": "n4", "target": "n15"}
-  ]
-}
+Do not include explanations.
+Do not include markdown.

@@ -1,0 +1,65 @@
+You are helping plan the control-flow structure of a UML Activity Diagram.
+
+Given the following process description:
+
+{{ process_text }}
+
+Return ONLY a compact JSON sketch of the control-flow scaffold.
+
+The sketch must NOT include:
+- node ids
+- edge ids
+- full graph JSON
+- AI4MDE JSON
+
+The sketch should only describe:
+- the main sequence of major actions
+- where important decision / loop / parallel blocks occur
+- rough branch structure
+- whether branches return to main flow
+- whether a merge/rejoin is expected
+- whether a loop branch returns to an earlier action
+- where the block exits back to the main flow
+
+Return a JSON object with this structure:
+
+{
+  "main_flow": [
+    "major action 1",
+    "major action 2"
+  ],
+  "control_blocks": [
+    {
+      "type": "decision | loop | parallel",
+      "entry_after": "main flow action after which this block appears",
+      "branches": [
+        {
+          "label": "branch 1",
+          "returns_to_main_flow": true
+        },
+        {
+          "label": "branch 2",
+          "returns_to_main_flow": true
+        }
+      ],
+      "requires_merge": true,
+      "exit_to": "main flow action where this block should reconnect",
+      "loop_back_to": "earlier action that a retry branch returns to, only for loops",
+      "notes": "optional short topology note"
+    }
+  ]
+}
+
+Rules:
+- Keep the sketch lightweight and high-level
+- Use short action phrases
+- Include only major control-flow structures
+- Use `requires_merge=true` when a decision or parallel split should close before continuing
+- For retry or validation loops, use `type="loop"` and set `loop_back_to` to the earlier action the retry branch returns to
+- Retry loops should normally use `requires_merge=false`
+- Do not mark a loop as requiring merge just because one branch loops backward
+- Only use `requires_merge=true` for a loop if multiple forward branches truly rejoin into the same later continuation
+- Use `exit_to` when the block should reconnect to a specific later main-flow action
+- If the process is linear, use an empty `control_blocks` list
+- Do not explain the answer
+- Do not use markdown

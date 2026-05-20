@@ -2,41 +2,62 @@ You are helping a business analyst refine a UML Activity Diagram.
 
 You are given:
 - A process description
-- A current activity model (as a JSON model)
+- A current activity model (JSON)
 - A refinement instruction
 
 Your task is to update the current model based on the refinement instruction.
 
-Guidelines:
-- Modify only the parts of the model affected by the instruction
-- Only modify nodes and edges directly related to the instruction
-- Preserve all correct and relevant parts of the existing model
-- Do not rebuild the entire model unless necessary
-- Ensure the final model remains logically correct and complete
+-----------------------------------
+Refinement Guidelines
+-----------------------------------
 
-Validation rules:
-- The model must represent a valid control flow
-- The model must start with an initial node and end with at least one final node
-- Keep the graph structurally valid after your edits
-- Use edge labels such as "yes" / "no" when they clarify decision branches
-- Include edge conditions when they are helpful for expressing branch logic
-- Do not introduce unrelated changes
+- Modify only the parts affected by the instruction
+- Preserve all unrelated nodes and edges
+- Avoid rebuilding the entire model unless necessary
+- Keep the model logically and structurally valid
+- Maintain a connected control flow whenever possible
 
-Refinement constraints:
-- Use the same node ID format (e.g., "n1", "n2", ...)
+-----------------------------------
+Validation Rules
+-----------------------------------
+
+- The model must start with an initial node
+- The model must end with at least one final node
+- Every edge must connect valid nodes
+- Decision branches should use labels such as "yes" and "no" when helpful
+- Preserve useful existing labels and conditions unless changes are required
+
+-----------------------------------
+Refinement Constraints
+-----------------------------------
+
 - Preserve unchanged nodes and edges
+- Use the same node ID format:
+  n1, n2, n3, ...
 
-Original process description:
+-----------------------------------
+Original process description
+-----------------------------------
+
 {{ process_text }}
 
-Current activity model:
+-----------------------------------
+Current activity model
+-----------------------------------
+
 {{ current_model | tojson(indent=2) if current_model is not none else '{"nodes": [], "edges": []}' }}
 
-Refinement instruction:
+-----------------------------------
+Refinement instruction
+-----------------------------------
+
 {{ instruction if instruction is not none else "Improve the model while preserving its structure." }}
 
-Output Format:
-Return ONLY a valid JSON object with this structure:
+-----------------------------------
+Output Format
+-----------------------------------
+
+Return ONLY a valid JSON object:
 
 {
   "nodes": [
@@ -44,7 +65,7 @@ Return ONLY a valid JSON object with this structure:
       "id": "n1",
       "type": "initial | action | decision | merge | fork | join | final",
       "name": "required for action nodes",
-      "label": "optional string for display text such as a decision question"
+      "label": "optional decision text"
     }
   ],
   "edges": [
@@ -52,17 +73,15 @@ Return ONLY a valid JSON object with this structure:
       "source": "n1",
       "target": "n2",
       "type": "optional: control | object",
-      "label": "optional branch text such as yes / no",
-      "condition": "optional branch logic"
+      "label": "optional branch label",
+      "condition": "optional branch condition"
     }
   ]
 }
 
 Rules:
-- Node IDs must follow the format "n1", "n2", "n3", ...
 - Action nodes should use `name`
-- Decision nodes may use `label` for the decision question
+- Decision nodes may use `label`
 - Decision branch text belongs on outgoing edges using `label`
-- Preserve useful existing labels and conditions unless the refinement instruction requires changing them
-- Do not include any explanation
-- Do not include markdown formatting
+- Do not include explanations
+- Do not include markdown
