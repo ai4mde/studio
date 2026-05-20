@@ -5,7 +5,7 @@ import {
     Textarea,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
-import { Ban, Pencil, Plus, Save, Trash } from "lucide-react";
+import { Ban, Pencil, Plus, Save, Trash, Link as LinkIcon } from "lucide-react";
 import Multiselect from 'multiselect-react-dropdown';
 import React, { useState } from 'react';
 import { useParams } from "react-router";
@@ -331,6 +331,20 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const handleAttributeLinkToggle = (sectionIndex: number, attrIndex: number) => {
+        const updatedAttributes = [...selectedAttributes];
+        const attr = updatedAttributes[attrIndex];
+        if (typeof attr === 'string') {
+            updatedAttributes[attrIndex] = { name: attr, is_link: true };
+        } else {
+            updatedAttributes[attrIndex] = { ...attr, is_link: !attr.is_link };
+        }
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+    };
+
     const handleAddCustomAttribute = (sectionIndex: number) => {
         if (!customAttr) return;
         const updatedAttributes = [...selectedAttributes, { name: customAttr }];
@@ -357,6 +371,15 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const handleMethodLabelChange = (sectionIndex: number, methodIndex: number, label: string) => {
+        const updatedMethods = [...selectedCustomMethods];
+        updatedMethods[methodIndex] = { ...updatedMethods[methodIndex], label };
+        setSelectedCustomMethods(updatedMethods);
+        const newData = [...data];
+        newData[sectionIndex].methods = updatedMethods;
+        setData(newData);
+    };
+
     return (
         <>
             {isSuccess && (
@@ -364,7 +387,7 @@ export const Sections: React.FC<Props> = () => {
                     {data.map((section, index) => (
                         <div key={index} className="flex flex-col gap-2">
                             {editIndex === index ? (
-                                <div className="w-[240px] flex flex-col gap-2 space-y-2">
+                                <div className="w-[280px] flex flex-col gap-2 space-y-2">
                                     <div>
                                         <h3 className="text-xl font-bold">Name</h3>
                                         {!pencelClick && (
@@ -453,6 +476,20 @@ export const Sections: React.FC<Props> = () => {
                                             onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
+                                        <div className="mt-2 space-y-1">
+                                            {selectedAttributes.map((attr, attrIdx) => (
+                                                <div key={attrIdx} className="flex items-center justify-between bg-stone-50 px-2 py-1 rounded-md border border-stone-200">
+                                                    <span className="text-xs truncate max-w-[180px]">{typeof attr === 'string' ? attr : attr.name}</span>
+                                                    <button 
+                                                        onClick={() => handleAttributeLinkToggle(index, attrIdx)}
+                                                        title="Toggle link to detail"
+                                                        className={`p-1 rounded-md ${ (typeof attr === 'object' && attr.is_link) ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100' }`}
+                                                    >
+                                                        <LinkIcon size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                         <div className="flex gap-1 mt-1">
                                             <input
                                                 type="text"
@@ -494,16 +531,34 @@ export const Sections: React.FC<Props> = () => {
                                                 />
                                             </>
                                         ) : (
-                                            <Multiselect
-                                                options={classCustomMethods}
-                                                displayValue='name'
-                                                placeholder="Select methods..."
-                                                showCheckbox={true}
-                                                style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                                selectedValues={selectedCustomMethods}
-                                                onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
-                                                onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
-                                            />
+                                            <>
+                                                <Multiselect
+                                                    options={classCustomMethods}
+                                                    displayValue='name'
+                                                    placeholder="Select methods..."
+                                                    showCheckbox={true}
+                                                    style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
+                                                    selectedValues={selectedCustomMethods}
+                                                    onSelect={(selectedList, selectedItem) => handleCustomMethodSelect(selectedList, selectedItem, index)}
+                                                    onRemove={(selectedList, selectedItem) => handleCustomMethodRemove(selectedList, selectedItem, index)}
+                                                />
+                                                <div className="mt-2 space-y-2">
+                                                    {selectedCustomMethods.map((method, mIdx) => (
+                                                        <div key={mIdx} className="space-y-1 bg-stone-50 p-2 rounded-md border border-stone-200">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-xs font-bold text-gray-600">{method.name}</span>
+                                                            </div>
+                                                            <input 
+                                                                type="text"
+                                                                placeholder="Label Template (e.g. Call {{ seller.phone }})"
+                                                                value={method.label || ''}
+                                                                onChange={(e) => handleMethodLabelChange(index, mIdx, e.target.value)}
+                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </>
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-1">

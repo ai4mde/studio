@@ -36,13 +36,15 @@ class SectionAttribute():
             type: AttributeType,
             enum_literals: Optional[List[str]],
             updatable: bool,
-            derived: bool = False
+            derived: bool = False,
+            is_link: bool = False
     ):
         self.name = name
         self.type = type
         self.enum_literals = enum_literals
         self.updatable = updatable
         self.derived = derived
+        self.is_link = is_link
 
     def __str__(self):
         return self.name
@@ -64,9 +66,11 @@ class SectionCustomMethod():
             action: str = None,
             target_model: str = None,
             call_name: str = None,
+            label: str = None
     ):
         self.name = name
         self.call_name = call_name or extract_call_name(body) or section_name_sanitization(name).lower()
+        self.label = label or name
         self.parameters = parameters or []
         self.action = action
         self.target_model = target_model

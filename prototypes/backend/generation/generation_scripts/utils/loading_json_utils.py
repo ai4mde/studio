@@ -159,12 +159,14 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
         attribute_type = AttributeType.STRING
         enum_literals = None
         derived = False
+        is_link = False
         
         if isinstance(attribute, str):
             attr_name = attribute
         else:
             attr_name = attribute["name"]
             derived = attribute.get("derived", False)
+            is_link = attribute.get("is_link", False)
             if attribute.get("type") == "str":
                 attribute_type  = AttributeType.STRING
             elif attribute.get("type") == "int":
@@ -182,7 +184,8 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
             type = attribute_type,
             enum_literals = enum_literals,
             updatable = True, # TODO: frontend management of updatable attributes
-            derived = derived
+            derived = derived,
+            is_link = is_link
         )
         out.append(att)
 
@@ -204,6 +207,7 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
             action = custom_method.get("action"),
             target_model = custom_method.get("target_model"),
             call_name = custom_method.get("call_name"),
+            label = custom_method.get("label"),
         )
         out.append(mtd)
     
