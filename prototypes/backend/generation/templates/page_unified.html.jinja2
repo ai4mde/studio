@@ -314,7 +314,7 @@
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
-<div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
+<div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components if section_component.position not in ('header', 'footer') %}
 {# â”€â”€ Resolve per-section style â”€â”€ #}
 {% set _s   = section_component.style %}
@@ -1804,6 +1804,50 @@
   </form>
 </div>
 {% endif %}
+<script>
+(function() {
+  var grid = document.getElementById('page-sections-grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = {};
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (!byPos[pos]) byPos[pos] = [];
+    byPos[pos].push(el);
+  });
+  var hasHero = byPos.hero && byPos.hero.length;
+  var hasSidebar = byPos.sidebar && byPos.sidebar.length;
+  if (!hasHero && !hasSidebar) return;
+  var parent = grid.parentNode;
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+  if (hasHero) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+  var mainSecs = byPos.main || [];
+  var sidebarSecs = byPos.sidebar || [];
+  if (mainSecs.length || sidebarSecs.length) {
+    var hasSidebarEl = sidebarSecs.length > 0;
+    var contentRow = document.createElement('div');
+    contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
+    var mainGrid = document.createElement('div');
+    mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+    mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
+    contentRow.appendChild(mainGrid);
+    if (hasSidebarEl) {
+      var sideEl = document.createElement('aside');
+      sideEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+      sidebarSecs.forEach(function(el) { el.className = 'w-full'; sideEl.appendChild(el); });
+      contentRow.appendChild(sideEl);
+    }
+    wrap.appendChild(contentRow);
+  }
+  parent.replaceChild(wrap, grid);
+})();
+</script>
 
 {% raw %}{% endblock %}{% endraw %}
 {% endif %}

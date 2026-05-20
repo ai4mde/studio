@@ -271,6 +271,14 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% for model in models_on_pages[page]['parent_models'] -%}
         context['parent_{{model}}_list'] = {{model}}.objects.all()
         {% endfor -%}
+        {% if page.section_components and models_on_pages[page]['primary_models'] -%}
+        {% set _main_img_model = models_on_pages[page]['primary_models'][0] -%}
+        {% for attr in page.section_components[0].attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ _main_img_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
+        {% endif -%}
         {% if page.type == 'activity' -%}
         {% if models_on_pages[page]['primary_models'] | length > 1 -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
@@ -293,15 +301,30 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% if _ns_p.model in section.parent_models -%}
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.all()
         context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% elif _ns_p.section and section.primary_model in _ns_p.section.parent_models -%}
         _direct_id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.filter(id=_direct_id_{{ section.name }}) if _direct_id_{{ section.name }} else {{ section.primary_model }}.objects.all()
         context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% else -%}
         {% if section.primary_model != _ns_p.model -%}
         _id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
         _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=_id_{{ section.name }}) if _id_{{ section.name }} else {{ section.primary_model }}.objects.all()
         context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }})
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% endif -%}
         {% endif -%}
         {% endif -%}
@@ -329,6 +352,11 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
         {% endif -%}
         context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }})
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in list(context.get('related_{{ section.name }}_list', [])):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% endif -%}
         {% endif -%}
         {% endif -%}
