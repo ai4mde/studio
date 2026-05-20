@@ -234,13 +234,27 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
     sections_raw = interface_data.get("sections", [])
     section_by_id: Dict[str, Dict] = {s["id"]: s for s in sections_raw}
+    layout_region_section_ids = [
+        str(s.get("id"))
+        for s in sections_raw
+        if s.get("id") and s.get("position") in ("header", "footer", "sidebar")
+    ]
 
     app_name = _sanitize(interface_name)
 
     pages = []
     for p_raw in interface_data.get("pages", []):
         section_components = []
-        for ref in p_raw.get("sections", []):
+        page_section_refs = list(p_raw.get("sections", []))
+        page_section_ids = {
+            str(ref.get("value") if isinstance(ref, dict) else ref)
+            for ref in page_section_refs
+        }
+        for region_section_id in layout_region_section_ids:
+            if region_section_id not in page_section_ids:
+                page_section_refs.append({"value": region_section_id})
+
+        for ref in page_section_refs:
             sec_id = ref.get("value") if isinstance(ref, dict) else str(ref)
             s_raw = section_by_id.get(sec_id)
             if not s_raw:

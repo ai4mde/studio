@@ -311,7 +311,20 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 if page["name"] != page_name:
                     continue
 
-                for page_section in page["sections"]:
+                page_sections = list(page.get("sections", []))
+                page_section_ids = {
+                    str(page_section.get("value"))
+                    for page_section in page_sections
+                    if isinstance(page_section, dict) and page_section.get("value")
+                }
+                for application_section in application_component["value"]["data"].get("sections", []):
+                    section_position = application_section.get("position", "main")
+                    section_id = str(application_section.get("id", ""))
+                    if section_position in ("header", "footer", "sidebar") and section_id and section_id not in page_section_ids:
+                        page_sections.append({"value": section_id})
+                        page_section_ids.add(section_id)
+
+                for page_section in page_sections:
                     section = None
                     page_section_id = page_section["value"]
                     for application_section in application_component["value"]["data"]["sections"]:
