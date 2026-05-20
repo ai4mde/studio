@@ -15,6 +15,27 @@ import useLocalStorage from './useLocalStorage';
 type Props = {
 };
 
+const CHROME_LAYOUTS = [
+    'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
+    'service-bar', 'link-grid', 'brand-strip',
+    'site-nav', 'site-footer',
+];
+
+const METHODS_HINTS: Record<string, string> = {
+    'promo-bar':      'Each line = promo strip item (e.g. "Gratis verzending vanaf €25,-"). Text field = right-side CTA label.',
+    'logo':           'Text field = brand name shown in the logo.',
+    'search-bar':     'Text field = search input placeholder.',
+    'icon-actions':   'Each line = action label (e.g. "Inloggen", "♡", "Cart icon").',
+    'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links (e.g. "Zakelijk").',
+    'main-header':    'Text field = search placeholder. Uses promo-bar/logo/search-bar/icon-actions sections instead.',
+    'minimal-header': 'Text field = cart amount shown in header button (e.g. "0,00").',
+    'service-bar':    'Each line = a service bar link in the footer.',
+    'link-grid':      'Line 1 = column title. Lines 2+ = footer links in that column.',
+    'brand-strip':    'Each line = a brand name shown in the brand strip.',
+    'site-nav':       'Lines 1–3: promo strip items. Line 4: right-side highlight text.',
+    'site-footer':    'Each line becomes a service-bar link in the footer.',
+};
+
 export const Sections: React.FC<Props> = () => {
     const { systemId } = useParams();
     const [data, setData, isSuccess] = useLocalStorage('sections', []);
@@ -384,44 +405,6 @@ export const Sections: React.FC<Props> = () => {
                                                 ))}
                                         </div>
                                     </div>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Layout</h3>
-                                        <select
-                                            value={data[index].layout || 'table'}
-                                            onChange={(e) => {
-                                                const newData = [...data];
-                                                newData[index].layout = e.target.value;
-                                                setData(newData);
-                                            }}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            <option value="table">Table</option>
-                                            <option value="card">Card</option>
-                                            <option value="gallery">Gallery</option>
-                                            <option value="list">List</option>
-                                            <option value="detail">Detail</option>
-                                            <option value="site-nav">Site Nav (header chrome)</option>
-                                            <option value="site-footer">Site Footer (footer chrome)</option>
-                                        </select>
-                                    </FormControl>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Position</h3>
-                                        <select
-                                            value={data[index].position || 'main'}
-                                            onChange={(e) => {
-                                                const newData = [...data];
-                                                newData[index].position = e.target.value;
-                                                setData(newData);
-                                            }}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            <option value="header">Header</option>
-                                            <option value="hero">Hero</option>
-                                            <option value="main">Main</option>
-                                            <option value="sidebar">Sidebar</option>
-                                            <option value="footer">Footer</option>
-                                        </select>
-                                    </FormControl>
                                     <div className="space-y-1">
                                         <h3 className="text-xl font-bold">Operations</h3>
                                         <div className="flex gap-2">
@@ -460,15 +443,13 @@ export const Sections: React.FC<Props> = () => {
                                     </div>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">
-                                            {['site-nav', 'site-footer'].includes(data[index].layout) ? 'Methods (one per line)' : 'Custom Operations'}
+                                            {CHROME_LAYOUTS.includes(data[index].layout) ? 'Methods (one per line)' : 'Custom Operations'}
                                         </h3>
-                                        {['site-nav', 'site-footer'].includes(data[index].layout) ? (
+                                        {CHROME_LAYOUTS.includes(data[index].layout) ? (
                                             <>
-                                                <p className="text-xs text-gray-400">
-                                                    {data[index].layout === 'site-nav'
-                                                        ? 'Lines 1-3: promo strip items. Line 4: right-side highlight text.'
-                                                        : 'Each line becomes a service-bar link in the footer.'}
-                                                </p>
+                                                {METHODS_HINTS[data[index].layout] && (
+                                                    <p className="text-xs text-gray-400">{METHODS_HINTS[data[index].layout]}</p>
+                                                )}
                                                 <Textarea
                                                     minRows={4}
                                                     maxRows={6}
@@ -542,6 +523,7 @@ export const Sections: React.FC<Props> = () => {
                                             </>
                                         )}
                                     </FormControl>
+                                    {!CHROME_LAYOUTS.includes(data[index].layout) && (<>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-xl font-bold">Related To</h3>
                                         <p className="text-xs text-gray-500">Show items related to the selected section's object (e.g. same category).</p>
@@ -736,6 +718,7 @@ export const Sections: React.FC<Props> = () => {
                                             ))}
                                         </select>
                                     </FormControl>
+                                    </>)}
                                     <Divider />
                                     <div className="flex gap-2">
                                         <button

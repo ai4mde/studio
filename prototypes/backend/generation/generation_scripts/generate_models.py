@@ -82,8 +82,8 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
             type = att_type,
             enum_literals = enum_literals,
             cardinality = None,
-            derived = attribute["derived"],
-            body = attribute["body"]
+            derived = attribute.get("derived", False),
+            body = attribute.get("body")
         )
         out.append(att)
 

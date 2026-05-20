@@ -6,9 +6,16 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
 
-type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery';
+type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery' | 'filter' | 'form'
+    | 'promo-bar' | 'logo' | 'search-bar' | 'icon-actions' | 'nav-links' | 'main-header' | 'minimal-header'
+    | 'service-bar' | 'link-grid' | 'brand-strip'
+    | 'site-nav' | 'site-footer';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
+type DisplayModeOption = 'grid' | 'carousel' | 'banner';
+type CardStyleOption = 'default' | 'product' | 'category' | 'compact';
+type ListStyleOption = 'default' | 'product' | 'cart-item';
+type FormStyleOption = 'default' | 'auth' | 'step' | 'summary';
 type ImagePositionOption = 'left' | 'top' | 'right';
 type ImageSizeOption = 'sm' | 'md' | 'lg';
 type ColSpanOption = 12 | 6 | 4 | 3;
@@ -17,6 +24,36 @@ type ShadowOption = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 type BorderOption = 'none' | 'light' | 'colored' | 'strong';
 type BgOption = 'white' | 'light' | 'gray' | 'dark';
 type HeaderStyleOption = 'default' | 'large' | 'small' | 'colored' | 'hidden';
+
+const CHROME_LAYOUTS: LayoutOption[] = [
+    'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
+    'service-bar', 'link-grid', 'brand-strip', 'site-nav', 'site-footer',
+];
+
+const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
+    table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    card:    ['display_mode', 'card_style', 'columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
+    list:    ['list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'availability_label', 'delivery_label'],
+    detail:  ['image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    filter:  ['color', 'density', 'bg'],
+    form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label'],
+};
+
+const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
+    'promo-bar':      'Each line = promo strip item (e.g. "Gratis verzending vanaf €25,-"). Text field = right-side CTA label.',
+    'logo':           'Text field = brand name shown in the logo.',
+    'search-bar':     'Text field = search input placeholder.',
+    'icon-actions':   'Each line = action label (e.g. "Inloggen", "♡", "Cart icon").',
+    'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links.',
+    'main-header':    'Text field = search placeholder.',
+    'minimal-header': 'Text field = cart amount in header button (e.g. "0,00").',
+    'service-bar':    'Each line = a service bar link in the footer.',
+    'link-grid':      'Line 1 = column title. Lines 2+ = footer links in that column.',
+    'brand-strip':    'Each line = a brand name shown in the brand strip.',
+    'site-nav':       'Lines 1–3: promo strip items. Line 4: right-side highlight text.',
+    'site-footer':    'Each line becomes a service-bar link in the footer.',
+};
 
 const POSITION_OPTIONS: { value: PositionOption; label: string; bg: string; color: string; border: string }[] = [
     { value: 'header',  label: 'Header',  bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
@@ -31,12 +68,33 @@ interface AgentDesignProps {
     systemId?: string | null;
 }
 
-const LAYOUT_OPTIONS: { value: LayoutOption; label: string; icon: React.ReactNode }[] = [
-    { value: 'card', label: 'Card', icon: <LayoutGrid size={13} /> },
-    { value: 'list', label: 'List', icon: <AlignJustify size={13} /> },
-    { value: 'table', label: 'Table', icon: <Table2 size={13} /> },
-    { value: 'detail', label: 'Detail', icon: <Code2 size={13} /> },
-    { value: 'gallery', label: 'Gallery', icon: <GalleryHorizontal size={13} /> },
+type LayoutGroup = { label: string; options: { value: LayoutOption; label: string; icon: React.ReactNode }[] };
+const LAYOUT_GROUPS: LayoutGroup[] = [
+    { label: 'Generic', options: [
+        { value: 'table',   label: 'Table',   icon: <Table2 size={13} /> },
+        { value: 'card',    label: 'Card',    icon: <LayoutGrid size={13} /> },
+        { value: 'list',    label: 'List',    icon: <AlignJustify size={13} /> },
+        { value: 'detail',  label: 'Detail',  icon: <Code2 size={13} /> },
+        { value: 'gallery', label: 'Gallery', icon: <GalleryHorizontal size={13} /> },
+        { value: 'filter',  label: 'Filter',  icon: <AlignJustify size={13} /> },
+        { value: 'form',    label: 'Form',    icon: <Code2 size={13} /> },
+    ]},
+    { label: 'Header', options: [
+        { value: 'promo-bar',      label: 'Promo Bar',    icon: <Monitor size={13} /> },
+        { value: 'logo',           label: 'Logo',         icon: <Monitor size={13} /> },
+        { value: 'search-bar',     label: 'Search Bar',   icon: <Monitor size={13} /> },
+        { value: 'icon-actions',   label: 'Icon Actions', icon: <Monitor size={13} /> },
+        { value: 'nav-links',      label: 'Nav Links',    icon: <Monitor size={13} /> },
+        { value: 'main-header',    label: 'Main Header',  icon: <Monitor size={13} /> },
+        { value: 'minimal-header', label: 'Min. Header',  icon: <Monitor size={13} /> },
+    ]},
+    { label: 'Footer', options: [
+        { value: 'service-bar', label: 'Service Bar', icon: <Monitor size={13} /> },
+        { value: 'link-grid',   label: 'Link Grid',   icon: <Monitor size={13} /> },
+        { value: 'brand-strip', label: 'Brand Strip', icon: <Monitor size={13} /> },
+        { value: 'site-nav',    label: 'Site Nav',    icon: <Monitor size={13} /> },
+        { value: 'site-footer', label: 'Site Footer', icon: <Monitor size={13} /> },
+    ]},
 ];
 
 const COL_SPAN_OPTIONS: { value: ColSpanOption; label: string }[] = [
@@ -284,6 +342,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
     const secDensity: DensityOption = (secStyle.density as DensityOption) || 'normal';
     const secColumns = String(secStyle.columns ?? '3');
+    const secDisplayMode: DisplayModeOption = (secStyle.display_mode as DisplayModeOption) || 'grid';
+    const secCardStyle: CardStyleOption = (secStyle.card_style as CardStyleOption) || 'default';
+    const secListStyle: ListStyleOption = (secStyle.list_style as ListStyleOption) || 'default';
+    const secFormStyle: FormStyleOption = (secStyle.form_style as FormStyleOption) || 'default';
     const secImagePosition: ImagePositionOption = (secStyle.image_position as ImagePositionOption) || 'top';
     const secImageSize: ImageSizeOption = (secStyle.image_size as ImageSizeOption) || 'md';
     const secShadow: ShadowOption = (secStyle.shadow as ShadowOption) || 'none';
@@ -291,6 +353,11 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const secBg: BgOption = (secStyle.bg as BgOption) || 'white';
     const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
     const isMethodOnly = !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
+
+    const layoutControls: readonly string[] = CHROME_LAYOUTS.includes(secLayout)
+        ? ['methods']
+        : (LAYOUT_CONTROLS[secLayout] ?? []);
+    const hasControl = (c: string) => layoutControls.includes(c);
 
     const currentPage = (pages as any[])[previewPageIndex];
     const pageLayout = currentPage?.layout?.value || 'vertical';
@@ -428,12 +495,19 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                     <span style={{ fontSize: 11, color: '#9ca3af' }}>auto — no attributes</span>
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                                    {LAYOUT_OPTIONS.map(opt => (
-                                        <button key={opt.value} style={{ ...btnBase, ...active(secLayout === opt.value) }}
-                                            onClick={() => updateSection(selectedSection.id, 'layout', opt.value)}>
-                                            {opt.icon}{opt.label}
-                                        </button>
+                                <div style={{ marginBottom: 10 }}>
+                                    {LAYOUT_GROUPS.map(group => (
+                                        <div key={group.label} style={{ marginBottom: 4 }}>
+                                            <p style={{ fontSize: 9, color: '#9ca3af', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{group.label}</p>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                                                {group.options.map(opt => (
+                                                    <button key={opt.value} style={{ ...btnBase, ...active(secLayout === opt.value), padding: '3px 6px', fontSize: 11 }}
+                                                        onClick={() => updateSection(selectedSection.id, 'layout', opt.value)}>
+                                                        {opt.icon}{opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -470,126 +544,208 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 ))}
                             </div>
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Color</p>
+                            {/* card: display_mode */}
+                            {hasControl('display_mode') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Display</p>
+                            <div style={{ display: 'flex', gap: 3, marginBottom: 10 }}>
+                                {([{v:'grid',l:'Grid'},{v:'carousel',l:'Carousel'},{v:'banner',l:'Banner'}] as {v:DisplayModeOption;l:string}[]).map(o => (
+                                    <button key={o.v} style={{ ...btnBase, ...active(secDisplayMode === o.v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'display_mode', o.v)}>{o.l}</button>
+                                ))}
+                            </div></>)}
+
+                            {/* card: card_style */}
+                            {hasControl('card_style') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Card Style</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
+                                {([{v:'default',l:'Default'},{v:'product',l:'Product'},{v:'category',l:'Category'},{v:'compact',l:'Compact'}] as {v:CardStyleOption;l:string}[]).map(o => (
+                                    <button key={o.v} style={{ ...btnBase, ...active(secCardStyle === o.v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'card_style', o.v)}>{o.l}</button>
+                                ))}
+                            </div></>)}
+
+                            {/* list: list_style */}
+                            {hasControl('list_style') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>List Style</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
+                                {([{v:'default',l:'Default'},{v:'product',l:'Product'},{v:'cart-item',l:'Cart Item'}] as {v:ListStyleOption;l:string}[]).map(o => (
+                                    <button key={o.v} style={{ ...btnBase, ...active(secListStyle === o.v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'list_style', o.v)}>{o.l}</button>
+                                ))}
+                            </div></>)}
+
+                            {/* form: form_style */}
+                            {hasControl('form_style') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Form Style</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
+                                {([{v:'default',l:'Default'},{v:'auth',l:'Auth'},{v:'step',l:'Step'},{v:'summary',l:'Summary'}] as {v:FormStyleOption;l:string}[]).map(o => (
+                                    <button key={o.v} style={{ ...btnBase, ...active(secFormStyle === o.v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'form_style', o.v)}>{o.l}</button>
+                                ))}
+                            </div></>)}
+
+                            {/* columns */}
+                            {hasControl('columns') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Columns</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {['2','3','4','5','6'].map(n => (
+                                    <button key={n} style={{ ...btnBase, ...active(secColumns === n), width: 28, justifyContent: 'center' }}
+                                        onClick={() => updateSection(selectedSection.id, 'columns', n)}>{n}</button>
+                                ))}
+                            </div></>)}
+
+                            {/* image_position (detail) */}
+                            {hasControl('image_position') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Position</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {([{value:'left',label:'Left'},{value:'top',label:'Top'},{value:'right',label:'Right'}] as {value:ImagePositionOption;label:string}[]).map(o => (
+                                    <button key={o.value} style={{ ...btnBase, ...active(secImagePosition === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'image_position', o.value)}>{o.label}</button>
+                                ))}
+                            </div>
+                            {secImagePosition !== 'top' && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Size</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {([{value:'sm',label:'Small'},{value:'md',label:'Medium'},{value:'lg',label:'Large'}] as {value:ImageSizeOption;label:string}[]).map(o => (
+                                    <button key={o.value} style={{ ...btnBase, ...active(secImageSize === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'image_size', o.value)}>{o.label}</button>
+                                ))}
+                            </div></>)}</>)}
+
+                            {/* universal style */}
+                            {hasControl('color') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Color</p>
                             <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                                 {COLOR_OPTIONS.map(c => (
-                                    <button key={c} title={c}
-                                        onClick={() => updateSection(selectedSection.id, 'color', c)}
-                                        style={{
-                                            width: 22, height: 22, borderRadius: '50%',
-                                            background: COLOR_HEX[c], cursor: 'pointer',
+                                    <button key={c} title={c} onClick={() => updateSection(selectedSection.id, 'color', c)}
+                                        style={{ width: 22, height: 22, borderRadius: '50%', background: COLOR_HEX[c], cursor: 'pointer',
                                             border: secColor === c ? `3px solid ${COLOR_HEX[c]}` : '2px solid transparent',
-                                            outline: secColor === c ? '2px solid #93c5fd' : 'none',
-                                            outlineOffset: 1,
-                                        }}
-                                    />
+                                            outline: secColor === c ? '2px solid #93c5fd' : 'none', outlineOffset: 1 }} />
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Density</p>
+                            {hasControl('density') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Density</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {(['compact', 'normal', 'spacious'] as DensityOption[]).map(d => (
+                                {(['compact','normal','spacious'] as DensityOption[]).map(d => (
                                     <button key={d} style={{ ...btnBase, ...active(secDensity === d), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'density', d)}>
-                                        {d}
-                                    </button>
+                                        onClick={() => updateSection(selectedSection.id, 'density', d)}>{d}</button>
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shadow</p>
+                            {hasControl('shadow') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shadow</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {(['none', 'sm', 'md', 'lg', 'xl'] as ShadowOption[]).map(s => (
+                                {(['none','sm','md','lg','xl'] as ShadowOption[]).map(s => (
                                     <button key={s} style={{ ...btnBase, ...active(secShadow === s), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'shadow', s)}>
-                                        {s}
-                                    </button>
+                                        onClick={() => updateSection(selectedSection.id, 'shadow', s)}>{s}</button>
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Border</p>
+                            {hasControl('border') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Border</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {(['none', 'light', 'colored', 'strong'] as BorderOption[]).map(b => (
+                                {(['none','light','colored','strong'] as BorderOption[]).map(b => (
                                     <button key={b} style={{ ...btnBase, ...active(secBorder === b), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'border', b)}>
-                                        {b}
-                                    </button>
+                                        onClick={() => updateSection(selectedSection.id, 'border', b)}>{b}</button>
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
+                            {hasControl('bg') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                {(['white', 'light', 'gray', 'dark'] as BgOption[]).map(b => (
+                                {(['white','light','gray','dark'] as BgOption[]).map(b => (
                                     <button key={b} style={{ ...btnBase, ...active(secBg === b), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'bg', b)}>
-                                        {b}
-                                    </button>
+                                        onClick={() => updateSection(selectedSection.id, 'bg', b)}>{b}</button>
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Title</p>
+                            {hasControl('header_style') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Title</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                                {([
-                                    { value: 'default', label: 'Default' },
-                                    { value: 'large',   label: 'Large' },
-                                    { value: 'small',   label: 'Small' },
-                                    { value: 'colored', label: 'Colored' },
-                                    { value: 'hidden',  label: 'Hidden' },
-                                ] as { value: HeaderStyleOption; label: string }[]).map(opt => (
-                                    <button key={opt.value} style={{ ...btnBase, ...active(secHeaderStyle === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                        onClick={() => updateSection(selectedSection.id, 'header_style', opt.value)}>
-                                        {opt.label}
-                                    </button>
+                                {([{value:'default',label:'Default'},{value:'large',label:'Large'},{value:'small',label:'Small'},{value:'colored',label:'Colored'},{value:'hidden',label:'Hidden'}] as {value:HeaderStyleOption;label:string}[]).map(o => (
+                                    <button key={o.value} style={{ ...btnBase, ...active(secHeaderStyle === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'header_style', o.value)}>{o.label}</button>
                                 ))}
-                            </div>
+                            </div></>)}
 
-                            {secLayout === 'card' && (
-                                <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Columns</p>
-                                    <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                        {['1', '2', '3', '4'].map(n => (
-                                            <button key={n} style={{ ...btnBase, ...active(secColumns === n), width: 28, justifyContent: 'center' }}
-                                                onClick={() => updateSection(selectedSection.id, 'columns', n)}>
-                                                {n}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
+                            {/* label inputs */}
+                            {hasControl('cta_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CTA Button Label</p>
+                            <input type="text" placeholder="e.g. In winkelwagen"
+                                value={secStyle.cta_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'cta_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
 
-                            {secLayout === 'detail' && (
+                            {hasControl('seller_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Seller Label</p>
+                            <input type="text" placeholder="e.g. Verkoop door bol"
+                                value={secStyle.seller_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'seller_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('availability_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Availability Label</p>
+                            <input type="text" placeholder="e.g. Op voorraad"
+                                value={secStyle.availability_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'availability_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('delivery_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Delivery Label</p>
+                            <input type="text" placeholder="e.g. ✓ Morgen in huis"
+                                value={secStyle.delivery_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'delivery_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('login_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Login Button Label</p>
+                            <input type="text" placeholder="e.g. Inloggen"
+                                value={secStyle.login_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'login_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('step_icon') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Step Icon (emoji)</p>
+                            <input type="text" placeholder="e.g. 📦 🏠 💳"
+                                value={secStyle.step_icon ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'step_icon', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('total_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Label</p>
+                            <input type="text" placeholder="e.g. Nog te betalen:"
+                                value={secStyle.total_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'total_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('methods') && (
                                 <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Position</p>
-                                    <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                        {([
-                                            { value: 'left', label: 'Left' },
-                                            { value: 'top', label: 'Top' },
-                                            { value: 'right', label: 'Right' },
-                                        ] as { value: ImagePositionOption; label: string }[]).map(opt => (
-                                            <button key={opt.value}
-                                                style={{ ...btnBase, ...active(secImagePosition === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                                onClick={() => updateSection(selectedSection.id, 'image_position', opt.value)}>
-                                                {opt.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {secImagePosition !== 'top' && (
-                                        <>
-                                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Size</p>
-                                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                                                {([
-                                                    { value: 'sm', label: 'Small' },
-                                                    { value: 'md', label: 'Medium' },
-                                                    { value: 'lg', label: 'Large' },
-                                                ] as { value: ImageSizeOption; label: string }[]).map(opt => (
-                                                    <button key={opt.value}
-                                                        style={{ ...btnBase, ...active(secImageSize === opt.value), padding: '3px 7px', fontSize: 11 }}
-                                                        onClick={() => updateSection(selectedSection.id, 'image_size', opt.value)}>
-                                                        {opt.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
+                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Methods (one per line)</p>
+                                    {METHODS_HINTS[secLayout] && (
+                                        <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
                                     )}
+                                    <textarea
+                                        rows={4}
+                                        placeholder="Gratis verzending vanaf €25,-&#10;Bezorging zelfde dag*&#10;Gratis retourneren"
+                                        value={(selectedSection.methods || []).map((m: any) =>
+                                            typeof m === 'string' ? m : (m?.name || m?.label || '')
+                                        ).join('\n')}
+                                        onChange={e => {
+                                            const lines = e.target.value.split('\n').map((l: string) => ({ name: l }));
+                                            setSections((prev: any[]) => prev.map((s: any) =>
+                                                s.id === selectedSection.id ? { ...s, methods: lines } : s
+                                            ));
+                                        }}
+                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, resize: 'vertical', boxSizing: 'border-box' }}
+                                    />
                                 </>
                             )}
                         </>

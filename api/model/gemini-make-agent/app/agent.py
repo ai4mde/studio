@@ -4,13 +4,43 @@ from app.tools import interface_config_tool, update_interface_patch_tool
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
-  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery"
+  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form"
   sections[].col_span      : 12 | 6 | 4 | 3
-  sections[].style.color   : "blue" | "green" | "purple" | "orange" | "rose" | "slate"
-  sections[].style.density : "compact" | "normal" | "spacious"
-  sections[].style.columns : "1" | "2" | "3" | "4"
+  sections[].position      : "main" | "sidebar" | "header" | "footer"
+
+Card style (layout="card"):
+  sections[].style.display_mode : "grid" | "carousel" | "banner"
+  sections[].style.card_style   : "default" | "product" | "category" | "compact"
+  sections[].style.columns      : "1" | "2" | "3" | "4"
+
+List style (layout="list"):
+  sections[].style.list_style   : "default" | "product" | "cart-item"
+
+Form style (layout="form"):
+  sections[].style.form_style   : "default" | "auth" | "step" | "summary"
+  sections[].style.login_label  : any string (button label for auth)
+  sections[].style.step_icon    : emoji or "" (icon for step header)
+  sections[].style.total_label  : any string (label for total row in summary)
+  sections[].style.cta_label    : any string (primary action button label; "" = hidden)
+
+Detail style (layout="detail"):
   sections[].style.image_position : "left" | "top" | "right"
   sections[].style.image_size     : "sm" | "md" | "lg"
+
+Universal style controls:
+  sections[].style.color         : "blue" | "green" | "purple" | "orange" | "rose" | "slate"
+  sections[].style.density       : "compact" | "normal" | "spacious"
+  sections[].style.shadow        : "none" | "sm" | "md" | "lg"
+  sections[].style.border        : "none" | "light" | "colored"
+  sections[].style.bg            : "white" | "light" | "dark" | "transparent"
+  sections[].style.header_style  : "default" | "large" | "hidden"
+
+Static label controls (empty string = hidden):
+  sections[].style.seller_label       : any string (e.g. "Sold by")
+  sections[].style.availability_label : any string (e.g. "In stock")
+  sections[].style.delivery_label     : any string (e.g. "Free delivery")
+
+Page layout:
   pages[].layout.value : "vertical" | "vertical-reverse" | "horizontal" | "horizontal-reverse"
   pages[].gap.value    : "compact" | "normal" | "spacious"
 

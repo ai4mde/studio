@@ -54,7 +54,7 @@
 
 
 
-<div class="col-span-12" data-section-id="7a93fd6eb72d49f394d4bb3f801bbec1" data-section-name="write review" data-position="main">
+<div class="col-span-12" data-section-id="7a93fd6eb72d49f394d4bb3f801bbec1" data-section-name="write review" data-position="main" data-layout="table">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -214,12 +214,31 @@
   var mainGrid = document.createElement('div');
   mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
   byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
-  contentRow.appendChild(mainGrid);
+
   if (hasSidebar) {
-    var sidebarEl = document.createElement('aside');
-    sidebarEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
-    byPos.sidebar.forEach(function(el) { el.className = 'w-full'; sidebarEl.appendChild(el); });
-    contentRow.appendChild(sidebarEl);
+    // filter-panel goes LEFT (before main); summary-panel / other sidebars go RIGHT
+    var leftSidebarItems = [], rightSidebarItems = [];
+    byPos.sidebar.forEach(function(el) {
+      var lay = el.getAttribute('data-layout') || '';
+      if (lay === 'filter-panel') leftSidebarItems.push(el);
+      else rightSidebarItems.push(el);
+    });
+
+    if (leftSidebarItems.length) {
+      var leftEl = document.createElement('aside');
+      leftEl.className = 'w-64 flex-shrink-0 flex flex-col gap-4';
+      leftSidebarItems.forEach(function(el) { el.className = 'w-full'; leftEl.appendChild(el); });
+      contentRow.appendChild(leftEl);
+    }
+    contentRow.appendChild(mainGrid);
+    if (rightSidebarItems.length) {
+      var rightEl = document.createElement('aside');
+      rightEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+      rightSidebarItems.forEach(function(el) { el.className = 'w-full'; rightEl.appendChild(el); });
+      contentRow.appendChild(rightEl);
+    }
+  } else {
+    contentRow.appendChild(mainGrid);
   }
   wrap.appendChild(contentRow);
 

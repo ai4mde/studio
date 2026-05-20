@@ -1,4 +1,4 @@
-{% raw %}{% load static %}{% endraw %}
+﻿{% raw %}{% load static %}{% endraw %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,61 +8,297 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href='{% raw %}{%{% endraw %} static '{{ application_name }}/{{ application_name }}_style.css' {% raw %}%}{% endraw %}'>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
 
-    <!-- Header -->
-    <header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ styling.accent_color or '#1e3a5f' }};">
-        <div class="flex items-center gap-3">
-            {% if logo %}<img src="{{ logo }}" class="h-8 w-auto">{% endif %}
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
-                {{ application_name | capitalize }}
+{%- set _accent_hex = _accent_hex if _accent_hex is defined else (styling.accent_color if styling and styling.accent_color else '#0000a4') %}
+{%- set _brand_name = _brand_name if _brand_name is defined else application_name %}
+{%- set _header_secs = header_sections or [] %}
+{%- set _footer_secs = footer_sections or [] %}
+{%- set _search_pages = pages | selectattr('type', 'equalto', 'normal') | list %}
+{%- set _search_page = _search_pages[0] if _search_pages else none %}
+
+{%- set _main_row_open = [] %}
+{%- for sc in _header_secs %}
+{%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
+{%- if _inline_lay and not _main_row_open %}
+  {%- set _ = _main_row_open.append(1) %}
+<header class="bg-white px-6 py-3 flex items-center gap-4" data-position="header" data-layout="main-header-row">
+{%- elif not _inline_lay and _main_row_open %}
+  {%- set _ = _main_row_open.clear() %}
+</header>
+{%- endif %}
+
+{%- if sc.layout in ('promo-bar', 'promo-strip') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+    <div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+        <div class="flex items-center gap-6">
+            {%- for m in sc.custom_methods[:3] %}
+            <span>{{ m }}</span>
+            {%- endfor %}
+        </div>
+        {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
+    </div>
+</div>
+
+{%- elif sc.layout == 'logo' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
+</div>
+
+{%- elif sc.layout == 'search-bar' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
+    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
+        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+            <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+    </form>
+</div>
+
+{%- elif sc.layout == 'icon-actions' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
+    <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        {%- if sc.custom_methods %}
+        {%- for m in sc.custom_methods %}
+        <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+        {%- endfor %}
+        {%- else %}
+        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+
+        </a>
+        {%- endif %}
+    </div>
+</div>
+
+{%- elif sc.layout == 'main-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
+    <header class="bg-white px-6 py-3 flex items-center gap-4">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+            <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
+            <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+        </form>
+        <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+            <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+
             </a>
         </div>
-        {% if authentication_present -%}
-        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
-        {%- else -%}
-        <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Other Application</a>
-        {%- endif %}
     </header>
+</div>
 
-    <!-- Nav bar -->
-    <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
-               class="hover:text-gray-900 transition-colors">Home</a>
-
-            {% if settings.manager_access %}
-            <span class="text-gray-300">|</span>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}"
-               class="hover:text-gray-900 transition-colors">Activity log</a>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}"
-               class="hover:text-gray-900 transition-colors">User assignment</a>
-            {% endif %}
-
-            {% for category in categories %}
-            <span class="text-gray-300">|</span>
-            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
-            {% for page in pages %}
-            {% if page.type == 'normal' and page.category == category.name %}
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
-               class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
-            {% endif %}
-            {% endfor %}
-            {% endfor %}
-
-            {% for page in pages %}
-            {% if page.category in ["", none] and page.type != 'activity' %}
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}"
-               class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
-            {% endif %}
-            {% endfor %}
+{%- elif sc.layout in ('nav-links', 'nav-bar') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
+            <div class="flex items-center gap-0">
+                <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾
+                </span>
+                {%- for p in (pages or []) %}
+                {%- if p.type == 'activity' %}
+                <span class="px-3 py-1.5 cursor-default rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700{% endif %}"
+                   style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+                {%- else %}
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
+                   class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                   style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+                {%- endif %}
+                {%- endfor %}
+                {%- for m in sc.custom_methods[1:4] %}
+                <span class="px-3 py-1.5 cursor-pointer rounded text-gray-700 hover:bg-gray-100">{{ m }}</span>
+                {%- endfor %}
+            </div>
+            <div class="flex items-center gap-4 text-gray-500 text-xs shrink-0">
+                {%- for m in sc.custom_methods[4:] %}
+                <span class="cursor-pointer hover:text-gray-800">{{ m }}</span>
+                {%- endfor %}
+            </div>
         </div>
     </nav>
+</div>
 
-    <!-- Main content -->
-    <main class="flex-1 w-full max-w-7xl mx-auto py-6 px-4">
-        {% raw %}{% block content %}{% endblock %}{% endraw %}
-    </main>
+{%- elif sc.layout == 'minimal-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
+    <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            {{ sc.text or '0,00' }}
+        </a>
+    </header>
+</div>
+
+{%- elif sc.layout == 'site-nav' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
+    <div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+        <div class="flex items-center gap-6">
+            {%- for m in sc.custom_methods[:3] %}
+            <span>{{ m }}</span>
+            {%- endfor %}
+        </div>
+        {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
+    </div>
+    <header class="bg-white px-6 py-3 flex items-center gap-4">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+            <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
+            <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+        </form>
+        <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+            <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75">Logout</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+        </div>
+    </header>
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
+            <div class="flex items-center gap-0">
+                <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾</span>
+                {%- for p in (pages or []) %}
+                {%- if p.type == 'activity' %}
+                <span class="px-3 py-1.5 cursor-default rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700{% endif %}"
+                   style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+                {%- else %}
+                <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
+                   class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+                   style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+                {%- endif %}
+                {%- endfor %}
+            </div>
+            <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
+        </div>
+    </nav>
+</div>
+
+{%- endif %}
+{%- endfor %}
+{%- if _main_row_open %}</header>{%- endif %}
+
+{% if not _header_secs %}
+{# Fallback: generic header + nav when no header section components are defined #}
+<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ _accent_hex }};">
+    <div class="flex items-center gap-3">
+        {% if logo %}<img src="{{ logo }}" class="h-8 w-auto">{% endif %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
+            {{ application_name | capitalize }}
+        </a>
+    </div>
+    {% if authentication_present -%}
+    <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
+    {%- else -%}
+    <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Other Application</a>
+    {%- endif %}
+</header>
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Home</a>
+        {% if settings and settings.manager_access %}
+        <span class="text-gray-300">|</span>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Activity log</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">User assignment</a>
+        {% endif %}
+        {% for category in categories %}
+        <span class="text-gray-300">|</span>
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
+        {% for page in pages %}
+        {% if page.type == 'normal' and page.category == category.name %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+        {% for page in pages %}
+        {% if page.category in ["", none] and page.type != 'activity' %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</nav>
+{% endif %}
+
+<main class="px-6 py-6 max-w-7xl mx-auto">
+    {% raw %}{% block content %}{% endblock %}{% endraw %}
+</main>
+
+{%- set _link_row_open = [] %}
+{%- for sc in _footer_secs %}
+{%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
+{%- if _is_link_grid and not _link_row_open %}
+  {%- set _ = _link_row_open.append(1) %}
+<div class="bg-white border-t border-gray-100 px-8 py-8 flex gap-8 text-sm flex-wrap">
+{%- elif not _is_link_grid and _link_row_open %}
+  {%- set _ = _link_row_open.clear() %}
+</div>
+{%- endif %}
+
+{%- if sc.layout in ('service-strip', 'service-bar') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
+    <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
+        <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
+        <div class="flex items-center gap-6 text-sm text-white flex-wrap">
+            {%- for m in sc.custom_methods %}
+            <span class="cursor-pointer hover:opacity-80 flex items-center gap-1.5">{{ m }}</span>
+            {%- endfor %}
+        </div>
+    </div>
+</div>
+
+{%- elif sc.layout in ('footer-links', 'link-grid') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="link-grid" class="flex-1 min-w-36">
+    <h4 class="font-bold text-gray-800 mb-3">{{ sc.display_name }}</h4>
+    <ul class="space-y-2 text-gray-600">
+        {%- for m in sc.custom_methods %}
+        <li class="cursor-pointer hover:underline">{{ m }}</li>
+        {%- endfor %}
+    </ul>
+</div>
+
+{%- elif sc.layout in ('footer-brand', 'brand-strip') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="footer-brand">
+    <div class="bg-white border-t border-gray-200 py-6 flex flex-col items-center gap-2">
+        <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+        <p class="text-xs text-gray-400">{{ sc.text }}</p>
+        <div class="flex items-center gap-3 text-xs text-gray-400 mt-1">
+            {%- for m in sc.custom_methods %}
+            <span class="cursor-pointer hover:underline">{{ m }}</span><span>|</span>
+            {%- endfor %}
+        </div>
+    </div>
+</div>
+
+{%- elif sc.layout == 'site-footer' %}
+<footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
+    <div class="px-8 py-5 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
+        <span class="text-white font-bold text-lg">{{ sc.display_name }}</span>
+        <div class="flex items-center gap-6 text-sm text-white opacity-80">
+            {%- for m in sc.custom_methods %}
+            <span class="cursor-pointer hover:opacity-100">{{ m }}</span>
+            {%- endfor %}
+        </div>
+    </div>
+    <div class="bg-white px-8 py-8 text-sm border-t border-gray-100">
+        {%- if sc.text %}
+        {{ sc.text }}
+        {%- endif %}
+    </div>
+    <div class="bg-white border-t border-gray-200 py-8 flex flex-col items-center gap-2">
+        <div class="text-4xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+    </div>
+</footer>
+
+{%- endif %}
+{%- endfor %}
+{%- if _link_row_open %}</div>{%- endif %}
 
 </body>
 </html>

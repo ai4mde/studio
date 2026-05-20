@@ -190,9 +190,12 @@ def generate_prototype():
     metadata = data.get('metadata')
     variant_id = data.get('variant_id', '1')
     try:
-        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id, check=True)
-    except subprocess.CalledProcessError:
-        return f"Failed to generate prototype, id={id}", 500
+        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id,
+                       check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        error_detail = (e.stderr or e.stdout or "no output captured")
+        app.logger.error(f"Generation failed for {name}:\n{error_detail}")
+        return f"Failed to generate prototype, id={id}\n{error_detail}", 500
 
     # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:

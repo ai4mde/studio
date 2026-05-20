@@ -316,6 +316,15 @@ def render_layout(
 ) -> List[Dict]:
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
 
+    tokens = dict(interface_data.get("tokens", {}))
+    styling = interface_data.get("styling", {})
+    accent = styling.get("accentColor", "")
+    if accent and "region.header.bg" not in tokens:
+        tokens["region.header.bg"] = f"bg-[{accent}]"
+        tokens["page.header.text"] = "text-white"
+        tokens["accent.hex"] = accent
+        tokens["brand.name"] = interface_name
+
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)
 
@@ -324,7 +333,11 @@ def render_layout(
         rendered = template.render(
             application_name=app_name,
             page=page,
+            all_pages=pages,
             AttributeType=AttributeType,
+            preview_mode=True,
+            tokens=tokens,
+            styling=styling,
         )
         if inject_click_handlers:
             rendered = rendered.replace("</body>", CLICK_SCRIPT + "</body>")

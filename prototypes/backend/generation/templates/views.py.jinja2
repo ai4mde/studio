@@ -65,6 +65,22 @@ def _apply_section_query(qs, query, source_obj=None):
         return qs[offset:]
     return qs
 
+def _apply_search_query(qs, request):
+    term = (request.GET.get('q') or '').strip()
+    if not term:
+        return qs
+    try:
+        from django.db.models import Q, CharField, TextField
+        query = Q()
+        for field in qs.model._meta.get_fields():
+            if isinstance(field, (CharField, TextField)):
+                query |= Q(**{f"{field.name}__icontains": term})
+        if query:
+            return qs.filter(query).distinct()
+    except Exception:
+        pass
+    return qs
+
 {# Create, Update, Delete views #}
 {% for page in pages -%}
 {% for section_component in page.section_components -%}
@@ -145,6 +161,18 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        data = request.POST.copy()
+        {% for attribute in section_component.attributes -%}
+        {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN -%}
+        if '{{ attribute }}' not in data:
+            data['{{ attribute }}'] = getattr(self.object, '{{ attribute }}', '') or ''
+        {% endif -%}
+        {% endfor -%}
+        request.POST = data
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
@@ -216,7 +244,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     def get_queryset(self):
         _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
         qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
-        return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% elif models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0_parents = page.section_components[0].parent_models if page.section_components else [] -%}
@@ -234,7 +262,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
             {% endfor -%}
             if qs is None:
                 qs = {{ _pm0 }}.objects.all()
-        return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}
 
     {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 %}

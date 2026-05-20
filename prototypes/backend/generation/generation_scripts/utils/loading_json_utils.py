@@ -261,6 +261,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         query = query,
                         view_detail_page = page_name_sanitization(section["view_detail_page"]) if section.get("view_detail_page") else None,
                         col_span = int(section.get("col_span", 12)),
+                        position = section.get("position", "main"),
                     )
                     out.append(sec)
             return out
@@ -358,7 +359,8 @@ def retrieve_models_on_pages(application_component: ApplicationComponent) -> dic
         if page not in out:
             out[page] = {'primary_models': [], 'parent_models': []}
         for section_component in page.section_components:
-            out[page]['primary_models'].append(section_component.primary_model)
+            if section_component.primary_model:
+                out[page]['primary_models'].append(section_component.primary_model)
             for parent_model in section_component.parent_models:
                 out[page]['parent_models'].append(parent_model)
     return out
