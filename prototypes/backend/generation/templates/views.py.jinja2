@@ -91,7 +91,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes %}{% if '.' not in attribute.name %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -106,7 +106,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived -%}
+        {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
@@ -149,7 +149,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes %}{% if '.' not in attribute.name %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -165,7 +165,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         self.object = self.get_object()
         data = request.POST.copy()
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN -%}
+        {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN and '.' not in attribute.name -%}
         if '{{ attribute }}' not in data:
             data['{{ attribute }}'] = getattr(self.object, '{{ attribute }}', '') or ''
         {% endif -%}
@@ -176,7 +176,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived -%}
+        {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
@@ -244,6 +244,18 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     def get_queryset(self):
         _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
         qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
+        {%- set select_related_fields = [] %}
+        {%- if page.section_components %}
+            {%- for attr in page.section_components[0].attributes %}
+                {%- if '.' in attr.name %}
+                    {%- set _parts = attr.name.split('.') %}
+                    {%- set _dummy = select_related_fields.append(_parts[0]) %}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
+        {%- if select_related_fields %}
+        qs = qs.select_related({% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        {%- endif %}
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% elif models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
@@ -262,6 +274,19 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
             {% endfor -%}
             if qs is None:
                 qs = {{ _pm0 }}.objects.all()
+        
+        {%- set select_related_fields = [] %}
+        {%- if page.section_components %}
+            {%- for attr in page.section_components[0].attributes %}
+                {%- if '.' in attr.name %}
+                    {%- set _parts = attr.name.split('.') %}
+                    {%- set _dummy = select_related_fields.append(_parts[0]) %}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
+        {%- if select_related_fields %}
+        qs = qs.select_related({% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        {%- endif %}
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}
 

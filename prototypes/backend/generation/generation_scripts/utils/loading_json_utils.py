@@ -156,26 +156,33 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
     
     out = []
     for attribute in section["attributes"]:
-        attribute_type = None
+        attribute_type = AttributeType.STRING
         enum_literals = None
-        if attribute["type"] == "str":
-            attribute_type  = AttributeType.STRING
-        elif attribute["type"] == "int":
-            attribute_type  = AttributeType.INTEGER
-        elif attribute["type"] == "bool":
-            attribute_type  = AttributeType.BOOLEAN
-        elif attribute["type"] == "enum":
-            attribute_type  = AttributeType.ENUM
-            enum_literals = get_enum_literals(metadata, attribute["enum"])
-        elif attribute["type"] == "image":
-            attribute_type  = AttributeType.IMAGE
+        derived = False
+        
+        if isinstance(attribute, str):
+            attr_name = attribute
+        else:
+            attr_name = attribute["name"]
+            derived = attribute.get("derived", False)
+            if attribute.get("type") == "str":
+                attribute_type  = AttributeType.STRING
+            elif attribute.get("type") == "int":
+                attribute_type  = AttributeType.INTEGER
+            elif attribute.get("type") == "bool":
+                attribute_type  = AttributeType.BOOLEAN
+            elif attribute.get("type") == "enum":
+                attribute_type  = AttributeType.ENUM
+                enum_literals = get_enum_literals(metadata, attribute.get("enum"))
+            elif attribute.get("type") == "image":
+                attribute_type  = AttributeType.IMAGE
 
         att = SectionAttribute(
-            name = attribute_name_sanitization(attribute["name"]),
+            name = attribute_name_sanitization(attr_name),
             type = attribute_type,
             enum_literals = enum_literals,
             updatable = True, # TODO: frontend management of updatable attributes
-            derived = attribute["derived"]
+            derived = derived
         )
         out.append(att)
 
