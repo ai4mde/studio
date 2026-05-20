@@ -62,11 +62,15 @@ class _Attribute:
         return self.name
 
 
+ACTIVITY_ACTION_VARIANTS = {"button", "link", "fab", "row_action", "wizard_next", "auto"}
+
+
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, text,
                  layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
-                 related_to_section_id=None, relation_field=None, query=None, position="main"):
+                 related_to_section_id=None, relation_field=None, query=None, position="main",
+                 component_type="data", label=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -87,9 +91,32 @@ class _SectionComponent:
         self.relation_field = relation_field
         self.query = query or {}
         self.position = position or "main"
+        self.component_type = component_type  # "data" | "activity_action"
+        self.label = label  # used by activity_action
 
     def __str__(self):
         return self.name
+
+
+def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionComponent":
+    s = s_raw or {}
+    raw_style = s.get("style") or {}
+    variant = raw_style.get("variant", "button")
+    if variant not in ACTIVITY_ACTION_VARIANTS:
+        variant = "button"
+    return _SectionComponent(
+        id=s.get("id", "activity-action"),
+        name="activity_action",
+        display_name=label,
+        primary_model="", parent_models=[], attributes=[],
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        text="",
+        col_span=int(s.get("col_span", 12)),
+        position=s.get("position", "footer"),
+        style={"variant": variant, "size": raw_style.get("size", "lg"), "align": raw_style.get("align", "right")},
+        component_type="activity_action",
+        label=label,
+    )
 
 
 class _Page:
@@ -218,6 +245,14 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             if s_raw.get("visible") is False:
                 continue
 
+            # activity_action section — render as workflow completion button
+            if s_raw.get("type") == "activity_action":
+                section_components.append(_make_activity_action_section(
+                    label=s_raw.get("label", ""),
+                    s_raw=s_raw,
+                ))
+                continue
+
             cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
             primary_model = _sanitize(cls_data.get("name", "item")) if cls_data else "item"
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
@@ -291,6 +326,12 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
         action_field = p_raw.get("action")
         activity_name = action_field.get("label") if isinstance(action_field, dict) else None
+
+        # Auto-inject activity_action section if page is activity type and none defined
+        if page_type == "activity" and not any(s.component_type == "activity_action" for s in section_components):
+            section_components.append(_make_activity_action_section(
+                label=activity_name or p_raw.get("name", "Complete"),
+            ))
 
         pages.append(_Page(
             name=_sanitize(p_raw.get("name", "")),

@@ -316,6 +316,58 @@
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components if section_component.position not in ('header', 'footer') %}
+{%- if section_component.component_type == 'activity_action' %}
+{%- set _aa_variant = section_component.style.get('variant', 'button') %}
+{%- set _aa_align   = section_component.style.get('align', 'right') %}
+{%- set _aa_size    = section_component.style.get('size', 'lg') %}
+{%- set _aa_py      = 'py-4 px-8 text-base' if _aa_size == 'lg' else ('py-2 px-4 text-sm' if _aa_size == 'sm' else 'py-3 px-6 text-sm') %}
+{%- set _aa_justify = 'justify-end' if _aa_align == 'right' else ('justify-center' if _aa_align == 'center' else ('justify-start' if _aa_align == 'left' else '')) %}
+<div class=”{{ _spanm.get(section_component.col_span, 'col-span-12') }}” data-section-id=”{{ section_component.id }}” data-section-name=”{{ section_component.display_name }}” data-position=”{{ section_component.position or 'footer' }}” data-layout=”activity_action”>
+{%- if not preview_mode %}
+  {%- if _aa_variant == 'fab' %}
+  <div class=”fixed bottom-6 right-6 z-50”>
+    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type=”submit” class=”bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors”>{{ section_component.label }}</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'link' %}
+  <div class=”flex {{ _aa_justify }} mt-4”>
+    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type=”submit” class=”text-blue-600 hover:underline font-medium {{ _aa_py }}”>{{ section_component.label }} →</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'wizard_next' %}
+  <div class=”flex items-center justify-between border-t border-gray-200 pt-4 mt-4”>
+    <a href=”javascript:history.back()” class=”text-sm text-gray-500 hover:text-gray-700”>← Back</a>
+    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type=”submit” class=”bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors”>{{ section_component.label }} →</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'auto' %}
+  <div class=”hidden”>
+    <form id=”auto-complete-form” action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+      {% raw %}{% csrf_token %}{% endraw %}
+    </form>
+  </div>
+  <script>setTimeout(function(){ document.getElementById('auto-complete-form').submit(); }, 1500);</script>
+  {%- else %}{# default: button #}
+  <div class=”flex {{ _aa_justify }} mt-6”>
+    <form action=”{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}” method=”post”>
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type=”submit” class=”bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors”>{{ section_component.label }}</button>
+    </form>
+  </div>
+  {%- endif %}
+{%- else %}{# preview_mode #}
+  <div class=”flex {{ _aa_justify }} mt-6”>
+    <button type=”button” class=”bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default”>{{ section_component.label }}</button>
+  </div>
+{%- endif %}
+</div>
+{%- else %}
 {# â”€â”€ Resolve per-section style â”€â”€ #}
 {% set _s   = section_component.style %}
 {% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
@@ -1608,15 +1660,11 @@
 {% endif %}{# end preview_mode branch #}
 
 </div>
+{%- endif %}{# end activity_action else branch #}
 {%- endfor %}
 </div>
 
 {% if preview_mode %}
-{%- if page.type == 'activity' %}
-<div class="flex justify-end mt-8 px-2">
-  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow hover:bg-green-700 transition-colors">{{ page.activity_name or page.display_name }}</button>
-</div>
-{%- endif %}
 <script>
 (function() {
   var accentHex = '{{ tokens.get("accent.hex", "#0000a4") }}';
@@ -1796,14 +1844,6 @@
 </body>
 </html>
 {% else %}
-{% if page.type == 'activity' %}
-<div class="flex justify-end mt-8 px-2">
-  <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
-    {% raw %}{% csrf_token %}{% endraw %}
-    <button type="submit" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow hover:bg-green-700 transition-colors">{{ page.activity_name or page.display_name }}</button>
-  </form>
-</div>
-{% endif %}
 <script>
 (function() {
   var grid = document.getElementById('page-sections-grid');
