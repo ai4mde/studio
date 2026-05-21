@@ -241,18 +241,26 @@ For each candidate (index 0, 1, 2):
   - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
     If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
 
+PAGE rules — every page MUST have:
+  id:       snake_case identifier (e.g. "browse_products")
+  name:     Title_Case_with_underscores (e.g. "Browse_Products")
+  sections: list of section id strings that belong on this page (e.g. ["s0_0", "s0_1"])
+            ← THIS IS CRITICAL. Each non-chrome section MUST appear in exactly ONE page's sections list.
+            Chrome sections (site-nav, icon-actions, search-bar in header/footer) are auto-injected; omit them from sections lists.
+
 Section rules — every section MUST include:
-  primary_model:    exact model name from classifiers (or "" for chrome)
-  layout:           card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
-  col_span:         12 | 6 | 4 | 3
-  position:         header | hero | main | sidebar | footer
+  id:            unique string (e.g. "s0_0", "s1_browse_main")
+  primary_model: exact model name from classifiers (or "" for chrome)
+  layout:        card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
+  col_span:      12 | 6 | 4 | 3
+  position:      header | hero | main | sidebar | footer
   view_detail_page: target page NAME (Title_Case) if list/card navigates to detail
-  operations:       {{"create": bool, "update": bool, "delete": bool}}
-  query:            {{"limit": int, "order_by": [...]}} for list/card/table
-  attributes:       list of strings or objects: {{"name": "field", "render": {{"as": "text|link|button|badge"}}, "action": {{"type": "navigate|filter|operation|none"}}}}
-  style:            color (blue|green|purple|orange|rose|slate), density (compact|normal|spacious),
-                    shadow (none|sm|md|lg), border (none|light|colored), bg (white|light|dark),
-                    + layout-specific: card_style, display_mode, list_style, form_style, image_position, etc.
+  operations:    {{"create": bool, "update": bool, "delete": bool}}
+  query:         {{"limit": int, "order_by": [...]}} for list/card/table
+  attributes:    list of strings or objects: {{"name": "field", "render": {{"as": "text|link|button|badge"}}, "action": {{"type": "navigate|filter|operation|none"}}}}
+  style:         color (blue|green|purple|orange|rose|slate), density (compact|normal|spacious),
+                 shadow (none|sm|md|lg), border (none|light|colored), bg (white|light|dark),
+                 + layout-specific: card_style, display_mode, list_style, form_style, image_position, etc.
 
 Candidate diversity:
   - Candidate 0: card-forward layout with prominent imagery and grid browsing

@@ -362,6 +362,55 @@ def validate_and_save_candidate(
             if not s.get("id"):
                 fixed_sections[i] = {**s, "id": f"s{candidate_index}_{i}"}
 
+        # Auto-build page.sections references if pages don't have them.
+        # The renderer reads pages[i].sections = [{"value": section_id}, ...] to know
+        # which sections belong to each page. Chrome sections (header/footer/sidebar)
+        # are auto-injected by the renderer, so only assign main-content sections here.
+        chrome_positions = {"header", "hero", "footer", "sidebar"}
+        content_sections = [s for s in fixed_sections if s.get("position", "main") not in chrome_positions]
+
+        pages_need_sections = any(not p.get("sections") for p in fixed_pages)
+        if pages_need_sections and content_sections:
+            # Build a mapping: primary_model → list of sections (in order)
+            from collections import defaultdict
+            model_to_sections: dict = defaultdict(list)
+            for s in content_sections:
+                model_to_sections[s.get("primary_model", "")].append(s["id"])
+
+            # Layout priority: detail/form sections go to later pages with same model;
+            # card/list/table/gallery sections go to earlier (collection) pages.
+            detail_layouts = {"detail", "form", "gallery"}
+
+            rebuilt_pages = []
+            # Track how many sections each model has been assigned so far
+            model_assigned: dict = defaultdict(int)
+
+            for p in fixed_pages:
+                if p.get("sections"):
+                    rebuilt_pages.append(p)
+                    continue
+                pm = p.get("primary_model", "")
+                candidates_for_page = model_to_sections.get(pm, [])
+
+                # Pick sections not yet consumed for this page
+                start = model_assigned[pm]
+                # Assign one section per page (the next unassigned one for this model)
+                assigned = []
+                if start < len(candidates_for_page):
+                    assigned = [{"value": candidates_for_page[start]}]
+                    model_assigned[pm] += 1
+
+                # If no model match, try any unassigned section
+                if not assigned and model_to_sections.get("", []):
+                    fallback = model_to_sections[""]
+                    fb_start = model_assigned[""]
+                    if fb_start < len(fallback):
+                        assigned = [{"value": fallback[fb_start]}]
+                        model_assigned[""] += 1
+
+                rebuilt_pages.append({**p, "sections": assigned})
+            fixed_pages = rebuilt_pages
+
         # Fetch current interface data and update candidates list
         data = dict(iface.get("data") or {})
         candidates = list(data.get("candidates") or [])
