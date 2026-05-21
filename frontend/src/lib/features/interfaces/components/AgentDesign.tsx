@@ -423,6 +423,12 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     try {
                         const c = JSON.parse(line);
                         if (c.status) { lastStatus = c.status; setCandidateStatus(c.status); }
+                        if (c.status === 'done') {
+                            setCandidateStatus('Done! Loading candidates...');
+                            await loadCandidates();
+                            setIsGeneratingCandidates(false);
+                            return;
+                        }
                     } catch { /* ignore */ }
                 }
             }
@@ -432,7 +438,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setCandidateStatus(`Error: ${e.message}`);
         } finally {
             setIsGeneratingCandidates(false);
-            loadCandidates();
+            await loadCandidates();
         }
     };
 
