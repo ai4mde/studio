@@ -351,11 +351,15 @@ def validate_and_save_candidate(
                 s = {**s, "attributes": new_attrs}
             fixed_sections.append(s)
 
-        # Auto-assign ids to pages/sections that are missing them
+        # Auto-assign ids to pages/sections that are missing them.
+        # Also ensure every page has a `category` field (null = no category filter),
+        # required by the prototype generator's loading_json_utils.py.
         fixed_pages = []
         for i, p in enumerate(pages):
             if not p.get("id"):
                 p = {**p, "id": f"p{candidate_index}_{i}"}
+            if "category" not in p:
+                p = {**p, "category": None}
             fixed_pages.append(p)
 
         for i, s in enumerate(fixed_sections):
