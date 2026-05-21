@@ -437,7 +437,7 @@ def build_customer_interface():
         "list",
         8,
         "orange",
-        attrs("product_id", "quantity", "unit_price", "subtotal"),
+        attrs("Product.name", "Product.brand", "quantity", "unit_price", "subtotal"),
         ops(update=True, delete=True),
         query={"limit": 20},
     )
