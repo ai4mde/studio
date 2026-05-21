@@ -123,7 +123,14 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% elif section_component.success_page -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ section_component.success_page }}')
     {% else -%}
-    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+
+    def get_success_url(self):
+        base = reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+        params = {k: v for k, v in self.request.POST.items() if k.startswith('instance_id_')}
+        if params:
+            from urllib.parse import urlencode
+            base += '?' + urlencode(params)
+        return base
     {% endif %}
 
     def form_valid(self, form):
