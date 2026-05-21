@@ -185,6 +185,28 @@ def delete_interface(request, interface_id):
     return True
 
 
+@interfaces.post("/{uuid:id}/candidates/seed_test/")
+def seed_test_candidate(request, id: str):
+    """Debug: directly write 1 dummy candidate to interface.data — bypasses agent entirely."""
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return 404, {"message": "Interface not found"}
+    data = dict(interface.data or {})
+    dummy = {
+        "id": "c_test",
+        "name": "Test Candidate",
+        "description": "Debug seed — written directly without agent",
+        "pages": [{"id": "p_test", "name": "Test_Page"}],
+        "sections": [{"id": "s_test", "name": "Test Section", "layout": "card", "primary_model": ""}],
+    }
+    data["candidates"] = [dummy]
+    Interface.objects.filter(id=id).update(data=data)
+    interface.refresh_from_db()
+    saved = (interface.data or {}).get("candidates", [])
+    return {"saved_count": len(saved), "first_name": saved[0]["name"] if saved else None}
+
+
 @interfaces.get("/{uuid:id}/candidates/")
 def list_candidates(request, id: str):
     try:
