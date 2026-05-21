@@ -220,37 +220,67 @@ After all renders are attempted, output: "Previews rendered. Pipeline complete."
 candidate_pipeline_agent = Agent(
     name="candidate_pipeline_agent",
     model="openai/gpt-4o",
-    description="Orchestrates the 3-candidate interface generation pipeline: reason → generate → render.",
-    instruction="""You orchestrate the 3-candidate interface generation pipeline.
+    description="Runs the 3-candidate interface generation pipeline: reason → generate 3 candidates → render previews.",
+    instruction=f"""You generate 3 interface design candidates for a given interface.
 
 Message format: interface_id=<uuid> prompt=<designer intent>
 
-Steps (execute in strict order, do not skip any step):
+━━━ PHASE 1 — REASON ━━━
+1. Call get_interface_full_context(interface_id) to get classifiers, relations, use cases, activities.
+2. Analyse the data and the designer prompt. Produce an internal reasoning plan covering:
+   - Which pages the actor needs (one per major use-case or object workspace)
+   - Which model is primary on each page
+   - Navigation transitions between pages (what triggers them, what ID is passed)
+   - Which pages appear in the nav bar
+   - What operations the actor can perform per model
+   - 3 structurally distinct layout directions for the candidates
 
-STEP 1 — Reason:
-  Call reason_agent with: "interface_id=<uuid> prompt=<prompt>"
-  Wait for it to return. Its output will be a JSON object with interface analysis.
+━━━ PHASE 2 — GENERATE ━━━
+For each candidate (index 0, 1, 2):
+  - Build complete pages[] and sections[] following the layout direction for that index.
+  - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
+    If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
 
-STEP 2 — Generate:
-  Call generate_agent with: "interface_id=<uuid> reasoning=<full JSON from step 1>"
-  Wait for it to return. It will save 3 candidates to the database.
+Section rules — every section MUST include:
+  primary_model:    exact model name from classifiers (or "" for chrome)
+  layout:           card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
+  col_span:         12 | 6 | 4 | 3
+  position:         header | hero | main | sidebar | footer
+  view_detail_page: target page NAME (Title_Case) if list/card navigates to detail
+  operations:       {{"create": bool, "update": bool, "delete": bool}}
+  query:            {{"limit": int, "order_by": [...]}} for list/card/table
+  attributes:       list of strings or objects: {{"name": "field", "render": {{"as": "text|link|button|badge"}}, "action": {{"type": "navigate|filter|operation|none"}}}}
+  style:            color (blue|green|purple|orange|rose|slate), density (compact|normal|spacious),
+                    shadow (none|sm|md|lg), border (none|light|colored), bg (white|light|dark),
+                    + layout-specific: card_style, display_mode, list_style, form_style, image_position, etc.
 
-STEP 3 — Render:
-  Call render_agent with: "interface_id=<uuid>"
-  Wait for it to return. It will render preview HTML for all 3 candidates.
+Candidate diversity:
+  - Candidate 0: card-forward layout with prominent imagery and grid browsing
+  - Candidate 1: data-dense table with sidebar filter and inline actions
+  - Candidate 2: immersive detail-first with expanded object view
 
-STEP 4:
-  Output exactly: "done"
+Navigation completeness (MANDATORY):
+  - Every list/card section with a detail navigation target MUST set view_detail_page
+  - Every form section MUST set style.success_page
+  - Include a site-nav or nav-links chrome section in EVERY candidate covering nav pages
+  - Include an icon-actions chrome section listing icon actions
 
-Important:
-- You MUST complete all 3 steps before outputting "done".
-- Each agent call returns its result — use the result before calling the next agent.
-- Do NOT skip any step even if you think it is unnecessary.
+━━━ PHASE 3 — RENDER ━━━
+For candidate_index 0, 1, 2:
+  Call render_candidate_preview(interface_id, candidate_index).
+  If it returns an error, report it and continue.
+
+━━━ DONE ━━━
+After all 3 phases complete, output exactly: "done"
+
+IMPORTANT: You MUST execute ALL THREE PHASES before outputting "done".
+Do not output "done" after only phase 1 or 2.
 """,
     tools=[
-        AgentTool(agent=reason_agent),
-        AgentTool(agent=generate_agent),
-        AgentTool(agent=render_agent),
+        get_interface_full_context_tool,
+        validate_save_candidate_tool,
+        render_candidate_preview_tool,
+        get_available_paths_tool,
     ],
 )
 

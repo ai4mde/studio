@@ -351,6 +351,17 @@ def validate_and_save_candidate(
                 s = {**s, "attributes": new_attrs}
             fixed_sections.append(s)
 
+        # Auto-assign ids to pages/sections that are missing them
+        fixed_pages = []
+        for i, p in enumerate(pages):
+            if not p.get("id"):
+                p = {**p, "id": f"p{candidate_index}_{i}"}
+            fixed_pages.append(p)
+
+        for i, s in enumerate(fixed_sections):
+            if not s.get("id"):
+                fixed_sections[i] = {**s, "id": f"s{candidate_index}_{i}"}
+
         # Fetch current interface data and update candidates list
         data = dict(iface.get("data") or {})
         candidates = list(data.get("candidates") or [])
@@ -358,7 +369,7 @@ def validate_and_save_candidate(
             "id": f"c{candidate_index}",
             "name": name,
             "description": description,
-            "pages": pages,
+            "pages": fixed_pages,
             "sections": fixed_sections,
         }
         while len(candidates) <= candidate_index:
