@@ -126,7 +126,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
 
     def get_success_url(self):
         base = reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}')
-        params = {k: v for k, v in self.request.POST.items() if k.startswith('instance_id_')}
+        params = {k: v for k, v in self.request.POST.items() if k.startswith('instance_id_') and v}
         if params:
             from urllib.parse import urlencode
             base += '?' + urlencode(params)
