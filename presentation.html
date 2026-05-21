@@ -553,15 +553,19 @@
                     <div class="step s5"><span class="step-role">Live Prototype</span><h3>5. Render</h3><p>Django generator creates a running web UI; test in browser.</p><a href="http://localhost:8000" target="_blank" class="step-link">Open Prototype →</a></div>
                 </div>
                 <div class="pipeline-loops" aria-hidden="true">
-                    <svg viewBox="0 0 500 38" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:38px;">
-                        <!-- drops from step 3 and step 5 merge into one bottom rail -->
-                        <line x1="250" y1="0" x2="250" y2="30" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
-                        <line x1="450" y1="0" x2="450" y2="30" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
-                        <line x1="50"  y1="30" x2="450" y2="30" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
-                        <line x1="50"  y1="30" x2="50"  y2="8"  stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
-                        <polygon points="44,10 50,2 56,10" fill="#64748b"/>
-                        <!-- single merged label centred on the bottom rail -->
-                        <text x="250" y="26" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">iterate</text>
+                    <svg viewBox="0 0 500 56" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%;height:56px;">
+                        <!-- loop A: step 3 → step 1 (shallow) -->
+                        <line x1="250" y1="0"  x2="250" y2="20" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <line x1="45"  y1="20" x2="250" y2="20" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <text x="148" y="17" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">iterate from step 3</text>
+                        <!-- loop B: step 5 → step 1 (deep) -->
+                        <line x1="455" y1="0"  x2="455" y2="44" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <line x1="45"  y1="44" x2="455" y2="44" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <text x="250" y="41" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">or from live prototype</text>
+                        <!-- shared vertical at step 1 -->
+                        <line x1="45"  y1="44" x2="45"  y2="10" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,2"/>
+                        <!-- single arrowhead pointing up into step 1 -->
+                        <polygon points="39,10 45,2 51,10" fill="#64748b"/>
                     </svg>
                 </div>
                 <div class="grid-3" style="margin-top: 24px;">
