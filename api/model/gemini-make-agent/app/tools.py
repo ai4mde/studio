@@ -80,8 +80,8 @@ def update_interface_data(interface_id: str, data: dict) -> str:
             "id": interface_id,
             "name": current["name"],
             "description": current["description"],
-            "system_id": current["system"],
-            "actor_id": current["actor"],
+            "system": current["system"],
+            "actor": current["actor"],
             "data": data,
         }
 
@@ -164,8 +164,8 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
             "id": interface_id,
             "name": current["name"],
             "description": current["description"],
-            "system_id": current["system"],
-            "actor_id": current["actor"],
+            "system": current["system"],
+            "actor": current["actor"],
             "data": data,
         }
         put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
@@ -370,11 +370,13 @@ def validate_and_save_candidate(
             "id": interface_id,
             "name": iface["name"],
             "description": iface.get("description", ""),
-            "system_id": system_id,
-            "actor_id": iface.get("actor"),
+            "system": system_id,
+            "actor": iface.get("actor"),
             "data": data,
         }
         put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
+        if not put_resp.ok:
+            return f"Error saving candidate: PUT returned {put_resp.status_code} — {put_resp.text[:200]}"
         put_resp.raise_for_status()
 
         if errors:
