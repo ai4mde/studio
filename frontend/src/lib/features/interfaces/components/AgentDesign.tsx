@@ -1448,16 +1448,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
                             {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
                         </button>
-                        <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
-                            title="View metadata sent to the prototype generator"
-                            style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6,
-                                border: '1px solid #d1d5db', background: '#fff', color: '#4b5563',
-                                cursor: !interfaceId || !systemId || isLoadingMetadata ? 'default' : 'pointer',
-                                opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
-                            }}>
-                            {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
-                        </button>
                         <button onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
                             title="Regenerate a live prototype from the current preview"
                             style={{
@@ -1470,6 +1460,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             }}>
                             {isSyncingLive ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
                             {syncStatus === 'ok' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync Live'}
+                        </button>
+                        <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
+                            title="View metadata sent to the prototype generator"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6,
+                                border: '1px solid #d1d5db', background: '#fff', color: '#4b5563',
+                                cursor: !interfaceId || !systemId || isLoadingMetadata ? 'default' : 'pointer',
+                                opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
+                            }}>
+                            {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
                         </button>
                     </div>
                 </div>
