@@ -1733,8 +1733,16 @@
 {%- else %}
   {# Default / auth form: render attribute inputs #}
   <div class="{{ cs }} {{ r }} {{ d.p }}">
+    {%- if section_component.has_create_operation %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="space-y-4">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {% for parent_model in section_component.parent_models %}
+      <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
+      {% endfor %}
+    {%- else %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
+    {%- endif %}
       {% for attribute in section_component.attributes %}{% if not attribute.derived %}
       <div>
         <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ attribute }}</label>

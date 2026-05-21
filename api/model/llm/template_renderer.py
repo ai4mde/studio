@@ -98,6 +98,7 @@ class _SectionComponent:
         self.position = position or "main"
         self.component_type = component_type  # "data" | "activity_action"
         self.label = label  # used by activity_action
+        self.success_page = (style or {}).get("success_page")
 
     def __str__(self):
         return self.name

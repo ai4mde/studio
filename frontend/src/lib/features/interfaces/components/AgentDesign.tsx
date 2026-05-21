@@ -38,7 +38,7 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     detail:  ['image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
-    form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label'],
+    form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label', 'success_page'],
     activity_action: ['activity_label', 'activity_variant', 'activity_align', 'activity_size'],
 };
 
@@ -749,6 +749,14 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             <input type="text" placeholder="e.g. In winkelwagen"
                                 value={secStyle.cta_label ?? ''}
                                 onChange={e => updateSection(selectedSection.id, 'cta_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('success_page') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>After Submit → Go to Page</p>
+                            <input type="text" placeholder="e.g. view_cart"
+                                value={secStyle.success_page ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'success_page', e.target.value)}
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             /></>)}
 

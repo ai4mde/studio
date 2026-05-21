@@ -120,6 +120,8 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
         })
+    {% elif section_component.success_page -%}
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ section_component.success_page }}')
     {% else -%}
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
