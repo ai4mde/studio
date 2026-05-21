@@ -31,6 +31,11 @@ from shared_models.models import (
     Address, Payment, Order, OrderLine, RelatedProduct
 )
 
+USER_FIELD_NAMES = {field.name for field in User._meta.get_fields()}
+
+def user_defaults(**defaults):
+    return {key: value for key, value in defaults.items() if key in USER_FIELD_NAMES}
+
 # Clear
 for m in [OrderLine, Order, CartItem, Cart, Review, DeliveryOption,
           ProductImage, RelatedProduct, Product, Seller, Category,
@@ -47,9 +52,9 @@ cat_audio   = Category.objects.create(category_id='cat-004', name='Audio',      
 print('Created 4 categories.')
 
 # ── Sellers ───────────────────────────────────────────────────────────────────
-_u, _c = User.objects.get_or_create(username='techstore',  defaults=dict(email='techstore@bol.com',  is_Seller=True))
+_u, _c = User.objects.get_or_create(username='techstore',  defaults=user_defaults(email='techstore@bol.com',  is_Seller=True))
 if _c: _u.set_password('demo1234'); _u.save()
-_u, _c = User.objects.get_or_create(username='gadgetshop', defaults=dict(email='gadgetshop@bol.com', is_Seller=True))
+_u, _c = User.objects.get_or_create(username='gadgetshop', defaults=user_defaults(email='gadgetshop@bol.com', is_Seller=True))
 if _c: _u.set_password('demo1234'); _u.save()
 seller1 = Seller.objects.create(seller_id='sel-001', business_name='TechStore NL', rating='4.8', review_count=1240, is_verified=True, ships_from='Amsterdam', response_time='< 1 hour')
 seller2 = Seller.objects.create(seller_id='sel-002', business_name='GadgetShop',   rating='4.5', review_count=873,  is_verified=True, ships_from='Rotterdam',  response_time='< 2 hours')
@@ -202,9 +207,9 @@ for source_pid, related_pids in RELATED_MAP.items():
 print(f'Created {sum(len(v) for v in RELATED_MAP.values())} related product links.')
 
 # ── Customers ─────────────────────────────────────────────────────────────────
-_u, _c = User.objects.get_or_create(username='jan_devries',  defaults=dict(email='jan@example.com',  first_name='Jan',  last_name='de Vries', is_Customer=True))
+_u, _c = User.objects.get_or_create(username='jan_devries',  defaults=user_defaults(email='jan@example.com',  first_name='Jan',  last_name='de Vries', is_Customer=True))
 if _c: _u.set_password('demo1234'); _u.save()
-_u, _c = User.objects.get_or_create(username='emma_bakker', defaults=dict(email='emma@example.com', first_name='Emma', last_name='Bakker',   is_Customer=True))
+_u, _c = User.objects.get_or_create(username='emma_bakker', defaults=user_defaults(email='emma@example.com', first_name='Emma', last_name='Bakker',   is_Customer=True))
 if _c: _u.set_password('demo1234'); _u.save()
 cust1 = Customer.objects.create(customer_id='cust-001', email='jan@example.com',  first_name='Jan',  last_name='de Vries', phone='+31 6 1234 5678', is_active=True)
 cust2 = Customer.objects.create(customer_id='cust-002', email='emma@example.com', first_name='Emma', last_name='Bakker',   phone='+31 6 9876 5432', is_active=True)
@@ -268,7 +273,7 @@ OrderLine.objects.create(line_id='line-003', order_id=order2.order_id, product_i
 print('Created 2 payments, 2 orders, and 3 order lines.')
 
 # ── System user ───────────────────────────────────────────────────────────────
-_u, _c = User.objects.get_or_create(username='system', defaults=dict(email='system@bol.com', is_System=True))
+_u, _c = User.objects.get_or_create(username='system', defaults=user_defaults(email='system@bol.com', is_System=True))
 if _c: _u.set_password('demo1234'); _u.save()
 print('Created system user.')
 

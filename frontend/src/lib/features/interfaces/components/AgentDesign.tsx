@@ -326,9 +326,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setIsSyncingLive(true);
         setSyncStatus('idle');
         try {
-            const [{ data: iface }, { data: diagrams }] = await Promise.all([
+            const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
                 authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`),
                 authAxios.get(`/v1/diagram/system/${systemId}/`),
+                authAxios.get(`/v1/metadata/interfaces/`, { params: { system: systemId } }),
             ]);
             const { sections: secs, pages: pgs, styling: stl } = latestState.current;
             const syncedInterface = {
@@ -360,7 +361,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 database_hash: `sync-${systemId}-${interfaceId}`,
                 metadata: {
                     diagrams,
-                    interfaces: [{ label: syncedInterface.name, value: syncedInterface }],
+                    interfaces: (Array.isArray(allInterfaces) && allInterfaces.length ? allInterfaces : [iface]).map((itf: any) => ({
+                        label: itf.name,
+                        value: itf.id === syncedInterface.id ? syncedInterface : itf,
+                    })),
                     useAuthentication: true,
                     layout_config: {
                         source: 'agent-design-sync',
