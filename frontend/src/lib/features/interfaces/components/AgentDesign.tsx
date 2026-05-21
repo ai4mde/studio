@@ -1,7 +1,7 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { Button, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -30,6 +30,8 @@ const CHROME_LAYOUTS: LayoutOption[] = [
     'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
     'service-bar', 'link-grid', 'brand-strip', 'site-nav', 'site-footer',
 ];
+const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header', 'site-nav'];
+const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'site-footer'];
 
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
@@ -130,6 +132,35 @@ const makeActivityActionSection = (page: any) => {
         col_span: 12,
         position: 'main',
         style: { variant: 'button', align: 'right', size: 'lg' },
+    };
+};
+
+const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
+    const label = layout
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    return {
+        id: `${position}-${layout}-${Date.now()}`,
+        name: label,
+        label,
+        layout,
+        class: '',
+        operations: { create: false, update: false, delete: false },
+        attributes: [],
+        methods: layout === 'logo' || layout === 'search-bar' || layout === 'minimal-header'
+            ? []
+            : [{ name: layout === 'link-grid' ? 'Customer service' : 'Contact' }],
+        text: layout === 'logo'
+            ? 'Brand'
+            : layout === 'search-bar'
+                ? 'Search products'
+                : layout === 'minimal-header'
+                    ? '0,00'
+                    : '',
+        col_span: 12,
+        position,
+        style: {},
     };
 };
 
@@ -314,8 +345,17 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
-            if (field === 'layout') return { ...s, layout: value };
+            if (field === 'layout') {
+                const nextLayout = value as LayoutOption;
+                const nextPosition = HEADER_LAYOUTS.includes(nextLayout)
+                    ? 'header'
+                    : FOOTER_LAYOUTS.includes(nextLayout)
+                        ? 'footer'
+                        : s.position;
+                return { ...s, layout: value, position: nextPosition };
+            }
             if (field === 'col_span') return { ...s, col_span: value };
+            if (field === 'text') return { ...s, text: value };
             if (field === 'label') return { ...s, label: value, name: value || s.name };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
         }));
@@ -430,7 +470,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
 
     const layoutControls: readonly string[] = CHROME_LAYOUTS.includes(secLayout)
-        ? ['methods']
+        ? ['text', 'methods']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
     const hasControl = (c: string) => layoutControls.includes(c);
 
@@ -476,7 +516,33 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
                 {/* Section list */}
                 <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #e5e7eb' }}>
-                    <Typography level="title-sm" sx={{ mb: 1, fontSize: 13 }}>Sections</Typography>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 8 }}>
+                        <Typography level="title-sm" sx={{ fontSize: 13 }}>Sections</Typography>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                            <button
+                                title="Add editable header component"
+                                onClick={() => {
+                                    const section = makeChromeSection('logo', 'header');
+                                    setSections((prev: any[]) => [...prev, section]);
+                                    setSelectedSectionId(section.id);
+                                }}
+                                style={{ ...btnBase, padding: '3px 6px', fontSize: 11, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
+                            >
+                                <Plus size={12} /> Header
+                            </button>
+                            <button
+                                title="Add editable footer component"
+                                onClick={() => {
+                                    const section = makeChromeSection('service-bar', 'footer');
+                                    setSections((prev: any[]) => [...prev, section]);
+                                    setSelectedSectionId(section.id);
+                                }}
+                                style={{ ...btnBase, padding: '3px 6px', fontSize: 11, background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
+                            >
+                                <Plus size={12} /> Footer
+                            </button>
+                        </div>
+                    </div>
                     <div style={{ overflowY: 'auto', maxHeight: 176 }}>
                         {(sections as any[]).length === 0 && (
                             <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
@@ -850,10 +916,26 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 ))}
                             </div></>)}
 
+                            {hasControl('text') && (
+                                <>
+                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Text</p>
+                                    {METHODS_HINTS[secLayout] && (
+                                        <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
+                                    )}
+                                    <input
+                                        type="text"
+                                        placeholder="Brand name, search placeholder, footer note..."
+                                        value={selectedSection.text ?? ''}
+                                        onChange={e => updateSection(selectedSection.id, 'text', e.target.value)}
+                                        style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                                    />
+                                </>
+                            )}
+
                             {hasControl('methods') && (
                                 <>
                                     <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Methods (one per line)</p>
-                                    {METHODS_HINTS[secLayout] && (
+                                    {!hasControl('text') && METHODS_HINTS[secLayout] && (
                                         <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
                                     )}
                                     <textarea
