@@ -54,10 +54,13 @@ def _apply_section_query(qs, query, source_obj=None):
         value = _coerce_query_value(condition.get('value'))
         if operator == 'in' and not isinstance(value, (list, tuple)):
             value = [v.strip() for v in str(value).split(',') if v.strip()]
-        if operator == 'neq':
-            qs = qs.exclude(**{lookup: value})
-        else:
-            qs = qs.filter(**{lookup: value})
+        try:
+            if operator == 'neq':
+                qs = qs.exclude(**{lookup: value})
+            else:
+                qs = qs.filter(**{lookup: value})
+        except Exception:
+            pass
     if query.get('exclude_source') and source_obj is not None:
         qs = qs.exclude(id=getattr(source_obj, 'id', None))
     order_fields = []
