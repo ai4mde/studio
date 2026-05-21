@@ -12,8 +12,16 @@
 
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else (styling.accent_color if styling and styling.accent_color else '#0000a4') %}
 {%- set _brand_name = _brand_name if _brand_name is defined else application_name %}
-{%- set _header_secs = header_sections or [] %}
-{%- set _footer_secs = footer_sections or [] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
+{%- set _header_secs = [] %}
+{%- set _footer_secs = [] %}
+{%- for sc in header_sections or [] %}
+  {%- if sc.layout in _header_chrome %}{% set _ = _header_secs.append(sc) %}{%- endif %}
+{%- endfor %}
+{%- for sc in footer_sections or [] %}
+  {%- if sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
+{%- endfor %}
 {%- set _search_pages = pages | selectattr('type', 'equalto', 'normal') | list %}
 {%- set _search_page = _search_pages[0] if _search_pages else none %}
 

@@ -15,8 +15,8 @@
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- for sc in page.section_components %}
-  {%- if sc.position == 'header' and (sc.component_type == 'activity_action' or sc.layout in _header_chrome) %}{% set _ = _header_secs.append(sc) %}{%- endif %}
-  {%- if sc.position == 'footer' and (sc.component_type == 'activity_action' or sc.layout in _footer_chrome) %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'header' and sc.layout in _header_chrome %}{% set _ = _header_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'footer' and sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
 
 {# â”€â”€ header chrome: render all header-position section components â”€â”€
@@ -71,12 +71,12 @@
 {# â”€â”€ SEARCH BAR (inline inside main-header-row) â”€â”€ #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
-  <div class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-400 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="text" readonly />
-    <button class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-  </div>
+  </form>
 </div>
 
 {# â”€â”€ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) â”€â”€ #}
@@ -88,7 +88,7 @@
     <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
     {%- endfor %}
     {%- else %}
-    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ sc.display_name }}</span>
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
     <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -103,14 +103,14 @@
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-  <div class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-400 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="text" readonly />
-    <button class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-  </div>
+  </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ sc.display_name }}</span>
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
     <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -170,14 +170,14 @@
 </div>
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-  <div class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-400 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="text" readonly />
-    <button class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
-  </div>
+  </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-    <span class="cursor-pointer hover:opacity-75">{{ sc.display_name }}</span>
+    <a href="#" class="cursor-pointer hover:opacity-75">Logout</a>
     <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
     <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
   </div>
@@ -196,6 +196,27 @@
 {%- endif %}
 {%- endfor %}
 {%- if _main_row_open %}</header>{%- endif %}
+
+{% if not _header_secs %}
+<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ _accent_hex }};">
+  <div class="flex items-center gap-3">
+    <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
+      {{ _brand_name | capitalize }}
+    </a>
+  </div>
+  <a href="#" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
+</header>
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
+    {%- for p in (all_pages or []) %}
+    {%- if p.type != 'activity' %}
+    <a href="#" class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
+    {%- endif %}
+    {%- endfor %}
+  </div>
+</nav>
+{% endif %}
 
 <main class="px-6 py-6 max-w-7xl mx-auto">
 {%- else -%}
@@ -334,8 +355,8 @@
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components if not (
-    (section_component.position == 'header' and (section_component.component_type == 'activity_action' or section_component.layout in _header_chrome)) or
-    (section_component.position == 'footer' and (section_component.component_type == 'activity_action' or section_component.layout in _footer_chrome))
+    (section_component.position == 'header' and section_component.layout in _header_chrome) or
+    (section_component.position == 'footer' and section_component.layout in _footer_chrome)
 ) %}
 {%- if section_component.component_type == 'activity_action' %}
 {%- set _aa_variant = section_component.style.get('variant', 'button') %}
