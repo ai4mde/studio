@@ -90,7 +90,7 @@ services:
       - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.localhost`)"
       - "traefik.http.routers.gemini-agent.entrypoints=web"
       - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
-      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.path=/apps"
+      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.path=/healthz"
       - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.interval=60s"
 
   studio:
