@@ -373,6 +373,22 @@ def validate_and_save_candidate(
         chrome_positions = {"header", "hero", "footer", "sidebar"}
         content_sections = [s for s in fixed_sections if s.get("position", "main") not in chrome_positions]
 
+        # Normalize page.sections to [{"value": "section_id"}, ...] format.
+        # The prototype generator's retrieve_section_components expects this dict format.
+        # The agent may output plain string arrays like ["s0_0", "s0_1"] — normalize those too.
+        def _norm_section_refs(refs: list) -> list:
+            result = []
+            for r in refs:
+                if isinstance(r, dict):
+                    result.append(r)
+                elif isinstance(r, str):
+                    result.append({"value": r})
+            return result
+
+        for i, p in enumerate(fixed_pages):
+            if p.get("sections") is not None:
+                fixed_pages[i] = {**p, "sections": _norm_section_refs(p["sections"])}
+
         pages_need_sections = any(not p.get("sections") for p in fixed_pages)
         if pages_need_sections and content_sections:
             # Build a mapping: primary_model → list of sections (in order)
@@ -381,12 +397,7 @@ def validate_and_save_candidate(
             for s in content_sections:
                 model_to_sections[s.get("primary_model", "")].append(s["id"])
 
-            # Layout priority: detail/form sections go to later pages with same model;
-            # card/list/table/gallery sections go to earlier (collection) pages.
-            detail_layouts = {"detail", "form", "gallery"}
-
             rebuilt_pages = []
-            # Track how many sections each model has been assigned so far
             model_assigned: dict = defaultdict(int)
 
             for p in fixed_pages:
@@ -396,15 +407,12 @@ def validate_and_save_candidate(
                 pm = p.get("primary_model", "")
                 candidates_for_page = model_to_sections.get(pm, [])
 
-                # Pick sections not yet consumed for this page
                 start = model_assigned[pm]
-                # Assign one section per page (the next unassigned one for this model)
                 assigned = []
                 if start < len(candidates_for_page):
                     assigned = [{"value": candidates_for_page[start]}]
                     model_assigned[pm] += 1
 
-                # If no model match, try any unassigned section
                 if not assigned and model_to_sections.get("", []):
                     fallback = model_to_sections[""]
                     fb_start = model_assigned[""]

@@ -326,7 +326,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
 
                 for page_section in page_sections:
                     section = None
-                    page_section_id = page_section["value"]
+                    page_section_id = page_section["value"] if isinstance(page_section, dict) else str(page_section)
                     for application_section in application_component["value"]["data"]["sections"]:
                         if application_section["id"] == page_section_id:
                             section = application_section
@@ -378,8 +378,10 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     )
                     out.append(sec)
             return out
-    except:
-        raise Exception("Failed to retrieve section components from metadata: parsing error")
+    except Exception as _e:
+        import traceback as _tb, logging as _log
+        _log.error("retrieve_section_components error: %s\n%s", _e, _tb.format_exc())
+        raise Exception(f"Failed to retrieve section components from metadata: parsing error — {_e}")
 
     return out
 
@@ -471,8 +473,10 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     gap = str(page_gap),
                 )
                 out.append(pg)
-    except:
-        raise Exception("Failed to retrieve pages from metadata: parsing error")
+    except Exception as _e:
+        import traceback as _tb, logging as _log
+        _log.error("retrieve_pages error: %s\n%s", _e, _tb.format_exc())
+        raise Exception(f"Failed to retrieve pages from metadata: parsing error — {_e}")
 
     return out
 
