@@ -177,6 +177,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [isSyncingLive, setIsSyncingLive] = useState(false);
+    const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);
 
@@ -318,6 +320,54 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setTimeout(() => setSeedStatus('idle'), 3000);
         }
     }, [systemId, checkAndSwitchLive]);
+
+    const handleSyncLivePrototype = useCallback(async () => {
+        if (!interfaceId || !systemId || isSyncingLive) return;
+        setIsSyncingLive(true);
+        setSyncStatus('idle');
+        try {
+            const [{ data: iface }, { data: diagrams }] = await Promise.all([
+                authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`),
+                authAxios.get(`/v1/diagram/system/${systemId}/`),
+            ]);
+            const { sections: secs, pages: pgs, styling: stl } = latestState.current;
+            const syncedInterface = {
+                ...iface,
+                data: {
+                    ...((iface as any).data || {}),
+                    sections: secs,
+                    pages: pgs,
+                    ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
+                },
+            };
+            const prototypeName = `sync${Date.now()}`;
+            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
+                name: prototypeName,
+                description: `Synced from ${iface?.name || 'preview'}`,
+                system_id: systemId,
+                database_hash: `sync-${systemId}-${interfaceId}`,
+                metadata: {
+                    diagrams,
+                    interfaces: [{ label: syncedInterface.name, value: syncedInterface }],
+                    useAuthentication: true,
+                    layout_config: {
+                        source: 'agent-design-sync',
+                        synced_at: new Date().toISOString(),
+                    },
+                },
+            });
+            await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
+            setPreviewMode('live');
+            setLiveUser('jan_devries');
+            setLiveKey((k: number) => k + 1);
+            setSyncStatus('ok');
+        } catch (error) {
+            setSyncStatus('error');
+        } finally {
+            setIsSyncingLive(false);
+            setTimeout(() => setSyncStatus('idle'), 3000);
+        }
+    }, [interfaceId, systemId, isSyncingLive]);
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
@@ -1332,6 +1382,19 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             }}>
                             {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
                             {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
+                        </button>
+                        <button onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
+                            title="Regenerate a live prototype from the current preview"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
+                                cursor: isSyncingLive ? 'default' : 'pointer',
+                                border: `1px solid ${syncStatus === 'ok' ? '#86efac' : syncStatus === 'error' ? '#fca5a5' : '#bfdbfe'}`,
+                                background: syncStatus === 'ok' ? '#f0fdf4' : syncStatus === 'error' ? '#fef2f2' : '#eff6ff',
+                                color: syncStatus === 'ok' ? '#16a34a' : syncStatus === 'error' ? '#dc2626' : '#1d4ed8',
+                                opacity: isSyncingLive ? 0.6 : 1,
+                            }}>
+                            {isSyncingLive ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
+                            {syncStatus === 'ok' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync Live'}
                         </button>
                     </div>
                 </div>
