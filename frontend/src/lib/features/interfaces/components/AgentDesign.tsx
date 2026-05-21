@@ -1,5 +1,5 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
-import { Button, Tooltip, Typography } from '@mui/joy';
+import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
 import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -181,6 +181,11 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+    const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
+    const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+    const [metadataJson, setMetadataJson] = useState('');
+    const [metadataError, setMetadataError] = useState('');
 
     // Explore / Refine mode
     const [designMode, setDesignMode] = useState<'explore' | 'refine'>('refine');
@@ -321,11 +326,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     }, [systemId, checkAndSwitchLive]);
 
-    const handleSyncLivePrototype = useCallback(async () => {
-        if (!interfaceId || !systemId || isSyncingLive) return;
-        setIsSyncingLive(true);
-        setSyncStatus('idle');
-        try {
+    const buildGeneratorPrototypePayload = useCallback(async () => {
+        if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
+
             const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
                 authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`),
                 authAxios.get(`/v1/diagram/system/${systemId}/`),
@@ -354,7 +357,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 databasePrototypeName = '';
                 previousPrototypeId = '';
             }
-            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, {
+
+            const body = {
                 name: prototypeName,
                 description: `Synced from ${iface?.name || 'preview'}`,
                 system_id: systemId,
@@ -371,7 +375,40 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                         synced_at: new Date().toISOString(),
                     },
                 },
-            });
+            };
+
+            return {
+                endpoint: 'POST /v1/generator/prototypes/',
+                query: { database_prototype_name: databasePrototypeName },
+                previous_prototype_id: previousPrototypeId,
+                body,
+            };
+    }, [interfaceId, systemId]);
+
+    const handleViewGeneratorMetadata = useCallback(async () => {
+        setIsMetadataOpen(true);
+        setIsLoadingMetadata(true);
+        setMetadataError('');
+        setMetadataJson('');
+        try {
+            const payload = await buildGeneratorPrototypePayload();
+            setMetadataJson(JSON.stringify(payload, null, 2));
+        } catch (error: any) {
+            setMetadataError(error?.response?.data?.detail || error?.message || 'Failed to build generator metadata.');
+        } finally {
+            setIsLoadingMetadata(false);
+        }
+    }, [buildGeneratorPrototypePayload]);
+
+    const handleSyncLivePrototype = useCallback(async () => {
+        if (!interfaceId || !systemId || isSyncingLive) return;
+        setIsSyncingLive(true);
+        setSyncStatus('idle');
+        try {
+            const payload = await buildGeneratorPrototypePayload();
+            const databasePrototypeName = payload.query.database_prototype_name || '';
+            const previousPrototypeId = payload.previous_prototype_id || '';
+            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, payload.body);
             await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
             if (previousPrototypeId && previousPrototypeId !== prototype.id) {
                 try {
@@ -394,7 +431,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setIsSyncingLive(false);
             setTimeout(() => setSyncStatus('idle'), 3000);
         }
-    }, [interfaceId, systemId, isSyncingLive]);
+    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload]);
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
@@ -653,6 +690,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     });
 
     return (
+        <>
         <div ref={containerRef} style={{ 
             display: 'flex', 
             height: isFullScreen ? '90vh' : '72vh', 
@@ -1410,6 +1448,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
                             {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
                         </button>
+                        <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
+                            title="View metadata sent to the prototype generator"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: 6,
+                                border: '1px solid #d1d5db', background: '#fff', color: '#4b5563',
+                                cursor: !interfaceId || !systemId || isLoadingMetadata ? 'default' : 'pointer',
+                                opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
+                            }}>
+                            {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
+                        </button>
                         <button onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
                             title="Regenerate a live prototype from the current preview"
                             style={{
@@ -1474,5 +1522,83 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 </div>
             </div>
         </div>
+        <Modal open={isMetadataOpen} onClose={() => setIsMetadataOpen(false)}>
+            <ModalDialog
+                variant="plain"
+                sx={{
+                    width: isMetadataExpanded ? '96vw' : '76vw',
+                    height: isMetadataExpanded ? '92vh' : '76vh',
+                    maxWidth: 'none',
+                    p: 0,
+                    overflow: 'hidden',
+                    borderRadius: '10px',
+                    boxShadow: 'lg',
+                }}
+            >
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '12px 44px 12px 14px',
+                        borderBottom: '1px solid #e5e7eb',
+                    }}>
+                        <Code2 size={16} color="#2563eb" />
+                        <div style={{ minWidth: 0 }}>
+                            <Typography level="title-sm">Generator Metadata JSON</Typography>
+                            <Typography level="body-xs" sx={{ color: '#64748b' }}>
+                                Current preview state combined with diagrams and all interfaces.
+                            </Typography>
+                        </div>
+                        <button
+                            onClick={() => setIsMetadataExpanded((value) => !value)}
+                            title={isMetadataExpanded ? 'Shrink modal' : 'Expand modal'}
+                            style={{
+                                marginLeft: 'auto',
+                                width: 28,
+                                height: 28,
+                                borderRadius: 6,
+                                border: '1px solid #d1d5db',
+                                background: '#fff',
+                                color: '#4b5563',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            {isMetadataExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                        </button>
+                        <ModalClose />
+                    </div>
+                    <div style={{
+                        flex: 1,
+                        minHeight: 0,
+                        overflow: 'auto',
+                        background: '#0f172a',
+                        padding: 16,
+                    }}>
+                        {isLoadingMetadata ? (
+                            <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1', gap: 8 }}>
+                                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                Building metadata...
+                            </div>
+                        ) : metadataError ? (
+                            <pre style={{ margin: 0, color: '#fecaca', whiteSpace: 'pre-wrap', fontSize: 12 }}>{metadataError}</pre>
+                        ) : (
+                            <pre style={{
+                                margin: 0,
+                                color: '#dbeafe',
+                                fontSize: 12,
+                                lineHeight: 1.55,
+                                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                                whiteSpace: 'pre',
+                            }}>{metadataJson}</pre>
+                        )}
+                    </div>
+                </div>
+            </ModalDialog>
+        </Modal>
+        </>
     );
 };
