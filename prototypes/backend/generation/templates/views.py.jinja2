@@ -32,6 +32,21 @@ def _safe_select_related(qs, *fields):
         return qs.select_related(*valid_fields)
     return qs
 
+def _resolve_filter_field(field):
+    """Normalize a filter field name to Django ORM format.
+    Supports dot-notation for FK traversal: 'Seller.name' → 'Seller__name'.
+    Capitalizes the first segment so agent strings like 'seller.name' also work.
+    Already-Django notation ('Seller__name') is passed through unchanged.
+    """
+    if not field:
+        return field
+    if '__' not in field and '.' in field:
+        parts = field.split('.')
+        parts[0] = parts[0][0].upper() + parts[0][1:] if parts[0] else parts[0]
+        return '__'.join(parts)
+    return field
+
+
 def _apply_section_query(qs, query, source_obj=None):
     query = query or {}
     operator_map = {
@@ -46,7 +61,7 @@ def _apply_section_query(qs, query, source_obj=None):
         'isnull': '__isnull',
     }
     for condition in query.get('filters') or []:
-        field = condition.get('field')
+        field = _resolve_filter_field(condition.get('field'))
         operator = condition.get('operator', 'eq')
         if not field or operator not in operator_map:
             continue
