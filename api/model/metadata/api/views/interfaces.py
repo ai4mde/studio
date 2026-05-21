@@ -260,6 +260,14 @@ def render_candidate(request, id: str, candidate_index: int):
         interface_name=interface.name,
     )
 
+    # Disable all link navigation in candidate preview (iframes shouldn't navigate away)
+    _nav_disable = (
+        "<script>document.addEventListener('click',function(e){"
+        "var l=e.target.closest&&e.target.closest('a[href]');"
+        "if(l){e.preventDefault();}},true);</script>"
+    )
+    files = [{**f, "content": f["content"].replace("</body>", _nav_disable + "</body>", 1)} for f in files]
+
     # Build a single standalone HTML with tab-based page navigation
     page_names = [f.get("page", f.get("path", f"Page {i}")) for i, f in enumerate(files)]
     tab_buttons = "".join(

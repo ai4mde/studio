@@ -226,33 +226,42 @@ candidate_pipeline_agent = Agent(
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
-1. Call get_interface_full_context(interface_id) to get classifiers, relations, use cases, activities.
-   NOTE: This returns UML model data only. Ignore any existing pages/sections — you will generate everything from scratch.
-2. Analyse the data and the designer prompt. Produce an internal reasoning plan covering:
-   - Which pages the actor needs (one per major use-case or object workspace)
-   - Which model is primary on each page
-   - Navigation transitions between pages (what triggers them, what ID is passed)
-   - Which pages appear in the nav bar
-   - What operations the actor can perform per model
-   - 3 structurally distinct layout directions for the candidates
+1. Call get_interface_full_context(interface_id).
+   NOTE: Returns UML data only. Ignore any existing pages/sections — generate everything from scratch.
+2. Analyse actor role, primary use cases, secondary use cases, and the designer prompt keywords.
+3. Determine: which pages the actor needs, which model belongs on each page, navigation edges (trigger→target, passes which ID), nav bar pages, actor permissions per model.
+4. Derive 3 design_personas, each differing on ALL THREE axes — no repeats allowed:
 
-━━━ PHASE 2 — GENERATE ━━━
-For each candidate (index 0, 1, 2):
-  - Build complete pages[] and sections[] following the layout direction for that index.
-  - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
+   AXIS A — Interaction archetype (pick 3 different ones):
+     visual-browse | data-scan | detail-focus | workflow-step | admin-manage
+
+   AXIS B — Color theme (each candidate gets a DIFFERENT theme):
+     light   → page.body.bg:"bg-gray-50",  region.header.bg:"bg-white",       component.card.bg:"bg-white",      element.button.primary:"bg-blue-600 text-white"
+     dark    → page.body.bg:"bg-slate-900", region.header.bg:"bg-slate-900",   component.card.bg:"bg-slate-800",  element.button.primary:"bg-blue-500 text-white"
+     brand   → page.body.bg:"bg-white",     region.header.bg:"bg-indigo-700",  component.card.bg:"bg-white",      element.button.primary:"bg-indigo-600 text-white"
+
+   AXIS C — Section emphasis (pick 3 different ones):
+     card-heavy | table-heavy | detail-heavy | form-heavy | sidebar-filter
+
+   Choose the archetypes that best fit the use cases (primary action → persona 0, data management → persona 1, alternative approach → persona 2). You may reorder; what matters is they differ.
+
+━━━ PHASE 2 — GENERATE (index 0, 1, 2) ━━━
+For each candidate, strictly follow design_personas[i]:
+  - Use ONLY section types from that persona's section emphasis (card-heavy → mostly card+filter; table-heavy → mostly table+list; detail-heavy → mostly detail+form)
+  - Pass persona's AXIS B token values as the tokens dict
+  - Pass styling dict: accent_color matching button primary, radius appropriate to theme (light→lg, dark→md, brand→xl)
+  - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens, styling)
     If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
 
 PAGE rules — every page MUST have:
-  id:       snake_case identifier (e.g. "browse_products")
+  id:       snake_case (e.g. "browse_products")
   name:     Title_Case_with_underscores (e.g. "Browse_Products")
-  sections: list of section id strings that belong on this page (e.g. ["s0_0", "s0_1"])
-            ← THIS IS CRITICAL. Every section id in pages[].sections MUST have a matching entry in sections[].
-            Build sections[] FIRST, then reference those exact ids in pages[].sections.
-            Chrome sections (site-nav, icon-actions in header/footer) are auto-injected — omit their ids from pages[].sections.
+  sections: list of section id strings on this page — CRITICAL: every id must match an entry in sections[].
+            Build sections[] FIRST, then reference exact ids. Do NOT include chrome section ids here.
 
 Section rules — every section MUST include:
-  id:            unique snake_case string describing the section's role (e.g. "browse_products_grid", "product_detail_view", "checkout_form", "site_nav"). Use descriptive names, NOT generic indices like "s0_0".
-  name:          human-readable title for the section (e.g. "Browse Products", "Product Detail", "Checkout Form"). Required — do NOT omit.
+  id:            unique snake_case role descriptor (e.g. "product_grid", "order_detail"). NO generic "s0_0".
+  name:          human-readable title (e.g. "Product Grid"). Required.
   primary_model: exact model name from classifiers (or "" for chrome)
   layout:        card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
   col_span:      12 | 6 | 4 | 3
@@ -260,32 +269,26 @@ Section rules — every section MUST include:
   view_detail_page: target page NAME (Title_Case) if list/card navigates to detail
   operations:    {{"create": bool, "update": bool, "delete": bool}}
   query:         {{"limit": int, "order_by": [...]}} for list/card/table
-  attributes:    list of strings or objects: {{"name": "field", "render": {{"as": "text|link|button|badge"}}, "action": {{"type": "navigate|filter|operation|none"}}}}
-  style:         color (blue|green|purple|orange|rose|slate), density (compact|normal|spacious),
-                 shadow (none|sm|md|lg), border (none|light|colored), bg (white|light|dark),
-                 + layout-specific: card_style, display_mode, list_style, form_style, image_position, etc.
+  attributes:    strings or objects: {{"name":"field","render":{{"as":"text|link|button|badge"}},"action":{{"type":"navigate|filter|operation|none"}}}}
+  style:         color(blue|green|purple|orange|rose|slate), density(compact|normal|spacious), shadow, border, bg, header_style
+                 + layout-specific: card_style(default|product|category|compact), display_mode(grid|carousel|banner),
+                   list_style(default|product|cart-item), form_style(default|auth|step|summary),
+                   image_position(left|top|right), image_size(sm|md|lg), success_page(for forms)
 
-Candidate diversity:
-  - Candidate 0: card-forward layout with prominent imagery and grid browsing
-  - Candidate 1: data-dense table with sidebar filter and inline actions
-  - Candidate 2: immersive detail-first with expanded object view
+Chrome sections (MANDATORY in every candidate — include in sections[] so they are selectable in the editor):
+  - site-nav: position=header, col_span=12, primary_model=""
+  - icon-actions: position=header, col_span=12, primary_model=""
+  Do NOT include their ids in pages[].sections.
 
 Navigation completeness (MANDATORY):
-  - Every list/card section with a detail navigation target MUST set view_detail_page
-  - Every form section MUST set style.success_page
-  - Include a site-nav or nav-links chrome section in EVERY candidate covering nav pages
-  - Include an icon-actions chrome section listing icon actions
+  - Every list/card with a detail target MUST set view_detail_page
+  - Every form MUST set style.success_page
 
 ━━━ PHASE 3 — RENDER ━━━
-For candidate_index 0, 1, 2:
-  Call render_candidate_preview(interface_id, candidate_index).
-  If it returns an error, report it and continue.
+For candidate_index 0, 1, 2: call render_candidate_preview(interface_id, candidate_index). Continue on error.
 
-━━━ DONE ━━━
-After all 3 phases complete, output exactly: "done"
-
-IMPORTANT: You MUST execute ALL THREE PHASES before outputting "done".
-Do not output "done" after only phase 1 or 2.
+After all 3 phases, output exactly: "done"
+IMPORTANT: Execute ALL THREE PHASES before "done".
 """,
     tools=[
         get_interface_full_context_tool,

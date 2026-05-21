@@ -285,6 +285,8 @@ def validate_and_save_candidate(
     description: str,
     pages: list,
     sections: list,
+    tokens: dict = None,
+    styling: dict = None,
 ) -> str:
     """Validate a DSL candidate (model names, attributes, layout values, navigation targets) and
     save it to interface.data['candidates'][candidate_index]. Returns validation errors or 'OK'."""
@@ -460,6 +462,8 @@ def validate_and_save_candidate(
             "description": description,
             "pages": fixed_pages,
             "sections": fixed_sections,
+            **({"tokens": tokens} if tokens else {}),
+            **({"styling": styling} if styling else {}),
         }
         while len(candidates) <= candidate_index:
             candidates.append(None)
@@ -470,8 +474,8 @@ def validate_and_save_candidate(
             "id": interface_id,
             "name": iface["name"],
             "description": iface.get("description", ""),
-            "system_id": system_id,
-            "actor_id": iface.get("actor"),
+            "system": system_id,
+            "actor": iface.get("actor"),
             "data": data,
         }
         put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
