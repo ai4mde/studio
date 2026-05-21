@@ -271,3 +271,63 @@ class TestRenderCandidatePreview:
             result = render_candidate_preview("iface-1", 0)
         assert result.startswith("Error rendering preview:")
         assert "timeout" in result
+
+
+# ── TestFilterFieldValidation ─────────────────────────────────────────────────
+
+class TestFilterFieldValidation:
+    """Tests for per-section filter field validation in validate_and_save_candidate."""
+
+    def _run(self, sections):
+        with patch("requests.get", side_effect=_mock_get), \
+             patch("requests.put", side_effect=_mock_put):
+            result = validate_and_save_candidate(
+                interface_id="iface-1",
+                candidate_index=0,
+                name="Filter Test",
+                description="filter validation",
+                pages=PAGES,
+                sections=sections,
+            )
+        return result
+
+    def _section_with_filter(self, f_field, operator="eq", value="x"):
+        return [{
+            **SECTIONS[0],
+            "query": {
+                "filters": [{"field": f_field, "operator": operator, "value": value}]
+            },
+        }]
+
+    def test_invalid_direct_filter_field_reported(self):
+        # "nonexistent_field" is not on Product
+        result = self._run(self._section_with_filter("nonexistent_field"))
+        assert "filter field 'nonexistent_field' not found on model 'Product'" in result
+
+    def test_valid_direct_filter_field_ok(self):
+        # "status" is a valid attribute on Product
+        result = self._run(self._section_with_filter("status"))
+        assert "filter field" not in result
+        assert result.startswith("OK:")
+
+    def test_one_hop_fk_valid_model_ok(self):
+        # Seller.business_name — Seller is a known model
+        result = self._run(self._section_with_filter("Seller.business_name"))
+        assert "not a known model" not in result
+        assert result.startswith("OK:")
+
+    def test_one_hop_fk_unknown_model_reported(self):
+        # Ghost is not a known model
+        result = self._run(self._section_with_filter("Ghost.name"))
+        assert "filter FK model 'Ghost' not a known model" in result
+
+    def test_multi_hop_filter_reported(self):
+        # Seller.Category.name has 3 dot-parts → multi-hop error
+        result = self._run(self._section_with_filter("Seller.Category.name"))
+        assert "traverses" in result
+        assert "hops" in result
+
+    def test_invalid_sub_field_on_fk_reported(self):
+        # Seller.nonexistent_field — attribute not on Seller
+        result = self._run(self._section_with_filter("Seller.nonexistent_field"))
+        assert "attribute 'nonexistent_field' not found on 'Seller'" in result

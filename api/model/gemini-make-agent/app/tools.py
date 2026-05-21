@@ -362,6 +362,25 @@ def validate_and_save_candidate(
                 if val and val not in valid_vals:
                     errors.append(f"section '{sname}': invalid style.{field} '{val}'")
 
+            # Filter field validation: direct field, one-hop FK (dot-notation), multi-hop warning
+            for f_cond in (s.get("query") or {}).get("filters") or []:
+                f_field = (f_cond.get("field") or "").strip()
+                if not f_field:
+                    continue
+                dot_parts = f_field.replace("__", ".").split(".")
+                if len(dot_parts) == 1:
+                    if pm and pm in model_attrs and f_field not in model_attrs[pm] and f_field != "id" and not f_field.endswith("_id"):
+                        errors.append(f"section '{sname}': filter field '{f_field}' not found on model '{pm}'")
+                elif len(dot_parts) == 2:
+                    fk_model = dot_parts[0][0].upper() + dot_parts[0][1:] if dot_parts[0] else ""
+                    sub_field = dot_parts[1]
+                    if fk_model and fk_model not in known_models:
+                        errors.append(f"section '{sname}': filter FK model '{fk_model}' not a known model")
+                    elif sub_field and fk_model in model_attrs and sub_field not in model_attrs[fk_model] and sub_field != "id":
+                        errors.append(f"section '{sname}': filter '{f_field}' - attribute '{sub_field}' not found on '{fk_model}'")
+                else:
+                    errors.append(f"section '{sname}': filter '{f_field}' traverses {len(dot_parts)-1} hops (max 1 supported; use related_to for deeper traversal)")
+
         # Auto-fix: strip unknown attributes rather than blocking save
         fixed_sections = []
         for s in sections:
