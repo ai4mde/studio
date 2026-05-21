@@ -374,6 +374,8 @@ def validate_and_save_candidate(
                 layout = s.get("layout", "section")
                 model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
                 fixed_sections[i] = {**s, "id": f"{model}_{layout}_{candidate_index}_{i}"}
+            if not fixed_sections[i].get("name"):
+                fixed_sections[i] = {**fixed_sections[i], "name": fixed_sections[i]["id"]}
 
         # Auto-build page.sections references if pages don't have them.
         # The renderer reads pages[i].sections = [{"value": section_id}, ...] to know

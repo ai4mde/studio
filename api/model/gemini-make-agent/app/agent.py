@@ -252,6 +252,7 @@ PAGE rules — every page MUST have:
 
 Section rules — every section MUST include:
   id:            unique snake_case string describing the section's role (e.g. "browse_products_grid", "product_detail_view", "checkout_form", "site_nav"). Use descriptive names, NOT generic indices like "s0_0".
+  name:          human-readable title for the section (e.g. "Browse Products", "Product Detail", "Checkout Form"). Required — do NOT omit.
   primary_model: exact model name from classifiers (or "" for chrome)
   layout:        card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
   col_span:      12 | 6 | 4 | 3

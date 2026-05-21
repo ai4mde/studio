@@ -354,7 +354,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
 
                     sec = SectionComponent(
                         id = section["id"],
-                        name = section["name"],
+                        name = section.get("name") or section.get("id", ""),
                         application = application_name,
                         page = page_name,
                         primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None,
