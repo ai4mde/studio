@@ -1,5 +1,6 @@
 from google.adk.agents import Agent
 from google.adk.apps import App
+from google.adk.tools import AgentTool
 from app.tools import (
     interface_config_tool, update_interface_patch_tool, system_context_tool,
     run_seed_script_tool, get_available_paths_tool,
@@ -224,15 +225,33 @@ candidate_pipeline_agent = Agent(
 
 Message format: interface_id=<uuid> prompt=<designer intent>
 
-Steps (in order, do not skip):
-1. Transfer to reason_agent with the message: "interface_id=<uuid> prompt=<prompt>"
-2. After reason_agent completes and returns the reasoning JSON, transfer to generate_agent with the message:
-   "interface_id=<uuid> reasoning=<the full reasoning JSON from reason_agent>"
-3. After generate_agent completes, transfer to render_agent with the message:
-   "interface_id=<uuid>"
-4. After render_agent completes, output: "done"
+Steps (execute in strict order, do not skip any step):
+
+STEP 1 — Reason:
+  Call reason_agent with: "interface_id=<uuid> prompt=<prompt>"
+  Wait for it to return. Its output will be a JSON object with interface analysis.
+
+STEP 2 — Generate:
+  Call generate_agent with: "interface_id=<uuid> reasoning=<full JSON from step 1>"
+  Wait for it to return. It will save 3 candidates to the database.
+
+STEP 3 — Render:
+  Call render_agent with: "interface_id=<uuid>"
+  Wait for it to return. It will render preview HTML for all 3 candidates.
+
+STEP 4:
+  Output exactly: "done"
+
+Important:
+- You MUST complete all 3 steps before outputting "done".
+- Each agent call returns its result — use the result before calling the next agent.
+- Do NOT skip any step even if you think it is unnecessary.
 """,
-    sub_agents=[reason_agent, generate_agent, render_agent],
+    tools=[
+        AgentTool(agent=reason_agent),
+        AgentTool(agent=generate_agent),
+        AgentTool(agent=render_agent),
+    ],
 )
 
 
@@ -280,7 +299,7 @@ root_agent = Agent(
     instruction=f"""You are a routing agent for a UI design editor.
 
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
-If the message contains 'generate_candidates' (3-candidate generation): transfer to candidate_pipeline_agent.
+If the message contains 'generate_candidates' (3-candidate generation): call candidate_pipeline_agent with the message and wait for it to complete.
 Otherwise (interface_id= UI edit request): handle it directly.
 
 --- UI edit workflow ---
@@ -325,8 +344,11 @@ Rules:
 - Always keep "id" in every section/page entry in the patch.
 - Call apply_interface_patch exactly once with the complete combined patch.
 """,
-    tools=[interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool],
-    sub_agents=[seed_agent, candidate_pipeline_agent],
+    tools=[
+        interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
+        AgentTool(agent=candidate_pipeline_agent),
+    ],
+    sub_agents=[seed_agent],
 )
 
 app = App(name="app", root_agent=root_agent)
