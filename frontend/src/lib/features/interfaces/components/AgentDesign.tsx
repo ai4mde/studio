@@ -357,6 +357,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 },
             });
             await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
+            const params = systemId ? `?system_id=${systemId}` : '';
+            await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
             setPreviewMode('live');
             setLiveUser('jan_devries');
             setLiveKey((k: number) => k + 1);
