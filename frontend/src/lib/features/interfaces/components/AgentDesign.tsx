@@ -341,7 +341,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 },
             };
             const prototypeName = `sync${Date.now()}`;
-            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=`, {
+            let databasePrototypeName = '';
+            try {
+                const { data: activePrototype } = await authAxios.get('/v1/generator/prototypes/active_prototype/');
+                if (activePrototype?.running && activePrototype?.system === systemId && activePrototype?.name) {
+                    databasePrototypeName = activePrototype.name;
+                }
+            } catch {
+                databasePrototypeName = '';
+            }
+            const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, {
                 name: prototypeName,
                 description: `Synced from ${iface?.name || 'preview'}`,
                 system_id: systemId,
@@ -357,8 +366,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 },
             });
             await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
-            const params = systemId ? `?system_id=${systemId}` : '';
-            await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
+            if (!databasePrototypeName) {
+                const params = systemId ? `?system_id=${systemId}` : '';
+                await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
+            }
             setPreviewMode('live');
             setLiveUser('jan_devries');
             setLiveKey((k: number) => k + 1);
