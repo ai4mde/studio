@@ -106,12 +106,12 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    {%- set _simple_attrs = [] -%}
+    {% set _simple_attrs = [] -%}
     {%- for attr in section_component.attributes -%}
         {%- if '.' not in attr.name -%}
             {%- set _dummy = _simple_attrs.append(attr.name) -%}
         {%- endif -%}
-    {%- endfor -%}
+    {%- endfor %}
     fields = [{% for attr_name in _simple_attrs %}'{{ attr_name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}

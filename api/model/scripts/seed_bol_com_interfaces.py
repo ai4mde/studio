@@ -375,7 +375,7 @@ def build_customer_interface():
         operations=ops(create=True),
         columns="1",
         cta_label="In winkelwagen",
-        success_page="shopping_cart",
+        success_page="Browse_Products",
     )
     delivery = sec(
         actor,
