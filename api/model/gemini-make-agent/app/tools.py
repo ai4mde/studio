@@ -259,14 +259,21 @@ _VALID_STYLE = {
 
 
 def get_interface_full_context(interface_id: str) -> str:
-    """Fetch interface config plus full system context (classifiers, relations, diagrams) in one call."""
+    """Fetch interface config plus full system context (classifiers, relations, diagrams) in one call.
+    Strips current pages/sections/candidates from interface data — the agent generates these from scratch."""
     try:
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
         system_ctx = json.loads(get_system_context(system_id)) if system_id else {}
-        return json.dumps({"interface": iface, "system": system_ctx}, indent=2)
+
+        # Strip existing layout data so the agent generates fresh candidates,
+        # not influenced by whatever is currently rendered on the interface.
+        iface_clean = {k: v for k, v in iface.items() if k != "data"}
+        iface_clean["actor_name"] = iface.get("actor_name") or iface.get("actor")
+
+        return json.dumps({"interface": iface_clean, "system": system_ctx}, indent=2)
     except Exception as e:
         return f"Error fetching full context: {e}"
 
@@ -357,14 +364,16 @@ def validate_and_save_candidate(
         fixed_pages = []
         for i, p in enumerate(pages):
             if not p.get("id"):
-                p = {**p, "id": f"p{candidate_index}_{i}"}
+                p = {**p, "id": f"page_{candidate_index}_{i}"}
             if "category" not in p:
                 p = {**p, "category": None}
             fixed_pages.append(p)
 
         for i, s in enumerate(fixed_sections):
             if not s.get("id"):
-                fixed_sections[i] = {**s, "id": f"s{candidate_index}_{i}"}
+                layout = s.get("layout", "section")
+                model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
+                fixed_sections[i] = {**s, "id": f"{model}_{layout}_{candidate_index}_{i}"}
 
         # Auto-build page.sections references if pages don't have them.
         # The renderer reads pages[i].sections = [{"value": section_id}, ...] to know
@@ -422,6 +431,23 @@ def validate_and_save_candidate(
 
                 rebuilt_pages.append({**p, "sections": assigned})
             fixed_pages = rebuilt_pages
+
+        # Check for orphaned page section references (pages reference IDs not in sections[])
+        section_ids = {s["id"] for s in fixed_sections}
+        orphans = []
+        for p in fixed_pages:
+            for ref in p.get("sections", []):
+                sid = ref.get("value") if isinstance(ref, dict) else str(ref)
+                if sid and sid not in section_ids:
+                    orphans.append(f"page '{p.get('name')}' references section '{sid}' which is not in sections[]")
+        if orphans:
+            missing = "; ".join(orphans[:5])
+            return (
+                f"INCOMPLETE: pages reference section IDs that are missing from sections[]. "
+                f"You MUST include ALL referenced sections in the sections[] argument. "
+                f"Missing: {missing}. "
+                f"Please call validate_and_save_candidate again with the complete sections[] list."
+            )
 
         # Fetch current interface data and update candidates list
         data = dict(iface.get("data") or {})

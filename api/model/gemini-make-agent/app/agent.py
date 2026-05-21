@@ -227,6 +227,7 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id) to get classifiers, relations, use cases, activities.
+   NOTE: This returns UML model data only. Ignore any existing pages/sections — you will generate everything from scratch.
 2. Analyse the data and the designer prompt. Produce an internal reasoning plan covering:
    - Which pages the actor needs (one per major use-case or object workspace)
    - Which model is primary on each page
@@ -245,11 +246,12 @@ PAGE rules — every page MUST have:
   id:       snake_case identifier (e.g. "browse_products")
   name:     Title_Case_with_underscores (e.g. "Browse_Products")
   sections: list of section id strings that belong on this page (e.g. ["s0_0", "s0_1"])
-            ← THIS IS CRITICAL. Each non-chrome section MUST appear in exactly ONE page's sections list.
-            Chrome sections (site-nav, icon-actions, search-bar in header/footer) are auto-injected; omit them from sections lists.
+            ← THIS IS CRITICAL. Every section id in pages[].sections MUST have a matching entry in sections[].
+            Build sections[] FIRST, then reference those exact ids in pages[].sections.
+            Chrome sections (site-nav, icon-actions in header/footer) are auto-injected — omit their ids from pages[].sections.
 
 Section rules — every section MUST include:
-  id:            unique string (e.g. "s0_0", "s1_browse_main")
+  id:            unique snake_case string describing the section's role (e.g. "browse_products_grid", "product_detail_view", "checkout_form", "site_nav"). Use descriptive names, NOT generic indices like "s0_0".
   primary_model: exact model name from classifiers (or "" for chrome)
   layout:        card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
   col_span:      12 | 6 | 4 | 3
