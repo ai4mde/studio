@@ -380,8 +380,12 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         if (!interfaceId) return;
         try {
             const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
-            setCandidates(((res.data as any)?.data || {}).candidates || []);
-        } catch { /* ignore */ }
+            const found = ((res.data as any)?.data || {}).candidates || [];
+            setCandidates(found);
+            if (found.length === 0) setCandidateStatus(prev => prev.startsWith('Done') ? 'No candidates saved by agent. Check agent logs.' : prev);
+        } catch (e: any) {
+            setCandidateStatus(`Failed to load candidates: ${e?.message || 'unknown error'}`);
+        }
     }, [interfaceId]);
 
     useEffect(() => {
@@ -394,6 +398,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setIsGeneratingCandidates(true);
         setCandidateStatus('Connecting to agent...');
         setPreviewCandidateIdx(null);
+        let lastStatus = '';
         try {
             const bearerToken = useAuthStore.getState().bearerToken;
             const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
@@ -403,7 +408,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 headers: { 'Content-Type': 'application/json', ...(authHeader ? { Authorization: authHeader } : {}) },
                 body: JSON.stringify({ interface_id: interfaceId, system_id: systemId, prompt }),
             });
-            if (!response.ok || !response.body) throw new Error('Stream failed');
+            if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buf = '';
@@ -415,10 +420,14 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 buf = lines.pop() || '';
                 for (const line of lines) {
                     if (!line.trim()) continue;
-                    try { const c = JSON.parse(line); if (c.status) setCandidateStatus(c.status); } catch { /* ignore */ }
+                    try {
+                        const c = JSON.parse(line);
+                        if (c.status) { lastStatus = c.status; setCandidateStatus(c.status); }
+                    } catch { /* ignore */ }
                 }
             }
-            setCandidateStatus('Done! Loading candidates...');
+            // 只有 agent 明確回傳 "done" 才顯示成功；否則保留最後收到的狀態（可能是錯誤訊息）
+            if (lastStatus === 'done') setCandidateStatus('Done! Loading candidates...');
         } catch (e: any) {
             setCandidateStatus(`Error: ${e.message}`);
         } finally {

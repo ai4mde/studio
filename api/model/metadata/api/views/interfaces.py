@@ -185,6 +185,27 @@ def delete_interface(request, interface_id):
     return True
 
 
+@interfaces.get("/{uuid:id}/candidates/")
+def list_candidates(request, id: str):
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return 404, {"message": "Interface not found"}
+    candidates = (interface.data or {}).get("candidates", [])
+    return [
+        {
+            "index": i,
+            "id": c.get("id") if c else None,
+            "name": c.get("name") if c else None,
+            "description": c.get("description") if c else None,
+            "has_preview": bool(c.get("preview_html")) if c else False,
+            "page_count": len(c.get("pages", [])) if c else 0,
+            "section_count": len(c.get("sections", [])) if c else 0,
+        }
+        for i, c in enumerate(candidates)
+    ]
+
+
 @interfaces.post("/{uuid:id}/candidates/{candidate_index}/render/")
 def render_candidate(request, id: str, candidate_index: int):
     try:
