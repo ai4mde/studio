@@ -626,9 +626,35 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                         </>
                     ) : (
                         <>
-                            <Typography level="title-sm" sx={{ mb: 1.5, fontSize: 13 }}>
-                                {selectedSection.name}
-                            </Typography>
+                            {(() => {
+                                const posOpt = POSITION_OPTIONS.find(p => p.value === (selectedSection.position || 'main')) ?? POSITION_OPTIONS[2];
+                                return (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+                                        <div style={{ minWidth: 0 }}>
+                                            <Typography level="title-sm" sx={{ fontSize: 13 }}>
+                                                {selectedSection.name}
+                                            </Typography>
+                                            <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>
+                                                {selectedSection.layout || 'table'} component
+                                            </div>
+                                        </div>
+                                        <span style={{
+                                            fontSize: 10,
+                                            padding: '2px 7px',
+                                            borderRadius: 999,
+                                            background: posOpt.bg,
+                                            color: posOpt.color,
+                                            border: `1px solid ${posOpt.border}`,
+                                            fontWeight: 700,
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.04em',
+                                            flexShrink: 0,
+                                        }}>
+                                            {posOpt.label}
+                                        </span>
+                                    </div>
+                                );
+                            })()}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
                             {isActivityAction ? (
