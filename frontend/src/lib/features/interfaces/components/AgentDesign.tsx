@@ -180,6 +180,14 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);
 
+    // Explore / Refine mode
+    const [designMode, setDesignMode] = useState<'explore' | 'refine'>('refine');
+    const [candidates, setCandidates] = useState<any[]>([]);
+    const [explorePrompt, setExplorePrompt] = useState('');
+    const [isGeneratingCandidates, setIsGeneratingCandidates] = useState(false);
+    const [candidateStatus, setCandidateStatus] = useState('');
+    const [previewCandidateIdx, setPreviewCandidateIdx] = useState<number | null>(null);
+
     const containerRef = useRef<HTMLDivElement>(null);
 
     const toggleBrowserFullScreen = () => {
@@ -368,6 +376,68 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setSections(variantSections);
     }, [setPages, setSections]);
 
+    const loadCandidates = useCallback(async () => {
+        if (!interfaceId) return;
+        try {
+            const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
+            setCandidates(((res.data as any)?.data || {}).candidates || []);
+        } catch { /* ignore */ }
+    }, [interfaceId]);
+
+    useEffect(() => {
+        if (designMode === 'explore' && interfaceId) loadCandidates();
+    }, [designMode, interfaceId, loadCandidates]);
+
+    const handleGenerateCandidates = async () => {
+        if (!explorePrompt.trim() || isGeneratingCandidates || !interfaceId || !systemId) return;
+        const prompt = explorePrompt;
+        setIsGeneratingCandidates(true);
+        setCandidateStatus('Connecting to agent...');
+        setPreviewCandidateIdx(null);
+        try {
+            const bearerToken = useAuthStore.getState().bearerToken;
+            const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
+            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const response = await fetch(`${base}/v1/generator/prototypes/generate_candidates/`, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...(authHeader ? { Authorization: authHeader } : {}) },
+                body: JSON.stringify({ interface_id: interfaceId, system_id: systemId, prompt }),
+            });
+            if (!response.ok || !response.body) throw new Error('Stream failed');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                const lines = buf.split('\n');
+                buf = lines.pop() || '';
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try { const c = JSON.parse(line); if (c.status) setCandidateStatus(c.status); } catch { /* ignore */ }
+                }
+            }
+            setCandidateStatus('Done! Loading candidates...');
+        } catch (e: any) {
+            setCandidateStatus(`Error: ${e.message}`);
+        } finally {
+            setIsGeneratingCandidates(false);
+            loadCandidates();
+        }
+    };
+
+    const handleApplyCandidate = useCallback(async (idx: number) => {
+        if (!interfaceId) return;
+        try {
+            const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/candidates/${idx}/apply/`);
+            const d = res.data as any;
+            if (d?.pages) applyVariantDSL(d.pages, d.sections);
+            setDesignMode('refine');
+            setPreviewCandidateIdx(null);
+        } catch { /* ignore */ }
+    }, [interfaceId, applyVariantDSL]);
+
     const updatePageProperty = useCallback((pageIndex: number, field: string, value: any) => {
         setPages((prev: any[]) => {
             const next = [...prev];
@@ -502,17 +572,139 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }}>
 
             {/* -- LEFT PANEL -- */}
-            <div style={{ 
-                width: isFullScreen ? 0 : 272, 
-                flexShrink: 0, 
-                borderRight: isFullScreen ? 'none' : '1px solid #e5e7eb', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                background: '#f9fafb', 
+            <div style={{
+                width: isFullScreen ? 0 : 272,
+                flexShrink: 0,
+                borderRight: isFullScreen ? 'none' : '1px solid #e5e7eb',
+                display: 'flex',
+                flexDirection: 'column',
+                background: '#f9fafb',
                 overflow: 'hidden',
                 transition: 'all 0.3s ease-in-out',
                 opacity: isFullScreen ? 0 : 1
             }}>
+
+                {/* Explore / Refine mode toggle */}
+                <div style={{ padding: '8px 10px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0, background: '#fff' }}>
+                    <div style={{ display: 'flex', width: '100%', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db' }}>
+                        {(['explore', 'refine'] as const).map(m => (
+                            <button key={m} onClick={() => setDesignMode(m)}
+                                style={{
+                                    flex: 1, padding: '4px 0', fontSize: 12, cursor: 'pointer', border: 'none',
+                                    background: designMode === m ? '#2563eb' : '#fff',
+                                    color: designMode === m ? '#fff' : '#6b7280',
+                                    fontWeight: designMode === m ? 600 : 400,
+                                }}>
+                                {m === 'explore' ? '✦ Explore' : '⟲ Refine'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* EXPLORE PANEL */}
+                {designMode === 'explore' && (
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid #e5e7eb' }}>
+                            <Typography level="title-sm" sx={{ fontSize: 13, mb: 0.5 }}>Generate 3 Candidates</Typography>
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 8px' }}>Describe the actor's goals — the agent creates 3 distinct interface designs.</p>
+                            <textarea
+                                rows={3}
+                                placeholder="e.g. Customer browsing products, adding to cart and checking out"
+                                value={explorePrompt}
+                                onChange={e => setExplorePrompt(e.target.value)}
+                                disabled={isGeneratingCandidates}
+                                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', resize: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+                            />
+                            {candidateStatus && (
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-word' }}>
+                                    {isGeneratingCandidates && <Loader2 size={10} style={{ display: 'inline', marginRight: 4, animation: 'spin 1s linear infinite' }} />}
+                                    {candidateStatus}
+                                </p>
+                            )}
+                            <Button
+                                size="sm" fullWidth
+                                onClick={handleGenerateCandidates}
+                                loading={isGeneratingCandidates}
+                                disabled={!explorePrompt.trim() || isGeneratingCandidates || !interfaceId || !systemId}
+                            >
+                                Generate Candidates
+                            </Button>
+                        </div>
+
+                        {/* Candidate cards */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                            {candidates.length === 0 && !isGeneratingCandidates && (
+                                <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 24 }}>
+                                    No candidates yet. Enter a prompt and generate.
+                                </p>
+                            )}
+                            {candidates.map((candidate: any, idx: number) => {
+                                const isExpanded = previewCandidateIdx === idx;
+                                return (
+                                    <div key={idx} style={{
+                                        border: `1px solid ${isExpanded ? '#2563eb' : '#e5e7eb'}`,
+                                        borderRadius: 8, marginBottom: 8, overflow: 'hidden',
+                                        background: isExpanded ? '#eff6ff' : '#fff',
+                                    }}>
+                                        <div style={{ padding: '8px 10px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                                                <span style={{ fontSize: 13, fontWeight: 600, color: '#1f2937' }}>
+                                                    {candidate.name || `Candidate ${idx + 1}`}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: 10, padding: '1px 6px', borderRadius: 10,
+                                                    background: isExpanded ? '#2563eb' : '#f3f4f6',
+                                                    color: isExpanded ? '#fff' : '#6b7280',
+                                                }}>
+                                                    {`${(candidate.pages || []).length}p · ${(candidate.sections || []).length}s`}
+                                                </span>
+                                            </div>
+                                            {candidate.description && (
+                                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 8px', lineHeight: 1.4 }}>{candidate.description}</p>
+                                            )}
+
+                                            {/* mini preview */}
+                                            {candidate.preview_html && (
+                                                <div style={{ height: 90, borderRadius: 5, overflow: 'hidden', border: '1px solid #e5e7eb', marginBottom: 8, pointerEvents: 'none' }}>
+                                                    <iframe
+                                                        srcDoc={candidate.preview_html}
+                                                        title={`candidate-${idx}-mini`}
+                                                        style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: 'top left', pointerEvents: 'none' }}
+                                                        sandbox="allow-scripts"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div style={{ display: 'flex', gap: 6 }}>
+                                                <button
+                                                    onClick={() => setPreviewCandidateIdx(isExpanded ? null : idx)}
+                                                    style={{
+                                                        flex: 1, padding: '4px 0', borderRadius: 5, fontSize: 11, cursor: 'pointer',
+                                                        background: isExpanded ? '#2563eb' : '#f3f4f6',
+                                                        color: isExpanded ? '#fff' : '#374151',
+                                                        border: `1px solid ${isExpanded ? '#2563eb' : '#d1d5db'}`,
+                                                    }}>
+                                                    {isExpanded ? 'Hide' : 'Preview'}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleApplyCandidate(idx)}
+                                                    style={{
+                                                        flex: 1, padding: '4px 0', borderRadius: 5, fontSize: 11, cursor: 'pointer',
+                                                        background: '#2563eb', color: '#fff', border: '1px solid #2563eb', fontWeight: 600,
+                                                    }}>
+                                                    Apply →
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* REFINE PANEL — existing section list */}
+                {designMode === 'refine' && <>
 
                 {/* Section list */}
                 <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #e5e7eb' }}>
@@ -1039,6 +1231,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                         </Button>
                     </div>
                 </div>
+                </>}
             </div>
 
             {/* -- RIGHT PANEL (preview) -- */}
@@ -1130,7 +1323,22 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
                 {/* iframe */}
                 <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
-                    {previewMode === 'live' ? (
+                    {designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]?.preview_html ? (
+                        <iframe
+                            key={`candidate-${previewCandidateIdx}`}
+                            srcDoc={candidates[previewCandidateIdx].preview_html}
+                            title={`Candidate ${previewCandidateIdx + 1} preview`}
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                            sandbox="allow-scripts"
+                        />
+                    ) : designMode === 'explore' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12 }}>
+                            <p style={{ fontSize: 13, color: '#9ca3af' }}>
+                                {isGeneratingCandidates ? 'Generating candidates...' : candidates.length === 0 ? 'Generate candidates to see previews here.' : 'Select a candidate to preview.'}
+                            </p>
+                            {isGeneratingCandidates && <Loader2 size={20} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
+                        </div>
+                    ) : previewMode === 'live' ? (
                         <iframe
                             key={`live-${liveKey}`}
                             src={`${prototypeURL}/autologin?as=${liveUser}`}

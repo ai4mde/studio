@@ -1,10 +1,11 @@
 import json
 import os
+import re
 import uuid
 from typing import List, Optional
 
 import requests as _req
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponse
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface, ExportSingleSystem
 from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePrototypeResponse
 from metadata.api.views.defaulting import create_default_interface
@@ -182,6 +183,131 @@ def delete_interface(request, interface_id):
     except Interface.DoesNotExist:
         return False
     return True
+
+
+@interfaces.post("/{uuid:id}/candidates/{candidate_index}/render/")
+def render_candidate(request, id: str, candidate_index: int):
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return 404, {"message": "Interface not found"}
+
+    candidates = (interface.data or {}).get("candidates", [])
+    if candidate_index < 0 or candidate_index >= len(candidates):
+        return 404, {"message": f"Candidate {candidate_index} not found"}
+
+    candidate = candidates[candidate_index]
+    system = interface.system
+    classifiers = [{"id": str(c.id), "data": c.data} for c in system.classifiers.all()]
+    relations = [
+        {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
+        for r in system.relations.all()
+    ]
+
+    candidate_data = {
+        "pages": candidate.get("pages", []),
+        "sections": candidate.get("sections", []),
+        "styling": candidate.get("styling", {}),
+        "tokens": candidate.get("tokens", {}),
+    }
+    files = render_preview(
+        interface_data=candidate_data,
+        classifiers=classifiers,
+        relations=relations,
+        interface_name=interface.name,
+    )
+
+    # Build a single standalone HTML with tab-based page navigation
+    page_names = [f.get("page", f.get("path", f"Page {i}")) for i, f in enumerate(files)]
+    tab_buttons = "".join(
+        f'<button class="tab-btn" onclick="showPage({i})" id="tab-{i}">{re.sub(r"[_-]", " ", page_names[i]).title()}</button>'
+        for i in range(len(files))
+    )
+    page_divs = "".join(
+        f'<div class="page-frame" id="page-{i}" style="display:{"block" if i == 0 else "none"}">'
+        f'<iframe srcdoc="{files[i]["content"].replace(chr(34), "&quot;").replace(chr(10), "&#10;")}" '
+        f'style="width:100%;height:calc(100vh - 50px);border:none;"></iframe></div>'
+        for i in range(len(files))
+    )
+
+    nav_style = (
+        "position:fixed;top:0;left:0;right:0;height:50px;background:#1e293b;"
+        "display:flex;align-items:center;padding:0 12px;gap:8px;z-index:999;"
+        "overflow-x:auto;"
+    )
+    btn_style = (
+        ".tab-btn{background:#334155;color:#e2e8f0;border:none;padding:6px 14px;"
+        "border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap;}"
+        ".tab-btn:hover,.tab-btn.active{background:#3b82f6;color:#fff;}"
+    )
+    js = (
+        "function showPage(i){"
+        "document.querySelectorAll('.page-frame').forEach((el,j)=>el.style.display=j===i?'block':'none');"
+        "document.querySelectorAll('.tab-btn').forEach((el,j)=>{el.classList.toggle('active',j===i);});}"
+        "showPage(0);"
+    )
+
+    preview_html = (
+        f"<!DOCTYPE html><html><head><meta charset='utf-8'>"
+        f"<style>body{{margin:0;padding-top:50px;}}{btn_style}</style></head>"
+        f"<body><nav style='{nav_style}'>{tab_buttons}</nav>"
+        f"{page_divs}"
+        f"<script>{js}</script></body></html>"
+    )
+
+    data = dict(interface.data or {})
+    updated_candidates = list(data.get("candidates", []))
+    if candidate_index < len(updated_candidates):
+        updated_candidates[candidate_index] = dict(updated_candidates[candidate_index])
+        updated_candidates[candidate_index]["preview_html"] = preview_html
+        updated_candidates[candidate_index]["preview_files"] = files
+    data["candidates"] = updated_candidates
+    Interface.objects.filter(id=id).update(data=data)
+
+    return {"message": f"Rendered {len(files)} page(s).", "files": files}
+
+
+@interfaces.get("/{uuid:id}/candidates/{candidate_index}/preview/", auth=None)
+def preview_candidate(request, id: str, candidate_index: int):
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return HttpResponse("Interface not found", status=404)
+
+    candidates = (interface.data or {}).get("candidates", [])
+    if candidate_index < 0 or candidate_index >= len(candidates):
+        return HttpResponse("Candidate not found", status=404)
+
+    candidate = candidates[candidate_index]
+    preview_html = candidate.get("preview_html")
+    if not preview_html:
+        return HttpResponse("Preview not yet rendered. Call the render endpoint first.", status=404)
+
+    return HttpResponse(preview_html, content_type="text/html")
+
+
+@interfaces.post("/{uuid:id}/candidates/{candidate_index}/apply/")
+def apply_candidate(request, id: str, candidate_index: int):
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return 404, {"message": "Interface not found"}
+
+    candidates = (interface.data or {}).get("candidates", [])
+    if candidate_index < 0 or candidate_index >= len(candidates):
+        return 404, {"message": f"Candidate {candidate_index} not found"}
+
+    candidate = candidates[candidate_index]
+    data = dict(interface.data or {})
+    data["pages"] = candidate.get("pages", data.get("pages", []))
+    data["sections"] = candidate.get("sections", data.get("sections", []))
+    if candidate.get("styling"):
+        data["styling"] = candidate["styling"]
+    if candidate.get("tokens"):
+        data["tokens"] = candidate["tokens"]
+    Interface.objects.filter(id=id).update(data=data)
+
+    return {"message": "Candidate applied.", "pages": data["pages"], "sections": data["sections"]}
 
 
 __all__ = ["interfaces"]

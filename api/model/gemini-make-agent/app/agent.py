@@ -1,6 +1,10 @@
 from google.adk.agents import Agent
 from google.adk.apps import App
-from app.tools import interface_config_tool, update_interface_patch_tool, system_context_tool, run_seed_script_tool, get_available_paths_tool
+from app.tools import (
+    interface_config_tool, update_interface_patch_tool, system_context_tool,
+    run_seed_script_tool, get_available_paths_tool,
+    get_interface_full_context_tool, validate_save_candidate_tool, render_candidate_preview_tool,
+)
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
@@ -77,6 +81,161 @@ Style/token fields (global theme):
     region.sidebar.bg, region.sidebar.width, region.footer.bg, region.header.bg
 """
 
+# ── Candidate Generation Pipeline ────────────────────────────────────────────
+
+reason_agent = Agent(
+    name="reason_agent",
+    model="openai/gpt-4o",
+    description="Analyses UML metadata and designer prompt to produce a structured reasoning JSON for interface generation.",
+    instruction="""You analyse a system's UML metadata and a designer prompt to produce a structured reasoning JSON that will guide generation of 3 interface candidates.
+
+Message format: interface_id=<uuid> prompt=<designer intent>
+
+Workflow:
+1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, use cases, and activities.
+2. Reason about:
+   - Which pages the actor needs (one per major use-case or object workspace)
+   - OOUI principles that apply (workspace, navigation area, object detail, collection)
+   - Which model belongs on which page as primary_model
+   - All navigation transitions between pages (who navigates where, what ID is passed)
+   - Which pages appear in the nav bar
+   - What operations the actor can perform on each model
+   - 3 structurally distinct diversity directions for the candidates
+3. Output ONLY a JSON object with this exact shape (no markdown, no explanation):
+{
+  "interface_id": "<uuid>",
+  "actor_role": "<actor name>",
+  "ooui_principles": ["<principle>", ...],
+  "pages": [
+    {"id": "<snake_case_id>", "name": "<Title_Case_name>", "primary_model": "<ModelName>", "intent": "<one sentence>"}
+  ],
+  "navigation_edges": [
+    {"from": "<page_id>", "trigger": "<user action>", "to": "<page_id>", "passes": "<Model.id or null>"},
+    {"from": "<page_id>", "trigger": "<user action>", "creates": "<ModelName>", "stays": true}
+  ],
+  "nav_bar_pages": ["<page_id>", ...],
+  "icon_actions": ["<page_id or action>", ...],
+  "actor_permissions": {"<ModelName>": ["view"|"create"|"update"|"delete"], ...},
+  "diversity_hints": [
+    "card-forward layout with prominent imagery and grid browsing",
+    "data-dense table with sidebar filter and inline actions",
+    "immersive detail-first with expanded object view"
+  ]
+}
+
+Rules:
+- page name must be Title_Case with underscores (e.g. Browse_Products, Product_Detail)
+- page id must be snake_case matching the name lowercased
+- navigation_edges must cover EVERY meaningful user transition
+- stays:true means after the action the user stays on the current page
+- diversity_hints must be genuinely structurally different, not just colour variations
+- Output ONLY the JSON object. No markdown fences.
+""",
+    tools=[get_interface_full_context_tool],
+)
+
+
+generate_agent = Agent(
+    name="generate_agent",
+    model="openai/gpt-4o",
+    description="Generates 3 complete Interface DSL candidates from the reasoning JSON.",
+    instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON produced by reason_agent.
+
+The reasoning JSON is in the conversation history. Read it and generate one candidate per diversity_hint.
+
+For EACH candidate (index 0, 1, 2):
+1. Build a complete pages[] and sections[] using the reasoning JSON.
+2. Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
+   - If it returns errors, fix them and call again.
+   - Do NOT proceed to the next candidate until the current one is saved OK.
+
+SECTION RULES — every section must have ALL applicable fields:
+
+primary_model:     exact model name from classifiers (or "" for chrome sections)
+layout:            one of: {" | ".join(sorted(["card","list","table","detail","gallery","filter","form",
+                   "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
+                   "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
+col_span:          12 | 6 | 4 | 3
+position:          "header" | "hero" | "main" | "sidebar" | "footer"
+view_detail_page:  target page NAME (Title_Case) if this list/card navigates to a detail — from navigation_edges
+operations:        {{"create": bool, "update": bool, "delete": bool}} — from actor_permissions
+query:             {{"limit": int, "order_by": [...]}}  for list/card/table sections
+attributes:        list of attribute names or objects:
+  - plain string: "name"
+  - with render+action: {{"name": "field", "render": {{"as": "text"|"link"|"button"|"badge"}}, "action": {{"type": "navigate"|"filter"|"operation"|"none", "targetPageId": "<page_name>"}}}}
+  - dot-notation for FK: "Product.name"
+style:             all applicable fields per layout:
+  color: blue|green|purple|orange|rose|slate
+  density: compact|normal|spacious
+  shadow: none|sm|md|lg|xl
+  border: none|light|colored|strong
+  bg: white|light|gray|dark
+  header_style: default|large|small|colored|hidden
+  card_style (card): default|product|category|compact
+  display_mode (card): grid|carousel|banner
+  list_style (list): default|product|cart-item
+  form_style (form): default|auth|step|summary
+  cta_label: any string
+  success_page (form): target page NAME — from navigation_edges
+  image_position (detail): left|top|right
+  image_size (detail): sm|md|lg
+
+NAVIGATION COMPLETENESS — mandatory:
+- Every list/card section that has a navigation_edge leading to a detail page MUST set view_detail_page
+- Every form section MUST set style.success_page from navigation_edges
+- site-nav OR nav-links chrome section MUST be included in EVERY candidate listing all nav_bar_pages
+- icon-actions chrome section MUST list all icon_actions from reasoning JSON
+
+DIVERSITY — candidates must have genuinely different layouts:
+- Candidate 0: follow diversity_hints[0]
+- Candidate 1: follow diversity_hints[1]
+- Candidate 2: follow diversity_hints[2]
+
+After all 3 candidates are saved, output: "All 3 candidates saved. Transferring to render_agent."
+Then transfer to render_agent.
+""",
+    tools=[validate_save_candidate_tool, get_available_paths_tool],
+)
+
+
+render_agent = Agent(
+    name="render_agent",
+    model="openai/gpt-4o",
+    description="Renders preview HTML for all 3 saved candidates.",
+    instruction="""You render preview HTML for all 3 saved interface candidates.
+
+The interface_id is in the conversation history.
+
+For candidate_index 0, 1, 2:
+  Call render_candidate_preview(interface_id, candidate_index).
+  If it returns an error, report it but continue with the next candidate.
+
+After all renders are attempted, output: "Previews rendered. Pipeline complete."
+""",
+    tools=[render_candidate_preview_tool],
+)
+
+
+candidate_pipeline_agent = Agent(
+    name="candidate_pipeline_agent",
+    model="openai/gpt-4o",
+    description="Orchestrates the 3-candidate interface generation pipeline: reason → generate → render.",
+    instruction="""You orchestrate the 3-candidate interface generation pipeline.
+
+Message format: interface_id=<uuid> prompt=<designer intent>
+
+Steps (in order, do not skip):
+1. Transfer to reason_agent with the message: "interface_id=<uuid> prompt=<prompt>"
+2. After reason_agent completes and returns the reasoning JSON, transfer to generate_agent with the message:
+   "interface_id=<uuid> reasoning=<the full reasoning JSON from reason_agent>"
+3. After generate_agent completes, transfer to render_agent with the message:
+   "interface_id=<uuid>"
+4. After render_agent completes, output: "done"
+""",
+    sub_agents=[reason_agent, generate_agent, render_agent],
+)
+
+
 seed_agent = Agent(
     name="seed_agent",
     model="openai/gpt-4o",
@@ -121,6 +280,7 @@ root_agent = Agent(
     instruction=f"""You are a routing agent for a UI design editor.
 
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
+If the message contains 'generate_candidates' (3-candidate generation): transfer to candidate_pipeline_agent.
 Otherwise (interface_id= UI edit request): handle it directly.
 
 --- UI edit workflow ---
@@ -166,7 +326,7 @@ Rules:
 - Call apply_interface_patch exactly once with the complete combined patch.
 """,
     tools=[interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool],
-    sub_agents=[seed_agent],
+    sub_agents=[seed_agent, candidate_pipeline_agent],
 )
 
 app = App(name="app", root_agent=root_agent)

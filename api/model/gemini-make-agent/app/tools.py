@@ -237,9 +237,174 @@ def get_available_paths(system_id: str, class_id: str, depth=2) -> str:
     except Exception as e:
         return f"Error computing paths: {e}"
 
+_VALID_LAYOUTS = {
+    "card", "list", "table", "detail", "gallery", "filter", "form", "activity_action",
+    "promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header",
+    "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip",
+}
+_VALID_STYLE = {
+    "color":        {"blue", "green", "purple", "orange", "rose", "slate"},
+    "density":      {"compact", "normal", "spacious"},
+    "shadow":       {"none", "sm", "md", "lg", "xl"},
+    "border":       {"none", "light", "colored", "strong"},
+    "bg":           {"white", "light", "gray", "dark"},
+    "header_style": {"default", "large", "small", "colored", "hidden"},
+    "display_mode": {"grid", "carousel", "banner"},
+    "card_style":   {"default", "product", "category", "compact"},
+    "list_style":   {"default", "product", "cart-item"},
+    "form_style":   {"default", "auth", "step", "summary"},
+    "image_position": {"left", "top", "right"},
+    "image_size":   {"sm", "md", "lg"},
+}
+
+
+def get_interface_full_context(interface_id: str) -> str:
+    """Fetch interface config plus full system context (classifiers, relations, diagrams) in one call."""
+    try:
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        system_id = iface.get("system")
+        system_ctx = json.loads(get_system_context(system_id)) if system_id else {}
+        return json.dumps({"interface": iface, "system": system_ctx}, indent=2)
+    except Exception as e:
+        return f"Error fetching full context: {e}"
+
+
+def validate_and_save_candidate(
+    interface_id: str,
+    candidate_index: int,
+    name: str,
+    description: str,
+    pages: list,
+    sections: list,
+) -> str:
+    """Validate a DSL candidate (model names, attributes, layout values, navigation targets) and
+    save it to interface.data['candidates'][candidate_index]. Returns validation errors or 'OK'."""
+    try:
+        # Fetch classifiers for validation
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        system_id = iface.get("system")
+
+        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
+        classifiers_data = cls_resp.json() if cls_resp.ok else {}
+        raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
+
+        # Build lookup: model_name → set of attribute names
+        model_attrs: dict[str, set] = {}
+        for c in raw_classifiers:
+            cdata = c.get("data", {})
+            cname = cdata.get("name", "")
+            attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
+            if cname:
+                model_attrs[cname] = attrs
+        known_models = set(model_attrs.keys())
+        page_names = {p.get("name", "") for p in pages}
+
+        errors = []
+
+        for s in sections:
+            sname = s.get("name", "?")
+            layout = s.get("layout", "")
+            if layout and layout not in _VALID_LAYOUTS:
+                errors.append(f"section '{sname}': invalid layout '{layout}'")
+
+            pm = s.get("primary_model", "")
+            if pm and pm not in known_models:
+                errors.append(f"section '{sname}': unknown primary_model '{pm}'")
+
+            for attr in s.get("attributes", []):
+                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                if "." in attr_name:
+                    # dot-notation: validate first segment is a known model
+                    first = attr_name.split(".")[0]
+                    if first not in known_models:
+                        errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
+                elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]:
+                    errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
+
+            vdp = s.get("view_detail_page", "")
+            if vdp and vdp not in page_names:
+                errors.append(f"section '{sname}': view_detail_page '{vdp}' not in pages")
+
+            sp = (s.get("style") or {}).get("success_page", "")
+            if sp and sp not in page_names:
+                errors.append(f"section '{sname}': success_page '{sp}' not in pages")
+
+            for field, valid_vals in _VALID_STYLE.items():
+                val = (s.get("style") or {}).get(field, "")
+                if val and val not in valid_vals:
+                    errors.append(f"section '{sname}': invalid style.{field} '{val}'")
+
+        # Auto-fix: strip unknown attributes rather than blocking save
+        fixed_sections = []
+        for s in sections:
+            pm = s.get("primary_model", "")
+            if pm and pm in model_attrs:
+                new_attrs = []
+                for attr in s.get("attributes", []):
+                    attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                    if "." in attr_name or not pm or attr_name in model_attrs.get(pm, set()):
+                        new_attrs.append(attr)
+                s = {**s, "attributes": new_attrs}
+            fixed_sections.append(s)
+
+        # Fetch current interface data and update candidates list
+        data = dict(iface.get("data") or {})
+        candidates = list(data.get("candidates") or [])
+        candidate = {
+            "id": f"c{candidate_index}",
+            "name": name,
+            "description": description,
+            "pages": pages,
+            "sections": fixed_sections,
+        }
+        while len(candidates) <= candidate_index:
+            candidates.append(None)
+        candidates[candidate_index] = candidate
+        data["candidates"] = candidates
+
+        payload = {
+            "id": interface_id,
+            "name": iface["name"],
+            "description": iface.get("description", ""),
+            "system_id": system_id,
+            "actor_id": iface.get("actor"),
+            "data": data,
+        }
+        put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
+        put_resp.raise_for_status()
+
+        if errors:
+            return f"Saved with {len(errors)} auto-fixed issue(s): " + "; ".join(errors[:5])
+        return f"OK: candidate {candidate_index} '{name}' saved successfully."
+    except Exception as e:
+        return f"Error saving candidate: {e}"
+
+
+def render_candidate_preview(interface_id: str, candidate_index: int) -> str:
+    """Trigger server-side rendering of a saved candidate's preview HTML."""
+    try:
+        resp = requests.post(
+            f"{METADATA_API_BASE}/interfaces/{interface_id}/candidates/{candidate_index}/render/",
+            headers=_AUTH_HEADERS,
+            timeout=60,
+        )
+        if resp.ok:
+            return f"OK: preview rendered for candidate {candidate_index}."
+        return f"Render failed ({resp.status_code}): {resp.text}"
+    except Exception as e:
+        return f"Error rendering preview: {e}"
+
+
 # Register tools
 system_context_tool = FunctionTool(func=get_system_context)
 interface_config_tool = FunctionTool(func=get_interface_config)
 update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
 run_seed_script_tool = FunctionTool(func=run_seed_script)
 get_available_paths_tool = FunctionTool(func=get_available_paths)
+get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
+validate_save_candidate_tool = FunctionTool(func=validate_and_save_candidate)
+render_candidate_preview_tool = FunctionTool(func=render_candidate_preview)
