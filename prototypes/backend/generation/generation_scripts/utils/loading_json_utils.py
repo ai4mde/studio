@@ -432,7 +432,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
 
             for page in application_component["value"]["data"]["pages"]:
                 category = None
-                if page["category"] != None:
+                if page.get("category") is not None:
                     category = page["category"]["value"]["name"]
 
                 layout_field = page.get("layout")
