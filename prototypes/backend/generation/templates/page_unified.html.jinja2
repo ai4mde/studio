@@ -1877,22 +1877,6 @@
   grid.parentNode.replaceChild(wrap, grid);
 })();
 </script>
-<script>
-(function() {
-  var style = document.createElement('style');
-  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
-  document.head.appendChild(style);
-  document.addEventListener('click', function(e) {
-    var el = e.target.closest && e.target.closest('[data-section-id]');
-    if (!el) return;
-    e.preventDefault();
-    e.stopPropagation();
-    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-    el.classList.add('si-selected');
-    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
-  }, true);
-})();
-</script>
 </main>
 
 {# â”€â”€ footer chrome: consecutive link-grid sections are grouped into one flex row â”€â”€ #}
@@ -1986,6 +1970,23 @@
 {%- endif %}
 {%- endfor %}
 {%- if _link_row_open %}</div>{%- endif %}
+
+<script>
+(function() {
+  var style = document.createElement('style');
+  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
+  document.head.appendChild(style);
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest && e.target.closest('[data-section-id]');
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+    el.classList.add('si-selected');
+    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+  }, true);
+})();
+</script>
 
 </body>
 </html>
