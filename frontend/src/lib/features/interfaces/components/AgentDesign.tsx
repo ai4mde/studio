@@ -321,6 +321,19 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }));
     }, [setSections]);
 
+    // Apply a theme object to ALL sections across all pages (used when picking a generated variant).
+    // styleOverrides keys match section style fields: color, density, shadow, border, bg, header_style, etc.
+    // layoutStyleMap applies layout-specific styles only to matching sections: { card: { card_style: 'product' } }
+    const applyThemeToAllSections = useCallback((
+        styleOverrides: Record<string, string>,
+        layoutStyleMap?: Record<string, Record<string, string>>,
+    ) => {
+        setSections((prev: any[]) => prev.map((s: any) => {
+            const layoutExtras = layoutStyleMap?.[s.layout] ?? {};
+            return { ...s, style: { ...(s.style || {}), ...styleOverrides, ...layoutExtras } };
+        }));
+    }, [setSections]);
+
     const updatePageProperty = useCallback((pageIndex: number, field: string, value: any) => {
         setPages((prev: any[]) => {
             const next = [...prev];
