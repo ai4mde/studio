@@ -81,7 +81,23 @@ def sec(
     related_to=None,
     relation_field=None,
     methods=None,
+    cta_label=None,
+    success_page=None,
+    position=None,
 ):
+    s = style(
+        color,
+        density=density,
+        card_style=card_style,
+        columns=columns,
+        radius=radius,
+        image_position=image_position,
+        image_size=image_size,
+    )
+    if cta_label:
+        s["cta_label"] = cta_label
+    if success_page:
+        s["success_page"] = success_page
     out = {
         "id": stable_id(actor, "section", name),
         "name": name,
@@ -90,15 +106,7 @@ def sec(
         "layout": layout,
         "col_span": col_span,
         "text": text,
-        "style": style(
-            color,
-            density=density,
-            card_style=card_style,
-            columns=columns,
-            radius=radius,
-            image_position=image_position,
-            image_size=image_size,
-        ),
+        "style": s,
         "attributes": attributes,
         "operations": operations or ops(),
     }
@@ -112,6 +120,8 @@ def sec(
         out["relation_field"] = relation_field
     if methods:
         out["methods"] = methods
+    if position:
+        out["position"] = position
     return out
 
 
@@ -357,13 +367,15 @@ def build_customer_interface():
     add_to_cart = sec(
         actor,
         "Add To Cart",
-        "Product",
-        "action_panel",
+        "CartItem",
+        "form",
         12,
         "orange",
-        [],
-        methods=[ADD_TO_CART_METHOD],
+        attrs("quantity"),
+        operations=ops(create=True),
         columns="1",
+        cta_label="In winkelwagen",
+        success_page="shopping_cart",
     )
     delivery = sec(
         actor,
