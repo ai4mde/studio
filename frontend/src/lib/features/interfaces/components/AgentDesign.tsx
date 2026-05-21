@@ -326,7 +326,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     }, [systemId, checkAndSwitchLive]);
 
-    const buildGeneratorPrototypePayload = useCallback(async () => {
+    const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any) => {
         if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
 
             const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
@@ -335,13 +335,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 authAxios.get(`/v1/metadata/interfaces/`, { params: { system: systemId } }),
             ]);
             const { sections: secs, pages: pgs, styling: stl } = latestState.current;
+            const effectiveSections = overrideSections ?? secs;
+            const effectivePages = overridePages ?? pgs;
+            const effectiveStyling = overrideStyling ?? stl;
             const syncedInterface = {
                 ...iface,
                 data: {
                     ...((iface as any).data || {}),
-                    sections: secs,
-                    pages: pgs,
-                    ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
+                    sections: effectiveSections,
+                    pages: effectivePages,
+                    ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
                 },
             };
             const prototypeName = `sync${Date.now()}`;
@@ -391,21 +394,41 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setMetadataError('');
         setMetadataJson('');
         try {
-            const payload = await buildGeneratorPrototypePayload();
+            let overrideSections: any[] | undefined;
+            let overridePages: any[] | undefined;
+            let overrideStyling: any | undefined;
+            if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
+                const cand = candidates[previewCandidateIdx];
+                overrideSections = cand.sections;
+                overridePages = cand.pages;
+                overrideStyling = cand.styling;
+            }
+            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling);
             setMetadataJson(JSON.stringify(payload, null, 2));
         } catch (error: any) {
             setMetadataError(error?.response?.data?.detail || error?.message || 'Failed to build generator metadata.');
         } finally {
             setIsLoadingMetadata(false);
         }
-    }, [buildGeneratorPrototypePayload]);
+    }, [buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates]);
 
     const handleSyncLivePrototype = useCallback(async () => {
         if (!interfaceId || !systemId || isSyncingLive) return;
         setIsSyncingLive(true);
         setSyncStatus('idle');
         try {
-            const payload = await buildGeneratorPrototypePayload();
+            // In explore mode, use the selected candidate's layout data directly
+            // so the live prototype matches what the preview shows.
+            let overrideSections: any[] | undefined;
+            let overridePages: any[] | undefined;
+            let overrideStyling: any | undefined;
+            if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
+                const cand = candidates[previewCandidateIdx];
+                overrideSections = cand.sections;
+                overridePages = cand.pages;
+                overrideStyling = cand.styling;
+            }
+            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling);
             const databasePrototypeName = payload.query.database_prototype_name || '';
             const previousPrototypeId = payload.previous_prototype_id || '';
             const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, payload.body);
@@ -431,7 +454,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setIsSyncingLive(false);
             setTimeout(() => setSyncStatus('idle'), 3000);
         }
-    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload]);
+    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates]);
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;

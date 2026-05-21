@@ -62,6 +62,9 @@ def _apply_section_query(qs, query, source_obj=None):
         qs = qs.exclude(id=getattr(source_obj, 'id', None))
     order_fields = []
     for item in query.get('order_by') or []:
+        if isinstance(item, str):
+            order_fields.append(item)
+            continue
         field = item.get('field')
         if not field:
             continue
