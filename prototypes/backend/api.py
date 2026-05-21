@@ -9,6 +9,7 @@ import socket
 import signal
 import sys
 import jinja2
+import shutil
 
 app = Flask(__name__)
 
@@ -194,6 +195,9 @@ def generate_prototype():
                        check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
         error_detail = (e.stderr or e.stdout or "no output captured")
+        failed_path = os.path.join(ROOT_DIR, system, name)
+        if os.path.isdir(failed_path):
+            shutil.rmtree(failed_path, ignore_errors=True)
         app.logger.error(f"Generation failed for {name}:\n{error_detail}")
         return f"Failed to generate prototype, id={id}\n{error_detail}", 500
 

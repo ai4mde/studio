@@ -74,6 +74,26 @@ def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     return None
 
 
+def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
+    """Resolve an Interface Metadata primary_model name to the underlying classifier id."""
+    if not model_name:
+        return None
+    target = model_name_sanitization(str(model_name))
+    metadata_json = json.loads(metadata)
+    for diagram in metadata_json.get("diagrams", []):
+        if diagram.get("type") != "classes":
+            continue
+        for node in diagram.get("nodes", []):
+            cls = node.get("cls", {})
+            if cls.get("type") == "class" and model_name_sanitization(cls.get("name", "")) == target:
+                return str(node.get("cls_ptr") or "")
+    for classifier in metadata_json.get("classifiers", []):
+        data = classifier.get("data", {})
+        if data.get("type") == "class" and model_name_sanitization(data.get("name", "")) == target:
+            return str(classifier.get("id") or "")
+    return None
+
+
 def find_model_by_id(metadata: str, class_id: str) -> str | None:
     for diagram in json.loads(metadata)["diagrams"]:
         if diagram["type"] != "classes":
@@ -343,7 +363,10 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         ))
                         continue
 
-                    section_class = section.get("class")
+                    section_class = section.get("class") or find_class_ptr_by_model_name(
+                        metadata,
+                        section.get("primary_model") or section.get("object") or "",
+                    )
                     operations = section.get("operations") or {}
                     query = dict(section.get("query") or {})
                     relationship = section.get("relationship") or {}

@@ -1139,6 +1139,11 @@
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• CARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model %}
+{%- if not _m or not list_var_name %}
+  <div class="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
+    {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
+  </div>
+{%- else %}
 {%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
 {%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
@@ -1289,6 +1294,7 @@
   {%- endif %}
 
 {%- endif %}{# end card sub-dispatch #}
+{%- endif %}
 
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif _glay == "list" %}
