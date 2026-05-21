@@ -489,8 +489,8 @@ def validate_and_save_candidate(
             "id": interface_id,
             "name": iface["name"],
             "description": iface.get("description", ""),
-            "system": system_id,
-            "actor": iface.get("actor"),
+            "system_id": system_id,
+            "actor_id": iface.get("actor"),
             "data": data,
         }
         put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
