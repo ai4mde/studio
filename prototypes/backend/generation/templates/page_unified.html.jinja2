@@ -10,11 +10,13 @@
 <body class="{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- for sc in page.section_components %}
-  {%- if sc.position == 'header' %}{% set _ = _header_secs.append(sc) %}{%- endif %}
-  {%- if sc.position == 'footer' %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'header' and (sc.component_type == 'activity_action' or sc.layout in _header_chrome) %}{% set _ = _header_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'footer' and (sc.component_type == 'activity_action' or sc.layout in _footer_chrome) %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
 
 {# â”€â”€ header chrome: render all header-position section components â”€â”€
@@ -331,7 +333,10 @@
 {% endif %}
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
-{%- for section_component in page.section_components if section_component.position not in ('header', 'footer') %}
+{%- for section_component in page.section_components if not (
+    (section_component.position == 'header' and (section_component.component_type == 'activity_action' or section_component.layout in _header_chrome)) or
+    (section_component.position == 'footer' and (section_component.component_type == 'activity_action' or section_component.layout in _footer_chrome))
+) %}
 {%- if section_component.component_type == 'activity_action' %}
 {%- set _aa_variant = section_component.style.get('variant', 'button') %}
 {%- set _aa_align   = section_component.style.get('align', 'right') %}
