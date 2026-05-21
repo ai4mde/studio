@@ -342,13 +342,16 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             };
             const prototypeName = `sync${Date.now()}`;
             let databasePrototypeName = '';
+            let previousPrototypeId = '';
             try {
                 const { data: activePrototype } = await authAxios.get('/v1/generator/prototypes/active_prototype/');
                 if (activePrototype?.running && activePrototype?.system === systemId && activePrototype?.name) {
                     databasePrototypeName = activePrototype.name;
+                    previousPrototypeId = activePrototype.prototype_id || '';
                 }
             } catch {
                 databasePrototypeName = '';
+                previousPrototypeId = '';
             }
             const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, {
                 name: prototypeName,
@@ -366,6 +369,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 },
             });
             await authAxios.post(`/v1/generator/prototypes/run/${prototype.id}`);
+            if (previousPrototypeId && previousPrototypeId !== prototype.id) {
+                try {
+                    await authAxios.delete(`/v1/generator/prototypes/${previousPrototypeId}/`);
+                } catch {
+                    // The new live prototype is already running; deletion failure should not break sync.
+                }
+            }
             if (!databasePrototypeName) {
                 const params = systemId ? `?system_id=${systemId}` : '';
                 await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
