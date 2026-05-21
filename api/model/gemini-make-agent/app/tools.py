@@ -291,6 +291,21 @@ def validate_and_save_candidate(
     """Validate a DSL candidate (model names, attributes, layout values, navigation targets) and
     save it to interface.data['candidates'][candidate_index]. Returns validation errors or 'OK'."""
     try:
+        if styling:
+            styling = dict(styling)
+            alias_map = {
+                "accent_color": "accentColor",
+                "background_color": "backgroundColor",
+                "text_color": "textColor",
+                "selected_style": "selectedStyle",
+            }
+            for old_key, new_key in alias_map.items():
+                if old_key in styling and new_key not in styling:
+                    styling[new_key] = styling.pop(old_key)
+            if isinstance(styling.get("radius"), str):
+                radius_map = {"none": 0, "sm": 4, "md": 8, "lg": 12, "xl": 16, "2xl": 24}
+                styling["radius"] = radius_map.get(styling["radius"], 8)
+
         # Fetch classifiers for validation
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
         iface_resp.raise_for_status()

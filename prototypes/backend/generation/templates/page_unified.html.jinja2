@@ -1977,9 +1977,10 @@
   style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
   document.head.appendChild(style);
   document.addEventListener('click', function(e) {
+    var link = e.target.closest && e.target.closest('a[href]');
+    if (link) { e.preventDefault(); }
     var el = e.target.closest && e.target.closest('[data-section-id]');
     if (!el) return;
-    e.preventDefault();
     e.stopPropagation();
     document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
     el.classList.add('si-selected');

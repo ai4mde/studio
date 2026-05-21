@@ -73,7 +73,7 @@ Page layout:
   pages[].gap.value    : "compact" | "normal" | "spacious"
 
 Style/token fields (global theme):
-  styling.radius, styling.text_color, styling.accent_color
+  styling.radius, styling.textColor, styling.accentColor, styling.backgroundColor, styling.selectedStyle
   tokens (valid Tailwind CSS classes):
     page.body.bg, page.body.text, page.container.max_width, page.header.height,
     component.card.bg, component.card.border, component.card.shadow, component.nav.active,
@@ -249,7 +249,9 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 For each candidate, strictly follow design_personas[i]:
   - Use ONLY section types from that persona's section emphasis (card-heavy → mostly card+filter; table-heavy → mostly table+list; detail-heavy → mostly detail+form)
   - Pass persona's AXIS B token values as the tokens dict
-  - Pass styling dict: accent_color matching button primary, radius appropriate to theme (light→lg, dark→md, brand→xl)
+  - Pass styling dict using the real UI schema:
+    {{"radius": 4|8|16, "accentColor": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "selectedStyle": "modern"}}
+    accentColor must match the primary button color; radius must differ across candidates.
   - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens, styling)
     If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
 
@@ -376,7 +378,7 @@ Patch shape (only include changed fields):
     "style": {{"color": "blue"}}
   }}],
   "pages":    [{{"id": "...", "layout": {{"value": "horizontal"}}, "gap": {{"value": "compact"}}}}],
-  "styling":  {{"radius": "xl", "accent_color": "blue-600"}},
+  "styling":  {{"radius": 16, "accentColor": "#2563EB", "backgroundColor": "#FFFFFF", "textColor": "#111827", "selectedStyle": "modern"}},
   "tokens":   {{"page.body.bg": "bg-slate-900", "page.body.text": "text-slate-100"}}
 }}
 
