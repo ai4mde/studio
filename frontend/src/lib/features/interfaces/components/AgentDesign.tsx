@@ -216,7 +216,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const stylingPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Capture latest sections/pages/previewPageIndex/styling for the debounced callback
     const latestState = useRef({ sections, pages, previewPageIndex, styling });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling }; }, [sections, pages, previewPageIndex, styling]);
@@ -488,45 +487,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
     }, [sections, pages, interfaceId, previewMode, doHotReload]);
 
-    // On mount: seed sections/pages/styling from DB if localStorage is empty
-    useEffect(() => {
-        if (!interfaceId) return;
-        const hasLocal = (
-            (sections as any[]).length > 0 ||
-            (pages as any[]).length > 0 ||
-            Object.keys(styling as object).length > 0
-        );
-        if (hasLocal) return;
-        authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`).then(res => {
-            const d = res.data?.data || {};
-            if (d.sections?.length) setSections(d.sections);
-            if (d.pages?.length) setPages(d.pages);
-            if (d.styling && Object.keys(d.styling).length) setStyling(d.styling);
-        }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [interfaceId]);
-
-    // Debounce: persist sections/pages/styling to DB 1 s after any change
-    useEffect(() => {
-        if (!interfaceId) return;
-        const hasSomething = (sections as any[]).length > 0 || (pages as any[]).length > 0;
-        if (!hasSomething) return;
-        if (stylingPersistTimer.current) clearTimeout(stylingPersistTimer.current);
-        stylingPersistTimer.current = setTimeout(async () => {
-            try {
-                const payload: Record<string, any> = {};
-                if ((sections as any[]).length) payload.sections = sections;
-                if ((pages as any[]).length) payload.pages = pages;
-                if (styling && Object.keys(styling).length) payload.styling = styling;
-                await authAxios.patch(`/v1/metadata/interfaces/${interfaceId}/data/`, payload);
-            } catch {
-                // fail silently — localStorage is the fallback
-            }
-        }, 1000);
-        return () => { if (stylingPersistTimer.current) clearTimeout(stylingPersistTimer.current); };
-    }, [sections, pages, styling, interfaceId]);
-
-    const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
+const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
             if (field === 'layout') {
