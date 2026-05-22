@@ -293,6 +293,19 @@ def render_candidate(request, id: str, candidate_index: int):
         inject_click_handlers=False,
         relations=relations,
     )
+    page_order = []
+    for page in candidate.get("pages", []):
+        page_type = page.get("type")
+        page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        page_order.append((page.get("name", ""), 1 if page_type_value == "activity" else 0))
+    page_rank = {name: (kind, index) for index, (name, kind) in enumerate(page_order)}
+    if page_rank:
+        def _file_rank(file_obj):
+            path = file_obj.get("path", "")
+            match = re.search(rf"{re.escape(interface.name)}_(.+?)\.html$", path)
+            page_name = match.group(1) if match else ""
+            return page_rank.get(page_name, (0 if not page_name.startswith("Workflow_") else 1, 9999))
+        files = sorted(files, key=_file_rank)
 
     # Disable all link navigation in candidate preview (iframes shouldn't navigate away)
     _nav_disable = (

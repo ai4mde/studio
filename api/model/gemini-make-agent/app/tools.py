@@ -35,8 +35,8 @@ def _as_list(payload, key: str) -> list:
     return payload or []
 
 def _name_id(value: str) -> str:
-    value = re.sub(r"[^A-Za-z0-9_\\s-]", "", str(value or ""))
-    value = re.sub(r"[\\s-]+", "_", value.strip())
+    value = re.sub(r"[^A-Za-z0-9_\s-]", "", str(value or ""))
+    value = re.sub(r"[\s-]+", "_", value.strip())
     return value or "workflow_step"
 
 def _page_name(value: str) -> str:
@@ -148,8 +148,12 @@ def _expand_design_tokens(tokens: dict) -> dict:
 
     tokens.setdefault("page.bg.hex", page_bg)
     tokens.setdefault("page.text.hex", text)
+    tokens["page.body.bg"] = f"bg-[{page_bg}]"
+    tokens["page.body.text"] = f"text-[{text}]"
     tokens.setdefault("region.header.bg_hex", accent)
+    tokens.setdefault("region.header.bg", f"bg-[{accent}]")
     tokens.setdefault("region.header.text_hex", "#ffffff")
+    tokens.setdefault("page.header.text", "text-white")
     tokens.setdefault("region.main.bg_hex", surface)
     tokens.setdefault("region.sidebar.bg_hex", surface)
     tokens.setdefault("region.footer.bg_hex", page_bg)
@@ -157,6 +161,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
     tokens.setdefault("region.border_hex", border)
 
     tokens.setdefault("component.card.bg_hex", surface)
+    tokens["component.card.bg"] = f"bg-[{surface}]"
     tokens.setdefault("component.card.border_hex", border)
     tokens.setdefault("component.card.shadow", "0 1px 3px 0 rgb(0 0 0 / 0.10)")
     for layout in ("form", "table", "list", "detail", "filter", "workflow"):
@@ -475,6 +480,154 @@ def _apply_builtin_workflow_logic(interface_data: dict, system_id: str | None, a
     sections = _normalize_activity_action_sections(pages, sections); data["pages"] = pages; data["sections"] = sections
     return data
 
+def _page_type_value(page: dict) -> str:
+    page_type = page.get("type")
+    if isinstance(page_type, dict):
+        return str(page_type.get("value") or "")
+    return str(page_type or "")
+
+def _ref_id(ref) -> str:
+    return str(ref.get("value") if isinstance(ref, dict) else ref or "")
+
+def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[str]:
+    preferred = ["name", "title", "status", "price", "total", "quantity", "description", "created_at"]
+    attrs = list(model_attrs.get(model) or [])
+    selected = [name for name in preferred if name in attrs]
+    selected.extend([name for name in attrs if name and name not in selected and name.lower() != "id"])
+    return selected[:limit] or attrs[:limit]
+
+def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
+    name = f"{page.get('name', '')} {page.get('id', '')}".lower()
+    if any(term in name for term in ("detail", "view_", "account", "profile")):
+        return "detail"
+    if any(term in name for term in ("shipping", "payment", "checkout", "address", "form", "enter_")):
+        return "form"
+    if any(term in name for term in ("cart", "order", "tracking")):
+        return "list"
+    if any(term in name for term in ("browse", "products", "catalog", "gallery", "shop")):
+        return "gallery" if candidate_index % 2 == 0 else "card"
+    return ("card", "table", "list")[candidate_index % 3]
+
+def _fallback_model_for_page(page: dict, known_models: set[str]) -> str:
+    if page.get("primary_model"):
+        return str(page.get("primary_model"))
+    page_name = f"{page.get('name', '')} {page.get('id', '')}".lower()
+    for model in sorted(known_models):
+        if model.lower() in page_name:
+            return model
+    non_process = [m for m in sorted(known_models) if m.lower() not in {"user", "group", "permission"}]
+    return non_process[0] if non_process else ""
+
+def _default_section_for_page(page: dict, model: str, model_attrs: dict, candidate_index: int) -> dict:
+    layout = _infer_section_layout(page, candidate_index)
+    page_id = _section_id(page.get("id") or page.get("name") or "page")
+    sid = f"{page_id}_{_section_id(model or 'content')}_{layout}"
+    attrs = _model_field_names(model_attrs, model, 8 if layout in {"table", "detail"} else 5)
+    operations = {"create": layout == "form", "update": layout in {"detail", "form"}, "delete": False}
+    style = {
+        "color": ("blue", "green", "purple")[candidate_index % 3],
+        "density": ("normal", "compact", "spacious")[candidate_index % 3],
+        "shadow": "md" if layout in {"card", "gallery", "detail"} else "sm",
+        "border": "light",
+        "bg": "white",
+        "header_style": "large" if layout in {"gallery", "detail"} else "default",
+    }
+    if layout in {"card", "gallery"}:
+        style.update({"display_mode": "grid", "card_style": "product" if model.lower() == "product" else "default", "columns": "3"})
+    elif layout == "list":
+        style.update({"list_style": "cart-item" if "cart" in page_id else "default"})
+    elif layout == "form":
+        style.update({"form_style": "step", "cta_label": "Continue"})
+    elif layout == "detail":
+        style.update({"image_position": "left", "image_size": "md"})
+    return {
+        "id": sid,
+        "name": page.get("name", sid).replace("_", " "),
+        "layout": layout,
+        "primary_model": model,
+        "class": model,
+        "attributes": attrs,
+        "operations": operations,
+        "query": {"limit": 12, "order_by": ["name"] if "name" in attrs else []},
+        "col_span": 12,
+        "position": "main",
+        "style": style,
+    }
+
+def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs: dict, candidate_index: int = 0) -> tuple[list, list]:
+    known_models = set(model_attrs.keys())
+    sections = [dict(s) for s in sections]
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    activity_section_ids = {sid for sid, s in section_map.items() if s.get("type") == "activity_action" or s.get("layout") == "activity_action"}
+    chrome_layouts = {"promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip"}
+
+    fixed_pages = []
+    normal_pages = []
+    activity_pages = []
+    for page in pages:
+        page = dict(page)
+        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+        if _page_type_value(page) != "activity":
+            refs = [ref for ref in refs if ref["value"] not in activity_section_ids]
+            page["sections"] = refs
+            normal_pages.append(page)
+        else:
+            page["sections"] = refs
+            activity_pages.append(page)
+
+    normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
+    if normal_pages and not any((s.get("layout") in {"site-nav", "nav-links", "main-header"} or s.get("position") == "header") and s.get("layout") in chrome_layouts for s in sections):
+        nav_id = "app_site_nav"
+        sections.append({
+            "id": nav_id,
+            "name": "Site Navigation",
+            "layout": "site-nav",
+            "primary_model": "",
+            "class": "",
+            "attributes": [],
+            "operations": {"create": False, "update": False, "delete": False},
+            "col_span": 12,
+            "position": "header",
+            "style": {"color": "blue", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
+            "methods": [p.get("name") for p in normal_pages if p.get("name")],
+        })
+        section_map[nav_id] = sections[-1]
+        for page in normal_pages:
+            refs = page.get("sections") or []
+            if nav_id not in {_ref_id(ref) for ref in refs}:
+                page["sections"] = [{"value": nav_id}] + refs
+
+    for page in normal_pages:
+        model = _fallback_model_for_page(page, known_models)
+        if model and not page.get("primary_model"):
+            page["primary_model"] = model
+        ref_ids = {_ref_id(ref) for ref in page.get("sections") or []}
+        has_content = False
+        for sid in ref_ids:
+            section = section_map.get(sid) or {}
+            if section.get("position", "main") == "main" and section.get("layout") not in chrome_layouts and section.get("layout") != "activity_action":
+                has_content = True
+                if model and not section.get("primary_model"):
+                    section["primary_model"] = model
+                    section["class"] = model
+                if section.get("primary_model") in model_attrs and not section.get("attributes"):
+                    section["attributes"] = _model_field_names(model_attrs, section["primary_model"])
+                section.setdefault("operations", {"create": False, "update": False, "delete": False})
+        if not has_content and model:
+            section = _default_section_for_page(page, model, model_attrs, candidate_index)
+            dedupe_id = section["id"]
+            suffix = 2
+            while dedupe_id in section_map:
+                dedupe_id = f"{section['id']}_{suffix}"
+                suffix += 1
+            section["id"] = dedupe_id
+            sections.append(section)
+            section_map[dedupe_id] = section
+            page.setdefault("sections", [])
+            page["sections"].append({"value": dedupe_id})
+    fixed_pages = normal_pages + activity_pages
+    return fixed_pages, sections
+
 def _fetch_system_context_data(system_id: str) -> dict:
     response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS); response.raise_for_status(); system_data = response.json(); classifiers_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); relations_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/relations/", headers=_AUTH_HEADERS); system_data["classifiers"] = classifiers_resp.json() if classifiers_resp.ok else []; system_data["relations"] = relations_resp.json() if relations_resp.ok else []; export_resp = requests.get(f"{METADATA_API_BASE}/systems/export/", params=[("system_ids", system_id)], headers=_AUTH_HEADERS)
     if export_resp.ok:
@@ -689,6 +842,7 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
         for i, s in enumerate(fixed_sections):
             if not s.get("id"): layout = s.get("layout", "section"); model = (s.get("primary_model") or "chrome").lower().replace(" ", "_"); fixed_sections[i] = {**s, "id": f"{model}_{layout}_{candidate_index}_{i}"}
             if not fixed_sections[i].get("name"): fixed_sections[i] = {**fixed_sections[i], "name": fixed_sections[i]["id"]}
+        fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0))
         chrome_positions = {"header", "hero", "footer", "sidebar"}; content_sections = [s for s in fixed_sections if s.get("position", "main") not in chrome_positions]
         def _norm_section_refs(refs: list) -> list:
             result = []
