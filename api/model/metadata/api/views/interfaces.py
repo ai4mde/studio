@@ -11,7 +11,7 @@ from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePro
 from metadata.api.views.defaulting import create_default_interface
 from metadata.models import System, Interface, Classifier
 from llm.template_renderer import render_layout
-from ninja import Router
+from ninja import Router, Body
 
 ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
 
@@ -186,7 +186,7 @@ def update_interface(request, id, interface: UpdateInterface):
 
 
 @interfaces.patch("/{uuid:id}/styling/", response=bool)
-def patch_interface_styling(request, id: str, payload: dict):
+def patch_interface_styling(request, id: str, payload: dict = Body(...)):
     try:
         interface = Interface.objects.get(id=id)
         data = dict(interface.data or {})
@@ -198,7 +198,7 @@ def patch_interface_styling(request, id: str, payload: dict):
 
 
 @interfaces.patch("/{uuid:id}/data/", response=bool)
-def patch_interface_data(request, id: str, payload: dict):
+def patch_interface_data(request, id: str, payload: dict = Body(...)):
     try:
         interface = Interface.objects.get(id=id)
         data = {**(interface.data or {}), **payload}

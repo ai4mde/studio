@@ -63,13 +63,9 @@ services:
       - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
-
-    # Router for Flask API
       - "traefik.http.routers.flask_api_router.rule=Host(`prototypes_api.ai4mde.localhost`)"
       - "traefik.http.routers.flask_api_router.service=flask_api_service"
       - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
-
-      # Router for Django prototype
       - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
@@ -88,6 +84,7 @@ services:
       - SESSION_SERVICE_URI=memory://
     volumes:
       - ./api/model/gemini-make-agent/app:/code/app:ro
+      - ./DESIGN.md:/DESIGN.md:ro
     networks:
       - ai4mde_traefik
     labels:

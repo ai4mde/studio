@@ -43,50 +43,40 @@ def _parse_design_md_to_tokens(content: str) -> dict:
                 tokens["region.border_hex"] = hex_val
             elif k in ["text base", "text"]:
                 tokens["page.body.text_hex"] = hex_val
-
     font_match = re.search(r'Font Family:\s*([\w\s,]+)', content)
     if font_match:
         tokens["page.font.family"] = font_match.group(1).split(',')[0].strip()
-
     if "### Buttons" in content:
         radius = re.search(r'- Radius:\s*(\d+)px', content)
         if radius:
             tokens["page.radius.px"] = radius.group(1)
-
     return tokens
 
 def get_design_system_tool_func() -> str:
-    design_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../DESIGN.md"))
+    design_path = "/DESIGN.md"
     if not os.path.exists(design_path):
-        return "No DESIGN.md found in project root."
+        return "No DESIGN.md found in container root."
     with open(design_path, 'r') as f:
         content = f.read()
     tokens = _parse_design_md_to_tokens(content)
     return json.dumps({"tokens": tokens, "raw_design_doc": content}, indent=2)
 
 def apply_design_system_to_interface_tool_func(interface_id: str) -> str:
-    design_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../DESIGN.md"))
+    design_path = "/DESIGN.md"
     if not os.path.exists(design_path):
         return "Error: DESIGN.md not found."
     with open(design_path, 'r') as f:
         content = f.read()
     tokens = _parse_design_md_to_tokens(content)
-    resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
-    if resp.status_code != 200:
-        return f"Error fetching interface: {resp.text}"
-    interface_data = resp.json().get("data", {})
-    interface_data["tokens"] = {**(interface_data.get("tokens") or {}), **tokens}
-    if "accent.hex" in tokens:
-        interface_data.setdefault("styling", {})["accentColor"] = tokens["accent.hex"]
     patch_resp = requests.patch(
-        f"{METADATA_API_BASE}/interfaces/{interface_id}/",
-        json={"data": interface_data},
+        f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",
+        json={"tokens": tokens},
         headers=_AUTH_HEADERS
     )
     if patch_resp.status_code == 200:
         return f"Successfully applied DESIGN.md tokens to interface {interface_id}."
     else:
-        return f"Failed to update interface: {patch_resp.text}"
+        return f"Failed to update interface data: {patch_resp.text}"
 
 def _build_activity_diagrams(system_data: dict) -> list:
     diagrams = system_data.get("diagrams") or []
@@ -439,12 +429,10 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
             if isinstance(styling.get("radius"), str):
                 radius_map = {"none": 0, "sm": 4, "md": 8, "lg": 12, "xl": 16, "2xl": 24}
                 styling["radius"] = radius_map.get(styling["radius"], 8)
-        
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
-        
         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
         classifiers_data = cls_resp.json() if cls_resp.ok else {}
         raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
@@ -456,14 +444,12 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
             if cname:
                 model_attrs[cname] = attrs
         known_models = set(model_attrs.keys())
-        
         try:
             completed_data = _apply_builtin_workflow_logic({"pages": pages, "sections": sections}, system_id, iface.get("actor"))
             pages = completed_data.get("pages") or []
             sections = completed_data.get("sections") or []
         except Exception:
             sections = _normalize_activity_action_sections(pages, sections)
-        
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name = {}
         for p in pages:
@@ -475,11 +461,9 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
             if pid:
                 page_ref_to_name[pid] = pname
                 page_ref_to_name[pid.lower()] = pname
-        
         errors = []
         _VALID_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip"}
         _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate"}, "density": {"compact", "normal", "spacious"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}}
-        
         for s in sections:
             sname = s.get("name", "?")
             layout = s.get("layout", "")
@@ -521,7 +505,6 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 val = (s.get("style") or {}).get(field, "")
                 if val and val not in valid_vals:
                     errors.append(f"section '{sname}': invalid style.{field} '{val}'")
-        
         fixed_sections = []
         for s in sections:
             pm = s.get("primary_model", "")
@@ -533,7 +516,6 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                         new_attrs.append(attr)
                 s = {**s, "attributes": new_attrs}
             fixed_sections.append(s)
-            
         fixed_pages = []
         for i, p in enumerate(pages):
             if not p.get("id"):
@@ -541,7 +523,6 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
             if "category" not in p:
                 p = {**p, "category": None}
             fixed_pages.append(p)
-            
         for i, s in enumerate(fixed_sections):
             if not s.get("id"):
                 layout = s.get("layout", "section")
@@ -549,10 +530,8 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 fixed_sections[i] = {**s, "id": f"{model}_{layout}_{candidate_index}_{i}"}
             if not fixed_sections[i].get("name"):
                 fixed_sections[i] = {**fixed_sections[i], "name": fixed_sections[i]["id"]}
-                
         chrome_positions = {"header", "hero", "footer", "sidebar"}
         content_sections = [s for s in fixed_sections if s.get("position", "main") not in chrome_positions]
-        
         def _norm_section_refs(refs: list) -> list:
             result = []
             for r in refs:
@@ -561,11 +540,9 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 elif isinstance(r, str):
                     result.append({"value": r})
             return result
-            
         for i, p in enumerate(fixed_pages):
             if p.get("sections") is not None:
                 fixed_pages[i] = {**p, "sections": _norm_section_refs(p["sections"])}
-                
         pages_need_sections = any(not p.get("sections") for p in fixed_pages)
         if pages_need_sections and content_sections:
             from collections import defaultdict
@@ -593,7 +570,6 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                         model_assigned[""] += 1
                 rebuilt_pages.append({**p, "sections": assigned})
             fixed_pages = rebuilt_pages
-            
         section_ids = {s["id"] for s in fixed_sections}
         orphans = []
         for p in fixed_pages:
@@ -603,7 +579,6 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                     orphans.append(f"page '{p.get('name')}' references section '{sid}' which is not in sections[]")
         if orphans:
             return f"INCOMPLETE: pages reference section IDs that are missing from sections[]. Missing: {'; '.join(orphans[:5])}."
-            
         data = dict(iface.get("data") or {})
         candidates = list(data.get("candidates") or [])
         candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, **({"tokens": tokens} if tokens else {}), **({"styling": styling} if styling else {})}
@@ -627,7 +602,6 @@ def render_candidate_preview_func(interface_id: str, candidate_index: int) -> st
     except Exception as e:
         return f"Error rendering preview: {e}"
 
-# Register tools
 system_context_tool = FunctionTool(func=get_system_context)
 interface_config_tool = FunctionTool(func=get_interface_config)
 update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
