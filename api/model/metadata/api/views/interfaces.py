@@ -188,6 +188,17 @@ def patch_interface_styling(request, id: str, payload: dict):
         return False
 
 
+@interfaces.patch("/{uuid:id}/data/", response=bool)
+def patch_interface_data(request, id: str, payload: dict):
+    try:
+        interface = Interface.objects.get(id=id)
+        data = {**(interface.data or {}), **payload}
+        Interface.objects.filter(id=id).update(data=data)
+        return True
+    except Interface.DoesNotExist:
+        return False
+
+
 @interfaces.delete("/{uuid:interface_id}", response=bool)
 def delete_interface(request, interface_id):
     try:
