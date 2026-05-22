@@ -167,7 +167,7 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
 export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
-    const [styling] = useLocalStorage('styling', {});
+    const [styling, setStyling] = useLocalStorage('styling', {});
 
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [previewHtml, setPreviewHtml] = useState<string>('');
@@ -712,6 +712,26 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         border: `1px solid ${on ? '#2563eb' : '#d1d5db'}`,
     });
 
+    const stl = styling as Record<string, string>;
+    const updateStyling = (key: string, value: string) =>
+        setStyling((prev: Record<string, string>) => ({ ...prev, [key]: value }));
+
+    const BG_PRESETS = [
+        { label: 'White', hex: '#ffffff' },
+        { label: 'Light', hex: '#f8fafc' },
+        { label: 'Warm',  hex: '#fdf8f0' },
+        { label: 'Gray',  hex: '#f1f5f9' },
+        { label: 'Dark',  hex: '#0f172a' },
+    ];
+    const ACCENT_PRESETS = [
+        { label: 'Blue',   hex: '#3b82f6' },
+        { label: 'Green',  hex: '#22c55e' },
+        { label: 'Purple', hex: '#a855f7' },
+        { label: 'Orange', hex: '#f97316' },
+        { label: 'Rose',   hex: '#f43f5e' },
+        { label: 'Slate',  hex: '#64748b' },
+    ];
+
     return (
         <>
         <div ref={containerRef} style={{ 
@@ -956,7 +976,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                             </div>
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page Gap</p>
-                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
                                 {[
                                     { label: 'Compact', value: 'compact' },
                                     { label: 'Normal', value: 'normal' },
@@ -967,6 +987,73 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                         {opt.label}
                                     </button>
                                 ))}
+                            </div>
+
+                            {/* Global Theme */}
+                            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 2 }}>
+                                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 10px' }}>Global Theme</p>
+
+                                {/* Background */}
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                                    {BG_PRESETS.map(p => (
+                                        <button key={p.hex} title={p.label}
+                                            onClick={() => updateStyling('bg_hex', p.hex)}
+                                            style={{
+                                                width: 22, height: 22, borderRadius: '50%',
+                                                background: p.hex, cursor: 'pointer',
+                                                border: stl.bg_hex === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db',
+                                                outline: stl.bg_hex === p.hex ? '2px solid #93c5fd' : 'none',
+                                                outlineOffset: 1, flexShrink: 0,
+                                            }} />
+                                    ))}
+                                    <label title="Custom background colour" style={{ position: 'relative', width: 22, height: 22, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: stl.bg_hex && !BG_PRESETS.some(p => p.hex === stl.bg_hex) ? stl.bg_hex : 'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)', fontSize: 10 }}>
+                                            {stl.bg_hex && !BG_PRESETS.some(p => p.hex === stl.bg_hex) ? '' : '＋'}
+                                        </span>
+                                        <input type="color" value={stl.bg_hex || '#ffffff'}
+                                            onChange={e => updateStyling('bg_hex', e.target.value)}
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                                    </label>
+                                    {stl.bg_hex && (
+                                        <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.bg_hex}</span>
+                                    )}
+                                </div>
+
+                                {/* Accent Color */}
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Accent Color</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 10 }}>
+                                    {ACCENT_PRESETS.map(p => (
+                                        <button key={p.hex} title={p.label}
+                                            onClick={() => updateStyling('accent_hex', p.hex)}
+                                            style={{
+                                                width: 22, height: 22, borderRadius: '50%',
+                                                background: p.hex, cursor: 'pointer',
+                                                border: stl.accent_hex === p.hex ? '2px solid #1d4ed8' : '2px solid transparent',
+                                                outline: stl.accent_hex === p.hex ? '2px solid #93c5fd' : 'none',
+                                                outlineOffset: 1, flexShrink: 0,
+                                            }} />
+                                    ))}
+                                    <label title="Custom accent colour" style={{ position: 'relative', width: 22, height: 22, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', background: stl.accent_hex && !ACCENT_PRESETS.some(p => p.hex === stl.accent_hex) ? stl.accent_hex : 'conic-gradient(red,yellow,lime,aqua,blue,magenta,red)', fontSize: 10 }}>
+                                            {stl.accent_hex && !ACCENT_PRESETS.some(p => p.hex === stl.accent_hex) ? '' : '＋'}
+                                        </span>
+                                        <input type="color" value={stl.accent_hex || '#3b82f6'}
+                                            onChange={e => updateStyling('accent_hex', e.target.value)}
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                                    </label>
+                                    {stl.accent_hex && (
+                                        <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.accent_hex}</span>
+                                    )}
+                                </div>
+
+                                {/* Reset */}
+                                {(stl.bg_hex || stl.accent_hex) && (
+                                    <button onClick={() => setStyling({})}
+                                        style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                        Reset theme
+                                    </button>
+                                )}
                             </div>
                         </>
                     ) : (
