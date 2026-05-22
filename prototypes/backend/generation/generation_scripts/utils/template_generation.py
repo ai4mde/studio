@@ -131,6 +131,8 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
         tokens["page.header.text"] = "text-white"
         tokens["accent.hex"] = accent
         tokens["brand.name"] = application_name
+    if styling and getattr(styling, 'background_color', None):
+        tokens["page.body.bg"] = f"bg-[{styling.background_color}]"
 
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     
