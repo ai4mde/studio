@@ -241,6 +241,27 @@ def _normalize_activity_action_sections(pages: list, sections: list) -> list:
 
     return sections
 
+def _actor_name_from_context(system_context: dict, actor_id: str | None) -> str | None:
+    for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
+        if str(classifier.get("id")) == str(actor_id):
+            return (classifier.get("data") or {}).get("name")
+    return None
+
+def _apply_builtin_workflow_logic(interface_data: dict, system_id: str | None, actor_id: str | None) -> dict:
+    """Deterministically add activity pages/buttons from the system activity diagrams."""
+    data = dict(interface_data or {})
+    pages = list(data.get("pages") or [])
+    sections = list(data.get("sections") or [])
+    if system_id:
+        system_context = _fetch_system_context_data(system_id)
+        actor_name = _actor_name_from_context(system_context, actor_id)
+        workflow_steps = _workflow_plan(system_context, str(actor_id or ""), actor_name)
+        pages, sections = _ensure_workflow_pages(pages, sections, workflow_steps)
+    sections = _normalize_activity_action_sections(pages, sections)
+    data["pages"] = pages
+    data["sections"] = sections
+    return data
+
 def _fetch_system_context_data(system_id: str) -> dict:
     response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
     response.raise_for_status()
@@ -405,6 +426,11 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
             data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
         if "tokens" in patch:
             data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+
+        try:
+            data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
+        except Exception:
+            data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
 
         payload = {
             "id": interface_id,
@@ -582,13 +608,16 @@ def validate_and_save_candidate(
                 model_attrs[cname] = attrs
         known_models = set(model_attrs.keys())
         try:
-            system_context = _fetch_system_context_data(system_id)
-            workflow_steps = _workflow_plan(system_context, str(iface.get("actor") or ""), actor_name)
-            pages, sections = _ensure_workflow_pages(pages, sections, workflow_steps)
+            completed_data = _apply_builtin_workflow_logic(
+                {"pages": pages, "sections": sections},
+                system_id,
+                iface.get("actor"),
+            )
+            pages = completed_data.get("pages") or []
+            sections = completed_data.get("sections") or []
         except Exception as e:
             # Candidate validation should still work if workflow metadata is incomplete.
-            workflow_steps = []
-        sections = _normalize_activity_action_sections(pages, sections)
+            sections = _normalize_activity_action_sections(pages, sections)
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name = {}
         for p in pages:
