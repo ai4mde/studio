@@ -29,7 +29,7 @@
     {%- endif %}
     {%- set _ratio_map = {'1:1':'1/1','4:3':'4/3','16:9':'16/9','portrait':'3/4','wide':'21/9'} %}
     {%- set _img_ratio_css = _ratio_map.get(tokens.get('theme.image.ratio','4:3'), '4/3') %}
-    .si-img { aspect-ratio: {{ _img_ratio_css }}; width: 100%; object-fit: cover; }
+    .si-img { aspect-ratio: {{ _img_ratio_css }}; width: 100%; object-fit: cover; min-height: 120px; background-color: #f9fafb; }
     {%- if tokens.get('theme.divider', 'none') == 'line' %}
     [data-section-id] + [data-section-id] { border-top: 1px solid #e5e7eb; }
     {%- elif tokens.get('theme.divider', 'none') == 'shadow' %}
@@ -1047,6 +1047,19 @@
     </div>
   </div>
 {%- endif %}
+
+{%- elif lay in ('search-bar', 'nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links', 'icon-actions', 'logo') %}
+{# Chrome section landed in main content area — render a compact placeholder #}
+  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
+    {%- if lay == 'search-bar' %}
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" placeholder="{{ section_component.text or section_component.display_name }}" class="flex-1 outline-none text-gray-700 bg-transparent" readonly />
+    {%- elif lay == 'logo' %}
+    <span class="font-black text-xl" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</span>
+    {%- else %}
+    <span>{{ section_component.display_name }}</span>
+    {%- endif %}
+  </div>
 
 {%- else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">

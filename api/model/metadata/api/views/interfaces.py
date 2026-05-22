@@ -10,7 +10,7 @@ from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
 from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePrototypeResponse
 from metadata.api.views.defaulting import create_default_interface
 from metadata.models import System, Interface, Classifier
-from llm.template_renderer import render_layout, render_preview
+from llm.template_renderer import render_layout
 from ninja import Router
 
 ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
@@ -44,7 +44,14 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
             for r in system.relations.all()
         ]
-        files = render_preview(interface_data=interface_data, classifiers=classifiers, relations=relations, interface_name=interface.name)
+        files = render_layout(
+            interface_data=interface_data,
+            classifiers=classifiers,
+            layout_config=None,
+            interface_name=interface.name,
+            inject_click_handlers=payload.inject_click_handlers,
+            relations=relations,
+        )
         return {"message": f"Generated {len(files)} page(s).", "files": files}
 
     def stream_generator():
@@ -116,11 +123,13 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
         # 3. The agent persists interface.data via update_interface_tool.
         # Refresh and render the preview.
         interface.refresh_from_db()
-        files = render_preview(
+        files = render_layout(
             interface_data=interface.data,
             classifiers=renderer_classifiers,
-            relations=renderer_relations,
+            layout_config=None,
             interface_name=interface.name,
+            inject_click_handlers=True,
+            relations=renderer_relations,
         )
         yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
 
@@ -276,11 +285,13 @@ def render_candidate(request, id: str, candidate_index: int):
         "styling": candidate.get("styling", {}),
         "tokens": candidate.get("tokens", {}),
     }
-    files = render_preview(
+    files = render_layout(
         interface_data=candidate_data,
         classifiers=classifiers,
-        relations=relations,
+        layout_config=None,
         interface_name=interface.name,
+        inject_click_handlers=False,
+        relations=relations,
     )
 
     # Disable all link navigation in candidate preview (iframes shouldn't navigate away)
