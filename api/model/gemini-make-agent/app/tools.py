@@ -9,7 +9,25 @@ PROTOTYPE_API_BASE = os.getenv("PROTOTYPE_API_BASE", "http://studio-prototypes:8
 _METADATA_API_KEY = os.getenv("METADATA_API_KEY")
 _AUTH_HEADERS = {"Authorization": f"Bearer {_METADATA_API_KEY}"} if _METADATA_API_KEY else {}
 TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../prototypes/backend/generation/templates"))
-DESIGN_SPECS_DIR = "/design_specs"
+DESIGN_SPECS_DIR = os.getenv("DESIGN_SPECS_DIR", "/design_specs")
+
+_DESIGN_DOMAIN_PRIORITIES = {
+    "commerce": ["ecommerce.md", "shopify.md", "airbnb.md", "apple.md", "nike.md"],
+    "finance": ["stripe.md", "monzo.md", "coinbase.md", "binance.md", "kraken.md"],
+    "devtool": ["vercel.md", "supabase.md", "clickhouse.md", "expo.md", "hashicorp.md"],
+    "creative": ["figma.md", "framer.md", "notion.md", "miro.md", "linear.app.md"],
+    "enterprise": ["ibm.md", "salesforce.md", "airtable.md", "intercom.md", "minimal.md"],
+    "luxury": ["apple.md", "ferrari.md", "lamborghini.md", "bmw.md", "bugatti.md"],
+}
+
+_DOMAIN_KEYWORDS = {
+    "commerce": {"product", "cart", "order", "customer", "seller", "inventory", "catalog", "checkout", "shipment", "address", "review"},
+    "finance": {"payment", "transaction", "invoice", "subscription", "account", "balance", "payout", "refund", "card", "wallet", "price"},
+    "devtool": {"api", "deployment", "repository", "query", "log", "event", "metric", "cluster", "database", "pipeline", "build"},
+    "creative": {"design", "canvas", "prototype", "board", "asset", "frame", "comment", "project", "workspace"},
+    "enterprise": {"organization", "employee", "team", "role", "permission", "ticket", "case", "contract", "report", "dashboard"},
+    "luxury": {"vehicle", "car", "model", "configuration", "dealer", "lifestyle", "event"},
+}
 
 def _as_list(payload, key: str) -> list:
     if isinstance(payload, dict):
@@ -30,8 +48,69 @@ def _workflow_page_name(value: str) -> str:
 def _section_id(value: str) -> str:
     return _name_id(value).lower()
 
+def _design_spec_files() -> list[str]:
+    if not os.path.exists(DESIGN_SPECS_DIR):
+        return []
+    return sorted(f for f in os.listdir(DESIGN_SPECS_DIR) if f.endswith(".md"))
+
+def _read_design_spec(spec_name: str) -> str:
+    safe_name = os.path.basename(spec_name)
+    design_path = os.path.join(DESIGN_SPECS_DIR, safe_name)
+    if not os.path.exists(design_path):
+        raise FileNotFoundError(f"Design spec '{safe_name}' not found.")
+    with open(design_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def _yaml_block_values(content: str, block_name: str) -> dict:
+    match = re.search(rf"(?m)^{re.escape(block_name)}:\s*\n(.*?)(?=\n[A-Za-z0-9_-]+:\s*\n|\n---|\Z)", content, re.S)
+    if not match:
+        return {}
+    values = {}
+    for key, value in re.findall(r"(?m)^  ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n#]+)", match.group(1)):
+        values[key.strip()] = value.strip()
+    return values
+
+def _first_token_value(mapping: dict, keys: list[str], default: str | None = None) -> str | None:
+    for key in keys:
+        if mapping.get(key):
+            return mapping[key]
+    return default
+
+def _normalize_radius(value: str | None, default: str = "8") -> str:
+    if not value:
+        return default
+    if value == "0":
+        return "0"
+    match = re.search(r"(\d+)", str(value))
+    return match.group(1) if match else default
+
 def _parse_design_md_to_tokens(content: str) -> dict:
     tokens = {}
+    colors = _yaml_block_values(content, "colors")
+    typography = _yaml_block_values(content, "typography")
+    rounded = _yaml_block_values(content, "rounded")
+
+    primary = _first_token_value(colors, ["primary", "accent", "accent-blue", "text-link", "product-terraform"], "#2563eb")
+    canvas = _first_token_value(colors, ["canvas", "background", "page", "canvas-soft"], "#f9fafb")
+    surface = _first_token_value(colors, ["surface-card", "surface-1", "surface", "canvas", "surface-soft-light"], "#ffffff")
+    border = _first_token_value(colors, ["hairline", "hairline-strong", "border", "surface-3"], "#e5e7eb")
+    text = _first_token_value(colors, ["ink", "body-strong", "text", "body", "on-primary"], "#111827")
+
+    if primary:
+        tokens["accent.hex"] = primary
+    if canvas:
+        tokens["page.body.bg_hex"] = canvas
+        tokens["page.body.bg"] = f"bg-[{canvas}]"
+    if surface:
+        tokens["region.main.bg_hex"] = surface
+        tokens["component.card.bg_hex"] = surface
+        tokens["component.card.bg"] = f"bg-[{surface}]"
+    if border:
+        tokens["region.border_hex"] = border
+    if text:
+        tokens["page.body.text_hex"] = text
+        tokens["page.body.text"] = f"text-[{text}]"
+
     palette_match = re.search(r'## Color Palette.*?\n(.*?)(?=\n#|##|$)', content, re.S)
     if palette_match:
         rows = re.findall(r'\|\s*([\w\s]+)\s*\|\s*(#[A-Fa-f0-9]{3,6})', palette_match.group(1))
@@ -42,12 +121,18 @@ def _parse_design_md_to_tokens(content: str) -> dict:
             elif k == "surface": tokens["region.main.bg_hex"] = hex_val
             elif k == "border": tokens["region.border_hex"] = hex_val
             elif k in ["text base", "text"]: tokens["page.body.text_hex"] = hex_val
-    font_match = re.search(r'Font Family:\s*([\w\s,]+)', content)
+    font_match = re.search(r"fontFamily:\s*[\"']?([^\"'\n]+)", content) or re.search(r'Font Family:\s*([\w\s,\-\'"]+)', content)
     if font_match:
-        tokens["page.font.family"] = font_match.group(1).split(',')[0].strip()
+        tokens["page.font.family"] = font_match.group(1).split(',')[0].strip().strip("'\"")
     if "### Buttons" in content:
         radius = re.search(r'- Radius:\s*(\d+)px', content)
         if radius: tokens["page.radius.px"] = radius.group(1)
+    tokens.setdefault("page.radius.px", _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "none"], "8")))
+    tokens.setdefault("brand.name", "App")
+    tokens.setdefault("theme.button.style", "solid")
+    tokens.setdefault("theme.card.hover", "lift" if tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb"} else "border")
+    tokens.setdefault("theme.image.ratio", "4/3")
+    tokens.setdefault("theme.divider", "line")
     return tokens
 
 def list_design_specs_tool_func() -> str:
