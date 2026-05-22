@@ -5,7 +5,7 @@ from app.tools import (
     interface_config_tool, update_interface_patch_tool, system_context_tool,
     run_seed_script_tool, get_available_paths_tool,
     get_interface_full_context_tool, validate_save_candidate_tool, render_candidate_preview_tool,
-    get_design_system_tool, apply_design_system_to_interface_tool,
+    get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
 )
 
 _EDITABLE_FIELDS = """
