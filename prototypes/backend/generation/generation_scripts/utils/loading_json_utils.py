@@ -643,6 +643,11 @@ def get_application_component(project_name: str, application_name: str, metadata
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
     styling = retrieve_styling(application_name=application_name, metadata=metadata)
+    tokens = {}
+    for application_component in metadata["value"]["applicationComponents"]:
+        if application_component["value"]["name"] == application_name:
+            tokens = (application_component["value"].get("data") or {}).get("tokens") or {}
+            break
 
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
@@ -652,5 +657,6 @@ def get_application_component(project_name: str, application_name: str, metadata
         pages = pages,
         settings = settings,
         styling = styling,
+        tokens = tokens,
         authentication_present = authentication_present
     )

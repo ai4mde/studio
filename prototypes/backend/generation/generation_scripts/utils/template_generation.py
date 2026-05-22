@@ -121,8 +121,8 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     pages_in_app = application_component.pages
     styling = application_component.styling
 
-    # Build tokens from styling so generation mode matches preview behavior
-    tokens = {}
+    # Interface metadata tokens are the canonical theme source; styling fills legacy gaps.
+    tokens = dict(getattr(application_component, "tokens", {}) or {})
     _FONT_CDN = {
         "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
         "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
@@ -142,14 +142,16 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     if styling:
         accent = getattr(styling, 'accent_color', None)
         if accent:
-            tokens["accent.hex"] = accent
-            tokens["region.header.bg"] = f"bg-[{accent}]"
-            tokens["page.header.text"] = "text-white"
-            tokens["brand.name"] = application_name
+            tokens.setdefault("accent.hex", accent)
+            tokens.setdefault("region.header.bg", f"bg-[{accent}]")
+            tokens.setdefault("page.header.text", "text-white")
+            tokens.setdefault("brand.name", application_name)
         if getattr(styling, 'background_color', None):
-            tokens["page.body.bg"] = f"bg-[{styling.background_color}]"
+            tokens.setdefault("page.body.bg", f"bg-[{styling.background_color}]")
+            tokens.setdefault("page.body.bg_hex", styling.background_color)
         if getattr(styling, 'text_color', None):
-            tokens["page.body.text"] = f"text-[{styling.text_color}]"
+            tokens.setdefault("page.body.text", f"text-[{styling.text_color}]")
+            tokens.setdefault("page.body.text_hex", styling.text_color)
     font = getattr(styling, 'font_family', 'inter') if styling else 'inter'
     tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
     tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))

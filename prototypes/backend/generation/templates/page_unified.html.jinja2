@@ -15,15 +15,45 @@
       
       /* Colors */
       --accent: {{ tokens.get('accent.hex', '#2563eb') }};
-      --bg-body: {{ tokens.get('page.body.bg_hex', '#f9fafb') }};
-      --bg-surface: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
-      --text-base: {{ tokens.get('page.body.text_hex', '#111827') }};
+      --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --bg-body: var(--page-bg);
+      --text-base: var(--page-text);
+      --region-header-bg: {{ tokens.get('region.header.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --region-header-text: {{ tokens.get('region.header.text_hex', '#ffffff') }};
+      --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+      --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --bg-surface: var(--region-main-bg);
       --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
       
       /* Component Specifics */
       --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--bg-surface)') }};
+      --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
       --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
-      --btn-radius: {{ tokens.get('element.button.radius', 'calc(var(--radius) * 0.75)') }};
+      --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-detail-bg: {{ tokens.get('component.detail.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-filter-bg: {{ tokens.get('component.filter.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-workflow-bg: {{ tokens.get('component.workflow.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --btn-radius: {{ tokens.get('button.radius.px', tokens.get('element.button.radius', tokens.get('page.radius.px', '8'))) }}px;
+      --button-primary-bg: {{ tokens.get('button.primary.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --button-primary-text: {{ tokens.get('button.primary.text_hex', '#ffffff') }};
+      --button-primary-border: {{ tokens.get('button.primary.border_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --button-secondary-bg: {{ tokens.get('button.secondary.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --button-secondary-text: {{ tokens.get('button.secondary.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --button-secondary-border: {{ tokens.get('button.secondary.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --button-danger-bg: {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
+      --button-danger-text: {{ tokens.get('button.danger.text_hex', '#ffffff') }};
+      --button-danger-border: {{ tokens.get('button.danger.border_hex', '#dc2626') }};
+      --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --badge-bg: {{ tokens.get('component.badge.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
     }
 
     body { 
@@ -35,17 +65,45 @@
     /* Atomic UI Utility Overrides */
     .si-card { 
       background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--card-border);
       border-radius: var(--radius); 
       box-shadow: var(--card-shadow);
     }
-    .si-btn { border-radius: var(--btn-radius); }
+    .si-btn { border-radius: var(--btn-radius); border-color: currentColor; }
+    .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn {
+      background-color: var(--button-primary-bg) !important;
+      color: var(--button-primary-text) !important;
+      border-color: var(--button-primary-border) !important;
+    }
+    .si-btn-secondary {
+      background-color: var(--button-secondary-bg) !important;
+      color: var(--button-secondary-text) !important;
+      border: 1px solid var(--button-secondary-border) !important;
+    }
+    .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn {
+      background-color: var(--button-danger-bg) !important;
+      color: var(--button-danger-text) !important;
+      border-color: var(--button-danger-border) !important;
+    }
+    .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link {
+      color: var(--button-link-text) !important;
+    }
     .si-input { 
       border-radius: calc(var(--radius) * 0.6); 
-      border: 1px solid var(--border-color);
-      background-color: var(--bg-surface);
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--input-text);
     }
-    .si-badge { border-radius: calc(var(--radius) * 2); }
+    .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+    [data-position="header"], header { border-color: var(--border-color); }
+    [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+    [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
+    [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+    [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+    [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+    [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+    [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+    [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
 
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.18s, box-shadow 0.18s; }

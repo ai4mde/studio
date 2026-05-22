@@ -6,6 +6,7 @@ from app.tools import (
     run_seed_script_tool, get_available_paths_tool,
     get_interface_full_context_tool, validate_save_candidate_tool, render_candidate_preview_tool,
     get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
+    select_design_specs_for_interface_tool,
 )
 
 _EDITABLE_FIELDS = """
@@ -262,17 +263,17 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id).
-2. Call list_design_specs_tool() to see available visual themes.
-3. Match the application domain to a theme (e.g. ecommerce.md for shops, stripe.md for payments).
-4. Analyse actor role, primary use cases, and determine determining which pages/models are needed.
-5. Derive 3 design_personas, matching the selected theme's vibe.
+2. Call select_design_specs_for_interface(interface_id, count=3).
+3. Use the returned specs as the only visual-theme source. Do not invent token values.
+4. Analyse actor role, primary use cases, and determine which normal pages/models are needed.
+5. Derive 3 design_personas that align with the selected specs.
 
 AXIS B — Color theme:
-   Instead of static values, you will use the tokens from the selected design spec.
+   Tokens are selected deterministically by the tool from interface/system metadata.
 
 ━━━ PHASE 2 — GENERATE (index 0, 1, 2) ━━━
-1. Call get_design_system_tool(spec_name="...") to fetch the real tokens for your chosen theme.
-2. Pass these tokens into validate_and_save_candidate.
+1. Build layout/pages/sections only. The built-in workflow logic will add activity pages/buttons from activity diagrams.
+2. Call validate_and_save_candidate for candidate_index 0, 1, 2. You may pass the exact tokens returned by select_design_specs_for_interface, but if omitted validate_and_save_candidate will inject the right tokens by candidate index.
 ...
 """,
     tools=[
@@ -282,6 +283,7 @@ AXIS B — Color theme:
         get_available_paths_tool,
         list_design_specs_tool,
         get_design_system_tool,
+        select_design_specs_for_interface_tool,
     ],
 )
 
@@ -339,8 +341,8 @@ Message format: interface_id=<uuid> user_request=<design change description>
 1. Call get_interface_config(interface_id=<uuid>) to get the current data.
 2. Analyze the request. 
    - If it involves a theme change (e.g. "make it look like Apple" or "apply ecommerce theme"):
-     a. Call list_design_specs_tool() to see available .md templates.
-     b. Select the file that best matches (e.g. apple.md, ecommerce.md).
+     a. Call select_design_specs_for_interface(interface_id, count=3) unless the user named an exact spec.
+     b. Select the best returned spec, or the exact requested spec.
      c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...") and STOP.
 3. Determine all needed changes (layout, style, data mapping, queries, tokens).
 4. If data mapping or queries are requested:
@@ -360,6 +362,7 @@ Rules:
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
         get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
+        select_design_specs_for_interface_tool,
         AgentTool(agent=candidate_pipeline_agent),
     ],
     sub_agents=[seed_agent],

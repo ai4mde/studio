@@ -85,7 +85,6 @@ services:
     volumes:
       - ./api/model/gemini-make-agent/app:/code/app:ro
       - ./design_specs:/design_specs:ro
-      - ./design_specs:/design_specs:ro
     networks:
       - ai4mde_traefik
     labels:

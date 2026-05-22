@@ -126,53 +126,190 @@ def _parse_design_md_to_tokens(content: str) -> dict:
         tokens["page.font.family"] = font_match.group(1).split(',')[0].strip().strip("'\"")
     if "### Buttons" in content:
         radius = re.search(r'- Radius:\s*(\d+)px', content)
-        if radius: tokens["page.radius.px"] = radius.group(1)
+        if radius:
+            tokens["page.radius.px"] = radius.group(1)
     tokens.setdefault("page.radius.px", _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "none"], "8")))
     tokens.setdefault("brand.name", "App")
     tokens.setdefault("theme.button.style", "solid")
     tokens.setdefault("theme.card.hover", "lift" if tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb"} else "border")
     tokens.setdefault("theme.image.ratio", "4/3")
     tokens.setdefault("theme.divider", "line")
+    _expand_design_tokens(tokens)
+    return tokens
+
+def _expand_design_tokens(tokens: dict) -> dict:
+    """Derive stable page/region/component/button tokens from the base palette."""
+    accent = tokens.get("accent.hex", "#2563eb")
+    page_bg = tokens.get("page.body.bg_hex", "#f9fafb")
+    surface = tokens.get("region.main.bg_hex") or tokens.get("component.card.bg_hex", "#ffffff")
+    text = tokens.get("page.body.text_hex", "#111827")
+    border = tokens.get("region.border_hex", "#e5e7eb")
+    radius = tokens.get("page.radius.px", "8")
+
+    tokens.setdefault("page.bg.hex", page_bg)
+    tokens.setdefault("page.text.hex", text)
+    tokens.setdefault("region.header.bg_hex", accent)
+    tokens.setdefault("region.header.text_hex", "#ffffff")
+    tokens.setdefault("region.main.bg_hex", surface)
+    tokens.setdefault("region.sidebar.bg_hex", surface)
+    tokens.setdefault("region.footer.bg_hex", page_bg)
+    tokens.setdefault("region.footer.text_hex", text)
+    tokens.setdefault("region.border_hex", border)
+
+    tokens.setdefault("component.card.bg_hex", surface)
+    tokens.setdefault("component.card.border_hex", border)
+    tokens.setdefault("component.card.shadow", "0 1px 3px 0 rgb(0 0 0 / 0.10)")
+    for layout in ("form", "table", "list", "detail", "filter", "workflow"):
+        tokens.setdefault(f"component.{layout}.bg_hex", surface)
+        tokens.setdefault(f"component.{layout}.border_hex", border)
+    tokens.setdefault("component.badge.bg_hex", page_bg)
+    tokens.setdefault("component.badge.text_hex", text)
+
+    tokens.setdefault("button.primary.bg_hex", accent)
+    tokens.setdefault("button.primary.text_hex", "#ffffff")
+    tokens.setdefault("button.primary.border_hex", accent)
+    tokens.setdefault("button.secondary.bg_hex", surface)
+    tokens.setdefault("button.secondary.text_hex", text)
+    tokens.setdefault("button.secondary.border_hex", border)
+    tokens.setdefault("button.danger.bg_hex", "#dc2626")
+    tokens.setdefault("button.danger.text_hex", "#ffffff")
+    tokens.setdefault("button.danger.border_hex", "#dc2626")
+    tokens.setdefault("button.link.text_hex", accent)
+    tokens.setdefault("button.radius.px", radius)
+    tokens.setdefault("input.bg_hex", surface)
+    tokens.setdefault("input.border_hex", border)
+    tokens.setdefault("input.text_hex", text)
     return tokens
 
 def list_design_specs_tool_func() -> str:
     """Lists all available design specification templates (e.g. ecommerce.md, minimal.md)."""
-    if not os.path.exists(DESIGN_SPECS_DIR):
-        return json.dumps([])
-    specs = [f for f in os.listdir(DESIGN_SPECS_DIR) if f.endswith(".md")]
-    return json.dumps(specs)
+    return json.dumps(_design_spec_files())
 
 def get_design_system_tool_func(spec_name: str = "minimal.md") -> str:
     """
     Reads a specific DESIGN specification from the library and returns the tokens.
     Use list_design_specs_tool to see available options.
     """
-    design_path = os.path.join(DESIGN_SPECS_DIR, spec_name)
-    if not os.path.exists(design_path):
-        return f"Error: Design spec '{spec_name}' not found."
-    with open(design_path, 'r') as f: content = f.read()
-    tokens = _parse_design_md_to_tokens(content)
-    return json.dumps({"spec_name": spec_name, "tokens": tokens, "raw_design_doc": content}, indent=2)
+    try:
+        safe_name = os.path.basename(spec_name)
+        content = _read_design_spec(safe_name)
+        tokens = _parse_design_md_to_tokens(content)
+        return json.dumps({"spec_name": safe_name, "tokens": tokens, "raw_design_doc": content}, indent=2)
+    except Exception as exc:
+        return f"Error: {exc}"
 
 def apply_design_system_to_interface_tool_func(interface_id: str, spec_name: str = "minimal.md") -> str:
     """
     Updates the specified Interface with design tokens from a template in the library.
     Ideal for quickly switching between themes (e.g. switching to ecommerce.md).
     """
-    design_path = os.path.join(DESIGN_SPECS_DIR, spec_name)
-    if not os.path.exists(design_path):
-        return f"Error: Design spec '{spec_name}' not found."
-    with open(design_path, 'r') as f: content = f.read()
-    tokens = _parse_design_md_to_tokens(content)
+    try:
+        safe_name = os.path.basename(spec_name)
+        content = _read_design_spec(safe_name)
+        tokens = _parse_design_md_to_tokens(content)
+        tokens["design.spec_name"] = safe_name
+    except Exception as exc:
+        return f"Error: {exc}"
     patch_resp = requests.patch(
         f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",
-        json={"tokens": tokens},
+        json={"tokens": tokens, "design_spec": safe_name},
         headers=_AUTH_HEADERS
     )
     if patch_resp.status_code == 200:
-        return f"Successfully applied '{spec_name}' tokens to interface {interface_id}."
+        return f"Successfully applied '{safe_name}' tokens to interface {interface_id}."
     else:
         return f"Failed to update interface data: {patch_resp.text}"
+
+def _collect_domain_terms(interface_id: str) -> tuple[list[str], dict]:
+    iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+    iface_resp.raise_for_status()
+    iface = iface_resp.json()
+    system_id = iface.get("system")
+    system_ctx = _fetch_system_context_data(system_id) if system_id else {}
+    data = iface.get("data") or {}
+    terms = [
+        iface.get("name", ""),
+        iface.get("description", ""),
+        str(iface.get("actor_name") or iface.get("actor") or ""),
+    ]
+    for page in data.get("pages") or []:
+        terms.extend([page.get("name", ""), str(page.get("primary_model") or "")])
+    for section in data.get("sections") or []:
+        terms.extend([section.get("name", ""), str(section.get("primary_model") or ""), str(section.get("layout") or "")])
+    for classifier in _as_list(system_ctx.get("classifiers"), "classifiers"):
+        cdata = classifier.get("data") or {}
+        terms.extend([cdata.get("name", ""), cdata.get("type", "")])
+        for attr in cdata.get("attributes") or []:
+            terms.append(attr.get("name", ""))
+    for diagram in system_ctx.get("activity_diagrams") or []:
+        terms.append(diagram.get("name", ""))
+        for node in diagram.get("nodes") or []:
+            terms.append(((node.get("cls") or {}).get("name") or ""))
+    return [str(term).lower() for term in terms if term], {"interface": iface, "system": system_ctx}
+
+def _domain_scores(terms: list[str]) -> dict:
+    text = " ".join(terms)
+    scores = {domain: 0 for domain in _DOMAIN_KEYWORDS}
+    for domain, keywords in _DOMAIN_KEYWORDS.items():
+        for keyword in keywords:
+            scores[domain] += len(re.findall(rf"\b{re.escape(keyword.lower())}\b", text))
+    return scores
+
+def _pick_design_specs_for_terms(terms: list[str], count: int = 3) -> list[str]:
+    available = _design_spec_files()
+    if not available:
+        return []
+    available_set = set(available)
+    scores = _domain_scores(terms)
+    ranked_domains = sorted(scores, key=lambda d: scores[d], reverse=True)
+    selected = []
+    for domain in ranked_domains:
+        for spec in _DESIGN_DOMAIN_PRIORITIES.get(domain, []):
+            if spec in available_set and spec not in selected:
+                selected.append(spec)
+                if len(selected) >= count:
+                    return selected
+    for fallback in ("minimal.md", "notion.md", "apple.md"):
+        if fallback in available_set and fallback not in selected:
+            selected.append(fallback)
+            if len(selected) >= count:
+                return selected
+    for spec in available:
+        if spec not in selected:
+            selected.append(spec)
+            if len(selected) >= count:
+                break
+    return selected
+
+def _tokens_for_design_spec(spec_name: str, brand_name: str = "App") -> dict:
+    safe_name = os.path.basename(spec_name)
+    tokens = _parse_design_md_to_tokens(_read_design_spec(safe_name))
+    tokens["brand.name"] = brand_name or "App"
+    tokens["design.spec_name"] = safe_name
+    return tokens
+
+def _candidate_design_spec(interface_id: str, candidate_index: int = 0) -> tuple[str | None, dict]:
+    terms, context = _collect_domain_terms(interface_id)
+    selected = _pick_design_specs_for_terms(terms, max(3, int(candidate_index) + 1))
+    if not selected:
+        return None, {}
+    spec_name = selected[int(candidate_index) % len(selected)]
+    iface = context.get("interface") or {}
+    return spec_name, _tokens_for_design_spec(spec_name, iface.get("name") or "App")
+
+def select_design_specs_for_interface_func(interface_id: str, count: int = 3) -> str:
+    """Deterministically maps interface/system metadata to design specs and resolved tokens."""
+    try:
+        terms, context = _collect_domain_terms(interface_id)
+        specs = _pick_design_specs_for_terms(terms, max(1, min(int(count or 3), 6)))
+        iface = context.get("interface") or {}
+        scores = _domain_scores(terms)
+        result = []
+        for spec in specs:
+            result.append({"spec_name": spec, "tokens": _tokens_for_design_spec(spec, iface.get("name") or "App")})
+        return json.dumps({"domain_scores": scores, "selected": result}, indent=2)
+    except Exception as exc:
+        return f"Error selecting design specs: {exc}"
 
 def _build_activity_diagrams(system_data: dict) -> list:
     diagrams = system_data.get("diagrams") or []
@@ -475,7 +612,21 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 if old_key in styling and new_key not in styling: styling[new_key] = styling.pop(old_key)
             if isinstance(styling.get("radius"), str):
                 radius_map = {"none": 0, "sm": 4, "md": 8, "lg": 12, "xl": 16, "2xl": 24}; styling["radius"] = radius_map.get(styling["radius"], 8)
-        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); iface_resp.raise_for_status(); iface = iface_resp.json(); system_id = iface.get("system"); cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); iface_resp.raise_for_status(); iface = iface_resp.json(); system_id = iface.get("system")
+        design_spec_name = None
+        if not tokens:
+            design_spec_name, tokens = _candidate_design_spec(interface_id, int(candidate_index or 0))
+        elif isinstance(tokens, str):
+            try:
+                tokens = json.loads(tokens)
+            except Exception:
+                tokens = {}
+        if tokens:
+            tokens = dict(tokens)
+            design_spec_name = design_spec_name or tokens.get("design.spec_name") or tokens.get("spec_name")
+            if design_spec_name:
+                tokens["design.spec_name"] = design_spec_name
+        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}
         for c in raw_classifiers:
             cdata = c.get("data", {}); cname = cdata.get("name", ""); attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
             if cname: model_attrs[cname] = attrs
@@ -570,7 +721,7 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 sid = ref.get("value") if isinstance(ref, dict) else str(ref)
                 if sid and sid not in section_ids: orphans.append(f"page '{p.get('name')}' references section '{sid}' which is not in sections[]")
         if orphans: return f"INCOMPLETE: pages reference section IDs that are missing from sections[]. Missing: {'; '.join(orphans[:5])}."
-        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, **({"tokens": tokens} if tokens else {}), **({"styling": styling} if styling else {})}
+        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
         while len(candidates) <= candidate_index: candidates.append(None)
         candidates[candidate_index] = candidate; data["candidates"] = candidates; payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}; put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); put_resp.raise_for_status()
         return f"OK: candidate {candidate_index} '{name}' saved successfully."
@@ -594,3 +745,4 @@ render_candidate_preview_tool = FunctionTool(func=render_candidate_preview_func)
 list_design_specs_tool = FunctionTool(func=list_design_specs_tool_func)
 get_design_system_tool = FunctionTool(func=get_design_system_tool_func)
 apply_design_system_to_interface_tool = FunctionTool(func=apply_design_system_to_interface_tool_func)
+select_design_specs_for_interface_tool = FunctionTool(func=select_design_specs_for_interface_func)
