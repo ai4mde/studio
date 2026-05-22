@@ -216,6 +216,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const stylingPersistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Capture latest sections/pages/previewPageIndex/styling for the debounced callback
     const latestState = useRef({ sections, pages, previewPageIndex, styling });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling }; }, [sections, pages, previewPageIndex, styling]);
@@ -486,6 +487,30 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         hotReloadTimer.current = setTimeout(doHotReload, 800);
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
     }, [sections, pages, interfaceId, previewMode, doHotReload]);
+
+    // On mount: seed styling from DB if localStorage is empty
+    useEffect(() => {
+        if (!interfaceId || (styling && Object.keys(styling).length > 0)) return;
+        authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`).then(res => {
+            const dbStyling = res.data?.data?.styling;
+            if (dbStyling && Object.keys(dbStyling).length) setStyling(dbStyling);
+        }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [interfaceId]);
+
+    // Debounce: persist styling to backend 800 ms after any styling change
+    useEffect(() => {
+        if (!interfaceId || !styling || !Object.keys(styling).length) return;
+        if (stylingPersistTimer.current) clearTimeout(stylingPersistTimer.current);
+        stylingPersistTimer.current = setTimeout(async () => {
+            try {
+                await authAxios.patch(`/v1/metadata/interfaces/${interfaceId}/styling/`, styling);
+            } catch {
+                // fail silently — localStorage already has the value as fallback
+            }
+        }, 800);
+        return () => { if (stylingPersistTimer.current) clearTimeout(stylingPersistTimer.current); };
+    }, [styling, interfaceId]);
 
     const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
