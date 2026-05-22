@@ -352,7 +352,16 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 for application_section in application_component["value"]["data"].get("sections", []):
                     section_position = application_section.get("position", "main")
                     section_id = str(application_section.get("id", ""))
-                    if section_position in ("header", "footer", "sidebar") and section_id and section_id not in page_section_ids:
+                    section_is_activity_action = (
+                        application_section.get("type") == "activity_action"
+                        or application_section.get("layout") == "activity_action"
+                    )
+                    if (
+                        section_position in ("header", "footer", "sidebar")
+                        and not section_is_activity_action
+                        and section_id
+                        and section_id not in page_section_ids
+                    ):
                         page_sections.append({"value": section_id})
                         page_section_ids.add(section_id)
 

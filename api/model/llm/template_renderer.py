@@ -255,6 +255,8 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
         str(s.get("id"))
         for s in sections_raw
         if s.get("id") and s.get("position") in ("header", "footer", "sidebar")
+        and s.get("type") != "activity_action"
+        and s.get("layout") != "activity_action"
     ]
 
     app_name = _sanitize(interface_name)

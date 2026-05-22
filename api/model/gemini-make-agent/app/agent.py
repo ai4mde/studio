@@ -326,6 +326,12 @@ Section rules — every section MUST include:
                    {{"action":"complete|navigate|complete_then_page","target_page":"Target_Page_Name"}}
                  Use {{"action":"complete"}} for normal workflow progression; the generated prototype redirects to the next active action-node URL.
 
+Activity action section rules:
+  - activity_action is ONLY a workflow/navigation control button, never a data section.
+  - Do NOT convert model-backed sections such as Cart Items, Product List, Shipping Form, or Order Details into activity_action.
+  - activity_action sections MUST have primary_model="", attributes=[], operations all false, type="activity_action", layout="activity_action".
+  - Put activity_action section ids only on activity pages unless the button is an explicit normal-page navigation link with workflow.action="navigate".
+
 Chrome sections (MANDATORY in every candidate — include in sections[] so they are selectable in the editor):
   - site-nav: position=header, col_span=12, primary_model=""
   - icon-actions: position=header, col_span=12, primary_model=""

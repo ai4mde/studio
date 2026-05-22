@@ -195,6 +195,52 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list) ->
 
     return pages, sections
 
+def _normalize_activity_action_sections(pages: list, sections: list) -> list:
+    activity_page_section_ids = set()
+    for page in pages:
+        page_type = page.get("type", {})
+        page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        if page_type_value != "activity":
+            continue
+        for ref in page.get("sections") or []:
+            activity_page_section_ids.add(str(ref.get("value") if isinstance(ref, dict) else ref))
+
+    for section in sections:
+        sid = str(section.get("id", ""))
+        is_activity_action = section.get("type") == "activity_action" or section.get("layout") == "activity_action"
+        if not is_activity_action:
+            continue
+
+        operations = section.get("operations") or {}
+        has_data_shape = bool(section.get("primary_model")) or bool(section.get("attributes")) or any(operations.values())
+
+        if has_data_shape and sid not in activity_page_section_ids:
+            section["layout"] = "list"
+            if section.get("type") == "activity_action":
+                section.pop("type", None)
+            section.pop("workflow", None)
+            section.pop("workflow_action", None)
+            section.pop("target_page", None)
+            section.pop("targetPage", None)
+            style = section.get("style") or {}
+            if style.get("variant") in {"button", "link", "fab", "wizard_next", "auto"}:
+                style.pop("variant", None)
+            section["style"] = style
+            continue
+
+        section["type"] = "activity_action"
+        section["layout"] = "activity_action"
+        section["primary_model"] = ""
+        section["class"] = ""
+        section["attributes"] = []
+        section["operations"] = {"create": False, "update": False, "delete": False}
+        section.setdefault("label", section.get("name") or "Continue")
+        workflow = section.get("workflow") or {}
+        workflow.setdefault("action", section.get("workflow_action") or "complete")
+        section["workflow"] = workflow
+
+    return sections
+
 def _fetch_system_context_data(system_id: str) -> dict:
     response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
     response.raise_for_status()
@@ -542,6 +588,7 @@ def validate_and_save_candidate(
         except Exception as e:
             # Candidate validation should still work if workflow metadata is incomplete.
             workflow_steps = []
+        sections = _normalize_activity_action_sections(pages, sections)
         page_names = {p.get("name", "") for p in pages}
         page_ref_to_name = {}
         for p in pages:

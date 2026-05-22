@@ -439,7 +439,7 @@
   {%- endif %}
 {%- endfor %}
 <div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action">
-{%- if not preview_mode %}
+{%- if page.type == 'activity' and not preview_mode %}
   {%- if _aa_target_page and _aa_target_is_activity.value %}
     {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
   {%- elif _aa_target_page %}
