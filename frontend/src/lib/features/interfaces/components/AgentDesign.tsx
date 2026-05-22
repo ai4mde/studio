@@ -989,9 +989,72 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 ))}
                             </div>
 
+                            {/* Global Theme */}
+                            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12 }}>
+                                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 8px' }}>Global Theme</p>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                                    {BG_PRESETS.map(p => (
+                                        <button key={p.hex} title={p.label}
+                                            onClick={() => updateStyling('backgroundColor', p.hex)}
+                                            style={{
+                                                width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer',
+                                                border: stl.backgroundColor === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db',
+                                                outline: stl.backgroundColor === p.hex ? '2px solid #93c5fd' : 'none',
+                                                outlineOffset: 1, flexShrink: 0,
+                                            }} />
+                                    ))}
+                                    <label title="Custom colour" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, background: stl.backgroundColor && !BG_PRESETS.some(p => p.hex === stl.backgroundColor) ? stl.backgroundColor : 'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)' }}>
+                                            {stl.backgroundColor && !BG_PRESETS.some(p => p.hex === stl.backgroundColor) ? '' : '＋'}
+                                        </span>
+                                        <input type="color" value={stl.backgroundColor || '#ffffff'}
+                                            onChange={e => updateStyling('backgroundColor', e.target.value)}
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                                    </label>
+                                    {stl.backgroundColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.backgroundColor}</span>}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Accent Color</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                                    {ACCENT_PRESETS.map(p => (
+                                        <button key={p.hex} title={p.label}
+                                            onClick={() => updateStyling('accentColor', p.hex)}
+                                            style={{
+                                                width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer',
+                                                border: stl.accentColor === p.hex ? '2px solid #1d4ed8' : '2px solid transparent',
+                                                outline: stl.accentColor === p.hex ? '2px solid #93c5fd' : 'none',
+                                                outlineOffset: 1, flexShrink: 0,
+                                            }} />
+                                    ))}
+                                    <label title="Custom colour" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, background: stl.accentColor && !ACCENT_PRESETS.some(p => p.hex === stl.accentColor) ? stl.accentColor : 'conic-gradient(red,yellow,lime,aqua,blue,magenta,red)' }}>
+                                            {stl.accentColor && !ACCENT_PRESETS.some(p => p.hex === stl.accentColor) ? '' : '＋'}
+                                        </span>
+                                        <input type="color" value={stl.accentColor || '#3b82f6'}
+                                            onChange={e => updateStyling('accentColor', e.target.value)}
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                                    </label>
+                                    {stl.accentColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.accentColor}</span>}
+                                </div>
+
+                                {(stl.backgroundColor || stl.accentColor) && (
+                                    <button onClick={() => setStyling({})}
+                                        style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                                        Reset theme
+                                    </button>
+                                )}
+                            </div>
                         </>
                     ) : (
                         <>
+                            <button
+                                onClick={() => setSelectedSectionId(null)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px', marginBottom: 2 }}
+                            >
+                                ← Page settings
+                            </button>
                             {(() => {
                                 const posOpt = POSITION_OPTIONS.find(p => p.value === (selectedSection.position || 'main')) ?? POSITION_OPTIONS[2];
                                 return (
@@ -1347,64 +1410,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                                 </>
                             )}
                         </>
-                    )}
-                </div>
-
-                {/* Global Theme — always visible */}
-                <div style={{ borderTop: '1px solid #e5e7eb', padding: '10px 12px 8px' }}>
-                    <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 8px' }}>Global Theme</p>
-
-                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-                        {BG_PRESETS.map(p => (
-                            <button key={p.hex} title={p.label}
-                                onClick={() => updateStyling('backgroundColor', p.hex)}
-                                style={{
-                                    width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer',
-                                    border: stl.backgroundColor === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db',
-                                    outline: stl.backgroundColor === p.hex ? '2px solid #93c5fd' : 'none',
-                                    outlineOffset: 1, flexShrink: 0,
-                                }} />
-                        ))}
-                        <label title="Custom colour" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, background: stl.backgroundColor && !BG_PRESETS.some(p => p.hex === stl.backgroundColor) ? stl.backgroundColor : 'linear-gradient(135deg,#ff6b6b,#ffd93d,#6bcb77,#4d96ff)' }}>
-                                {stl.backgroundColor && !BG_PRESETS.some(p => p.hex === stl.backgroundColor) ? '' : '＋'}
-                            </span>
-                            <input type="color" value={stl.backgroundColor || '#ffffff'}
-                                onChange={e => updateStyling('backgroundColor', e.target.value)}
-                                style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
-                        </label>
-                        {stl.backgroundColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.backgroundColor}</span>}
-                    </div>
-
-                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Accent Color</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
-                        {ACCENT_PRESETS.map(p => (
-                            <button key={p.hex} title={p.label}
-                                onClick={() => updateStyling('accentColor', p.hex)}
-                                style={{
-                                    width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer',
-                                    border: stl.accentColor === p.hex ? '2px solid #1d4ed8' : '2px solid transparent',
-                                    outline: stl.accentColor === p.hex ? '2px solid #93c5fd' : 'none',
-                                    outlineOffset: 1, flexShrink: 0,
-                                }} />
-                        ))}
-                        <label title="Custom colour" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: 11, background: stl.accentColor && !ACCENT_PRESETS.some(p => p.hex === stl.accentColor) ? stl.accentColor : 'conic-gradient(red,yellow,lime,aqua,blue,magenta,red)' }}>
-                                {stl.accentColor && !ACCENT_PRESETS.some(p => p.hex === stl.accentColor) ? '' : '＋'}
-                            </span>
-                            <input type="color" value={stl.accentColor || '#3b82f6'}
-                                onChange={e => updateStyling('accentColor', e.target.value)}
-                                style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
-                        </label>
-                        {stl.accentColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.accentColor}</span>}
-                    </div>
-
-                    {(stl.backgroundColor || stl.accentColor) && (
-                        <button onClick={() => setStyling({})}
-                            style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                            Reset theme
-                        </button>
                     )}
                 </div>
 

@@ -438,6 +438,9 @@ def render_preview(
         tokens["page.header.text"] = "text-white"
         tokens["accent.hex"] = accent
         tokens["brand.name"] = interface_name
+    bg = styling.get("backgroundColor", "")
+    if bg and "page.body.bg" not in tokens:
+        tokens["page.body.bg"] = f"bg-[{bg}]"
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)
