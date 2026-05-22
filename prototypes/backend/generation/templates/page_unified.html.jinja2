@@ -9,38 +9,60 @@
   {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
   <style>
     :root {
+      /* Base Tokens from DESIGN.md */
       --radius: {{ tokens.get('page.radius.px', '8') }}px;
       --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+      
+      /* Colors */
+      --accent: {{ tokens.get('accent.hex', '#2563eb') }};
+      --bg-body: {{ tokens.get('page.body.bg_hex', '#f9fafb') }};
+      --bg-surface: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+      --text-base: {{ tokens.get('page.body.text_hex', '#111827') }};
+      --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
+      
+      /* Component Specifics */
+      --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--bg-surface)') }};
+      --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+      --btn-radius: {{ tokens.get('element.button.radius', 'calc(var(--radius) * 0.75)') }};
     }
-    body { font-family: var(--font-family); }
-    .si-card { border-radius: var(--radius); }
-    .si-btn  { border-radius: calc(var(--radius) * 0.75); }
-    .si-input { border-radius: calc(var(--radius) * 0.6); }
+
+    body { 
+      font-family: var(--font-family); 
+      background-color: var(--bg-body);
+      color: var(--text-base);
+    }
+
+    /* Atomic UI Utility Overrides */
+    .si-card { 
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius); 
+      box-shadow: var(--card-shadow);
+    }
+    .si-btn { border-radius: var(--btn-radius); }
+    .si-input { 
+      border-radius: calc(var(--radius) * 0.6); 
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface);
+    }
     .si-badge { border-radius: calc(var(--radius) * 2); }
+
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.18s, box-shadow 0.18s; }
     .si-card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
     {%- elif tokens.get('theme.card.hover', 'lift') == 'glow' %}
     .si-card-hover { transition: box-shadow 0.18s; }
-    .si-card-hover:hover { box-shadow: 0 0 0 3px {{ tokens.get('accent.hex', '#2563eb') }}44; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px var(--accent)44; }
     {%- elif tokens.get('theme.card.hover', 'lift') == 'border' %}
     .si-card-hover { transition: border-color 0.18s; }
-    .si-card-hover:hover { border-color: {{ tokens.get('accent.hex', '#2563eb') }} !important; }
+    .si-card-hover:hover { border-color: var(--accent) !important; }
     {%- endif %}
-    {%- set _ratio_map = {'1:1':'1/1','4:3':'4/3','16:9':'16/9','portrait':'3/4','wide':'21/9'} %}
-    {%- set _img_ratio_css = _ratio_map.get(tokens.get('theme.image.ratio','4:3'), '4/3') %}
-    .si-img { aspect-ratio: {{ _img_ratio_css }}; width: 100%; object-fit: cover; min-height: 120px; background-color: #f9fafb; }
-    {%- if tokens.get('theme.divider', 'none') == 'line' %}
-    [data-section-id] + [data-section-id] { border-top: 1px solid #e5e7eb; }
-    {%- elif tokens.get('theme.divider', 'none') == 'shadow' %}
-    [data-section-id] + [data-section-id] { box-shadow: 0 -4px 12px rgba(0,0,0,0.06); }
-    {%- elif tokens.get('theme.divider', 'none') == 'wave' %}
-    [data-section-id] + [data-section-id] { border-top: 3px wavy #e5e7eb; }
-    {%- endif %}
+
+    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; min-height: 120px; background-color: #f3f4f6; }
   </style>
-  <title>{{ page.display_name }} – Preview</title>
+  <title>{{ page.display_name }}</title>
 </head>
-<body class="{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen {{ tokens.get('page.body.text', 'text-gray-800') }}">
+<body class="min-h-screen">
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}

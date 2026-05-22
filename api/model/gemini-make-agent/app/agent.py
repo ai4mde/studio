@@ -451,6 +451,7 @@ Rules:
 """,
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
+        get_design_system_tool, apply_design_system_to_interface_tool,
         AgentTool(agent=candidate_pipeline_agent),
     ],
     sub_agents=[seed_agent],

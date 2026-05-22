@@ -26,6 +26,89 @@ def _page_name(value: str) -> str:
 def _section_id(value: str) -> str:
     return _name_id(value).lower()
 
+def _parse_design_md_to_tokens(content: str) -> dict:
+    tokens = {}
+    # Basic color mapping
+    palette_match = re.search(r'## Color Palette.*?\n(.*?)(?=\n#|##|$)', content, re.S)
+    if palette_match:
+        rows = re.findall(r'\|\s*([\w\s]+)\s*\|\s*(#[A-Fa-f0-9]{3,6})', palette_match.group(1))
+        for key, hex_val in rows:
+            k = key.strip().lower()
+            if k == "primary": tokens["accent.hex"] = hex_val
+            if k == "background": tokens["page.body.bg"] = f"bg-[{hex_val}]"
+            if k == "surface": tokens["region.main.bg"] = f"bg-[{hex_val}]"
+            if k == "border": tokens["region.border"] = f"border-[{hex_val}]"
+            if k == "text base": tokens["page.body.text"] = f"text-[{hex_val}]"
+
+    # Typography
+    font_match = re.search(r'Font Family:\s*([\w\s,]+)', content)
+    if font_match:
+        tokens["page.font.family"] = font_match.group(1).split(',')[0].strip()
+
+    # Component mappings (simplified for Tailwind)
+    if "### Buttons" in content:
+        radius = re.search(r'- Radius:\s*(\d+)px', content)
+        if radius: tokens["page.radius.px"] = radius.group(1)
+
+    return tokens
+
+@AgentTool
+def get_design_system_tool() -> str:
+    """
+    Reads the project's DESIGN.md file and returns the structured design tokens 
+    and atmosphere. Use this to ensure all generated UI matches the design system.
+    """
+    design_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../DESIGN.md"))
+    if not os.path.exists(design_path):
+        return "No DESIGN.md found in project root."
+    
+    with open(design_path, 'r') as f:
+        content = f.read()
+    
+    tokens = _parse_design_md_to_tokens(content)
+    return json.dumps({
+        "tokens": tokens,
+        "raw_design_doc": content
+    }, indent=2)
+
+@AgentTool
+def apply_design_system_to_interface_tool(interface_id: str) -> str:
+    """
+    Reads DESIGN.md and updates the specified Interface metadata with the 
+    extracted design tokens. This ensures the frontend and generator are in sync.
+    """
+    design_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../DESIGN.md"))
+    if not os.path.exists(design_path):
+        return "Error: DESIGN.md not found."
+
+    with open(design_path, 'r') as f:
+        content = f.read()
+    
+    tokens = _parse_design_md_to_tokens(content)
+    
+    # Update Metadata via API
+    resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+    if resp.status_code != 200:
+        return f"Error fetching interface: {resp.text}"
+    
+    interface_data = resp.json().get("data", {})
+    interface_data["tokens"] = {**(interface_data.get("tokens") or {}), **tokens}
+    
+    # Also update styling fields if possible
+    if "accent.hex" in tokens:
+        interface_data.setdefault("styling", {})["accentColor"] = tokens["accent.hex"]
+    
+    patch_resp = requests.patch(
+        f"{METADATA_API_BASE}/interfaces/{interface_id}/",
+        json={"data": interface_data},
+        headers=_AUTH_HEADERS
+    )
+    
+    if patch_resp.status_code == 200:
+        return f"Successfully applied DESIGN.md tokens to interface {interface_id}."
+    else:
+        return f"Failed to update interface: {patch_resp.text}"
+
 def _build_activity_diagrams(system_data: dict) -> list:
     """Return activity diagrams in the shape expected by the prototype workflow parser."""
     diagrams = system_data.get("diagrams") or []
@@ -873,3 +956,5 @@ get_available_paths_tool = FunctionTool(func=get_available_paths)
 get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
 validate_save_candidate_tool = FunctionTool(func=validate_and_save_candidate)
 render_candidate_preview_tool = FunctionTool(func=render_candidate_preview)
+get_design_system_tool = FunctionTool(func=get_design_system_tool)
+apply_design_system_to_interface_tool = FunctionTool(func=apply_design_system_to_interface_tool)
