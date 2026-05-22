@@ -176,19 +176,19 @@
     {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
     {%- elif _aa_action == 'navigate' and _aa_target_url %}
-    <a href="{{ _aa_target_url }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</a>
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</a>
     {%- else %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
     {%- endif %}
     {%- else %}
-    <button type="button" class="bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
     {%- endif %}
   </div>
 </div>
@@ -366,6 +366,62 @@
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
+<style>
+  :root {
+    --radius: {{ tokens.get('page.radius.px', '8') }}px;
+    --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+    --accent: {{ tokens.get('accent.hex', '#2563eb') }};
+    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+    --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
+    --card-bg: {{ tokens.get('component.card.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+    --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-detail-bg: {{ tokens.get('component.detail.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-filter-bg: {{ tokens.get('component.filter.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-workflow-bg: {{ tokens.get('component.workflow.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
+    --button-primary-bg: {{ tokens.get('button.primary.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --button-primary-text: {{ tokens.get('button.primary.text_hex', '#ffffff') }};
+    --button-primary-border: {{ tokens.get('button.primary.border_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --button-secondary-bg: {{ tokens.get('button.secondary.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --button-secondary-text: {{ tokens.get('button.secondary.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --button-secondary-border: {{ tokens.get('button.secondary.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --button-danger-bg: {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
+    --button-danger-text: {{ tokens.get('button.danger.text_hex', '#ffffff') }};
+    --button-danger-border: {{ tokens.get('button.danger.border_hex', '#dc2626') }};
+    --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --badge-bg: {{ tokens.get('component.badge.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+  }
+  body { font-family: var(--font-family); background-color: var(--page-bg) !important; color: var(--page-text); }
+  .si-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .si-btn { border-radius: var(--btn-radius); }
+  .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+  .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
+  .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; border-color: var(--button-danger-border) !important; }
+  .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
+  .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
+  .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+  [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+  [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
+  [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+  [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+  [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+  [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+  [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+  [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
+</style>
 {%- endif %}
 
 {# â”€â”€ Global lookup maps (defined once, used per section) â”€â”€ #}
@@ -532,10 +588,10 @@
     {%- if _aa_target_is_activity.value %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
-      <button type="submit" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
     </form>
     {%- else %}
-    <a href="{{ _aa_target_url }}" class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</a>
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</a>
     {%- endif %}
   </div>
   {%- else %}
@@ -544,7 +600,7 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors">{{ section_component.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors">{{ section_component.label }}</button>
     </form>
   </div>
   {%- elif _aa_variant == 'link' %}
@@ -552,7 +608,7 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} →</button>
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} →</button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
@@ -561,7 +617,7 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} →</button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} →</button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
@@ -577,14 +633,14 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
     </form>
   </div>
   {%- endif %}
   {%- endif %}
 {%- else %}{# preview_mode #}
   <div class="flex {{ _aa_justify }} mt-6">
-    <button type="button" class="bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default">{{ section_component.label }}</button>
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default">{{ section_component.label }}</button>
   </div>
 {%- endif %}
 </div>
@@ -2135,19 +2191,19 @@
     {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
       <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
-      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
     {%- elif _aa_action == 'navigate' and _aa_target_url %}
-    <a href="{{ _aa_target_url }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</a>
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</a>
     {%- else %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
     </form>
     {%- endif %}
     {%- else %}
-    <button type="button" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
     {%- endif %}
   </div>
 </div>

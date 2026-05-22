@@ -745,4 +745,5 @@ render_candidate_preview_tool = FunctionTool(func=render_candidate_preview_func)
 list_design_specs_tool = FunctionTool(func=list_design_specs_tool_func)
 get_design_system_tool = FunctionTool(func=get_design_system_tool_func)
 apply_design_system_to_interface_tool = FunctionTool(func=apply_design_system_to_interface_tool_func)
+select_design_specs_for_interface_func.__name__ = "select_design_specs_for_interface"
 select_design_specs_for_interface_tool = FunctionTool(func=select_design_specs_for_interface_func)
