@@ -456,7 +456,29 @@
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
-  {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
+  {%- set _aname = (attribute ~ '')|lower -%}
+  {%- set _mock_prices = ['€9.99','€24.99','€49.99','€14.99','€99.00','€7.50'] -%}
+  {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
+  {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
+  {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
+  {%- set _mock_emails = ['alice@example.com','bob@example.com','carol@example.com','dave@example.com','eve@example.com','frank@example.com'] -%}
+  {%- set _mock_nums   = ['12','47','8','253','31','19'] -%}
+  {%- set _row = mock_row % 6 -%}
+  {%- if 'price' in _aname or 'cost' in _aname or 'amount' in _aname or 'total' in _aname or 'fee' in _aname -%}
+    {%- set label = _mock_prices[_row] -%}
+  {%- elif 'name' in _aname or 'title' in _aname or 'label' in _aname or 'product' in _aname -%}
+    {%- set label = _mock_names[_row] -%}
+  {%- elif 'date' in _aname or 'time' in _aname -%}
+    {%- set label = _mock_dates[_row] -%}
+  {%- elif 'status' in _aname or 'state' in _aname or 'phase' in _aname -%}
+    {%- set label = _mock_status[_row] -%}
+  {%- elif 'email' in _aname or 'mail' in _aname -%}
+    {%- set label = _mock_emails[_row] -%}
+  {%- elif 'count' in _aname or 'qty' in _aname or 'stock' in _aname or 'quantity' in _aname -%}
+    {%- set label = _mock_nums[_row] -%}
+  {%- else -%}
+    {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
+  {%- endif -%}
   {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
   {%- set nav_target = action.get('targetPageId') or action.get('targetPage') or '#' -%}
   {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
@@ -887,9 +909,11 @@
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- if img_attrs %}
       <div class="overflow-hidden">
-        <div class="si-img bg-gray-50 transition-transform group-hover:scale-105"></div>
+        <div class="si-img transition-transform group-hover:scale-105"></div>
       </div>
+      {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}

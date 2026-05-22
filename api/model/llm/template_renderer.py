@@ -267,9 +267,9 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 continue
 
             # activity_action section — render as workflow completion button
-            if s_raw.get("type") == "activity_action":
+            if s_raw.get("type") == "activity_action" or s_raw.get("layout") == "activity_action":
                 section_components.append(_make_activity_action_section(
-                    label=s_raw.get("label", ""),
+                    label=s_raw.get("label") or s_raw.get("name", ""),
                     s_raw=s_raw,
                 ))
                 continue
@@ -367,7 +367,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
         pages.append(_Page(
             name=_sanitize(p_raw.get("name", "")),
-            display_name=p_raw.get("name", ""),
+            display_name=p_raw.get("name", "").replace("_", " ").replace("-", " ").strip(),
             type_=page_type,
             activity_name=activity_name,
             category=None,
