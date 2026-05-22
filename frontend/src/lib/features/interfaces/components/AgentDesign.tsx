@@ -585,10 +585,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
             const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/candidates/${idx}/apply/`);
             const d = res.data as any;
             if (d?.pages) applyVariantDSL(d.pages, d.sections);
+            if (d?.styling && Object.keys(d.styling).length) setStyling(d.styling);
             setDesignMode('refine');
             setPreviewCandidateIdx(null);
         } catch { /* ignore */ }
-    }, [interfaceId, applyVariantDSL]);
+    }, [interfaceId, applyVariantDSL, setStyling]);
 
     const updatePageProperty = useCallback((pageIndex: number, field: string, value: any) => {
         setPages((prev: any[]) => {

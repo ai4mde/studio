@@ -381,7 +381,13 @@ def apply_candidate(request, id: str, candidate_index: int):
         data["tokens"] = candidate["tokens"]
     Interface.objects.filter(id=id).update(data=data)
 
-    return {"message": "Candidate applied.", "pages": data["pages"], "sections": data["sections"]}
+    return {
+        "message": "Candidate applied.",
+        "pages": data["pages"],
+        "sections": data["sections"],
+        "styling": data.get("styling", {}),
+        "tokens": data.get("tokens", {}),
+    }
 
 
 __all__ = ["interfaces"]
