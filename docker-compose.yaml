@@ -33,11 +33,14 @@ services:
     build:
       context: api
     command: ["python", "/usr/src/model/manage.py", "runserver", "--noreload", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
     env_file:
       - config/api.env
       - config/secrets.env
     environment:
       - INTERNAL_API_KEY=studio-internal-service-key
+      - ADK_AGENT_URL=http://gemini-make-agent:8080
     networks:
       - ai4mde_traefik
     volumes:
@@ -74,6 +77,8 @@ services:
   gemini-make-agent:
     build:
       context: api/model/gemini-make-agent
+    ports:
+      - "8081:8080"
     env_file:
       - config/secrets.env
     environment:
