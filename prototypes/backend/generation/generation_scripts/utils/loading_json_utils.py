@@ -569,7 +569,13 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
                 radius = radius,
                 text_color = text_color,
                 accent_color = accent_color,
-                background_color = background_color
+                background_color = background_color,
+                font_family = styling.get("fontFamily", "inter"),
+                page_max_width = styling.get("pageMaxWidth", "xl"),
+                button_style = styling.get("buttonStyle", "solid"),
+                card_hover = styling.get("cardHover", "lift"),
+                image_ratio = styling.get("imageRatio", "4:3"),
+                divider = styling.get("divider", "none"),
             )
     except:
         return Styling()

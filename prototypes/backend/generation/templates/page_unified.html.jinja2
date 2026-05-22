@@ -1,15 +1,54 @@
 {% if preview_mode -%}
 <!DOCTYPE html>
-<html lang="en">
+<html lang=”en”>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <title>{{ page.display_name }} â€” Preview</title>
+  <meta charset=”UTF-8” />
+  <meta name=”viewport” content=”width=device-width,initial-scale=1.0” />
+  <script src=”https://cdn.tailwindcss.com”></script>
+  {%- set _font_cdn = tokens.get('page.font.cdn', '') %}
+  {%- if _font_cdn %}<link rel=”preconnect” href=”https://fonts.googleapis.com”><link rel=”preconnect” href=”https://fonts.gstatic.com” crossorigin><link rel=”stylesheet” href=”{{ _font_cdn }}”>{% endif %}
+  <style>
+    :root {
+      --radius: {{ tokens.get('page.radius.px', '8') }}px;
+      --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+    }
+    body { font-family: var(--font-family); }
+    .si-card { border-radius: var(--radius); }
+    .si-btn  { border-radius: calc(var(--radius) * 0.75); }
+    .si-input { border-radius: calc(var(--radius) * 0.6); }
+    .si-badge { border-radius: calc(var(--radius) * 2); }
+    {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
+    .si-card-hover { transition: transform 0.18s, box-shadow 0.18s; }
+    .si-card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    {%- elif tokens.get('theme.card.hover', 'lift') == 'glow' %}
+    .si-card-hover { transition: box-shadow 0.18s; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px {{ tokens.get('accent.hex', '#2563eb') }}44; }
+    {%- elif tokens.get('theme.card.hover', 'lift') == 'border' %}
+    .si-card-hover { transition: border-color 0.18s; }
+    .si-card-hover:hover { border-color: {{ tokens.get('accent.hex', '#2563eb') }} !important; }
+    {%- endif %}
+    {%- set _ratio_map = {'1:1':'1/1','4:3':'4/3','16:9':'16/9','portrait':'3/4','wide':'21/9'} %}
+    {%- set _img_ratio_css = _ratio_map.get(tokens.get('theme.image.ratio','4:3'), '4/3') %}
+    .si-img { aspect-ratio: {{ _img_ratio_css }}; width: 100%; object-fit: cover; }
+    {%- if tokens.get('theme.divider', 'none') == 'line' %}
+    [data-section-id] + [data-section-id] { border-top: 1px solid #e5e7eb; }
+    {%- elif tokens.get('theme.divider', 'none') == 'shadow' %}
+    [data-section-id] + [data-section-id] { box-shadow: 0 -4px 12px rgba(0,0,0,0.06); }
+    {%- elif tokens.get('theme.divider', 'none') == 'wave' %}
+    [data-section-id] + [data-section-id] { border-top: 3px wavy #e5e7eb; }
+    {%- endif %}
+  </style>
+  <title>{{ page.display_name }} – Preview</title>
 </head>
-<body class="{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
+<body class=”{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen {{ tokens.get('page.body.text', 'text-gray-800') }}”>
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
+{%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
+{%- set _btn_solid  = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
+{%- set _btn_outline = 'font-semibold px-4 py-2 si-btn border-2 bg-transparent transition-colors hover:bg-opacity-10' %}
+{%- set _btn_ghost  = 'font-semibold px-4 py-2 si-btn bg-transparent hover:bg-gray-100 transition-colors' %}
+{%- set _btn_gradient = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
 {%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
 {%- set _header_secs = [] %}
@@ -218,7 +257,7 @@
 </nav>
 {% endif %}
 
-<main class="px-6 py-6 max-w-7xl mx-auto">
+<main class="px-6 py-6 {{ _container_class }} mx-auto">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
@@ -226,13 +265,15 @@
 
 {# â”€â”€ Global lookup maps (defined once, used per section) â”€â”€ #}
 {% set _cm = {
-  "blue":   {"btn":"bg-blue-600 hover:bg-blue-700","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
-  "green":  {"btn":"bg-green-600 hover:bg-green-700","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
-  "purple": {"btn":"bg-purple-600 hover:bg-purple-700","light":"bg-purple-50","text":"text-purple-600","border":"border-purple-200","label":"text-purple-700","ring":"focus:ring-purple-500","th":"bg-purple-600 text-white"},
-  "orange": {"btn":"bg-orange-500 hover:bg-orange-600","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","ring":"focus:ring-orange-400","th":"bg-orange-500 text-white"},
-  "rose":   {"btn":"bg-rose-600 hover:bg-rose-700","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
-  "slate":  {"btn":"bg-slate-700 hover:bg-slate-800","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
+  "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
+  "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
+  "purple": {"solid":"bg-purple-600 hover:bg-purple-700 text-white","outline":"border-2 border-purple-600 text-purple-600 hover:bg-purple-50","ghost":"text-purple-600 hover:bg-purple-50","gradient":"bg-gradient-to-r from-purple-500 to-pink-500 text-white","light":"bg-purple-50","text":"text-purple-600","border":"border-purple-200","label":"text-purple-700","ring":"focus:ring-purple-500","th":"bg-purple-600 text-white"},
+  "orange": {"solid":"bg-orange-500 hover:bg-orange-600 text-white","outline":"border-2 border-orange-500 text-orange-500 hover:bg-orange-50","ghost":"text-orange-500 hover:bg-orange-50","gradient":"bg-gradient-to-r from-orange-400 to-rose-500 text-white","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","ring":"focus:ring-orange-400","th":"bg-orange-500 text-white"},
+  "rose":   {"solid":"bg-rose-600 hover:bg-rose-700 text-white","outline":"border-2 border-rose-600 text-rose-600 hover:bg-rose-50","ghost":"text-rose-600 hover:bg-rose-50","gradient":"bg-gradient-to-r from-rose-500 to-pink-600 text-white","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
+  "slate":  {"solid":"bg-slate-700 hover:bg-slate-800 text-white","outline":"border-2 border-slate-700 text-slate-700 hover:bg-slate-50","ghost":"text-slate-700 hover:bg-slate-100","gradient":"bg-gradient-to-r from-slate-600 to-slate-800 text-white","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
 } %}
+{# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
+{%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
 {% set _rm = {"none":"rounded-none","sm":"rounded-sm","md":"rounded-md","lg":"rounded-lg","xl":"rounded-xl","2xl":"rounded-2xl"} %}
 {% set _dm = {
   "compact":  {"gap":"gap-2","p":"p-3","p_sm":"p-2","text":"text-xs","sec":"mb-8"},
@@ -557,7 +598,7 @@
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
-    <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
+    <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
       {{ section_component.custom_methods[0] }}
     </button>
   </form>
@@ -573,7 +614,7 @@
       <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
       <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
       {% endfor %}
-      <button type="submit" class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
+      <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
       </button>
     </form>
@@ -712,20 +753,20 @@
   {# Default card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       {%- for attribute in section_component.attributes %}
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-        {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-full h-40 bg-gray-50 rounded mt-1"></div>
+        {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-img bg-gray-50 rounded mt-1"></div>
         {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>{%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -782,7 +823,7 @@
         {%- endfor %}
       </div>
       <div class="flex gap-2 shrink-0">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>{%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -827,7 +868,7 @@
           {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
-              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</button>{%- endif %}
+              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -845,9 +886,9 @@
 {%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
-      <div class="aspect-square overflow-hidden">
-        <div class="w-full h-full bg-gray-50 transition-transform group-hover:scale-105"></div>
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      <div class="overflow-hidden">
+        <div class="si-img bg-gray-50 transition-transform group-hover:scale-105"></div>
       </div>
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
@@ -857,7 +898,7 @@
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} text-xs">View</a>{%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
       </div>
     </div>
@@ -1035,7 +1076,7 @@
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
-    <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
+    <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
       {{ section_component.custom_methods[0] }}
     </button>
   </form>
@@ -1051,7 +1092,7 @@
       <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
       <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
       {% endfor %}
-      <button type="submit" class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
+      <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
       </button>
     </form>
@@ -1184,7 +1225,7 @@
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3">
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3">
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
@@ -1201,7 +1242,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 mt-2">
-          <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-gray-100 text-gray-700 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
@@ -1212,7 +1253,7 @@
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">{% raw %}{% endwith %}{% endraw %}
+        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="si-img object-cover rounded">{% raw %}{% endwith %}{% endraw %}
         {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
         {%- endif %}
       </div>
@@ -1220,7 +1261,7 @@
 
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -1271,7 +1312,7 @@
         </div>
         {% endfor %}
         <div class="flex gap-2 mt-2">
-          <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} py-2 {{ r }} border border-gray-200 text-center">Cancel</a>
         </div>
       </form>
@@ -1414,7 +1455,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
-          <input type="submit" value="Save" class="{{ c.btn }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 text-sm py-1.5 px-4 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
@@ -1434,7 +1475,7 @@
 
       <div class="flex gap-2 shrink-0">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -1477,7 +1518,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
-          <input type="submit" value="Save" class="{{ c.btn }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 {{ r }} border border-gray-200 hover:bg-gray-50">Cancel</a>
         </div>
       </form>
@@ -1552,7 +1593,7 @@
           </td>
           {% endfor %}
           <td class="px-4 py-2 flex gap-2">
-            <input type="submit" value="Save" class="{{ c.btn }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
+            <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
           </td>
           </form>
@@ -1573,7 +1614,7 @@
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.view_detail_page %}
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1619,7 +1660,7 @@
           {% endfor %}
           <td class="px-4 py-2">
             <div class="flex gap-2">
-              <input type="submit" value="Save" class="{{ c.btn }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
+              <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
               <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
             </div>
           </td>
@@ -1654,10 +1695,10 @@
   <div class="grid {{ col }} {{ d.gap }}">
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} overflow-hidden group relative">
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative">
       {%- if img_attrs %}
-      <div class="aspect-square overflow-hidden">
-        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+      <div class="overflow-hidden">
+        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="si-img object-cover transition-transform group-hover:scale-105" />
       </div>
       {%- endif %}
       {%- if text_attrs %}
@@ -1669,7 +1710,7 @@
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors text-xs">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
@@ -1780,7 +1821,7 @@
         {%- endif %}
       </div>
       {% endif %}{% endfor %}
-      <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 {{ r }}">
+      <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 {{ r }}">
         {{ _s.get('cta_label') or _s.get('login_label', 'Submit') }}
       </button>
     </form>

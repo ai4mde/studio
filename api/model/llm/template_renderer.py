@@ -379,6 +379,60 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
     return app_name, pages
 
 
+_FONT_CDN = {
+    "inter":     "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "roboto":    "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+    "poppins":   "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+    "playfair":  "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+    "mono":      "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+    "geist":     "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+}
+
+_FONT_CSS_NAME = {
+    "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
+    "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
+}
+
+_MAX_WIDTH_CLASS = {
+    "sm": "max-w-3xl", "md": "max-w-4xl", "lg": "max-w-5xl",
+    "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
+}
+
+
+def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> None:
+    """Merge styling dict into tokens in-place. Tokens already set take priority."""
+    accent = styling.get("accentColor", "")
+    if accent and "accent.hex" not in tokens:
+        tokens["accent.hex"] = accent
+        tokens["brand.name"] = interface_name
+        if "region.header.bg" not in tokens:
+            tokens["region.header.bg"] = f"bg-[{accent}]"
+            tokens["page.header.text"] = "text-white"
+
+    bg = styling.get("backgroundColor", "")
+    if bg and "page.body.bg" not in tokens:
+        tokens["page.body.bg"] = f"bg-[{bg}]"
+
+    text = styling.get("textColor", "")
+    if text and "page.body.text" not in tokens:
+        tokens["page.body.text"] = f"text-[{text}]"
+
+    font = styling.get("fontFamily", "inter")
+    tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
+    tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))
+
+    radius = styling.get("radius", 8)
+    tokens.setdefault("page.radius.px", str(radius))
+
+    max_w = styling.get("pageMaxWidth", "xl")
+    tokens.setdefault("page.container.class", _MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
+
+    tokens.setdefault("theme.button.style", styling.get("buttonStyle", "solid"))
+    tokens.setdefault("theme.card.hover", styling.get("cardHover", "lift"))
+    tokens.setdefault("theme.image.ratio", styling.get("imageRatio", "4:3"))
+    tokens.setdefault("theme.divider", styling.get("divider", "none"))
+
+
 def render_layout(
     interface_data: Dict,
     classifiers: List[Dict],
@@ -391,15 +445,7 @@ def render_layout(
 
     tokens = dict(interface_data.get("tokens", {}))
     styling = interface_data.get("styling", {})
-    accent = styling.get("accentColor", "")
-    if accent and "region.header.bg" not in tokens:
-        tokens["region.header.bg"] = f"bg-[{accent}]"
-        tokens["page.header.text"] = "text-white"
-        tokens["accent.hex"] = accent
-        tokens["brand.name"] = interface_name
-    bg = styling.get("backgroundColor", "")
-    if bg and "page.body.bg" not in tokens:
-        tokens["page.body.bg"] = f"bg-[{bg}]"
+    _apply_styling_tokens(tokens, styling, app_name)
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)
@@ -435,15 +481,7 @@ def render_preview(
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, relations=relations)
     tokens = dict(interface_data.get("tokens", {}))
     styling = interface_data.get("styling", {})
-    accent = styling.get("accentColor", "")
-    if accent and "region.header.bg" not in tokens:
-        tokens["region.header.bg"] = f"bg-[{accent}]"
-        tokens["page.header.text"] = "text-white"
-        tokens["accent.hex"] = accent
-        tokens["brand.name"] = interface_name
-    bg = styling.get("backgroundColor", "")
-    if bg and "page.body.bg" not in tokens:
-        tokens["page.body.bg"] = f"bg-[{bg}]"
+    _apply_styling_tokens(tokens, styling, app_name)
 
     env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
     template = env.get_template(UNIFIED_TEMPLATE)

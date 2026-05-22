@@ -1039,7 +1039,77 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                     {stl.accentColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.accentColor}</span>}
                                 </div>
 
-                                {(stl.backgroundColor || stl.accentColor) && (
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Text Color</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+                                    {[{ label: 'Dark', hex: '#111827' }, { label: 'Gray', hex: '#374151' }, { label: 'Smoke', hex: '#f9fafb' }, { label: 'White', hex: '#ffffff' }].map(p => (
+                                        <button key={p.hex} title={p.label}
+                                            onClick={() => updateStyling('textColor', p.hex)}
+                                            style={{ width: 20, height: 20, borderRadius: '50%', background: p.hex, cursor: 'pointer', border: stl.textColor === p.hex ? '2px solid #2563eb' : '1.5px solid #d1d5db', outline: stl.textColor === p.hex ? '2px solid #93c5fd' : 'none', outlineOffset: 1, flexShrink: 0 }} />
+                                    ))}
+                                    <label title="Custom" style={{ position: 'relative', width: 20, height: 20, borderRadius: '50%', overflow: 'hidden', cursor: 'pointer', border: '1.5px solid #d1d5db', flexShrink: 0 }}>
+                                        <input type="color" value={stl.textColor || '#111827'} onChange={e => updateStyling('textColor', e.target.value)}
+                                            style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+                                    </label>
+                                    {stl.textColor && <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>{stl.textColor}</span>}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Font</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                                    {([{ value: 'inter', label: 'Inter' }, { value: 'roboto', label: 'Roboto' }, { value: 'poppins', label: 'Poppins' }, { value: 'playfair', label: 'Serif' }, { value: 'mono', label: 'Mono' }, { value: 'geist', label: 'Geist' }]).map(f => (
+                                        <button key={f.value} style={{ ...btnBase, ...active((stl.fontFamily || 'inter') === f.value), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('fontFamily', f.value)}>{f.label}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Radius</p>
+                                <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
+                                    {([{ v: '0', l: '0' }, { v: '4', l: 'S' }, { v: '8', l: 'M' }, { v: '16', l: 'L' }, { v: '24', l: 'XL' }]).map(r => (
+                                        <button key={r.v} style={{ ...btnBase, ...active((stl.radius || '8') === r.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('radius', r.v)}>{r.l}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Button Style</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                                    {([{ v: 'solid', l: 'Solid' }, { v: 'outline', l: 'Outline' }, { v: 'ghost', l: 'Ghost' }, { v: 'gradient', l: 'Gradient' }]).map(b => (
+                                        <button key={b.v} style={{ ...btnBase, ...active((stl.buttonStyle || 'solid') === b.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('buttonStyle', b.v)}>{b.l}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Card Hover</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                                    {([{ v: 'lift', l: 'Lift' }, { v: 'glow', l: 'Glow' }, { v: 'border', l: 'Border' }, { v: 'none', l: 'None' }]).map(h => (
+                                        <button key={h.v} style={{ ...btnBase, ...active((stl.cardHover || 'lift') === h.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('cardHover', h.v)}>{h.l}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Ratio</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                                    {([{ v: '1:1', l: '1:1' }, { v: '4:3', l: '4:3' }, { v: '16:9', l: '16:9' }, { v: 'portrait', l: 'Port' }, { v: 'wide', l: 'Wide' }]).map(r => (
+                                        <button key={r.v} style={{ ...btnBase, ...active((stl.imageRatio || '4:3') === r.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('imageRatio', r.v)}>{r.l}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page Width</p>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 8 }}>
+                                    {([{ v: 'sm', l: 'SM' }, { v: 'md', l: 'MD' }, { v: 'lg', l: 'LG' }, { v: 'xl', l: 'XL' }, { v: '2xl', l: '2XL' }, { v: 'full', l: 'Full' }]).map(w => (
+                                        <button key={w.v} style={{ ...btnBase, ...active((stl.pageMaxWidth || 'xl') === w.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('pageMaxWidth', w.v)}>{w.l}</button>
+                                    ))}
+                                </div>
+
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Divider</p>
+                                <div style={{ display: 'flex', gap: 3, marginBottom: 10 }}>
+                                    {([{ v: 'none', l: 'None' }, { v: 'line', l: 'Line' }, { v: 'shadow', l: 'Shadow' }, { v: 'wave', l: 'Wave' }]).map(d => (
+                                        <button key={d.v} style={{ ...btnBase, ...active((stl.divider || 'none') === d.v), padding: '2px 6px', fontSize: 11 }}
+                                            onClick={() => updateStyling('divider', d.v)}>{d.l}</button>
+                                    ))}
+                                </div>
+
+                                {Object.keys(stl).length > 0 && (
                                     <button onClick={() => setStyling({})}
                                         style={{ fontSize: 11, color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                                         Reset theme

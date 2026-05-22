@@ -123,16 +123,44 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
 
     # Build tokens from styling so generation mode matches preview behavior
     tokens = {}
-    accent = None
-    if styling and getattr(styling, 'accent_color', None):
-        accent = styling.accent_color
-    if accent:
-        tokens["region.header.bg"] = f"bg-[{accent}]"
-        tokens["page.header.text"] = "text-white"
-        tokens["accent.hex"] = accent
-        tokens["brand.name"] = application_name
-    if styling and getattr(styling, 'background_color', None):
-        tokens["page.body.bg"] = f"bg-[{styling.background_color}]"
+    _FONT_CDN = {
+        "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+        "poppins":  "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+        "playfair": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+        "mono":     "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+        "geist":    "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+    }
+    _FONT_CSS_NAME = {
+        "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
+        "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
+    }
+    _MAX_WIDTH_CLASS = {
+        "sm": "max-w-3xl", "md": "max-w-4xl", "lg": "max-w-5xl",
+        "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
+    }
+    if styling:
+        accent = getattr(styling, 'accent_color', None)
+        if accent:
+            tokens["accent.hex"] = accent
+            tokens["region.header.bg"] = f"bg-[{accent}]"
+            tokens["page.header.text"] = "text-white"
+            tokens["brand.name"] = application_name
+        if getattr(styling, 'background_color', None):
+            tokens["page.body.bg"] = f"bg-[{styling.background_color}]"
+        if getattr(styling, 'text_color', None):
+            tokens["page.body.text"] = f"text-[{styling.text_color}]"
+    font = getattr(styling, 'font_family', 'inter') if styling else 'inter'
+    tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
+    tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))
+    radius = getattr(styling, 'radius', 8) if styling else 8
+    tokens.setdefault("page.radius.px", str(radius))
+    max_w = getattr(styling, 'page_max_width', 'xl') if styling else 'xl'
+    tokens.setdefault("page.container.class", _MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
+    tokens.setdefault("theme.button.style", getattr(styling, 'button_style', 'solid') if styling else 'solid')
+    tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
+    tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
+    tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
 
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     

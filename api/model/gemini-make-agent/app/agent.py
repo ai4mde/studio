@@ -73,13 +73,24 @@ Page layout:
   pages[].gap.value    : "compact" | "normal" | "spacious"
 
 Style/token fields (global theme):
-  styling.radius, styling.textColor, styling.accentColor, styling.backgroundColor, styling.selectedStyle
-  tokens (valid Tailwind CSS classes):
-    page.body.bg, page.body.text, page.container.max_width, page.header.height,
-    component.card.bg, component.card.border, component.card.shadow, component.nav.active,
-    element.button.primary, element.button.secondary, element.input.bg, element.input.border,
-    element.text.accent, element.text.muted,
-    region.sidebar.bg, region.sidebar.width, region.footer.bg, region.header.bg
+  styling.radius          : 0 | 4 | 8 | 16 | 24  (border radius in px)
+  styling.textColor       : "#hex"
+  styling.accentColor     : "#hex"
+  styling.backgroundColor : "#hex"
+  styling.fontFamily      : "inter" | "roboto" | "poppins" | "playfair" | "mono" | "geist"
+  styling.pageMaxWidth    : "sm" | "md" | "lg" | "xl" | "2xl" | "full"
+  styling.buttonStyle     : "solid" | "outline" | "ghost" | "gradient"
+  styling.cardHover       : "lift" | "glow" | "border" | "none"
+  styling.imageRatio      : "1:1" | "4:3" | "16:9" | "portrait" | "wide"
+  styling.divider         : "none" | "line" | "shadow" | "wave"
+  styling.selectedStyle   : "modern" (leave unchanged)
+  tokens (Tailwind CSS classes for fine-grained override):
+    page.body.bg, page.body.text, page.header.text,
+    region.header.bg, region.footer.bg,
+    element.button.primary, element.button.secondary,
+    component.card.bg, component.card.border, component.card.shadow,
+    page.font.family, page.font.cdn, page.radius.px, page.container.class,
+    theme.button.style, theme.card.hover, theme.image.ratio, theme.divider
 """
 
 # ── Candidate Generation Pipeline ────────────────────────────────────────────
@@ -236,9 +247,9 @@ Message format: interface_id=<uuid> prompt=<designer intent>
      visual-browse | data-scan | detail-focus | workflow-step | admin-manage
 
    AXIS B — Color theme (each candidate gets a DIFFERENT theme):
-     light   → page.body.bg:"bg-gray-50",  region.header.bg:"bg-white",       component.card.bg:"bg-white",      element.button.primary:"bg-blue-600 text-white"
-     dark    → page.body.bg:"bg-slate-900", region.header.bg:"bg-slate-900",   component.card.bg:"bg-slate-800",  element.button.primary:"bg-blue-500 text-white"
-     brand   → page.body.bg:"bg-white",     region.header.bg:"bg-indigo-700",  component.card.bg:"bg-white",      element.button.primary:"bg-indigo-600 text-white"
+     light   → page.body.bg:"bg-gray-50",   region.header.bg:"bg-white",      component.card.bg:"bg-white",     element.button.primary:"bg-blue-600 text-white",   theme.button.style:"solid",    theme.card.hover:"lift",   page.font.family:"Inter",        page.radius.px:"8"
+     dark    → page.body.bg:"bg-slate-900", region.header.bg:"bg-slate-900",  component.card.bg:"bg-slate-800", element.button.primary:"bg-blue-500 text-white",   theme.button.style:"solid",    theme.card.hover:"glow",   page.font.family:"Inter",        page.radius.px:"4"
+     brand   → page.body.bg:"bg-white",     region.header.bg:"bg-indigo-700", component.card.bg:"bg-white",     element.button.primary:"bg-indigo-600 text-white", theme.button.style:"gradient", theme.card.hover:"border", page.font.family:"'Poppins'",     page.radius.px:"16"
 
    AXIS C — Section emphasis (pick 3 different ones):
      card-heavy | table-heavy | detail-heavy | form-heavy | sidebar-filter
@@ -250,8 +261,14 @@ For each candidate, strictly follow design_personas[i]:
   - Use ONLY section types from that persona's section emphasis (card-heavy → mostly card+filter; table-heavy → mostly table+list; detail-heavy → mostly detail+form)
   - Pass persona's AXIS B token values as the tokens dict
   - Pass styling dict using the real UI schema:
-    {{"radius": 4|8|16, "accentColor": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "selectedStyle": "modern"}}
-    accentColor must match the primary button color; radius must differ across candidates.
+    {{"radius": 4|8|16, "accentColor": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "selectedStyle": "modern",
+      "fontFamily": "inter|roboto|poppins|playfair|mono|geist",
+      "pageMaxWidth": "sm|md|lg|xl|2xl|full",
+      "buttonStyle": "solid|outline|ghost|gradient",
+      "cardHover": "lift|glow|border|none",
+      "imageRatio": "1:1|4:3|16:9|portrait|wide",
+      "divider": "none|line|shadow|wave"}}
+    accentColor must match the primary button color; radius/fontFamily/buttonStyle must differ across candidates.
   - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens, styling)
     If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
 
@@ -378,7 +395,8 @@ Patch shape (only include changed fields):
     "style": {{"color": "blue"}}
   }}],
   "pages":    [{{"id": "...", "layout": {{"value": "horizontal"}}, "gap": {{"value": "compact"}}}}],
-  "styling":  {{"radius": 16, "accentColor": "#2563EB", "backgroundColor": "#FFFFFF", "textColor": "#111827", "selectedStyle": "modern"}},
+  "styling":  {{"radius": 8, "accentColor": "#2563EB", "backgroundColor": "#FFFFFF", "textColor": "#111827", "selectedStyle": "modern",
+               "fontFamily": "inter", "pageMaxWidth": "xl", "buttonStyle": "solid", "cardHover": "lift", "imageRatio": "4:3", "divider": "none"}},
   "tokens":   {{"page.body.bg": "bg-slate-900", "page.body.text": "text-slate-100"}}
 }}
 
