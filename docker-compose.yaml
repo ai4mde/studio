@@ -84,7 +84,7 @@ services:
       - SESSION_SERVICE_URI=memory://
     volumes:
       - ./api/model/gemini-make-agent/app:/code/app:ro
-      - ./DESIGN.md:/DESIGN.md:ro
+      - ./design_specs:/design_specs:ro
     networks:
       - ai4mde_traefik
     labels:

@@ -24,6 +24,9 @@ def _name_id(value: str) -> str:
 def _page_name(value: str) -> str:
     return "_".join(part[:1].upper() + part[1:] for part in _name_id(value).split("_") if part)
 
+def _workflow_page_name(value: str) -> str:
+    return f"Workflow_{_page_name(value)}"
+
 def _section_id(value: str) -> str:
     return _name_id(value).lower()
 
@@ -106,44 +109,119 @@ def _build_activity_diagrams(system_data: dict) -> list:
     return out
 
 def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> set[str]:
-    refs = {str(actor_id)} if actor_id else set(); actor_name_norm = str(actor_name or "").lower(); classifiers = {str(c.get("id")): c.get("data", {}) for c in _as_list(system_data.get("classifiers"), "classifiers")}
+    refs = {str(actor_id)} if actor_id else set()
+    actor_name_norm = str(actor_name or "").lower()
+    classifiers = {
+        str(c.get("id")): c.get("data", {})
+        for c in _as_list(system_data.get("classifiers"), "classifiers")
+    }
     for diagram in system_data.get("diagrams", []):
-        if diagram.get("type") != "usecase": continue
+        if diagram.get("type") != "usecase":
+            continue
         for node in diagram.get("nodes", []):
-            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or ""); cls = classifiers.get(cls_id, {})
-            if cls.get("type") == "actor" and (cls_id == str(actor_id) or str(cls.get("name", "")).lower() == actor_name_norm): refs.add(str(node.get("id"))); refs.add(cls_id)
+            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+            cls = classifiers.get(cls_id, {})
+            if cls.get("type") == "actor" and (
+                cls_id == str(actor_id)
+                or str(cls.get("name", "")).lower() == actor_name_norm
+            ):
+                refs.add(str(node.get("id")))
+                refs.add(cls_id)
     return {ref for ref in refs if ref and ref != "None"}
 
 def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> list:
-    refs = _actor_refs(system_data, actor_id, actor_name); steps = []
+    refs = _actor_refs(system_data, actor_id, actor_name)
+    steps = []
     for diagram in system_data.get("activity_diagrams", []):
-        nodes = {str(n.get("id")): n for n in diagram.get("nodes", [])}; outgoing = {}
-        for edge in diagram.get("edges", []): outgoing.setdefault(str(edge.get("source_ptr")), []).append(str(edge.get("target_ptr")))
+        nodes = {str(n.get("id")): n for n in diagram.get("nodes", [])}
+        outgoing = {}
+        for edge in diagram.get("edges", []):
+            outgoing.setdefault(str(edge.get("source_ptr")), []).append(str(edge.get("target_ptr")))
         for node in diagram.get("nodes", []):
-            cls = node.get("cls", {}); if cls.get("type") != "action": continue
-            actor_node = str(cls.get("actorNode") or ""); if refs and actor_node not in refs: continue
-            name = cls.get("name") or "Workflow Step"; page_name = _page_name(name); page_id = _section_id(page_name); next_action_ids = [target for target in outgoing.get(str(node.get("id")), []) if (nodes.get(target, {}).get("cls") or {}).get("type") == "action"]
-            steps.append({"activity_node_id": str(node.get("id")), "activity_node_name": name, "actor_node": actor_node, "diagram_id": diagram.get("id"), "diagram_name": diagram.get("name"), "page_id": page_id, "page_name": page_name, "next_activity_node_ids": next_action_ids})
+            cls = node.get("cls", {})
+            if cls.get("type") != "action":
+                continue
+            actor_node = str(cls.get("actorNode") or "")
+            if refs and actor_node not in refs:
+                continue
+            name = cls.get("name") or "Workflow Step"
+            page_name = _workflow_page_name(name)
+            page_id = _section_id(page_name)
+            next_action_ids = [
+                target
+                for target in outgoing.get(str(node.get("id")), [])
+                if (nodes.get(target, {}).get("cls") or {}).get("type") == "action"
+            ]
+            steps.append({
+                "activity_node_id": str(node.get("id")),
+                "activity_node_name": name,
+                "actor_node": actor_node,
+                "diagram_id": diagram.get("id"),
+                "diagram_name": diagram.get("name"),
+                "page_id": page_id,
+                "page_name": page_name,
+                "next_activity_node_ids": next_action_ids,
+            })
     return steps
 
 def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list) -> tuple[list, list]:
-    if not workflow_steps: return pages, sections
-    pages = [dict(p) for p in pages]; sections = [dict(s) for s in sections]; section_ids = {str(s.get("id")) for s in sections}
+    if not workflow_steps:
+        return pages, sections
+    pages = [dict(p) for p in pages]
+    sections = [dict(s) for s in sections]
+    section_ids = {str(s.get("id")) for s in sections}
+
     def page_action_id(p: dict) -> str:
-        action = p.get("action") or {}; if isinstance(action, dict): return str(action.get("value") or action.get("id") or "")
+        action = p.get("action") or {}
+        if isinstance(action, dict):
+            return str(action.get("value") or action.get("id") or "")
         return ""
+
     page_by_action = {page_action_id(p): p for p in pages if page_action_id(p)}
     for step in workflow_steps:
-        node_id = step["activity_node_id"]; page = page_by_action.get(node_id)
+        node_id = step["activity_node_id"]
+        page = page_by_action.get(node_id)
         if not page:
-            page = {"id": step["page_id"], "name": step["page_name"], "primary_model": "", "type": {"value": "activity", "label": "Activity"}, "action": {"value": node_id, "label": step["activity_node_name"]}, "sections": [], "category": None}; pages.append(page); page_by_action[node_id] = page
+            page = {
+                "id": step["page_id"],
+                "name": step["page_name"],
+                "primary_model": "",
+                "type": {"value": "activity", "label": "Activity"},
+                "action": {"value": node_id, "label": step["activity_node_name"]},
+                "sections": [],
+                "category": None,
+            }
+            pages.append(page)
+            page_by_action[node_id] = page
         else:
-            page["type"] = {"value": "activity", "label": "Activity"}; page["action"] = {"value": node_id, "label": step["activity_node_name"]}; page.setdefault("category", None); page.setdefault("sections", [])
+            page["type"] = {"value": "activity", "label": "Activity"}
+            page["action"] = {"value": node_id, "label": step["activity_node_name"]}
+            page.setdefault("category", None)
+            page.setdefault("sections", [])
         button_id = f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
         if button_id not in section_ids:
-            sections.append({"id": button_id, "name": f"{page.get('name', step['page_name']).replace('_', ' ')} Continue", "label": "Continue", "type": "activity_action", "layout": "activity_action", "primary_model": "", "class": "", "operations": {"create": False, "update": False, "delete": False}, "attributes": [], "methods": [], "col_span": 12, "position": "main", "style": {"variant": "wizard_next", "align": "right", "size": "lg"}, "workflow": {"action": "complete"}}); section_ids.add(button_id)
-        refs = page.get("sections") or []; ref_ids = {str(ref.get("value") if isinstance(ref, dict) else ref) for ref in refs}
-        if button_id not in ref_ids: refs.append({"value": button_id}); page["sections"] = refs
+            sections.append({
+                "id": button_id,
+                "name": f"{page.get('name', step['page_name']).replace('_', ' ')} Continue",
+                "label": "Continue",
+                "type": "activity_action",
+                "layout": "activity_action",
+                "primary_model": "",
+                "class": "",
+                "operations": {"create": False, "update": False, "delete": False},
+                "attributes": [],
+                "methods": [],
+                "col_span": 12,
+                "position": "main",
+                "style": {"variant": "wizard_next", "align": "right", "size": "lg"},
+                "workflow": {"action": "complete"},
+            })
+            section_ids.add(button_id)
+        refs = page.get("sections") or []
+        ref_ids = {str(ref.get("value") if isinstance(ref, dict) else ref) for ref in refs}
+        if button_id not in ref_ids:
+            refs.append({"value": button_id})
+            page["sections"] = refs
     return pages, sections
 
 def _normalize_activity_action_sections(pages: list, sections: list) -> list:
@@ -224,27 +302,50 @@ def update_interface_data(interface_id: str, data: dict) -> str:
 
 def apply_interface_patch(interface_id: str, patch: dict) -> str:
     try:
-        resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); resp.raise_for_status(); current = resp.json(); data = dict(current.get("data") or {})
+        resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+        resp.raise_for_status()
+        current = resp.json()
+        data = dict(current.get("data") or {})
         if "sections" in patch:
             section_map = {str(s["id"]): s for s in data.get("sections", [])}
             for ps in patch["sections"]:
-                sid = str(ps.get("id", "")); if sid not in section_map: continue
+                sid = str(ps.get("id", ""))
+                if sid not in section_map:
+                    continue
                 for field in ("layout", "col_span", "position", "attributes", "query", "workflow", "label", "target_page", "workflow_action"):
-                    if field in ps: section_map[sid][field] = ps[field]
-                if "style" in ps: section_map[sid]["style"] = {**(section_map[sid].get("style") or {}), **ps["style"]}
+                    if field in ps:
+                        section_map[sid][field] = ps[field]
+                if "style" in ps:
+                    section_map[sid]["style"] = {**(section_map[sid].get("style") or {}), **ps["style"]}
             data["sections"] = list(section_map.values())
         if "pages" in patch:
             page_map = {str(p["id"]): p for p in data.get("pages", [])}
             for pp in patch["pages"]:
-                pid = str(pp.get("id", "")); if pid not in page_map: continue
+                pid = str(pp.get("id", ""))
+                if pid not in page_map:
+                    continue
                 for field in ("layout", "gap"):
-                    if field in pp: page_map[pid][field] = pp[field]
+                    if field in pp:
+                        page_map[pid][field] = pp[field]
             data["pages"] = list(page_map.values())
-        if "styling" in patch: data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
-        if "tokens" in patch: data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
-        try: data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
-        except Exception: data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
-        payload = {"id": interface_id, "name": current["name"], "description": current["description"], "system_id": current["system"], "actor_id": current["actor"], "data": data}; put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); put_resp.raise_for_status()
+        if "styling" in patch:
+            data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
+        if "tokens" in patch:
+            data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+        try:
+            data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
+        except Exception:
+            data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
+        payload = {
+            "id": interface_id,
+            "name": current["name"],
+            "description": current["description"],
+            "system_id": current["system"],
+            "actor_id": current["actor"],
+            "data": data,
+        }
+        put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
+        put_resp.raise_for_status()
         return f"Patched interface {interface_id} successfully."
     except Exception as e: return f"Error patching interface: {e}"
 
@@ -306,14 +407,22 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
         for s in sections:
             sname = s.get("name", "?"); layout = s.get("layout", "")
             if layout and layout not in _VALID_LAYOUTS: errors.append(f"section '{sname}': invalid layout '{layout}'")
-            pm = s.get("primary_model", ""); if pm and pm not in known_models: errors.append(f"section '{sname}': unknown primary_model '{pm}'")
+            pm = s.get("primary_model", "")
+            if pm and pm not in known_models:
+                errors.append(f"section '{sname}': unknown primary_model '{pm}'")
             for attr in s.get("attributes", []):
                 attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
                 if "." in attr_name:
-                    first = attr_name.split(".")[0]; if first not in known_models: errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
+                    first = attr_name.split(".")[0]
+                    if first not in known_models:
+                        errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
                 elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]: errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
-            vdp = s.get("view_detail_page", ""); if vdp and vdp not in page_names: errors.append(f"section '{sname}': view_detail_page '{vdp}' not in pages")
-            sp = (s.get("style") or {}).get("success_page", ""); if sp and sp not in page_names: errors.append(f"section '{sname}': success_page '{sp}' not in pages")
+            vdp = s.get("view_detail_page", "")
+            if vdp and vdp not in page_names:
+                errors.append(f"section '{sname}': view_detail_page '{vdp}' not in pages")
+            sp = (s.get("style") or {}).get("success_page", "")
+            if sp and sp not in page_names:
+                errors.append(f"section '{sname}': success_page '{sp}' not in pages")
             workflow = s.get("workflow") or {}; workflow_action = workflow.get("action") or s.get("workflow_action", "")
             if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}: errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
             workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
@@ -323,7 +432,9 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 if normalized_workflow_target: workflow["target_page"] = normalized_workflow_target; s["workflow"] = workflow
                 else: errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
             for field, valid_vals in _VALID_STYLE.items():
-                val = (s.get("style") or {}).get(field, ""); if val and val not in valid_vals: errors.append(f"section '{sname}': invalid style.{field} '{val}'")
+                val = (s.get("style") or {}).get(field, "")
+                if val and val not in valid_vals:
+                    errors.append(f"section '{sname}': invalid style.{field} '{val}'")
         fixed_sections = []
         for s in sections:
             pm = s.get("primary_model", "")
@@ -361,7 +472,11 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
                 pm = p.get("primary_model", ""); candidates_for_page = model_to_sections.get(pm, []); start = model_assigned[pm]; assigned = []
                 if start < len(candidates_for_page): assigned = [{"value": candidates_for_page[start]}]; model_assigned[pm] += 1
                 if not assigned and model_to_sections.get("", []):
-                    fallback = model_to_sections[""]; fb_start = model_assigned[""]; if fb_start < len(fallback): assigned = [{"value": fallback[fb_start]}]; model_assigned[""] += 1
+                    fallback = model_to_sections[""]
+                    fb_start = model_assigned[""]
+                    if fb_start < len(fallback):
+                        assigned = [{"value": fallback[fb_start]}]
+                        model_assigned[""] += 1
                 rebuilt_pages.append({**p, "sections": assigned})
             fixed_pages = rebuilt_pages
         section_ids = {s["id"] for s in fixed_sections}; orphans = []

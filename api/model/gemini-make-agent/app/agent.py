@@ -120,7 +120,7 @@ Workflow:
 1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, activity_diagrams, and workflow_plan.
 2. Reason about:
    - Which pages the actor needs (one per major use-case or object workspace)
-   - Which workflow_plan steps map to workflow pages for this actor
+   - Ignore workflow_plan when creating pages; workflow pages/buttons are added deterministically by the system after saving.
    - OOUI principles that apply (workspace, navigation area, object detail, collection)
    - Which model belongs on which page as primary_model
    - All navigation transitions between pages (who navigates where, what ID is passed)
@@ -139,9 +139,7 @@ Workflow:
     {"from": "<page_id>", "trigger": "<user action>", "to": "<page_id>", "passes": "<Model.id or null>"},
     {"from": "<page_id>", "trigger": "<user action>", "creates": "<ModelName>", "stays": true}
   ],
-  "workflow_edges": [
-    {"activity_node": "<action node name>", "from_page": "<page_id>", "to_page": "<page_id or null>", "completion": "complete|navigate|complete_then_page", "trigger": "<button label>"}
-  ],
+  "workflow_edges": [],
   "nav_bar_pages": ["<page_id>", ...],
   "icon_actions": ["<page_id or action>", ...],
   "actor_permissions": {"<ModelName>": ["view"|"create"|"update"|"delete"], ...},
@@ -156,8 +154,7 @@ Rules:
 - page name must be Title_Case with underscores (e.g. Browse_Products, Product_Detail)
 - page id must be snake_case matching the name lowercased
 - navigation_edges must cover EVERY meaningful user transition
-- workflow_edges must be derived from workflow_plan when activity nodes exist for this actor
-- each workflow page must be page type "activity" and must reference the activity action id/value from the diagram
+- Do NOT generate activity pages or activity_action sections yourself. The system's built-in activity template logic adds Workflow_* activity pages and workflow buttons from the activity diagram after saving.
 - stays:true means after the action the user stays on the current page
 - diversity_hints must be genuinely structurally different, not just colour variations
 - Output ONLY the JSON object. No markdown fences.
@@ -265,97 +262,26 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id).
-   NOTE: Returns UML data only. Ignore any existing pages/sections — generate everything from scratch.
-2. Analyse actor role, primary use cases, secondary use cases, and the designer prompt keywords.
-3. Determine: which pages the actor needs, which model belongs on each page, navigation edges (trigger→target, passes which ID), nav bar pages, actor permissions per model.
-   Also inspect workflow_plan: every step should become or map to an activity page with page.type.value="activity" and page.action pointing to the activity_node_id/activity_node_name.
-4. Derive 3 design_personas, each differing on ALL THREE axes — no repeats allowed:
+2. Call list_design_specs_tool() to see available visual themes.
+3. Match the application domain to a theme (e.g. ecommerce.md for shops, stripe.md for payments).
+4. Analyse actor role, primary use cases, and determine determining which pages/models are needed.
+5. Derive 3 design_personas, matching the selected theme's vibe.
 
-   AXIS A — Interaction archetype (pick 3 different ones):
-     visual-browse | data-scan | detail-focus | workflow-step | admin-manage
-
-   AXIS B — Color theme (each candidate gets a DIFFERENT theme):
-     light   → page.body.bg:"bg-gray-50",   region.header.bg:"bg-white",      component.card.bg:"bg-white",     element.button.primary:"bg-blue-600 text-white",   theme.button.style:"solid",    theme.card.hover:"lift",   page.font.family:"Inter",        page.radius.px:"8"
-     dark    → page.body.bg:"bg-slate-900", region.header.bg:"bg-slate-900",  component.card.bg:"bg-slate-800", element.button.primary:"bg-blue-500 text-white",   theme.button.style:"solid",    theme.card.hover:"glow",   page.font.family:"Inter",        page.radius.px:"4"
-     brand   → page.body.bg:"bg-white",     region.header.bg:"bg-indigo-700", component.card.bg:"bg-white",     element.button.primary:"bg-indigo-600 text-white", theme.button.style:"gradient", theme.card.hover:"border", page.font.family:"'Poppins'",     page.radius.px:"16"
-
-   AXIS C — Section emphasis (pick 3 different ones):
-     card-heavy | table-heavy | detail-heavy | form-heavy | sidebar-filter
-
-   Choose the archetypes that best fit the use cases (primary action → persona 0, data management → persona 1, alternative approach → persona 2). You may reorder; what matters is they differ.
+AXIS B — Color theme:
+   Instead of static values, you will use the tokens from the selected design spec.
 
 ━━━ PHASE 2 — GENERATE (index 0, 1, 2) ━━━
-For each candidate, strictly follow design_personas[i]:
-  - Use ONLY section types from that persona's section emphasis (card-heavy → mostly card+filter; table-heavy → mostly table+list; detail-heavy → mostly detail+form)
-  - Pass persona's AXIS B token values as the tokens dict
-  - Pass styling dict using the real UI schema:
-    {{"radius": 4|8|16, "accentColor": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "selectedStyle": "modern",
-      "fontFamily": "inter|roboto|poppins|playfair|mono|geist",
-      "pageMaxWidth": "sm|md|lg|xl|2xl|full",
-      "buttonStyle": "solid|outline|ghost|gradient",
-      "cardHover": "lift|glow|border|none",
-      "imageRatio": "1:1|4:3|16:9|portrait|wide",
-      "divider": "none|line|shadow|wave"}}
-    accentColor must match the primary button color; radius/fontFamily/buttonStyle must differ across candidates.
-  - Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens, styling)
-    If it returns errors, fix them and call again. Do NOT proceed to next candidate until saved OK.
-
-PAGE rules — every page MUST have:
-  id:       snake_case (e.g. "browse_products")
-  name:     Title_Case_with_underscores (e.g. "Browse_Products")
-  sections: list of section id strings on this page — CRITICAL: every id must match an entry in sections[].
-            Build sections[] FIRST, then reference exact ids. Do NOT include chrome section ids here.
-  type:     {{"value":"activity","label":"Activity"}} for workflow/action-node pages, otherwise {{"value":"normal","label":"Normal"}}
-  action:   {{"value":"<activity action node id>","label":"<activity action node name>"}} on every activity page
-
-Section rules — every section MUST include:
-  id:            unique snake_case role descriptor (e.g. "product_grid", "order_detail"). NO generic "s0_0".
-  name:          human-readable title (e.g. "Product Grid"). Required.
-  primary_model: exact model name from classifiers (or "" for chrome)
-  layout:        card | list | table | detail | gallery | filter | form | site-nav | icon-actions | search-bar
-  col_span:      12 | 6 | 4 | 3
-  position:      header | hero | main | sidebar | footer
-  view_detail_page: target page NAME (Title_Case) if list/card navigates to detail
-  operations:    {{"create": bool, "update": bool, "delete": bool}}
-  query:         {{"limit": int, "order_by": [...]}} for list/card/table
-  attributes:    strings or objects: {{"name":"field","render":{{"as":"text|link|button|badge"}},"action":{{"type":"navigate|filter|operation|none"}}}}
-  style:         color(blue|green|purple|orange|rose|slate), density(compact|normal|spacious), shadow, border, bg, header_style
-                 + layout-specific: card_style(default|product|category|compact), display_mode(grid|carousel|banner),
-                   list_style(default|product|cart-item), form_style(default|auth|step|summary),
-                   image_position(left|top|right), image_size(sm|md|lg), success_page(for forms)
-  workflow:      for layout/type activity_action only:
-                   {{"action":"complete|navigate|complete_then_page","target_page":"Target_Page_Name"}}
-                 Use {{"action":"complete"}} for normal workflow progression; the generated prototype redirects to the next active action-node URL.
-
-Activity action section rules:
-  - activity_action is ONLY a workflow/navigation control button, never a data section.
-  - Do NOT convert model-backed sections such as Cart Items, Product List, Shipping Form, or Order Details into activity_action.
-  - activity_action sections MUST have primary_model="", attributes=[], operations all false, type="activity_action", layout="activity_action".
-  - Put activity_action section ids only on activity pages unless the button is an explicit normal-page navigation link with workflow.action="navigate".
-
-Chrome sections (MANDATORY in every candidate — include in sections[] so they are selectable in the editor):
-  - site-nav: position=header, col_span=12, primary_model=""
-  - icon-actions: position=header, col_span=12, primary_model=""
-  Do NOT include their ids in pages[].sections.
-
-Navigation completeness (MANDATORY):
-  - Every list/card with a detail target MUST set view_detail_page
-  - Every form MUST set style.success_page
-  - Every activity page MUST include an activity_action section in its pages[].sections
-  - Every activity_action section MUST have type="activity_action", layout="activity_action", label, style.variant, and workflow.action
-  - When workflow.action is navigate or complete_then_page, workflow.target_page MUST be one of pages[].name
-
-━━━ PHASE 3 — RENDER ━━━
-For candidate_index 0, 1, 2: call render_candidate_preview(interface_id, candidate_index). Continue on error.
-
-After all 3 phases, output exactly: "done"
-IMPORTANT: Execute ALL THREE PHASES before "done".
+1. Call get_design_system_tool(spec_name="...") to fetch the real tokens for your chosen theme.
+2. Pass these tokens into validate_and_save_candidate.
+...
 """,
     tools=[
         get_interface_full_context_tool,
         validate_save_candidate_tool,
         render_candidate_preview_tool,
         get_available_paths_tool,
+        list_design_specs_tool,
+        get_design_system_tool,
     ],
 )
 
@@ -411,36 +337,17 @@ Otherwise (interface_id= UI edit request): handle it directly.
 Message format: interface_id=<uuid> user_request=<design change description>
 
 1. Call get_interface_config(interface_id=<uuid>) to get the current data.
-2. Analyze the request and determine all needed changes (layout, style, data mapping, queries, tokens).
-3. If data mapping or queries are requested:
+2. Analyze the request. 
+   - If it involves a theme change (e.g. "make it look like Apple" or "apply ecommerce theme"):
+     a. Call list_design_specs_tool() to see available .md templates.
+     b. Select the file that best matches (e.g. apple.md, ecommerce.md).
+     c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...") and STOP.
+3. Determine all needed changes (layout, style, data mapping, queries, tokens).
+4. If data mapping or queries are requested:
    a. Call get_system_context(system_id) to find valid fields and relations.
    b. Call get_available_paths(system_id, class_id) to get valid paths.
-4. Build ONE patch dict with only the changed fields.
-5. Call apply_interface_patch(interface_id=<uuid>, patch=<patch_dict>) EXACTLY ONCE to persist.
-
-Path Binding (Multi-class mapping):
-To show data from related classes, use dot-notation in attributes (e.g. "seller.name").
-For field rendering, prefer render.as:
-- Text field: "name" or {{"name": "name", "render": {{"as": "text"}}}}
-- Link navigation field: {{"name": "seller.name", "render": {{"as": "link"}}, "action": {{"type": "navigate", "targetPageId": "seller-detail"}}}}
-- Button operation field: {{"name": "order.status", "render": {{"as": "button"}}, "action": {{"type": "operation", "class": "Order", "operation": "approve"}}}}
-- Badge/status field: {{"name": "status", "render": {{"as": "badge"}}, "action": {{"type": "filter", "field": "status"}}}}
-- Text utility field: {{"name": "customer.email", "render": {{"as": "text"}}, "action": {{"type": "copy"}}}}
-Backward compatibility: if the user explicitly says is_link, {{"name": "seller.name", "is_link": true}} is also valid.
-
-Patch shape (only include changed fields):
-{{
-  "sections": [{{
-    "id": "...", 
-    "attributes": ["name", {{"name": "seller.name", "render": {{"as": "link"}}, "action": {{"type": "navigate", "targetPageId": "seller-detail"}}}}, {{"name": "status", "render": {{"as": "badge"}}, "action": {{"type": "filter", "field": "status"}}}}],
-    "query": {{"limit": 5, "order_by": [{{"field": "price", "direction": "desc"}}]}},
-    "style": {{"color": "blue"}}
-  }}],
-  "pages":    [{{"id": "...", "layout": {{"value": "horizontal"}}, "gap": {{"value": "compact"}}}}],
-  "styling":  {{"radius": 8, "accentColor": "#2563EB", "backgroundColor": "#FFFFFF", "textColor": "#111827", "selectedStyle": "modern",
-               "fontFamily": "inter", "pageMaxWidth": "xl", "buttonStyle": "solid", "cardHover": "lift", "imageRatio": "4:3", "divider": "none"}},
-  "tokens":   {{"page.body.bg": "bg-slate-900", "page.body.text": "text-slate-100"}}
-}}
+5. Build ONE patch dict with only the changed fields.
+6. Call apply_interface_patch(interface_id=<uuid>, patch=<patch_dict>) EXACTLY ONCE to persist.
 
 Editable fields:
 {_EDITABLE_FIELDS}
@@ -452,7 +359,7 @@ Rules:
 """,
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
-        get_design_system_tool, apply_design_system_to_interface_tool,
+        get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
         AgentTool(agent=candidate_pipeline_agent),
     ],
     sub_agents=[seed_agent],
