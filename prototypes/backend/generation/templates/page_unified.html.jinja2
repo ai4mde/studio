@@ -1,12 +1,12 @@
 {% if preview_mode -%}
 <!DOCTYPE html>
-<html lang=”en”>
+<html lang="en">
 <head>
-  <meta charset=”UTF-8” />
-  <meta name=”viewport” content=”width=device-width,initial-scale=1.0” />
-  <script src=”https://cdn.tailwindcss.com”></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
   {%- set _font_cdn = tokens.get('page.font.cdn', '') %}
-  {%- if _font_cdn %}<link rel=”preconnect” href=”https://fonts.googleapis.com”><link rel=”preconnect” href=”https://fonts.gstatic.com” crossorigin><link rel=”stylesheet” href=”{{ _font_cdn }}”>{% endif %}
+  {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
   <style>
     :root {
       --radius: {{ tokens.get('page.radius.px', '8') }}px;
@@ -40,7 +40,7 @@
   </style>
   <title>{{ page.display_name }} – Preview</title>
 </head>
-<body class=”{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen {{ tokens.get('page.body.text', 'text-gray-800') }}”>
+<body class="{{ tokens.get('page.body.bg', 'bg-gray-50') }} min-h-screen {{ tokens.get('page.body.text', 'text-gray-800') }}">
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
