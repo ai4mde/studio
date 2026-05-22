@@ -844,7 +844,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                                         srcDoc={candidate.preview_html}
                                                         title={`candidate-${idx}-mini`}
                                                         style={{ width: '200%', height: '200%', border: 'none', transform: 'scale(0.5)', transformOrigin: 'top left', pointerEvents: 'none' }}
-                                                        sandbox="allow-scripts"
+                                                        sandbox="allow-scripts allow-same-origin"
                                                     />
                                                 </div>
                                             )}
@@ -1660,7 +1660,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                             srcDoc={candidates[previewCandidateIdx].preview_html}
                             title={`Candidate ${previewCandidateIdx + 1} preview`}
                             style={{ width: '100%', height: '100%', border: 'none' }}
-                            sandbox="allow-scripts"
+                            sandbox="allow-scripts allow-same-origin"
                         />
                     ) : designMode === 'explore' ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12 }}>
