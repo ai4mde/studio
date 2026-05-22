@@ -41,7 +41,7 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     filter:  ['color', 'density', 'bg'],
     form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label', 'success_page'],
-    activity_action: ['activity_label', 'activity_variant', 'activity_align', 'activity_size'],
+    activity_action: ['activity_label', 'activity_workflow_action', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
 };
 
 const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
@@ -132,6 +132,7 @@ const makeActivityActionSection = (page: any) => {
         col_span: 12,
         position: 'main',
         style: { variant: 'button', align: 'right', size: 'lg' },
+        workflow: { action: 'complete' },
     };
 };
 
@@ -502,6 +503,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
             if (field === 'col_span') return { ...s, col_span: value };
             if (field === 'text') return { ...s, text: value };
             if (field === 'label') return { ...s, label: value, name: value || s.name };
+            if (field === 'workflow_action') return { ...s, workflow: { ...(s.workflow || {}), action: value } };
+            if (field === 'workflow_target_page') return { ...s, workflow: { ...(s.workflow || {}), target_page: value } };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
         }));
     }, [setSections]);
@@ -1414,6 +1417,26 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                 onChange={e => updateSection(selectedSection.id, 'label', e.target.value)}
                                 style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
                             /></>)}
+
+                            {hasControl('activity_workflow_action') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Workflow Action</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {(['complete','navigate','complete_then_page'] as const).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active(((selectedSection.workflow || {}).action || 'complete') === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'workflow_action', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('activity_target_page') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Target Page</p>
+                            <select
+                                value={(selectedSection.workflow || {}).target_page ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'workflow_target_page', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            >
+                                <option value="">Auto next workflow page</option>
+                                {(pages as any[]).map((p: any) => <option key={p.id || p.name} value={p.name}>{p.name}</option>)}
+                            </select></>)}
 
                             {hasControl('activity_variant') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activity Variant</p>

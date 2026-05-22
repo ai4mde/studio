@@ -18,5 +18,6 @@ jobs:
           script: |
             cd ~/studio
             git pull origin develop-uilayout-revise
-            docker compose up --build -d
+            echo "ORACLE_IP=${{ secrets.ORACLE_HOST }}" > .env
+            docker compose -f docker-compose.yaml -f docker-compose.cloud.yml up --build -d
             docker image prune -f

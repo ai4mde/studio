@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import re
 from google.adk.tools import FunctionTool
 
 METADATA_API_BASE = os.getenv("METADATA_API_BASE", "http://studio-api:8000/api/v1/metadata")
@@ -9,19 +10,218 @@ _METADATA_API_KEY = os.getenv("METADATA_API_KEY")
 _AUTH_HEADERS = {"Authorization": f"Bearer {_METADATA_API_KEY}"} if _METADATA_API_KEY else {}
 TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../prototypes/backend/generation/templates"))
 
+def _as_list(payload, key: str) -> list:
+    if isinstance(payload, dict):
+        return payload.get(key, []) or []
+    return payload or []
+
+def _name_id(value: str) -> str:
+    value = re.sub(r"[^A-Za-z0-9_\\s-]", "", str(value or ""))
+    value = re.sub(r"[\\s-]+", "_", value.strip())
+    return value or "workflow_step"
+
+def _page_name(value: str) -> str:
+    return "_".join(part[:1].upper() + part[1:] for part in _name_id(value).split("_") if part)
+
+def _section_id(value: str) -> str:
+    return _name_id(value).lower()
+
+def _build_activity_diagrams(system_data: dict) -> list:
+    """Return activity diagrams in the shape expected by the prototype workflow parser."""
+    diagrams = system_data.get("diagrams") or []
+    classifiers = {str(c.get("id")): c for c in _as_list(system_data.get("classifiers"), "classifiers")}
+    relations = {str(r.get("id")): r for r in _as_list(system_data.get("relations"), "relations")}
+    out = []
+    for diagram in diagrams:
+        if diagram.get("type") != "activity":
+            continue
+        raw_nodes = diagram.get("nodes") or []
+        raw_edges = diagram.get("edges") or []
+        nodes = []
+        node_by_cls = {}
+        for node in raw_nodes:
+            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+            classifier = classifiers.get(cls_id, {})
+            nodes.append({
+                "id": str(node.get("id")),
+                "cls_ptr": cls_id,
+                "cls": classifier.get("data", {}),
+                "data": node.get("data", {}),
+            })
+            if cls_id:
+                node_by_cls[cls_id] = str(node.get("id"))
+
+        edges = []
+        for edge in raw_edges:
+            rel_id = str(edge.get("rel") or edge.get("rel_id") or edge.get("rel_ptr") or "")
+            relation = relations.get(rel_id, {})
+            source_cls = str(relation.get("source") or relation.get("source_id") or "")
+            target_cls = str(relation.get("target") or relation.get("target_id") or "")
+            source_ptr = node_by_cls.get(source_cls)
+            target_ptr = node_by_cls.get(target_cls)
+            if not source_ptr or not target_ptr:
+                continue
+            edges.append({
+                "id": str(edge.get("id")),
+                "source_ptr": source_ptr,
+                "target_ptr": target_ptr,
+                "rel_ptr": rel_id,
+                "rel": relation.get("data", {}),
+                "data": edge.get("data", {}),
+            })
+        out.append({
+            "id": str(diagram.get("id")),
+            "name": diagram.get("name", ""),
+            "type": "activity",
+            "nodes": nodes,
+            "edges": edges,
+        })
+    return out
+
+def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> set[str]:
+    refs = {str(actor_id)} if actor_id else set()
+    actor_name_norm = str(actor_name or "").lower()
+    classifiers = {str(c.get("id")): c.get("data", {}) for c in _as_list(system_data.get("classifiers"), "classifiers")}
+    for diagram in system_data.get("diagrams", []):
+        if diagram.get("type") != "usecase":
+            continue
+        for node in diagram.get("nodes", []):
+            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+            cls = classifiers.get(cls_id, {})
+            if cls.get("type") == "actor" and (cls_id == str(actor_id) or str(cls.get("name", "")).lower() == actor_name_norm):
+                refs.add(str(node.get("id")))
+                refs.add(cls_id)
+    return {ref for ref in refs if ref and ref != "None"}
+
+def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> list:
+    refs = _actor_refs(system_data, actor_id, actor_name)
+    steps = []
+    for diagram in system_data.get("activity_diagrams", []):
+        nodes = {str(n.get("id")): n for n in diagram.get("nodes", [])}
+        outgoing = {}
+        for edge in diagram.get("edges", []):
+            outgoing.setdefault(str(edge.get("source_ptr")), []).append(str(edge.get("target_ptr")))
+        for node in diagram.get("nodes", []):
+            cls = node.get("cls", {})
+            if cls.get("type") != "action":
+                continue
+            actor_node = str(cls.get("actorNode") or "")
+            if refs and actor_node not in refs:
+                continue
+            name = cls.get("name") or "Workflow Step"
+            page_name = _page_name(name)
+            page_id = _section_id(page_name)
+            next_action_ids = [
+                target for target in outgoing.get(str(node.get("id")), [])
+                if (nodes.get(target, {}).get("cls") or {}).get("type") == "action"
+            ]
+            steps.append({
+                "activity_node_id": str(node.get("id")),
+                "activity_node_name": name,
+                "actor_node": actor_node,
+                "diagram_id": diagram.get("id"),
+                "diagram_name": diagram.get("name"),
+                "page_id": page_id,
+                "page_name": page_name,
+                "next_activity_node_ids": next_action_ids,
+            })
+    return steps
+
+def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list) -> tuple[list, list]:
+    if not workflow_steps:
+        return pages, sections
+
+    pages = [dict(p) for p in pages]
+    sections = [dict(s) for s in sections]
+    section_ids = {str(s.get("id")) for s in sections}
+
+    def page_action_id(page: dict) -> str:
+        action = page.get("action") or {}
+        if isinstance(action, dict):
+            return str(action.get("value") or action.get("id") or "")
+        return ""
+
+    page_by_action = {page_action_id(p): p for p in pages if page_action_id(p)}
+
+    for step in workflow_steps:
+        node_id = step["activity_node_id"]
+        page = page_by_action.get(node_id)
+        if not page:
+            page = {
+                "id": step["page_id"],
+                "name": step["page_name"],
+                "primary_model": "",
+                "type": {"value": "activity", "label": "Activity"},
+                "action": {"value": node_id, "label": step["activity_node_name"]},
+                "sections": [],
+                "category": None,
+            }
+            pages.append(page)
+            page_by_action[node_id] = page
+        else:
+            page["type"] = {"value": "activity", "label": "Activity"}
+            page["action"] = {"value": node_id, "label": step["activity_node_name"]}
+            page.setdefault("category", None)
+            page.setdefault("sections", [])
+
+        button_id = f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
+        if button_id not in section_ids:
+            sections.append({
+                "id": button_id,
+                "name": f"{page.get('name', step['page_name']).replace('_', ' ')} Continue",
+                "label": "Continue",
+                "type": "activity_action",
+                "layout": "activity_action",
+                "primary_model": "",
+                "class": "",
+                "operations": {"create": False, "update": False, "delete": False},
+                "attributes": [],
+                "methods": [],
+                "col_span": 12,
+                "position": "main",
+                "style": {"variant": "wizard_next", "align": "right", "size": "lg"},
+                "workflow": {"action": "complete"},
+            })
+            section_ids.add(button_id)
+
+        refs = page.get("sections") or []
+        ref_ids = {
+            str(ref.get("value") if isinstance(ref, dict) else ref)
+            for ref in refs
+        }
+        if button_id not in ref_ids:
+            refs.append({"value": button_id})
+            page["sections"] = refs
+
+    return pages, sections
+
+def _fetch_system_context_data(system_id: str) -> dict:
+    response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
+    response.raise_for_status()
+    system_data = response.json()
+
+    classifiers_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
+    relations_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/relations/", headers=_AUTH_HEADERS)
+    system_data["classifiers"] = classifiers_resp.json() if classifiers_resp.ok else []
+    system_data["relations"] = relations_resp.json() if relations_resp.ok else []
+
+    export_resp = requests.get(
+        f"{METADATA_API_BASE}/systems/export/",
+        params=[("system_ids", system_id)],
+        headers=_AUTH_HEADERS,
+    )
+    if export_resp.ok:
+        exported = export_resp.json()
+        if exported:
+            system_data["diagrams"] = exported[0].get("diagrams", [])
+    system_data["activity_diagrams"] = _build_activity_diagrams(system_data)
+    return system_data
+
 def get_system_context(system_id: str) -> str:
     """Fetch full system metadata including diagrams, classifiers, and relations."""
     try:
-        response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
-        response.raise_for_status()
-        system_data = response.json()
-
-        classifiers_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
-        relations_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/relations/", headers=_AUTH_HEADERS)
-
-        system_data["classifiers"] = classifiers_resp.json() if classifiers_resp.ok else []
-        system_data["relations"] = relations_resp.json() if relations_resp.ok else []
-
+        system_data = _fetch_system_context_data(system_id)
+        system_data["workflow_plan"] = _workflow_plan(system_data, None)
         return json.dumps(system_data, indent=2)
     except Exception as e:
         return f"Error fetching system context: {e}"
@@ -134,7 +334,7 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                 sid = str(ps.get("id", ""))
                 if sid not in section_map:
                     continue
-                for field in ("layout", "col_span", "position", "attributes", "query"):
+                for field in ("layout", "col_span", "position", "attributes", "query", "workflow", "label", "target_page", "workflow_action"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:
@@ -266,7 +466,14 @@ def get_interface_full_context(interface_id: str) -> str:
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
-        system_ctx = json.loads(get_system_context(system_id)) if system_id else {}
+        system_ctx = _fetch_system_context_data(system_id) if system_id else {}
+        actor_id = iface.get("actor")
+        actor_name = None
+        for classifier in _as_list(system_ctx.get("classifiers"), "classifiers"):
+            if str(classifier.get("id")) == str(actor_id):
+                actor_name = (classifier.get("data") or {}).get("name")
+                break
+        system_ctx["workflow_plan"] = _workflow_plan(system_ctx, str(actor_id or ""), actor_name)
 
         # Strip existing layout data so the agent generates fresh candidates,
         # not influenced by whatever is currently rendered on the interface.
@@ -318,14 +525,34 @@ def validate_and_save_candidate(
 
         # Build lookup: model_name → set of attribute names
         model_attrs: dict[str, set] = {}
+        actor_name = None
         for c in raw_classifiers:
             cdata = c.get("data", {})
             cname = cdata.get("name", "")
+            if str(c.get("id")) == str(iface.get("actor")):
+                actor_name = cname
             attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
             if cname:
                 model_attrs[cname] = attrs
         known_models = set(model_attrs.keys())
+        try:
+            system_context = _fetch_system_context_data(system_id)
+            workflow_steps = _workflow_plan(system_context, str(iface.get("actor") or ""), actor_name)
+            pages, sections = _ensure_workflow_pages(pages, sections, workflow_steps)
+        except Exception as e:
+            # Candidate validation should still work if workflow metadata is incomplete.
+            workflow_steps = []
         page_names = {p.get("name", "") for p in pages}
+        page_ref_to_name = {}
+        for p in pages:
+            pname = p.get("name", "")
+            pid = p.get("id", "")
+            if pname:
+                page_ref_to_name[pname] = pname
+                page_ref_to_name[pname.lower()] = pname
+            if pid:
+                page_ref_to_name[pid] = pname
+                page_ref_to_name[pid.lower()] = pname
 
         errors = []
 
@@ -356,6 +583,28 @@ def validate_and_save_candidate(
             sp = (s.get("style") or {}).get("success_page", "")
             if sp and sp not in page_names:
                 errors.append(f"section '{sname}': success_page '{sp}' not in pages")
+
+            workflow = s.get("workflow") or {}
+            workflow_action = workflow.get("action") or s.get("workflow_action", "")
+            if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
+                errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
+            workflow_target = (
+                workflow.get("target_page")
+                or workflow.get("targetPage")
+                or s.get("target_page")
+                or s.get("targetPage")
+                or ""
+            )
+            if workflow_target and workflow_target in page_ref_to_name:
+                workflow["target_page"] = page_ref_to_name[workflow_target]
+                s["workflow"] = workflow
+            if workflow_target and workflow_target not in page_names:
+                normalized_workflow_target = page_ref_to_name.get(str(workflow_target).lower())
+                if normalized_workflow_target:
+                    workflow["target_page"] = normalized_workflow_target
+                    s["workflow"] = workflow
+                else:
+                    errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
 
             for field, valid_vals in _VALID_STYLE.items():
                 val = (s.get("style") or {}).get(field, "")

@@ -1,0 +1,5 @@
+# Docker Compose variable substitution file — contains VM public IP
+.env
+
+# Local secrets (never commit)
+config/secrets.env

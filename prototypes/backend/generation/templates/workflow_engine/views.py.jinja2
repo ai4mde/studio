@@ -6,6 +6,23 @@ from workflow_engine.models import ActionLog, ActiveProcess, ActiveProcessNode, 
 from shared_models.models import User
 from shared_models.views import GenericView, GenericTemplateView, GenericUpdateView
 
+
+def _find_active_node_for_url(active_process, target_url, user=None):
+    if not target_url:
+        return None
+    normalized_target = target_url.rstrip("/")
+    candidates = ActiveProcessNode.objects.filter(
+        active_process=active_process,
+        action_node__url__isnull=False,
+    ).select_related("action_node", "user")
+    candidate_sets = [candidates.filter(user=user), candidates] if user else [candidates]
+    for candidate_set in candidate_sets:
+        for node in candidate_set:
+            if (node.action_node.url or "").rstrip("/") == normalized_target:
+                return node
+    return None
+
+
 class StartProcessView(GenericView):
     {% if authentication_present -%}
     required_roles = None
@@ -30,13 +47,49 @@ class RedirectToProcessView(GenericView):
         return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
 
 
+class RedirectToProcessPageView(GenericView):
+    {% if authentication_present -%}
+    required_roles = None
+    {% endif %}
+    def get(self, request, active_process_node_id, *args, **kwargs):
+        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        target_url = request.GET.get("target_url") or request.POST.get("target_url")
+        target_node = _find_active_node_for_url(active_process_node.active_process, target_url, request.user)
+        if target_node:
+            return redirect(f"{target_node.action_node.url.rstrip('/')}/{target_node.id}")
+        return redirect(f"{active_process_node.action_node.url.rstrip('/')}/{active_process_node.id}")
+
+    def post(self, request, active_process_node_id, *args, **kwargs):
+        return self.get(request, active_process_node_id, *args, **kwargs)
+
+
 class CompleteProcessStepView(GenericView):
     {% if authentication_present -%}
     required_roles = None
     {% endif %}
     def post(self, request, active_process_node_id, *args, **kwargs):
         active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        active_process = active_process_node.active_process
         active_process_node.complete_node(request.user)
+        explicit_next_url = request.POST.get("next_url")
+        if explicit_next_url:
+            next_active_process_node = _find_active_node_for_url(active_process, explicit_next_url, request.user)
+            if next_active_process_node:
+                return redirect(f"{next_active_process_node.action_node.url.rstrip('/')}/{next_active_process_node.id}")
+        explicit_next = request.POST.get("next")
+        if explicit_next:
+            return redirect(explicit_next)
+        next_active_process_node = ActiveProcessNode.objects.filter(
+            active_process=active_process,
+            action_node__url__isnull=False,
+        ).select_related("action_node", "user").filter(user=request.user).first()
+        if not next_active_process_node:
+            next_active_process_node = ActiveProcessNode.objects.filter(
+                active_process=active_process,
+                action_node__url__isnull=False,
+            ).select_related("action_node").first()
+        if next_active_process_node:
+            return redirect(f"{next_active_process_node.action_node.url}/{next_active_process_node.id}")
         return redirect(f'/{request.user.roles[0]}')
 
 
@@ -126,4 +179,3 @@ class ChangeUserAssignmentUpdateView(GenericView):
             new_user = get_object_or_404(User, pk=new_user_id)
             active_process_node.reassign_user(new_user)
         return redirect(reverse(f"{app}:{app}_change_user_assignment"))
-

@@ -79,7 +79,8 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     response = requests.post(GENERATION_URL, json=data)
 
     if response.status_code != 200:
-        raise Exception("Failed to generate prototype " + prototype.name)
+        detail = response.text[:1000] if response.text else f"HTTP {response.status_code}"
+        raise Exception(f"Failed to generate prototype {prototype.name}: {detail}")
 
     return new_prototype
 
@@ -351,7 +352,7 @@ class HotReloadPayload(Schema):
 @prototypes.post("/hot_reload/")
 def hot_reload_templates(request, payload: HotReloadPayload):
     from metadata.models import Interface
-    from model.llm.template_renderer import render_layout
+    from llm.template_renderer import render_layout
 
     # Fetch active prototype info
     try:

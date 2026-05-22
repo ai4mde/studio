@@ -126,6 +126,7 @@ class SectionComponent():
             position: Optional[str] = None,
             component_type: str = "data",
             label: Optional[str] = None,
+            workflow: Optional[dict] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -151,6 +152,9 @@ class SectionComponent():
         self.position = position or 'main'
         self.component_type = component_type
         self.label = label or name
+        self.workflow = workflow or {}
+        self.workflow_action = self.workflow.get("action", "complete")
+        self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
 
     def __str__(self):
         return self.name

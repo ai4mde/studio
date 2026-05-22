@@ -174,7 +174,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     template_name='{{ application_name }}_{{ page }}.html'
-    {% if models_on_pages[page]['primary_models'][0] -%}
+    {% if models_on_pages[page]['primary_models'] | length > 0 -%}
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
     {% else -%}
@@ -182,7 +182,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return []
     {% endif -%}
 
-    {% if page.type == 'activity' -%}
+    {% if page.type == 'activity' and models_on_pages[page]['primary_models'] | length > 0 -%}
     def get_queryset(self):
         _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
         qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
@@ -199,7 +199,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
         {%- endif %}
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
-    {% elif models_on_pages[page]['primary_models'][0] -%}
+    {% elif models_on_pages[page]['primary_models'] | length > 0 -%}
     {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0_parents = page.section_components[0].parent_models if page.section_components else [] -%}
     def get_queryset(self):

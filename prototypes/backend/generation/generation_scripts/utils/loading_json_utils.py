@@ -282,9 +282,17 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
 def make_activity_action_section(application_name: str, page_name: str, label: str, section: dict | None = None) -> SectionComponent:
     section = section or {}
     raw_style = section.get("style") or {}
+    raw_workflow = section.get("workflow") or {}
     variant = raw_style.get("variant", "button")
     if variant not in ("button", "link", "fab", "wizard_next", "auto"):
         variant = "button"
+    workflow_action = raw_workflow.get("action") or section.get("workflow_action") or "complete"
+    target_page = (
+        raw_workflow.get("target_page")
+        or raw_workflow.get("targetPage")
+        or section.get("target_page")
+        or section.get("targetPage")
+    )
 
     return SectionComponent(
         id=section.get("id", str(uuid4())),
@@ -309,6 +317,10 @@ def make_activity_action_section(application_name: str, page_name: str, label: s
         position=section.get("position", "main"),
         component_type="activity_action",
         label=label or section.get("label") or "Complete",
+        workflow={
+            "action": workflow_action,
+            **({"target_page": page_name_sanitization(target_page)} if target_page else {}),
+        },
     )
 
 
@@ -354,7 +366,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     if not section:
                         continue
 
-                    if section.get("type") == "activity_action":
+                    if section.get("type") == "activity_action" or section.get("layout") == "activity_action":
                         out.append(make_activity_action_section(
                             application_name=application_name,
                             page_name=page_name,
@@ -398,6 +410,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         position = section.get("position", "main"),
                         component_type = section.get("type", "data"),
                         label = section.get("label"),
+                        workflow = section.get("workflow"),
                     )
                     out.append(sec)
             return out

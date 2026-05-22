@@ -76,7 +76,7 @@ class _SectionComponent:
                  has_create_operation, has_update_operation, has_delete_operation, text,
                  layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
                  related_to_section_id=None, relation_field=None, query=None, position="main",
-                 component_type="data", label=None):
+                 component_type="data", label=None, workflow=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -100,6 +100,9 @@ class _SectionComponent:
         self.component_type = component_type  # "data" | "activity_action"
         self.label = label  # used by activity_action
         self.success_page = (style or {}).get("success_page")
+        self.workflow = workflow or {}
+        self.workflow_action = self.workflow.get("action", "complete")
+        self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
 
     def __str__(self):
         return self.name
@@ -108,9 +111,17 @@ class _SectionComponent:
 def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionComponent":
     s = s_raw or {}
     raw_style = s.get("style") or {}
+    raw_workflow = s.get("workflow") or {}
     variant = raw_style.get("variant", "button")
     if variant not in ACTIVITY_ACTION_VARIANTS:
         variant = "button"
+    workflow_action = raw_workflow.get("action") or s.get("workflow_action") or "complete"
+    target_page = (
+        raw_workflow.get("target_page")
+        or raw_workflow.get("targetPage")
+        or s.get("target_page")
+        or s.get("targetPage")
+    )
     return _SectionComponent(
         id=s.get("id", "activity-action"),
         name="activity_action",
@@ -123,6 +134,10 @@ def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionCo
         style={"variant": variant, "size": raw_style.get("size", "lg"), "align": raw_style.get("align", "right")},
         component_type="activity_action",
         label=label,
+        workflow={
+            "action": workflow_action,
+            **({"target_page": _sanitize(target_page)} if target_page else {}),
+        },
     )
 
 

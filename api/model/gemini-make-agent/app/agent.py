@@ -9,7 +9,7 @@ from app.tools import (
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
-  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form"
+  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action"
   sections[].col_span      : 12 | 6 | 4 | 3
   sections[].position      : "main" | "sidebar" | "header" | "footer"
 
@@ -50,6 +50,18 @@ Form style (layout="form"):
   sections[].style.step_icon    : emoji or "" (icon for step header)
   sections[].style.total_label  : any string (label for total row in summary)
   sections[].style.cta_label    : any string (primary action button label; "" = hidden)
+
+Workflow controls (layout/type="activity_action"):
+  sections[].type             : "activity_action"
+  sections[].label            : button/link label shown to the user
+  sections[].workflow.action  : "complete" | "navigate" | "complete_then_page"
+    complete           = complete the current ActiveProcessNode and auto-redirect to the next active workflow page
+    navigate           = go to workflow.target_page without completing the workflow step
+    complete_then_page = complete the workflow step and then redirect to workflow.target_page
+  sections[].workflow.target_page : target page NAME (Title_Case) for navigate/complete_then_page
+  sections[].style.variant    : "button" | "link" | "fab" | "wizard_next" | "auto"
+  sections[].style.align      : "left" | "center" | "right"
+  sections[].style.size       : "sm" | "md" | "lg"
 
 Detail style (layout="detail"):
   sections[].style.image_position : "left" | "top" | "right"
@@ -104,9 +116,10 @@ reason_agent = Agent(
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 Workflow:
-1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, use cases, and activities.
+1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, activity_diagrams, and workflow_plan.
 2. Reason about:
    - Which pages the actor needs (one per major use-case or object workspace)
+   - Which workflow_plan steps map to workflow pages for this actor
    - OOUI principles that apply (workspace, navigation area, object detail, collection)
    - Which model belongs on which page as primary_model
    - All navigation transitions between pages (who navigates where, what ID is passed)
@@ -125,6 +138,9 @@ Workflow:
     {"from": "<page_id>", "trigger": "<user action>", "to": "<page_id>", "passes": "<Model.id or null>"},
     {"from": "<page_id>", "trigger": "<user action>", "creates": "<ModelName>", "stays": true}
   ],
+  "workflow_edges": [
+    {"activity_node": "<action node name>", "from_page": "<page_id>", "to_page": "<page_id or null>", "completion": "complete|navigate|complete_then_page", "trigger": "<button label>"}
+  ],
   "nav_bar_pages": ["<page_id>", ...],
   "icon_actions": ["<page_id or action>", ...],
   "actor_permissions": {"<ModelName>": ["view"|"create"|"update"|"delete"], ...},
@@ -139,6 +155,8 @@ Rules:
 - page name must be Title_Case with underscores (e.g. Browse_Products, Product_Detail)
 - page id must be snake_case matching the name lowercased
 - navigation_edges must cover EVERY meaningful user transition
+- workflow_edges must be derived from workflow_plan when activity nodes exist for this actor
+- each workflow page must be page type "activity" and must reference the activity action id/value from the diagram
 - stays:true means after the action the user stays on the current page
 - diversity_hints must be genuinely structurally different, not just colour variations
 - Output ONLY the JSON object. No markdown fences.
@@ -189,12 +207,20 @@ style:             all applicable fields per layout:
   form_style (form): default|auth|step|summary
   cta_label: any string
   success_page (form): target page NAME — from navigation_edges
+  variant (activity_action): button|link|fab|wizard_next|auto
+workflow (activity_action):
+  action: complete|navigate|complete_then_page
+  target_page: target page NAME when action is navigate or complete_then_page
   image_position (detail): left|top|right
   image_size (detail): sm|md|lg
 
 NAVIGATION COMPLETENESS — mandatory:
 - Every list/card section that has a navigation_edge leading to a detail page MUST set view_detail_page
 - Every form section MUST set style.success_page from navigation_edges
+- Every activity page MUST include one activity_action section.
+- activity_action workflow.action defaults to "complete", which completes the current workflow step and redirects to the next active page from the activity diagram.
+- Use workflow.action="navigate" only for secondary/back/edit links that should not complete the process.
+- Use workflow.action="complete_then_page" when the activity diagram says completing this step should land on a specific normal page.
 - site-nav OR nav-links chrome section MUST be included in EVERY candidate listing all nav_bar_pages
 - icon-actions chrome section MUST list all icon_actions from reasoning JSON
 
@@ -241,6 +267,7 @@ Message format: interface_id=<uuid> prompt=<designer intent>
    NOTE: Returns UML data only. Ignore any existing pages/sections — generate everything from scratch.
 2. Analyse actor role, primary use cases, secondary use cases, and the designer prompt keywords.
 3. Determine: which pages the actor needs, which model belongs on each page, navigation edges (trigger→target, passes which ID), nav bar pages, actor permissions per model.
+   Also inspect workflow_plan: every step should become or map to an activity page with page.type.value="activity" and page.action pointing to the activity_node_id/activity_node_name.
 4. Derive 3 design_personas, each differing on ALL THREE axes — no repeats allowed:
 
    AXIS A — Interaction archetype (pick 3 different ones):
@@ -277,6 +304,8 @@ PAGE rules — every page MUST have:
   name:     Title_Case_with_underscores (e.g. "Browse_Products")
   sections: list of section id strings on this page — CRITICAL: every id must match an entry in sections[].
             Build sections[] FIRST, then reference exact ids. Do NOT include chrome section ids here.
+  type:     {{"value":"activity","label":"Activity"}} for workflow/action-node pages, otherwise {{"value":"normal","label":"Normal"}}
+  action:   {{"value":"<activity action node id>","label":"<activity action node name>"}} on every activity page
 
 Section rules — every section MUST include:
   id:            unique snake_case role descriptor (e.g. "product_grid", "order_detail"). NO generic "s0_0".
@@ -293,6 +322,9 @@ Section rules — every section MUST include:
                  + layout-specific: card_style(default|product|category|compact), display_mode(grid|carousel|banner),
                    list_style(default|product|cart-item), form_style(default|auth|step|summary),
                    image_position(left|top|right), image_size(sm|md|lg), success_page(for forms)
+  workflow:      for layout/type activity_action only:
+                   {{"action":"complete|navigate|complete_then_page","target_page":"Target_Page_Name"}}
+                 Use {{"action":"complete"}} for normal workflow progression; the generated prototype redirects to the next active action-node URL.
 
 Chrome sections (MANDATORY in every candidate — include in sections[] so they are selectable in the editor):
   - site-nav: position=header, col_span=12, primary_model=""
@@ -302,6 +334,9 @@ Chrome sections (MANDATORY in every candidate — include in sections[] so they 
 Navigation completeness (MANDATORY):
   - Every list/card with a detail target MUST set view_detail_page
   - Every form MUST set style.success_page
+  - Every activity page MUST include an activity_action section in its pages[].sections
+  - Every activity_action section MUST have type="activity_action", layout="activity_action", label, style.variant, and workflow.action
+  - When workflow.action is navigate or complete_then_page, workflow.target_page MUST be one of pages[].name
 
 ━━━ PHASE 3 — RENDER ━━━
 For candidate_index 0, 1, 2: call render_candidate_preview(interface_id, candidate_index). Continue on error.
