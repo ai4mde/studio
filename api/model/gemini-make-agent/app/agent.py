@@ -221,21 +221,65 @@ candidate_pipeline_agent = Agent(
     name="candidate_pipeline_agent",
     model="openai/gpt-4o",
     description="Runs the 3-candidate interface generation pipeline: reason → generate 3 candidates → render previews.",
-    instruction=f"""You generate 3 interface design candidates.
+    instruction=f"""You generate 3 interface design candidates by executing three phases in order.
 
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
-1. Call get_interface_full_context(interface_id).
-2. Call select_design_specs_for_interface(interface_id, count=3, prompt=...). 
-   Pass the original user prompt to find the most relevant styles (e.g. if they asked for 'Apple-like' or 'dark').
-3. Based on the returned specs, call reason_agent with the interface_id, prompt, and the spec names.
+1. Call get_interface_full_context(interface_id) to load classifiers, attributes, activity diagrams.
+2. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user prompt>).
+3. Call reason_agent with message: "interface_id=<uuid> prompt=<prompt> selected_specs=<spec names list>"
+   reason_agent returns a JSON with pages[], navigation_edges[], diversity_hints[].
+   Save that JSON — you will use it in Phase 2.
 
-━━━ PHASE 2 — GENERATE ━━━
-Transfer to generate_agent with the reasoning JSON and selected specs.
+━━━ PHASE 2 — GENERATE (YOU must call validate_and_save_candidate yourself, 3 times) ━━━
+
+MANDATORY: For each candidate index 0, 1, 2 you MUST call validate_and_save_candidate directly.
+Do NOT delegate this to any other agent. You must make the actual function call yourself.
+
+DATA STRUCTURE — CRITICAL:
+validate_and_save_candidate requires TWO separate top-level arrays:
+  pages    — each item: {{id, name, sections: [{{value: "section_id"}}, ...]}}
+             pages do NOT contain section data — only a list of section ID references
+  sections — flat list of ALL section objects for ALL pages combined
+             each item: {{id, name, layout, position, col_span, primary_model, attributes, operations, style}}
+
+ALLOWED LAYOUTS: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
+               "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
+               "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
+
+CHROME SECTIONS (add to EVERY page's reference list, include once in sections[]):
+  - site_nav: layout="site-nav", position="header", col_span=12, primary_model="", attributes=[]
+  - icon_actions: layout="icon-actions", position="header", col_span=12, primary_model="", attributes=[]
+  - site_footer: layout="site-footer", position="footer", col_span=12, primary_model="", attributes=[]
+
+DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
+  - Use real attribute names from the classifiers returned by get_interface_full_context
+  - Include 4-8 attribute names per data section
+  - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on actor permissions
+  - style: {{"color": "blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious",
+             "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
+
+USE DIVERSITY: Each candidate must have a structurally different layout following reason_agent's diversity_hints.
+
+PROCEDURE for each candidate index 0, 1, 2:
+  a. Design all sections (chrome + data sections for every page).
+  b. Build sections[] — the flat list of all section objects.
+  c. Build pages[] — each page lists only {{value: section_id}} references (no section data).
+  d. CALL validate_and_save_candidate(
+       interface_id=<uuid>,
+       candidate_index=<0|1|2>,
+       name=<short name>,
+       description=<one sentence>,
+       pages=<pages list>,
+       sections=<sections list>
+     )
+  e. If the call returns an error, fix it and retry.
+  f. Only move to the next candidate after this one is confirmed saved.
 
 ━━━ PHASE 3 — RENDER ━━━
-Transfer to render_agent.
+After all 3 candidates are saved (after you received 3 success responses from validate_and_save_candidate),
+call render_candidate_preview(interface_id, candidate_index) for each index 0, 1, 2.
 """,
     tools=[
         get_interface_full_context_tool,
@@ -246,8 +290,6 @@ Transfer to render_agent.
         get_design_system_tool,
         select_design_specs_for_interface_tool,
         AgentTool(agent=reason_agent),
-        AgentTool(agent=generate_agent),
-        AgentTool(agent=render_agent),
     ],
 )
 
