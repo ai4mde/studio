@@ -257,9 +257,10 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
     Example: form section for Applicant → attributes: ["first_name","last_name","email","credit_score","address"]
     Example: table section for Document → attributes: ["document_type","upload_date","valid"]
   - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on actor permissions
-  - style: {{"color": "accent|blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious",
+  - style: {{"color": "accent|accent-secondary|blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
-    Use "accent" as the color to automatically follow the design spec's primary brand color.
+    Use "accent" as the color to follow the design spec's primary brand color.
+    Use "accent-secondary" for sections using the second brand color from the design spec.
     Use specific Tailwind color names only when you want a fixed color regardless of design spec.
 
 USE DIVERSITY: Each candidate must have a structurally different layout following reason_agent's diversity_hints.

@@ -155,6 +155,13 @@
     .si-accent-border     { border-color: var(--accent); }
     .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
 
+    /* ── Accent-secondary (second brand color) ── */
+    .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
+    .si-btn-accent-secondary:hover { opacity: 0.9; }
+    .si-accent-secondary-text   { color: var(--accent-secondary); }
+    .si-accent-secondary-border { border-color: var(--accent-secondary); }
+    .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
+
     /* ── Inputs ── */
     .si-input {
       background-color: var(--input-bg);
@@ -294,7 +301,7 @@
 {# ── PROMO BAR (promo-bar / promo-strip) ── #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
-<div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+<div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
   <div class="flex items-center gap-6">
     {%- for m in sc.custom_methods[:3] %}
     <span>{{ m }}</span>
@@ -404,7 +411,7 @@
 {# ── SITE-NAV (legacy: full header in one section) ── #}
 {%- elif sc.layout == 'site-nav' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
-<div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+<div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
   <div class="flex items-center gap-6">
     {%- for m in sc.custom_methods[:3] %}<span>{{ m }}</span>{%- endfor %}
   </div>
@@ -440,7 +447,7 @@
 {%- if _main_row_open %}</header>{%- endif %}
 
 {% if not _header_secs %}
-<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ _accent_hex }};">
+<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
   <div class="flex items-center gap-3">
     <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
       {{ _brand_name | capitalize }}
@@ -469,6 +476,7 @@
     --radius: {{ tokens.get('page.radius.px', '8') }}px;
     --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
     --accent: {{ tokens.get('accent.hex', '#2563eb') }};
+    --accent-secondary: {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
     --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
     --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
     --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
@@ -508,6 +516,10 @@
   .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
   .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
   .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; border-color: var(--button-danger-border) !important; }
+  .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
+  .si-accent-secondary-text { color: var(--accent-secondary); }
+  .si-accent-secondary-border { border-color: var(--accent-secondary); }
+  .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
   .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
   .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
   .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
@@ -531,6 +543,7 @@
   "rose":   {"solid":"bg-rose-600 hover:bg-rose-700 text-white","outline":"border-2 border-rose-600 text-rose-600 hover:bg-rose-50","ghost":"text-rose-600 hover:bg-rose-50","gradient":"bg-gradient-to-r from-rose-500 to-pink-600 text-white","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
   "slate":  {"solid":"bg-slate-700 hover:bg-slate-800 text-white","outline":"border-2 border-slate-700 text-slate-700 hover:bg-slate-50","ghost":"text-slate-700 hover:bg-slate-100","gradient":"bg-gradient-to-r from-slate-600 to-slate-800 text-white","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
   "accent": {"solid":"si-accent-btn text-white","outline":"border-2 si-accent-border si-accent-text hover:si-accent-bg-light","ghost":"si-accent-text hover:si-accent-bg-light","gradient":"si-accent-btn text-white","light":"si-accent-bg-light","text":"si-accent-text","border":"si-accent-border","label":"si-accent-text","ring":"","th":"si-accent-btn text-white"},
+  "accent-secondary": {"solid":"si-btn-accent-secondary","outline":"border-2 si-accent-secondary-border si-accent-secondary-text hover:si-accent-secondary-bg-light","ghost":"si-accent-secondary-text hover:si-accent-secondary-bg-light","gradient":"si-btn-accent-secondary","light":"si-accent-secondary-bg-light","text":"si-accent-secondary-text","border":"si-accent-secondary-border","label":"si-accent-secondary-text","ring":"","th":"si-btn-accent-secondary"},
 } %}
 {# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
 {%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
@@ -860,7 +873,7 @@
   {%- set field_name = action.get('field') or attribute -%}
   {%- set value_html -%}
   {%- if render_as == 'badge' -%}
-    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ label }}</span>
+    <span class="si-badge {{ c.light }} {{ c.text }}" title="{{ tooltip }}">{{ label }}</span>
   {%- elif render_as == 'button' -%}
     <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ label }}</span>
   {%- elif render_as == 'link' or attribute.is_link -%}
@@ -897,7 +910,7 @@
   {%- set row_id -%}{% raw %}{{{% endraw %} {{ object_name }}.id {% raw %}}}{% endraw %}{%- endset -%}
   {%- set value_html -%}
   {%- if render_as == 'badge' -%}
-    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ row_value }}</span>
+    <span class="si-badge {{ c.light }} {{ c.text }}" title="{{ tooltip }}">{{ row_value }}</span>
   {%- elif render_as == 'button' -%}
     <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ row_value }}</span>
   {%- elif render_as == 'link' or attribute.is_link -%}
@@ -2484,6 +2497,23 @@
 })();
 </script>
 
+<script>
+(function() {
+  var kw = {
+    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
+    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
+    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
+  };
+  document.querySelectorAll('.si-badge').forEach(function(el) {
+    var t = el.textContent.trim();
+    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
+    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
+    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
+    else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
+})();
+</script>
+
 </body>
 </html>
 {% else %}
@@ -2529,6 +2559,23 @@
     wrap.appendChild(contentRow);
   }
   parent.replaceChild(wrap, grid);
+})();
+</script>
+
+<script>
+(function() {
+  var kw = {
+    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
+    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
+    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
+  };
+  document.querySelectorAll('.si-badge').forEach(function(el) {
+    var t = el.textContent.trim();
+    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
+    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
+    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
+    else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
 })();
 </script>
 
