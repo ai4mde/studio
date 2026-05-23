@@ -230,7 +230,7 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id) to load classifiers, attributes, activity diagrams.
    CRITICAL: From the response, extract and memorize the EXACT attribute names for each classifier.
-   Example: if classifier "Loan Application" has attributes [{name:"loan_amount"},{name:"approved"},...]
+   Example: if classifier "Loan Application" has attributes [{{name:"loan_amount"}},{{name:"approved"}},...]
    then the ONLY valid attributes for that model are exactly: "loan_amount", "approved", etc.
    Store this as a reference: model → [exact_field_name_1, exact_field_name_2, ...]
 2. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user prompt>).
