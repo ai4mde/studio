@@ -456,12 +456,24 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
 
 _FONT_CDN = {
-    "inter":     "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-    "roboto":    "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
-    "poppins":   "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
-    "playfair":  "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
-    "mono":      "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
-    "geist":     "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+    "inter":            "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "roboto":           "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
+    "poppins":          "https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+    "playfair":         "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+    "playfair display": "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap",
+    "mono":             "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+    "jetbrains mono":   "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap",
+    "geist":            "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap",
+    "dm sans":          "https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap",
+    "lato":             "https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap",
+    "montserrat":       "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap",
+    "nunito":           "https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap",
+    "raleway":          "https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap",
+    "source sans pro":  "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap",
+    "source sans 3":    "https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap",
+    "open sans":        "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap",
+    "ubuntu":           "https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap",
+    "noto sans":        "https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap",
 }
 
 _FONT_CSS_NAME = {
@@ -495,7 +507,25 @@ def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> N
 
     font = styling.get("fontFamily", "inter")
     tokens.setdefault("page.font.family", _FONT_CSS_NAME.get(font, "Inter"))
-    tokens.setdefault("page.font.cdn", _FONT_CDN.get(font, _FONT_CDN["inter"]))
+    if "page.font.cdn" not in tokens:
+        # Prefer CDN matched to the already-resolved font family (e.g. from MD spec)
+        _PROPRIETARY_FONTS = {
+            "airbnb cereal", "airbnb cereal vf", "sf pro", "sf pro display", "sf pro text",
+            "circular", "circular std", "gt walsheim", "gt america", "basier circle",
+            "neue haas grotesk", "helvetica neue", "helvetica", "neue montreal",
+        }
+        family_lower = tokens.get("page.font.family", "Inter").lower().strip("'\" ")
+        cdn = _FONT_CDN.get(family_lower) or _FONT_CDN.get(font)
+        if cdn is None:
+            for key, url in _FONT_CDN.items():
+                if key in family_lower or family_lower.startswith(key):
+                    cdn = url
+                    break
+        # Only fall through to Inter default — don't auto-generate URLs that may 404
+        tokens["page.font.cdn"] = cdn or (
+            "" if any(p in family_lower for p in _PROPRIETARY_FONTS)
+            else _FONT_CDN["inter"]
+        )
 
     radius = styling.get("radius", 8)
     tokens.setdefault("page.radius.px", str(radius))

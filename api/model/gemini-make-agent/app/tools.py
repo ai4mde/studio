@@ -111,6 +111,62 @@ def _yaml_block_objects(content: str, block_name: str) -> dict:
                 result[current_key][val_match.group(1).strip()] = val_match.group(2).strip()
     return result
 
+def _parse_prose_colors(content: str) -> dict:
+    """Fallback: extract colors from Markdown table rows or inline bold/backtick format."""
+    _ROLE_MAP = {
+        "primary": "primary", "accent": "primary", "brand": "primary",
+        "secondary": "secondary", "brand-secondary": "secondary",
+        "background": "canvas", "bg": "canvas", "canvas": "canvas",
+        "surface": "surface-card", "card": "surface-card",
+        "border": "border",
+        "text base": "ink", "text-base": "ink", "text color": "ink", "foreground": "ink", "base text": "ink",
+        "text muted": "muted", "muted": "muted", "secondary text": "muted",
+        "success": "success", "error": "error", "danger": "error",
+        "warning": "warning", "caution": "warning",
+    }
+    colors: dict = {}
+    # Format 1: Markdown table rows | Role | #hex |
+    for row in re.finditer(r'\|\s*([^|]+?)\s*\|\s*(#[0-9a-fA-F]{3,8})\s*\|', content):
+        role = row.group(1).strip().lower()
+        hex_val = row.group(2).strip()
+        for pattern, key in _ROLE_MAP.items():
+            if pattern in role and key not in colors:
+                colors[key] = hex_val
+                break
+    # Format 2: **Name** (`#hex`): description OR **Name** (#hex): description
+    for m in re.finditer(r'\*\*([^*]+)\*\*\s*[(`]+(#[0-9a-fA-F]{3,8})[)`]+\s*:?\s*([^\n]*)', content):
+        name = m.group(1).strip().lower(); hex_val = m.group(2); desc = m.group(3).lower()
+        combined = name + " " + desc
+        for pattern, key in _ROLE_MAP.items():
+            if pattern in combined and key not in colors:
+                colors[key] = hex_val; break
+    # Format 3: prose sentences — hex values near role keywords
+    if "primary" not in colors:
+        for kw in ("primary", "accent", "brand accent", "cta"):
+            m = re.search(rf'(?i)\b{re.escape(kw)}\b[^.#\n]{{0,60}}(#[0-9a-fA-F]{{6}})', content)
+            if m: colors["primary"] = m.group(1); break
+    if "canvas" not in colors:
+        for kw in ("background", "canvas", "page background", "body background"):
+            m = re.search(rf'(?i)\b{re.escape(kw)}\b[^.#\n]{{0,60}}(#[0-9a-fA-F]{{6}})', content)
+            if m: colors["canvas"] = m.group(1); break
+    return colors
+
+
+def _parse_prose_radius(content: str) -> dict:
+    """Fallback: extract radius values from lines like 'Radius: 8px' or 'border-radius: 12px'"""
+    rounded: dict = {}
+    for m in re.finditer(r'(?i)radius[:\s]+(\d+)px', content):
+        px = int(m.group(1))
+        if "DEFAULT" not in rounded:
+            rounded["DEFAULT"] = f"{px}px"
+            rounded["md"] = f"{px}px"
+    # Check for card/button specific radius in context
+    card_m = re.search(r'(?i)(?:card[^.]*|container[^.]*)\s*\n[^.]*radius[:\s]+(\d+)px', content)
+    if card_m and "lg" not in rounded:
+        rounded["lg"] = f"{card_m.group(1)}px"
+    return rounded
+
+
 def _parse_design_md_to_tokens(content: str) -> dict:
     tokens = {}
     colors = _yaml_block_values(content, "colors")
@@ -118,6 +174,12 @@ def _parse_design_md_to_tokens(content: str) -> dict:
     rounded = _yaml_block_values(content, "rounded")
     spacing = _yaml_block_values(content, "spacing")
     shadows = _yaml_block_values(content, "shadows") or _yaml_block_values(content, "elevation")
+
+    # ── Fallback: prose/table format specs (e.g. ecommerce.md, minimal.md) ──
+    if not colors:
+        colors = _parse_prose_colors(content)
+    if not rounded:
+        rounded = _parse_prose_radius(content)
 
     # ── Base Colors ──────────────────────────────────────────────────────────
     primary = _first_token_value(colors, ["primary", "accent", "accent-blue", "text-link", "product-terraform"], "#2563eb")
