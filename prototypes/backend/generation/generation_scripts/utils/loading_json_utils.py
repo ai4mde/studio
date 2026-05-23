@@ -644,8 +644,8 @@ def get_application_component(project_name: str, application_name: str, metadata
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
     styling = retrieve_styling(application_name=application_name, metadata=metadata)
     tokens = {}
-    for application_component in metadata["value"]["applicationComponents"]:
-        if application_component["value"]["name"] == application_name:
+    for application_component in json.loads(metadata)["interfaces"]:
+        if app_name_sanitization(application_component["label"]) == application_name:
             tokens = (application_component["value"].get("data") or {}).get("tokens") or {}
             break
 
