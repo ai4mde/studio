@@ -87,58 +87,76 @@ def _normalize_radius(value: str | None, default: str = "8") -> str:
     match = re.search(r"(\d+)", str(value))
     return match.group(1) if match else default
 
+def _yaml_block_objects(content: str, block_name: str) -> dict:
+    """Parses a YAML-like block into a nested dictionary (2 levels)."""
+    match = re.search(rf"(?m)^{re.escape(block_name)}:\s*\n(.*?)(?=\n[A-Za-z0-9_-]+:\s*\n|\n---|\Z)", content, re.S)
+    if not match:
+        return {}
+    block_content = match.group(1)
+    result = {}
+    current_key = None
+    for line in block_content.splitlines():
+        if line.startswith("  ") and not line.startswith("    "):
+            key_match = re.match(r"  ([A-Za-z0-9_.-]+):\s*(.*)", line)
+            if key_match:
+                current_key = key_match.group(1).strip()
+                val = key_match.group(2).strip().strip("\"'")
+                if val:
+                    result[current_key] = val
+                else:
+                    result[current_key] = {}
+        elif line.startswith("    ") and current_key and isinstance(result[current_key], dict):
+            val_match = re.match(r"    ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n]+)[\"']?", line)
+            if val_match:
+                result[current_key][val_match.group(1).strip()] = val_match.group(2).strip()
+    return result
+
 def _parse_design_md_to_tokens(content: str) -> dict:
     tokens = {}
     colors = _yaml_block_values(content, "colors")
-    typography = _yaml_block_values(content, "typography")
+    typography_objs = _yaml_block_objects(content, "typography")
     rounded = _yaml_block_values(content, "rounded")
 
+    # Base Colors
     primary = _first_token_value(colors, ["primary", "accent", "accent-blue", "text-link", "product-terraform"], "#2563eb")
     canvas = _first_token_value(colors, ["canvas", "background", "page", "canvas-soft"], "#f9fafb")
     surface = _first_token_value(colors, ["surface-card", "surface-1", "surface", "canvas", "surface-soft-light"], "#ffffff")
+    surface_2 = _first_token_value(colors, ["surface-2", "surface-tile-1", "surface-pearl"], surface)
     border = _first_token_value(colors, ["hairline", "hairline-strong", "border", "surface-3"], "#e5e7eb")
     text = _first_token_value(colors, ["ink", "body-strong", "text", "body", "on-primary"], "#111827")
 
-    if primary:
-        tokens["accent.hex"] = primary
-    if canvas:
-        tokens["page.body.bg_hex"] = canvas
-        tokens["page.body.bg"] = f"bg-[{canvas}]"
-    if surface:
-        tokens["region.main.bg_hex"] = surface
-        tokens["component.card.bg_hex"] = surface
-        tokens["component.card.bg"] = f"bg-[{surface}]"
-    if border:
-        tokens["region.border_hex"] = border
-    if text:
-        tokens["page.body.text_hex"] = text
-        tokens["page.body.text"] = f"text-[{text}]"
+    tokens["accent.hex"] = primary
+    tokens["page.body.bg_hex"] = canvas
+    tokens["region.main.bg_hex"] = surface
+    tokens["region.main.bg_elevated_hex"] = surface_2
+    tokens["region.border_hex"] = border
+    tokens["page.body.text_hex"] = text
 
-    # Fallback to Color Palette table if YAML blocks are sparse
-    palette_match = re.search(r'## Color Palette.*?\n(.*?)(?=\n#|##|$)', content, re.S)
-    if palette_match:
-        rows = re.findall(r'\|\s*([\w\s.-]+)\s*\|\s*(#[A-Fa-f0-9]{3,6})', palette_match.group(1))
-        for key, hex_val in rows:
-            k = key.strip().lower()
-            if k == "primary" and "accent.hex" not in tokens: tokens["accent.hex"] = hex_val
-            elif k == "background" and "page.body.bg_hex" not in tokens: tokens["page.body.bg_hex"] = hex_val
-            elif k == "surface" and "region.main.bg_hex" not in tokens: tokens["region.main.bg_hex"] = hex_val
-            elif k == "border" and "region.border_hex" not in tokens: tokens["region.border_hex"] = hex_val
-            elif k in ["text base", "text"] and "page.body.text_hex" not in tokens: tokens["page.body.text_hex"] = hex_val
+    # Deep Typography Hierarchy
+    for scale in ["hero", "display", "display-lg", "display-md", "lead", "body", "caption"]:
+        obj = typography_objs.get(scale) or typography_objs.get(scale.replace("-", "_"))
+        if isinstance(obj, dict):
+            prefix = f"typography.{scale}"
+            if obj.get("fontSize"): tokens[f"{prefix}.size"] = obj["fontSize"]
+            if obj.get("fontWeight"): tokens[f"{prefix}.weight"] = obj["fontWeight"]
+            if obj.get("lineHeight"): tokens[f"{prefix}.line_height"] = obj["lineHeight"]
+            if obj.get("letterSpacing"): tokens[f"{prefix}.letter_spacing"] = obj["letterSpacing"]
+            if obj.get("fontFamily"): tokens[f"{prefix}.family"] = obj["fontFamily"].split(",")[0].strip().strip("\"'")
 
+    # Global Font Fallback
     font_match = re.search(r"fontFamily:\s*[\"']?([^\"'\n]+)", content) or re.search(r'Font Family:\s*([\w\s,\-\'"]+)', content)
     if font_match:
         tokens["page.font.family"] = font_match.group(1).split(',')[0].strip().strip("'\"")
-    if "### Buttons" in content:
-        radius = re.search(r'- Radius:\s*(\d+)px', content)
-        if radius:
-            tokens["page.radius.px"] = radius.group(1)
+    elif "typography.body.family" in tokens:
+        tokens["page.font.family"] = tokens["typography.body.family"]
+
     tokens.setdefault("page.radius.px", _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "none"], "8")))
     tokens.setdefault("brand.name", "App")
     tokens.setdefault("theme.button.style", "solid")
     tokens.setdefault("theme.card.hover", "lift" if tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb"} else "border")
     tokens.setdefault("theme.image.ratio", "4/3")
     tokens.setdefault("theme.divider", "line")
+    
     _expand_design_tokens(tokens)
     return tokens
 

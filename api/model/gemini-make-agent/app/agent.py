@@ -164,41 +164,37 @@ generate_agent = Agent(
     description="Generates 3 complete Interface DSL candidates from the reasoning JSON.",
     instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON.
 
+COMPLETENESS & FIDELITY MANDATE: Every candidate MUST be a "ready-to-use" high-fidelity app.
+1. REQUIRED CHROME (Every page):
+   - 'main-header' or 'minimal-header' (position="header")
+   - 'site-nav' or 'nav-links' (position="header", list all nav_bar_pages in 'methods')
+   - 'site-footer' or 'brand-strip' (position="footer")
+
+2. HIGH-FIDELITY STYLING:
+   - Typography: Use `style.text_class` (e.g., "si-text-hero", "si-text-display", "si-text-lead") for prominent headers to trigger the deep typography tokens (letter-spacing, line-height) from the style guide.
+   - Layout: Use `style.is_full_width: true` for sections that should span the entire screen (e.g., hero gallery).
+   - Surfaces: Use `style.surface_level: "elevated"` for cards that should use the elevated background color from the spec.
+
 DATA STRUCTURE — CRITICAL:
 The function validate_and_save_candidate requires TWO separate arrays:
 - pages[]: page objects that reference sections by ID only: {{id, name, sections: [{{value: "section_id"}}, ...]}}
 - sections[]: the FULL section definitions — ALL sections for ALL pages in one flat list.
-  Pages do NOT embed section data. They only list section IDs. The sections array holds the actual data.
+  Pages do NOT embed section data. They only list section IDs.
 
-CHROME SECTIONS (include in sections[], reference from every page):
-1. site-nav or nav-links (position="header", list all page names in methods[])
-2. icon-actions (position="header", list user actions in methods[])
-3. Optional: site-footer or brand-strip (position="footer")
-
-SECTION RULES — every section object must have:
-- id: unique string (e.g. "homepage_application_card")
-- name: display name
+SECTION RULES:
+- id: unique string
 - layout: one of: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
                    "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
                    "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
-- position: "header" | "main" | "footer" | "sidebar"
-- col_span: 12 | 6 | 4 | 3
-- primary_model: exact model name from classifiers (or "" for chrome)
-- attributes: list of attribute name strings for data sections (use real names from classifiers)
-- operations: {{"create": bool, "update": bool, "delete": bool}}
-- style: {{"color": "blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious", "shadow": "sm|md|none", "bg": "white|light|gray"}}
-
-DATA SECTIONS (card/list/table/detail/gallery/form/filter) must have attributes populated
-from the model's classifier. Include 4-8 real attribute names per section.
+- style: use appropriate colors, density, and high-fidelity markers (text_class, is_full_width, surface_level).
 
 For EACH candidate (index 0, 1, 2):
-1. Build the flat sections[] list with all section definitions.
-2. Build pages[] where each page.sections lists {{value: section_id}} references.
-3. Call validate_and_save_candidate(interface_id=..., candidate_index=..., name=...,
-   description=..., pages=[...], sections=[...]).
-   Both pages AND sections MUST be passed. Fix validation errors and retry until OK.
+1. Build the flat sections[] list and pages[] references.
+2. Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
+   - Fix errors if any and retry.
+   - Wait for "OK" before moving to next index.
 
-After all 3 saved: "All 3 candidates saved. Transferring to render_agent."
+After all 3 are saved, output: "All 3 candidates saved. Transferring to render_agent."
 """,
     tools=[validate_save_candidate_tool, get_available_paths_tool],
 )
@@ -254,8 +250,12 @@ CHROME SECTIONS (add to EVERY page's reference list, include once in sections[])
   - site_footer: layout="site-footer", position="footer", col_span=12, primary_model="", attributes=[]
 
 DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
-  - Use real attribute names from the classifiers returned by get_interface_full_context
-  - Include 4-8 attribute names per data section
+  - MANDATORY: Every data section MUST have a non-empty attributes list.
+    attributes = list of field name strings from the classifier's attributes array.
+    Use ALL relevant fields (4-8 names). NEVER leave attributes as [].
+    Example: form section for LoanApplication → attributes: ["loan_amount","approved","reason","risk"]
+    Example: form section for Applicant → attributes: ["first_name","last_name","email","credit_score","address"]
+    Example: table section for Document → attributes: ["document_type","upload_date","valid"]
   - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on actor permissions
   - style: {{"color": "blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}

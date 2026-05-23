@@ -9,7 +9,7 @@
   {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
   <style>
     :root {
-      /* Base Tokens from DESIGN.md */
+      /* Base Tokens */
       --radius: {{ tokens.get('page.radius.px', '8') }}px;
       --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
       
@@ -17,106 +17,90 @@
       --accent: {{ tokens.get('accent.hex', '#2563eb') }};
       --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
       --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --bg-body: var(--page-bg);
-      --text-base: var(--page-text);
       --region-header-bg: {{ tokens.get('region.header.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
       --region-header-text: {{ tokens.get('region.header.text_hex', '#ffffff') }};
       --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+      --region-main-bg-elevated: {{ tokens.get('region.main.bg_elevated_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
       --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
       --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
       --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --bg-surface: var(--region-main-bg);
       --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
       
+      /* Deep Typography Scales */
+      --text-hero-size: {{ tokens.get('typography.hero.size', '56px') }};
+      --text-hero-weight: {{ tokens.get('typography.hero.weight', '600') }};
+      --text-hero-lh: {{ tokens.get('typography.hero.line_height', '1.1') }};
+      --text-hero-ls: {{ tokens.get('typography.hero.letter_spacing', '-0.02em') }};
+
+      --text-display-size: {{ tokens.get('typography.display.size', tokens.get('typography.display-lg.size', '40px')) }};
+      --text-display-weight: {{ tokens.get('typography.display.weight', tokens.get('typography.display-lg.weight', '600')) }};
+      --text-display-lh: {{ tokens.get('typography.display.line_height', tokens.get('typography.display-lg.line_height', '1.2')) }};
+      --text-display-ls: {{ tokens.get('typography.display.letter_spacing', tokens.get('typography.display-lg.letter_spacing', '0')) }};
+
+      --text-lead-size: {{ tokens.get('typography.lead.size', '24px') }};
+      --text-lead-weight: {{ tokens.get('typography.lead.weight', '400') }};
+      --text-lead-lh: {{ tokens.get('typography.lead.line_height', '1.5') }};
+
+      --text-body-size: {{ tokens.get('typography.body.size', '16px') }};
+      --text-body-weight: {{ tokens.get('typography.body.weight', '400') }};
+      --text-body-lh: {{ tokens.get('typography.body.line_height', '1.6') }};
+      
       /* Component Specifics */
-      --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--bg-surface)') }};
-      --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
+      --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
       --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
-      --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --component-detail-bg: {{ tokens.get('component.detail.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --component-filter-bg: {{ tokens.get('component.filter.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --component-workflow-bg: {{ tokens.get('component.workflow.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
-      --btn-radius: {{ tokens.get('button.radius.px', tokens.get('element.button.radius', tokens.get('page.radius.px', '8'))) }}px;
-      --button-primary-bg: {{ tokens.get('button.primary.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
-      --button-primary-text: {{ tokens.get('button.primary.text_hex', '#ffffff') }};
-      --button-primary-border: {{ tokens.get('button.primary.border_hex', tokens.get('accent.hex', '#2563eb')) }};
-      --button-secondary-bg: {{ tokens.get('button.secondary.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
-      --button-secondary-text: {{ tokens.get('button.secondary.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --button-secondary-border: {{ tokens.get('button.secondary.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
-      --button-danger-bg: {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
-      --button-danger-text: {{ tokens.get('button.danger.text_hex', '#ffffff') }};
-      --button-danger-border: {{ tokens.get('button.danger.border_hex', '#dc2626') }};
-      --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
-      --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
-      --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
-      --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --badge-bg: {{ tokens.get('component.badge.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
-      --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
+      --button-primary-bg: var(--accent);
+      --button-primary-text: #ffffff;
+      --input-bg: var(--region-main-bg);
     }
 
     body { 
       font-family: var(--font-family); 
-      background-color: var(--bg-body);
-      color: var(--text-base);
+      background-color: var(--page-bg);
+      color: var(--page-text);
+      line-height: var(--text-body-lh);
+      font-size: var(--text-body-size);
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* High-Fidelity Typography Classes */
+    .si-text-hero { font-size: var(--text-hero-size); font-weight: var(--text-hero-weight); line-height: var(--text-hero-lh); letter-spacing: var(--text-hero-ls); }
+    .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
+    .si-text-lead { font-size: var(--text-lead-size); font-weight: var(--text-lead-weight); line-height: var(--text-lead-lh); }
+    .si-text-body { font-size: var(--text-body-size); font-weight: var(--text-body-weight); line-height: var(--text-body-lh); }
+    .si-text-caption { font-size: 14px; opacity: 0.8; }
+
+    /* Layout Utility Classes */
+    .si-container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+    .si-container-full { max-width: 100% !important; padding: 0 !important; }
+    .si-sticky-top { position: sticky; top: 0; z-index: 40; }
+    .si-divider { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
+    
     /* Atomic UI Utility Overrides */
     .si-card { 
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: var(--radius); 
       box-shadow: var(--card-shadow);
+      overflow: hidden;
     }
-    .si-btn { border-radius: var(--btn-radius); border-color: currentColor; }
-    .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn {
+    .si-card-elevated { background-color: var(--region-main-bg-elevated); }
+    .si-btn { border-radius: var(--btn-radius); border-color: transparent; }
+    .si-btn-primary {
       background-color: var(--button-primary-bg) !important;
       color: var(--button-primary-text) !important;
-      border-color: var(--button-primary-border) !important;
     }
-    .si-btn-secondary {
-      background-color: var(--button-secondary-bg) !important;
-      color: var(--button-secondary-text) !important;
-      border: 1px solid var(--button-secondary-border) !important;
-    }
-    .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn {
-      background-color: var(--button-danger-bg) !important;
-      color: var(--button-danger-text) !important;
-      border-color: var(--button-danger-border) !important;
-    }
-    .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link {
-      color: var(--button-link-text) !important;
-    }
-    .si-input { 
-      border-radius: calc(var(--radius) * 0.6); 
-      border: 1px solid var(--input-border);
-      background-color: var(--input-bg);
-      color: var(--input-text);
-    }
-    .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
-    [data-position="header"], header { border-color: var(--border-color); }
-    [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
-    [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
-    [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
-    [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
-    [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
-    [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
-    [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
-    [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
-
+    
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
-    .si-card-hover { transition: transform 0.18s, box-shadow 0.18s; }
-    .si-card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
+    .si-card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
     {%- elif tokens.get('theme.card.hover', 'lift') == 'glow' %}
-    .si-card-hover { transition: box-shadow 0.18s; }
-    .si-card-hover:hover { box-shadow: 0 0 0 3px var(--accent)44; }
-    {%- elif tokens.get('theme.card.hover', 'lift') == 'border' %}
-    .si-card-hover { transition: border-color 0.18s; }
-    .si-card-hover:hover { border-color: var(--accent) !important; }
+    .si-card-hover { transition: box-shadow 0.2s; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px var(--accent)33; }
     {%- endif %}
 
-    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; min-height: 120px; background-color: #f3f4f6; }
+    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: #f3f4f6; }
   </style>
   <title>{{ page.display_name }}</title>
 </head>

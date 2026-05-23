@@ -316,9 +316,14 @@ def render_candidate(request, id: str, candidate_index: int):
     files = [{**f, "content": f["content"].replace("</body>", _nav_disable + "</body>", 1)} for f in files]
 
     # Build a single standalone HTML with tab-based page navigation
+    def _clean_tab_name(raw: str) -> str:
+        name = re.sub(r"^templates/[^/]+_", "", raw, flags=re.IGNORECASE)
+        name = re.sub(r"\.html?$", "", name, flags=re.IGNORECASE)
+        return re.sub(r"[_-]", " ", name).strip().title()
+
     page_names = [f.get("page", f.get("path", f"Page {i}")) for i, f in enumerate(files)]
     tab_buttons = "".join(
-        f'<button class="tab-btn" onclick="showPage({i})" id="tab-{i}">{re.sub(r"[_-]", " ", page_names[i]).title()}</button>'
+        f'<button class="tab-btn" onclick="showPage({i})" id="tab-{i}">{_clean_tab_name(page_names[i])}</button>'
         for i in range(len(files))
     )
     page_divs = "".join(
