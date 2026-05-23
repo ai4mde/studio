@@ -115,24 +115,22 @@ reason_agent = Agent(
     description="Analyses UML metadata and designer prompt to produce a structured reasoning JSON for interface generation.",
     instruction="""You analyse a system's UML metadata and a designer prompt to produce a structured reasoning JSON that will guide generation of 3 interface candidates.
 
-Message format: interface_id=<uuid> prompt=<designer intent>
+Message format: interface_id=<uuid> prompt=<designer intent> selected_specs=[...]
 
 Workflow:
 1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, activity_diagrams, and workflow_plan.
 2. Reason about:
-   - Which pages the actor needs (one per major use-case or object workspace)
-   - Ignore workflow_plan when creating pages; workflow pages/buttons are added deterministically by the system after saving.
-   - OOUI principles that apply (workspace, navigation area, object detail, collection)
-   - Which model belongs on which page as primary_model
-   - All navigation transitions between pages (who navigates where, what ID is passed)
-   - Which pages appear in the nav bar
-   - What operations the actor can perform on each model
-   - 3 structurally distinct diversity directions for the candidates
+   - Visual Tone: How do the selected_specs align with the user prompt?
+   - Completeness: Plan for a full app experience (Site Nav, Headers, Footers, Search, etc.).
+   - Pages: Which pages the actor needs (one per major use-case or object workspace).
+   - OOUI: workspace, navigation area, object detail, collection.
+   - Transitions: All navigation transitions between pages.
+   - 3 structurally distinct diversity directions for the candidates.
 3. Output ONLY a JSON object with this exact shape (no markdown, no explanation):
 {
+  "visual_understanding": "<one paragraph explaining how the selected styles and components will fulfill the user's request>",
   "interface_id": "<uuid>",
   "actor_role": "<actor name>",
-  "ooui_principles": ["<principle>", ...],
   "pages": [
     {"id": "<snake_case_id>", "name": "<Title_Case_name>", "primary_model": "<ModelName>", "intent": "<one sentence>"}
   ],
@@ -140,25 +138,21 @@ Workflow:
     {"from": "<page_id>", "trigger": "<user action>", "to": "<page_id>", "passes": "<Model.id or null>"},
     {"from": "<page_id>", "trigger": "<user action>", "creates": "<ModelName>", "stays": true}
   ],
-  "workflow_edges": [],
   "nav_bar_pages": ["<page_id>", ...],
   "icon_actions": ["<page_id or action>", ...],
   "actor_permissions": {"<ModelName>": ["view"|"create"|"update"|"delete"], ...},
   "diversity_hints": [
-    "card-forward layout with prominent imagery and grid browsing",
-    "data-dense table with sidebar filter and inline actions",
-    "immersive detail-first with expanded object view"
+    "Direction 0: focused on high-density data management with sidebar filters",
+    "Direction 1: immersive, photography-first gallery layout matching the style guide",
+    "Direction 2: minimalist, task-oriented workflow with prominent action buttons"
   ]
 }
 
 Rules:
-- page name must be Title_Case with underscores (e.g. Browse_Products, Product_Detail)
-- page id must be snake_case matching the name lowercased
-- navigation_edges must cover EVERY meaningful user transition
-- Do NOT generate activity pages or activity_action sections yourself. The system's built-in activity template logic adds Workflow_* activity pages and workflow buttons from the activity diagram after saving.
-- stays:true means after the action the user stays on the current page
-- diversity_hints must be genuinely structurally different, not just colour variations
-- Output ONLY the JSON object. No markdown fences.
+- page name must be Title_Case with underscores (e.g. Browse_Products)
+- nav_bar_pages MUST include the primary entry points.
+- diversity_hints MUST reference the chosen visual style.
+- Output ONLY the JSON object.
 """,
     tools=[get_interface_full_context_tool],
 )
@@ -168,68 +162,30 @@ generate_agent = Agent(
     name="generate_agent",
     model="openai/gpt-4o",
     description="Generates 3 complete Interface DSL candidates from the reasoning JSON.",
-    instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON produced by reason_agent.
+    instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON.
 
-The reasoning JSON is in the conversation history. Read it and generate one candidate per diversity_hint.
+COMPLETENESS MANDATE: Every candidate MUST be a "ready-to-use" app. 
+You MUST include these chrome sections in EVERY page of EVERY candidate:
+1. 'main-header' or 'minimal-header' (position="header")
+2. 'site-nav' or 'nav-links' (position="header", list all nav_bar_pages in 'methods')
+3. 'site-footer' or 'brand-strip' (position="footer")
+Optional chrome: 'search-bar', 'promo-bar', 'icon-actions'.
 
-For EACH candidate (index 0, 1, 2):
-1. Build a complete pages[] and sections[] using the reasoning JSON.
-2. Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
-   - If it returns errors, fix them and call again.
-   - Do NOT proceed to the next candidate until the current one is saved OK.
-
-SECTION RULES — every section must have ALL applicable fields:
-
-primary_model:     exact model name from classifiers (or "" for chrome sections)
-layout:            one of: {" | ".join(sorted(["card","list","table","detail","gallery","filter","form",
+SECTION RULES:
+- primary_model: exact model name from classifiers (or "" for chrome)
+- layout: one of: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
                    "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
                    "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
-col_span:          12 | 6 | 4 | 3
-position:          "header" | "hero" | "main" | "sidebar" | "footer"
-view_detail_page:  target page NAME (Title_Case) if this list/card navigates to a detail — from navigation_edges
-operations:        {{"create": bool, "update": bool, "delete": bool}} — from actor_permissions
-query:             {{"limit": int, "order_by": [...]}}  for list/card/table sections
-attributes:        list of attribute names or objects:
-  - plain string: "name"
-  - with render+action: {{"name": "field", "render": {{"as": "text"|"link"|"button"|"badge"}}, "action": {{"type": "navigate"|"filter"|"operation"|"none", "targetPageId": "<page_name>"}}}}
-  - dot-notation for FK: "Product.name"
-style:             all applicable fields per layout:
-  color: blue|green|purple|orange|rose|slate
-  density: compact|normal|spacious
-  shadow: none|sm|md|lg|xl
-  border: none|light|colored|strong
-  bg: white|light|gray|dark
-  header_style: default|large|small|colored|hidden
-  card_style (card): default|product|category|compact
-  display_mode (card): grid|carousel|banner
-  list_style (list): default|product|cart-item
-  form_style (form): default|auth|step|summary
-  cta_label: any string
-  success_page (form): target page NAME — from navigation_edges
-  variant (activity_action): button|link|fab|wizard_next|auto
-workflow (activity_action):
-  action: complete|navigate|complete_then_page
-  target_page: target page NAME when action is navigate or complete_then_page
-  image_position (detail): left|top|right
-  image_size (detail): sm|md|lg
+- style: use appropriate colors (blue|green|purple|orange|rose|slate) and density (compact|normal|spacious) that match the vibe of the chosen style.
 
-NAVIGATION COMPLETENESS — mandatory:
-- Every list/card section that has a navigation_edge leading to a detail page MUST set view_detail_page
-- Every form section MUST set style.success_page from navigation_edges
-- Every activity page MUST include one activity_action section.
-- activity_action workflow.action defaults to "complete", which completes the current workflow step and redirects to the next active page from the activity diagram.
-- Use workflow.action="navigate" only for secondary/back/edit links that should not complete the process.
-- Use workflow.action="complete_then_page" when the activity diagram says completing this step should land on a specific normal page.
-- site-nav OR nav-links chrome section MUST be included in EVERY candidate listing all nav_bar_pages
-- icon-actions chrome section MUST list all icon_actions from reasoning JSON
+For EACH candidate (index 0, 1, 2):
+1. Build pages[] and sections[].
+2. Ensure every page has the Header/Nav/Footer mentioned above.
+3. Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
+   - Fix errors if any and retry.
+   - Wait for "OK" before moving to next index.
 
-DIVERSITY — candidates must have genuinely different layouts:
-- Candidate 0: follow diversity_hints[0]
-- Candidate 1: follow diversity_hints[1]
-- Candidate 2: follow diversity_hints[2]
-
-After all 3 candidates are saved, output: "All 3 candidates saved. Transferring to render_agent."
-Then transfer to render_agent.
+After all 3 are saved, output: "All 3 candidates saved. Transferring to render_agent."
 """,
     tools=[validate_save_candidate_tool, get_available_paths_tool],
 )
@@ -240,13 +196,8 @@ render_agent = Agent(
     model="openai/gpt-4o",
     description="Renders preview HTML for all 3 saved candidates.",
     instruction="""You render preview HTML for all 3 saved interface candidates.
-
-The interface_id is in the conversation history.
-
 For candidate_index 0, 1, 2:
   Call render_candidate_preview(interface_id, candidate_index).
-  If it returns an error, report it but continue with the next candidate.
-
 After all renders are attempted, output: "Previews rendered. Pipeline complete."
 """,
     tools=[render_candidate_preview_tool],
@@ -257,24 +208,21 @@ candidate_pipeline_agent = Agent(
     name="candidate_pipeline_agent",
     model="openai/gpt-4o",
     description="Runs the 3-candidate interface generation pipeline: reason → generate 3 candidates → render previews.",
-    instruction=f"""You generate 3 interface design candidates for a given interface.
+    instruction=f"""You generate 3 interface design candidates.
 
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id).
-2. Call select_design_specs_for_interface(interface_id, count=3).
-3. Use the returned specs as the only visual-theme source. Do not invent token values.
-4. Analyse actor role, primary use cases, and determine which normal pages/models are needed.
-5. Derive 3 design_personas that align with the selected specs.
+2. Call select_design_specs_for_interface(interface_id, count=3, prompt=...). 
+   Pass the original user prompt to find the most relevant styles (e.g. if they asked for 'Apple-like' or 'dark').
+3. Based on the returned specs, call reason_agent with the interface_id, prompt, and the spec names.
 
-AXIS B — Color theme:
-   Tokens are selected deterministically by the tool from interface/system metadata.
+━━━ PHASE 2 — GENERATE ━━━
+Transfer to generate_agent with the reasoning JSON and selected specs.
 
-━━━ PHASE 2 — GENERATE (index 0, 1, 2) ━━━
-1. Build layout/pages/sections only. The built-in workflow logic will add activity pages/buttons from activity diagrams.
-2. Call validate_and_save_candidate for candidate_index 0, 1, 2. You may pass the exact tokens returned by select_design_specs_for_interface, but if omitted validate_and_save_candidate will inject the right tokens by candidate index.
-...
+━━━ PHASE 3 — RENDER ━━━
+Transfer to render_agent.
 """,
     tools=[
         get_interface_full_context_tool,
@@ -284,6 +232,9 @@ AXIS B — Color theme:
         list_design_specs_tool,
         get_design_system_tool,
         select_design_specs_for_interface_tool,
+        AgentTool(agent=reason_agent),
+        AgentTool(agent=generate_agent),
+        AgentTool(agent=render_agent),
     ],
 )
 
@@ -318,7 +269,7 @@ Django setup boilerplate (replace SYSTEM_ID and PROJECT_NAME with the actual val
 
 Rules:
 - Only call run_seed_script ONCE with the complete script.
-- Never truncate the script — include all model creation code.
+- NEVER truncate the script — include all model creation code.
 - Use realistic domain-appropriate data (not "test1", "foo", "bar").
 - String field values must match any enum constraints visible in classifier attributes.
 """,
@@ -331,8 +282,15 @@ root_agent = Agent(
     description="Routes requests to the appropriate specialist agent.",
     instruction=f"""You are a routing agent for a UI design editor.
 
+IMPORTANT: Before calling ANY tool, you MUST output a <understanding> block in Chinese.
+Describe:
+- Your understanding of the user's design request.
+- Which visual style (.md spec) you plan to use and why.
+- Which key components (e.g. site-nav, specific layouts) you will add to make the UI complete.
+
+--- Routing Logic ---
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
-If the message contains 'generate_candidates' (3-candidate generation): call candidate_pipeline_agent with the message and wait for it to complete.
+If the message contains 'generate_candidates' (3-candidate generation): call candidate_pipeline_agent with the message and wait.
 Otherwise (interface_id= UI edit request): handle it directly.
 
 --- UI edit workflow ---
@@ -340,16 +298,12 @@ Message format: interface_id=<uuid> user_request=<design change description>
 
 1. Call get_interface_config(interface_id=<uuid>) to get the current data.
 2. Analyze the request. 
-   - If it involves a theme change (e.g. "make it look like Apple" or "apply ecommerce theme"):
-     a. Call select_design_specs_for_interface(interface_id, count=3) unless the user named an exact spec.
-     b. Select the best returned spec, or the exact requested spec.
+   - If it involves a theme change:
+     a. Call select_design_specs_for_interface(interface_id, count=3, prompt=...) using user_request as prompt.
+     b. Select the best spec.
      c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...") and STOP.
-3. Determine all needed changes (layout, style, data mapping, queries, tokens).
-4. If data mapping or queries are requested:
-   a. Call get_system_context(system_id) to find valid fields and relations.
-   b. Call get_available_paths(system_id, class_id) to get valid paths.
-5. Build ONE patch dict with only the changed fields.
-6. Call apply_interface_patch(interface_id=<uuid>, patch=<patch_dict>) EXACTLY ONCE to persist.
+3. Determine all needed changes. Persist them using apply_interface_patch.
+   - ENSURE UI COMPLETENESS: If Header/Nav/Footer are missing, add them.
 
 Editable fields:
 {_EDITABLE_FIELDS}

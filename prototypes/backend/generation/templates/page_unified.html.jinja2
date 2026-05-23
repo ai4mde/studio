@@ -138,7 +138,7 @@
   {%- if sc.position == 'footer' and sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
 
-{# â”€â”€ header chrome: render all header-position section components â”€â”€
+{# ── header chrome: render all header-position section components ──
    Granular row logic: logo + search-bar + icon-actions are opened/closed in
    a shared flex row; all other header layouts are full-width blocks.
 #}
@@ -153,7 +153,7 @@
 </header>
 {%- endif %}
 
-{# â”€â”€ ACTIVITY ACTION (header-position workflow button) â”€â”€ #}
+{# ── ACTIVITY ACTION (header-position workflow button) ── #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -193,7 +193,7 @@
   </div>
 </div>
 
-{# â”€â”€ PROMO BAR (promo-bar / promo-strip) â”€â”€ #}
+{# ── PROMO BAR (promo-bar / promo-strip) ── #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
 <div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
@@ -206,13 +206,13 @@
 </div>
 </div>
 
-{# â”€â”€ LOGO (inline inside main-header-row) â”€â”€ #}
+{# ── LOGO (inline inside main-header-row) ── #}
 {%- elif sc.layout == 'logo' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
 </div>
 
-{# â”€â”€ SEARCH BAR (inline inside main-header-row) â”€â”€ #}
+{# ── SEARCH BAR (inline inside main-header-row) ── #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
@@ -223,7 +223,7 @@
   </form>
 </div>
 
-{# â”€â”€ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) â”€â”€ #}
+{# ── ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) ── #}
 {%- elif sc.layout == 'icon-actions' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
@@ -233,7 +233,7 @@
     {%- endfor %}
     {%- else %}
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 
@@ -242,7 +242,7 @@
   </div>
 </div>
 
-{# â”€â”€ COMBINED MAIN HEADER (main-header â€” legacy single-section variant) â”€â”€ #}
+{# ── COMBINED MAIN HEADER (main-header — legacy single-section variant) ── #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <header class="bg-white px-6 py-3 flex items-center gap-4">
@@ -255,7 +255,7 @@
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 
@@ -264,7 +264,7 @@
 </header>
 </div>
 
-{# â”€â”€ NAV BAR (nav-links / nav-bar) â”€â”€ #}
+{# ── NAV BAR (nav-links / nav-bar) ── #}
 {%- elif sc.layout in ('nav-links', 'nav-bar') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -272,7 +272,7 @@
     <div class="flex items-center gap-0">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} ▾
       </span>
       {%- for p in (all_pages or []) %}
       <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
@@ -291,7 +291,7 @@
 </nav>
 </div>
 
-{# â”€â”€ MINIMAL HEADER (minimal-header â€” checkout/login) â”€â”€ #}
+{# ── MINIMAL HEADER (minimal-header — checkout/login) ── #}
 {%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
@@ -303,7 +303,7 @@
 </header>
 </div>
 
-{# â”€â”€ SITE-NAV (legacy: full header in one section) â”€â”€ #}
+{# ── SITE-NAV (legacy: full header in one section) ── #}
 {%- elif sc.layout == 'site-nav' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
 <div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
@@ -322,14 +322,14 @@
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
     <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
   </div>
 </header>
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾</span>
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} ▾</span>
       {%- for p in (all_pages or []) %}<span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>{%- endfor %}
     </div>
     <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
@@ -424,7 +424,7 @@
 </style>
 {%- endif %}
 
-{# â”€â”€ Global lookup maps (defined once, used per section) â”€â”€ #}
+{# ── Global lookup maps (defined once, used per section) ── #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -455,14 +455,14 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# â”€â”€ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) â”€â”€ #}
+{# ── Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) ── #}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
 {%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
 {%- set _mock_rows = 3 %}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] %}
 {%- set _mock_imgs = [] %}
 
-{# â”€â”€ Shared item-template macros (used by preview and generation mode) â”€â”€ #}
+{# ── Shared item-template macros (used by preview and generation mode) ── #}
 {%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
@@ -472,22 +472,22 @@
     <div class="w-full h-36 bg-gray-50"></div>
     {%- endif %}
     {%- if favorite_url %}
-    <a href="{{ favorite_url }}" class="absolute top-2 right-2 text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</a>
+    <a href="{{ favorite_url }}" class="absolute top-2 right-2 text-gray-400 hover:text-red-400 text-lg leading-none">♡</a>
     {%- else %}
-    <span class="absolute top-2 right-2 text-gray-400 text-lg leading-none">â™¡</span>
+    <span class="absolute top-2 right-2 text-gray-400 text-lg leading-none">♡</span>
     {%- endif %}
   </div>
   <div class="p-2.5">
     <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
     <div class="flex items-center gap-0.5 mt-1">
-      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
       {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
     </div>
     <div class="mt-1 flex items-center gap-1">
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ ðŸ›’</a>
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 🛒</a>
   </div>
 </div>
 {%- endmacro %}
@@ -502,7 +502,7 @@
   <div class="flex-1 min-w-0">
     <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
     </div>
     <div class="flex items-center gap-2 mt-2">
       {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
@@ -511,7 +511,7 @@
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ ðŸ›’</a>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 🛒</a>
   </div>
 </div>
 {%- endmacro %}
@@ -526,7 +526,7 @@
   <div class="flex-1">
     <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
     </div>
     <div class="flex items-baseline gap-2 mt-1">
       <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
@@ -536,7 +536,7 @@
     <div class="flex items-center gap-3 mt-2">
       <select class="border border-gray-300 rounded px-2 py-1 text-sm"><option>1</option><option>2</option><option>3</option></select>
       <button class="text-gray-400 hover:text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
-      <button class="text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</button>
+      <button class="text-gray-400 hover:text-red-400 text-lg leading-none">♡</button>
     </div>
   </div>
 </div>
@@ -727,7 +727,7 @@
 {%- endif %}
 </div>
 {%- else %}
-{# â”€â”€ Resolve per-section style â”€â”€ #}
+{# ── Resolve per-section style ── #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
@@ -853,11 +853,11 @@
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
-{# â”€â”€ Attribute slot extraction â”€â”€ #}
+{# ── Attribute slot extraction ── #}
 {%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set _tattrs   = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.INTEGER) | list %}
 {%- set _intattrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.INTEGER) | list %}
-{# â”€â”€ Generic layout normalisation (legacy aliases â†’ canonical names) â”€â”€ #}
+{# ── Generic layout normalisation (legacy aliases → canonical names) ── #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
@@ -866,7 +866,7 @@
                   ('list'   if eff_lay in ('list','product-list','item-list') else
                   ('form'   if eff_lay in ('form','auth-form','form-step','summary-panel') else
                   ('filter' if eff_lay in ('filter','filter-panel') else eff_lay))) %}
-{# â”€â”€ Shared mock data â”€â”€ #}
+{# ── Shared mock data ── #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
@@ -993,7 +993,7 @@
     {{ _mini_card('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
     {%- endif %}
-    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">â€º</button></div>
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">›</button></div>
   </div>
 {%- elif _disp == "banner" %}
   {# Hero banner #}
@@ -1086,7 +1086,7 @@
     {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
     {{ _cart_row('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', '', _accent_hex) }}
     {%- endfor %}
-    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">â€¹ Verder winkelen</a>
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">‹ Verder winkelen</a>
   </div>
 {%- elif _lstyle == "product" %}
   {# Product list with image + price + rating #}
@@ -1099,7 +1099,7 @@
       <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
-      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">â€º</button>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">›</button>
     </div>
   </div>
 {%- else %}
@@ -1218,7 +1218,7 @@
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>â€”</span>
+        <span>—</span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1248,7 +1248,7 @@
 {# â•â•â•â• PREVIEW: FORM (auth / step / summary / default) â•â•â•â• #}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
-  {# Auth form â€” login / register #}
+  {# Auth form — login / register #}
   <div class="flex items-center justify-center py-16">
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
       <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -1311,12 +1311,12 @@
       <span>{{ _s.get('total_label', 'Total:') }}</span><span>—</span>
     </div>
     <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} â†’
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} →
     </button>
     {%- if section_component.custom_methods %}<div class="flex items-center justify-center gap-2 pt-1 text-xs text-gray-500">{%- for m in section_component.custom_methods %}<span>{{ m }}</span>{%- endfor %}</div>{%- endif %}
   </div>
 {%- else %}
-  {# Default form â€” generic input fields #}
+  {# Default form — generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
     <div class="space-y-4">
       {%- if section_component.attributes %}
@@ -1519,7 +1519,7 @@
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
     {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
     {{ '{% empty %}{% endfor %}' }}
-    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">â€º</a></div>
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">›</a></div>
   </div>
 {%- elif _cstyle == "category" %}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -1539,7 +1539,7 @@
       <div class="flex-1">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
         {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} â†’</a>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} →</a>{%- endif %}
       </div>
     </div>
   </div>
@@ -1684,7 +1684,7 @@
       <div class="flex-1">
         <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
-          <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+          <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
@@ -1710,7 +1710,7 @@
           {%- endif %}
           <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="favorite_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
-            <button type="submit" class="text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</button>
+            <button type="submit" class="text-gray-400 hover:text-red-400 text-lg leading-none">♡</button>
           </form>
         </div>
       </div>
@@ -1753,7 +1753,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">â€¹ Add {{ section_component.display_name }}</button>
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">‹ Add {{ section_component.display_name }}</button>
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
@@ -2081,18 +2081,18 @@
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label','Total:') }}</span><span>â€”</span>
+      <span>{{ _s.get('total_label','Total:') }}</span><span>—</span>
     </div>
     {%- if page.type == 'activity' %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} â†’
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} →
       </button>
     </form>
     {%- else %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} â†’
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} →
     </a>
     {%- endif %}
   </div>
@@ -2110,7 +2110,7 @@
           {%- if page.type == 'activity' %}
           <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.get('{{ attr }}','') {% raw %}}}{% endraw %}</span>
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else 'â€”' {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '—' {% raw %}}}{% endraw %}</span>
           {%- endif %}
         </div>
         {%- endfor %}
@@ -2250,7 +2250,7 @@
 </script>
 </main>
 
-{# â”€â”€ footer chrome: consecutive link-grid sections are grouped into one flex row â”€â”€ #}
+{# ── footer chrome: consecutive link-grid sections are grouped into one flex row ── #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
@@ -2302,7 +2302,7 @@
 </div>
 
 {%- elif sc.layout in ('service-strip', 'service-bar') %}
-{# Screenshot match: blue bar â€” "Service & contact" + icon/text links #}
+{# Screenshot match: blue bar — "Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
   <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>

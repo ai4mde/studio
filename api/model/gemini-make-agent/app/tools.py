@@ -66,8 +66,11 @@ def _yaml_block_values(content: str, block_name: str) -> dict:
     if not match:
         return {}
     values = {}
-    for key, value in re.findall(r"(?m)^  ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n#]+)", match.group(1)):
-        values[key.strip()] = value.strip()
+    # Improved regex to allow # inside values and handle quotes better
+    for key, value in re.findall(r"(?m)^  ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n]+)[\"']?", match.group(1)):
+        # Remove trailing comments if any
+        clean_value = value.split(" #")[0].strip()
+        values[key.strip()] = clean_value
     return values
 
 def _first_token_value(mapping: dict, keys: list[str], default: str | None = None) -> str | None:
@@ -111,16 +114,18 @@ def _parse_design_md_to_tokens(content: str) -> dict:
         tokens["page.body.text_hex"] = text
         tokens["page.body.text"] = f"text-[{text}]"
 
+    # Fallback to Color Palette table if YAML blocks are sparse
     palette_match = re.search(r'## Color Palette.*?\n(.*?)(?=\n#|##|$)', content, re.S)
     if palette_match:
-        rows = re.findall(r'\|\s*([\w\s]+)\s*\|\s*(#[A-Fa-f0-9]{3,6})', palette_match.group(1))
+        rows = re.findall(r'\|\s*([\w\s.-]+)\s*\|\s*(#[A-Fa-f0-9]{3,6})', palette_match.group(1))
         for key, hex_val in rows:
             k = key.strip().lower()
-            if k == "primary": tokens["accent.hex"] = hex_val
-            elif k == "background": tokens["page.body.bg_hex"] = hex_val
-            elif k == "surface": tokens["region.main.bg_hex"] = hex_val
-            elif k == "border": tokens["region.border_hex"] = hex_val
-            elif k in ["text base", "text"]: tokens["page.body.text_hex"] = hex_val
+            if k == "primary" and "accent.hex" not in tokens: tokens["accent.hex"] = hex_val
+            elif k == "background" and "page.body.bg_hex" not in tokens: tokens["page.body.bg_hex"] = hex_val
+            elif k == "surface" and "region.main.bg_hex" not in tokens: tokens["region.main.bg_hex"] = hex_val
+            elif k == "border" and "region.border_hex" not in tokens: tokens["region.border_hex"] = hex_val
+            elif k in ["text base", "text"] and "page.body.text_hex" not in tokens: tokens["page.body.text_hex"] = hex_val
+
     font_match = re.search(r"fontFamily:\s*[\"']?([^\"'\n]+)", content) or re.search(r'Font Family:\s*([\w\s,\-\'"]+)', content)
     if font_match:
         tokens["page.font.family"] = font_match.group(1).split(',')[0].strip().strip("'\"")
@@ -293,8 +298,10 @@ def _tokens_for_design_spec(spec_name: str, brand_name: str = "App") -> dict:
     tokens["design.spec_name"] = safe_name
     return tokens
 
-def _candidate_design_spec(interface_id: str, candidate_index: int = 0) -> tuple[str | None, dict]:
+def _candidate_design_spec(interface_id: str, candidate_index: int = 0, prompt: str = "") -> tuple[str | None, dict]:
     terms, context = _collect_domain_terms(interface_id)
+    if prompt:
+        terms.extend(re.findall(r"\w+", prompt.lower()))
     selected = _pick_design_specs_for_terms(terms, max(3, int(candidate_index) + 1))
     if not selected:
         return None, {}
@@ -302,10 +309,12 @@ def _candidate_design_spec(interface_id: str, candidate_index: int = 0) -> tuple
     iface = context.get("interface") or {}
     return spec_name, _tokens_for_design_spec(spec_name, iface.get("name") or "App")
 
-def select_design_specs_for_interface_func(interface_id: str, count: int = 3) -> str:
-    """Deterministically maps interface/system metadata to design specs and resolved tokens."""
+def select_design_specs_for_interface_func(interface_id: str, count: int = 3, prompt: str = "") -> str:
+    """Deterministically maps interface/system metadata and designer prompt to design specs and resolved tokens."""
     try:
         terms, context = _collect_domain_terms(interface_id)
+        if prompt:
+            terms.extend(re.findall(r"\w+", prompt.lower()))
         specs = _pick_design_specs_for_terms(terms, max(1, min(int(count or 3), 6)))
         iface = context.get("interface") or {}
         scores = _domain_scores(terms)
@@ -757,7 +766,7 @@ def get_interface_full_context(interface_id: str) -> str:
         return json.dumps({"interface": iface_clean, "system": system_ctx}, indent=2)
     except Exception as e: return f"Error fetching full context: {e}"
 
-def validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens=None, styling=None):
+def validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens=None, styling=None, prompt=""):
     try:
         if styling:
             styling = dict(styling); alias_map = {"accent_color": "accentColor", "background_color": "backgroundColor", "text_color": "textColor", "selected_style": "selectedStyle"}
@@ -768,7 +777,7 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); iface_resp.raise_for_status(); iface = iface_resp.json(); system_id = iface.get("system")
         design_spec_name = None
         if not tokens:
-            design_spec_name, tokens = _candidate_design_spec(interface_id, int(candidate_index or 0))
+            design_spec_name, tokens = _candidate_design_spec(interface_id, int(candidate_index or 0), prompt=prompt)
         elif isinstance(tokens, str):
             try:
                 tokens = json.loads(tokens)
@@ -880,6 +889,28 @@ def validate_and_save_candidate(interface_id, candidate_index, name, description
         candidates[candidate_index] = candidate; data["candidates"] = candidates; payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}; put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); put_resp.raise_for_status()
         return f"OK: candidate {candidate_index} '{name}' saved successfully."
     except Exception as e: return f"Error saving candidate: {e}"
+
+def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
+    try:
+        resp = requests.post(f"{METADATA_API_BASE}/interfaces/{interface_id}/candidates/{candidate_index}/render/", headers=_AUTH_HEADERS, timeout=60)
+        if resp.ok: return f"OK: preview rendered for candidate {candidate_index}."
+        return f"Render failed ({resp.status_code}): {resp.text}"
+    except Exception as e: return f"Error rendering preview: {e}"
+
+system_context_tool = FunctionTool(func=get_system_context)
+interface_config_tool = FunctionTool(func=get_interface_config)
+update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
+run_seed_script_tool = FunctionTool(func=run_seed_script)
+get_available_paths_tool = FunctionTool(func=get_available_paths)
+get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
+validate_save_candidate_tool = FunctionTool(func=validate_and_save_candidate)
+render_candidate_preview_tool = FunctionTool(func=render_candidate_preview_func)
+list_design_specs_tool = FunctionTool(func=list_design_specs_tool_func)
+get_design_system_tool = FunctionTool(func=get_design_system_tool_func)
+apply_design_system_to_interface_tool = FunctionTool(func=apply_design_system_to_interface_tool_func)
+select_design_specs_for_interface_func.__name__ = "select_design_specs_for_interface"
+select_design_specs_for_interface_tool = FunctionTool(func=select_design_specs_for_interface_func)
+
 
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
     try:
