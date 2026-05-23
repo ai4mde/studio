@@ -164,28 +164,41 @@ generate_agent = Agent(
     description="Generates 3 complete Interface DSL candidates from the reasoning JSON.",
     instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON.
 
-COMPLETENESS MANDATE: Every candidate MUST be a "ready-to-use" app. 
-You MUST include these chrome sections in EVERY page of EVERY candidate:
-1. 'main-header' or 'minimal-header' (position="header")
-2. 'site-nav' or 'nav-links' (position="header", list all nav_bar_pages in 'methods')
-3. 'site-footer' or 'brand-strip' (position="footer")
-Optional chrome: 'search-bar', 'promo-bar', 'icon-actions'.
+DATA STRUCTURE — CRITICAL:
+The function validate_and_save_candidate requires TWO separate arrays:
+- pages[]: page objects that reference sections by ID only: {{id, name, sections: [{{value: "section_id"}}, ...]}}
+- sections[]: the FULL section definitions — ALL sections for ALL pages in one flat list.
+  Pages do NOT embed section data. They only list section IDs. The sections array holds the actual data.
 
-SECTION RULES:
-- primary_model: exact model name from classifiers (or "" for chrome)
+CHROME SECTIONS (include in sections[], reference from every page):
+1. site-nav or nav-links (position="header", list all page names in methods[])
+2. icon-actions (position="header", list user actions in methods[])
+3. Optional: site-footer or brand-strip (position="footer")
+
+SECTION RULES — every section object must have:
+- id: unique string (e.g. "homepage_application_card")
+- name: display name
 - layout: one of: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
                    "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
                    "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
-- style: use appropriate colors (blue|green|purple|orange|rose|slate) and density (compact|normal|spacious) that match the vibe of the chosen style.
+- position: "header" | "main" | "footer" | "sidebar"
+- col_span: 12 | 6 | 4 | 3
+- primary_model: exact model name from classifiers (or "" for chrome)
+- attributes: list of attribute name strings for data sections (use real names from classifiers)
+- operations: {{"create": bool, "update": bool, "delete": bool}}
+- style: {{"color": "blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious", "shadow": "sm|md|none", "bg": "white|light|gray"}}
+
+DATA SECTIONS (card/list/table/detail/gallery/form/filter) must have attributes populated
+from the model's classifier. Include 4-8 real attribute names per section.
 
 For EACH candidate (index 0, 1, 2):
-1. Build pages[] and sections[].
-2. Ensure every page has the Header/Nav/Footer mentioned above.
-3. Call validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections).
-   - Fix errors if any and retry.
-   - Wait for "OK" before moving to next index.
+1. Build the flat sections[] list with all section definitions.
+2. Build pages[] where each page.sections lists {{value: section_id}} references.
+3. Call validate_and_save_candidate(interface_id=..., candidate_index=..., name=...,
+   description=..., pages=[...], sections=[...]).
+   Both pages AND sections MUST be passed. Fix validation errors and retry until OK.
 
-After all 3 are saved, output: "All 3 candidates saved. Transferring to render_agent."
+After all 3 saved: "All 3 candidates saved. Transferring to render_agent."
 """,
     tools=[validate_save_candidate_tool, get_available_paths_tool],
 )

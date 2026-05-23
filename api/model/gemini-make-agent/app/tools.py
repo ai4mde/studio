@@ -766,7 +766,33 @@ def get_interface_full_context(interface_id: str) -> str:
         return json.dumps({"interface": iface_clean, "system": system_ctx}, indent=2)
     except Exception as e: return f"Error fetching full context: {e}"
 
-def validate_and_save_candidate(interface_id, candidate_index, name, description, pages, sections, tokens=None, styling=None, prompt=""):
+def validate_and_save_candidate(
+    interface_id: str,
+    candidate_index: int,
+    name: str,
+    description: str,
+    pages: list,
+    sections: list,
+    tokens: dict = None,
+    styling: dict = None,
+    prompt: str = "",
+) -> str:
+    """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
+
+    Args:
+        interface_id: The interface UUID (from the message).
+        candidate_index: 0, 1, or 2.
+        name: Short display name for this design direction (e.g. "Card-forward Commerce").
+        description: One sentence describing this candidate's visual approach.
+        pages: List of page objects. Each page: {id, name, type?, sections: [{value: section_id}, ...]}.
+               Pages do NOT contain section data — they only reference section IDs.
+        sections: List of ALL section definition objects. Each section must have:
+                  id, name, layout, position, col_span, primary_model, attributes, operations, style.
+                  This is SEPARATE from pages. Both pages[] and sections[] are required.
+        tokens: Design token dict from select_design_specs_for_interface (optional but strongly recommended).
+        styling: Global styling overrides dict (optional).
+        prompt: Original user design prompt (optional, for logging).
+    """
     try:
         if styling:
             styling = dict(styling); alias_map = {"accent_color": "accentColor", "background_color": "backgroundColor", "text_color": "textColor", "selected_style": "selectedStyle"}
