@@ -91,6 +91,12 @@
       background-color: var(--button-primary-bg) !important;
       color: var(--button-primary-text) !important;
     }
+    /* Accent color classes — driven by design spec --accent CSS variable */
+    .si-accent-btn { background-color: var(--accent); }
+    .si-accent-btn:hover { opacity: 0.9; }
+    .si-accent-text { color: var(--accent); }
+    .si-accent-border { border-color: var(--accent); }
+    .si-accent-bg-light { background-color: color-mix(in srgb, var(--accent) 10%, white); }
     
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
@@ -416,6 +422,7 @@
   "orange": {"solid":"bg-orange-500 hover:bg-orange-600 text-white","outline":"border-2 border-orange-500 text-orange-500 hover:bg-orange-50","ghost":"text-orange-500 hover:bg-orange-50","gradient":"bg-gradient-to-r from-orange-400 to-rose-500 text-white","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","ring":"focus:ring-orange-400","th":"bg-orange-500 text-white"},
   "rose":   {"solid":"bg-rose-600 hover:bg-rose-700 text-white","outline":"border-2 border-rose-600 text-rose-600 hover:bg-rose-50","ghost":"text-rose-600 hover:bg-rose-50","gradient":"bg-gradient-to-r from-rose-500 to-pink-600 text-white","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
   "slate":  {"solid":"bg-slate-700 hover:bg-slate-800 text-white","outline":"border-2 border-slate-700 text-slate-700 hover:bg-slate-50","ghost":"text-slate-700 hover:bg-slate-100","gradient":"bg-gradient-to-r from-slate-600 to-slate-800 text-white","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
+  "accent": {"solid":"si-accent-btn text-white","outline":"border-2 si-accent-border si-accent-text hover:si-accent-bg-light","ghost":"si-accent-text hover:si-accent-bg-light","gradient":"si-accent-btn text-white","light":"si-accent-bg-light","text":"si-accent-text","border":"si-accent-border","label":"si-accent-text","ring":"","th":"si-accent-btn text-white"},
 } %}
 {# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
 {%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
