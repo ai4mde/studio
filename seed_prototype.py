@@ -7,13 +7,13 @@ django.setup()
 from shared_models.models import (
     User, Category, Seller, Product, ProductImage,
     DeliveryOption, Customer, Review, Cart, CartItem,
-    Address, Payment, Order, OrderLine, RelatedProduct
+    Address, Payment, PaymentMethod, Order, OrderLine, RelatedProduct
 )
 
 # Clear
 for m in [OrderLine, Order, CartItem, Cart, Review, DeliveryOption,
           ProductImage, RelatedProduct, Product, Seller, Category,
-          Customer, Payment, Address]:
+          Customer, Payment, PaymentMethod, Address]:
     m.objects.all().delete()
 User.objects.filter(is_superuser=False).delete()
 print('Cleared existing data.')
@@ -155,6 +155,11 @@ addr2 = Address.objects.create(address_id='addr-002', customer_id='cust-002',
     postal_code='3011 AD', country='Netherlands', is_default=True, Customer=cust2)
 print('Created 2 addresses.')
 
+PaymentMethod.objects.create(name='ideal', description='Dutch online bank payment', provider='iDEAL')
+PaymentMethod.objects.create(name='credit_card', description='Credit card payment', provider='Visa / Mastercard')
+PaymentMethod.objects.create(name='paypal', description='PayPal wallet payment', provider='PayPal')
+print('Created 3 payment methods.')
+
 # System user
 User.objects.create_user(username='system', password='demo1234', email='system@bol.com', is_System=True)
 print('Created system user.')
@@ -169,6 +174,7 @@ print(f'Delivery opts: {DeliveryOption.objects.count()}')
 print(f'Customers:     {Customer.objects.count()}')
 print(f'Reviews:       {Review.objects.count()}')
 print(f'Addresses:     {Address.objects.count()}')
+print(f'Pay methods:   {PaymentMethod.objects.count()}')
 print(f'Users:         {User.objects.count()}')
 print()
 print('Login accounts:')

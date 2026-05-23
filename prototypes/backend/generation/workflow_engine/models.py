@@ -492,7 +492,7 @@ class ActiveProcessNode(models.Model):
     def _complete_unattended_nodes(self, user: User | None) -> None:
         """
             Complete all nodes that should be completed without any user interaction.
-            This includes custom code nodes and nodes without a URL.
+            This includes custom code nodes, nodes without a URL, and System actor nodes.
         """
         custom_code_nodes = ActiveProcessNode.objects.filter(
             active_process=self.active_process,
@@ -504,7 +504,16 @@ class ActiveProcessNode(models.Model):
         for process_node in custom_code_nodes:
             process_node.action_node.execute_custom_code(self.active_process)
             process_node.complete_node(user)
-        
+
+        # System actor nodes always complete automatically regardless of URL
+        system_nodes = ActiveProcessNode.objects.filter(
+            active_process=self.active_process,
+            action_node__actor="System",
+            action_node__custom_code__isnull=True,
+        )
+        for process_node in system_nodes:
+            process_node.complete_node(user)
+
         empty_nodes = ActiveProcessNode.objects.filter(
             active_process=self.active_process,
             action_node__url__isnull=True,

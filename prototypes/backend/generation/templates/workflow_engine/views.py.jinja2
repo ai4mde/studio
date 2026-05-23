@@ -36,7 +36,15 @@ class CompleteProcessStepView(GenericView):
     {% endif %}
     def post(self, request, active_process_node_id, *args, **kwargs):
         active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        active_process = active_process_node.active_process
         active_process_node.complete_node(request.user)
+        next_active_process_node = ActiveProcessNode.objects.filter(
+            active_process=active_process,
+            user=request.user,
+            action_node__url__isnull=False,
+        ).select_related("action_node").first()
+        if next_active_process_node:
+            return redirect(f"{next_active_process_node.action_node.url}/{next_active_process_node.id}")
         return redirect(f'/{request.user.roles[0]}')
 
 

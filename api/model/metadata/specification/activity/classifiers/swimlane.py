@@ -2,6 +2,19 @@ from pydantic import BaseModel, field_validator
 from pydantic.fields import Field
 from typing import Annotated, Union, Literal, List
 from diagram.models import Node
+from metadata.models import Classifier
+
+
+def resolve_actor_name(actor_node_id: str) -> str:
+    node = Node.objects.filter(id=actor_node_id).select_related("cls").first()
+    if node:
+        return node.cls.data.get("name", "Unknown actor")
+
+    actor = Classifier.objects.filter(id=actor_node_id, data__type="actor").first()
+    if actor:
+        return actor.data.get("name", "Unknown actor")
+
+    return "Unknown actor"
 
 
 class SwimLane(BaseModel):
@@ -14,8 +27,8 @@ class SwimLane(BaseModel):
     @classmethod
     def resolve_actorNodeName(cls, value, values):
         actor_node_id = values.data.get("actorNode")
-        if actor_node_id and Node.objects.filter(id=actor_node_id).exists():
-            return Node.objects.get(id=actor_node_id).cls.data.get("name", "Unknown actor")
+        if actor_node_id:
+            return resolve_actor_name(actor_node_id)
         return "Unknown actor"
 
 

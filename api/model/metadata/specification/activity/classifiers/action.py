@@ -2,6 +2,19 @@ from pydantic import BaseModel, model_validator
 from typing import Literal, Optional
 from metadata.specification.kernel import Operation, NamespacedElement, NamedElement
 from diagram.models import Node
+from metadata.models import Classifier
+
+
+def resolve_actor_name(actor_node_id: str) -> str:
+    node = Node.objects.filter(id=actor_node_id).select_related("cls").first()
+    if node:
+        return node.cls.data.get("name", "Unknown actor")
+
+    actor = Classifier.objects.filter(id=actor_node_id, data__type="actor").first()
+    if actor:
+        return actor.data.get("name", "Unknown actor")
+
+    return "Unknown actor"
 
 
 class ActionClasses(BaseModel):
@@ -36,8 +49,7 @@ class Action(NamedElement, NamespacedElement, BaseModel):
     @model_validator(mode="after")
     def set_actor_node_name(cls, values):
         if values.actorNode:
-            node = Node.objects.filter(id=values.actorNode).first()
-            values.actorNodeName = node.cls.data.get("name", "Unknown actor") if node else "Unknown actor"
+            values.actorNodeName = resolve_actor_name(values.actorNode)
         return values
 
 ActionClassifier = Action

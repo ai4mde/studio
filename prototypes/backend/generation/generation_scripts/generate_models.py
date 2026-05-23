@@ -82,8 +82,8 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
             type = att_type,
             enum_literals = enum_literals,
             cardinality = None,
-            derived = attribute["derived"],
-            body = attribute["body"]
+            derived = attribute.get("derived", False),
+            body = attribute.get("body")
         )
         out.append(att)
 
@@ -188,7 +188,68 @@ def retrieve_models(metadata: str) -> List[Model]:
                     out.append(cls)
     except:
         raise Exception("Failed to retrieve models from metadata: parsing error")
-    
+
+    # Fallback: generate models from flat classifiers list not already covered by a diagram node.
+    # The API enriches the metadata with system classifiers on generation.
+    try:
+        data_parsed = json.loads(metadata)
+        seen_names = {m.name for m in out}
+        for flat_cls in data_parsed.get("classifiers", []):
+            cls_data = flat_cls.get("data", {})
+            if cls_data.get("type") != "class":
+                continue
+            name = model_name_sanitization(cls_data.get("name", ""))
+            if not name or name in seen_names:
+                continue
+            attrs_out = []
+            for attribute in cls_data.get("attributes", []):
+                att_type = AttributeType.NONE
+                if attribute.get("type") == "str":
+                    att_type = AttributeType.STRING
+                elif attribute.get("type") == "bool":
+                    att_type = AttributeType.BOOLEAN
+                elif attribute.get("type") == "int":
+                    att_type = AttributeType.INTEGER
+                elif attribute.get("type") == "image":
+                    att_type = AttributeType.IMAGE
+                attrs_out.append(Attribute(
+                    name=attribute_name_sanitization(attribute.get("name", "")),
+                    type=att_type,
+                    enum_literals=None,
+                    cardinality=None,
+                    derived=attribute.get("derived", False),
+                    body=attribute.get("body"),
+                ))
+            custom_methods = []
+            seen_method_names = set()
+            for method_data in cls_data.get("methods", []):
+                if not method_data.get("body") and not method_data.get("action"):
+                    continue
+                call_name = method_data.get("call_name") or custom_method_name_sanitization(method_data.get("name", ""))
+                if call_name in seen_method_names:
+                    continue
+                seen_method_names.add(call_name)
+                custom_methods.append(CustomMethod(
+                    name=custom_method_name_sanitization(method_data.get("name", "")),
+                    body=method_data.get("body"),
+                    action=method_data.get("action"),
+                    target_model=method_data.get("target_model"),
+                    parameters=method_data.get("parameters", []),
+                    call_name=call_name,
+                ))
+            for m in retrieve_section_custom_methods_for_model(metadata, name):
+                if m.call_name not in seen_method_names:
+                    seen_method_names.add(m.call_name)
+                    custom_methods.append(m)
+            out.append(Model(
+                name=name,
+                attributes=attrs_out,
+                custom_methods=custom_methods,
+            ))
+            seen_names.add(name)
+    except Exception:
+        pass
+
     return out
 
 

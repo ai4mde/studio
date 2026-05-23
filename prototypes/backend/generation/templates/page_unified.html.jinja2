@@ -64,7 +64,8 @@
 {% set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
 {% set lay = section_component.layout %}
 {% set has_attrs = section_component.attributes|length > 0 %}
-{% set has_methods = section_component.custom_methods|length > 0 %}
+{% set section_methods = section_component.custom_methods | selectattr('body_is_valid') | list %}
+{% set has_methods = section_methods|length > 0 %}
 {% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
 {% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else section_component.primary_model + '_list' %}
 {% set query_limit = section_component.query.get("limit") %}
@@ -89,23 +90,23 @@
 
 {# ════ PREVIEW: ACTION PANEL ════ #}
 {% if eff_lay == "action_panel" %}
-{% if section_component.custom_methods|length == 1 %}
+{% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
     {% if page.single_record and section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
-    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_component.custom_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
-    {% for parameter in section_component.custom_methods[0].parameters %}
+    {% for parameter in section_methods[0].parameters %}
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
     <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
-      {{ section_component.custom_methods[0] }}
+      {{ section_methods[0] }}
     </button>
   </form>
 {% else %}
   <div class="flex flex-wrap gap-2">
-    {% for method in section_component.custom_methods %}
+    {% for method in section_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
       {% if page.single_record and section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -197,6 +198,11 @@
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>{%- endif %}
+        {%- if page.type == 'activity' and section_methods %}
+        {%- for method in section_methods %}
+        <button class="{{ d.text }} font-medium {{ c.btn }} text-white py-1.5 px-3 {{ r }} transition-colors">{{ method }}</button>
+        {%- endfor %}
+        {%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -322,27 +328,37 @@
 
 {# ════════════════════════ ACTION PANEL ════════════════════════ #}
 {% if eff_lay == "action_panel" %}
-{% if section_component.custom_methods|length == 1 %}
+{% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
     {% if page.single_record and section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
-    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_component.custom_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+    {% elif page.type == 'activity' and section_component.primary_model -%}
+    {% raw %}{%{% endraw %} if {{ list_var_name }} {% raw %}%}{% endraw %}
+    <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} {{ list_var_name }}.0.id {% raw %}}}{% endraw %}">
+    {% raw %}{% endif %}{% endraw %}
+    <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
     {% endif -%}
-    {% for parameter in section_component.custom_methods[0].parameters %}
+    {% for parameter in section_methods[0].parameters %}
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
     <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
-      {{ section_component.custom_methods[0] }}
+      {{ section_methods[0] }}
     </button>
   </form>
 {% else %}
   <div class="flex flex-col gap-3">
-    {% for method in section_component.custom_methods %}
+    {% for method in section_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
       {% if page.single_record and section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+      {% elif page.type == 'activity' and section_component.primary_model -%}
+      {% raw %}{%{% endraw %} if {{ list_var_name }} {% raw %}%}{% endraw %}
+      <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} {{ list_var_name }}.0.id {% raw %}}}{% endraw %}">
+      {% raw %}{% endif %}{% endraw %}
+      <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
       {% endif -%}
       {% for parameter in method.parameters %}
       <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
@@ -477,6 +493,18 @@
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.view_detail_page %}
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>
+        {%- endif %}
+        {%- if page.type == 'activity' and section_methods %}
+        {%- for method in section_methods %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' active_process_node_id {% raw %}%}{% endraw %}" method="get" class="flex-1 flex flex-col gap-2">
+          <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
+          <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
+          {%- for parameter in method.parameters %}
+          <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="{% if parameter.type == 'int' %}1{% elif parameter.name == 'currency' %}EUR{% endif %}" placeholder="{{ parameter.name }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-xs {{ c.ring }} focus:outline-none focus:ring-2">
+          {%- endfor %}
+          <button type="submit" class="w-full {{ d.text }} font-medium {{ c.btn }} text-white py-1.5 px-3 {{ r }} transition-colors">{{ method }}</button>
+        </form>
+        {%- endfor %}
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}

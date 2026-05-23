@@ -90,6 +90,12 @@ class GenericListView(GenericViewMixin, ListView):
                     for name in signature.parameters
                     if name in self.request.GET
                 }
+                if (
+                    'active_process_node_id' in signature.parameters
+                    and 'active_process_node_id' not in kwargs
+                    and self.kwargs.get('active_process_node_id') is not None
+                ):
+                    kwargs['active_process_node_id'] = self.kwargs.get('active_process_node_id')
                 custom_method(**kwargs)
                 break
 

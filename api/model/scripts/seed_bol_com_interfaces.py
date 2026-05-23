@@ -9,9 +9,19 @@ import django
 
 django.setup()
 
-from metadata.models import Classifier, Interface
+from diagram.models import Diagram, Edge, Node
+from metadata.models import Classifier, Interface, Relation
 
 NAMESPACE = uuid.UUID("77d86611-70f8-4b87-a6d4-112f857dcb37")
+SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID = "d0000003-0000-5000-8000-000000000000"
+VIEW_ORDER_CONFIRMATION_ACTION_ID = "ac000016-0000-5000-8000-000000000000"
+BROWSE_PRODUCTS_NODE_ID = "f0000216-0000-5000-8000-000000000000"
+VIEW_ORDER_CONFIRMATION_NODE_ID = "f0000210-0000-5000-8000-000000000000"
+UPDATE_INVENTORY_NODE_ID = "f0000213-0000-5000-8000-000000000000"
+SHOPPING_FLOW_SWIMLANE_GROUP_CLASSIFIER_ID = "ac000017-0000-5000-8000-000000000000"
+SHOPPING_FLOW_SWIMLANE_GROUP_NODE_ID = "f0000217-0000-5000-8000-000000000000"
+CREATE_ORDER_TO_CONFIRMATION_RELATION_ID = "10000210-0000-5000-8000-000000000000"
+CONFIRMATION_TO_SEND_ORDER_RELATION_ID = "10000216-0000-5000-8000-000000000000"
 
 
 def stable_id(*parts):
@@ -115,7 +125,7 @@ def sec(
     return out
 
 
-def method(name, action, parameters=None, target_model=None, call_name=None):
+def method(name, action, parameters=None, target_model=None, call_name=None, body=None):
     out = {
         "name": name,
         "action": action,
@@ -125,6 +135,8 @@ def method(name, action, parameters=None, target_model=None, call_name=None):
         out["target_model"] = target_model
     if call_name:
         out["call_name"] = call_name
+    if body:
+        out["body"] = body
     return out
 
 
@@ -134,6 +146,58 @@ ADD_TO_CART_METHOD = method(
     parameters=[{"name": "quantity", "type": "int"}],
     target_model="CartItem",
     call_name="add_to_cart",
+    body="""\
+def add_to_cart(self, quantity=1):
+    quantity = int(quantity or 1)
+    if quantity < 1:
+        quantity = 1
+    cart = Cart.objects.first()
+    if not cart:
+        return False
+    existing = CartItem.objects.filter(Cart=cart, Product=self).first()
+    if existing:
+        existing.quantity = (existing.quantity or 0) + quantity
+        existing.subtotal = existing.unit_price
+        existing.save()
+        return True
+    CartItem.objects.create(
+        cart_item_id=f"ci-{CartItem.objects.count() + 1:03d}",
+        cart_id=cart.cart_id,
+        product_id=self.product_id,
+        quantity=quantity,
+        unit_price=self.price,
+        subtotal=self.price,
+        Cart=cart,
+        Product=self,
+    )
+    return True""",
+)
+
+SELECT_PAYMENT_METHOD = method(
+    "Select Payment",
+    "payment.select",
+    parameters=[
+        {"name": "amount", "type": "str"},
+        {"name": "currency", "type": "str"},
+    ],
+    target_model="Payment",
+    call_name="select_payment",
+    body="""\
+def select_payment(self, amount=0, currency='EUR', active_process_node_id=None):
+    try:
+        from workflow_engine.models import ActiveProcessNode
+        payment = Payment.objects.create(
+            method=self.name,
+            amount=float(amount or 0),
+            currency=str(currency or 'EUR'),
+            status='completed',
+        )
+        if active_process_node_id:
+            apn = ActiveProcessNode.objects.get(id=int(active_process_node_id))
+            apn.active_process.add_associated_instance(payment)
+        return payment
+    except Exception:
+        return None""",
 )
 
 
@@ -208,19 +272,19 @@ def upsert_class_method(class_name, method_def):
         "abstract": False,
         "parameters": method_def.get("parameters", []),
         "visibility": "public",
-        "description": "Adds the product to the current shopping cart.",
+        "description": method_def.get("description", "Generated custom method."),
         "action": method_def.get("action"),
     }
     if method_def.get("target_model"):
         method_payload["target_model"] = method_def["target_model"]
     if method_def.get("call_name"):
         method_payload["call_name"] = method_def["call_name"]
+    if method_def.get("body"):
+        method_payload["body"] = method_def["body"]
 
     for index, existing in enumerate(methods):
         if existing.get("name") == method_name:
-            updated = {**existing, **method_payload}
-            updated.pop("body", None)
-            methods[index] = updated
+            methods[index] = {**existing, **method_payload}
             break
     else:
         methods.append(method_payload)
@@ -228,6 +292,228 @@ def upsert_class_method(class_name, method_def):
     data["methods"] = methods
     classifier.data = data
     classifier.save(update_fields=["data"])
+
+
+def ensure_payment_method_class():
+    if "PaymentMethod" in CLASS_IDS:
+        return
+
+    payment = Classifier.objects.filter(data__name="Payment", data__type="class").first()
+    if not payment:
+        return
+
+    classifier = Classifier.objects.create(
+        project=payment.project,
+        system=payment.system,
+        data={
+            "name": "PaymentMethod",
+            "type": "class",
+            "abstract": False,
+            "attributes": [
+                attr("name"),
+                attr("description"),
+                attr("provider"),
+            ],
+            "methods": [],
+        },
+    )
+    CLASS_IDS["PaymentMethod"] = str(classifier.id)
+
+
+def ensure_activity_swimlane_group():
+    diagram = Diagram.objects.filter(id=SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID).first()
+    if not diagram:
+        return
+
+    lanes_by_actor = {}
+    action_nodes = Node.objects.filter(
+        diagram=diagram,
+        cls__data__type="action",
+        cls__data__actorNode__isnull=False,
+    ).select_related("cls")
+    for action_node in action_nodes:
+        actor_node = action_node.cls.data.get("actorNode")
+        if not actor_node:
+            continue
+        lanes_by_actor.setdefault(
+            actor_node,
+            {
+                "type": "swimlane",
+                "role": "swimlane",
+                "actorNode": actor_node,
+                "actorNodeName": action_node.cls.data.get("actorNodeName") or "Unknown actor",
+            },
+        )
+
+    for actor_name in ["Customer", "System", "Seller"]:
+        actor = Classifier.objects.filter(
+            system=diagram.system,
+            data__type="actor",
+            data__name=actor_name,
+        ).first()
+        if actor:
+            lanes_by_actor.setdefault(
+                str(actor.id),
+                {
+                    "type": "swimlane",
+                    "role": "swimlane",
+                    "actorNode": str(actor.id),
+                    "actorNodeName": actor_name,
+                },
+            )
+
+    actor_order = {"Customer": 0, "System": 1, "Seller": 2}
+    swimlanes = sorted(
+        lanes_by_actor.values(),
+        key=lambda lane: (actor_order.get(lane["actorNodeName"], 99), lane["actorNodeName"]),
+    )
+    if not swimlanes:
+        return
+
+    swimlane_group, _ = Classifier.objects.update_or_create(
+        id=SHOPPING_FLOW_SWIMLANE_GROUP_CLASSIFIER_ID,
+        defaults={
+            "project": diagram.system.project,
+            "system": diagram.system,
+            "data": {
+                "type": "swimlanegroup",
+                "height": 1500,
+                "width": 360,
+                "horizontal": False,
+                "swimlanes": swimlanes,
+            },
+        },
+    )
+    Node.objects.update_or_create(
+        id=SHOPPING_FLOW_SWIMLANE_GROUP_NODE_ID,
+        defaults={
+            "diagram": diagram,
+            "cls": swimlane_group,
+            "data": {"position": {"x": -80, "y": -340}},
+        },
+    )
+
+
+def ensure_order_confirmation_activity():
+    diagram = Diagram.objects.filter(id=SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID).first()
+    if not diagram:
+        return
+
+    customer_actor = Classifier.objects.filter(
+        system=diagram.system,
+        data__type="actor",
+        data__name="Customer",
+    ).first()
+    create_order = Classifier.objects.filter(
+        system=diagram.system,
+        data__type="action",
+        data__name="Create Order",
+    ).first()
+    send_confirmation = Classifier.objects.filter(
+        system=diagram.system,
+        data__type="action",
+        data__name="Send Order Confirmation",
+    ).first()
+    update_inventory = Classifier.objects.filter(
+        system=diagram.system,
+        data__type="action",
+        data__name="Update Inventory",
+    ).first()
+    if not customer_actor or not create_order or not send_confirmation or not update_inventory:
+        return
+
+    browse_products = Classifier.objects.filter(
+        system=diagram.system,
+        data__type="action",
+        data__name="Browse Products",
+    ).first()
+    if browse_products:
+        Node.objects.update_or_create(
+            id=BROWSE_PRODUCTS_NODE_ID,
+            defaults={
+                "diagram": diagram,
+                "cls": browse_products,
+                "data": {"position": {"x": 300, "y": -260}},
+            },
+        )
+
+    action, _ = Classifier.objects.update_or_create(
+        id=VIEW_ORDER_CONFIRMATION_ACTION_ID,
+        defaults={
+            "project": diagram.system.project,
+            "system": diagram.system,
+            "data": {
+                "body": "",
+                "name": "View Order Confirmation",
+                "page": None,
+                "role": "action",
+                "type": "action",
+                "classes": ["Order", "OrderLine"],
+                "publish": None,
+                "actorNode": str(customer_actor.id),
+                "namespace": "",
+                "operation": None,
+                "subscribe": None,
+                "customCode": None,
+                "isAutomatic": False,
+                "actorNodeName": "Customer",
+                "localPrecondition": "The order has been created successfully",
+                "application_models": None,
+                "localPostcondition": "Customer sees the order confirmation",
+            },
+        },
+    )
+    Node.objects.update_or_create(
+        id=VIEW_ORDER_CONFIRMATION_NODE_ID,
+        defaults={
+            "diagram": diagram,
+            "cls": action,
+            "data": {"position": {"x": 100, "y": 880}},
+        },
+    )
+    Node.objects.update_or_create(
+        id=UPDATE_INVENTORY_NODE_ID,
+        defaults={
+            "diagram": diagram,
+            "cls": update_inventory,
+            "data": {"position": {"x": 100, "y": 1060}},
+        },
+    )
+
+    controlflow_data = {
+        "type": "controlflow",
+        "guard": "",
+        "weight": "",
+        "condition": None,
+        "is_directed": True,
+        "position_handlers": [],
+    }
+    create_to_confirmation, _ = Relation.objects.update_or_create(
+        id=CREATE_ORDER_TO_CONFIRMATION_RELATION_ID,
+        defaults={
+            "system": diagram.system,
+            "source": create_order,
+            "target": action,
+            "data": controlflow_data,
+        },
+    )
+    confirmation_to_send, _ = Relation.objects.update_or_create(
+        id=CONFIRMATION_TO_SEND_ORDER_RELATION_ID,
+        defaults={
+            "system": diagram.system,
+            "source": action,
+            "target": send_confirmation,
+            "data": controlflow_data,
+        },
+    )
+    Edge.objects.update_or_create(
+        rel=create_to_confirmation,
+        defaults={"diagram": diagram, "data": {}},
+    )
+    Edge.objects.update_or_create(
+        rel=confirmation_to_send,
+        defaults={"diagram": diagram, "data": {}},
+    )
 
 
 def build_customer_interface():
@@ -459,13 +745,14 @@ def build_customer_interface():
     payment_method = sec(
         actor,
         "Payment Method",
-        "Payment",
+        "PaymentMethod",
         "card",
         8,
         "purple",
-        attrs("method", "amount", "currency", "status"),
-        ops(create=True),
-        columns="3",
+        attrs("name", "description", "provider"),
+        query={"limit": 4, "order_by": [{"field": "name", "direction": "asc"}]},
+        methods=[SELECT_PAYMENT_METHOD],
+        columns="2",
     )
     payment_summary = sec(
         actor,
@@ -578,7 +865,7 @@ def build_customer_interface():
         page(actor, "Shopping Cart", [cart_items, cart_summary], type_="activity", action=option("View Cart", "f0000202-0000-5000-8000-000000000000")),
         page(actor, "Checkout Address", [address_form, cart_summary], type_="activity", action=option("Enter Shipping Address", "f0000204-0000-5000-8000-000000000000")),
         page(actor, "Checkout Payment", [payment_method, payment_summary], type_="activity", action=option("Select Payment Method", "f0000205-0000-5000-8000-000000000000")),
-        page(actor, "Order Confirmation", [order_confirm, order_lines], type_="activity", action=option("Create Order", "f0000208-0000-5000-8000-000000000000")),
+        page(actor, "Order Confirmation", [order_confirm, order_lines], type_="activity", action=option("View Order Confirmation", VIEW_ORDER_CONFIRMATION_NODE_ID)),
         page(actor, "My Account", [account, addresses]),
         page(actor, "My Orders", [orders]),
         page(actor, "Order Detail", [order_detail, order_lines], single_record=True, category=page_category("Order")),
@@ -764,6 +1051,10 @@ ATTRIBUTE_INDEX = {
     for attribute in item.data.get("attributes", [])
 }
 
+ensure_payment_method_class()
+ensure_order_confirmation_activity()
+ensure_activity_swimlane_group()
+
 required_classes = {
     "Customer",
     "Product",
@@ -774,6 +1065,7 @@ required_classes = {
     "Order",
     "OrderLine",
     "Payment",
+    "PaymentMethod",
     "Review",
     "ProductImage",
     "DeliveryOption",
@@ -786,6 +1078,7 @@ if missing:
 
 update_related_product_image_type()
 upsert_class_method("Product", ADD_TO_CART_METHOD)
+upsert_class_method("PaymentMethod", SELECT_PAYMENT_METHOD)
 patch_interface("Customer", build_customer_interface)
 patch_interface("Seller", build_seller_interface)
 print("Done.")

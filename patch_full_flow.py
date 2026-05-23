@@ -196,7 +196,7 @@ p_order_confirm = page(
     'Order Confirmation',
     [s_order_confirm, s_order_lines],
     type_='activity', layout='vertical', gap='normal',
-    action=activity_action('f0000208-0000-5000-8000-000000000000', 'Create Order'),
+    action=activity_action('f0000210-0000-5000-8000-000000000000', 'View Order Confirmation'),
 )
 
 customer_sections = [

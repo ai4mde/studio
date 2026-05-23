@@ -28,13 +28,13 @@ print(f'Database: {_dj_settings.DATABASES["default"]["NAME"]}', flush=True)
 from shared_models.models import (
     User, Category, Seller, Product, ProductImage,
     DeliveryOption, Customer, Review, Cart, CartItem,
-    Address, Payment, Order, OrderLine, RelatedProduct
+    Address, Payment, PaymentMethod, Order, OrderLine, RelatedProduct
 )
 
 # Clear
 for m in [OrderLine, Order, CartItem, Cart, Review, DeliveryOption,
           ProductImage, RelatedProduct, Product, Seller, Category,
-          Customer, Payment, Address]:
+          Customer, Payment, PaymentMethod, Address]:
     m.objects.all().delete()
 User.objects.filter(is_superuser=False).delete()
 print('Cleared existing data.')
@@ -190,6 +190,10 @@ print('Created 2 carts and 3 cart items.')
 
 pay1 = Payment.objects.create(payment_id='pay-001', order_id='ord-001', method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
 pay2 = Payment.objects.create(payment_id='pay-002', order_id='ord-002', method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
+PaymentMethod.objects.create(name='ideal', description='Dutch online bank payment', provider='iDEAL')
+PaymentMethod.objects.create(name='credit_card', description='Credit card payment', provider='Visa / Mastercard')
+PaymentMethod.objects.create(name='paypal', description='PayPal wallet payment', provider='PayPal')
+print('Created 3 payment methods.')
 order1 = Order.objects.create(order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
 order2 = Order.objects.create(order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
 OrderLine.objects.create(line_id='line-001', order_id=order1.order_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Product=p1, Order=order1)
@@ -215,6 +219,7 @@ print(f'Addresses:     {Address.objects.count()}')
 print(f'Carts:         {Cart.objects.count()}')
 print(f'Cart items:    {CartItem.objects.count()}')
 print(f'Payments:      {Payment.objects.count()}')
+print(f'Pay methods:   {PaymentMethod.objects.count()}')
 print(f'Orders:        {Order.objects.count()}')
 print(f'Order lines:   {OrderLine.objects.count()}')
 print(f'Users:         {User.objects.count()}')
