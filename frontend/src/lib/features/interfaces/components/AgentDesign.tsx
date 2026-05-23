@@ -459,12 +459,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
-        const { sections: secs, pages: pgs } = latestState.current;
+        const { sections: secs, pages: pgs, styling: stl } = latestState.current;
         try {
             await authAxios.post('/v1/generator/prototypes/hot_reload/', {
                 interface_id: interfaceId,
                 sections: secs,
                 pages: pgs,
+                ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
             });
             setLiveKey((k: number) => k + 1);
         } catch {
@@ -480,13 +481,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
     }, [sections, pages, previewPageIndex, styling, interfaceId, doRefreshPreview]);
 
-    // Debounce: hot-reload live prototype 800 ms after sections/pages change
+    // Debounce: hot-reload live prototype 800 ms after sections/pages/styling change
     useEffect(() => {
         if (!interfaceId || previewMode !== 'live') return;
         if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current);
         hotReloadTimer.current = setTimeout(doHotReload, 800);
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
-    }, [sections, pages, interfaceId, previewMode, doHotReload]);
+    }, [sections, pages, styling, interfaceId, previewMode, doHotReload]);
 
 const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
