@@ -350,6 +350,9 @@
 {# ── COMBINED MAIN HEADER (main-header — legacy single-section variant) ── #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
+<div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
+  <span style="font-weight:600;letter-spacing:.05em;">{{ _brand_name | upper }}</span>
+</div>
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
   <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">

@@ -969,7 +969,21 @@ def get_interface_full_context(interface_id: str) -> str:
         for classifier in _as_list(system_ctx.get("classifiers"), "classifiers"):
             if str(classifier.get("id")) == str(actor_id): actor_name = (classifier.get("data") or {}).get("name"); break
         system_ctx["workflow_plan"] = _workflow_plan(system_ctx, str(actor_id or ""), actor_name); iface_clean = {k: v for k, v in iface.items() if k != "data"}; iface_clean["actor_name"] = iface.get("actor_name") or iface.get("actor")
-        return json.dumps({"interface": iface_clean, "system": system_ctx}, indent=2)
+        # Build an explicit model→attributes quick reference to prevent LLM from inventing field names
+        attr_ref = {}
+        for c in _as_list(system_ctx.get("classifiers"), "classifiers"):
+            cdata = c.get("data") or {}
+            cname = cdata.get("name", "")
+            if cname and cdata.get("type") not in ("actor",):
+                attr_ref[cname] = [a.get("name") for a in cdata.get("attributes", []) if a.get("name")]
+        return json.dumps({
+            "ATTRIBUTE_REFERENCE": {
+                "_note": "USE ONLY these exact field names as section attributes. DO NOT invent new names.",
+                "models": attr_ref,
+            },
+            "interface": iface_clean,
+            "system": system_ctx,
+        }, indent=2)
     except Exception as e: return f"Error fetching full context: {e}"
 
 def validate_and_save_candidate(
@@ -1065,15 +1079,33 @@ def validate_and_save_candidate(
                 val = (s.get("style") or {}).get(field, "")
                 if val and val not in valid_vals:
                     errors.append(f"section '{sname}': invalid style.{field} '{val}'")
+        # Build a fuzzy lookup: "LoanApplication" / "loan_application" / "Loan Application" all → canonical
+        def _norm_model(n: str) -> str:
+            return re.sub(r'[\s_-]', '', n).lower()
+        model_names_fuzzy = {_norm_model(m): m for m in known_models}
+        _data_layouts_set = {"card", "list", "table", "detail", "gallery", "filter", "form"}
+
         fixed_sections = []
         for s in sections:
+            s = dict(s)
             pm = s.get("primary_model", "")
+            # Normalize primary_model name: handles CamelCase / snake_case / space variants
+            if pm and pm not in model_attrs:
+                canonical = model_names_fuzzy.get(_norm_model(pm))
+                if canonical:
+                    s["primary_model"] = canonical
+                    s["class"] = canonical
+                    pm = canonical
             if pm and pm in model_attrs:
                 new_attrs = []
                 for attr in s.get("attributes", []):
                     attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                    if "." in attr_name or not pm or attr_name in model_attrs.get(pm, set()): new_attrs.append(attr)
-                s = {**s, "attributes": new_attrs}
+                    if "." in attr_name or not pm or attr_name in model_attrs.get(pm, set()):
+                        new_attrs.append(attr)
+                # If all attrs were invalid, auto-populate from actual model fields
+                if not new_attrs and s.get("layout") in _data_layouts_set:
+                    new_attrs = list(_model_field_names(model_attrs, pm, 6))
+                s["attributes"] = new_attrs
             fixed_sections.append(s)
         # Auto-correct hardcoded Tailwind color names → "accent" so sections inherit
         # the design spec brand color via CSS variables instead of being locked to one color.

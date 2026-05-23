@@ -145,16 +145,19 @@ Workflow:
   "icon_actions": ["<page_id or action>", ...],
   "actor_permissions": {"<ModelName>": ["view"|"create"|"update"|"delete"], ...},
   "diversity_hints": [
-    "Direction 0: focused on high-density data management with sidebar filters",
-    "Direction 1: immersive, photography-first gallery layout matching the style guide",
-    "Direction 2: minimalist, task-oriented workflow with prominent action buttons"
+    "Direction 0: <describe specific column layout + dominant section type + density — e.g. 'compact table layout with sidebar filter, col_span=3 filter + col_span=12 table, 5 focused pages each serving one use-case'>",
+    "Direction 1: <describe different layout — e.g. 'spacious card grid (col_span=6 splits on list pages, col_span=4 on dashboard), gallery for browsing, 3 combined pages'>",
+    "Direction 2: <describe yet another layout — e.g. 'full-width gallery layout (col_span=12), detail-oriented with large detail views, 4 pages, prominent form sections'>"
   ]
 }
 
 Rules:
 - page name must be Title_Case with underscores (e.g. Browse_Products)
+- primary_model in pages[] MUST be the EXACT classifier name as it appears in the system context.
 - nav_bar_pages MUST include the primary entry points.
-- diversity_hints MUST reference the chosen visual style.
+- diversity_hints MUST be CONCRETE: specify column splits, dominant layout types, section counts, and density.
+  Good example: "compact table layout with col_span=3 filter sidebar, 5 focused pages, 1 table section per page"
+  Bad example: "data-rich layout"
 - Output ONLY the JSON object.
 """,
     tools=[get_interface_full_context_tool],
@@ -226,6 +229,10 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id) to load classifiers, attributes, activity diagrams.
+   CRITICAL: From the response, extract and memorize the EXACT attribute names for each classifier.
+   Example: if classifier "Loan Application" has attributes [{name:"loan_amount"},{name:"approved"},...]
+   then the ONLY valid attributes for that model are exactly: "loan_amount", "approved", etc.
+   Store this as a reference: model → [exact_field_name_1, exact_field_name_2, ...]
 2. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user prompt>).
 3. Call reason_agent with message: "interface_id=<uuid> prompt=<prompt> selected_specs=<spec names list>"
    reason_agent returns a JSON with pages[], navigation_edges[], diversity_hints[].
@@ -254,36 +261,44 @@ CHROME SECTIONS (add to EVERY page's reference list, include once in sections[])
 
 DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
   - MANDATORY: Every data section MUST have a non-empty attributes list.
-    attributes = list of field name strings from the classifier's attributes array.
+    CRITICAL: Use ONLY attribute names that ACTUALLY EXIST in the classifier from get_interface_full_context.
+    Read the classifier's attributes[] array CAREFULLY — copy the exact field names character for character.
+    NEVER invent attribute names. If the classifier has "loan_amount" not "amount_requested", use "loan_amount".
     Use ALL relevant fields (4-8 names). NEVER leave attributes as [].
-    Example: form section for LoanApplication → attributes: ["loan_amount","approved","reason","risk"]
-    Example: form section for Applicant → attributes: ["first_name","last_name","email","credit_score","address"]
-    Example: table section for Document → attributes: ["document_type","upload_date","valid"]
   - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on actor permissions
-  - style: {{"color": "accent|accent-secondary|blue|green|purple|orange|rose|slate", "density": "compact|normal|spacious",
+  - style: {{"color": "accent|accent-secondary", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
-    Use "accent" as the color to follow the design spec's primary brand color.
-    Use "accent-secondary" for sections using the second brand color from the design spec.
-    Use specific Tailwind color names only when you want a fixed color regardless of design spec.
+    ALWAYS use "accent" for data section colors — this uses the design spec's brand color via CSS variables.
 
-STRUCTURAL DIVERSITY — MANDATORY:
-Each candidate MUST implement the corresponding diversity_hint from reason_agent's output EXACTLY.
-The 3 candidates CANNOT all have the same page structure, section types, or column layout.
+PAGE-DRIVEN LAYOUT SELECTION — MANDATORY:
+Choose each section's layout based on what the PAGE IS, not which candidate index:
+  Browse / listing page  (e.g. Browse_Products, Order_History, Applications_List)
+    → "card" (with style.columns="3"), "gallery", or "table"
+  Detail / view page     (e.g. Product_Detail, Loan_Detail, Profile)
+    → "detail" for the primary section (shows image + fields)
+  Input / create page    (e.g. Apply_Loan, Checkout, Fill_In_Application)
+    → "form"
+  Dashboard / overview   (e.g. Dashboard, Home, Overview)
+    → mix of "card" sections with col_span=4 or col_span=6
+  Filter / search page   (e.g. Search, Catalog with filters)
+    → layout="filter" section with position="sidebar", col_span=3
+      PLUS a main data section with col_span=12, position="main"
 
-Enforce these structural differences across candidates:
-  Candidate 0 → follow diversity_hints[0]: typically INFORMATION-DENSE with sidebar filters
-    - Use layout="filter" section (position="sidebar", col_span=3) + main data (col_span=12 position="main")
-    - Prefer layout="table" or layout="card" with columns="3" for data sections
-    - Multiple focused pages, one use-case each
-  Candidate 1 → follow diversity_hints[1]: typically LIST-AND-DETAIL paired
-    - Use layout="list" (col_span=6) + layout="detail" (col_span=6) side by side on same page
-    - Fewer pages, more content per page using col_span=6 splits
-  Candidate 2 → follow diversity_hints[2]: typically GALLERY/IMMERSIVE full-width
-    - Use layout="gallery" with style.display_mode="grid" for visual sections
-    - style.is_full_width=true for hero sections, col_span=12 for all sections
+STRUCTURAL DIVERSITY — across the 3 candidates:
+Each candidate follows a different visual direction from reason_agent's diversity_hints[].
+  Candidate 0 → diversity_hints[0]
+  Candidate 1 → diversity_hints[1]
+  Candidate 2 → diversity_hints[2]
 
-NEVER generate 3 candidates with the same set of layouts or same page count.
-NEVER generate 3 candidates where every page has only col_span=12 sections.
+Make candidates structurally different using these axes:
+  - Column organization: one candidate uses col_span=12 dominant, another uses col_span=6 splits
+    (col_span=4+4+4 for dashboards), another uses filter sidebar (col_span=3)
+  - Density and spacing: each candidate uses a different style.density ("compact"/"normal"/"spacious")
+  - For the SAME page purpose, pick DIFFERENT layouts across candidates:
+    e.g. browse page → candidate 0 uses "table", candidate 1 uses "card", candidate 2 uses "gallery"
+  - Page count can differ: one candidate splits content into more focused pages, another combines
+
+NEVER make all 3 candidates identical in page structure and section layout types.
 
 PROCEDURE for each candidate index 0, 1, 2:
   a. Design all sections (chrome + data sections for every page).
@@ -295,7 +310,8 @@ PROCEDURE for each candidate index 0, 1, 2:
        name=<short name>,
        description=<one sentence>,
        pages=<pages list>,
-       sections=<sections list>
+       sections=<sections list>,
+       prompt=<original user prompt from the message>
      )
   e. If the call returns an error, fix it and retry.
   f. Only move to the next candidate after this one is confirmed saved.
