@@ -225,7 +225,7 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
         session_id = str(_uuid.uuid4())
         try:
             resp = requests.post(
-                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
+                f"{ADK_AGENT_URL}/apps/candidate_app/users/{user_id}/sessions",
                 json={"state": {"interface_id": payload.interface_id, "system_id": payload.system_id}},
                 timeout=30,
             )
@@ -235,14 +235,14 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
             yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
             return
 
-        message = f"generate_candidates interface_id={payload.interface_id} prompt={payload.prompt}"
+        message = f"interface_id={payload.interface_id} prompt={payload.prompt}"
         seen_authors: set = set()
 
         try:
             with requests.post(
                 f"{ADK_AGENT_URL}/run_sse",
                 json={
-                    "app_name": "app",
+                    "app_name": "candidate_app",
                     "user_id": user_id,
                     "session_id": session_id,
                     "new_message": {"role": "user", "parts": [{"text": message}]},

@@ -369,3 +369,4 @@ Rules:
 )
 
 app = App(name="app", root_agent=root_agent)
+candidate_app = App(name="candidate_app", root_agent=candidate_pipeline_agent)
