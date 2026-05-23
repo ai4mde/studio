@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.db import IntegrityError
 from shared_models.models import User
 
 {% for user_type in user_types %}
@@ -69,16 +70,14 @@ def register_user(request):
             context['reg_mess'] = "User " + username + " already exists!"
             context['reg_mess_color'] = "red"
             return render(request, 'authentication_index.html', context)
-        {% if user_types != [] -%} 
-        {% for user_type in user_types -%}
-        if request.POST['user_type'] == '{{ user_type }}':
-            create_{{ user_type }}(request)
-        {% endfor -%}
-        {% else -%}
-        User.objects.create_user(username=username, password=password {% for user_type in user_types -%} 
-        {% if loop.first %}, {% endif -%} is_{{ user_type }}=is_{{ user_type }}{% if not loop.last %}, {% endif %}{% endfor -%}
-                                )
-        {% endif -%}
+        try:
+{% if user_types != [] %}{% for user_type in user_types %}            if request.POST['user_type'] == '{{ user_type }}':
+                create_{{ user_type }}(request)
+{% endfor %}{% else %}            User.objects.create_user(username=username, password=password)
+{% endif %}        except IntegrityError:
+            context['reg_mess'] = "User " + username + " already exists!"
+            context['reg_mess_color'] = "red"
+            return render(request, 'authentication_index.html', context)
         context['reg_mess'] = "Successfuly created user: " + username
         context['reg_mess_color'] = "green"
         return render(request, 'authentication_index.html', context)

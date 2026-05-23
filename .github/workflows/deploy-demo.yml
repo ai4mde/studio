@@ -1,0 +1,23 @@
+name: Deploy to Oracle Cloud (demo)
+
+on:
+  push:
+    branches:
+      - develop-uilayout-revise
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            cd ~/studio
+            git pull origin develop-uilayout-revise
+            echo "ORACLE_IP=${{ secrets.ORACLE_HOST }}" > .env
+            docker compose -f docker-compose.yaml -f docker-compose.cloud.yml up --build -d
+            docker image prune -f

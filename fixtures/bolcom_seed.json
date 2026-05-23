@@ -311,6 +311,194 @@
   }
 },
 {
+  "model": "shared_models.productimage",
+  "pk": 7,
+  "fields": {
+    "image_id": "img-007",
+    "product_id": "prod-002",
+    "thumb_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop",
+    "alt_text": "Lenovo IdeaPad front view",
+    "is_primary": true,
+    "sort_order": 1,
+    "Product": 2
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 8,
+  "fields": {
+    "image_id": "img-008",
+    "product_id": "prod-002",
+    "thumb_url": "https://images.unsplash.com/photo-1611078489935-0cb964de46d6?w=600&h=600&fit=crop",
+    "alt_text": "Lenovo IdeaPad keyboard",
+    "is_primary": false,
+    "sort_order": 2,
+    "Product": 2
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 9,
+  "fields": {
+    "image_id": "img-009",
+    "product_id": "prod-003",
+    "thumb_url": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&h=600&fit=crop",
+    "alt_text": "HP Pavilion front view",
+    "is_primary": true,
+    "sort_order": 1,
+    "Product": 3
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 10,
+  "fields": {
+    "image_id": "img-010",
+    "product_id": "prod-003",
+    "thumb_url": "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=600&h=600&fit=crop",
+    "alt_text": "HP Pavilion side view",
+    "is_primary": false,
+    "sort_order": 2,
+    "Product": 3
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 11,
+  "fields": {
+    "image_id": "img-011",
+    "product_id": "prod-004",
+    "thumb_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&h=600&fit=crop",
+    "alt_text": "Acer Aspire front view",
+    "is_primary": true,
+    "sort_order": 1,
+    "Product": 4
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 12,
+  "fields": {
+    "image_id": "img-012",
+    "product_id": "prod-004",
+    "thumb_url": "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=600&h=600&fit=crop",
+    "alt_text": "Acer Aspire screen",
+    "is_primary": false,
+    "sort_order": 2,
+    "Product": 4
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 13,
+  "fields": {
+    "image_id": "img-013",
+    "product_id": "prod-005",
+    "thumb_url": "https://images.unsplash.com/photo-1544099858-75a6b834a8d8?w=600&h=600&fit=crop",
+    "alt_text": "Dell Inspiron front view",
+    "is_primary": true,
+    "sort_order": 1,
+    "Product": 5
+  }
+},
+{
+  "model": "shared_models.productimage",
+  "pk": 14,
+  "fields": {
+    "image_id": "img-014",
+    "product_id": "prod-005",
+    "thumb_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
+    "alt_text": "Dell Inspiron keyboard view",
+    "is_primary": false,
+    "sort_order": 2,
+    "Product": 5
+  }
+},
+{
+  "model": "shared_models.product",
+  "pk": 2,
+  "fields": {
+    "product_id": "prod-002",
+    "name": "Lenovo IdeaPad 3 Laptop",
+    "brand": "Lenovo",
+    "ean": "0196378918746",
+    "description": "Reliable everyday laptop with AMD Ryzen 5, 8GB RAM, 256GB SSD and 15.6\" Full HD display. Ideal for work and study.",
+    "price": "??579,00",
+    "original_price": "??649,00",
+    "discount_pct": 11,
+    "stock_quantity": 32,
+    "rating": "4.1",
+    "review_count": 876,
+    "weight_kg": "1.7",
+    "is_active": true,
+    "Category": 1,
+    "Seller": 1
+  }
+},
+{
+  "model": "shared_models.product",
+  "pk": 3,
+  "fields": {
+    "product_id": "prod-003",
+    "name": "HP Pavilion 15 Laptop",
+    "brand": "HP",
+    "ean": "0196786842345",
+    "description": "Stylish and powerful laptop with Intel Core i5, 12GB RAM, 512GB SSD and a 15.6\" Full HD IPS display.",
+    "price": "??649,00",
+    "original_price": "??749,00",
+    "discount_pct": 13,
+    "stock_quantity": 18,
+    "rating": "4.4",
+    "review_count": 1103,
+    "weight_kg": "1.9",
+    "is_active": true,
+    "Category": 1,
+    "Seller": 1
+  }
+},
+{
+  "model": "shared_models.product",
+  "pk": 4,
+  "fields": {
+    "product_id": "prod-004",
+    "name": "Acer Aspire 5 Laptop",
+    "brand": "Acer",
+    "ean": "0195133178432",
+    "description": "Thin and light laptop featuring Intel Core i7, 16GB RAM, 512GB NVMe SSD and slim Full HD display.",
+    "price": "??529,00",
+    "original_price": "??599,00",
+    "discount_pct": 12,
+    "stock_quantity": 25,
+    "rating": "4.0",
+    "review_count": 642,
+    "weight_kg": "1.6",
+    "is_active": true,
+    "Category": 1,
+    "Seller": 1
+  }
+},
+{
+  "model": "shared_models.product",
+  "pk": 5,
+  "fields": {
+    "product_id": "prod-005",
+    "name": "Dell Inspiron 15 Laptop",
+    "brand": "Dell",
+    "ean": "0884116400370",
+    "description": "Premium laptop with Intel Core i7, 16GB RAM, 1TB SSD and a gorgeous 15.6\" Full HD touchscreen.",
+    "price": "??719,00",
+    "original_price": "??849,00",
+    "discount_pct": 15,
+    "stock_quantity": 11,
+    "rating": "4.5",
+    "review_count": 1547,
+    "weight_kg": "2.0",
+    "is_active": true,
+    "Category": 1,
+    "Seller": 1
+  }
+},
+{
   "model": "shared_models.product",
   "pk": 1,
   "fields": {

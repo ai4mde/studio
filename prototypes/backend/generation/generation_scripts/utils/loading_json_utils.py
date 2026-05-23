@@ -74,6 +74,26 @@ def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
     return None
 
 
+def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
+    """Resolve an Interface Metadata primary_model name to the underlying classifier id."""
+    if not model_name:
+        return None
+    target = model_name_sanitization(str(model_name))
+    metadata_json = json.loads(metadata)
+    for diagram in metadata_json.get("diagrams", []):
+        if diagram.get("type") != "classes":
+            continue
+        for node in diagram.get("nodes", []):
+            cls = node.get("cls", {})
+            if cls.get("type") == "class" and model_name_sanitization(cls.get("name", "")) == target:
+                return str(node.get("cls_ptr") or "")
+    for classifier in metadata_json.get("classifiers", []):
+        data = classifier.get("data", {})
+        if data.get("type") == "class" and model_name_sanitization(data.get("name", "")) == target:
+            return str(classifier.get("id") or "")
+    return None
+
+
 def find_model_by_id(metadata: str, class_id: str) -> str | None:
     for diagram in json.loads(metadata)["diagrams"]:
         if diagram["type"] != "classes":
@@ -148,7 +168,40 @@ def filter_pages_by_application(pages: List[Page], application: str) -> List[Pag
     return out
 
 
-def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttribute]:
+def resolve_page_reference(metadata: str, application_name: str, page_ref: str) -> str | None:
+    if not page_ref:
+        return None
+    ref = str(page_ref)
+    ref_sanitized = page_name_sanitization(ref)
+    try:
+        for application_component in json.loads(metadata)["interfaces"]:
+            if app_name_sanitization(application_component["label"]) != application_name:
+                continue
+            for page in application_component.get("value", {}).get("data", {}).get("pages", []):
+                page_name = page.get("name", "")
+                page_sanitized = page_name_sanitization(page_name)
+                if ref in (str(page.get("id")), page_name, page_sanitized) or ref_sanitized == page_sanitized:
+                    return page_sanitized
+    except Exception:
+        return None
+    return None
+
+
+def normalize_field_action(metadata: str, application_name: str, action: dict) -> dict:
+    action = dict(action or {"type": "none"})
+    if action.get("type") == "navigate":
+        page_ref = action.get("targetPage") or action.get("targetPageId") or action.get("page")
+        resolved_page = resolve_page_reference(metadata, application_name, page_ref)
+        if resolved_page:
+            action["targetPage"] = resolved_page
+            action.pop("targetPageId", None)
+        elif page_ref:
+            action["type"] = "none"
+            action["invalidTargetPage"] = page_ref
+    return action
+
+
+def retrieve_section_attributes(metadata: str, section: str, application_name: str = "") -> List[SectionAttribute]:
     if not section:
         return []
     if "attributes" not in section:
@@ -156,26 +209,48 @@ def retrieve_section_attributes(metadata: str, section: str) -> List[SectionAttr
     
     out = []
     for attribute in section["attributes"]:
-        attribute_type = None
+        attribute_type = AttributeType.STRING
         enum_literals = None
-        if attribute["type"] == "str":
-            attribute_type  = AttributeType.STRING
-        elif attribute["type"] == "int":
-            attribute_type  = AttributeType.INTEGER
-        elif attribute["type"] == "bool":
-            attribute_type  = AttributeType.BOOLEAN
-        elif attribute["type"] == "enum":
-            attribute_type  = AttributeType.ENUM
-            enum_literals = get_enum_literals(metadata, attribute["enum"])
-        elif attribute["type"] == "image":
-            attribute_type  = AttributeType.IMAGE
+        derived = False
+        is_link = False
+        render_as = "text"
+        action = {"type": "none"}
+        
+        if isinstance(attribute, str):
+            attr_name = attribute
+        else:
+            attr_name = attribute["name"]
+            derived = attribute.get("derived", False)
+            is_link = attribute.get("is_link", False)
+            render_config = attribute.get("render") or {}
+            render_as = render_config.get("as") or attribute.get("render_as") or ("link" if is_link else "text")
+            is_link = is_link or render_as == "link"
+            action = normalize_field_action(
+                metadata,
+                application_name,
+                attribute.get("action") or ({"type": "navigate"} if is_link else {"type": "none"})
+            )
+            if attribute.get("type") == "str":
+                attribute_type  = AttributeType.STRING
+            elif attribute.get("type") == "int":
+                attribute_type  = AttributeType.INTEGER
+            elif attribute.get("type") == "bool":
+                attribute_type  = AttributeType.BOOLEAN
+            elif attribute.get("type") == "enum":
+                attribute_type  = AttributeType.ENUM
+                enum_literals = get_enum_literals(metadata, attribute.get("enum"))
+            elif attribute.get("type") == "image":
+                attribute_type  = AttributeType.IMAGE
 
         att = SectionAttribute(
-            name = attribute_name_sanitization(attribute["name"]),
+            name = attribute_name_sanitization(attr_name),
             type = attribute_type,
             enum_literals = enum_literals,
             updatable = True, # TODO: frontend management of updatable attributes
-            derived = attribute["derived"]
+            derived = derived,
+            is_link = is_link,
+            render_as = render_as,
+            action = action
         )
         out.append(att)
 
@@ -197,10 +272,56 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
             action = custom_method.get("action"),
             target_model = custom_method.get("target_model"),
             call_name = custom_method.get("call_name"),
+            label = custom_method.get("label"),
         )
         out.append(mtd)
     
     return out
+
+
+def make_activity_action_section(application_name: str, page_name: str, label: str, section: dict | None = None) -> SectionComponent:
+    section = section or {}
+    raw_style = section.get("style") or {}
+    raw_workflow = section.get("workflow") or {}
+    variant = raw_style.get("variant", "button")
+    if variant not in ("button", "link", "fab", "wizard_next", "auto"):
+        variant = "button"
+    workflow_action = raw_workflow.get("action") or section.get("workflow_action") or "complete"
+    target_page = (
+        raw_workflow.get("target_page")
+        or raw_workflow.get("targetPage")
+        or section.get("target_page")
+        or section.get("targetPage")
+    )
+
+    return SectionComponent(
+        id=section.get("id", str(uuid4())),
+        name=section.get("name", "activity_action"),
+        application=application_name,
+        page=page_name,
+        primary_model=None,
+        parent_models=[],
+        attributes=[],
+        text="",
+        has_create_operation=False,
+        has_delete_operation=False,
+        has_update_operation=False,
+        custom_methods=[],
+        layout="activity_action",
+        style={
+            "variant": variant,
+            "size": raw_style.get("size", "lg"),
+            "align": raw_style.get("align", "right"),
+        },
+        col_span=int(section.get("col_span", 12)),
+        position=section.get("position", "main"),
+        component_type="activity_action",
+        label=label or section.get("label") or "Complete",
+        workflow={
+            "action": workflow_action,
+            **({"target_page": page_name_sanitization(target_page)} if target_page else {}),
+        },
+    )
 
 
 def retrieve_section_components(application_name: str, page_name: str, metadata: str) -> List[SectionComponent]:
@@ -222,9 +343,31 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                 if page["name"] != page_name:
                     continue
 
-                for page_section in page["sections"]:
+                page_sections = list(page.get("sections", []))
+                page_section_ids = {
+                    str(page_section.get("value"))
+                    for page_section in page_sections
+                    if isinstance(page_section, dict) and page_section.get("value")
+                }
+                for application_section in application_component["value"]["data"].get("sections", []):
+                    section_position = application_section.get("position", "main")
+                    section_id = str(application_section.get("id", ""))
+                    section_is_activity_action = (
+                        application_section.get("type") == "activity_action"
+                        or application_section.get("layout") == "activity_action"
+                    )
+                    if (
+                        section_position in ("header", "footer", "sidebar")
+                        and not section_is_activity_action
+                        and section_id
+                        and section_id not in page_section_ids
+                    ):
+                        page_sections.append({"value": section_id})
+                        page_section_ids.add(section_id)
+
+                for page_section in page_sections:
                     section = None
-                    page_section_id = page_section["value"]
+                    page_section_id = page_section["value"] if isinstance(page_section, dict) else str(page_section)
                     for application_section in application_component["value"]["data"]["sections"]:
                         if application_section["id"] == page_section_id:
                             section = application_section
@@ -232,7 +375,19 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     if not section:
                         continue
 
-                    section_class = section.get("class")
+                    if section.get("type") == "activity_action" or section.get("layout") == "activity_action":
+                        out.append(make_activity_action_section(
+                            application_name=application_name,
+                            page_name=page_name,
+                            label=section.get("label") or section.get("name", "Complete"),
+                            section=section,
+                        ))
+                        continue
+
+                    section_class = section.get("class") or find_class_ptr_by_model_name(
+                        metadata,
+                        section.get("primary_model") or section.get("object") or "",
+                    )
                     operations = section.get("operations") or {}
                     query = dict(section.get("query") or {})
                     relationship = section.get("relationship") or {}
@@ -243,12 +398,12 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
 
                     sec = SectionComponent(
                         id = section["id"],
-                        name = section["name"],
+                        name = section.get("name") or section.get("id", ""),
                         application = application_name,
                         page = page_name,
                         primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None,
                         parent_models = find_parent_models_by_id(metadata, section_class) if section_class else [],
-                        attributes = retrieve_section_attributes(metadata, section),
+                        attributes = retrieve_section_attributes(metadata, section, application_name),
                         has_create_operation = bool(operations.get("create", False)),
                         has_delete_operation = bool(operations.get("delete", False)),
                         has_update_operation = bool(operations.get("update", False)),
@@ -261,11 +416,17 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         query = query,
                         view_detail_page = page_name_sanitization(section["view_detail_page"]) if section.get("view_detail_page") else None,
                         col_span = int(section.get("col_span", 12)),
+                        position = section.get("position", "main"),
+                        component_type = section.get("type", "data"),
+                        label = section.get("label"),
+                        workflow = section.get("workflow"),
                     )
                     out.append(sec)
             return out
-    except:
-        raise Exception("Failed to retrieve section components from metadata: parsing error")
+    except Exception as _e:
+        import traceback as _tb, logging as _log
+        _log.error("retrieve_section_components error: %s\n%s", _e, _tb.format_exc())
+        raise Exception(f"Failed to retrieve section components from metadata: parsing error — {_e}")
 
     return out
 
@@ -318,7 +479,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
 
             for page in application_component["value"]["data"]["pages"]:
                 category = None
-                if page["category"] != None:
+                if page.get("category") is not None:
                     category = page["category"]["value"]["name"]
 
                 layout_field = page.get("layout")
@@ -331,21 +492,36 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 if not page_gap:
                     page_gap = "normal"
 
+                page_type = page["type"]['value'] if page.get('type') else 'normal'
+                activity_name = page['action']['label'] if page.get('action') else None
+                section_components = retrieve_section_components(
+                    application_name=application_name,
+                    page_name=page["name"],
+                    metadata=metadata,
+                )
+                if page_type == "activity" and not any(sc.component_type == "activity_action" for sc in section_components):
+                    section_components.append(make_activity_action_section(
+                        application_name=application_name,
+                        page_name=page["name"],
+                        label=activity_name or page["name"],
+                    ))
+
                 pg = Page(
                     id = page["id"],
                     name = page["name"],
                     application = sanitized_application_label,
                     category = category,
-                    activity_name = page['action']['label'] if page.get('action') else None,
-                    type = page["type"]['value'] if page.get('type') else 'normal',
-                    section_components = retrieve_section_components(application_name=application_name, page_name=page["name"], metadata=metadata),
+                    activity_name = activity_name,
+                    type = page_type,
+                    section_components = section_components,
                     layout = str(page_layout),
                     gap = str(page_gap),
-                    single_record = bool(page.get("single_record", False)),
                 )
                 out.append(pg)
-    except:
-        raise Exception("Failed to retrieve pages from metadata: parsing error")
+    except Exception as _e:
+        import traceback as _tb, logging as _log
+        _log.error("retrieve_pages error: %s\n%s", _e, _tb.format_exc())
+        raise Exception(f"Failed to retrieve pages from metadata: parsing error — {_e}")
 
     return out
 
@@ -359,7 +535,8 @@ def retrieve_models_on_pages(application_component: ApplicationComponent) -> dic
         if page not in out:
             out[page] = {'primary_models': [], 'parent_models': []}
         for section_component in page.section_components:
-            out[page]['primary_models'].append(section_component.primary_model)
+            if section_component.primary_model:
+                out[page]['primary_models'].append(section_component.primary_model)
             for parent_model in section_component.parent_models:
                 out[page]['parent_models'].append(parent_model)
     return out
@@ -414,7 +591,13 @@ def retrieve_styling(application_name: str, metadata: str)  -> Styling:
                 radius = radius,
                 text_color = text_color,
                 accent_color = accent_color,
-                background_color = background_color
+                background_color = background_color,
+                font_family = styling.get("fontFamily", "inter"),
+                page_max_width = styling.get("pageMaxWidth", "xl"),
+                button_style = styling.get("buttonStyle", "solid"),
+                card_hover = styling.get("cardHover", "lift"),
+                image_ratio = styling.get("imageRatio", "4:3"),
+                divider = styling.get("divider", "none"),
             )
     except:
         return Styling()
@@ -460,6 +643,11 @@ def get_application_component(project_name: str, application_name: str, metadata
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
     styling = retrieve_styling(application_name=application_name, metadata=metadata)
+    tokens = {}
+    for application_component in metadata["value"]["applicationComponents"]:
+        if application_component["value"]["name"] == application_name:
+            tokens = (application_component["value"].get("data") or {}).get("tokens") or {}
+            break
 
     return ApplicationComponent(
         id = uuid4(), # TODO: retrieve frontend id from metadata
@@ -469,5 +657,6 @@ def get_application_component(project_name: str, application_name: str, metadata
         pages = pages,
         settings = settings,
         styling = styling,
+        tokens = tokens,
         authentication_present = authentication_present
     )

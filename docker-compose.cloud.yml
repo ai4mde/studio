@@ -1,0 +1,61 @@
+# Cloud override: replaces localhost Traefik rules with nip.io domains.
+# Usage: docker compose -f docker-compose.yaml -f docker-compose.cloud.yml up -d
+# Requires: ORACLE_IP set in ~/studio/.env (created by vm-setup.sh / deploy workflow)
+version: "3.3"
+
+services:
+  traefik:
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=ai4mde_traefik"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+
+  studio-api:
+    environment:
+      - HOSTNAME=api.ai4mde.${ORACLE_IP}.nip.io
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.${ORACLE_IP}.nip.io`)"
+      - "traefik.http.routers.studio-api.entrypoints=web"
+      - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
+
+  studio-prototypes:
+    environment:
+      - HOSTNAME=prototypes-api.ai4mde.${ORACLE_IP}.nip.io
+      - RUNNING_PROTOTYPE_HOST=prototype.ai4mde.${ORACLE_IP}.nip.io
+      - RUNNING_PROTOTYPE_PROTO=http://
+      - RUNNING_PROTOTYPE_PORT=80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flask_api_router.rule=Host(`prototypes-api.ai4mde.${ORACLE_IP}.nip.io`)"
+      - "traefik.http.routers.flask_api_router.service=flask_api_service"
+      - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
+      - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.${ORACLE_IP}.nip.io`)"
+      - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
+      - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
+
+  gemini-make-agent:
+    environment:
+      - ALLOW_ORIGINS=http://ai4mde.${ORACLE_IP}.nip.io
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.${ORACLE_IP}.nip.io`)"
+      - "traefik.http.routers.gemini-agent.entrypoints=web"
+      - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
+
+  studio:
+    environment:
+      - HOSTNAME=ai4mde.${ORACLE_IP}.nip.io
+      - AI4MDE_HOST=api.ai4mde.${ORACLE_IP}.nip.io
+      - AI4MDE_PORT=80
+      - AI4MDE_PROTO=http://
+      - RUNNING_PROTOTYPE_HOST=prototype.ai4mde.${ORACLE_IP}.nip.io
+      - RUNNING_PROTOTYPE_PROTO=http://
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.studio.rule=Host(`ai4mde.${ORACLE_IP}.nip.io`)"
+      - "traefik.http.routers.studio.entrypoints=web"
+      - "traefik.http.services.studio.loadbalancer.server.port=5173"

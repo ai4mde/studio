@@ -3819,10 +3819,10 @@
             ],
             "styling": {
               "radius": 0,
-              "textColor": "#000000",
-              "accentColor": "#F5F5F4",
+              "textColor": "#ffffff",
+              "accentColor": "#0000a4",
               "selectedStyle": "modern",
-              "backgroundColor": "#FFFFFF"
+              "backgroundColor": "#f3f4f6"
             },
             "sections": [
               {

@@ -8,11 +8,13 @@ def general_name_sanitization(proposed_name: str) -> str:
         proposed_name = str(uuid4())
     proposed_name = proposed_name.replace(' ', '_')
     proposed_name = proposed_name.replace('-', '_')
+    proposed_name = re.sub(r'[^a-zA-Z0-9_]', '', proposed_name)
     while '__' in proposed_name:
         proposed_name = proposed_name.replace('__', '_')
+    proposed_name = proposed_name.strip('_')
     if keyword.iskeyword(proposed_name):
         proposed_name = "nm_" + proposed_name
-    return re.sub(r'[^a-zA-Z0-9_]', '', proposed_name)
+    return proposed_name
 
 
 def project_name_sanitization(proposed_name: str) -> str:
@@ -33,10 +35,20 @@ def model_name_sanitization(proposed_name: str) -> str:
 
 
 def attribute_name_sanitization(proposed_name: str) -> str:
-    name = general_name_sanitization(proposed_name)
-    if name[0].isdigit(): # attribute names may not start with a digit
+    # Allow alphanumeric, underscores, and dots to support dot-notation mapping
+    if not proposed_name:
+        proposed_name = str(uuid4())
+    name = proposed_name.replace(' ', '_')
+    name = name.replace('-', '_')
+    name = re.sub(r'[^a-zA-Z0-9_.]', '', name)
+    while '__' in name:
+        name = name.replace('__', '_')
+    name = name.strip('_')
+    if name and name[0].isdigit(): # attribute names may not start with a digit
         name = "att_" + name
-    return name
+    if keyword.iskeyword(name):
+        name = "nm_" + name
+    return name or str(uuid4())
 
 
 def page_name_sanitization(proposed_name: str) -> str:

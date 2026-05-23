@@ -15,7 +15,8 @@
 import os
 
 import google.auth
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from google.adk.cli.fast_api import get_fast_api_app
 from google.cloud import logging as google_cloud_logging
 
@@ -53,6 +54,19 @@ app: FastAPI = get_fast_api_app(
 )
 app.title = "gemini-make-agent"
 app.description = "API for interacting with the Agent gemini-make-agent"
+
+
+@app.middleware("http")
+async def root_health_response(request: Request, call_next):
+    """Avoid noisy ADK root redirects from Docker/Traefik health probes."""
+    if request.url.path == "/":
+        return JSONResponse({"status": "ok", "service": "gemini-make-agent"})
+    return await call_next(request)
+
+
+@app.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {"status": "ok"}
 
 
 @app.post("/feedback")

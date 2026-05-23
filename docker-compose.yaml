@@ -33,11 +33,14 @@ services:
     build:
       context: api
     command: ["python", "/usr/src/model/manage.py", "runserver", "--noreload", "0.0.0.0:8000"]
+    ports:
+      - "8000:8000"
     env_file:
       - config/api.env
       - config/secrets.env
     environment:
       - INTERNAL_API_KEY=studio-internal-service-key
+      - ADK_AGENT_URL=http://gemini-make-agent:8080
     networks:
       - ai4mde_traefik
     volumes:
@@ -60,13 +63,9 @@ services:
       - ./prototypes:/usr/src/prototypes
     labels:
       - "traefik.enable=true"
-
-    # Router for Flask API
       - "traefik.http.routers.flask_api_router.rule=Host(`prototypes_api.ai4mde.localhost`)"
       - "traefik.http.routers.flask_api_router.service=flask_api_service"
       - "traefik.http.services.flask_api_service.loadbalancer.server.port=8010"
-
-      # Router for Django prototype
       - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
@@ -74,6 +73,8 @@ services:
   gemini-make-agent:
     build:
       context: api/model/gemini-make-agent
+    ports:
+      - "8081:8080"
     env_file:
       - config/secrets.env
     environment:
@@ -81,6 +82,9 @@ services:
       - METADATA_API_KEY=studio-internal-service-key
       - ALLOW_ORIGINS=http://ai4mde.localhost
       - SESSION_SERVICE_URI=memory://
+    volumes:
+      - ./api/model/gemini-make-agent/app:/code/app:ro
+      - ./design_specs:/design_specs:ro
     networks:
       - ai4mde_traefik
     labels:
@@ -88,6 +92,8 @@ services:
       - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.localhost`)"
       - "traefik.http.routers.gemini-agent.entrypoints=web"
       - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
+      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.path=/healthz"
+      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.interval=60s"
 
   studio:
     build:

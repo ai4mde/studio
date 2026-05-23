@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -euo pipefail
 
 export PROJECT_ID=$1

@@ -191,6 +191,7 @@ def build_data_sections(default_use_case_objects: List[DefaultUsecase]) -> List[
             "attributes": build_data_section_attributes(use_case),
             "operations": build_data_section_operations(use_case),
             "text": "",
+            "position": "main",
         }
         out.append(section)
     return out
@@ -222,11 +223,21 @@ def build_data_pages(sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def build_data_styling() -> Dict[str, Any]:
     return {
-        "radius": 0,
-        "textColor": "#000000",
-        "accentColor": "#F5F5F4",
+        "radius": 8,
+        "textColor": "#111827",
+        "accentColor": "#2563eb",
         "selectedStyle": "modern",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#ffffff",
+        # Typography
+        "fontFamily": "inter",
+        # Layout
+        "pageMaxWidth": "xl",
+        "containerWidth": "boxed",
+        # Per-section defaults (applied globally unless overridden per-section)
+        "buttonStyle": "solid",
+        "cardHover": "lift",
+        "imageRatio": "4:3",
+        "divider": "none",
     }
 
 

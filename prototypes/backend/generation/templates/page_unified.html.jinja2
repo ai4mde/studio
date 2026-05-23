@@ -5,40 +5,449 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>{{ page.display_name }} — Preview</title>
+  {%- set _font_cdn = tokens.get('page.font.cdn', '') %}
+  {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
+  <style>
+    :root {
+      /* Base Tokens from DESIGN.md */
+      --radius: {{ tokens.get('page.radius.px', '8') }}px;
+      --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+      
+      /* Colors */
+      --accent: {{ tokens.get('accent.hex', '#2563eb') }};
+      --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --bg-body: var(--page-bg);
+      --text-base: var(--page-text);
+      --region-header-bg: {{ tokens.get('region.header.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --region-header-text: {{ tokens.get('region.header.text_hex', '#ffffff') }};
+      --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+      --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --bg-surface: var(--region-main-bg);
+      --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
+      
+      /* Component Specifics */
+      --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--bg-surface)') }};
+      --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+      --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-detail-bg: {{ tokens.get('component.detail.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-filter-bg: {{ tokens.get('component.filter.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --component-workflow-bg: {{ tokens.get('component.workflow.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+      --btn-radius: {{ tokens.get('button.radius.px', tokens.get('element.button.radius', tokens.get('page.radius.px', '8'))) }}px;
+      --button-primary-bg: {{ tokens.get('button.primary.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --button-primary-text: {{ tokens.get('button.primary.text_hex', '#ffffff') }};
+      --button-primary-border: {{ tokens.get('button.primary.border_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --button-secondary-bg: {{ tokens.get('button.secondary.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --button-secondary-text: {{ tokens.get('button.secondary.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --button-secondary-border: {{ tokens.get('button.secondary.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --button-danger-bg: {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
+      --button-danger-text: {{ tokens.get('button.danger.text_hex', '#ffffff') }};
+      --button-danger-border: {{ tokens.get('button.danger.border_hex', '#dc2626') }};
+      --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+      --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --badge-bg: {{ tokens.get('component.badge.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    }
+
+    body { 
+      font-family: var(--font-family); 
+      background-color: var(--bg-body);
+      color: var(--text-base);
+    }
+
+    /* Atomic UI Utility Overrides */
+    .si-card { 
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius); 
+      box-shadow: var(--card-shadow);
+    }
+    .si-btn { border-radius: var(--btn-radius); border-color: currentColor; }
+    .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn {
+      background-color: var(--button-primary-bg) !important;
+      color: var(--button-primary-text) !important;
+      border-color: var(--button-primary-border) !important;
+    }
+    .si-btn-secondary {
+      background-color: var(--button-secondary-bg) !important;
+      color: var(--button-secondary-text) !important;
+      border: 1px solid var(--button-secondary-border) !important;
+    }
+    .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn {
+      background-color: var(--button-danger-bg) !important;
+      color: var(--button-danger-text) !important;
+      border-color: var(--button-danger-border) !important;
+    }
+    .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link {
+      color: var(--button-link-text) !important;
+    }
+    .si-input { 
+      border-radius: calc(var(--radius) * 0.6); 
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--input-text);
+    }
+    .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+    [data-position="header"], header { border-color: var(--border-color); }
+    [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+    [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
+    [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+    [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+    [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+    [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+    [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+    [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
+
+    {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
+    .si-card-hover { transition: transform 0.18s, box-shadow 0.18s; }
+    .si-card-hover:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    {%- elif tokens.get('theme.card.hover', 'lift') == 'glow' %}
+    .si-card-hover { transition: box-shadow 0.18s; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px var(--accent)44; }
+    {%- elif tokens.get('theme.card.hover', 'lift') == 'border' %}
+    .si-card-hover { transition: border-color 0.18s; }
+    .si-card-hover:hover { border-color: var(--accent) !important; }
+    {%- endif %}
+
+    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; min-height: 120px; background-color: #f3f4f6; }
+  </style>
+  <title>{{ page.display_name }}</title>
 </head>
-<body class="{{ tokens.get('page.body.bg', 'bg-gray-100') }} min-h-screen font-sans {{ tokens.get('page.body.text', 'text-gray-800') }}">
-<header class="{{ tokens.get('region.header.bg', 'bg-white') }} border-b border-gray-200 px-8 {{ tokens.get('page.header.height', 'py-4') }} shadow-sm">
-  <div class="flex items-center gap-3">
-    <h1 class="text-xl font-bold {{ tokens.get('page.body.text', 'text-gray-800') }}">{{ page.display_name }}</h1>
-    {%- if page.type == 'activity' and page.activity_name %}
-    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Activity: {{ page.activity_name }}</span>
+<body class="min-h-screen">
+{%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
+{%- set _brand_name = tokens.get('brand.name', 'App') %}
+{%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
+{%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
+{%- set _btn_solid  = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
+{%- set _btn_outline = 'font-semibold px-4 py-2 si-btn border-2 bg-transparent transition-colors hover:bg-opacity-10' %}
+{%- set _btn_ghost  = 'font-semibold px-4 py-2 si-btn bg-transparent hover:bg-gray-100 transition-colors' %}
+{%- set _btn_gradient = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
+{%- set _header_secs = [] %}
+{%- set _footer_secs = [] %}
+{%- for sc in page.section_components %}
+  {%- if sc.position == 'header' and sc.layout in _header_chrome %}{% set _ = _header_secs.append(sc) %}{%- endif %}
+  {%- if sc.position == 'footer' and sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
+{%- endfor %}
+
+{# â”€â”€ header chrome: render all header-position section components â”€â”€
+   Granular row logic: logo + search-bar + icon-actions are opened/closed in
+   a shared flex row; all other header layouts are full-width blocks.
+#}
+{%- set _main_row_open = [] %}
+{%- for sc in _header_secs %}
+{%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
+{%- if _inline_lay and not _main_row_open %}
+  {%- set _ = _main_row_open.append(1) %}
+<header class="bg-white px-6 py-3 flex items-center gap-4" data-position="header" data-layout="main-header-row">
+{%- elif not _inline_lay and _main_row_open %}
+  {%- set _ = _main_row_open.clear() %}
+</header>
+{%- endif %}
+
+{# â”€â”€ ACTIVITY ACTION (header-position workflow button) â”€â”€ #}
+{%- if sc.component_type == 'activity_action' %}
+{%- set _aa_action = sc.workflow_action or 'complete' %}
+{%- set _aa_target_page = sc.workflow_target_page %}
+{%- set _aa_target_is_activity = namespace(value=false) %}
+{%- for _target_page in all_pages %}
+  {%- if _aa_target_page and _target_page.name == _aa_target_page and _target_page.type == 'activity' %}
+    {%- set _aa_target_is_activity.value = true %}
+  {%- endif %}
+{%- endfor %}
+{%- if _aa_target_page and _aa_target_is_activity.value %}
+  {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
+{%- elif _aa_target_page %}
+  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+{%- else %}
+  {%- set _aa_target_url = '' %}
+{%- endif %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="activity_action" class="px-6 py-3 bg-white border-b border-gray-100">
+  <div class="flex justify-end">
+    {%- if page.type == 'activity' and not preview_mode %}
+    {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
+      <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- elif _aa_action == 'navigate' and _aa_target_url %}
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</a>
+    {%- else %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- endif %}
+    {%- else %}
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold py-2 px-4 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
     {%- endif %}
   </div>
+</div>
+
+{# â”€â”€ PROMO BAR (promo-bar / promo-strip) â”€â”€ #}
+{%- elif sc.layout in ('promo-bar', 'promo-strip') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+<div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+  <div class="flex items-center gap-6">
+    {%- for m in sc.custom_methods[:3] %}
+    <span>{{ m }}</span>
+    {%- endfor %}
+  </div>
+  {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
+</div>
+</div>
+
+{# â”€â”€ LOGO (inline inside main-header-row) â”€â”€ #}
+{%- elif sc.layout == 'logo' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
+  <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
+</div>
+
+{# â”€â”€ SEARCH BAR (inline inside main-header-row) â”€â”€ #}
+{%- elif sc.layout == 'search-bar' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+</div>
+
+{# â”€â”€ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) â”€â”€ #}
+{%- elif sc.layout == 'icon-actions' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
+  <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+    {%- if sc.custom_methods %}
+    {%- for m in sc.custom_methods %}
+    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    {%- endfor %}
+    {%- else %}
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="relative cursor-pointer">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+
+    </span>
+    {%- endif %}
+  </div>
+</div>
+
+{# â”€â”€ COMBINED MAIN HEADER (main-header â€” legacy single-section variant) â”€â”€ #}
+{%- elif sc.layout == 'main-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
+<header class="bg-white px-6 py-3 flex items-center gap-4">
+  <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+  <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="relative cursor-pointer">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+
+    </span>
+  </div>
 </header>
-<main class="px-8 py-6 {{ tokens.get('page.container.max_width', 'max-w-6xl') }} mx-auto">
+</div>
+
+{# â”€â”€ NAV BAR (nav-links / nav-bar) â”€â”€ #}
+{%- elif sc.layout in ('nav-links', 'nav-bar') %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
+    <div class="flex items-center gap-0">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾
+      </span>
+      {%- for p in (all_pages or []) %}
+      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endfor %}
+      {%- for m in sc.custom_methods[1:4] %}
+      <span class="px-3 py-1.5 cursor-pointer rounded text-gray-700 hover:bg-gray-100">{{ m }}</span>
+      {%- endfor %}
+    </div>
+    <div class="flex items-center gap-4 text-gray-500 text-xs shrink-0">
+      {%- for m in sc.custom_methods[4:] %}
+      <span class="cursor-pointer hover:text-gray-800">{{ m }}</span>
+      {%- endfor %}
+    </div>
+  </div>
+</nav>
+</div>
+
+{# â”€â”€ MINIMAL HEADER (minimal-header â€” checkout/login) â”€â”€ #}
+{%- elif sc.layout == 'minimal-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
+<header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+  <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
+  <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    {{ sc.text or '0,00' }}
+  </button>
+</header>
+</div>
+
+{# â”€â”€ SITE-NAV (legacy: full header in one section) â”€â”€ #}
+{%- elif sc.layout == 'site-nav' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
+<div style="background-color:{{ _accent_hex }};" class="px-6 py-1.5 flex items-center justify-between text-xs text-white select-none">
+  <div class="flex items-center gap-6">
+    {%- for m in sc.custom_methods[:3] %}<span>{{ m }}</span>{%- endfor %}
+  </div>
+  {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
+</div>
+<header class="bg-white px-6 py-3 flex items-center gap-4">
+  <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+  <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+    <a href="#" class="cursor-pointer hover:opacity-75">Logout</a>
+    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">â™¡</span>
+    <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+  </div>
+</header>
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
+    <div class="flex items-center gap-0">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} â–¾</span>
+      {%- for p in (all_pages or []) %}<span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>{%- endfor %}
+    </div>
+    <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
+  </div>
+</nav>
+</div>
+
+{%- endif %}
+{%- endfor %}
+{%- if _main_row_open %}</header>{%- endif %}
+
+{% if not _header_secs %}
+<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color: {{ _accent_hex }};">
+  <div class="flex items-center gap-3">
+    <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
+      {{ _brand_name | capitalize }}
+    </a>
+  </div>
+  <a href="#" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
+</header>
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
+    {%- for p in (all_pages or []) %}
+    {%- if p.type != 'activity' %}
+    <a href="#" class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
+    {%- endif %}
+    {%- endfor %}
+  </div>
+</nav>
+{% endif %}
+
+<main class="px-6 py-6 {{ _container_class }} mx-auto">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
+<style>
+  :root {
+    --radius: {{ tokens.get('page.radius.px', '8') }}px;
+    --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+    --accent: {{ tokens.get('accent.hex', '#2563eb') }};
+    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+    --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
+    --card-bg: {{ tokens.get('component.card.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+    --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-detail-bg: {{ tokens.get('component.detail.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-filter-bg: {{ tokens.get('component.filter.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --component-workflow-bg: {{ tokens.get('component.workflow.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
+    --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
+    --button-primary-bg: {{ tokens.get('button.primary.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --button-primary-text: {{ tokens.get('button.primary.text_hex', '#ffffff') }};
+    --button-primary-border: {{ tokens.get('button.primary.border_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --button-secondary-bg: {{ tokens.get('button.secondary.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --button-secondary-text: {{ tokens.get('button.secondary.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --button-secondary-border: {{ tokens.get('button.secondary.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --button-danger-bg: {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
+    --button-danger-text: {{ tokens.get('button.danger.text_hex', '#ffffff') }};
+    --button-danger-border: {{ tokens.get('button.danger.border_hex', '#dc2626') }};
+    --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
+    --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+    --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --badge-bg: {{ tokens.get('component.badge.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+  }
+  body { font-family: var(--font-family); background-color: var(--page-bg) !important; color: var(--page-text); }
+  .si-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .si-btn { border-radius: var(--btn-radius); }
+  .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+  .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
+  .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; border-color: var(--button-danger-border) !important; }
+  .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
+  .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
+  .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+  [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+  [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
+  [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+  [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+  [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+  [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+  [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+  [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
+</style>
 {%- endif %}
 
-{# ── Global lookup maps (defined once, used per section) ── #}
+{# â”€â”€ Global lookup maps (defined once, used per section) â”€â”€ #}
 {% set _cm = {
-  "blue":   {"btn":"bg-blue-600 hover:bg-blue-700","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
-  "green":  {"btn":"bg-green-600 hover:bg-green-700","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
-  "purple": {"btn":"bg-purple-600 hover:bg-purple-700","light":"bg-purple-50","text":"text-purple-600","border":"border-purple-200","label":"text-purple-700","ring":"focus:ring-purple-500","th":"bg-purple-600 text-white"},
-  "orange": {"btn":"bg-orange-500 hover:bg-orange-600","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","ring":"focus:ring-orange-400","th":"bg-orange-500 text-white"},
-  "rose":   {"btn":"bg-rose-600 hover:bg-rose-700","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
-  "slate":  {"btn":"bg-slate-700 hover:bg-slate-800","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
+  "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
+  "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
+  "purple": {"solid":"bg-purple-600 hover:bg-purple-700 text-white","outline":"border-2 border-purple-600 text-purple-600 hover:bg-purple-50","ghost":"text-purple-600 hover:bg-purple-50","gradient":"bg-gradient-to-r from-purple-500 to-pink-500 text-white","light":"bg-purple-50","text":"text-purple-600","border":"border-purple-200","label":"text-purple-700","ring":"focus:ring-purple-500","th":"bg-purple-600 text-white"},
+  "orange": {"solid":"bg-orange-500 hover:bg-orange-600 text-white","outline":"border-2 border-orange-500 text-orange-500 hover:bg-orange-50","ghost":"text-orange-500 hover:bg-orange-50","gradient":"bg-gradient-to-r from-orange-400 to-rose-500 text-white","light":"bg-orange-50","text":"text-orange-500","border":"border-orange-200","label":"text-orange-700","ring":"focus:ring-orange-400","th":"bg-orange-500 text-white"},
+  "rose":   {"solid":"bg-rose-600 hover:bg-rose-700 text-white","outline":"border-2 border-rose-600 text-rose-600 hover:bg-rose-50","ghost":"text-rose-600 hover:bg-rose-50","gradient":"bg-gradient-to-r from-rose-500 to-pink-600 text-white","light":"bg-rose-50","text":"text-rose-600","border":"border-rose-200","label":"text-rose-700","ring":"focus:ring-rose-500","th":"bg-rose-600 text-white"},
+  "slate":  {"solid":"bg-slate-700 hover:bg-slate-800 text-white","outline":"border-2 border-slate-700 text-slate-700 hover:bg-slate-50","ghost":"text-slate-700 hover:bg-slate-100","gradient":"bg-gradient-to-r from-slate-600 to-slate-800 text-white","light":"bg-slate-50","text":"text-slate-600","border":"border-slate-200","label":"text-slate-700","ring":"focus:ring-slate-500","th":"bg-slate-700 text-white"},
 } %}
+{# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
+{%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
 {% set _rm = {"none":"rounded-none","sm":"rounded-sm","md":"rounded-md","lg":"rounded-lg","xl":"rounded-xl","2xl":"rounded-2xl"} %}
 {% set _dm = {
   "compact":  {"gap":"gap-2","p":"p-3","p_sm":"p-2","text":"text-xs","sec":"mb-8"},
   "normal":   {"gap":"gap-4","p":"p-4","p_sm":"p-3","text":"text-sm","sec":"mb-12"},
   "spacious": {"gap":"gap-6","p":"p-6","p_sm":"p-4","text":"text-base","sec":"mb-16"},
 } %}
-{% set _csm = {"flat":"bg-white border border-gray-100","elevated":"bg-white shadow-md","outlined":"bg-white border-2 border-gray-200"} %}
+{% set _csm  = {"flat":"border border-gray-100","elevated":"shadow-md","outlined":"border-2 border-gray-200"} %}
+{% set _shm  = {"none":"","sm":"shadow-sm","md":"shadow-md","lg":"shadow-lg","xl":"shadow-xl"} %}
+{% set _bom  = {"none":"","light":"border border-gray-200","strong":"border-2 border-gray-400"} %}
+{% set _bgm  = {"white":"bg-white","gray":"bg-gray-50","dark":"bg-gray-800"} %}
+{% set _hdsm = {"default":"text-xl font-semibold text-gray-800","large":"text-2xl font-bold text-gray-900","small":"text-xs font-medium text-gray-500 uppercase tracking-widest"} %}
 {% set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} %}
+{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
 {% set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} %}
 {% set _pm = {
   "vertical": "flex flex-col",
@@ -46,38 +455,426 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{%- set _mock_rows = 1 if page.single_record else 3 %}
+{# â”€â”€ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) â”€â”€ #}
+{%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
+{%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
+{%- set _mock_rows = 3 %}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] %}
+{%- set _mock_imgs = [] %}
+
+{# â”€â”€ Shared item-template macros (used by preview and generation mode) â”€â”€ #}
+{%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
+<div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
+  <div class="relative">
+    {%- if img %}
+    <img src="{{ img }}" class="w-full h-36 object-contain p-2 bg-gray-50" />
+    {%- else %}
+    <div class="w-full h-36 bg-gray-50"></div>
+    {%- endif %}
+    {%- if favorite_url %}
+    <a href="{{ favorite_url }}" class="absolute top-2 right-2 text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</a>
+    {%- else %}
+    <span class="absolute top-2 right-2 text-gray-400 text-lg leading-none">â™¡</span>
+    {%- endif %}
+  </div>
+  <div class="p-2.5">
+    <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
+    <div class="flex items-center gap-0.5 mt-1">
+      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+      {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
+    </div>
+    <div class="mt-1 flex items-center gap-1">
+      <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
+      {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
+    </div>
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ ðŸ›’</a>
+  </div>
+</div>
+{%- endmacro %}
+
+{%- macro _product_row(img, name, price, accent, old_price='', discount='', view_url='#', opacity_style='') -%}
+<div class="bg-white rounded-lg border border-gray-200 p-4 flex gap-4 items-start hover:shadow-sm transition-shadow"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
+  <div class="w-36 h-36 flex-shrink-0 flex items-center justify-center bg-gray-50 rounded-lg border border-gray-100">
+    {%- if img %}
+    <img src="{{ img }}" class="w-32 h-32 object-contain" />
+    {%- endif %}
+  </div>
+  <div class="flex-1 min-w-0">
+    <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
+    <div class="flex items-center gap-1 mt-1">
+      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+    </div>
+    <div class="flex items-center gap-2 mt-2">
+      {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
+      {%- if old_price %}<span class="text-xs text-gray-400 line-through">{{ old_price }}</span>{%- endif %}
+    </div>
+  </div>
+  <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
+    <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ ðŸ›’</a>
+  </div>
+</div>
+{%- endmacro %}
+
+{%- macro _cart_row(img, name, price, old_price, accent, discount='', opacity_style='') -%}
+<div class="bg-white border border-gray-200 rounded-lg p-4 flex gap-4 items-start"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
+  <div class="w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-center">
+    {%- if img %}
+    <img src="{{ img }}" class="w-20 h-20 object-contain" />
+    {%- endif %}
+  </div>
+  <div class="flex-1">
+    <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
+    <div class="flex items-center gap-1 mt-1">
+      <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+    </div>
+    <div class="flex items-baseline gap-2 mt-1">
+      <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
+      {%- if discount %}<span class="text-xs text-white px-1.5 py-0.5 rounded font-bold" style="background:#e53935;">{{ discount }}</span>{%- endif %}
+      {%- if old_price %}<span class="text-xs text-gray-400 line-through">{{ old_price }}</span>{%- endif %}
+    </div>
+    <div class="flex items-center gap-3 mt-2">
+      <select class="border border-gray-300 rounded px-2 py-1 text-sm"><option>1</option><option>2</option><option>3</option></select>
+      <button class="text-gray-400 hover:text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      <button class="text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</button>
+    </div>
+  </div>
+</div>
+{%- endmacro %}
+
+{%- macro _category_tile(icon, name, view_url='#', opacity_style='') -%}
+<a href="{{ view_url }}" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow text-center"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
+  {%- if icon %}
+  <span class="text-3xl">{{ icon }}</span>
+  {%- endif %}
+  <span class="text-xs font-medium text-gray-700 leading-tight">{{ name }}</span>
+</a>
+{%- endmacro %}
 
 {% if page.type == 'activity' and not preview_mode %}
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
 {% endif %}
 
-<div class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
-{%- for section_component in page.section_components %}
-{# ── Resolve per-section style ── #}
-{% set _s  = section_component.style %}
-{% set c   = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
-{% set r   = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
-{% set d   = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
-{% set cs  = _csm.get(_s.get("card_style","elevated"), _csm["elevated"]) %}
-{% set col = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
-{% set lay = section_component.layout %}
+<div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
+{%- for section_component in page.section_components if not (
+    (section_component.position == 'header' and section_component.layout in _header_chrome) or
+    (section_component.position == 'footer' and section_component.layout in _footer_chrome)
+) %}
+{%- if section_component.component_type == 'activity_action' %}
+{%- set _aa_variant = section_component.style.get('variant', 'button') %}
+{%- set _aa_align   = section_component.style.get('align', 'right') %}
+{%- set _aa_size    = section_component.style.get('size', 'lg') %}
+{%- set _aa_py      = 'py-4 px-8 text-base' if _aa_size == 'lg' else ('py-2 px-4 text-sm' if _aa_size == 'sm' else 'py-3 px-6 text-sm') %}
+{%- set _aa_justify = 'justify-end' if _aa_align == 'right' else ('justify-center' if _aa_align == 'center' else ('justify-start' if _aa_align == 'left' else '')) %}
+{%- set _aa_action = section_component.workflow_action or 'complete' %}
+{%- set _aa_target_page = section_component.workflow_target_page %}
+{%- set _aa_target_is_activity = namespace(value=false) %}
+{%- for _target_page in all_pages %}
+  {%- if _aa_target_page and _target_page.name == _aa_target_page and _target_page.type == 'activity' %}
+    {%- set _aa_target_is_activity.value = true %}
+  {%- endif %}
+{%- endfor %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action">
+{%- if page.type == 'activity' and not preview_mode %}
+  {%- if _aa_target_page and _aa_target_is_activity.value %}
+    {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
+  {%- elif _aa_target_page %}
+    {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+  {%- else %}
+    {%- set _aa_target_url = '' %}
+  {%- endif %}
+  {%- if _aa_action == 'navigate' and _aa_target_url %}
+  <div class="flex {{ _aa_justify }} mt-6">
+    {%- if _aa_target_is_activity.value %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
+      <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
+      <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
+    </form>
+    {%- else %}
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</a>
+    {%- endif %}
+  </div>
+  {%- else %}
+  {%- if _aa_variant == 'fab' %}
+  <div class="fixed bottom-6 right-6 z-50">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-full shadow-lg transition-colors">{{ section_component.label }}</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'link' %}
+  <div class="flex {{ _aa_justify }} mt-4">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} →</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'wizard_next' %}
+  <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">← Back</a>
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} →</button>
+    </form>
+  </div>
+  {%- elif _aa_variant == 'auto' %}
+  <div class="hidden">
+    <form id="auto-complete-form" action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+    </form>
+  </div>
+  <script>setTimeout(function(){ document.getElementById('auto-complete-form').submit(); }, 1500);</script>
+  {%- else %}{# default: button #}
+  <div class="flex {{ _aa_justify }} mt-6">
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold {{ _aa_py }} rounded-xl shadow transition-colors">{{ section_component.label }}</button>
+    </form>
+  </div>
+  {%- endif %}
+  {%- endif %}
+{%- else %}{# preview_mode #}
+  <div class="flex {{ _aa_justify }} mt-6">
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold {{ _aa_py }} rounded-xl shadow opacity-75 cursor-default">{{ section_component.label }}</button>
+  </div>
+{%- endif %}
+</div>
+{%- elif section_component.component_type == 'activity_start' %}
+{#-- activity_start: show processes the user can start --#}
+{%- set _as_cols = (section_component.style.get('columns', '3') | int) %}
+{%- set _as_card = section_component.style.get('card_style', 'elevated') %}
+{%- set _as_col_class = 'grid-cols-1' if _as_cols == 1 else ('grid-cols-2' if _as_cols == 2 else ('grid-cols-3' if _as_cols == 3 else 'grid-cols-4')) %}
+{%- set _as_card_cls = 'bg-white rounded-xl shadow-md p-5' if _as_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _as_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
+{%- if preview_mode %}
+  {%- set _as_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
+  {%- if _as_pages %}
+  <div class="grid {{ _as_col_class }} gap-4">
+    {%- for _asp in _as_pages %}
+    <div class="{{ _as_card_cls }}">
+      <div class="font-medium text-gray-800 mb-3">{{ _asp.display_name }}</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _asp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- else %}
+  <p class="text-gray-400 text-sm italic">No activity pages defined.</p>
+  {%- endif %}
+{%- else %}
+  {% raw %}{% if available_processes %}{% endraw %}
+  <div class="grid {{ _as_col_class }} gap-4">
+    {% raw %}{% for process in available_processes %}{% endraw %}
+    <div class="{{ _as_card_cls }}">
+      <div class="font-medium text-gray-800 mb-3">{% raw %}{{ process.name }}{% endraw %}</div>
+      <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
+        {% raw %}{% csrf_token %}{% endraw %}
+        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+      </form>
+    </div>
+    {% raw %}{% endfor %}{% endraw %}
+  </div>
+  {% raw %}{% else %}{% endraw %}
+  <p class="text-gray-400 text-sm italic">No processes available.</p>
+  {% raw %}{% endif %}{% endraw %}
+{%- endif %}
+</div>
+{%- elif section_component.component_type == 'activity_tasks' %}
+{#-- activity_tasks: show active tasks to complete --#}
+{%- set _at_cols = (section_component.style.get('columns', '3') | int) %}
+{%- set _at_card = section_component.style.get('card_style', 'elevated') %}
+{%- set _at_col_class = 'grid-cols-1' if _at_cols == 1 else ('grid-cols-2' if _at_cols == 2 else ('grid-cols-3' if _at_cols == 3 else 'grid-cols-4')) %}
+{%- set _at_card_cls = 'bg-white rounded-xl shadow-md p-5' if _at_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _at_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
+{%- if preview_mode %}
+  {%- set _at_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
+  {%- if _at_pages %}
+  <div class="grid {{ _at_col_class }} gap-4">
+    {%- for _atp in _at_pages %}
+    <div class="{{ _at_card_cls }}">
+      <div class="font-medium text-gray-800">{{ _atp.display_name }}</div>
+      <div class="text-sm text-gray-500 mb-3">Step 1 · In progress</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _atp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- else %}
+  <p class="text-gray-400 text-sm italic">No tasks in progress.</p>
+  {%- endif %}
+{%- else %}
+  {% raw %}{% if active_process_nodes %}{% endraw %}
+  <div class="grid {{ _at_col_class }} gap-4">
+    {% raw %}{% for active_process_node in active_process_nodes %}{% endraw %}
+    <div class="{{ _at_card_cls }}">
+      <div class="font-medium text-gray-800">{% raw %}{{ active_process_node.active_process.process.name }}{% endraw %}</div>
+      <div class="text-sm text-gray-500 mb-3">{% raw %}{{ active_process_node.action_node.name }}{% endraw %}</div>
+      <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process' active_process_node.id {% raw %}%}{% endraw %}">
+        {% raw %}{% csrf_token %}{% endraw %}
+        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
+      </form>
+    </div>
+    {% raw %}{% endfor %}{% endraw %}
+  </div>
+  {% raw %}{% else %}{% endraw %}
+  <p class="text-gray-400 text-sm italic">You have no ongoing tasks.</p>
+  {% raw %}{% endif %}{% endraw %}
+{%- endif %}
+</div>
+{%- else %}
+{# â”€â”€ Resolve per-section style â”€â”€ #}
+{%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
+  {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
+  {%- set action = attribute.action if attribute.action is defined else {} -%}
+  {%- set action_type = action.get('type', 'none') -%}
+  {%- set _aname = (attribute ~ '')|lower -%}
+  {%- set _mock_prices = ['€9.99','€24.99','€49.99','€14.99','€99.00','€7.50'] -%}
+  {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
+  {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
+  {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
+  {%- set _mock_emails = ['alice@example.com','bob@example.com','carol@example.com','dave@example.com','eve@example.com','frank@example.com'] -%}
+  {%- set _mock_nums   = ['12','47','8','253','31','19'] -%}
+  {%- set _row = mock_row % 6 -%}
+  {%- if 'price' in _aname or 'cost' in _aname or 'amount' in _aname or 'total' in _aname or 'fee' in _aname -%}
+    {%- set label = _mock_prices[_row] -%}
+  {%- elif 'name' in _aname or 'title' in _aname or 'label' in _aname or 'product' in _aname -%}
+    {%- set label = _mock_names[_row] -%}
+  {%- elif 'date' in _aname or 'time' in _aname -%}
+    {%- set label = _mock_dates[_row] -%}
+  {%- elif 'status' in _aname or 'state' in _aname or 'phase' in _aname -%}
+    {%- set label = _mock_status[_row] -%}
+  {%- elif 'email' in _aname or 'mail' in _aname -%}
+    {%- set label = _mock_emails[_row] -%}
+  {%- elif 'count' in _aname or 'qty' in _aname or 'stock' in _aname or 'quantity' in _aname -%}
+    {%- set label = _mock_nums[_row] -%}
+  {%- else -%}
+    {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
+  {%- endif -%}
+  {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
+  {%- set nav_target = action.get('targetPageId') or action.get('targetPage') or '#' -%}
+  {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
+  {%- set field_name = action.get('field') or attribute -%}
+  {%- set value_html -%}
+  {%- if render_as == 'badge' -%}
+    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ label }}</span>
+  {%- elif render_as == 'button' -%}
+    <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ label }}</span>
+  {%- elif render_as == 'link' or attribute.is_link -%}
+    <span class="{{ d.text }} font-medium {{ c.text }} hover:underline" title="{{ tooltip }}">{{ label }}</span>
+  {%- else -%}
+    <span class="{{ d.text }} font-medium text-gray-700" title="{{ tooltip }}">{{ label }}</span>
+  {%- endif -%}
+  {%- endset -%}
+  {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
+    <a href="{{ nav_target if nav_target.startswith('/') or nav_target.startswith('#') else '#' }}" data-target-page="{{ nav_target }}" class="inline-flex">{{ value_html }}</a>
+  {%- elif action_type == 'operation' -%}
+    <button type="button" data-operation="{{ operation_name }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'copy' -%}
+    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText('{{ label }}')" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'filter' -%}
+    <button type="button" data-filter-field="{{ field_name }}" data-filter-value="{{ label }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'expand' -%}
+    <details class="inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ label }}</span></details>
+  {%- else -%}
+    {{ value_html }}
+  {%- endif -%}
+{%- endmacro %}
+
+{%- macro _field_value_bound(attribute, object_name, c, d, r, application_name, page, section_component, allow_link=False) -%}
+  {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
+  {%- set action = attribute.action if attribute.action is defined else {} -%}
+  {%- set action_type = action.get('type', 'none') -%}
+  {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
+  {%- set target_page = action.get('targetPage') or section_component.view_detail_page -%}
+  {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
+  {%- set operation_class = action.get('class') or section_component.primary_model -%}
+  {%- set field_name = action.get('field') or attribute -%}
+  {%- set row_value -%}{% raw %}{{{% endraw %} {{ object_name }}.{{ attribute }} {% raw %}}}{% endraw %}{%- endset -%}
+  {%- set row_id -%}{% raw %}{{{% endraw %} {{ object_name }}.id {% raw %}}}{% endraw %}{%- endset -%}
+  {%- set value_html -%}
+  {%- if render_as == 'badge' -%}
+    <span class="inline-flex w-fit items-center rounded-full px-2 py-0.5 {{ d.text }} font-semibold {{ c.light }} {{ c.text }} border {{ c.border }}" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- elif render_as == 'button' -%}
+    <span class="inline-flex {{ d.text }} font-medium {{ c.text }} py-1 px-3 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- elif render_as == 'link' or attribute.is_link -%}
+    <span class="{{ d.text }} font-medium {{ c.text }} hover:underline" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- else -%}
+    <span class="{{ d.text }} font-medium text-gray-800" title="{{ tooltip }}">{{ row_value }}</span>
+  {%- endif -%}
+  {%- endset -%}
+  {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
+    {%- if target_page %}
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="inline-flex">{{ value_html }}</a>
+    {%- else -%}
+    {{ value_html }}
+    {%- endif -%}
+  {%- elif action_type == 'operation' -%}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="inline-flex">
+      <input type="hidden" name="instance_id_{{ operation_class }}" value="{{ row_id }}">
+      <input type="hidden" name="custom_{{ operation_class }}_{{ operation_name }}" value="{{ row_id }}">
+      <button type="submit" class="inline-flex">{{ value_html }}</button>
+    </form>
+  {%- elif action_type == 'copy' -%}
+    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.copyValue)" data-copy-value="{{ row_value }}" class="inline-flex">{{ value_html }}</button>
+  {%- elif action_type == 'filter' -%}
+    <a href="?{{ field_name }}={{ row_value|urlencode }}" data-filter-field="{{ field_name }}" class="inline-flex">{{ value_html }}</a>
+  {%- elif action_type == 'expand' -%}
+    <details class="inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ row_value }}</span></details>
+  {%- else -%}
+    {{ value_html }}
+  {%- endif -%}
+{%- endmacro %}
+
+{% set _s   = section_component.style %}
+{% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
+{% set r    = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
+{% set d    = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
+{% set col  = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
+{% set lay  = section_component.layout %}
+{% set _bg_key  = _s.get("bg","white") %}
+{% set _sec_bg  = c.light if _bg_key == "light" else _bgm.get(_bg_key,"bg-white") %}
+{% set _sec_sh  = _shm.get(_s.get("shadow","none"),"") %}
+{% set _bor_key = _s.get("border","none") %}
+{% set _sec_bor = ("border-2 " ~ c.border) if _bor_key == "colored" else _bom.get(_bor_key,"") %}
+{% set _hs_key  = _s.get("header_style","default") %}
+{% set _hs_hide = _hs_key == "hidden" %}
+{% set _hs      = _hdsm.get(_hs_key, ("text-xl font-bold " ~ c.text)) %}
+{% set cs       = (_sec_bg ~ " " ~ _csm.get(_s.get("card_style","elevated"),"shadow-md") ~ " " ~ _sec_sh ~ " " ~ _sec_bor)|trim %}
 {% set has_attrs = section_component.attributes|length > 0 %}
 {% set section_methods = section_component.custom_methods | selectattr('body_is_valid') | list %}
 {% set has_methods = section_methods|length > 0 %}
 {% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
-{% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else section_component.primary_model + '_list' %}
+{% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else ((section_component.primary_model + '_list') if section_component.primary_model else '') %}
 {% set query_limit = section_component.query.get("limit") %}
-{% set section_mock_rows = query_limit if query_limit else (3 if section_component.related_to_section_id else _mock_rows) %}
+{% set _base_mock = 3 %}
+{% set section_mock_rows = query_limit if query_limit else _base_mock %}
+{# â”€â”€ Attribute slot extraction â”€â”€ #}
+{%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{%- set _tattrs   = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.INTEGER) | list %}
+{%- set _intattrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.INTEGER) | list %}
+{# â”€â”€ Generic layout normalisation (legacy aliases â†’ canonical names) â”€â”€ #}
+{%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
+{%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
+{%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
+{%- set _fstyle = _s.get('form_style',  'auth'     if eff_lay == 'auth-form' else ('step' if eff_lay == 'form-step' else ('summary' if eff_lay == 'summary-panel' else 'default'))) %}
+{%- set _glay   = 'card'   if eff_lay in ('card','product-carousel','category-grid','hero-banner') else
+                  ('list'   if eff_lay in ('list','product-list','item-list') else
+                  ('form'   if eff_lay in ('form','auth-form','form-step','summary-panel') else
+                  ('filter' if eff_lay in ('filter','filter-panel') else eff_lay))) %}
+{# â”€â”€ Shared mock data â”€â”€ #}
+{%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
+{%- set _mock_cats      = [] %}
 
-{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}">
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}">
-
-  {% if page.type != 'activity' %}
+  {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') %}
   <div class="flex items-center justify-between mb-3">
-    <h2 class="text-xl font-semibold text-gray-800">{{ section_component.display_name }}</h2>
+    <h2 class="{{ _hs }}">{{ section_component.display_name }}</h2>
   </div>
   {% endif %}
 
@@ -85,14 +882,14 @@
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# ════════════════════════ PREVIEW MODE ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• PREVIEW MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% if preview_mode %}
 
-{# ════ PREVIEW: ACTION PANEL ════ #}
+{# â•â•â•â• PREVIEW: ACTION PANEL â•â•â•â• #}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
@@ -100,15 +897,15 @@
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
-    <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
-      {{ section_methods[0] }}
+    <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
+      {{ section_component.custom_methods[0] }}
     </button>
   </form>
 {% else %}
   <div class="flex flex-wrap gap-2">
     {% for method in section_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
@@ -116,7 +913,7 @@
       <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
       <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
       {% endfor %}
-      <button type="submit" class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
+      <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
       </button>
     </form>
@@ -124,7 +921,7 @@
   </div>
 {% endif %}
 
-{# ════ PREVIEW: DETAIL ════ #}
+{# â•â•â•â• PREVIEW: DETAIL â•â•â•â• #}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -134,7 +931,7 @@
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
       {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
       <div class="{{ img_w }} flex-shrink-0">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full h-56 object-cover {{ r }}" />
+        <div class="w-full h-56 {{ r }} bg-gray-50"></div>
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
@@ -143,9 +940,10 @@
         <div class="flex flex-col gap-1">
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
-          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -163,10 +961,11 @@
         <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
-          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop" alt="Mock image" class="w-full max-h-64 object-contain rounded mt-1" />
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-full h-48 rounded mt-1 bg-gray-50"></div>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -180,38 +979,131 @@
     {%- endfor %}
   </div>
 
-{# ════ PREVIEW: CARD ════ #}
-{%- elif eff_lay == "card" %}
+{# â•â•â•â• PREVIEW: CARD (carousel / banner / grid Ã— product / category / compact / default) â•â•â•â• #}
+{%- elif _glay == "card" %}
+{%- if _disp == "carousel" %}
+  {# Scrollable card strip #}
+  <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
+    {%- if _cstyle == "category" %}
+    {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
+    {{ _category_tile('', (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {%- endfor %}
+    {%- else %}
+    {%- for _mock_row in range(section_mock_rows if section_mock_rows > 3 else 6) %}
+    {{ _mini_card('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
+    {%- endfor %}
+    {%- endif %}
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">â€º</button></div>
+  </div>
+{%- elif _disp == "banner" %}
+  {# Hero banner #}
+  <div class="rounded-xl overflow-hidden relative" style="background:linear-gradient(120deg,#fffde7 0%,#fff9c4 60%,#fef3c7 100%);min-height:200px;">
+    <div class="flex items-center gap-6 px-10 py-8">
+      <div class="flex-1">
+        <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
+        {%- if section_component.text %}<p class="text-base text-gray-600 mt-1 max-w-xs">{{ section_component.text }}</p>{%- endif %}
+        {%- if section_component.custom_methods %}
+        <span class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">
+          {{ section_component.custom_methods[0] }}
+        </span>
+        {%- endif %}
+      </div>
+      <div class="flex gap-3 flex-wrap justify-end">
+        {%- for _mock_row in range(4) %}
+        <div class="bg-white rounded-xl shadow p-2 w-24 h-24 flex items-center justify-center relative">
+          <div class="w-full h-full bg-gray-50"></div>
+        </div>
+        {%- endfor %}
+      </div>
+    </div>
+  </div>
+{%- elif _cstyle == "category" %}
+  {# Category tile grid #}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
+    {{ _category_tile('', (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {%- endfor %}
+  </div>
+{%- elif _cstyle == "product" %}
+  {# Product card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    {{ _mini_card('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
+    {%- endfor %}
+  </div>
+{%- elif _cstyle == "compact" %}
+  {# Compact card grid #}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for _mock_row in range(section_mock_rows) %}
+    <div class="{{ cs }} {{ r }} p-3 flex items-center gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- if _iattrs %}<div class="w-12 h-12 bg-gray-50 rounded flex-shrink-0"></div>{%- endif %}
+      <div class="flex-1 min-w-0">
+        {%- for attribute in _tattrs[:2] %}<div class="block">{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}</div>{%- endfor %}
+      </div>
+      <div class="flex gap-1 shrink-0">
+        {%- if section_component.view_detail_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
+        {%- if section_component.has_update_operation %}<button class="text-xs {{ c.text }} hover:underline">Edit</button>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="text-xs text-red-400 hover:underline">Del</button>{%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
+{%- else %}
+  {# Default card grid #}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {%- for _mock_row in range(section_mock_rows) %}
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       {%- for attribute in section_component.attributes %}
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
-        {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+        {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-        {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=300&fit=crop" alt="Mock" class="w-full max-h-48 object-contain rounded mt-1">
-        {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-img bg-gray-50 rounded mt-1"></div>
+        {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>{%- endif %}
-        {%- if page.type == 'activity' and section_methods %}
-        {%- for method in section_methods %}
-        <button class="{{ d.text }} font-medium {{ c.btn }} text-white py-1.5 px-3 {{ r }} transition-colors">{{ method }}</button>
-        {%- endfor %}
-        {%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
     </div>
     {%- endfor %}
   </div>
+{%- endif %}
 
-{# ════ PREVIEW: LIST ════ #}
-{%- elif eff_lay == "list" %}
+{# â•â•â•â• PREVIEW: LIST (product / cart-item / default) â•â•â•â• #}
+{%- elif _glay == "list" %}
+{%- if _lstyle == "cart-item" %}
+  {# Cart item list #}
+  <div class="space-y-4">
+    <div class="flex items-start justify-between flex-wrap gap-2">
+      <h2 class="text-2xl font-bold text-gray-900">{{ section_component.display_name }}</h2>
+      {%- if _s.get('delivery_label') %}<span class="text-sm font-semibold" style="color:#388e3c;">{{ _s.get('delivery_label') }}</span>{%- endif %}
+    </div>
+    {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
+    {{ _cart_row('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', '', _accent_hex) }}
+    {%- endfor %}
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">â€¹ Verder winkelen</a>
+  </div>
+{%- elif _lstyle == "product" %}
+  {# Product list with image + price + rating #}
+  <div class="flex flex-col gap-3">
+    {%- for _mock_row in range(section_mock_rows) %}
+    {{ _product_row('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, view_url='#', opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.6')) }}
+    {%- endfor %}
+    <div class="flex items-center justify-center gap-1 mt-4">
+      {%- for p in range(1, 6) %}
+      <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
+      {%- endfor %}
+      <span class="px-1 text-gray-400">...</span>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">â€º</button>
+    </div>
+  </div>
+{%- else %}
+  {# Default list #}
   <div class="flex flex-col {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
@@ -220,24 +1112,26 @@
         <div class="flex flex-col gap-0.5">
           <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
-          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}</span>
+          {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-10 h-10 object-cover rounded mt-0.5">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute }} {{ _mock_row + 1 }}</span>
+          {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-10 h-10 bg-gray-50 rounded mt-0.5"></div>
+          {%- else -%}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
       </div>
       <div class="flex gap-2 shrink-0">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>{%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
     </div>
     {%- endfor %}
   </div>
+{%- endif %}
 
-{# ════ PREVIEW: TABLE ════ #}
+{# â•â•â•â• PREVIEW: TABLE â•â•â•â• #}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
@@ -260,10 +1154,10 @@
           {%- for attribute in section_component.attributes %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
-            {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else "Option A" }}
+            {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
-            {%- elif attribute.type == AttributeType.IMAGE %}<img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=100&h=100&fit=crop" alt="Mock" class="w-8 h-8 object-cover rounded">
-            {%- else %}{{ attribute }} {{ _mock_row + 1 }}
+            {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-8 h-8 bg-gray-50 rounded"></div>
+            {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
             {%- endif %}
           </td>
           {%- endfor %}
@@ -273,7 +1167,7 @@
           {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
-              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</button>{%- endif %}
+              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -285,29 +1179,187 @@
     </table>
   </div>
 
-{# ════ PREVIEW: GALLERY ════ #}
+{# â•â•â•â• PREVIEW: GALLERY â•â•â•â• #}
 {%- elif eff_lay == "gallery" %}
 {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for _mock_row in range(section_mock_rows if page.single_record else 4) %}
-    <div class="{{ cs }} {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
-      <div class="aspect-square overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop&sig={{ _mock_row }}" alt="Mock" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+    {%- for _mock_row in range(section_mock_rows) %}
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- if img_attrs %}
+      <div class="overflow-hidden">
+        <div class="si-img transition-transform group-hover:scale-105"></div>
       </div>
+      {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{{ attribute }} {{ _mock_row + 1 }}</span>
+        {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} text-xs">View</a>{%- endif %}
+        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
       </div>
     </div>
     {%- endfor %}
+  </div>
+
+
+{# â•â•â•â• PREVIEW: FILTER (filter-panel) â•â•â•â• #}
+{%- elif _glay == "filter" %}
+  <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4 text-sm">
+    <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
+    {%- if section_component.attributes %}
+    {%- for attribute in section_component.attributes %}
+    <div class="space-y-2 border-t border-gray-100 pt-3">
+      <h4 class="font-semibold text-gray-700 text-xs uppercase tracking-wide">{{ attribute }}</h4>
+      {%- if attribute.type == AttributeType.INTEGER %}
+      <div class="flex items-center gap-2 text-xs text-gray-600">
+        <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
+        <span>â€”</span>
+        <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
+      </div>
+      {%- elif attribute.type == AttributeType.ENUM %}
+      {%- for lit in attribute.enum_literals %}
+      <label class="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+        <input type="checkbox" {% if loop.first %}checked{% endif %} class="rounded border-gray-300 w-3.5 h-3.5" />
+        <span class="text-gray-600">{{ lit }}</span>
+      </label>
+      {%- endfor %}
+      {%- else %}
+      {%- for i in range(4) %}
+      <label class="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+        <input type="checkbox" {% if i == 0 %}checked{% endif %} class="rounded border-gray-300 w-3.5 h-3.5" />
+        <span class="text-gray-600">{{ attribute }} {{ i + 1 }}</span>
+        <span class="ml-auto text-gray-400 text-xs">({{ i * 13 + 7 }})</span>
+      </label>
+      {%- endfor %}
+      {%- endif %}
+    </div>
+    {%- endfor %}
+    {%- elif section_component.text %}
+    <p class="text-gray-600 border-t border-gray-100 pt-3">{{ section_component.text }}</p>
+    {%- endif %}
+    {%- if section_component.attributes %}<button class="w-full border border-gray-300 rounded-lg py-2 text-xs text-gray-600 hover:bg-gray-50 mt-2">Clear filters</button>{%- endif %}
+  </div>
+
+{# â•â•â•â• PREVIEW: FORM (auth / step / summary / default) â•â•â•â• #}
+{%- elif _glay == "form" %}
+{%- if _fstyle == "auth" %}
+  {# Auth form â€” login / register #}
+  <div class="flex items-center justify-center py-16">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
+      <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
+      <h2 class="text-xl font-bold text-gray-900 mb-6">{{ section_component.display_name }}</h2>
+      {%- if _tattrs %}
+      {%- for attribute in _tattrs %}
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
+        <input type="{% if 'wacht' in (attribute|string|lower) or 'pass' in (attribute|string|lower) %}password{% else %}text{% endif %}" placeholder="{{ attribute }}" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm outline-none focus:border-blue-500" />
+      </div>
+      {%- endfor %}
+      {%- endif %}
+      <button class="w-full py-3 rounded-xl text-white font-bold text-sm mb-4" style="background-color:{{ _accent_hex }};">{{ _s.get('cta_label') or _s.get('login_label','Submit') }}</button>
+      {%- if section_component.custom_methods %}<div class="flex gap-4 justify-center mt-6 text-xs text-gray-400">{%- for m in section_component.custom_methods %}<span class="underline">{{ m }}</span>{%- endfor %}</div>{%- endif %}
+    </div>
+  </div>
+{%- elif _fstyle == "step" %}
+  {# Checkout / wizard step #}
+  <div class="space-y-3">
+    <div class="flex items-center gap-3 mb-3">
+      {%- if _s.get('step_icon') %}<span class="text-2xl">{{ _s.get('step_icon') }}</span>{%- endif %}
+      <h3 class="text-xl font-bold text-gray-900">{{ section_component.display_name }}</h3>
+    </div>
+    <div class="border border-gray-200 rounded-xl overflow-hidden" style="background:#f0f4fb;">
+      <div class="border-l-4 m-3 pl-4 py-3 bg-white rounded-lg shadow-sm" style="border-color:{{ _accent_hex }};">
+        {%- if section_component.text %}
+        <p class="text-sm text-gray-700">{{ section_component.text }}</p>
+        {%- elif _tattrs %}
+        <div class="space-y-2">
+          {%- for attribute in _tattrs %}
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-gray-500 uppercase">{{ attribute }}</span>
+            <span class="text-sm font-medium text-gray-800">{{ attribute }}</span>
+          </div>
+          {%- endfor %}
+        </div>
+        {%- else %}
+        <p class="text-sm text-gray-500">{{ section_component.display_name }}</p>
+        {%- endif %}
+      </div>
+      {%- if section_component.has_update_operation %}
+      <div class="px-4 pb-3">
+        <button class="text-sm border rounded-lg px-4 py-1.5 hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">Edit {{ section_component.display_name }}</button>
+      </div>
+      {%- endif %}
+    </div>
+  </div>
+{%- elif _fstyle == "summary" %}
+  {# Order summary / checkout overview #}
+  <div class="bg-white border border-gray-200 rounded-xl p-5 space-y-3 sticky top-4">
+    <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
+    <div class="space-y-2 text-sm">
+      {%- if _tattrs %}
+      {%- for attribute in _tattrs %}
+      <div class="flex justify-between"><span class="text-gray-600">{{ attribute }}</span><span class="font-medium">{{ attribute }}</span></div>
+      {%- endfor %}
+      {%- endif %}
+    </div>
+    <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
+      <span>{{ _s.get('total_label', 'Total:') }}</span><span>—</span>
+    </div>
+    <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} â†’
+    </button>
+    {%- if section_component.custom_methods %}<div class="flex items-center justify-center gap-2 pt-1 text-xs text-gray-500">{%- for m in section_component.custom_methods %}<span>{{ m }}</span>{%- endfor %}</div>{%- endif %}
+  </div>
+{%- else %}
+  {# Default form â€” generic input fields #}
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <div class="space-y-4">
+      {%- if section_component.attributes %}
+      {%- for attribute in section_component.attributes %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
+        {%- if attribute.type == AttributeType.BOOLEAN %}
+        <input type="checkbox" class="h-4 w-4 rounded" />
+        {%- elif attribute.type == AttributeType.INTEGER %}
+        <input type="number" placeholder="{{ attribute }}" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2" />
+        {%- elif attribute.type == AttributeType.ENUM %}
+        <select class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
+          {%- for lit in attribute.enum_literals %}<option>{{ lit }}</option>{%- endfor %}
+        </select>
+        {%- elif attribute.type == AttributeType.IMAGE %}
+        <input type="file" accept="image/*" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" />
+        {%- else %}
+        <input type="text" placeholder="{{ attribute }}" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2" />
+        {%- endif %}
+      </div>
+      {%- endfor %}
+      {%- else %}
+      <div><input type="text" placeholder="Name" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" /></div>
+      <div><input type="email" placeholder="Email" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" /></div>
+      {%- endif %}
+      <button class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:{{ _accent_hex }};">
+        {{ _s.get('cta_label', 'Submit') }}
+      </button>
+    </div>
+  </div>
+{%- endif %}
+
+{%- elif lay in ('search-bar', 'nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links', 'icon-actions', 'logo') %}
+{# Chrome section landed in main content area — render a compact placeholder #}
+  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
+    {%- if lay == 'search-bar' %}
+    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" placeholder="{{ section_component.text or section_component.display_name }}" class="flex-1 outline-none text-gray-700 bg-transparent" readonly />
+    {%- elif lay == 'logo' %}
+    <span class="font-black text-xl" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</span>
+    {%- else %}
+    <span>{{ section_component.display_name }}</span>
+    {%- endif %}
   </div>
 
 {%- else %}
@@ -323,14 +1375,14 @@
   </button>
   {%- endif %}
 
-{# ════════════════════════ GENERATION MODE ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• GENERATION MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% else %}
 
-{# ════════════════════════ ACTION PANEL ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ACTION PANEL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% elif page.type == 'activity' and section_component.primary_model -%}
@@ -343,15 +1395,15 @@
     <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
     <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
     {% endfor %}
-    <button type="submit" class="w-full {{ c.btn }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
-      {{ section_methods[0] }}
+    <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
+      {{ section_component.custom_methods[0] }}
     </button>
   </form>
 {% else %}
   <div class="flex flex-col gap-3">
     {% for method in section_methods %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% elif page.type == 'activity' and section_component.primary_model -%}
@@ -364,7 +1416,7 @@
       <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
       <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
       {% endfor %}
-      <button type="submit" class="{{ c.btn }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
+      <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
       </button>
     </form>
@@ -372,7 +1424,7 @@
   </div>
 {% endif %}
 
-{# ════════════════════════ DETAIL ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• DETAIL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -385,7 +1437,7 @@
       {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
       {%- if img_attrs %}
       <div class="{{ img_w }} flex-shrink-0">
-        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop'{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-56 object-cover {{ r }}" />
+        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-56 object-cover {{ r }}" />
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
@@ -394,7 +1446,7 @@
         <div class="flex flex-col gap-1">
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -422,8 +1474,8 @@
         <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
           <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop'{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -449,14 +1501,55 @@
 
   </div>
 
-{# ════════════════════════ CARD ════════════════════════ #}
-{% elif eff_lay == "card" %}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• CARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{% elif _glay == "card" %}
+{%- set _m = section_component.primary_model %}
+{%- if not _m or not list_var_name %}
+  <div class="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
+    {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
+  </div>
+{%- else %}
+{%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
+{%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
+{%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
+{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.view_detail_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.view_detail_page else '#' %}
+{%- set _gen_fav_url = '?favorite_' + _m + '={{ ' + _m + '.id }}' if _m else '' %}
+{%- if _disp == "carousel" %}
+  <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
+    {{ '{% empty %}{% endfor %}' }}
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">â€º</a></div>
+  </div>
+{%- elif _cstyle == "category" %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    {{ _category_tile('', _gen_name, _gen_vurl) }}
+    {{ '{% empty %}{% endfor %}' }}
+  </div>
+{%- elif _cstyle == "product" %}
+  <div class="grid {{ col }} {{ d.gap }}">
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    {{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}
+    {{ '{% empty %}{% endfor %}' }}
+  </div>
+{%- elif _disp == "banner" %}
+  <div class="rounded-xl overflow-hidden relative" style="background:linear-gradient(120deg,#fffde7 0%,#fff9c4 60%,#fef3c7 100%);min-height:200px;">
+    <div class="flex items-center gap-6 px-10 py-8">
+      <div class="flex-1">
+        <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
+        {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} â†’</a>{%- endif %}
+      </div>
+    </div>
+  </div>
+{%- else %}
 
   <div class="grid {{ col }} {{ d.gap }}">
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex flex-col gap-3">
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3">
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
@@ -473,7 +1566,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 mt-2">
-          <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-gray-100 text-gray-700 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
@@ -484,27 +1577,15 @@
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=600&h=400&fit=crop{% endif %}"{% endraw %} alt="{{ attribute }}" class="w-full max-h-48 object-contain rounded">{% raw %}{% endwith %}{% endraw %}
-        {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="si-img object-cover rounded">{% raw %}{% endwith %}{% endraw %}
+        {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
 
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">View</a>
-        {%- endif %}
-        {%- if page.type == 'activity' and section_methods %}
-        {%- for method in section_methods %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' active_process_node_id {% raw %}%}{% endraw %}" method="get" class="flex-1 flex flex-col gap-2">
-          <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
-          <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
-          {%- for parameter in method.parameters %}
-          <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="{% if parameter.type == 'int' %}1{% elif parameter.name == 'currency' %}EUR{% endif %}" placeholder="{{ parameter.name }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-xs {{ c.ring }} focus:outline-none focus:ring-2">
-          {%- endfor %}
-          <button type="submit" class="w-full {{ d.text }} font-medium {{ c.btn }} text-white py-1.5 px-3 {{ r }} transition-colors">{{ method }}</button>
-        </form>
-        {%- endfor %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -555,7 +1636,7 @@
         </div>
         {% endfor %}
         <div class="flex gap-2 mt-2">
-          <input type="submit" value="Save" class="flex-1 {{ c.btn }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} py-2 {{ r }} border border-gray-200 text-center">Cancel</a>
         </div>
       </form>
@@ -577,8 +1658,106 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# ════════════════════════ LIST ════════════════════════ #}
-{% elif eff_lay == "list" %}
+{%- endif %}{# end card sub-dispatch #}
+{%- endif %}
+
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{% elif _glay == "list" %}
+{%- set _m = section_component.primary_model %}
+{%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
+{%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
+{%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
+{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.view_detail_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.view_detail_page else '#' %}
+{%- if _lstyle == "product" %}
+  <div class="flex flex-col gap-3">
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    {{ _product_row(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl) }}
+    {{ '{% empty %}{% endfor %}' }}
+  </div>
+{%- elif _lstyle == "cart-item" %}
+  <div class="space-y-4">
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    <div class="bg-white border border-gray-200 rounded-lg p-4 flex gap-4 items-start">
+      <div class="w-24 h-24 flex-shrink-0 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-center">
+        <img src="{{ _gen_img }}" class="w-20 h-20 object-contain" />
+      </div>
+      <div class="flex-1">
+        <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
+        <div class="flex items-center gap-1 mt-1">
+          <span class="text-yellow-400 text-xs">â˜…â˜…â˜…â˜…</span><span class="text-gray-200 text-xs">â˜…</span>
+        </div>
+        <div class="flex items-baseline gap-2 mt-1">
+          <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
+        </div>
+        <div class="flex items-center gap-3 mt-2">
+          {%- if section_component.has_update_operation %}
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <select name="{{ _intattrs[0] if _intattrs else 'quantity' }}" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 text-sm">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            </select>
+          </form>
+          {%- else %}
+          <select disabled class="border border-gray-300 rounded px-2 py-1 text-sm"><option>1</option><option>2</option><option>3</option></select>
+          {%- endif %}
+          {%- if section_component.has_delete_operation %}
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" class="text-gray-400 hover:text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+          </form>
+          {%- else %}
+          <span class="text-gray-300"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></span>
+          {%- endif %}
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+            <input type="hidden" name="favorite_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
+            <button type="submit" class="text-gray-400 hover:text-red-400 text-lg leading-none">â™¡</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{ '{% empty %}{% endfor %}' }}
+  </div>
+  {%- if section_component.has_create_operation %}
+  {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
+  <div class="bg-white border border-gray-200 rounded-lg p-4 mt-4">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 uppercase">{{ attribute }}</label>
+        {% if attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
+        {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
+        {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 text-sm">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
+        {%- else %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
+        {%- endif %}
+      </div>
+      {% endif %}{% endfor %}
+      {% for parent_model in section_component.parent_models %}
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 uppercase">{{ parent_model }}</label>
+        <select name="{{ parent_model }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
+          <option value="">Select {{ parent_model }}</option>
+          {% raw %}{%{% endraw %} for item in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+          <option value="{% raw %}{{{% endraw %} item.id {% raw %}}}{% endraw %}">{% raw %}{{{% endraw %} item {% raw %}}}{% endraw %}</option>
+          {% raw %}{% endfor %}{% endraw %}
+        </select>
+      </div>
+      {% endfor %}
+      <div class="flex gap-2 items-end">
+        <input type="submit" value="Save" class="text-white text-sm font-medium py-1.5 px-4 rounded cursor-pointer" style="background-color:{{ _accent_hex }};">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 rounded border border-gray-200 hover:bg-gray-50">Cancel</a>
+      </div>
+    </form>
+  </div>
+  {% raw %}{% endif %}{% endraw %}
+  {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+    <input type="hidden" name="create_{{ section_component }}" value="true">
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">â€¹ Add {{ section_component.display_name }}</button>
+  </form>
+  {% raw %}{% endif %}{% endraw %}
+  {%- endif %}
+{%- else %}
 
   <div class="flex flex-col {{ d.gap }}">
 
@@ -600,7 +1779,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
-          <input type="submit" value="Save" class="{{ c.btn }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 text-sm py-1.5 px-4 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
@@ -612,7 +1791,7 @@
         <div class="flex flex-col gap-0.5">
           <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}<span class="{{ d.text }} font-medium text-gray-800">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -620,7 +1799,7 @@
 
       <div class="flex gap-2 shrink-0">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -649,7 +1828,7 @@
       <h4 class="{{ d.text }} font-semibold {{ c.label }} w-full">New {{ section_component.display_name }}</h4>
       <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3 w-full">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% if page.single_record and section_component.primary_model -%}
+        {% if section_component.primary_model -%}
         <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
         {% endif -%}
         {% for attribute in section_component.attributes %}{% if not attribute.derived %}
@@ -663,7 +1842,7 @@
         </div>
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
-          <input type="submit" value="Save" class="{{ c.btn }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
+          <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 {{ r }} border border-gray-200 hover:bg-gray-50">Cancel</a>
         </div>
       </form>
@@ -673,7 +1852,7 @@
     {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-2">
       <input type="hidden" name="create_{{ section_component }}" value="true">
-      {% if page.single_record and section_component.primary_model -%}
+      {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
       <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
@@ -686,7 +1865,9 @@
 
   </div>
 
-{# ════════════════════════ TABLE ════════════════════════ #}
+{%- endif %}{# end list sub-dispatch #}
+
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
@@ -736,7 +1917,7 @@
           </td>
           {% endfor %}
           <td class="px-4 py-2 flex gap-2">
-            <input type="submit" value="Save" class="{{ c.btn }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
+            <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
             <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
           </td>
           </form>
@@ -747,7 +1928,7 @@
           {% for attribute in section_component.attributes %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">
             {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-            {% else %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}{% endif %}
+            {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}{% endif %}
           </td>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
@@ -757,7 +1938,7 @@
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.view_detail_page %}
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">View</a>
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -803,7 +1984,7 @@
           {% endfor %}
           <td class="px-4 py-2">
             <div class="flex gap-2">
-              <input type="submit" value="Save" class="{{ c.btn }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
+              <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
               <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
             </div>
           </td>
@@ -819,7 +2000,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
     <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
@@ -830,7 +2011,7 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# ════════════════════════ GALLERY ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• GALLERY â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif eff_lay == "gallery" %}
 {% set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {% set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
@@ -838,22 +2019,22 @@
   <div class="grid {{ col }} {{ d.gap }}">
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} overflow-hidden group relative">
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative">
       {%- if img_attrs %}
-      <div class="aspect-square overflow-hidden">
-        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=400&h=400&fit=crop'{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+      <div class="overflow-hidden">
+        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="si-img object-cover transition-transform group-hover:scale-105" />
       </div>
       {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        <span class="{{ d.text }} {% if loop.first %}font-medium text-gray-800{% else %}text-gray-400 text-xs{% endif %}">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ c.text }} py-1 px-2 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors text-xs">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
@@ -872,7 +2053,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    {% if page.single_record and section_component.primary_model -%}
+    {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
     <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
@@ -883,52 +2064,374 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{% elif _glay == "form" %}
+{%- set _m = section_component.primary_model %}
+{%- if _fstyle == "summary" %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} space-y-3 sticky top-4">
+    <h3 class="{{ d.text }} font-bold text-gray-800">{{ section_component.display_name }}</h3>
+    <div class="space-y-2 text-sm">
+      {%- if _m %}
+      {% raw %}{%{% endraw %} for {{ _m }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+      <div class="flex justify-between">
+        <span class="text-gray-600">{% raw %}{{{% endraw %} {{ _m }} {% raw %}}}{% endraw %}</span>
+        {% for attr in _tattrs %}<span class="font-medium">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} {% raw %}}}{% endraw %}</span>{% endfor %}
+      </div>
+      {% raw %}{% endfor %}{% endraw %}
+      {%- endif %}
+    </div>
+    <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
+      <span>{{ _s.get('total_label','Total:') }}</span><span>â€”</span>
+    </div>
+    {%- if page.type == 'activity' %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} â†’
+      </button>
+    </form>
+    {%- else %}
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} â†’
+    </a>
+    {%- endif %}
+  </div>
+{%- elif _fstyle == "step" %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} space-y-3">
+    <div class="flex items-center gap-3 mb-1">
+      {%- if _s.get('step_icon') %}<span class="text-2xl">{{ _s.get('step_icon') }}</span>{%- endif %}
+      <h3 class="{{ d.text }} font-bold text-gray-900">{{ section_component.display_name }}</h3>
+    </div>
+    <div class="border {{ c.border }} rounded-xl overflow-hidden">
+      <div class="border-l-4 m-3 pl-4 py-3 bg-white rounded-lg" style="border-color:{{ _accent_hex }};">
+        {%- for attr in section_component.attributes %}
+        <div class="flex flex-col gap-1 mb-2">
+          <label class="text-xs font-medium text-gray-500 uppercase">{{ attr }}</label>
+          {%- if page.type == 'activity' %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.get('{{ attr }}','') {% raw %}}}{% endraw %}</span>
+          {%- elif _m %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else 'â€”' {% raw %}}}{% endraw %}</span>
+          {%- endif %}
+        </div>
+        {%- endfor %}
+      </div>
+      {%- if section_component.has_update_operation %}
+      <div class="px-4 pb-3">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" class="{{ d.text }} border rounded-lg px-4 py-1.5 hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">Edit {{ section_component.display_name }}</a>
+      </div>
+      {%- endif %}
+    </div>
+  </div>
+{%- else %}
+  {# Default / auth form: render attribute inputs #}
+  <div class="{{ cs }} {{ r }} {{ d.p }}">
+    {%- if section_component.has_create_operation %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="space-y-4">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {% for parent_model in section_component.parent_models %}
+      <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
+      {% endfor %}
+    {%- else %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
+      {% raw %}{% csrf_token %}{% endraw %}
+    {%- endif %}
+      {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+      <div>
+        <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ attribute }}</label>
+        {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+        {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+        {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
+        {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
+        {%- endif %}
+      </div>
+      {% endif %}{% endfor %}
+      <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 {{ r }}">
+        {{ _s.get('cta_label') or _s.get('login_label', 'Submit') }}
+      </button>
+    </form>
+  </div>
+{%- endif %}
+
 {% else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# ════════════════════════ END GENERATION LAYOUTS ════════════════════════ #}
+{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• END GENERATION LAYOUTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 
 {% endif %}{# end preview_mode branch #}
 
 </div>
+{%- endif %}{# end activity_action else branch #}
 {%- endfor %}
 </div>
 
 {% if preview_mode %}
-{%- if page.type == 'activity' %}
-<div class="fixed bottom-6 right-6">
-  <button class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
+<script>
+(function() {
+  var accentHex = '{{ tokens.get("accent.hex", "#0000a4") }}';
+  var grid = document.querySelector('main > .grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = { header: [], hero: [], main: [], sidebar: [], footer: [] };
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (byPos[pos]) byPos[pos].push(el); else byPos.main.push(el);
+  });
+  var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
+  if (!hasNonMain) return;
+
+  var gap = 'gap-4';
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+
+  if (byPos.header.length) {
+    var headerEl = document.createElement('div');
+    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
+    wrap.appendChild(headerEl);
+  }
+
+  if (byPos.hero.length) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    heroEl.style.cssText = 'background:linear-gradient(135deg,#fffbe6 0%,#fff9c4 50%,#fef3c7 100%);padding:40px 48px;';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+
+  var hasSidebar = byPos.sidebar.length > 0;
+  var contentRow = document.createElement('div');
+  contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
+  var mainGrid = document.createElement('div');
+  mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+  byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
+
+  if (hasSidebar) {
+    // filter-panel goes LEFT (before main); summary-panel / other sidebars go RIGHT
+    var leftSidebarItems = [], rightSidebarItems = [];
+    byPos.sidebar.forEach(function(el) {
+      var lay = el.getAttribute('data-layout') || '';
+      if (lay === 'filter-panel') leftSidebarItems.push(el);
+      else rightSidebarItems.push(el);
+    });
+
+    if (leftSidebarItems.length) {
+      var leftEl = document.createElement('aside');
+      leftEl.className = 'w-64 flex-shrink-0 flex flex-col gap-4';
+      leftSidebarItems.forEach(function(el) { el.className = 'w-full'; leftEl.appendChild(el); });
+      contentRow.appendChild(leftEl);
+    }
+    contentRow.appendChild(mainGrid);
+    if (rightSidebarItems.length) {
+      var rightEl = document.createElement('aside');
+      rightEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+      rightSidebarItems.forEach(function(el) { el.className = 'w-full'; rightEl.appendChild(el); });
+      contentRow.appendChild(rightEl);
+    }
+  } else {
+    contentRow.appendChild(mainGrid);
+  }
+  wrap.appendChild(contentRow);
+
+  if (byPos.footer.length) {
+    var footerEl = document.createElement('div');
+    footerEl.className = 'mt-8 rounded-xl overflow-hidden';
+    var footerInner = document.createElement('div');
+    footerInner.className = 'grid grid-cols-12 gap-4 px-8 py-6 bg-white border-t-4';
+    footerInner.style.borderColor = accentHex;
+    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
+    footerEl.appendChild(footerInner);
+    wrap.appendChild(footerEl);
+  }
+
+  grid.parentNode.replaceChild(wrap, grid);
+})();
+</script>
+</main>
+
+{# â”€â”€ footer chrome: consecutive link-grid sections are grouped into one flex row â”€â”€ #}
+{%- set _link_row_open = [] %}
+{%- for sc in _footer_secs %}
+{%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
+{%- if _is_link_grid and not _link_row_open %}
+  {%- set _ = _link_row_open.append(1) %}
+<div class="bg-white border-t border-gray-100 px-8 py-8 flex gap-8 text-sm flex-wrap">
+{%- elif not _is_link_grid and _link_row_open %}
+  {%- set _ = _link_row_open.clear() %}
 </div>
 {%- endif %}
-</main>
+
+{%- if sc.component_type == 'activity_action' %}
+{%- set _aa_action = sc.workflow_action or 'complete' %}
+{%- set _aa_target_page = sc.workflow_target_page %}
+{%- set _aa_target_is_activity = namespace(value=false) %}
+{%- for _target_page in all_pages %}
+  {%- if _aa_target_page and _target_page.name == _aa_target_page and _target_page.type == 'activity' %}
+    {%- set _aa_target_is_activity.value = true %}
+  {%- endif %}
+{%- endfor %}
+{%- if _aa_target_page and _aa_target_is_activity.value %}
+  {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
+{%- elif _aa_target_page %}
+  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+{%- else %}
+  {%- set _aa_target_url = '' %}
+{%- endif %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="activity_action" class="bg-white border-t border-gray-100 px-8 py-6">
+  <div class="flex justify-end">
+    {%- if page.type == 'activity' and not preview_mode %}
+    {%- if _aa_action == 'navigate' and _aa_target_url and _aa_target_is_activity.value %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process_page' active_process_node_id {% raw %}%}{% endraw %}" method="get">
+      <input type="hidden" name="target_url" value="{{ _aa_target_url }}">
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- elif _aa_action == 'navigate' and _aa_target_url %}
+    <a href="{{ _aa_target_url }}" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</a>
+    {%- else %}
+    <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
+      {% raw %}{% csrf_token %}{% endraw %}
+      {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
+      <button type="submit" class="si-btn si-btn-primary bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow transition-colors">{{ sc.label }}</button>
+    </form>
+    {%- endif %}
+    {%- else %}
+    <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow opacity-75 cursor-default">{{ sc.label }}</button>
+    {%- endif %}
+  </div>
+</div>
+
+{%- elif sc.layout in ('service-strip', 'service-bar') %}
+{# Screenshot match: blue bar â€” "Service & contact" + icon/text links #}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
+<div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
+  <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
+  <div class="flex items-center gap-6 text-sm text-white flex-wrap">
+    {%- for m in sc.custom_methods %}
+    <span class="cursor-pointer hover:opacity-80 flex items-center gap-1.5">{{ m }}</span>
+    {%- endfor %}
+  </div>
+</div>
+</div>
+
+{%- elif sc.layout in ('footer-links', 'link-grid') %}
+{# One column in the shared flex row opened above #}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="link-grid" class="flex-1 min-w-36">
+  <h4 class="font-bold text-gray-800 mb-3">{{ sc.display_name }}</h4>
+  <ul class="space-y-2 text-gray-600">
+    {%- for m in sc.custom_methods %}
+    <li class="cursor-pointer hover:underline">{{ m }}</li>
+    {%- endfor %}
+  </ul>
+</div>
+
+{%- elif sc.layout in ('footer-brand', 'brand-strip') %}
+{# Footer brand strip #}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="footer-brand">
+<div class="bg-white border-t border-gray-200 py-6 flex flex-col items-center gap-2">
+  <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+  <p class="text-xs text-gray-400">{{ sc.text }}</p>
+  <div class="flex items-center gap-3 text-xs text-gray-400 mt-1">
+    {%- for m in sc.custom_methods %}
+    <span class="cursor-pointer hover:underline">{{ m }}</span><span>|</span>
+    {%- endfor %}
+  </div>
+</div>
+</div>
+
+{%- elif sc.layout == 'site-footer' %}
+{# Legacy: full footer in one section (backward compat) #}
+<footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
+  <!-- Service & contact strip -->
+  <div class="px-8 py-5 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
+    <span class="text-white font-bold text-lg">{{ sc.display_name }}</span>
+    <div class="flex items-center gap-6 text-sm text-white opacity-80">
+      {%- for m in sc.custom_methods %}
+      <span class="cursor-pointer hover:opacity-100">{{ m }}</span>
+      {%- endfor %}
+    </div>
+  </div>
+  <!-- Footer link columns from attributes -->
+  <div class="bg-white px-8 py-8 text-sm border-t border-gray-100">
+    {%- if sc.text %}
+    {{ sc.text }}
+    {%- endif %}
+  </div>
+  <!-- Bottom brand strip -->
+  <div class="bg-white border-t border-gray-200 py-8 flex flex-col items-center gap-2">
+    <div class="text-4xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+  </div>
+</footer>
+
+{%- endif %}
+{%- endfor %}
+{%- if _link_row_open %}</div>{%- endif %}
+
 <script>
 (function() {
   var style = document.createElement('style');
   style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
   document.head.appendChild(style);
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    el.addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-      el.classList.add('si-selected');
-      window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
-    });
-  });
+  document.addEventListener('click', function(e) {
+    var link = e.target.closest && e.target.closest('a[href]');
+    if (link) { e.preventDefault(); }
+    var el = e.target.closest && e.target.closest('[data-section-id]');
+    if (!el) return;
+    e.stopPropagation();
+    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+    el.classList.add('si-selected');
+    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
+  }, true);
 })();
 </script>
+
 </body>
 </html>
 {% else %}
-{% if page.type == 'activity' %}
-<div class="fixed bottom-6 right-6">
-  <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
-    {% raw %}{% csrf_token %}{% endraw %}
-    <button type="submit" class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-green-700 transition-colors">Complete task</button>
-  </form>
-</div>
-{% endif %}
+<script>
+(function() {
+  var grid = document.getElementById('page-sections-grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = {};
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (!byPos[pos]) byPos[pos] = [];
+    byPos[pos].push(el);
+  });
+  var hasHero = byPos.hero && byPos.hero.length;
+  var hasSidebar = byPos.sidebar && byPos.sidebar.length;
+  if (!hasHero && !hasSidebar) return;
+  var parent = grid.parentNode;
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+  if (hasHero) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+  var mainSecs = byPos.main || [];
+  var sidebarSecs = byPos.sidebar || [];
+  if (mainSecs.length || sidebarSecs.length) {
+    var hasSidebarEl = sidebarSecs.length > 0;
+    var contentRow = document.createElement('div');
+    contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
+    var mainGrid = document.createElement('div');
+    mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+    mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
+    contentRow.appendChild(mainGrid);
+    if (hasSidebarEl) {
+      var sideEl = document.createElement('aside');
+      sideEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+      sidebarSecs.forEach(function(el) { el.className = 'w-full'; sideEl.appendChild(el); });
+      contentRow.appendChild(sideEl);
+    }
+    wrap.appendChild(contentRow);
+  }
+  parent.replaceChild(wrap, grid);
+})();
+</script>
 
 {% raw %}{% endblock %}{% endraw %}
 {% endif %}

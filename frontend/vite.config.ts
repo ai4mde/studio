@@ -27,6 +27,10 @@ export default defineConfig({
         url: "https://sentry.semax.nguml.com"
     })],
 
+    server: {
+        allowedHosts: true,
+    },
+
     build: {
         sourcemap: true
     }

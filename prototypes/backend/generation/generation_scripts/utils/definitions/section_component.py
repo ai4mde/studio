@@ -36,13 +36,19 @@ class SectionAttribute():
             type: AttributeType,
             enum_literals: Optional[List[str]],
             updatable: bool,
-            derived: bool = False
+            derived: bool = False,
+            is_link: bool = False,
+            render_as: str = "text",
+            action: Optional[dict] = None
     ):
         self.name = name
         self.type = type
         self.enum_literals = enum_literals
         self.updatable = updatable
         self.derived = derived
+        self.is_link = is_link
+        self.render_as = render_as
+        self.action = action or {"type": "none"}
 
     def __str__(self):
         return self.name
@@ -64,9 +70,11 @@ class SectionCustomMethod():
             action: str = None,
             target_model: str = None,
             call_name: str = None,
+            label: str = None
     ):
         self.name = name
         self.call_name = call_name or extract_call_name(body) or section_name_sanitization(name).lower()
+        self.label = label or name
         self.parameters = parameters or []
         self.action = action
         self.target_model = target_model
@@ -87,6 +95,8 @@ DEFAULT_SECTION_STYLE = {
     "radius": "xl",
     "columns": "3",
     "card_style": "elevated",
+    "image_position": "top",
+    "image_size": "md",
 }
 
 class SectionComponent():
@@ -113,6 +123,10 @@ class SectionComponent():
             query: Optional[dict] = None,
             view_detail_page: Optional[str] = None,
             col_span: int = 12,
+            position: Optional[str] = None,
+            component_type: str = "data",
+            label: Optional[str] = None,
+            workflow: Optional[dict] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -135,6 +149,12 @@ class SectionComponent():
         self.query_literal = repr(self.query)
         self.view_detail_page = view_detail_page
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
+        self.position = position or 'main'
+        self.component_type = component_type
+        self.label = label or name
+        self.workflow = workflow or {}
+        self.workflow_action = self.workflow.get("action", "complete")
+        self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
 
     def __str__(self):
         return self.name

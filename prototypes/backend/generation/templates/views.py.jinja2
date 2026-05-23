@@ -6,64 +6,7 @@ from shared_models.views import GenericListView, GenericCreateView, GenericUpdat
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 from django.contrib.contenttypes.models import ContentType
 
-def _coerce_query_value(value):
-    if isinstance(value, str):
-        lowered = value.strip().lower()
-        if lowered == 'true':
-            return True
-        if lowered == 'false':
-            return False
-        if lowered == 'none' or lowered == 'null':
-            return None
-    return value
-
-def _apply_section_query(qs, query, source_obj=None):
-    query = query or {}
-    operator_map = {
-        'eq': '',
-        'neq': '',
-        'lt': '__lt',
-        'lte': '__lte',
-        'gt': '__gt',
-        'gte': '__gte',
-        'contains': '__icontains',
-        'in': '__in',
-        'isnull': '__isnull',
-    }
-    for condition in query.get('filters') or []:
-        field = condition.get('field')
-        operator = condition.get('operator', 'eq')
-        if not field or operator not in operator_map:
-            continue
-        lookup = f"{field}{operator_map[operator]}"
-        value = _coerce_query_value(condition.get('value'))
-        if operator == 'in' and not isinstance(value, (list, tuple)):
-            value = [v.strip() for v in str(value).split(',') if v.strip()]
-        if operator == 'neq':
-            qs = qs.exclude(**{lookup: value})
-        else:
-            qs = qs.filter(**{lookup: value})
-    if query.get('exclude_source') and source_obj is not None:
-        qs = qs.exclude(id=getattr(source_obj, 'id', None))
-    order_fields = []
-    for item in query.get('order_by') or []:
-        field = item.get('field')
-        if not field:
-            continue
-        direction = item.get('direction', 'asc')
-        order_fields.append(f"-{field}" if direction == 'desc' else field)
-    if order_fields:
-        try:
-            qs = qs.order_by(*order_fields)
-        except Exception:
-            pass
-    offset = query.get('offset') or 0
-    limit = query.get('limit')
-    if limit:
-        return qs[offset:offset + limit]
-    if offset:
-        return qs[offset:]
-    return qs
+{% include 'helpers/query_helpers.py' %}
 
 {# Create, Update, Delete views #}
 {% for page in pages -%}
@@ -75,7 +18,13 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    {% set _simple_attrs = [] -%}
+    {%- for attr in section_component.attributes -%}
+        {%- if '.' not in attr.name -%}
+            {%- set _dummy = _simple_attrs.append(attr.name) -%}
+        {%- endif -%}
+    {%- endfor %}
+    fields = [{% for attr_name in _simple_attrs %}'{{ attr_name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -83,14 +32,23 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
         })
+    {% elif section_component.success_page -%}
+    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ section_component.success_page }}')
     {% else -%}
-    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+
+    def get_success_url(self):
+        base = reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+        params = {k: v for k, v in self.request.POST.items() if k.startswith('instance_id_') and v}
+        if params:
+            from urllib.parse import urlencode
+            base += '?' + urlencode(params)
+        return base
     {% endif %}
 
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived -%}
+        {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
@@ -133,7 +91,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    fields = [{% for attribute in section_component.attributes %}{% if '.' not in attribute.name %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
 
@@ -145,10 +103,22 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
 
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        data = request.POST.copy()
+        {% for attribute in section_component.attributes -%}
+        {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN and '.' not in attribute.name -%}
+        if '{{ attribute }}' not in data:
+            data['{{ attribute }}'] = getattr(self.object, '{{ attribute }}', '') or ''
+        {% endif -%}
+        {% endfor -%}
+        request.POST = data
+        return super().post(request, *args, **kwargs)
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived -%}
+        {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
@@ -204,7 +174,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     template_name='{{ application_name }}_{{ page }}.html'
-    {% if models_on_pages[page]['primary_models'][0] -%}
+    {% if models_on_pages[page]['primary_models'] | length > 0 -%}
     model = {{ models_on_pages[page]['primary_models'][0] }}
     context_object_name = '{{ models_on_pages[page]['primary_models'][0] }}_list'
     {% else -%}
@@ -212,30 +182,70 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return []
     {% endif -%}
 
-    {% if page.type == 'activity' -%}
+    {% if page.type == 'activity' and models_on_pages[page]['primary_models'] | length > 0 -%}
     def get_queryset(self):
         _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
         qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
-        return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
-    {% elif page.single_record and models_on_pages[page]['primary_models'][0] -%}
+        {%- set select_related_fields = [] %}
+        {%- if page.section_components %}
+            {%- for attr in page.section_components[0].attributes %}
+                {%- if '.' in attr.name %}
+                    {%- set _parts = attr.name.split('.') %}
+                    {%- set _dummy = select_related_fields.append(_parts[0]) %}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
+        {%- if select_related_fields %}
+        qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        {%- endif %}
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
+    {% elif models_on_pages[page]['primary_models'] | length > 0 -%}
+    {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
+    {% set _pm0_parents = page.section_components[0].parent_models if page.section_components else [] -%}
     def get_queryset(self):
-        _id = self.request.GET.get('instance_id_{{ models_on_pages[page]['primary_models'][0] }}')
+        _id = self.request.GET.get('instance_id_{{ _pm0 }}')
         if _id:
-            qs = {{ models_on_pages[page]['primary_models'][0] }}.objects.filter(id=_id)
-            return _apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }})
-        return {{ models_on_pages[page]['primary_models'][0] }}.objects.none()
-    {% elif models_on_pages[page]['primary_models'][0] and page.section_components and page.section_components[0].query -%}
-    def get_queryset(self):
-        qs = {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
-        return _apply_section_query(qs, {{ page.section_components[0].query_literal }})
+            qs = {{ _pm0 }}.objects.filter(id=_id)
+        else:
+            qs = None
+            {% for parent_model in _pm0_parents -%}
+            if qs is None:
+                _pid_{{ parent_model }} = self.request.GET.get('instance_id_{{ parent_model }}')
+                if _pid_{{ parent_model }}:
+                    qs = {{ _pm0 }}.objects.filter({{ parent_model }}_id=_pid_{{ parent_model }})
+            {% endfor -%}
+            if qs is None:
+                qs = {{ _pm0 }}.objects.all()
+        
+        {%- set select_related_fields = [] %}
+        {%- if page.section_components %}
+            {%- for attr in page.section_components[0].attributes %}
+                {%- if '.' in attr.name %}
+                    {%- set _parts = attr.name.split('.') %}
+                    {%- set _dummy = select_related_fields.append(_parts[0]) %}
+                {%- endif %}
+            {%- endfor %}
+        {%- endif %}
+        {%- if select_related_fields %}
+        qs = _safe_select_related(qs, {% for f in select_related_fields %}'{{ f }}'{% if not loop.last %}, {% endif %}{% endfor %})
+        {%- endif %}
+        return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or page.single_record %}
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 or (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
         context['parent_{{model}}_list'] = {{model}}.objects.all()
         {% endfor -%}
+        {% if page.section_components and models_on_pages[page]['primary_models'] -%}
+        {% set _main_img_model = models_on_pages[page]['primary_models'][0] -%}
+        {% for attr in page.section_components[0].attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ _main_img_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
+        {% endif -%}
         {% if page.type == 'activity' -%}
         {% if models_on_pages[page]['primary_models'] | length > 1 -%}
         {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
@@ -249,32 +259,43 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endif -%}
         context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
         {% endif -%}
-        {% if page.type != 'activity' -%}
-        {% if page.single_record and models_on_pages[page]['primary_models'][0] -%}
-        {% set _ns_p = namespace(model=models_on_pages[page]['primary_models'][0], section=page.section_components[0]) -%}
+        {% if page.type != 'activity' and models_on_pages[page]['primary_models'] | length > 1 -%}
+        {% set _ns_p = namespace(model=models_on_pages[page]['primary_models'][0], section=page.section_components[0] if page.section_components else None) -%}
         _primary_id = self.request.GET.get('instance_id_{{ _ns_p.model }}')
         _primary_obj = {{ _ns_p.model }}.objects.filter(id=_primary_id).first() if _primary_id else None
         {% for section in page.section_components[1:] -%}
-        {% if section.primary_model -%}
+        {% if section.primary_model and not section.related_to_section_id -%}
         {% if _ns_p.model in section.parent_models -%}
-        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.none()
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns_p.model }}=_primary_obj) if _primary_obj else {{ section.primary_model }}.objects.all()
         context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
-        {% elif section.primary_model in _ns_p.section.parent_models -%}
-        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.none()
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
+        {% elif _ns_p.section and section.primary_model in _ns_p.section.parent_models -%}
+        _direct_id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=getattr(_primary_obj, '{{ section.primary_model }}_id', None)) if _primary_obj else {{ section.primary_model }}.objects.filter(id=_direct_id_{{ section.name }}) if _direct_id_{{ section.name }} else {{ section.primary_model }}.objects.all()
         context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% else -%}
         {% if section.primary_model != _ns_p.model -%}
-        _qs_{{ section.name }} = {{ section.primary_model }}.objects.all()
-        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }}, _primary_obj)
+        _id_{{ section.name }} = self.request.GET.get('instance_id_{{ section.primary_model }}')
+        _qs_{{ section.name }} = {{ section.primary_model }}.objects.filter(id=_id_{{ section.name }}) if _id_{{ section.name }} else {{ section.primary_model }}.objects.all()
+        context['{{ section.primary_model }}_list'] = _apply_section_query(_qs_{{ section.name }}, {{ section.query_literal }})
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in context.get('{{ section.primary_model }}_list', []):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% endif -%}
         {% endif -%}
         {% endif -%}
         {% endfor -%}
-        {% else -%}
-        {% for primary_model in models_on_pages[page]['primary_models'][1:] -%}
-        context['{{ primary_model }}_list'] = {{ primary_model }}.objects.all()
-        {% endfor -%}
-        {% endif -%}
         {% endif %}
         {% for section in page.section_components -%}
         {% if section.related_to_section_id -%}
@@ -298,10 +319,23 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
         {% endif -%}
         context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }})
+        {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
+        for _img_obj in list(context.get('related_{{ section.name }}_list', [])):
+            if not getattr(_img_obj, '{{ attr }}', None):
+                setattr(_img_obj, '{{ attr }}', getattr(_img_obj, 'thumb_url', None) or getattr(_img_obj, 'image_url', None) or '')
+        {% endif %}{% endfor %}
         {% endif -%}
         {% endif -%}
         {% endif -%}
         {% endfor -%}
+        {%- set _has_wf_sections = (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
+        {% if _has_wf_sections -%}
+        context['available_processes'] = Process.get_available_processes(self.request.user)
+        context['active_process_nodes'] = ActiveProcessNode.objects.filter(
+            user=self.request.user,
+            active_process__completed=False,
+        )
+        {% endif -%}
         return context
 
 {% endif -%}

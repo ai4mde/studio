@@ -4,6 +4,7 @@ from generator.models import Prototype
 from metadata.models import System
 from ninja import Router, Schema
 from ninja.errors import HttpError
+from django.http import StreamingHttpResponse
 import json
 import os
 import requests
@@ -78,7 +79,8 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     response = requests.post(GENERATION_URL, json=data)
 
     if response.status_code != 200:
-        raise Exception("Failed to generate prototype " + prototype.name)
+        detail = response.text[:1000] if response.text else f"HTTP {response.status_code}"
+        raise Exception(f"Failed to generate prototype {prototype.name}: {detail}")
 
     return new_prototype
 
@@ -195,6 +197,152 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
     return response.text
 
 
+ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+
+
+class GenerateCandidatesPayload(Schema):
+    interface_id: str
+    system_id: str
+    prompt: str
+
+
+@prototypes.post("/generate_candidates/")
+def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
+    """Stream 3-candidate interface generation via the ADK candidate_pipeline_agent."""
+    import uuid as _uuid
+
+    _STATUS_MAP = {
+        "candidate_pipeline_agent": "Starting pipeline...",
+        "reason_agent":             "Analysing UML metadata and designer prompt...",
+        "generate_agent":           "Generating interface candidates...",
+        "render_agent":             "Rendering previews...",
+    }
+
+    def stream():
+        yield json.dumps({"status": "Connecting to agent..."}) + "\n"
+
+        user_id = payload.interface_id
+        session_id = str(_uuid.uuid4())
+        try:
+            resp = requests.post(
+                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
+                json={"state": {"interface_id": payload.interface_id, "system_id": payload.system_id}},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            session_id = resp.json().get("id", session_id)
+        except Exception as e:
+            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+            return
+
+        message = f"generate_candidates interface_id={payload.interface_id} prompt={payload.prompt}"
+        seen_authors: set = set()
+
+        try:
+            with requests.post(
+                f"{ADK_AGENT_URL}/run_sse",
+                json={
+                    "app_name": "app",
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "new_message": {"role": "user", "parts": [{"text": message}]},
+                    "streaming": True,
+                },
+                stream=True,
+                timeout=600,
+            ) as r:
+                r.raise_for_status()
+                for line in r.iter_lines():
+                    if not line:
+                        continue
+                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                    if not line_str.startswith("data: "):
+                        continue
+                    try:
+                        event = json.loads(line_str[6:])
+                        author = event.get("author", "")
+                        if author and author not in seen_authors and author in _STATUS_MAP:
+                            seen_authors.add(author)
+                            yield json.dumps({"status": _STATUS_MAP[author]}) + "\n"
+                    except Exception:
+                        pass
+        except Exception as e:
+            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
+            return
+
+        yield json.dumps({"status": "done"}) + "\n"
+
+    resp = StreamingHttpResponse(stream(), content_type="application/x-ndjson")
+    resp['X-Accel-Buffering'] = 'no'
+    resp['Cache-Control'] = 'no-cache'
+    return resp
+
+
+@prototypes.post("/seed_ai/")
+def seed_prototype_ai(request, system_id: str):
+    """Stream seed-data generation via the ADK seed_agent."""
+    import uuid as _uuid
+
+    proto = Prototype.objects.filter(system__id=system_id).order_by('-id').first()
+    if not proto:
+        raise HttpError(404, "No prototype found for this system")
+
+    project_name = proto.name
+
+    def stream():
+        yield json.dumps({"status": "Connecting to seed agent..."}) + "\n"
+
+        user_id = system_id
+        session_id = str(_uuid.uuid4())
+        try:
+            resp = requests.post(
+                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
+                json={"state": {"system_id": system_id}},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            session_id = resp.json().get("id", session_id)
+        except Exception as e:
+            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+            return
+
+        prompt = f"system_id={system_id} project_name={project_name}"
+        yield json.dumps({"status": "Generating seed data..."}) + "\n"
+
+        try:
+            with requests.post(
+                f"{ADK_AGENT_URL}/run_sse",
+                json={
+                    "app_name": "app",
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
+                    "streaming": True,
+                },
+                stream=True,
+                timeout=300,
+            ) as r:
+                r.raise_for_status()
+                for line in r.iter_lines():
+                    if not line:
+                        continue
+                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                    if line_str.startswith("data: "):
+                        try:
+                            event = json.loads(line_str[6:])
+                            if event.get("author") == "seed_agent":
+                                yield json.dumps({"status": "Seeding..."}) + "\n"
+                        except Exception:
+                            pass
+        except Exception as e:
+            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
+            return
+
+        yield json.dumps({"status": "done", "message": "Seed data generated successfully."}) + "\n"
+
+    return StreamingHttpResponse(stream(), content_type="application/x-ndjson")
+
+
 class HotReloadPayload(Schema):
     interface_id: str
     sections: Optional[List[Any]] = None
@@ -204,7 +352,7 @@ class HotReloadPayload(Schema):
 @prototypes.post("/hot_reload/")
 def hot_reload_templates(request, payload: HotReloadPayload):
     from metadata.models import Interface
-    from model.llm.template_renderer import render_layout
+    from llm.template_renderer import render_layout
 
     # Fetch active prototype info
     try:

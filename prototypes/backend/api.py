@@ -9,6 +9,7 @@ import socket
 import signal
 import sys
 import jinja2
+import shutil
 
 app = Flask(__name__)
 
@@ -190,9 +191,15 @@ def generate_prototype():
     metadata = data.get('metadata')
     variant_id = data.get('variant_id', '1')
     try:
-        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id, check=True)
-    except subprocess.CalledProcessError:
-        return f"Failed to generate prototype, id={id}", 500
+        _run_generator(GENERATOR_PATH, id, system, name, metadata, variant_id,
+                       check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as e:
+        error_detail = (e.stderr or e.stdout or "no output captured")
+        failed_path = os.path.join(ROOT_DIR, system, name)
+        if os.path.isdir(failed_path):
+            shutil.rmtree(failed_path, ignore_errors=True)
+        app.logger.error(f"Generation failed for {name}:\n{error_detail}")
+        return f"Failed to generate prototype, id={id}\n{error_detail}", 500
 
     # TODO: this database retrieval should be done using ids
     if 'database_prototype_name' in data:
@@ -247,6 +254,49 @@ def seed_prototype_data():
     return result.stdout or 'Seeded OK', 200
 
 
+@app.route('/seed_script', methods=['POST'])
+def seed_with_script():
+    """Run a caller-supplied Python seed script in the active prototype's Django context."""
+    req_data     = request.json or {}
+    script       = req_data.get('script', '')
+    if not script:
+        return 'Missing script field', 400
+
+    system_id    = running_prototype.get('system') or req_data.get('system', '')
+    project_name = running_prototype.get('name')   or req_data.get('name', '')
+    if not system_id or not project_name:
+        return 'No prototype is running — start a prototype first, then seed', 400
+
+    proto_path = os.path.join(ROOT_DIR, system_id, project_name)
+    if not os.path.isdir(proto_path):
+        return f'Prototype directory not found: {proto_path}', 404
+
+    script_file = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False, dir='/tmp') as tmp:
+            tmp.write(script)
+            script_file = tmp.name
+
+        env = os.environ.copy()
+        env['PROTOTYPE_SYSTEM'] = system_id
+        env['PROTOTYPE_NAME']   = project_name
+        env['DJANGO_SETTINGS_MODULE'] = f'{project_name}.settings'
+
+        result = subprocess.run(
+            ['python', script_file],
+            capture_output=True, text=True, timeout=90, env=env,
+        )
+    finally:
+        if script_file and os.path.exists(script_file):
+            os.unlink(script_file)
+
+    if result.returncode != 0:
+        return result.stderr or 'Seed script failed', 500
+
+    _patch_autologin(proto_path, project_name)
+    return result.stdout or 'Seeded OK', 200
+
+
 def _patch_autologin(proto_path: str, project_name: str):
     AUTOLOGIN_VIEW = '''
 def autologin(request):
@@ -281,6 +331,14 @@ def autologin(request):
     with open(urls_path) as f:
         ucontent = f.read()
     if 'autologin' not in ucontent:
+        # Ensure the last path() entry before ] ends with a comma
+        import re as _re
+        ucontent = _re.sub(
+            r'(path\([^)]+\))\s*\n(\s*\])',
+            lambda m: m.group(1) + ',\n' + m.group(2)
+            if not m.group(1).rstrip().endswith(',') else m.group(0),
+            ucontent,
+        )
         ucontent = ucontent.replace(
             ']',
             "    path('autologin', views.autologin, name='autologin'),\n]",

@@ -17,6 +17,8 @@ import { Pages } from './Pages';
 import { Sections } from './Sections';
 import { Styling } from './Styling';
 import { Settings } from './Settings';
+import { PageRegions } from './PageRegions';
+import useLocalStorage from './useLocalStorage';
 
 
 type Props = {
@@ -25,9 +27,14 @@ type Props = {
 };
 
 const ShowInterface: React.FC<Props> = ({ app_comp }) => {
-    const { data, isSuccess } = useInterface(app_comp);
+    const { data, isSuccess, isLoading, isError, error } = useInterface(app_comp);
     const navigate = useNavigate();
     const { systemId } = useParams();
+    const [, setStyling] = useLocalStorage('styling', {});
+    const [, setCategories] = useLocalStorage('categories', []);
+    const [, setPages] = useLocalStorage('pages', []);
+    const [, setSections] = useLocalStorage('sections', []);
+    const [, setSettings] = useLocalStorage('settings', {});
     const [isSaving, setIsSaving] = useState(false);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
         if (typeof window === 'undefined') return false;
@@ -85,6 +92,26 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     };
 
     useEffect(() => {
+        if (!isSuccess || !data?.data) return;
+
+        let interfaceData = data.data as any;
+        if (typeof interfaceData === 'string') {
+            try {
+                interfaceData = JSON.parse(interfaceData);
+            } catch (error) {
+                console.error('Error parsing interface data:', error);
+                return;
+            }
+        }
+
+        setStyling(interfaceData.styling || {});
+        setCategories(interfaceData.categories || []);
+        setPages(interfaceData.pages || []);
+        setSections(interfaceData.sections || []);
+        setSettings(interfaceData.settings || {});
+    }, [data?.data, isSuccess]);
+
+    useEffect(() => {
         if (!autoSaveEnabled || !isSuccess) return;
 
         const watchedKeys = new Set(['styling', 'categories', 'pages', 'sections', 'settings']);
@@ -113,11 +140,33 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         };
     }, [autoSaveEnabled, handleSave, isSuccess]);
 
+    if (isLoading) {
+        return (
+            <div className="flex h-[240px] items-center justify-center text-sm text-gray-500">
+                Loading interface...
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                Could not load this interface: {(error as any)?.message || 'Unknown error'}
+            </div>
+        );
+    }
+
+    if (!isSuccess || !data) {
+        return (
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+                No interface data is available.
+            </div>
+        );
+    }
+
     return (
         <>
-            {isSuccess && (
-                <>
-                    <div className="flex items-center justify-between w-full gap-4">
+            <div className="flex items-center justify-between w-full gap-4">
                         <span>
                             <h3 className="text-xl font-bold">{data.name}</h3>
                             <span className='flex items-center gap-1'>
@@ -157,6 +206,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
                             <Tab>Pages</Tab>
+                            <Tab>Page Layout</Tab>
                             <Tab>Section Components</Tab>
                             <Tab>Styling</Tab>
                             <Tab>Settings</Tab>
@@ -174,17 +224,18 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Pages actorName = {data?.name}/>
                         </TabPanel>
                         <TabPanel value={4}>
-                            <Sections />
+                            <PageRegions />
                         </TabPanel>
                         <TabPanel value={5}>
-                            <Styling />
+                            <Sections />
                         </TabPanel>
                         <TabPanel value={6}>
+                            <Styling />
+                        </TabPanel>
+                        <TabPanel value={7}>
                             <Settings />
                         </TabPanel>
                     </Tabs>
-                </>
-            )}
         </>
     );
 };

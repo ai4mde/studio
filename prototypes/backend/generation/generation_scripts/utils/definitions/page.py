@@ -17,7 +17,6 @@ class Page():
             section_components: List[SectionComponent],
             layout: str = 'vertical',
             gap: str = 'normal',
-            single_record: bool = False,
     ):
         self.name = page_name_sanitization(name)
         self.display_name = name
@@ -29,7 +28,6 @@ class Page():
         self.section_components = section_components
         self.layout = layout
         self.gap = gap
-        self.single_record = single_record
 
     def __str__(self):
         return self.name
