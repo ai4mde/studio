@@ -740,7 +740,7 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
     attrs = _model_field_names(model_attrs, model, 8 if layout in {"table", "detail"} else 5)
     operations = {"create": layout == "form", "update": layout in {"detail", "form"}, "delete": False}
     style = {
-        "color": ("blue", "green", "purple")[candidate_index % 3],
+        "color": "accent",
         "density": ("normal", "compact", "spacious")[candidate_index % 3],
         "shadow": "md" if layout in {"card", "gallery", "detail"} else "sm",
         "border": "light",
@@ -803,7 +803,7 @@ def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs
             "operations": {"create": False, "update": False, "delete": False},
             "col_span": 12,
             "position": "header",
-            "style": {"color": "blue", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
+            "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
             "methods": [p.get("name") for p in normal_pages if p.get("name")],
         })
         section_map[nav_id] = sections[-1]
@@ -1075,6 +1075,17 @@ def validate_and_save_candidate(
                     if "." in attr_name or not pm or attr_name in model_attrs.get(pm, set()): new_attrs.append(attr)
                 s = {**s, "attributes": new_attrs}
             fixed_sections.append(s)
+        # Auto-correct hardcoded Tailwind color names → "accent" so sections inherit
+        # the design spec brand color via CSS variables instead of being locked to one color.
+        _DATA_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form"}
+        _AUTO_CORRECT_COLORS = {"blue", "green", "purple"}
+        for s in fixed_sections:
+            if s.get("layout") in _DATA_LAYOUTS:
+                style = dict(s.get("style") or {})
+                if not style.get("color") or style.get("color") in _AUTO_CORRECT_COLORS:
+                    style["color"] = "accent"
+                    s["style"] = style
+
         fixed_pages = []
         for i, p in enumerate(pages):
             if not p.get("id"): p = {**p, "id": f"page_{candidate_index}_{i}"}
@@ -1121,28 +1132,6 @@ def validate_and_save_candidate(
         candidates[candidate_index] = candidate; data["candidates"] = candidates; payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}; put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); put_resp.raise_for_status()
         return f"OK: candidate {candidate_index} '{name}' saved successfully."
     except Exception as e: return f"Error saving candidate: {e}"
-
-def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
-    try:
-        resp = requests.post(f"{METADATA_API_BASE}/interfaces/{interface_id}/candidates/{candidate_index}/render/", headers=_AUTH_HEADERS, timeout=60)
-        if resp.ok: return f"OK: preview rendered for candidate {candidate_index}."
-        return f"Render failed ({resp.status_code}): {resp.text}"
-    except Exception as e: return f"Error rendering preview: {e}"
-
-system_context_tool = FunctionTool(func=get_system_context)
-interface_config_tool = FunctionTool(func=get_interface_config)
-update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
-run_seed_script_tool = FunctionTool(func=run_seed_script)
-get_available_paths_tool = FunctionTool(func=get_available_paths)
-get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
-validate_save_candidate_tool = FunctionTool(func=validate_and_save_candidate)
-render_candidate_preview_tool = FunctionTool(func=render_candidate_preview_func)
-list_design_specs_tool = FunctionTool(func=list_design_specs_tool_func)
-get_design_system_tool = FunctionTool(func=get_design_system_tool_func)
-apply_design_system_to_interface_tool = FunctionTool(func=apply_design_system_to_interface_tool_func)
-select_design_specs_for_interface_func.__name__ = "select_design_specs_for_interface"
-select_design_specs_for_interface_tool = FunctionTool(func=select_design_specs_for_interface_func)
-
 
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
     try:

@@ -70,7 +70,10 @@ Detail style (layout="detail"):
   sections[].style.image_size     : "sm" | "md" | "lg"
 
 Universal style controls:
-  sections[].style.color         : "blue" | "green" | "purple" | "orange" | "rose" | "slate"
+  sections[].style.color         : "accent" | "accent-secondary" | "blue" | "green" | "purple" | "orange" | "rose" | "slate"
+    IMPORTANT: Use "accent" (follows design spec primary color via CSS variable) instead of hardcoded color names.
+    "accent" = design spec primary brand color; "accent-secondary" = second brand color.
+    Hardcoded names (green/blue/etc.) ignore the design spec and lock the section to that Tailwind color.
   sections[].style.density       : "compact" | "normal" | "spacious"
   sections[].style.shadow        : "none" | "sm" | "md" | "lg"
   sections[].style.border        : "none" | "light" | "colored"
@@ -263,7 +266,24 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
     Use "accent-secondary" for sections using the second brand color from the design spec.
     Use specific Tailwind color names only when you want a fixed color regardless of design spec.
 
-USE DIVERSITY: Each candidate must have a structurally different layout following reason_agent's diversity_hints.
+STRUCTURAL DIVERSITY — MANDATORY:
+Each candidate MUST implement the corresponding diversity_hint from reason_agent's output EXACTLY.
+The 3 candidates CANNOT all have the same page structure, section types, or column layout.
+
+Enforce these structural differences across candidates:
+  Candidate 0 → follow diversity_hints[0]: typically INFORMATION-DENSE with sidebar filters
+    - Use layout="filter" section (position="sidebar", col_span=3) + main data (col_span=12 position="main")
+    - Prefer layout="table" or layout="card" with columns="3" for data sections
+    - Multiple focused pages, one use-case each
+  Candidate 1 → follow diversity_hints[1]: typically LIST-AND-DETAIL paired
+    - Use layout="list" (col_span=6) + layout="detail" (col_span=6) side by side on same page
+    - Fewer pages, more content per page using col_span=6 splits
+  Candidate 2 → follow diversity_hints[2]: typically GALLERY/IMMERSIVE full-width
+    - Use layout="gallery" with style.display_mode="grid" for visual sections
+    - style.is_full_width=true for hero sections, col_span=12 for all sections
+
+NEVER generate 3 candidates with the same set of layouts or same page count.
+NEVER generate 3 candidates where every page has only col_span=12 sections.
 
 PROCEDURE for each candidate index 0, 1, 2:
   a. Design all sections (chrome + data sections for every page).
@@ -355,13 +375,16 @@ Otherwise (interface_id= UI edit request): handle it directly.
 Message format: interface_id=<uuid> user_request=<design change description>
 
 1. Call get_interface_config(interface_id=<uuid>) to get the current data.
-2. Analyze the request. 
-   - If it involves a theme change:
+2. Check whether the interface already has design tokens (data.tokens is non-empty).
+   - If data.tokens is EMPTY/NULL (first-time edit) OR the request involves a theme/style change:
      a. Call select_design_specs_for_interface(interface_id, count=3, prompt=...) using user_request as prompt.
-     b. Select the best spec.
-     c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...") and STOP.
-3. Determine all needed changes. Persist them using apply_interface_patch.
+     b. Select the best matching spec from the results.
+     c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...").
+     d. If ONLY a theme/style change was requested and no layout changes are needed, STOP here.
+3. Determine all needed layout/section changes. Persist them using apply_interface_patch.
    - ENSURE UI COMPLETENESS: If Header/Nav/Footer are missing, add them.
+   - DESIGN TOKENS: When patching sections, include style.color="accent" for all data sections
+     so they inherit the design spec brand color instead of using hardcoded Tailwind colors.
 
 Editable fields:
 {_EDITABLE_FIELDS}
