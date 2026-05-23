@@ -84,6 +84,7 @@ services:
       - SESSION_SERVICE_URI=memory://
     volumes:
       - ./api/model/gemini-make-agent/app:/code/app:ro
+      - ./api/model/gemini-make-agent/candidate_app:/code/candidate_app:ro
       - ./design_specs:/design_specs:ro
     networks:
       - ai4mde_traefik
