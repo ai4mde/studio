@@ -232,7 +232,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 %}
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 or (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
@@ -328,6 +328,14 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endif -%}
         {% endif -%}
         {% endfor -%}
+        {%- set _has_wf_sections = (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
+        {% if _has_wf_sections -%}
+        context['available_processes'] = Process.get_available_processes(self.request.user)
+        context['active_process_nodes'] = ActiveProcessNode.objects.filter(
+            user=self.request.user,
+            active_process__completed=False,
+        )
+        {% endif -%}
         return context
 
 {% endif -%}

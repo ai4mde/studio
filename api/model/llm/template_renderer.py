@@ -108,6 +108,47 @@ class _SectionComponent:
         return self.name
 
 
+def _make_activity_start_section(s_raw: dict = None) -> "_SectionComponent":
+    s = s_raw or {}
+    return _SectionComponent(
+        id=s.get("id", "activity-start"),
+        name="activity_start",
+        display_name=s.get("name") or s.get("label") or "Start a Process",
+        primary_model="", parent_models=[], attributes=[],
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        text="",
+        col_span=int(s.get("col_span", 12)),
+        position=s.get("position", "main"),
+        style={
+            "card_style": (s.get("style") or {}).get("card_style", "elevated"),
+            "columns": str((s.get("style") or {}).get("columns", "3")),
+            "align": (s.get("style") or {}).get("align", "left"),
+        },
+        component_type="activity_start",
+        label=s.get("label") or s.get("name") or "Start a Process",
+    )
+
+
+def _make_activity_tasks_section(s_raw: dict = None) -> "_SectionComponent":
+    s = s_raw or {}
+    return _SectionComponent(
+        id=s.get("id", "activity-tasks"),
+        name="activity_tasks",
+        display_name=s.get("name") or s.get("label") or "My Tasks",
+        primary_model="", parent_models=[], attributes=[],
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        text="",
+        col_span=int(s.get("col_span", 12)),
+        position=s.get("position", "main"),
+        style={
+            "card_style": (s.get("style") or {}).get("card_style", "elevated"),
+            "columns": str((s.get("style") or {}).get("columns", "3")),
+        },
+        component_type="activity_tasks",
+        label=s.get("label") or s.get("name") or "My Tasks",
+    )
+
+
 def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionComponent":
     s = s_raw or {}
     raw_style = s.get("style") or {}
@@ -251,12 +292,13 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
     sections_raw = interface_data.get("sections", [])
     section_by_id: Dict[str, Dict] = {s["id"]: s for s in sections_raw}
+    _activity_section_types = {"activity_action", "activity_start", "activity_tasks"}
     layout_region_section_ids = [
         str(s.get("id"))
         for s in sections_raw
         if s.get("id") and s.get("position") in ("header", "footer", "sidebar")
-        and s.get("type") != "activity_action"
-        and s.get("layout") != "activity_action"
+        and s.get("type") not in _activity_section_types
+        and s.get("layout") not in _activity_section_types
     ]
 
     app_name = _sanitize(interface_name)
@@ -289,6 +331,16 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     label=s_raw.get("label") or s_raw.get("name", ""),
                     s_raw=s_raw,
                 ))
+                continue
+
+            # activity_start section — show available processes to start
+            if s_raw.get("type") == "activity_start" or s_raw.get("layout") == "activity_start":
+                section_components.append(_make_activity_start_section(s_raw=s_raw))
+                continue
+
+            # activity_tasks section — show active tasks to complete
+            if s_raw.get("type") == "activity_tasks" or s_raw.get("layout") == "activity_tasks":
+                section_components.append(_make_activity_tasks_section(s_raw=s_raw))
                 continue
 
             cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
@@ -381,6 +433,13 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             section_components.append(_make_activity_action_section(
                 label=activity_name or p_raw.get("name", "Complete"),
             ))
+
+        # Auto-inject activity_start + activity_tasks sections on start-type pages
+        if page_type == "start":
+            if not any(s.component_type == "activity_start" for s in section_components):
+                section_components.insert(0, _make_activity_start_section())
+            if not any(s.component_type == "activity_tasks" for s in section_components):
+                section_components.append(_make_activity_tasks_section())
 
         pages.append(_Page(
             name=_sanitize(p_raw.get("name", "")),

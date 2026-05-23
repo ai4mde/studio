@@ -644,6 +644,88 @@
   </div>
 {%- endif %}
 </div>
+{%- elif section_component.component_type == 'activity_start' %}
+{#-- activity_start: show processes the user can start --#}
+{%- set _as_cols = (section_component.style.get('columns', '3') | int) %}
+{%- set _as_card = section_component.style.get('card_style', 'elevated') %}
+{%- set _as_col_class = 'grid-cols-1' if _as_cols == 1 else ('grid-cols-2' if _as_cols == 2 else ('grid-cols-3' if _as_cols == 3 else 'grid-cols-4')) %}
+{%- set _as_card_cls = 'bg-white rounded-xl shadow-md p-5' if _as_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _as_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
+{%- if preview_mode %}
+  {%- set _as_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
+  {%- if _as_pages %}
+  <div class="grid {{ _as_col_class }} gap-4">
+    {%- for _asp in _as_pages %}
+    <div class="{{ _as_card_cls }}">
+      <div class="font-medium text-gray-800 mb-3">{{ _asp.display_name }}</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _asp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- else %}
+  <p class="text-gray-400 text-sm italic">No activity pages defined.</p>
+  {%- endif %}
+{%- else %}
+  {% raw %}{% if available_processes %}{% endraw %}
+  <div class="grid {{ _as_col_class }} gap-4">
+    {% raw %}{% for process in available_processes %}{% endraw %}
+    <div class="{{ _as_card_cls }}">
+      <div class="font-medium text-gray-800 mb-3">{% raw %}{{ process.name }}{% endraw %}</div>
+      <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
+        {% raw %}{% csrf_token %}{% endraw %}
+        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+      </form>
+    </div>
+    {% raw %}{% endfor %}{% endraw %}
+  </div>
+  {% raw %}{% else %}{% endraw %}
+  <p class="text-gray-400 text-sm italic">No processes available.</p>
+  {% raw %}{% endif %}{% endraw %}
+{%- endif %}
+</div>
+{%- elif section_component.component_type == 'activity_tasks' %}
+{#-- activity_tasks: show active tasks to complete --#}
+{%- set _at_cols = (section_component.style.get('columns', '3') | int) %}
+{%- set _at_card = section_component.style.get('card_style', 'elevated') %}
+{%- set _at_col_class = 'grid-cols-1' if _at_cols == 1 else ('grid-cols-2' if _at_cols == 2 else ('grid-cols-3' if _at_cols == 3 else 'grid-cols-4')) %}
+{%- set _at_card_cls = 'bg-white rounded-xl shadow-md p-5' if _at_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _at_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks">
+  <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
+{%- if preview_mode %}
+  {%- set _at_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
+  {%- if _at_pages %}
+  <div class="grid {{ _at_col_class }} gap-4">
+    {%- for _atp in _at_pages %}
+    <div class="{{ _at_card_cls }}">
+      <div class="font-medium text-gray-800">{{ _atp.display_name }}</div>
+      <div class="text-sm text-gray-500 mb-3">Step 1 · In progress</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _atp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- else %}
+  <p class="text-gray-400 text-sm italic">No tasks in progress.</p>
+  {%- endif %}
+{%- else %}
+  {% raw %}{% if active_process_nodes %}{% endraw %}
+  <div class="grid {{ _at_col_class }} gap-4">
+    {% raw %}{% for active_process_node in active_process_nodes %}{% endraw %}
+    <div class="{{ _at_card_cls }}">
+      <div class="font-medium text-gray-800">{% raw %}{{ active_process_node.active_process.process.name }}{% endraw %}</div>
+      <div class="text-sm text-gray-500 mb-3">{% raw %}{{ active_process_node.action_node.name }}{% endraw %}</div>
+      <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:redirect_to_process' active_process_node.id {% raw %}%}{% endraw %}">
+        {% raw %}{% csrf_token %}{% endraw %}
+        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
+      </form>
+    </div>
+    {% raw %}{% endfor %}{% endraw %}
+  </div>
+  {% raw %}{% else %}{% endraw %}
+  <p class="text-gray-400 text-sm italic">You have no ongoing tasks.</p>
+  {% raw %}{% endif %}{% endraw %}
+{%- endif %}
+</div>
 {%- else %}
 {# â”€â”€ Resolve per-section style â”€â”€ #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
