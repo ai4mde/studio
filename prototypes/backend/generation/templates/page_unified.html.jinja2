@@ -9,54 +9,101 @@
   {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
   <style>
     :root {
-      /* Base Tokens */
-      --radius: {{ tokens.get('page.radius.px', '8') }}px;
-      --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
-      
-      /* Colors */
-      --accent: {{ tokens.get('accent.hex', '#2563eb') }};
-      --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
-      --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --region-header-bg: {{ tokens.get('region.header.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
-      --region-header-text: {{ tokens.get('region.header.text_hex', '#ffffff') }};
-      --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
-      --region-main-bg-elevated: {{ tokens.get('region.main.bg_elevated_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
-      --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
-      --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
-      --region-footer-text: {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
-      --border-color: {{ tokens.get('region.border_hex', '#e5e7eb') }};
-      
-      /* Deep Typography Scales */
-      --text-hero-size: {{ tokens.get('typography.hero.size', '56px') }};
-      --text-hero-weight: {{ tokens.get('typography.hero.weight', '600') }};
-      --text-hero-lh: {{ tokens.get('typography.hero.line_height', '1.1') }};
-      --text-hero-ls: {{ tokens.get('typography.hero.letter_spacing', '-0.02em') }};
-
-      --text-display-size: {{ tokens.get('typography.display.size', tokens.get('typography.display-lg.size', '40px')) }};
-      --text-display-weight: {{ tokens.get('typography.display.weight', tokens.get('typography.display-lg.weight', '600')) }};
-      --text-display-lh: {{ tokens.get('typography.display.line_height', tokens.get('typography.display-lg.line_height', '1.2')) }};
-      --text-display-ls: {{ tokens.get('typography.display.letter_spacing', tokens.get('typography.display-lg.letter_spacing', '0')) }};
-
-      --text-lead-size: {{ tokens.get('typography.lead.size', '24px') }};
-      --text-lead-weight: {{ tokens.get('typography.lead.weight', '400') }};
-      --text-lead-lh: {{ tokens.get('typography.lead.line_height', '1.5') }};
-
-      --text-body-size: {{ tokens.get('typography.body.size', '16px') }};
-      --text-body-weight: {{ tokens.get('typography.body.weight', '400') }};
-      --text-body-lh: {{ tokens.get('typography.body.line_height', '1.6') }};
-      
-      /* Component Specifics */
-      --card-bg: {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
-      --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
-      --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+      /* ── Radius ── */
+      --radius:    {{ tokens.get('page.radius.px', '8') }}px;
+      --radius-sm: {{ tokens.get('radius.sm.px', '4') }}px;
+      --radius-lg: {{ tokens.get('radius.lg.px', '12') }}px;
+      --radius-full: {{ tokens.get('radius.full.px', '9999') }}px;
       --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
-      --button-primary-bg: var(--accent);
-      --button-primary-text: #ffffff;
-      --input-bg: var(--region-main-bg);
+      --input-radius: {{ tokens.get('input.radius.px', tokens.get('page.radius.px', '8')) }}px;
+
+      /* ── Typography ── */
+      --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
+      --text-hero-size:     {{ tokens.get('typography.hero.size', '56px') }};
+      --text-hero-weight:   {{ tokens.get('typography.hero.weight', '600') }};
+      --text-hero-lh:       {{ tokens.get('typography.hero.line_height', '1.1') }};
+      --text-hero-ls:       {{ tokens.get('typography.hero.letter_spacing', '-0.02em') }};
+      --text-display-size:  {{ tokens.get('typography.display.size', tokens.get('typography.display-lg.size', '40px')) }};
+      --text-display-weight:{{ tokens.get('typography.display.weight', tokens.get('typography.display-lg.weight', '600')) }};
+      --text-display-lh:    {{ tokens.get('typography.display.line_height', tokens.get('typography.display-lg.line_height', '1.2')) }};
+      --text-display-ls:    {{ tokens.get('typography.display.letter_spacing', tokens.get('typography.display-lg.letter_spacing', '0')) }};
+      --text-title-size:    {{ tokens.get('typography.title-md.size', tokens.get('typography.lead.size', '20px')) }};
+      --text-title-weight:  {{ tokens.get('typography.title-md.weight', '600') }};
+      --text-lead-size:     {{ tokens.get('typography.lead.size', '18px') }};
+      --text-lead-weight:   {{ tokens.get('typography.lead.weight', '400') }};
+      --text-lead-lh:       {{ tokens.get('typography.lead.line_height', '1.5') }};
+      --text-body-size:     {{ tokens.get('typography.body.size', tokens.get('typography.body-md.size', '16px')) }};
+      --text-body-weight:   {{ tokens.get('typography.body.weight', tokens.get('typography.body-md.weight', '400')) }};
+      --text-body-lh:       {{ tokens.get('typography.body.line_height', tokens.get('typography.body-md.line_height', '1.6')) }};
+      --text-caption-size:  {{ tokens.get('typography.caption.size', tokens.get('typography.caption-sm.size', '12px')) }};
+      --text-label-size:    {{ tokens.get('typography.label.size', '14px') }};
+      --text-label-weight:  {{ tokens.get('typography.label.weight', '500') }};
+
+      /* ── Page & Region Colors ── */
+      --accent:               {{ tokens.get('accent.hex', '#2563eb') }};
+      --accent-secondary:     {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
+      --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --page-text:            {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --text-muted:           {{ tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280')) }};
+      --text-subtle:          {{ tokens.get('text.subtle.hex', tokens.get('color.text.subtle_hex', '#9ca3af')) }};
+      --region-header-bg:     {{ tokens.get('region.header.bg_hex', tokens.get('accent.hex', '#2563eb')) }};
+      --region-header-text:   {{ tokens.get('region.header.text_hex', '#ffffff') }};
+      --region-main-bg:       {{ tokens.get('region.main.bg_hex', '#ffffff') }};
+      --region-main-bg-elevated: {{ tokens.get('region.main.bg_elevated_hex', tokens.get('surface.2.hex', tokens.get('region.main.bg_hex', '#ffffff'))) }};
+      --region-main-bg-sunken: {{ tokens.get('region.main.bg_sunken_hex', tokens.get('surface.3.hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
+      --region-sidebar-bg:    {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
+      --region-footer-bg:     {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --region-footer-text:   {{ tokens.get('region.footer.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
+      --border-color:         {{ tokens.get('region.border_hex', tokens.get('border.default.hex', '#e5e7eb')) }};
+      --border-strong:        {{ tokens.get('border.strong.hex', tokens.get('region.border_strong_hex', '#d1d5db')) }};
+
+      /* ── Shadows ── */
+      --shadow-sm: {{ tokens.get('shadow.sm', '0 1px 2px 0 rgb(0 0 0 / 0.05)') }};
+      --shadow-md: {{ tokens.get('shadow.md', '0 4px 6px -1px rgb(0 0 0 / 0.10)') }};
+      --shadow-lg: {{ tokens.get('shadow.lg', '0 10px 15px -3px rgb(0 0 0 / 0.10)') }};
+
+      /* ── Card ── */
+      --card-bg:     {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
+      --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
+      --card-shadow: {{ tokens.get('component.card.shadow', 'var(--shadow-sm)') }};
+
+      /* ── Buttons ── */
+      --button-primary-bg:      {{ tokens.get('button.primary.bg_hex', 'var(--accent)') }};
+      --button-primary-text:    {{ tokens.get('button.primary.text_hex', '#ffffff') }};
+      --button-primary-border:  {{ tokens.get('button.primary.border_hex', 'var(--accent)') }};
+      --button-secondary-bg:    {{ tokens.get('button.secondary.bg_hex', 'var(--region-main-bg)') }};
+      --button-secondary-text:  {{ tokens.get('button.secondary.text_hex', 'var(--page-text)') }};
+      --button-secondary-border:{{ tokens.get('button.secondary.border_hex', 'var(--border-strong)') }};
+      --button-ghost-text:      {{ tokens.get('button.ghost.text_hex', 'var(--accent)') }};
+      --button-danger-bg:       {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
+      --button-danger-text:     {{ tokens.get('button.danger.text_hex', '#ffffff') }};
+
+      /* ── Inputs ── */
+      --input-bg:           {{ tokens.get('input.bg_hex', 'var(--region-main-bg)') }};
+      --input-border:       {{ tokens.get('input.border_hex', 'var(--border-color)') }};
+      --input-border-focus: {{ tokens.get('input.border_focus_hex', 'var(--accent)') }};
+      --input-text:         {{ tokens.get('input.text_hex', 'var(--page-text)') }};
+      --input-placeholder:  {{ tokens.get('input.placeholder_hex', 'var(--text-subtle)') }};
+
+      /* ── Table ── */
+      --table-header-bg:   {{ tokens.get('table.header.bg_hex', 'var(--region-main-bg-sunken)') }};
+      --table-header-text: {{ tokens.get('table.header.text_hex', 'var(--text-muted)') }};
+      --table-row-hover:   {{ tokens.get('table.row.hover_hex', 'var(--region-main-bg-sunken)') }};
+      --table-border:      {{ tokens.get('table.border_hex', 'var(--border-color)') }};
+
+      /* ── Semantic Badge Colors ── */
+      --badge-success-bg:  {{ tokens.get('badge.success.bg_hex', '#16a34a') }};
+      --badge-success-text:{{ tokens.get('badge.success.text_hex', '#ffffff') }};
+      --badge-error-bg:    {{ tokens.get('badge.error.bg_hex', '#dc2626') }};
+      --badge-error-text:  {{ tokens.get('badge.error.text_hex', '#ffffff') }};
+      --badge-warning-bg:  {{ tokens.get('badge.warning.bg_hex', '#d97706') }};
+      --badge-warning-text:{{ tokens.get('badge.warning.text_hex', '#ffffff') }};
+      --badge-neutral-bg:  {{ tokens.get('badge.neutral.bg_hex', 'var(--region-main-bg-sunken)') }};
+      --badge-neutral-text:{{ tokens.get('badge.neutral.text_hex', 'var(--text-muted)') }};
     }
 
-    body { 
-      font-family: var(--font-family); 
+    body {
+      font-family: var(--font-family);
       background-color: var(--page-bg);
       color: var(--page-text);
       line-height: var(--text-body-lh);
@@ -64,49 +111,110 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* High-Fidelity Typography Classes */
-    .si-text-hero { font-size: var(--text-hero-size); font-weight: var(--text-hero-weight); line-height: var(--text-hero-lh); letter-spacing: var(--text-hero-ls); }
+    /* ── Typography Classes ── */
+    .si-text-hero    { font-size: var(--text-hero-size);    font-weight: var(--text-hero-weight);    line-height: var(--text-hero-lh);    letter-spacing: var(--text-hero-ls); }
     .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
-    .si-text-lead { font-size: var(--text-lead-size); font-weight: var(--text-lead-weight); line-height: var(--text-lead-lh); }
-    .si-text-body { font-size: var(--text-body-size); font-weight: var(--text-body-weight); line-height: var(--text-body-lh); }
-    .si-text-caption { font-size: 14px; opacity: 0.8; }
+    .si-text-title   { font-size: var(--text-title-size);   font-weight: var(--text-title-weight); }
+    .si-text-lead    { font-size: var(--text-lead-size);    font-weight: var(--text-lead-weight);    line-height: var(--text-lead-lh); }
+    .si-text-body    { font-size: var(--text-body-size);    font-weight: var(--text-body-weight);    line-height: var(--text-body-lh); }
+    .si-text-caption { font-size: var(--text-caption-size); color: var(--text-muted); }
+    .si-text-label   { font-size: var(--text-label-size);   font-weight: var(--text-label-weight); }
+    .si-text-muted   { color: var(--text-muted); }
+    .si-text-subtle  { color: var(--text-subtle); }
 
-    /* Layout Utility Classes */
-    .si-container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
-    .si-container-full { max-width: 100% !important; padding: 0 !important; }
-    .si-sticky-top { position: sticky; top: 0; z-index: 40; }
-    .si-divider { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
-    
-    /* Atomic UI Utility Overrides */
-    .si-card { 
+    /* ── Layout Utilities ── */
+    .si-container     { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+    .si-container-full{ max-width: 100% !important; padding: 0 !important; }
+    .si-sticky-top    { position: sticky; top: 0; z-index: 40; }
+    .si-divider       { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
+
+    /* ── Cards ── */
+    .si-card {
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius); 
+      border-radius: var(--radius);
       box-shadow: var(--card-shadow);
       overflow: hidden;
     }
-    .si-card-elevated { background-color: var(--region-main-bg-elevated); }
-    .si-btn { border-radius: var(--btn-radius); border-color: transparent; }
-    .si-btn-primary {
-      background-color: var(--button-primary-bg) !important;
-      color: var(--button-primary-text) !important;
+    .si-card-elevated { background-color: var(--region-main-bg-elevated); box-shadow: var(--shadow-md); }
+    .si-card-sunken   { background-color: var(--region-main-bg-sunken); }
+
+    /* ── Buttons ── */
+    .si-btn         { border-radius: var(--btn-radius); border-color: transparent; cursor: pointer; }
+    .si-btn-primary { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+    .si-btn-primary:hover { opacity: 0.9; }
+    .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
+    .si-btn-ghost { background: transparent !important; color: var(--button-ghost-text) !important; border-color: transparent !important; }
+    .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
+    .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
+
+    /* ── Accent color classes (follow design spec primary color) ── */
+    .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }
+    .si-accent-btn:hover  { opacity: 0.9; }
+    .si-accent-text       { color: var(--accent); }
+    .si-accent-border     { border-color: var(--accent); }
+    .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
+
+    /* ── Inputs ── */
+    .si-input {
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: var(--input-radius);
+      color: var(--input-text);
+      font-size: var(--text-body-size);
     }
-    /* Accent color classes — driven by design spec --accent CSS variable */
-    .si-accent-btn { background-color: var(--accent); }
-    .si-accent-btn:hover { opacity: 0.9; }
-    .si-accent-text { color: var(--accent); }
-    .si-accent-border { border-color: var(--accent); }
-    .si-accent-bg-light { background-color: color-mix(in srgb, var(--accent) 10%, white); }
-    
+    .si-input:focus { outline: none; border-color: var(--input-border-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+    .si-input::placeholder { color: var(--input-placeholder); }
+    .si-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); color: var(--page-text); }
+
+    /* ── Tables ── */
+    .si-table-header { background-color: var(--table-header-bg); color: var(--table-header-text); font-size: var(--text-caption-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .si-table-row    { border-bottom: 1px solid var(--table-border); }
+    .si-table-row:hover { background-color: var(--table-row-hover); }
+
+    /* ── Badges ── */
+    .si-badge         { display: inline-flex; align-items: center; border-radius: var(--radius-full); padding: 2px 8px; font-size: var(--text-caption-size); font-weight: 600; }
+    .si-badge-success { background-color: var(--badge-success-bg); color: var(--badge-success-text); }
+    .si-badge-error   { background-color: var(--badge-error-bg);   color: var(--badge-error-text); }
+    .si-badge-warning { background-color: var(--badge-warning-bg); color: var(--badge-warning-text); }
+    .si-badge-neutral { background-color: var(--badge-neutral-bg); color: var(--badge-neutral-text); }
+
+    /* ── Override hardcoded Tailwind colors with design spec tokens ── */
+    /* Border colors */
+    .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
+    .border-gray-300, .border-gray-400 { border-color: var(--border-strong) !important; }
+    /* Background surfaces */
+    .bg-gray-50  { background-color: var(--region-main-bg-sunken) !important; }
+    .bg-gray-100 { background-color: var(--region-main-bg-sunken) !important; }
+    .bg-gray-200 { background-color: var(--border-color) !important; }
+    .bg-white    { background-color: var(--region-main-bg) !important; }
+    /* Text colors */
+    .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
+    .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
+    .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
+    /* Border radius — follow design spec radius */
+    .rounded-xl  { border-radius: var(--radius-lg) !important; }
+    .rounded-lg  { border-radius: var(--radius) !important; }
+    .rounded-md  { border-radius: var(--radius-sm) !important; }
+    .rounded-2xl { border-radius: var(--radius-lg) !important; }
+    /* Shadows — follow design spec shadow tokens */
+    .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+    .shadow-md { box-shadow: var(--shadow-md) !important; }
+    .shadow-lg { box-shadow: var(--shadow-lg) !important; }
+
+    /* ── Card Hover Effects ── */
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
-    .si-card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
     {%- elif tokens.get('theme.card.hover', 'lift') == 'glow' %}
     .si-card-hover { transition: box-shadow 0.2s; }
-    .si-card-hover:hover { box-shadow: 0 0 0 3px var(--accent)33; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+    {%- elif tokens.get('theme.card.hover', 'lift') == 'border' %}
+    .si-card-hover { transition: border-color 0.15s; }
+    .si-card-hover:hover { border-color: var(--accent) !important; }
     {%- endif %}
 
-    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: #f3f4f6; }
+    .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
   </style>
   <title>{{ page.display_name }}</title>
 </head>
@@ -206,7 +314,7 @@
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
     <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
@@ -238,7 +346,7 @@
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
   <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
     <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
@@ -305,7 +413,7 @@
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
   <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
     <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
@@ -1129,21 +1237,21 @@
       <thead>
         <tr>
           {% for attribute in section_component.attributes %}
-          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
+          <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
-          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
+          <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
           {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
-          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
+          <th class="si-table-header {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100 bg-white">
+      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
         {%- for _mock_row in range(section_mock_rows) %}
-        <tr class="hover:bg-gray-50 transition-colors" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+        <tr class="si-table-row transition-colors" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
           {%- for attribute in section_component.attributes %}
-          <td class="px-4 py-3 {{ d.text }} text-gray-700">
+          <td class="px-4 py-3 {{ d.text }}" style="color:var(--page-text)">
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}

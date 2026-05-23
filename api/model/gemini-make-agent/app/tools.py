@@ -116,24 +116,46 @@ def _parse_design_md_to_tokens(content: str) -> dict:
     colors = _yaml_block_values(content, "colors")
     typography_objs = _yaml_block_objects(content, "typography")
     rounded = _yaml_block_values(content, "rounded")
+    spacing = _yaml_block_values(content, "spacing")
+    shadows = _yaml_block_values(content, "shadows") or _yaml_block_values(content, "elevation")
 
-    # Base Colors
+    # ── Base Colors ──────────────────────────────────────────────────────────
     primary = _first_token_value(colors, ["primary", "accent", "accent-blue", "text-link", "product-terraform"], "#2563eb")
     canvas = _first_token_value(colors, ["canvas", "background", "page", "canvas-soft"], "#f9fafb")
     surface = _first_token_value(colors, ["surface-card", "surface-1", "surface", "canvas", "surface-soft-light"], "#ffffff")
     surface_2 = _first_token_value(colors, ["surface-2", "surface-tile-1", "surface-pearl"], surface)
-    border = _first_token_value(colors, ["hairline", "hairline-strong", "border", "surface-3"], "#e5e7eb")
-    text = _first_token_value(colors, ["ink", "body-strong", "text", "body", "on-primary"], "#111827")
+    surface_3 = _first_token_value(colors, ["surface-3", "surface-strong", "surface-tile-2"], surface_2)
+    border = _first_token_value(colors, ["hairline", "hairline-strong", "border", "surface-3", "border-subtle"], "#e5e7eb")
+    border_strong = _first_token_value(colors, ["border-strong", "hairline-strong", "border-emphasis"], border)
+    text = _first_token_value(colors, ["ink", "body-strong", "text", "body", "foreground"], "#111827")
+    text_muted = _first_token_value(colors, ["muted", "body", "text-secondary", "foreground-muted", "muted-soft"], "#6b7280")
+    text_subtle = _first_token_value(colors, ["muted-soft", "text-tertiary", "foreground-subtle", "placeholder"], "#9ca3af")
+
+    # ── Semantic Colors ───────────────────────────────────────────────────────
+    color_success = _first_token_value(colors, ["success", "positive", "green", "status-success"], "#16a34a")
+    color_error = _first_token_value(colors, ["error", "danger", "negative", "destructive", "status-error"], "#dc2626")
+    color_warning = _first_token_value(colors, ["warning", "caution", "status-warning"], "#d97706")
+    color_info = _first_token_value(colors, ["info", "informational", "status-info"], primary)
+    color_secondary = _first_token_value(colors, ["secondary", "accent-2", "brand-secondary", "plus", "luxe"], primary)
 
     tokens["accent.hex"] = primary
+    tokens["color.secondary.hex"] = color_secondary
+    tokens["color.success.hex"] = color_success
+    tokens["color.error.hex"] = color_error
+    tokens["color.warning.hex"] = color_warning
+    tokens["color.info.hex"] = color_info
     tokens["page.body.bg_hex"] = canvas
     tokens["region.main.bg_hex"] = surface
     tokens["region.main.bg_elevated_hex"] = surface_2
+    tokens["region.main.bg_sunken_hex"] = surface_3
     tokens["region.border_hex"] = border
+    tokens["region.border_strong_hex"] = border_strong
     tokens["page.body.text_hex"] = text
+    tokens["color.text.muted_hex"] = text_muted
+    tokens["color.text.subtle_hex"] = text_subtle
 
-    # Deep Typography Hierarchy
-    for scale in ["hero", "display", "display-lg", "display-md", "lead", "body", "caption"]:
+    # ── Typography ────────────────────────────────────────────────────────────
+    for scale in ["hero", "display", "display-xl", "display-lg", "display-md", "lead", "title-md", "title-sm", "body", "body-md", "body-sm", "caption", "caption-sm", "label"]:
         obj = typography_objs.get(scale) or typography_objs.get(scale.replace("-", "_"))
         if isinstance(obj, dict):
             prefix = f"typography.{scale}"
@@ -143,31 +165,77 @@ def _parse_design_md_to_tokens(content: str) -> dict:
             if obj.get("letterSpacing"): tokens[f"{prefix}.letter_spacing"] = obj["letterSpacing"]
             if obj.get("fontFamily"): tokens[f"{prefix}.family"] = obj["fontFamily"].split(",")[0].strip().strip("\"'")
 
-    # Global Font Fallback
-    font_match = re.search(r"fontFamily:\s*[\"']?([^\"'\n]+)", content) or re.search(r'Font Family:\s*([\w\s,\-\'"]+)', content)
+    # ── Font ──────────────────────────────────────────────────────────────────
+    font_match = (
+        re.search(r"fontFamily:\s*[\"']*([A-Za-z][^\"',\n]+)", content)
+        or re.search(r'Font Family:\s*[\"\']*([A-Za-z][^\"\'\\n,]+)', content)
+    )
     if font_match:
-        tokens["page.font.family"] = font_match.group(1).split(',')[0].strip().strip("'\"")
-    elif "typography.body.family" in tokens:
-        tokens["page.font.family"] = tokens["typography.body.family"]
+        raw_font = font_match.group(1).split(',')[0].strip().strip("'\" ")
+        if raw_font and len(raw_font) > 1:
+            tokens["page.font.family"] = raw_font
+    if "page.font.family" not in tokens:
+        for scale_key in ("typography.body.family", "typography.body-md.family", "typography.display.family"):
+            if scale_key in tokens:
+                tokens["page.font.family"] = tokens[scale_key]
+                break
 
-    tokens.setdefault("page.radius.px", _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "none"], "8")))
+    # ── Radius ────────────────────────────────────────────────────────────────
+    radius_md = _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "DEFAULT"], "8"))
+    radius_sm = _normalize_radius(_first_token_value(rounded, ["sm", "xs", "DEFAULT"], str(max(0, int(radius_md) - 4))))
+    radius_lg = _normalize_radius(_first_token_value(rounded, ["lg", "xl", "2xl"], str(int(radius_md) + 4)))
+    radius_full = _normalize_radius(_first_token_value(rounded, ["full", "pill"], "9999"))
+    tokens["page.radius.px"] = radius_md
+    tokens["radius.sm.px"] = radius_sm
+    tokens["radius.lg.px"] = radius_lg
+    tokens["radius.full.px"] = radius_full
+
+    # ── Shadows ───────────────────────────────────────────────────────────────
+    shadow_sm = _first_token_value(shadows, ["sm", "1", "level-1", "low"], "0 1px 2px 0 rgb(0 0 0 / 0.05)")
+    shadow_md = _first_token_value(shadows, ["md", "2", "level-2", "medium", "DEFAULT"], "0 4px 6px -1px rgb(0 0 0 / 0.10)")
+    shadow_lg = _first_token_value(shadows, ["lg", "3", "level-3", "high"], "0 10px 15px -3px rgb(0 0 0 / 0.10)")
+    tokens["shadow.sm"] = shadow_sm
+    tokens["shadow.md"] = shadow_md
+    tokens["shadow.lg"] = shadow_lg
+
+    # ── Spacing ───────────────────────────────────────────────────────────────
+    tokens["spacing.xs"] = _first_token_value(spacing, ["xs", "1", "4"], "4px")
+    tokens["spacing.sm"] = _first_token_value(spacing, ["sm", "2", "8"], "8px")
+    tokens["spacing.md"] = _first_token_value(spacing, ["md", "4", "16"], "16px")
+    tokens["spacing.lg"] = _first_token_value(spacing, ["lg", "6", "24"], "24px")
+    tokens["spacing.xl"] = _first_token_value(spacing, ["xl", "8", "32"], "32px")
+
+    # ── Theme Hints ───────────────────────────────────────────────────────────
     tokens.setdefault("brand.name", "App")
     tokens.setdefault("theme.button.style", "solid")
-    tokens.setdefault("theme.card.hover", "lift" if tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb"} else "border")
+    is_light_bg = tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb", "#f8f9fa"}
+    tokens.setdefault("theme.card.hover", "lift" if is_light_bg else "border")
     tokens.setdefault("theme.image.ratio", "4/3")
     tokens.setdefault("theme.divider", "line")
-    
+
     _expand_design_tokens(tokens)
     return tokens
 
 def _expand_design_tokens(tokens: dict) -> dict:
     """Derive stable page/region/component/button tokens from the base palette."""
     accent = tokens.get("accent.hex", "#2563eb")
+    secondary = tokens.get("color.secondary.hex", accent)
     page_bg = tokens.get("page.body.bg_hex", "#f9fafb")
     surface = tokens.get("region.main.bg_hex") or tokens.get("component.card.bg_hex", "#ffffff")
+    surface_2 = tokens.get("region.main.bg_elevated_hex", surface)
+    surface_3 = tokens.get("region.main.bg_sunken_hex", page_bg)
     text = tokens.get("page.body.text_hex", "#111827")
+    text_muted = tokens.get("color.text.muted_hex", "#6b7280")
+    text_subtle = tokens.get("color.text.subtle_hex", "#9ca3af")
     border = tokens.get("region.border_hex", "#e5e7eb")
+    border_strong = tokens.get("region.border_strong_hex", border)
     radius = tokens.get("page.radius.px", "8")
+    shadow_sm = tokens.get("shadow.sm", "0 1px 2px 0 rgb(0 0 0 / 0.05)")
+    shadow_md = tokens.get("shadow.md", "0 4px 6px -1px rgb(0 0 0 / 0.10)")
+    shadow_lg = tokens.get("shadow.lg", "0 10px 15px -3px rgb(0 0 0 / 0.10)")
+    color_success = tokens.get("color.success.hex", "#16a34a")
+    color_error = tokens.get("color.error.hex", "#dc2626")
+    color_warning = tokens.get("color.warning.hex", "#d97706")
 
     tokens.setdefault("page.bg.hex", page_bg)
     tokens.setdefault("page.text.hex", text)
@@ -183,30 +251,88 @@ def _expand_design_tokens(tokens: dict) -> dict:
     tokens.setdefault("region.footer.text_hex", text)
     tokens.setdefault("region.border_hex", border)
 
+    # Surface levels (for card elevation hierarchy)
+    tokens.setdefault("surface.1.hex", surface)
+    tokens.setdefault("surface.2.hex", surface_2)
+    tokens.setdefault("surface.3.hex", surface_3)
+
+    # Text hierarchy
+    tokens.setdefault("text.primary.hex", text)
+    tokens.setdefault("text.muted.hex", text_muted)
+    tokens.setdefault("text.subtle.hex", text_subtle)
+
+    # Border hierarchy
+    tokens.setdefault("border.default.hex", border)
+    tokens.setdefault("border.strong.hex", border_strong)
+
+    # Shadows
     tokens.setdefault("component.card.bg_hex", surface)
     tokens["component.card.bg"] = f"bg-[{surface}]"
     tokens.setdefault("component.card.border_hex", border)
-    tokens.setdefault("component.card.shadow", "0 1px 3px 0 rgb(0 0 0 / 0.10)")
+    tokens.setdefault("component.card.shadow", shadow_sm)
+    tokens.setdefault("component.card.shadow.hover", shadow_md)
     for layout in ("form", "table", "list", "detail", "filter", "workflow"):
         tokens.setdefault(f"component.{layout}.bg_hex", surface)
         tokens.setdefault(f"component.{layout}.border_hex", border)
-    tokens.setdefault("component.badge.bg_hex", page_bg)
-    tokens.setdefault("component.badge.text_hex", text)
 
+    # Semantic badge colors
+    tokens.setdefault("badge.success.bg_hex", color_success)
+    tokens.setdefault("badge.success.text_hex", "#ffffff")
+    tokens.setdefault("badge.error.bg_hex", color_error)
+    tokens.setdefault("badge.error.text_hex", "#ffffff")
+    tokens.setdefault("badge.warning.bg_hex", color_warning)
+    tokens.setdefault("badge.warning.text_hex", "#ffffff")
+    tokens.setdefault("badge.info.bg_hex", accent)
+    tokens.setdefault("badge.info.text_hex", "#ffffff")
+    tokens.setdefault("badge.neutral.bg_hex", surface_3)
+    tokens.setdefault("badge.neutral.text_hex", text_muted)
+    tokens.setdefault("component.badge.bg_hex", surface_3)
+    tokens.setdefault("component.badge.text_hex", text_muted)
+
+    # Buttons
     tokens.setdefault("button.primary.bg_hex", accent)
     tokens.setdefault("button.primary.text_hex", "#ffffff")
     tokens.setdefault("button.primary.border_hex", accent)
     tokens.setdefault("button.secondary.bg_hex", surface)
     tokens.setdefault("button.secondary.text_hex", text)
-    tokens.setdefault("button.secondary.border_hex", border)
-    tokens.setdefault("button.danger.bg_hex", "#dc2626")
+    tokens.setdefault("button.secondary.border_hex", border_strong)
+    tokens.setdefault("button.ghost.text_hex", accent)
+    tokens.setdefault("button.ghost.hover_bg_hex", surface_3)
+    tokens.setdefault("button.danger.bg_hex", color_error)
     tokens.setdefault("button.danger.text_hex", "#ffffff")
-    tokens.setdefault("button.danger.border_hex", "#dc2626")
+    tokens.setdefault("button.danger.border_hex", color_error)
     tokens.setdefault("button.link.text_hex", accent)
     tokens.setdefault("button.radius.px", radius)
+
+    # Inputs
     tokens.setdefault("input.bg_hex", surface)
     tokens.setdefault("input.border_hex", border)
+    tokens.setdefault("input.border_focus_hex", accent)
     tokens.setdefault("input.text_hex", text)
+    tokens.setdefault("input.placeholder_hex", text_subtle)
+    tokens.setdefault("input.radius.px", radius)
+
+    # Table
+    tokens.setdefault("table.header.bg_hex", surface_3)
+    tokens.setdefault("table.header.text_hex", text_muted)
+    tokens.setdefault("table.row.hover_hex", surface_3)
+    tokens.setdefault("table.border_hex", border)
+
+    # Nav
+    tokens.setdefault("nav.bg_hex", accent)
+    tokens.setdefault("nav.text_hex", "#ffffff")
+    tokens.setdefault("nav.border_hex", border)
+
+    # Secondary accent
+    tokens.setdefault("color.secondary.hex", secondary)
+    tokens.setdefault("button.secondary.accent_hex", secondary)
+
+    # Shadow levels
+    tokens.setdefault("shadow.sm", shadow_sm)
+    tokens.setdefault("shadow.md", shadow_md)
+    tokens.setdefault("shadow.lg", shadow_lg)
+    tokens.setdefault("--button-primary-bg", f"var(--accent)")
+    tokens.setdefault("--button-primary-text", "#ffffff")
     return tokens
 
 def list_design_specs_tool_func() -> str:
