@@ -2624,16 +2624,22 @@
 <style>
 /* ── Drag-and-drop sections ── */
 [data-section-id] { position: relative; }
-.si-drag-handle {
-  position: absolute; top: 6px; right: 6px; z-index: 20;
-  width: 24px; height: 24px; border-radius: 4px;
-  background: rgba(0,0,0,.06); color: #6b7280;
+/* Full-width drag bar at top of section (starts below the top-resize handle) */
+.si-move-bar {
+  position: absolute; top: 10px; left: 0; right: 0; height: 20px;
+  cursor: grab; z-index: 20;
   display: flex; align-items: center; justify-content: center;
-  cursor: grab; font-size: 14px; line-height: 1;
-  opacity: 0; transition: opacity 0.15s;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s;
   user-select: none;
 }
-[data-section-id]:hover .si-drag-handle { opacity: 1; }
+.si-move-bar::after {
+  content: '';
+  width: 36px; height: 4px;
+  background: rgba(100,116,139,0.35);
+  border-radius: 2px;
+}
+.si-move-bar:active { cursor: grabbing; }
+[data-section-id]:hover .si-move-bar { opacity: 1; pointer-events: auto; }
 [data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
 [data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
 
@@ -2720,17 +2726,17 @@
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
 
-    // Drag handle
-    var handle = document.createElement('div');
-    handle.className = 'si-drag-handle';
-    handle.title = 'Drag to reorder';
-    handle.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="4" cy="2" r="1"/><circle cx="8" cy="2" r="1"/><circle cx="4" cy="6" r="1"/><circle cx="8" cy="6" r="1"/><circle cx="4" cy="10" r="1"/><circle cx="8" cy="10" r="1"/></svg>';
-    el.appendChild(handle);
+    // Full-width move bar at the top of the section
+    var bar = document.createElement('div');
+    bar.className = 'si-move-bar';
+    bar.title = 'Drag to move';
+    el.appendChild(bar);
 
     el.setAttribute('draggable', 'false');
 
-    // Start drag only from handle
-    handle.addEventListener('mousedown', function() {
+    // Enable drag only when mousedown on the move bar
+    bar.addEventListener('mousedown', function(e) {
+      e.stopPropagation();
       el.setAttribute('draggable', 'true');
     });
     document.addEventListener('mouseup', function() {
