@@ -2637,17 +2637,21 @@
 [data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
 [data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
 
-/* ── Section resize ── */
-.si-resize-handle {
-  position: absolute; top: 0; right: -5px;
+/* ── Section resize (left + right handles) ── */
+.si-resize-handle, .si-lresize-handle {
+  position: absolute; top: 0;
   width: 10px; height: 100%; min-height: 40px;
   cursor: col-resize; z-index: 25;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 0.15s;
 }
+.si-resize-handle  { right: -5px; }
+.si-lresize-handle { left: -5px; }
 [data-section-id]:hover .si-resize-handle,
-[data-section-id].si-resizing .si-resize-handle { opacity: 1; }
-.si-resize-handle::after {
+[data-section-id]:hover .si-lresize-handle,
+[data-section-id].si-resizing .si-resize-handle,
+[data-section-id].si-resizing .si-lresize-handle { opacity: 1; }
+.si-resize-handle::after, .si-lresize-handle::after {
   content: '';
   width: 3px; height: 48px;
   background: var(--accent, #3b82f6);
@@ -2666,16 +2670,20 @@
   transform: translateX(-50%);
 }
 
-/* ── Section vertical (height) resize ── */
-.si-vresize-handle {
-  position: absolute; bottom: -5px; left: 0; right: 0;
+/* ── Section vertical resize (top + bottom handles) ── */
+.si-vresize-handle, .si-tresize-handle {
+  position: absolute; left: 0; right: 0;
   height: 10px; cursor: row-resize; z-index: 25;
   display: flex; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 0.15s;
 }
+.si-vresize-handle { bottom: -5px; }
+.si-tresize-handle { top: -5px; }
 [data-section-id]:hover .si-vresize-handle,
-[data-section-id].si-vresizing .si-vresize-handle { opacity: 1; }
-.si-vresize-handle::after {
+[data-section-id]:hover .si-tresize-handle,
+[data-section-id].si-vresizing .si-vresize-handle,
+[data-section-id].si-vresizing .si-tresize-handle { opacity: 1; }
+.si-vresize-handle::after, .si-tresize-handle::after {
   content: '';
   width: 48px; height: 3px;
   background: var(--accent, #3b82f6);
@@ -2772,15 +2780,18 @@
 </script>
 
 <script>
-/* ── Section column-span resize ── */
+/* ── Section column-span resize (left + right handles) ── */
 (function() {
   var resizing = false;
   var resizingEl = null;
   var resizingId = null;
   var startColSpan = 1;
+  var startLeft = 0;   // element's left edge at drag start (fixed anchor for right handle)
+  var startRight = 0;  // element's right edge at drag start (fixed anchor for left handle)
   var snapLine = null;
   var tooltip = null;
   var currentColSpan = 1;
+  var resizeDir = 'right';
 
   function getColSpan(el) {
     var cls = Array.from(el.classList).find(function(c) { return /^col-span-\d+$/.test(c); });
@@ -2797,19 +2808,28 @@
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
 
-    var handle = document.createElement('div');
-    handle.className = 'si-resize-handle';
-    handle.title = 'Drag to resize width';
-    el.appendChild(handle);
+    var rHandle = document.createElement('div');
+    rHandle.className = 'si-resize-handle';
+    rHandle.title = 'Drag to resize width';
+    el.appendChild(rHandle);
 
-    handle.addEventListener('mousedown', function(e) {
+    var lHandle = document.createElement('div');
+    lHandle.className = 'si-lresize-handle';
+    lHandle.title = 'Drag to resize width';
+    el.appendChild(lHandle);
+
+    function startResize(e, dir) {
       e.preventDefault();
       e.stopPropagation();
+      var rect = el.getBoundingClientRect();
       resizing = true;
       resizingEl = el;
       resizingId = el.dataset.sectionId;
       startColSpan = getColSpan(el);
       currentColSpan = startColSpan;
+      startLeft = rect.left;
+      startRight = rect.right;
+      resizeDir = dir;
       el.classList.add('si-resizing');
 
       snapLine = document.createElement('div');
@@ -2820,28 +2840,33 @@
       tooltip.className = 'si-resize-tooltip';
       tooltip.textContent = startColSpan + '/12';
       document.body.appendChild(tooltip);
-    });
+    }
+
+    rHandle.addEventListener('mousedown', function(e) { startResize(e, 'right'); });
+    lHandle.addEventListener('mousedown', function(e) { startResize(e, 'left'); });
   });
 
   document.addEventListener('mousemove', function(e) {
     if (!resizing || !resizingEl) return;
     var grid = document.getElementById('page-sections-grid');
     if (!grid) return;
-    var gridRect = grid.getBoundingClientRect();
-    var elRect = resizingEl.getBoundingClientRect();
-    var colW = gridRect.width / 12;
-    var newW = e.clientX - elRect.left;
+    var colW = grid.getBoundingClientRect().width / 12;
+    // Right handle: measure from element's fixed left to cursor
+    // Left handle:  measure from cursor to element's fixed right
+    var newW = resizeDir === 'right'
+      ? e.clientX - startLeft
+      : startRight - e.clientX;
     var n = Math.max(1, Math.min(12, Math.round(newW / colW)));
     if (n !== currentColSpan) {
       currentColSpan = n;
       setColSpan(resizingEl, n);
     }
-    var snapX = elRect.left + n * colW;
+    var snapX = startLeft + n * colW;
     if (snapLine) { snapLine.style.left = snapX + 'px'; }
     if (tooltip) {
       tooltip.textContent = n + '/12';
       tooltip.style.left = snapX + 'px';
-      tooltip.style.top = (elRect.top - 24) + 'px';
+      tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
     }
   }, { passive: true });
 
@@ -2861,7 +2886,7 @@
 </script>
 
 <script>
-/* ── Section vertical height resize ── */
+/* ── Section vertical height resize (top + bottom handles) ── */
 (function() {
   var vresizing = false;
   var vresizingEl = null;
@@ -2871,17 +2896,23 @@
   var hline = null;
   var vtip = null;
   var currentH = 0;
+  var vresizeDir = 'bottom';
 
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
 
-    var handle = document.createElement('div');
-    handle.className = 'si-vresize-handle';
-    handle.title = 'Drag to resize height';
-    el.appendChild(handle);
+    var bHandle = document.createElement('div');
+    bHandle.className = 'si-vresize-handle';
+    bHandle.title = 'Drag to resize height';
+    el.appendChild(bHandle);
 
-    handle.addEventListener('mousedown', function(e) {
+    var tHandle = document.createElement('div');
+    tHandle.className = 'si-tresize-handle';
+    tHandle.title = 'Drag to resize height';
+    el.appendChild(tHandle);
+
+    function startVResize(e, dir) {
       e.preventDefault();
       e.stopPropagation();
       vresizing = true;
@@ -2890,6 +2921,7 @@
       startY = e.clientY;
       startH = el.getBoundingClientRect().height;
       currentH = startH;
+      vresizeDir = dir;
       el.classList.add('si-vresizing');
 
       hline = document.createElement('div');
@@ -2903,15 +2935,20 @@
       vtip.style.top = (e.clientY + 6) + 'px';
       vtip.style.left = (e.clientX + 12) + 'px';
       document.body.appendChild(vtip);
-    });
+    }
+
+    bHandle.addEventListener('mousedown', function(e) { startVResize(e, 'bottom'); });
+    tHandle.addEventListener('mousedown', function(e) { startVResize(e, 'top'); });
   });
 
   document.addEventListener('mousemove', function(e) {
     if (!vresizing || !vresizingEl) return;
-    var delta = e.clientY - startY;
+    // Bottom: drag down = bigger; Top: drag up = bigger (reversed delta)
+    var delta = vresizeDir === 'bottom'
+      ? e.clientY - startY
+      : startY - e.clientY;
     var newH = Math.max(40, startH + delta);
     currentH = newH;
-    // Use height (not min-height) so dragging up visually shrinks the section
     vresizingEl.style.height = newH + 'px';
     vresizingEl.style.overflow = 'hidden';
     if (hline) hline.style.top = e.clientY + 'px';
@@ -2928,7 +2965,6 @@
     if (vtip)  { vtip.remove();  vtip = null; }
     if (vresizingEl) {
       vresizingEl.classList.remove('si-vresizing');
-      // Clear the temporary inline height; min-height will be applied after refresh
       vresizingEl.style.height = '';
       vresizingEl.style.overflow = '';
     }
