@@ -297,6 +297,39 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 setSections((prev: any[]) => prev.map((s: any) =>
                     s.id === id ? { ...s, min_height } : s
                 ));
+            } else if (e.data?.type === 'section-duplicate') {
+                const { id } = e.data;
+                const cloneId = `${id}-copy-${Date.now()}`;
+                setSections((prev: any[]) => {
+                    const idx = prev.findIndex((s: any) => s.id === id);
+                    if (idx === -1) return prev;
+                    const clone = { ...prev[idx], id: cloneId };
+                    const next = [...prev];
+                    next.splice(idx + 1, 0, clone);
+                    return next;
+                });
+                setPages((prev: any[]) => prev.map((page: any) => {
+                    const refs = page.sections || [];
+                    const fi = refs.findIndex((ref: any) =>
+                        (typeof ref === 'string' ? ref : ref?.value) === id
+                    );
+                    if (fi === -1) return page;
+                    const cloneRef = typeof refs[fi] === 'string'
+                        ? cloneId
+                        : { ...refs[fi], value: cloneId };
+                    const next = [...refs];
+                    next.splice(fi + 1, 0, cloneRef);
+                    return { ...page, sections: next };
+                }));
+            } else if (e.data?.type === 'section-delete') {
+                const { id } = e.data;
+                setSections((prev: any[]) => prev.filter((s: any) => s.id !== id));
+                setPages((prev: any[]) => prev.map((page: any) => ({
+                    ...page,
+                    sections: (page.sections || []).filter((ref: any) =>
+                        (typeof ref === 'string' ? ref : ref?.value) !== id
+                    ),
+                })));
             } else if (e.data?.type === 'section-insert') {
                 const { fromId, beforeId } = e.data;
                 setSections((prev: any[]) => {
