@@ -2851,8 +2851,8 @@
     var grid = document.getElementById('page-sections-grid');
     if (!grid) return;
     var colW = grid.getBoundingClientRect().width / 12;
-    // Right handle: measure from element's fixed left to cursor
-    // Left handle:  measure from cursor to element's fixed right
+    // Right: distance from element's fixed left edge to cursor
+    // Left:  distance from cursor to element's initial right edge
     var newW = resizeDir === 'right'
       ? e.clientX - startLeft
       : startRight - e.clientX;
@@ -2861,12 +2861,27 @@
       currentColSpan = n;
       setColSpan(resizingEl, n);
     }
-    var snapX = startLeft + n * colW;
-    if (snapLine) { snapLine.style.left = snapX + 'px'; }
-    if (tooltip) {
-      tooltip.textContent = n + '/12';
-      tooltip.style.left = snapX + 'px';
-      tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
+    if (resizeDir === 'left') {
+      // Shift element right so its right edge stays fixed — left edge appears to move
+      var tx = (startColSpan - n) * colW;
+      resizingEl.style.transform = 'translateX(' + tx + 'px)';
+      // Snap line and tooltip at the apparent left edge
+      var snapX = startRight - n * colW;
+      if (snapLine) { snapLine.style.left = snapX + 'px'; }
+      if (tooltip) {
+        tooltip.textContent = n + '/12';
+        tooltip.style.left = snapX + 'px';
+        tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
+      }
+    } else {
+      resizingEl.style.transform = '';
+      var snapX = startLeft + n * colW;
+      if (snapLine) { snapLine.style.left = snapX + 'px'; }
+      if (tooltip) {
+        tooltip.textContent = n + '/12';
+        tooltip.style.left = snapX + 'px';
+        tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
+      }
     }
   }, { passive: true });
 
@@ -2874,7 +2889,10 @@
     if (!resizing) return;
     if (snapLine) { snapLine.remove(); snapLine = null; }
     if (tooltip)  { tooltip.remove();  tooltip = null; }
-    if (resizingEl) resizingEl.classList.remove('si-resizing');
+    if (resizingEl) {
+      resizingEl.classList.remove('si-resizing');
+      resizingEl.style.transform = '';
+    }
     if (resizingId && currentColSpan !== startColSpan) {
       window.parent.postMessage({ type: 'section-resize', id: resizingId, col_span: currentColSpan }, '*');
     }
@@ -2943,15 +2961,23 @@
 
   document.addEventListener('mousemove', function(e) {
     if (!vresizing || !vresizingEl) return;
-    // Bottom: drag down = bigger; Top: drag up = bigger (reversed delta)
     var delta = vresizeDir === 'bottom'
-      ? e.clientY - startY
-      : startY - e.clientY;
+      ? e.clientY - startY        // bottom: drag down = taller
+      : startY - e.clientY;       // top:    drag up   = taller
     var newH = Math.max(40, startH + delta);
     currentH = newH;
     vresizingEl.style.height = newH + 'px';
     vresizingEl.style.overflow = 'hidden';
-    if (hline) hline.style.top = e.clientY + 'px';
+    if (vresizeDir === 'top') {
+      // Shift element down so its bottom edge stays fixed — top edge appears to move
+      var ty = startH - newH;
+      vresizingEl.style.transform = 'translateY(' + ty + 'px)';
+      // Guide line follows the apparent top edge (getBoundingClientRect accounts for transform)
+      if (hline) hline.style.top = vresizingEl.getBoundingClientRect().top + 'px';
+    } else {
+      vresizingEl.style.transform = '';
+      if (hline) hline.style.top = e.clientY + 'px';
+    }
     if (vtip) {
       vtip.textContent = Math.round(newH) + 'px';
       vtip.style.top = (e.clientY + 6) + 'px';
@@ -2967,6 +2993,7 @@
       vresizingEl.classList.remove('si-vresizing');
       vresizingEl.style.height = '';
       vresizingEl.style.overflow = '';
+      vresizingEl.style.transform = '';
     }
     if (vresizingId && Math.abs(currentH - startH) > 4) {
       window.parent.postMessage({ type: 'section-height', id: vresizingId, min_height: Math.round(currentH) }, '*');
