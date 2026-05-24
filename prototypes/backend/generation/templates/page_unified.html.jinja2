@@ -2641,22 +2641,24 @@
 .si-resize-handle, .si-lresize-handle {
   position: absolute; top: 0;
   width: 10px; height: 100%; min-height: 40px;
-  cursor: col-resize; z-index: 25;
-  display: flex; align-items: center; justify-content: center;
+  cursor: col-resize; z-index: 30;
   opacity: 0; transition: opacity 0.15s;
 }
-.si-resize-handle  { right: -5px; }
-.si-lresize-handle { left: -5px; }
+.si-resize-handle  { right: 0; }
+.si-lresize-handle { left: 0; }
 [data-section-id]:hover .si-resize-handle,
 [data-section-id]:hover .si-lresize-handle,
 [data-section-id].si-resizing .si-resize-handle,
 [data-section-id].si-resizing .si-lresize-handle { opacity: 1; }
-.si-resize-handle::after, .si-lresize-handle::after {
-  content: '';
-  width: 3px; height: 48px;
-  background: var(--accent, #3b82f6);
-  border-radius: 3px;
-  box-shadow: 0 0 0 1px white;
+.si-resize-handle::after {
+  content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 40px; background: var(--accent, #3b82f6);
+  border-radius: 3px; box-shadow: 0 0 0 1px white;
+}
+.si-lresize-handle::after {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 40px; background: var(--accent, #3b82f6);
+  border-radius: 3px; box-shadow: 0 0 0 1px white;
 }
 .si-resize-snap-line {
   position: fixed; top: 0; bottom: 0; width: 2px;
@@ -2673,22 +2675,24 @@
 /* ── Section vertical resize (top + bottom handles) ── */
 .si-vresize-handle, .si-tresize-handle {
   position: absolute; left: 0; right: 0;
-  height: 10px; cursor: row-resize; z-index: 25;
-  display: flex; align-items: center; justify-content: center;
+  height: 10px; cursor: row-resize; z-index: 30;
   opacity: 0; transition: opacity 0.15s;
 }
-.si-vresize-handle { bottom: -5px; }
-.si-tresize-handle { top: -5px; }
+.si-vresize-handle { bottom: 0; }
+.si-tresize-handle { top: 0; }
 [data-section-id]:hover .si-vresize-handle,
 [data-section-id]:hover .si-tresize-handle,
 [data-section-id].si-vresizing .si-vresize-handle,
 [data-section-id].si-vresizing .si-tresize-handle { opacity: 1; }
-.si-vresize-handle::after, .si-tresize-handle::after {
-  content: '';
-  width: 48px; height: 3px;
-  background: var(--accent, #3b82f6);
-  border-radius: 3px;
-  box-shadow: 0 0 0 1px white;
+.si-vresize-handle::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 3px; background: var(--accent, #3b82f6);
+  border-radius: 3px; box-shadow: 0 0 0 1px white;
+}
+.si-tresize-handle::after {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 3px; background: var(--accent, #3b82f6);
+  border-radius: 3px; box-shadow: 0 0 0 1px white;
 }
 .si-vresize-hline {
   position: fixed; left: 0; right: 0; height: 2px;
@@ -2700,6 +2704,9 @@
   font-size: 11px; font-weight: 600; padding: 2px 7px;
   border-radius: 4px; pointer-events: none; z-index: 9999;
 }
+/* Lift hovered/active section above adjacent content so handles are always on top */
+[data-section-id]:hover { z-index: 5; }
+[data-section-id].si-resizing, [data-section-id].si-vresizing { z-index: 10; }
 </style>
 
 <script>
@@ -2794,13 +2801,21 @@
   var resizeDir = 'right';
 
   function getColSpan(el) {
-    var cls = Array.from(el.classList).find(function(c) { return /^col-span-\d+$/.test(c); });
-    return cls ? parseInt(cls.slice(9), 10) : 12;
+    // Prefer the largest-breakpoint class: lg > sm > bare (handles "_spanm" responsive strings)
+    var classes = Array.from(el.classList);
+    var lg = classes.find(function(c) { return /^lg:col-span-\d+$/.test(c); });
+    if (lg) return parseInt(lg.replace('lg:col-span-', ''), 10);
+    var sm = classes.find(function(c) { return /^sm:col-span-\d+$/.test(c); });
+    if (sm) return parseInt(sm.replace('sm:col-span-', ''), 10);
+    var bare = classes.find(function(c) { return /^col-span-\d+$/.test(c); });
+    return bare ? parseInt(bare.replace('col-span-', ''), 10) : 12;
   }
 
   function setColSpan(el, n) {
-    var cls = Array.from(el.classList).find(function(c) { return /^col-span-\d+$/.test(c); });
-    if (cls) el.classList.remove(cls);
+    // Remove all responsive col-span variants before adding the new one
+    Array.from(el.classList)
+      .filter(function(c) { return /^(?:(?:sm|md|lg|xl|2xl):)?col-span-\d+$/.test(c); })
+      .forEach(function(c) { el.classList.remove(c); });
     el.classList.add('col-span-' + n);
   }
 
@@ -2937,6 +2952,8 @@
       vresizingEl = el;
       vresizingId = el.dataset.sectionId;
       startY = e.clientY;
+      // Clear inline min-height before measuring so we get the real rendered height
+      el.style.minHeight = '0';
       startH = el.getBoundingClientRect().height;
       currentH = startH;
       vresizeDir = dir;
@@ -2992,6 +3009,7 @@
     if (vresizingEl) {
       vresizingEl.classList.remove('si-vresizing');
       vresizingEl.style.height = '';
+      vresizingEl.style.minHeight = '';
       vresizingEl.style.overflow = '';
       vresizingEl.style.transform = '';
     }
