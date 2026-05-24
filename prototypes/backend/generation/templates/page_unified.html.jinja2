@@ -2835,10 +2835,10 @@
 </script>
 
 <script>
-/* ── Section drag-and-drop (insert-at-position) ── */
+/* ── Section drag-and-drop (mouse-event based, no HTML5 draggable) ── */
 (function() {
   var draggingId = null;
-  var isDragging = false;
+  var draggingEl = null;
   var separators = [];
 
   function removeSeparators() {
@@ -2981,106 +2981,106 @@
     document.querySelectorAll('[data-section-id]').forEach(function(x) {
       x.classList.remove('si-drag-before', 'si-drag-after');
     });
+    separators.forEach(function(s) {
+      s.classList.remove('si-sep-active', 'si-zone-active');
+    });
   }
 
+  // Attach move bars (no draggable attribute — pure mouse drag)
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
 
-    // Full-width move bar at the top of the section
     var bar = document.createElement('div');
     bar.className = 'si-move-bar';
     bar.title = 'Drag to move';
     el.appendChild(bar);
 
-    el.setAttribute('draggable', 'false');
-
     bar.addEventListener('mousedown', function(e) {
+      if (e.button !== 0) return;   // left button only
+      e.preventDefault();
       e.stopPropagation();
-      el.setAttribute('draggable', 'true');
-    });
-    document.addEventListener('mouseup', function() {
-      el.setAttribute('draggable', 'false');
-    });
-
-    el.addEventListener('dragstart', function(e) {
-      isDragging = true;
       draggingId = el.dataset.sectionId;
+      draggingEl = el;
       el.classList.add('si-dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', draggingId);
-      setTimeout(function() { createSeparators(el); }, 0);
-    });
-
-    el.addEventListener('dragend', function() {
-      isDragging = false;
-      draggingId = null;
-      el.classList.remove('si-dragging');
-      el.setAttribute('draggable', 'false');
-      clearDragClasses();
-      removeSeparators();
-    });
-
-    el.addEventListener('dragover', function(e) {
-      // Accept drag only from our own drag sessions (draggingId set) and not onto self
-      if (!draggingId || el.dataset.sectionId === draggingId) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      var rect = el.getBoundingClientRect();
-      el.classList.remove('si-drag-before', 'si-drag-after');
-      if (e.clientX < rect.left + rect.width / 2) {
-        el.classList.add('si-drag-before');
-      } else {
-        el.classList.add('si-drag-after');
-      }
-    });
-
-    el.addEventListener('dragleave', function(e) {
-      if (!e.relatedTarget || !el.contains(e.relatedTarget)) {
-        el.classList.remove('si-drag-before', 'si-drag-after');
-      }
-    });
-
-    el.addEventListener('drop', function(e) {
-      e.preventDefault();
-      var fromId = draggingId || e.dataTransfer.getData('text/plain');
-      var toId = el.dataset.sectionId;
-      el.classList.remove('si-drag-before', 'si-drag-after');
-      if (fromId && toId && fromId !== toId) {
-        var rect = el.getBoundingClientRect();
-        var beforeId;
-        if (e.clientX < rect.left + rect.width / 2) {
-          // Left half → insert before this section
-          beforeId = toId;
-        } else {
-          // Right half → insert after this section
-          var next = getNextSection(el);
-          beforeId = next ? next.dataset.sectionId : '__end__';
-        }
-        window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: beforeId }, '*');
-      }
+      document.body.style.cursor = 'grabbing';
+      createSeparators(el);
     });
   });
 
-  // Global dragend safety-net: clean up orphaned separators/zones
-  // if dragend never fires on the element (e.g. Escape or out-of-window release).
-  document.addEventListener('dragend', function() {
-    isDragging = false; draggingId = null;
-    clearDragClasses(); removeSeparators();
-    document.querySelectorAll('[data-section-id]').forEach(function(el) {
-      el.setAttribute('draggable', 'false');
-    });
-  }, true);
+  // Global mousemove: update drag-over indicators
+  document.addEventListener('mousemove', function(e) {
+    if (!draggingId) return;
+    clearDragClasses();
+    var target = document.elementFromPoint(e.clientX, e.clientY);
+    if (!target) return;
 
-  // Pointerdown safety-net: remove stale overlays when user resumes normal mouse interaction
-  document.addEventListener('pointerdown', function() {
-    if (!isDragging) { removeSeparators(); clearDragClasses(); }
-  }, true);
+    // Separator / empty zone
+    if (target.classList.contains('si-drop-separator')) {
+      target.classList.add('si-sep-active'); return;
+    }
+    if (target.classList.contains('si-drop-empty-zone')) {
+      target.classList.add('si-zone-active'); return;
+    }
+    // Section
+    var sec = target.closest('[data-section-id]');
+    if (sec && sec.dataset.sectionId !== draggingId) {
+      var rect = sec.getBoundingClientRect();
+      if (e.clientX < rect.left + rect.width / 2) {
+        sec.classList.add('si-drag-before');
+      } else {
+        sec.classList.add('si-drag-after');
+      }
+    }
+  }, { passive: true });
 
-  // Block spurious click after drag ends
-  document.addEventListener('click', function(e) {
-    if (isDragging) { e.stopPropagation(); }
-  }, true);
+  // Global mouseup: commit the move
+  document.addEventListener('mouseup', function(e) {
+    if (!draggingId) return;
+    var fromId = draggingId;
+
+    // Determine beforeId from what's under cursor (separators still in DOM at this point)
+    var target = document.elementFromPoint(e.clientX, e.clientY);
+    var beforeId = null;
+    if (target) {
+      if (target.classList.contains('si-drop-separator') || target.classList.contains('si-drop-empty-zone')) {
+        beforeId = target.dataset.beforeId || null;
+      } else {
+        var sec = target.closest('[data-section-id]');
+        if (sec && sec.dataset.sectionId !== fromId) {
+          var rect = sec.getBoundingClientRect();
+          if (e.clientX < rect.left + rect.width / 2) {
+            beforeId = sec.dataset.sectionId;
+          } else {
+            var next = getNextSection(sec);
+            beforeId = next ? next.dataset.sectionId : '__end__';
+          }
+        }
+      }
+    }
+
+    // Clean up
+    if (draggingEl) draggingEl.classList.remove('si-dragging');
+    draggingId = null; draggingEl = null;
+    document.body.style.cursor = '';
+    clearDragClasses();
+    removeSeparators();
+
+    if (fromId && beforeId) {
+      window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: beforeId }, '*');
+    }
+  });
+
+  // ESC cancels drag
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && draggingId) {
+      if (draggingEl) draggingEl.classList.remove('si-dragging');
+      draggingId = null; draggingEl = null;
+      document.body.style.cursor = '';
+      clearDragClasses();
+      removeSeparators();
+    }
+  });
 })();
 </script>
 
@@ -3134,7 +3134,6 @@
     function startResize(e, dir) {
       e.preventDefault();
       e.stopPropagation();
-      el.setAttribute('draggable', 'false'); // ensure no stale drag state
       var rect = el.getBoundingClientRect();
       resizing = true;
       resizingEl = el;
