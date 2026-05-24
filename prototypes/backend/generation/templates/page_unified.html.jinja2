@@ -2731,6 +2731,16 @@
   background: var(--accent, #3b82f6);
   box-shadow: 0 0 0 4px rgba(59,130,246,0.18);
 }
+/* Empty-space drop zone (right side of partial rows) */
+.si-drop-empty-zone {
+  position: fixed; z-index: 9989; border-radius: 6px;
+  border: 2px dashed transparent;
+  transition: border-color 0.1s, background 0.1s;
+}
+.si-drop-empty-zone.si-zone-active {
+  border-color: var(--accent, #3b82f6);
+  background: rgba(59,130,246,0.08);
+}
 </style>
 
 <script>
@@ -2754,10 +2764,23 @@
       return p !== 'header' && p !== 'footer' && el !== draggedEl;
     });
 
+    // Grid container right edge (approximated from section parent or window)
+    var gridRight = window.innerWidth;
+    if (all.length > 0) {
+      var parent = all[0].parentElement;
+      if (parent) gridRight = parent.getBoundingClientRect().right;
+    } else {
+      var parent = draggedEl.parentElement;
+      if (parent) gridRight = parent.getBoundingClientRect().right;
+    }
+
     if (all.length === 0) {
-      // Only the dragged section exists — add a single end-sentinel separator
-      var r = draggedEl.getBoundingClientRect();
-      addSep(r.bottom + 12, '__end__');
+      // Only the dragged section exists — check if it leaves empty space on the right
+      var dr = draggedEl.getBoundingClientRect();
+      if (gridRight - dr.right > 50) {
+        addEmptyZone(dr.top, dr.right, gridRight, dr.bottom, '__end__');
+      }
+      addSep(dr.bottom + 12, '__end__');
       return;
     }
 
@@ -2781,10 +2804,23 @@
     // Separator before first row
     addSep(rows[0].top - 12, rows[0].secs[0].dataset.sectionId);
 
-    // Separators between rows
-    for (var r = 0; r < rows.length - 1; r++) {
-      var midY = (rows[r].bottom + rows[r + 1].top) / 2;
-      addSep(midY, rows[r + 1].secs[0].dataset.sectionId);
+    for (var r = 0; r < rows.length; r++) {
+      // Empty-space drop zone if row doesn't fill the full grid width
+      var rowRight = Math.max.apply(Math, rows[r].secs.map(function(s) {
+        return s.getBoundingClientRect().right;
+      }));
+      if (gridRight - rowRight > 50) {
+        var emptyBeforeId = (r < rows.length - 1)
+          ? rows[r + 1].secs[0].dataset.sectionId
+          : '__end__';
+        addEmptyZone(rows[r].top, rowRight, gridRight, rows[r].bottom, emptyBeforeId);
+      }
+
+      // Row separator (below this row / above next row)
+      if (r < rows.length - 1) {
+        var midY = (rows[r].bottom + rows[r + 1].top) / 2;
+        addSep(midY, rows[r + 1].secs[0].dataset.sectionId);
+      }
     }
 
     // Separator after last row
@@ -2811,6 +2847,30 @@
     });
     document.body.appendChild(sep);
     separators.push(sep);
+  }
+
+  function addEmptyZone(top, left, right, bottom, beforeId) {
+    var zone = document.createElement('div');
+    zone.className = 'si-drop-empty-zone';
+    zone.style.top    = top + 'px';
+    zone.style.left   = left + 'px';
+    zone.style.width  = (right - left) + 'px';
+    zone.style.height = (bottom - top) + 'px';
+    zone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      zone.classList.add('si-zone-active');
+    });
+    zone.addEventListener('dragleave', function() { zone.classList.remove('si-zone-active'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('si-zone-active');
+      if (draggingId) {
+        window.parent.postMessage({ type: 'section-insert', fromId: draggingId, beforeId: beforeId }, '*');
+      }
+    });
+    document.body.appendChild(zone);
+    separators.push(zone);
   }
 
   // Next main-content section in DOM order after el
