@@ -330,13 +330,14 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                         (typeof ref === 'string' ? ref : ref?.value) !== id
                     ),
                 })));
-            } else if (e.data?.type === 'section-insert') {
-                const { fromId, beforeId } = e.data;
+            } else if (e.data?.type === 'section-insert' || e.data?.type === 'section-move') {
+                const { fromId, beforeId, newPosition } = e.data;
                 setSections((prev: any[]) => {
                     const arr = [...prev];
                     const fi = arr.findIndex((s: any) => s.id === fromId);
                     if (fi === -1) return prev;
                     const [moved] = arr.splice(fi, 1);
+                    if (newPosition) moved.position = newPosition;
                     if (beforeId === '__end__') {
                         arr.push(moved);
                     } else {

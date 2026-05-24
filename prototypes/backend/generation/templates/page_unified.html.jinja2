@@ -2734,31 +2734,9 @@
 .si-ctx-sep { height: 1px; background: #e2e8f0; margin: 4px 0; }
 .si-ctx-item.danger { color: #dc2626; }
 .si-ctx-item.danger:hover { background: #fef2f2; }
-/* Drop separator zones shown during drag */
-.si-drop-separator {
-  position: fixed; left: 0; right: 0; height: 32px;
-  transform: translateY(-50%); z-index: 9990;
-  display: flex; align-items: center; padding: 0 16px;
-}
-.si-drop-separator::before {
-  content: ''; flex: 1; height: 3px;
-  background: transparent; border-radius: 2px;
-  transition: background 0.1s, box-shadow 0.1s;
-}
-.si-drop-separator.si-sep-active::before {
-  background: var(--accent, #3b82f6);
-  box-shadow: 0 0 0 4px rgba(59,130,246,0.18);
-}
-/* Empty-space drop zone (right side of partial rows) */
-.si-drop-empty-zone {
-  position: fixed; z-index: 9989; border-radius: 6px;
-  border: 2px dashed transparent;
-  transition: border-color 0.1s, background 0.1s;
-}
-.si-drop-empty-zone.si-zone-active {
-  border-color: var(--accent, #3b82f6);
-  background: rgba(59,130,246,0.08);
-}
+/* Drop row indicator — shown above/below a row during cross-row drag */
+[data-section-id].si-drag-row-before { box-shadow: inset 0 4px 0 0 var(--accent, #3b82f6); }
+[data-section-id].si-drag-row-after  { box-shadow: inset 0 -4px 0 0 var(--accent, #3b82f6); }
 </style>
 
 <script>
@@ -2835,250 +2813,182 @@
 </script>
 
 <script>
-/* ── Section drag-and-drop (mouse-event based, no HTML5 draggable) ── */
+/* ── Section drag-and-drop (pure mouse events, tracks drop target during mousemove) ── */
 (function() {
+  var dragging = false;
   var draggingId = null;
   var draggingEl = null;
-  var separators = [];
+  var currentDrop = null; // updated every mousemove
 
-  function removeSeparators() {
-    separators.forEach(function(s) { s.remove(); });
-    separators = [];
+  function allSections() {
+    return Array.from(document.querySelectorAll('[data-section-id]'));
   }
 
-  function createSeparators(draggedEl) {
-    removeSeparators();
+  // Determine which region (header/footer/main) the cursor Y falls in
+  function regionAtY(y) {
+    var all = allSections();
+    var hSecs = all.filter(function(el) { return el.dataset.position === 'header'; });
+    var fSecs = all.filter(function(el) { return el.dataset.position === 'footer'; });
+    function spanOf(secs) {
+      if (secs.length === 0) return null;
+      var tops = secs.map(function(el) { return el.getBoundingClientRect().top; });
+      var bots = secs.map(function(el) { return el.getBoundingClientRect().bottom; });
+      return { top: Math.min.apply(null, tops), bottom: Math.max.apply(null, bots) };
+    }
+    var hb = spanOf(hSecs);
+    var fb = spanOf(fSecs);
+    // Also include native <header>/<footer> wrapper
+    var hEl = document.querySelector('header');
+    var fEl = document.querySelector('footer');
+    if (!hb && hEl) { var r = hEl.getBoundingClientRect(); hb = { top: r.top, bottom: r.bottom }; }
+    if (!fb && fEl) { var r = fEl.getBoundingClientRect(); fb = { top: r.top, bottom: r.bottom }; }
+    if (hb && y >= hb.top && y <= hb.bottom + 20) return 'header';
+    if (fb && y >= fb.top - 20 && y <= fb.bottom) return 'footer';
+    return 'main';
+  }
 
-    // All non-chrome sections in DOM order, excluding the dragged one
-    var all = Array.from(document.querySelectorAll('[data-section-id]')).filter(function(el) {
-      var p = el.dataset.position;
-      return p !== 'header' && p !== 'footer' && el !== draggedEl;
+  // Sections in a given region, excluding the section being dragged
+  function siblingsIn(region) {
+    return allSections().filter(function(el) {
+      if (el.dataset.sectionId === draggingId) return false;
+      var pos = el.dataset.position || 'main';
+      if (region === 'header') return pos === 'header';
+      if (region === 'footer') return pos === 'footer';
+      return pos !== 'header' && pos !== 'footer';
     });
+  }
 
-    // Grid container right edge (approximated from section parent or window)
-    var gridRight = window.innerWidth;
-    if (all.length > 0) {
-      var parent = all[0].parentElement;
-      if (parent) gridRight = parent.getBoundingClientRect().right;
-    } else {
-      var parent = draggedEl.parentElement;
-      if (parent) gridRight = parent.getBoundingClientRect().right;
-    }
-
-    if (all.length === 0) {
-      // Only the dragged section exists — check if it leaves empty space on the right
-      var dr = draggedEl.getBoundingClientRect();
-      if (gridRight - dr.right > 50) {
-        addEmptyZone(dr.top, dr.right, gridRight, dr.bottom, '__end__');
-      }
-      addSep(dr.bottom + 12, '__end__');
-      return;
-    }
-
-    // Group sections into visual rows by similar top value (within 20px)
+  // Group flat list of sections into visual rows (sections with similar .top within 20px)
+  function toRows(secs) {
     var rows = [];
-    var curTop = all[0].getBoundingClientRect().top;
-    var curBottom = all[0].getBoundingClientRect().bottom;
-    var curSecs = [all[0]];
-    for (var i = 1; i < all.length; i++) {
-      var rect = all[i].getBoundingClientRect();
-      if (Math.abs(rect.top - curTop) < 20) {
-        curSecs.push(all[i]);
-        curBottom = Math.max(curBottom, rect.bottom);
-      } else {
-        rows.push({ secs: curSecs, top: curTop, bottom: curBottom });
-        curTop = rect.top; curBottom = rect.bottom; curSecs = [all[i]];
+    secs.forEach(function(sec) {
+      var r = sec.getBoundingClientRect();
+      for (var i = 0; i < rows.length; i++) {
+        if (Math.abs(r.top - rows[i].top) < 20) {
+          rows[i].secs.push(sec);
+          rows[i].bottom = Math.max(rows[i].bottom, r.bottom);
+          return;
+        }
       }
+      rows.push({ top: r.top, bottom: r.bottom, secs: [sec] });
+    });
+    rows.sort(function(a, b) { return a.top - b.top; });
+    return rows;
+  }
+
+  function findDrop(mx, my) {
+    var region = regionAtY(my);
+    var secs = siblingsIn(region);
+
+    if (secs.length === 0) {
+      return { beforeId: '__end__', position: region, indicEl: null, indicSide: null };
     }
-    rows.push({ secs: curSecs, top: curTop, bottom: curBottom });
 
-    // Separator before first row
-    addSep(rows[0].top - 12, rows[0].secs[0].dataset.sectionId);
+    var rows = toRows(secs);
 
+    // Above all rows
+    if (my < rows[0].top) {
+      var s0 = rows[0].secs[0];
+      return { beforeId: s0.dataset.sectionId, position: region, indicEl: s0, indicSide: 'row-before' };
+    }
+    // Below all rows
+    var last = rows[rows.length - 1];
+    if (my > last.bottom) {
+      var sLast = last.secs[last.secs.length - 1];
+      return { beforeId: '__end__', position: region, indicEl: sLast, indicSide: 'row-after' };
+    }
+
+    // Find the row containing cursor Y (or the nearest one)
+    var ri = 0;
     for (var r = 0; r < rows.length; r++) {
-      // Empty-space drop zone if row doesn't fill the full grid width
-      var rowRight = Math.max.apply(Math, rows[r].secs.map(function(s) {
-        return s.getBoundingClientRect().right;
-      }));
-      if (gridRight - rowRight > 50) {
-        var emptyBeforeId = (r < rows.length - 1)
-          ? rows[r + 1].secs[0].dataset.sectionId
-          : '__end__';
-        addEmptyZone(rows[r].top, rowRight, gridRight, rows[r].bottom, emptyBeforeId);
-      }
+      if (my <= rows[r].bottom) { ri = r; break; }
+    }
+    var row = rows[ri];
 
-      // Row separator (below this row / above next row)
-      if (r < rows.length - 1) {
-        var midY = (rows[r].bottom + rows[r + 1].top) / 2;
-        addSep(midY, rows[r + 1].secs[0].dataset.sectionId);
+    // Sort row sections left→right
+    var rowSecs = row.secs.slice().sort(function(a, b) {
+      return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
+    });
+
+    // Scan left→right to find insert position within the row
+    for (var s = 0; s < rowSecs.length; s++) {
+      var sr = rowSecs[s].getBoundingClientRect();
+      var midX = sr.left + sr.width / 2;
+      if (mx <= midX) {
+        return { beforeId: rowSecs[s].dataset.sectionId, position: region, indicEl: rowSecs[s], indicSide: 'before' };
       }
     }
 
-    // Separator after last row
-    addSep(rows[rows.length - 1].bottom + 12, '__end__');
+    // Mouse is past the last section in the row → insert at start of next row (or end)
+    var lastInRow = rowSecs[rowSecs.length - 1];
+    var nextId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
+    return { beforeId: nextId, position: region, indicEl: lastInRow, indicSide: 'after' };
   }
 
-  function addSep(top, beforeId) {
-    var sep = document.createElement('div');
-    sep.className = 'si-drop-separator';
-    sep.style.top = top + 'px';
-    sep.dataset.beforeId = beforeId;
-    sep.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      sep.classList.add('si-sep-active');
-    });
-    sep.addEventListener('dragleave', function() { sep.classList.remove('si-sep-active'); });
-    sep.addEventListener('drop', function(e) {
-      e.preventDefault();
-      sep.classList.remove('si-sep-active');
-      if (draggingId) {
-        window.parent.postMessage({ type: 'section-insert', fromId: draggingId, beforeId: beforeId }, '*');
-      }
-    });
-    document.body.appendChild(sep);
-    separators.push(sep);
-  }
-
-  function addEmptyZone(top, left, right, bottom, beforeId) {
-    var zone = document.createElement('div');
-    zone.className = 'si-drop-empty-zone';
-    zone.style.top    = top + 'px';
-    zone.style.left   = left + 'px';
-    zone.style.width  = (right - left) + 'px';
-    zone.style.height = (bottom - top) + 'px';
-    zone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      zone.classList.add('si-zone-active');
-    });
-    zone.addEventListener('dragleave', function() { zone.classList.remove('si-zone-active'); });
-    zone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      zone.classList.remove('si-zone-active');
-      if (draggingId) {
-        window.parent.postMessage({ type: 'section-insert', fromId: draggingId, beforeId: beforeId }, '*');
-      }
-    });
-    document.body.appendChild(zone);
-    separators.push(zone);
-  }
-
-  // Next main-content section in DOM order after el
-  function getNextSection(el) {
-    var found = false;
-    var nodes = document.querySelectorAll('[data-section-id]');
-    for (var i = 0; i < nodes.length; i++) {
-      var n = nodes[i]; var p = n.dataset.position;
-      if (p === 'header' || p === 'footer') continue;
-      if (found) return n;
-      if (n === el) found = true;
-    }
-    return null;
-  }
-
-  function clearDragClasses() {
-    document.querySelectorAll('[data-section-id]').forEach(function(x) {
-      x.classList.remove('si-drag-before', 'si-drag-after');
-    });
-    separators.forEach(function(s) {
-      s.classList.remove('si-sep-active', 'si-zone-active');
+  function clearIndicators() {
+    allSections().forEach(function(el) {
+      el.classList.remove('si-drag-before', 'si-drag-after', 'si-drag-row-before', 'si-drag-row-after');
     });
   }
 
-  // Attach move bars (no draggable attribute — pure mouse drag)
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var pos = el.dataset.position;
-    if (pos === 'header' || pos === 'footer') return;
-
+  // Attach move bars to ALL sections including header/footer
+  allSections().forEach(function(el) {
     var bar = document.createElement('div');
     bar.className = 'si-move-bar';
     bar.title = 'Drag to move';
     el.appendChild(bar);
 
     bar.addEventListener('mousedown', function(e) {
-      if (e.button !== 0) return;   // left button only
+      if (e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
+      dragging = true;
       draggingId = el.dataset.sectionId;
       draggingEl = el;
       el.classList.add('si-dragging');
       document.body.style.cursor = 'grabbing';
-      createSeparators(el);
     });
   });
 
-  // Global mousemove: update drag-over indicators
   document.addEventListener('mousemove', function(e) {
-    if (!draggingId) return;
-    clearDragClasses();
-    var target = document.elementFromPoint(e.clientX, e.clientY);
-    if (!target) return;
-
-    // Separator / empty zone
-    if (target.classList.contains('si-drop-separator')) {
-      target.classList.add('si-sep-active'); return;
-    }
-    if (target.classList.contains('si-drop-empty-zone')) {
-      target.classList.add('si-zone-active'); return;
-    }
-    // Section
-    var sec = target.closest('[data-section-id]');
-    if (sec && sec.dataset.sectionId !== draggingId) {
-      var rect = sec.getBoundingClientRect();
-      if (e.clientX < rect.left + rect.width / 2) {
-        sec.classList.add('si-drag-before');
-      } else {
-        sec.classList.add('si-drag-after');
-      }
+    if (!dragging) return;
+    clearIndicators();
+    currentDrop = findDrop(e.clientX, e.clientY);
+    if (currentDrop.indicEl) {
+      var cls = currentDrop.indicSide === 'before'     ? 'si-drag-before'
+              : currentDrop.indicSide === 'after'      ? 'si-drag-after'
+              : currentDrop.indicSide === 'row-before' ? 'si-drag-row-before'
+              :                                          'si-drag-row-after';
+      currentDrop.indicEl.classList.add(cls);
     }
   }, { passive: true });
 
-  // Global mouseup: commit the move
   document.addEventListener('mouseup', function(e) {
-    if (!draggingId) return;
+    if (!dragging) return;
     var fromId = draggingId;
+    var drop = currentDrop;
 
-    // Determine beforeId from what's under cursor (separators still in DOM at this point)
-    var target = document.elementFromPoint(e.clientX, e.clientY);
-    var beforeId = null;
-    if (target) {
-      if (target.classList.contains('si-drop-separator') || target.classList.contains('si-drop-empty-zone')) {
-        beforeId = target.dataset.beforeId || null;
-      } else {
-        var sec = target.closest('[data-section-id]');
-        if (sec && sec.dataset.sectionId !== fromId) {
-          var rect = sec.getBoundingClientRect();
-          if (e.clientX < rect.left + rect.width / 2) {
-            beforeId = sec.dataset.sectionId;
-          } else {
-            var next = getNextSection(sec);
-            beforeId = next ? next.dataset.sectionId : '__end__';
-          }
-        }
-      }
-    }
-
-    // Clean up
     if (draggingEl) draggingEl.classList.remove('si-dragging');
-    draggingId = null; draggingEl = null;
+    dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
     document.body.style.cursor = '';
-    clearDragClasses();
-    removeSeparators();
+    clearIndicators();
 
-    if (fromId && beforeId) {
-      window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: beforeId }, '*');
+    if (fromId && drop && drop.beforeId) {
+      window.parent.postMessage({
+        type: 'section-move',
+        fromId: fromId,
+        beforeId: drop.beforeId,
+        newPosition: drop.position
+      }, '*');
     }
   });
 
-  // ESC cancels drag
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && draggingId) {
+    if (e.key === 'Escape' && dragging) {
       if (draggingEl) draggingEl.classList.remove('si-dragging');
-      draggingId = null; draggingEl = null;
+      dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
       document.body.style.cursor = '';
-      clearDragClasses();
-      removeSeparators();
+      clearIndicators();
     }
   });
 })();
