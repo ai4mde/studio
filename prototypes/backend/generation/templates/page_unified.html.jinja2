@@ -2765,41 +2765,43 @@
 /* ── Section right-click context menu ── */
 (function() {
   var menu = null;
-  var menuTargetId = null;
 
   function hideMenu() {
-    if (menu) { menu.remove(); menu = null; menuTargetId = null; }
+    if (menu) { menu.remove(); menu = null; }
   }
 
   function showMenu(x, y, sectionId) {
     hideMenu();
-    menuTargetId = sectionId;
 
     menu = document.createElement('div');
     menu.className = 'si-ctx-menu';
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
 
-    function item(icon, label, cls, onClick) {
+    // sectionId is captured here in the closure — safe from hideMenu clearing it
+    function item(icon, label, cls, action) {
       var el = document.createElement('div');
       el.className = 'si-ctx-item' + (cls ? ' ' + cls : '');
       el.innerHTML = icon + '<span>' + label + '</span>';
       el.addEventListener('mousedown', function(e) { e.stopPropagation(); });
-      el.addEventListener('click', function() { hideMenu(); onClick(); });
+      el.addEventListener('click', function() {
+        hideMenu();
+        action(sectionId);   // sectionId from outer closure, already captured
+      });
       return el;
     }
 
     menu.appendChild(item(
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-      '复制 Section', '', function() {
-        window.parent.postMessage({ type: 'section-duplicate', id: menuTargetId }, '*');
+      'Duplicate', '', function(id) {
+        window.parent.postMessage({ type: 'section-duplicate', id: id }, '*');
       }
     ));
 
     menu.appendChild(item(
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>',
-      '删除 Section', 'danger', function() {
-        window.parent.postMessage({ type: 'section-delete', id: menuTargetId }, '*');
+      'Delete', 'danger', function(id) {
+        window.parent.postMessage({ type: 'section-delete', id: id }, '*');
       }
     ));
 
@@ -2807,7 +2809,7 @@
 
     // Flip if menu overflows viewport
     var rect = menu.getBoundingClientRect();
-    if (rect.right > window.innerWidth)  menu.style.left = (x - rect.width)  + 'px';
+    if (rect.right  > window.innerWidth)  menu.style.left = (x - rect.width)  + 'px';
     if (rect.bottom > window.innerHeight) menu.style.top  = (y - rect.height) + 'px';
   }
 
