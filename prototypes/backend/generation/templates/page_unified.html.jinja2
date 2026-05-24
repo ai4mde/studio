@@ -2713,16 +2713,104 @@
 /* Lift hovered/active section above adjacent content so handles are always on top */
 [data-section-id]:hover { z-index: 5; }
 [data-section-id].si-resizing, [data-section-id].si-vresizing { z-index: 10; }
+/* Drop separator zones shown during drag */
+.si-drop-separator {
+  position: fixed; left: 0; right: 0; height: 32px;
+  transform: translateY(-50%); z-index: 9990;
+  display: flex; align-items: center; padding: 0 16px;
+}
+.si-drop-separator::before {
+  content: ''; flex: 1; height: 3px;
+  background: transparent; border-radius: 2px;
+  transition: background 0.1s, box-shadow 0.1s;
+}
+.si-drop-separator.si-sep-active::before {
+  background: var(--accent, #3b82f6);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.18);
+}
 </style>
 
 <script>
-/* ── Section drag-and-drop ── */
+/* ── Section drag-and-drop (insert-at-position) ── */
 (function() {
   var draggingId = null;
   var isDragging = false;
+  var separators = [];
+
+  function removeSeparators() {
+    separators.forEach(function(s) { s.remove(); });
+    separators = [];
+  }
+
+  function createSeparators(draggedEl) {
+    removeSeparators();
+
+    // All non-chrome sections in DOM order, excluding the dragged one
+    var all = Array.from(document.querySelectorAll('[data-section-id]')).filter(function(el) {
+      var p = el.dataset.position;
+      return p !== 'header' && p !== 'footer' && el !== draggedEl;
+    });
+
+    if (all.length === 0) {
+      // Only the dragged section exists — add a single end-sentinel separator
+      var r = draggedEl.getBoundingClientRect();
+      addSep(r.bottom + 12, '__end__');
+      return;
+    }
+
+    // Group sections into visual rows by similar top value (within 20px)
+    var rows = [];
+    var curTop = all[0].getBoundingClientRect().top;
+    var curBottom = all[0].getBoundingClientRect().bottom;
+    var curSecs = [all[0]];
+    for (var i = 1; i < all.length; i++) {
+      var rect = all[i].getBoundingClientRect();
+      if (Math.abs(rect.top - curTop) < 20) {
+        curSecs.push(all[i]);
+        curBottom = Math.max(curBottom, rect.bottom);
+      } else {
+        rows.push({ secs: curSecs, top: curTop, bottom: curBottom });
+        curTop = rect.top; curBottom = rect.bottom; curSecs = [all[i]];
+      }
+    }
+    rows.push({ secs: curSecs, top: curTop, bottom: curBottom });
+
+    // Separator before first row
+    addSep(rows[0].top - 12, rows[0].secs[0].dataset.sectionId);
+
+    // Separators between rows
+    for (var r = 0; r < rows.length - 1; r++) {
+      var midY = (rows[r].bottom + rows[r + 1].top) / 2;
+      addSep(midY, rows[r + 1].secs[0].dataset.sectionId);
+    }
+
+    // Separator after last row
+    addSep(rows[rows.length - 1].bottom + 12, '__end__');
+  }
+
+  function addSep(top, beforeId) {
+    var sep = document.createElement('div');
+    sep.className = 'si-drop-separator';
+    sep.style.top = top + 'px';
+    sep.dataset.beforeId = beforeId;
+    sep.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      sep.classList.add('si-sep-active');
+    });
+    sep.addEventListener('dragleave', function() { sep.classList.remove('si-sep-active'); });
+    sep.addEventListener('drop', function(e) {
+      e.preventDefault();
+      sep.classList.remove('si-sep-active');
+      if (draggingId) {
+        window.parent.postMessage({ type: 'section-insert', fromId: draggingId, beforeId: beforeId }, '*');
+      }
+    });
+    document.body.appendChild(sep);
+    separators.push(sep);
+  }
 
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    // Only main-content sections (not header/footer chrome)
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
 
@@ -2734,7 +2822,6 @@
 
     el.setAttribute('draggable', 'false');
 
-    // Enable drag only when mousedown on the move bar
     bar.addEventListener('mousedown', function(e) {
       e.stopPropagation();
       el.setAttribute('draggable', 'true');
@@ -2749,6 +2836,8 @@
       el.classList.add('si-dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', draggingId);
+      // Defer so drag-image is captured first
+      setTimeout(function() { createSeparators(el); }, 0);
     });
 
     el.addEventListener('dragend', function() {
@@ -2756,36 +2845,32 @@
       draggingId = null;
       el.classList.remove('si-dragging');
       el.setAttribute('draggable', 'false');
-      document.querySelectorAll('.si-drag-over').forEach(function(x) {
-        x.classList.remove('si-drag-over');
-      });
+      document.querySelectorAll('.si-drag-over').forEach(function(x) { x.classList.remove('si-drag-over'); });
+      removeSeparators();
     });
 
     el.addEventListener('dragover', function(e) {
       if (!isDragging) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      if (el.dataset.sectionId !== draggingId) {
-        el.classList.add('si-drag-over');
-      }
+      if (el.dataset.sectionId !== draggingId) { el.classList.add('si-drag-over'); }
     });
 
-    el.addEventListener('dragleave', function() {
-      el.classList.remove('si-drag-over');
-    });
+    el.addEventListener('dragleave', function() { el.classList.remove('si-drag-over'); });
 
     el.addEventListener('drop', function(e) {
       e.preventDefault();
       el.classList.remove('si-drag-over');
-      var fromId = e.dataTransfer.getData('text/plain');
+      var fromId = draggingId || e.dataTransfer.getData('text/plain');
       var toId = el.dataset.sectionId;
       if (fromId && toId && fromId !== toId) {
-        window.parent.postMessage({ type: 'section-reorder', fromId: fromId, toId: toId }, '*');
+        // Insert before the drop target (same semantics as separator drop)
+        window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: toId }, '*');
       }
     });
   });
 
-  // Block section-click when drag just ended
+  // Block spurious click after drag ends
   document.addEventListener('click', function(e) {
     if (isDragging) { e.stopPropagation(); }
   }, true);

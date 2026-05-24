@@ -297,6 +297,38 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 setSections((prev: any[]) => prev.map((s: any) =>
                     s.id === id ? { ...s, min_height } : s
                 ));
+            } else if (e.data?.type === 'section-insert') {
+                const { fromId, beforeId } = e.data;
+                setSections((prev: any[]) => {
+                    const arr = [...prev];
+                    const fi = arr.findIndex((s: any) => s.id === fromId);
+                    if (fi === -1) return prev;
+                    const [moved] = arr.splice(fi, 1);
+                    if (beforeId === '__end__') {
+                        arr.push(moved);
+                    } else {
+                        const ti = arr.findIndex((s: any) => s.id === beforeId);
+                        arr.splice(ti === -1 ? arr.length : ti, 0, moved);
+                    }
+                    return arr;
+                });
+                setPages((prev: any[]) => prev.map((page: any) => {
+                    const refs = [...(page.sections || [])];
+                    const fi = refs.findIndex((ref: any) =>
+                        (typeof ref === 'string' ? ref : ref?.value) === fromId
+                    );
+                    if (fi === -1) return page;
+                    const [moved] = refs.splice(fi, 1);
+                    if (beforeId === '__end__') {
+                        refs.push(moved);
+                    } else {
+                        const ti = refs.findIndex((ref: any) =>
+                            (typeof ref === 'string' ? ref : ref?.value) === beforeId
+                        );
+                        refs.splice(ti === -1 ? refs.length : ti, 0, moved);
+                    }
+                    return { ...page, sections: refs };
+                }));
             }
         };
         window.addEventListener('message', handler);
