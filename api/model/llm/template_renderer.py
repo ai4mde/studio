@@ -200,6 +200,7 @@ class _Page:
 
 
 def _sanitize(name: str) -> str:
+    name = str(name or "")
     name = re.sub(r"[^\w\s]", "", name)
     name = re.sub(r"\s+", "_", name.strip())
     return name.lower()
@@ -240,6 +241,25 @@ def _parse_query(section_raw: Dict) -> Dict:
     if "exclude_source" not in query and relationship.get("exclude_source") is not None:
         query["exclude_source"] = relationship.get("exclude_source")
     return query
+
+
+def _parse_operations(raw) -> Dict:
+    if isinstance(raw, dict):
+        return {
+            "create": bool(raw.get("create", False)),
+            "update": bool(raw.get("update", False) or raw.get("edit", False)),
+            "delete": bool(raw.get("delete", False) or raw.get("remove", False)),
+            "select": bool(raw.get("select", False) or raw.get("view", False)),
+        }
+    if isinstance(raw, list):
+        values = {str(value).strip().lower() for value in raw}
+        return {
+            "create": "create" in values,
+            "update": bool({"update", "edit"} & values),
+            "delete": bool({"delete", "remove"} & values),
+            "select": bool({"select", "view"} & values),
+        }
+    return {"create": False, "update": False, "delete": False, "select": False}
 
 
 def _relation_data(relation: Dict) -> Dict:
@@ -387,7 +407,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     action=action,
                 ))
 
-            ops = s_raw.get("operations", {})
+            ops = _parse_operations(s_raw.get("operations", {}))
 
             sec_layout = s_raw.get("layout", "table")
             sec_style = {**DEFAULT_SECTION_STYLE, **(s_raw.get("style") or {})}

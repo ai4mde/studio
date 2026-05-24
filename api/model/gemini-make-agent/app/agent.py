@@ -11,7 +11,7 @@ from app.tools import (
 
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
-  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action"
+  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action" | "activity_start" | "activity_tasks"
   sections[].col_span      : 12 | 6 | 4 | 3
   sections[].position      : "main" | "sidebar" | "header" | "footer"
 
@@ -64,6 +64,11 @@ Workflow controls (layout/type="activity_action"):
   sections[].style.variant    : "button" | "link" | "fab" | "wizard_next" | "auto"
   sections[].style.align      : "left" | "center" | "right"
   sections[].style.size       : "sm" | "md" | "lg"
+
+Workflow launch/task panels:
+  sections[].layout/type      : "activity_start" | "activity_tasks"
+    activity_start = start an available workflow process from a normal usecase page (e.g. Checkout on Cart/Purchase page)
+    activity_tasks = show active executable tasks. Activity pages themselves must not be put in normal site navigation.
 
 Detail style (layout="detail"):
   sections[].style.image_position : "left" | "top" | "right"
@@ -121,11 +126,16 @@ reason_agent = Agent(
 Message format: interface_id=<uuid> prompt=<designer intent> selected_specs=[...]
 
 Workflow:
-1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, activity_diagrams, and workflow_plan.
+1. Call get_interface_full_context(interface_id) to get the interface structure, classifiers, relations, usecase_navigation, activity_diagrams, and workflow_plan.
 2. Reason about:
    - Visual Tone: How do the selected_specs align with the user prompt?
    - Completeness: Plan for a full app experience (Site Nav, Headers, Footers, Search, etc.).
-   - Pages: Which pages the actor needs (one per major use-case or object workspace).
+   - Pages/sections: Start from system.usecase_navigation.ooui_plan. Its pages[] and sections[] are the canonical OOUI blueprint. Do not invent one page per use case.
+   - Pages: Pages are OOUI object workspaces; use cases become capabilities on those pages.
+   - Navigation and buttons: Use system.usecase_navigation.nav_bar_pages for site navigation and icon_actions for compact header/cart/account/order buttons.
+   - Permissions: Use system.usecase_navigation.actor_permissions to decide section operations. Do not expose create/update/delete controls that the use case permissions do not allow.
+   - Workflow entry: Use system.usecase_navigation.workflow_entry_points to place activity_start sections on normal usecase pages such as Cart/Purchase. Label them with button_label (e.g. "Checkout"). This button is NOT the whole page: the page must first contain normal business data sections for the objects the user reviews/edits before starting the workflow.
+   - Workflow: Use system.workflow_plan/activity_diagrams for executable task pages. Each activity page needs task-specific content first (form/list/detail/table for the object being reviewed or edited), then an activity_action control to complete/continue the task.
    - OOUI: workspace, navigation area, object detail, collection.
    - Transitions: All navigation transitions between pages.
    - 3 structurally distinct diversity directions for the candidates.
@@ -154,7 +164,10 @@ Workflow:
 Rules:
 - page name must be Title_Case with underscores (e.g. Browse_Products)
 - primary_model in pages[] MUST be the EXACT classifier name as it appears in the system context.
-- nav_bar_pages MUST include the primary entry points.
+- nav_bar_pages MUST include the actor's usecase_navigation.nav_bar_pages primary entry points.
+- actor_permissions MUST be copied or conservatively derived from usecase_navigation.actor_permissions.
+- Workflow/activity pages MUST NOT be placed in nav_bar_pages. Normal usecase pages may contain activity_start buttons that launch them.
+- Do NOT create standalone pages for inline operation use cases such as Add/Remove/Select/Write Review unless the OOUI mapping says they are workspaces. Put those as buttons/forms/actions on the relevant object page.
 - diversity_hints MUST be CONCRETE: specify column splits, dominant layout types, section counts, and density.
   Good example: "compact table layout with col_span=3 filter sidebar, 5 focused pages, 1 table section per page"
   Bad example: "data-rich layout"
@@ -190,7 +203,7 @@ The function validate_and_save_candidate requires TWO separate arrays:
 SECTION RULES:
 - id: unique string
 - layout: one of: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
-                   "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
+                   "activity_action","activity_start","activity_tasks","promo-bar","logo","search-bar","icon-actions","nav-links",
                    "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
 - style: use appropriate colors, density, and high-fidelity markers (text_class, is_full_width, surface_level).
 
@@ -228,11 +241,13 @@ candidate_pipeline_agent = Agent(
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 ━━━ PHASE 1 — REASON ━━━
-1. Call get_interface_full_context(interface_id) to load classifiers, attributes, activity diagrams.
+1. Call get_interface_full_context(interface_id) to load classifiers, attributes, usecase_navigation, activity diagrams.
    CRITICAL: From the response, extract and memorize the EXACT attribute names for each classifier.
    Example: if classifier "Loan Application" has attributes [{{name:"loan_amount"}},{{name:"approved"}},...]
    then the ONLY valid attributes for that model are exactly: "loan_amount", "approved", etc.
    Store this as a reference: model → [exact_field_name_1, exact_field_name_2, ...]
+   Also extract system.usecase_navigation.ooui_plan: pages[] are object workspaces, sections[] are the intended section blueprint, operations[] are inline object actions, workflows[] are activity workflow entries.
+   Use system.usecase_navigation.nav_bar_pages for navigation, workflow_entry_points for activity_start buttons, and actor_permissions for data operations.
 2. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user prompt>).
 3. Call reason_agent with message: "interface_id=<uuid> prompt=<prompt> selected_specs=<spec names list>"
    reason_agent returns a JSON with pages[], navigation_edges[], diversity_hints[].
@@ -250,8 +265,14 @@ validate_and_save_candidate requires TWO separate top-level arrays:
   sections — flat list of ALL section objects for ALL pages combined
              each item: {{id, name, layout, position, col_span, primary_model, attributes, operations, style}}
 
+OOUI BLUEPRINT:
+  - Prefer section IDs/roles from system.usecase_navigation.ooui_plan.sections when building sections[].
+  - Each data section has exactly one primary_model. Only fields from primary_model may be editable.
+  - related_visible_fields such as Product.name may be displayed using dot notation but are read-only in that section.
+  - Inline operations from ooui_plan.operations become buttons/custom operations on the source page/section, not standalone pages.
+
 ALLOWED LAYOUTS: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
-               "activity_action","promo-bar","logo","search-bar","icon-actions","nav-links",
+               "activity_action","activity_start","activity_tasks","promo-bar","logo","search-bar","icon-actions","nav-links",
                "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
 
 CHROME SECTIONS (add to EVERY page's reference list, include once in sections[]):
@@ -259,13 +280,26 @@ CHROME SECTIONS (add to EVERY page's reference list, include once in sections[])
   - icon_actions: layout="icon-actions", position="header", col_span=12, primary_model="", attributes=[]
   - site_footer: layout="site-footer", position="footer", col_span=12, primary_model="", attributes=[]
 
+WORKFLOW ENTRY SECTIONS:
+  - For each system.usecase_navigation.workflow_entry_points item, add or keep an activity_start section on that normal OOUI object page.
+   - Use style.cta_label from button_label, for example "Checkout".
+   - Never make an activity_start button the only meaningful section on that page. Add the pre-workflow workspace first: lists/tables/details/forms for the use case's primary_model and related child collections.
+   - If the use case exposes child collection models such as Item/Line/Entry/Detail/Selection rows, render them as list/table sections before the activity_start button. Enable update/delete where the user is expected to adjust the collection before submitting, such as quantity changes or removing rows.
+   - Do not put activity pages such as Payment or Shipping Address in the normal site nav; they are entered through the workflow engine only.
+
+ACTIVITY TASK PAGES:
+  - An activity page must not be only a Continue/Start button.
+  - Add task content before activity_action: for "View Cart" show editable cart/item rows; for "Enter Shipping Address" show an address form; for "Select Payment Method" show payment/method form; for confirmation steps show order/detail/list content.
+  - Keep activity_action as the final control on the page, after the user-facing task data.
+
 DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
   - MANDATORY: Every data section MUST have a non-empty attributes list.
     CRITICAL: Use ONLY attribute names that ACTUALLY EXIST in the classifier from get_interface_full_context.
     Read the classifier's attributes[] array CAREFULLY — copy the exact field names character for character.
     NEVER invent attribute names. If the classifier has "loan_amount" not "amount_requested", use "loan_amount".
     Use ALL relevant fields (4-8 names). NEVER leave attributes as [].
-  - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on actor permissions
+  - Set operations: {{"create": bool, "update": bool, "delete": bool}} based on usecase_navigation.actor_permissions.
+    Never enable create/update/delete for a model unless actor_permissions for that model includes it.
   - style: {{"color": "accent|accent-secondary", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
     ALWAYS use "accent" for data section colors — this uses the design spec's brand color via CSS variables.

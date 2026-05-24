@@ -74,6 +74,10 @@ const ACTIVITY_ACTION_SIZES = [
 ];
 
 const getAttributeName = (attr: any) => typeof attr === 'string' ? attr : attr?.name;
+const toAttributeOption = (attr: any) => {
+    if (typeof attr === 'string') return { name: attr };
+    return { ...(attr || {}), name: attr?.name || '' };
+};
 const getAttributeRenderAs = (attr: any) => {
     if (typeof attr === 'string') return 'text';
     return attr?.render?.as || (attr?.is_link ? 'link' : 'text');
@@ -97,7 +101,17 @@ export const Sections: React.FC<Props> = () => {
     const [pencelClickText, setPencelClickText] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
-    const [classAttributes] = useClassAttributes(systemId, selectedClass);
+    const selectedClassObject = React.useMemo(() => {
+        if (!classes || !selectedClass) return null;
+        return classes.find((cls: any) =>
+            cls.id === selectedClass ||
+            cls.data?.name === selectedClass ||
+            cls.data?.name?.toLowerCase() === String(selectedClass).toLowerCase()
+        ) || null;
+    }, [classes, selectedClass]);
+    const selectedClassId = selectedClassObject?.id || selectedClass;
+    const selectedClassName = selectedClassObject?.data?.name || selectedClass;
+    const [classAttributes] = useClassAttributes(systemId, selectedClassId);
     const [classCustomMethods] = useClassCustomMethods(systemId, selectedClass)
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
@@ -105,6 +119,10 @@ export const Sections: React.FC<Props> = () => {
     const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
     const [customAttr, setCustomAttr] = useState('');
     const [availablePaths, setAvailablePaths] = useState<string[]>([]);
+    const selectedAttributeOptions = React.useMemo(
+        () => (selectedAttributes || []).map(toAttributeOption).filter((attr: any) => attr.name),
+        [selectedAttributes],
+    );
 
     React.useEffect(() => {
         if (isSuccessClasses && classes) {
@@ -127,6 +145,8 @@ export const Sections: React.FC<Props> = () => {
         if (data[index].class) {
             const classId = data[index].class;
             setSelectedClass(classId);
+        } else if (data[index].primary_model) {
+            setSelectedClass(data[index].primary_model);
         }
 
         if (data[index].operations) {
@@ -366,14 +386,20 @@ export const Sections: React.FC<Props> = () => {
     const toggleClass = async (sectionIndex: number, cls) => {
         setSelectedClass(cls.id);
         const newData = [...data];
-        newData[sectionIndex].class = cls.id;
+        newData[sectionIndex].class = cls.data?.name || cls.id;
+        newData[sectionIndex].primary_model = cls.data?.name || newData[sectionIndex].primary_model || '';
         setSelectedAttributes([]);
         newData[sectionIndex].attributes = [];
         setData(newData);
     };
 
     const handleAttributeSelect = (selectedList, selectedItem, sectionIndex: number) => {
-        const updatedAttributes = [...selectedAttributes, selectedItem];
+        const selectedName = getAttributeName(selectedItem);
+        if (!selectedName) return;
+        const existingNames = new Set((selectedAttributes || []).map(getAttributeName));
+        const updatedAttributes = existingNames.has(selectedName)
+            ? selectedAttributes
+            : [...selectedAttributes, toAttributeOption(selectedItem)];
         setSelectedAttributes(updatedAttributes);
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
@@ -607,10 +633,15 @@ export const Sections: React.FC<Props> = () => {
                                             placeholder="Select attributes..."
                                             showCheckbox={true}
                                             style={{ chips: { background: 'rgb(231 229 228)', color: 'rgb(61 56 70)' } }}
-                                            selectedValues={selectedAttributes}
+                                            selectedValues={selectedAttributeOptions}
                                             onSelect={(selectedList, selectedItem) => handleAttributeSelect(selectedList, selectedItem, index)}
                                             onRemove={(selectedList, selectedItem) => handleAttributeRemove(selectedList, selectedItem, index)}
                                         />
+                                        {selectedClassName && (
+                                            <p className="text-[11px] text-gray-500 mt-1">
+                                                Fields are from {selectedClassName}. Use related fields below for read-only values from other classes.
+                                            </p>
+                                        )}
                                         <div className="mt-2 space-y-1">
                                             {selectedAttributes.map((attr, attrIdx) => {
                                                 const action = getAttributeAction(attr);

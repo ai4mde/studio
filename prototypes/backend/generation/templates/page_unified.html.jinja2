@@ -795,6 +795,7 @@
 {#-- activity_start: show processes the user can start --#}
 {%- set _as_cols = (section_component.style.get('columns', '3') | int) %}
 {%- set _as_card = section_component.style.get('card_style', 'elevated') %}
+{%- set _as_button_label = section_component.style.get('cta_label') or section_component.label or 'Start' %}
 {%- set _as_col_class = 'grid-cols-1' if _as_cols == 1 else ('grid-cols-2' if _as_cols == 2 else ('grid-cols-3' if _as_cols == 3 else 'grid-cols-4')) %}
 {%- set _as_card_cls = 'bg-white rounded-xl shadow-md p-5' if _as_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _as_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
 <div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
@@ -806,7 +807,7 @@
     {%- for _asp in _as_pages %}
     <div class="{{ _as_card_cls }}">
       <div class="font-medium text-gray-800 mb-3">{{ _asp.display_name }}</div>
-      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _asp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _asp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">{{ _as_button_label }}</button>
     </div>
     {%- endfor %}
   </div>
@@ -821,7 +822,7 @@
       <div class="font-medium text-gray-800 mb-3">{% raw %}{{ process.name }}{% endraw %}</div>
       <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
         {% raw %}{% csrf_token %}{% endraw %}
-        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Start</button>
+        <button type="submit" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">{{ _as_button_label }}</button>
       </form>
     </div>
     {% raw %}{% endfor %}{% endraw %}
@@ -1654,7 +1655,7 @@
 
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• CARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif _glay == "card" %}
-{%- set _m = section_component.primary_model %}
+{%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
   <div class="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
@@ -1815,7 +1816,12 @@
 
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif _glay == "list" %}
-{%- set _m = section_component.primary_model %}
+{%- set _m = section_component.primary_model or '' %}
+{%- if not _m or not list_var_name %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
+    {{ section_component.display_name }}
+  </div>
+{%- else %}
 {%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
 {%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
@@ -2018,6 +2024,7 @@
 
   </div>
 
+{%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
@@ -2219,7 +2226,7 @@
 
 {# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
 {% elif _glay == "form" %}
-{%- set _m = section_component.primary_model %}
+{%- set _m = section_component.primary_model or '' %}
 {%- if _fstyle == "summary" %}
   <div class="{{ cs }} {{ r }} {{ d.p }} space-y-3 sticky top-4">
     <h3 class="{{ d.text }} font-bold text-gray-800">{{ section_component.display_name }}</h3>
@@ -2801,9 +2808,6 @@
   }
 
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var pos = el.dataset.position;
-    if (pos === 'header' || pos === 'footer') return;
-
     el.addEventListener('contextmenu', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -2833,26 +2837,46 @@
     return Array.from(document.querySelectorAll('[data-section-id]'));
   }
 
-  // Determine which region (header/footer/main) the cursor Y falls in
-  function regionAtY(y) {
-    var all = allSections();
-    var hSecs = all.filter(function(el) { return el.dataset.position === 'header'; });
-    var fSecs = all.filter(function(el) { return el.dataset.position === 'footer'; });
-    function spanOf(secs) {
-      if (secs.length === 0) return null;
-      var tops = secs.map(function(el) { return el.getBoundingClientRect().top; });
-      var bots = secs.map(function(el) { return el.getBoundingClientRect().bottom; });
-      return { top: Math.min.apply(null, tops), bottom: Math.max.apply(null, bots) };
+  function sectionRegion(el) {
+    var pos = el.dataset.position || 'main';
+    return (pos === 'header' || pos === 'footer') ? pos : 'main';
+  }
+
+  function regionBounds(region) {
+    var secs = allSections().filter(function(el) { return sectionRegion(el) === region; });
+    if (!secs.length) return null;
+    var tops = secs.map(function(el) { return el.getBoundingClientRect().top; });
+    var bots = secs.map(function(el) { return el.getBoundingClientRect().bottom; });
+    return { top: Math.min.apply(null, tops), bottom: Math.max.apply(null, bots) };
+  }
+
+  // Determine which region (header/footer/main) the cursor Y falls in, including blank space.
+  function regionAtPoint(x, y) {
+    var hit = document.elementFromPoint(x, y);
+    var hitSec = hit && hit.closest && hit.closest('[data-section-id]');
+    if (hitSec) return sectionRegion(hitSec);
+
+    var hb = regionBounds('header');
+    var mb = regionBounds('main');
+    var fb = regionBounds('footer');
+
+    if (hb && y <= hb.bottom + 48) return 'header';
+    if (fb && y >= fb.top - 48) return 'footer';
+
+    if (hb && mb) {
+      var headerMainSplit = hb.bottom + (mb.top - hb.bottom) / 2;
+      if (y < headerMainSplit) return 'header';
+    } else if (!hb && mb && y < mb.top - 24) {
+      return 'header';
     }
-    var hb = spanOf(hSecs);
-    var fb = spanOf(fSecs);
-    // Also include native <header>/<footer> wrapper
-    var hEl = document.querySelector('header');
-    var fEl = document.querySelector('footer');
-    if (!hb && hEl) { var r = hEl.getBoundingClientRect(); hb = { top: r.top, bottom: r.bottom }; }
-    if (!fb && fEl) { var r = fEl.getBoundingClientRect(); fb = { top: r.top, bottom: r.bottom }; }
-    if (hb && y >= hb.top && y <= hb.bottom + 20) return 'header';
-    if (fb && y >= fb.top - 20 && y <= fb.bottom) return 'footer';
+
+    if (mb && fb) {
+      var mainFooterSplit = mb.bottom + (fb.top - mb.bottom) / 2;
+      if (y > mainFooterSplit) return 'footer';
+    } else if (!fb && mb && y > mb.bottom + 24) {
+      return 'footer';
+    }
+
     return 'main';
   }
 
@@ -2860,10 +2884,7 @@
   function siblingsIn(region) {
     return allSections().filter(function(el) {
       if (el.dataset.sectionId === draggingId) return false;
-      var pos = el.dataset.position || 'main';
-      if (region === 'header') return pos === 'header';
-      if (region === 'footer') return pos === 'footer';
-      return pos !== 'header' && pos !== 'footer';
+      return sectionRegion(el) === region;
     });
   }
 
@@ -2886,7 +2907,7 @@
   }
 
   function findDrop(mx, my) {
-    var region = regionAtY(my);
+    var region = regionAtPoint(mx, my);
     var secs = siblingsIn(region);
 
     if (secs.length === 0) {
@@ -2918,6 +2939,14 @@
     var rowSecs = row.secs.slice().sort(function(a, b) {
       return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
     });
+
+    if (my < row.top + (row.bottom - row.top) * 0.25) {
+      return { beforeId: rowSecs[0].dataset.sectionId, position: region, indicEl: rowSecs[0], indicSide: 'row-before' };
+    }
+    if (my > row.top + (row.bottom - row.top) * 0.75) {
+      var belowId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
+      return { beforeId: belowId, position: region, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
+    }
 
     // Scan left→right to find insert position within the row
     for (var s = 0; s < rowSecs.length; s++) {
@@ -2955,6 +2984,7 @@
       draggingId = el.dataset.sectionId;
       draggingEl = el;
       el.classList.add('si-dragging');
+      el.style.pointerEvents = 'none';
       document.body.style.cursor = 'grabbing';
     });
   });
@@ -2977,7 +3007,10 @@
     var fromId = draggingId;
     var drop = currentDrop;
 
-    if (draggingEl) draggingEl.classList.remove('si-dragging');
+    if (draggingEl) {
+      draggingEl.classList.remove('si-dragging');
+      draggingEl.style.pointerEvents = '';
+    }
     dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
     document.body.style.cursor = '';
     clearIndicators();
@@ -2994,7 +3027,10 @@
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && dragging) {
-      if (draggingEl) draggingEl.classList.remove('si-dragging');
+      if (draggingEl) {
+        draggingEl.classList.remove('si-dragging');
+        draggingEl.style.pointerEvents = '';
+      }
       dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
       document.body.style.cursor = '';
       clearIndicators();
@@ -3037,9 +3073,6 @@
   }
 
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var pos = el.dataset.position;
-    if (pos === 'header' || pos === 'footer') return;
-
     var rHandle = document.createElement('div');
     rHandle.className = 'si-resize-handle';
     rHandle.title = 'Drag to resize width';
@@ -3080,7 +3113,7 @@
 
   document.addEventListener('mousemove', function(e) {
     if (!resizing || !resizingEl) return;
-    var grid = document.getElementById('page-sections-grid');
+    var grid = resizingEl.closest('.grid-cols-12') || document.getElementById('page-sections-grid') || resizingEl.parentElement;
     if (!grid) return;
     var colW = grid.getBoundingClientRect().width / 12;
     // Right: distance from element's fixed left edge to cursor
@@ -3149,9 +3182,6 @@
   var vresizeDir = 'bottom';
 
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var pos = el.dataset.position;
-    if (pos === 'header' || pos === 'footer') return;
-
     var bHandle = document.createElement('div');
     bHandle.className = 'si-vresize-handle';
     bHandle.title = 'Drag to resize height';

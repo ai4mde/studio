@@ -7,7 +7,7 @@ export const SystemBoundaryNode: React.FC<NodeProps> = (node) => {
         width: `${node.data?.width}px`,
         height: `${node.data?.height}px`,
         border: "2px solid #000",
-        backgroundColor: "#f9f9f9",
+        backgroundColor: "transparent",
         position: "relative",
         boxSizing: "border-box",
         display: "flex",

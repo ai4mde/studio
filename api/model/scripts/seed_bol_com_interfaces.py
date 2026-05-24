@@ -15,9 +15,30 @@ from metadata.models import Classifier, Interface, Relation
 NAMESPACE = uuid.UUID("77d86611-70f8-4b87-a6d4-112f857dcb37")
 SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID = "d0000003-0000-5000-8000-000000000000"
 VIEW_ORDER_CONFIRMATION_ACTION_ID = "ac000016-0000-5000-8000-000000000000"
+SHOPPING_INITIAL_ACTION_ID = "ac000001-0000-5000-8000-000000000000"
+VIEW_CART_ACTION_ID = "ac000002-0000-5000-8000-000000000000"
+PROCEED_TO_CHECKOUT_ACTION_ID = "ac000003-0000-5000-8000-000000000000"
+ENTER_SHIPPING_ADDRESS_ACTION_ID = "ac000004-0000-5000-8000-000000000000"
+SELECT_PAYMENT_ACTION_ID = "ac000005-0000-5000-8000-000000000000"
+PROCESS_PAYMENT_ACTION_ID = "ac000006-0000-5000-8000-000000000000"
+CREATE_ORDER_ACTION_ID = "ac000008-0000-5000-8000-000000000000"
+SEND_ORDER_CONFIRMATION_ACTION_ID = "ac000009-0000-5000-8000-000000000000"
+UPDATE_INVENTORY_ACTION_ID = "ac000010-0000-5000-8000-000000000000"
+BROWSE_PRODUCTS_ACTION_ID = "ac000013-0000-5000-8000-000000000000"
+VIEW_PRODUCT_DETAIL_ACTION_ID = "ac000014-0000-5000-8000-000000000000"
+ADD_TO_CART_ACTION_ID = "ac000015-0000-5000-8000-000000000000"
+SHOPPING_FINAL_ACTION_ID = "ac000012-0000-5000-8000-000000000000"
+VIEW_CART_NODE_ID = "f0000202-0000-5000-8000-000000000000"
+ENTER_SHIPPING_ADDRESS_NODE_ID = "f0000204-0000-5000-8000-000000000000"
+SELECT_PAYMENT_NODE_ID = "f0000205-0000-5000-8000-000000000000"
+PROCESS_PAYMENT_NODE_ID = "f0000206-0000-5000-8000-000000000000"
+CREATE_ORDER_NODE_ID = "f0000208-0000-5000-8000-000000000000"
+SEND_ORDER_CONFIRMATION_NODE_ID = "f0000209-0000-5000-8000-000000000000"
 BROWSE_PRODUCTS_NODE_ID = "f0000216-0000-5000-8000-000000000000"
 VIEW_ORDER_CONFIRMATION_NODE_ID = "f0000210-0000-5000-8000-000000000000"
 UPDATE_INVENTORY_NODE_ID = "f0000213-0000-5000-8000-000000000000"
+SHOPPING_INITIAL_NODE_ID = "f0000201-0000-5000-8000-000000000000"
+SHOPPING_FINAL_NODE_ID = "f0000212-0000-5000-8000-000000000000"
 SHOPPING_FLOW_SWIMLANE_GROUP_CLASSIFIER_ID = "ac000017-0000-5000-8000-000000000000"
 SHOPPING_FLOW_SWIMLANE_GROUP_NODE_ID = "f0000217-0000-5000-8000-000000000000"
 CREATE_ORDER_TO_CONFIRMATION_RELATION_ID = "10000210-0000-5000-8000-000000000000"
@@ -335,26 +356,7 @@ def ensure_activity_swimlane_group():
     if not diagram:
         return
 
-    lanes_by_actor = {}
-    action_nodes = Node.objects.filter(
-        diagram=diagram,
-        cls__data__type="action",
-        cls__data__actorNode__isnull=False,
-    ).select_related("cls")
-    for action_node in action_nodes:
-        actor_node = action_node.cls.data.get("actorNode")
-        if not actor_node:
-            continue
-        lanes_by_actor.setdefault(
-            actor_node,
-            {
-                "type": "swimlane",
-                "role": "swimlane",
-                "actorNode": actor_node,
-                "actorNodeName": action_node.cls.data.get("actorNodeName") or "Unknown actor",
-            },
-        )
-
+    swimlanes = []
     for actor_name in ["Customer", "System", "Seller"]:
         actor = Classifier.objects.filter(
             system=diagram.system,
@@ -362,21 +364,10 @@ def ensure_activity_swimlane_group():
             data__name=actor_name,
         ).first()
         if actor:
-            lanes_by_actor.setdefault(
-                str(actor.id),
-                {
-                    "type": "swimlane",
-                    "role": "swimlane",
-                    "actorNode": str(actor.id),
-                    "actorNodeName": actor_name,
-                },
+            swimlanes.append(
+                {"type": "swimlane", "role": "swimlane", "actorNode": str(actor.id), "actorNodeName": actor_name}
             )
 
-    actor_order = {"Customer": 0, "System": 1, "Seller": 2}
-    swimlanes = sorted(
-        lanes_by_actor.values(),
-        key=lambda lane: (actor_order.get(lane["actorNodeName"], 99), lane["actorNodeName"]),
-    )
     if not swimlanes:
         return
 
@@ -387,8 +378,8 @@ def ensure_activity_swimlane_group():
             "system": diagram.system,
             "data": {
                 "type": "swimlanegroup",
-                "height": 1500,
-                "width": 360,
+                "height": 1120,
+                "width": 320,
                 "horizontal": False,
                 "swimlanes": swimlanes,
             },
@@ -399,96 +390,258 @@ def ensure_activity_swimlane_group():
         defaults={
             "diagram": diagram,
             "cls": swimlane_group,
-            "data": {"position": {"x": -80, "y": -340}},
+            "data": {"position": {"x": -60, "y": -120}},
         },
     )
 
 
-def ensure_order_confirmation_activity():
+def ensure_usecase_activity_links():
+    links = {
+        "Browse and Search Products": {
+            "actions": [BROWSE_PRODUCTS_ACTION_ID],
+            "classes": ["Product", "Category"],
+        },
+        "View Product Detail Page": {
+            "actions": [VIEW_PRODUCT_DETAIL_ACTION_ID],
+            "classes": ["Product", "ProductImage", "Seller", "Review"],
+        },
+        "Add Product to Cart": {
+            "actions": [ADD_TO_CART_ACTION_ID],
+            "classes": ["Cart", "CartItem", "Product"],
+        },
+        "Purchase Product": {
+            "actions": [
+                VIEW_CART_ACTION_ID,
+                ENTER_SHIPPING_ADDRESS_ACTION_ID,
+                SELECT_PAYMENT_ACTION_ID,
+                PROCESS_PAYMENT_ACTION_ID,
+                CREATE_ORDER_ACTION_ID,
+                VIEW_ORDER_CONFIRMATION_ACTION_ID,
+            ],
+            "activities": [SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID],
+            "classes": ["Cart", "CartItem", "Product", "Order", "OrderLine", "Payment", "Address"],
+        },
+        "Track Order": {
+            "classes": ["Order"],
+        },
+        "Write Product Review": {
+            "classes": ["Review", "Product"],
+        },
+        "Manage Account": {
+            "classes": ["Customer", "Address"],
+        },
+        "Manage Product Listings": {
+            "classes": ["Product", "DeliveryOption"],
+        },
+        "Process Payment": {
+            "actions": [PROCESS_PAYMENT_ACTION_ID],
+            "activities": [SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID],
+            "classes": ["Payment"],
+        },
+        "Send Order Confirmation": {
+            "actions": [SEND_ORDER_CONFIRMATION_ACTION_ID],
+            "activities": [SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID],
+            "classes": ["Order"],
+        },
+    }
+    for usecase_name, spec in links.items():
+        classifier = Classifier.objects.filter(data__type="usecase", data__name=usecase_name).first()
+        if not classifier:
+            continue
+        data = dict(classifier.data)
+        data["actions"] = spec.get("actions", [])
+        data["activities"] = spec.get("activities", [])
+        data["classes"] = [
+            CLASS_IDS[class_name]
+            for class_name in spec.get("classes", [])
+            if class_name in CLASS_IDS
+        ]
+        classifier.data = data
+        classifier.save(update_fields=["data"])
+
+
+def ensure_shopping_activity_diagram():
     diagram = Diagram.objects.filter(id=SHOPPING_FLOW_ACTIVITY_DIAGRAM_ID).first()
     if not diagram:
         return
 
-    customer_actor = Classifier.objects.filter(
-        system=diagram.system,
-        data__type="actor",
-        data__name="Customer",
-    ).first()
-    create_order = Classifier.objects.filter(
-        system=diagram.system,
-        data__type="action",
-        data__name="Create Order",
-    ).first()
-    send_confirmation = Classifier.objects.filter(
-        system=diagram.system,
-        data__type="action",
-        data__name="Send Order Confirmation",
-    ).first()
-    update_inventory = Classifier.objects.filter(
-        system=diagram.system,
-        data__type="action",
-        data__name="Update Inventory",
-    ).first()
-    if not customer_actor or not create_order or not send_confirmation or not update_inventory:
+    actors = {
+        name: Classifier.objects.filter(
+            system=diagram.system,
+            data__type="actor",
+            data__name=name,
+        ).first()
+        for name in ["Customer", "System", "Seller"]
+    }
+    if any(actor is None for actor in actors.values()):
         return
 
-    browse_products = Classifier.objects.filter(
-        system=diagram.system,
-        data__type="action",
-        data__name="Browse Products",
-    ).first()
-    if browse_products:
-        Node.objects.update_or_create(
-            id=BROWSE_PRODUCTS_NODE_ID,
-            defaults={
-                "diagram": diagram,
-                "cls": browse_products,
-                "data": {"position": {"x": 300, "y": -260}},
-            },
-        )
+    def base_action(name, actor_name, classes, precondition, postcondition, automatic=False):
+        actor = actors[actor_name]
+        return {
+            "body": "",
+            "name": name,
+            "page": None,
+            "role": "action",
+            "type": "action",
+            "classes": classes,
+            "publish": None,
+            "actorNode": str(actor.id),
+            "namespace": "",
+            "operation": None,
+            "subscribe": None,
+            "customCode": None,
+            "isAutomatic": automatic,
+            "actorNodeName": actor_name,
+            "localPrecondition": precondition,
+            "application_models": None,
+            "localPostcondition": postcondition,
+        }
 
-    action, _ = Classifier.objects.update_or_create(
-        id=VIEW_ORDER_CONFIRMATION_ACTION_ID,
+    classifiers = {}
+
+    classifiers["initial"], _ = Classifier.objects.update_or_create(
+        id=SHOPPING_INITIAL_ACTION_ID,
         defaults={
             "project": diagram.system.project,
             "system": diagram.system,
             "data": {
-                "body": "",
-                "name": "View Order Confirmation",
-                "page": None,
-                "role": "action",
-                "type": "action",
-                "classes": ["Order", "OrderLine"],
-                "publish": None,
-                "actorNode": str(customer_actor.id),
-                "namespace": "",
-                "operation": None,
-                "subscribe": None,
-                "customCode": None,
-                "isAutomatic": False,
-                "actorNodeName": "Customer",
-                "localPrecondition": "The order has been created successfully",
-                "application_models": None,
-                "localPostcondition": "Customer sees the order confirmation",
+                "name": None,
+                "type": "initial",
+                "role": "control",
+                "activity_scope": "activity",
+                "scheduled": False,
+                "schedule": "",
             },
         },
     )
-    Node.objects.update_or_create(
-        id=VIEW_ORDER_CONFIRMATION_NODE_ID,
+    classifiers["final"], _ = Classifier.objects.update_or_create(
+        id=SHOPPING_FINAL_ACTION_ID,
         defaults={
-            "diagram": diagram,
-            "cls": action,
-            "data": {"position": {"x": 100, "y": 880}},
+            "project": diagram.system.project,
+            "system": diagram.system,
+            "data": {"name": None, "type": "final", "role": "control", "activity_scope": "activity"},
         },
     )
-    Node.objects.update_or_create(
-        id=UPDATE_INVENTORY_NODE_ID,
-        defaults={
-            "diagram": diagram,
-            "cls": update_inventory,
-            "data": {"position": {"x": 100, "y": 1060}},
-        },
-    )
+
+    action_specs = [
+        (
+            "view_cart",
+            VIEW_CART_ACTION_ID,
+            "View Cart",
+            "Customer",
+            ["Cart", "CartItem"],
+            "Customer has items in the cart or wants to review the cart",
+            "Customer has reviewed the cart and can continue checkout",
+            False,
+        ),
+        (
+            "enter_address",
+            ENTER_SHIPPING_ADDRESS_ACTION_ID,
+            "Enter Shipping Address",
+            "Customer",
+            ["Address", "Cart"],
+            "Customer proceeds from the cart",
+            "A shipping address is selected or entered",
+            False,
+        ),
+        (
+            "select_payment",
+            SELECT_PAYMENT_ACTION_ID,
+            "Select Payment Method",
+            "Customer",
+            ["Payment", "PaymentMethod", "Cart"],
+            "Shipping address is known",
+            "Customer has selected a payment method",
+            False,
+        ),
+        (
+            "process_payment",
+            PROCESS_PAYMENT_ACTION_ID,
+            "Process Payment",
+            "System",
+            ["Payment"],
+            "Customer submitted a payment method",
+            "Payment is authorised or rejected",
+            True,
+        ),
+        (
+            "create_order",
+            CREATE_ORDER_ACTION_ID,
+            "Create Order",
+            "System",
+            ["Order", "OrderLine", "Cart"],
+            "Payment is authorised",
+            "Order and order lines are created from the cart",
+            True,
+        ),
+        (
+            "seller_confirmation",
+            SEND_ORDER_CONFIRMATION_ACTION_ID,
+            "Send Order Confirmation",
+            "Seller",
+            ["Order", "OrderLine"],
+            "A paid order is ready for seller confirmation",
+            "Seller confirms the order for fulfilment",
+            False,
+        ),
+        (
+            "update_inventory",
+            UPDATE_INVENTORY_ACTION_ID,
+            "Update Inventory",
+            "System",
+            ["Product", "OrderLine"],
+            "Seller confirmed the order",
+            "Purchased product stock is reduced",
+            True,
+        ),
+        (
+            "view_confirmation",
+            VIEW_ORDER_CONFIRMATION_ACTION_ID,
+            "View Order Confirmation",
+            "Customer",
+            ["Order", "OrderLine"],
+            "Order has been confirmed and inventory updated",
+            "Customer sees the order confirmation",
+            False,
+        ),
+    ]
+
+    for key, classifier_id, name, actor_name, classes, pre, post, automatic in action_specs:
+        classifiers[key], _ = Classifier.objects.update_or_create(
+            id=classifier_id,
+            defaults={
+                "project": diagram.system.project,
+                "system": diagram.system,
+                "data": base_action(name, actor_name, classes, pre, post, automatic),
+            },
+        )
+
+    node_specs = [
+        ("initial", SHOPPING_INITIAL_NODE_ID, 100, -40),
+        ("view_cart", VIEW_CART_NODE_ID, 100, 100),
+        ("enter_address", ENTER_SHIPPING_ADDRESS_NODE_ID, 100, 240),
+        ("select_payment", SELECT_PAYMENT_NODE_ID, 100, 380),
+        ("process_payment", PROCESS_PAYMENT_NODE_ID, 420, 380),
+        ("create_order", CREATE_ORDER_NODE_ID, 420, 520),
+        ("seller_confirmation", SEND_ORDER_CONFIRMATION_NODE_ID, 740, 520),
+        ("update_inventory", UPDATE_INVENTORY_NODE_ID, 420, 660),
+        ("view_confirmation", VIEW_ORDER_CONFIRMATION_NODE_ID, 100, 800),
+        ("final", SHOPPING_FINAL_NODE_ID, 100, 940),
+    ]
+    for key, node_id, x, y in node_specs:
+        Node.objects.update_or_create(
+            id=node_id,
+            defaults={
+                "diagram": diagram,
+                "cls": classifiers[key],
+                "data": {"position": {"x": x, "y": y}},
+            },
+        )
+
+    Node.objects.filter(diagram=diagram).exclude(
+        id__in=[SHOPPING_FLOW_SWIMLANE_GROUP_NODE_ID] + [node_id for _, node_id, _, _ in node_specs]
+    ).delete()
 
     controlflow_data = {
         "type": "controlflow",
@@ -498,31 +651,56 @@ def ensure_order_confirmation_activity():
         "is_directed": True,
         "position_handlers": [],
     }
-    create_to_confirmation, _ = Relation.objects.update_or_create(
+
+    workflow_classifiers = list(classifiers.values())
+    Edge.objects.filter(diagram=diagram).delete()
+    Relation.objects.filter(system=diagram.system, source__in=workflow_classifiers).delete()
+    Relation.objects.filter(system=diagram.system, target__in=workflow_classifiers).delete()
+
+    edge_specs = [
+        ("initial_to_cart", "initial", "view_cart"),
+        ("cart_to_address", "view_cart", "enter_address"),
+        ("address_to_payment", "enter_address", "select_payment"),
+        ("payment_to_process", "select_payment", "process_payment"),
+        ("process_to_order", "process_payment", "create_order"),
+        ("order_to_seller", "create_order", "seller_confirmation"),
+        ("seller_to_inventory", "seller_confirmation", "update_inventory"),
+        ("inventory_to_confirmation", "update_inventory", "view_confirmation"),
+        ("confirmation_to_final", "view_confirmation", "final"),
+    ]
+    for edge_key, source_key, target_key in edge_specs:
+        relation, _ = Relation.objects.update_or_create(
+            id=stable_id("shopping-workflow", edge_key),
+            defaults={
+                "system": diagram.system,
+                "source": classifiers[source_key],
+                "target": classifiers[target_key],
+                "data": controlflow_data,
+            },
+        )
+        Edge.objects.update_or_create(
+            rel=relation,
+            defaults={"diagram": diagram, "data": {}},
+        )
+
+    # Keep these deterministic IDs available for older references in generated interfaces.
+    Relation.objects.update_or_create(
         id=CREATE_ORDER_TO_CONFIRMATION_RELATION_ID,
         defaults={
             "system": diagram.system,
-            "source": create_order,
-            "target": action,
+            "source": classifiers["update_inventory"],
+            "target": classifiers["view_confirmation"],
             "data": controlflow_data,
         },
     )
-    confirmation_to_send, _ = Relation.objects.update_or_create(
+    Relation.objects.update_or_create(
         id=CONFIRMATION_TO_SEND_ORDER_RELATION_ID,
         defaults={
             "system": diagram.system,
-            "source": action,
-            "target": send_confirmation,
+            "source": classifiers["create_order"],
+            "target": classifiers["seller_confirmation"],
             "data": controlflow_data,
         },
-    )
-    Edge.objects.update_or_create(
-        rel=create_to_confirmation,
-        defaults={"diagram": diagram, "data": {}},
-    )
-    Edge.objects.update_or_create(
-        rel=confirmation_to_send,
-        defaults={"diagram": diagram, "data": {}},
     )
 
 
@@ -1063,7 +1241,7 @@ ATTRIBUTE_INDEX = {
 }
 
 ensure_payment_method_class()
-ensure_order_confirmation_activity()
+ensure_shopping_activity_diagram()
 ensure_activity_swimlane_group()
 
 required_classes = {
@@ -1087,6 +1265,7 @@ missing = sorted(required_classes - set(CLASS_IDS))
 if missing:
     raise RuntimeError(f"Missing required bol.com classes: {', '.join(missing)}")
 
+ensure_usecase_activity_links()
 update_related_product_image_type()
 upsert_class_method("Product", ADD_TO_CART_METHOD)
 upsert_class_method("PaymentMethod", SELECT_PAYMENT_METHOD)

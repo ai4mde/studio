@@ -265,6 +265,10 @@ def retrieve_section_custom_methods(section: str) -> List[str]:
     
     out = []
     for custom_method in section["methods"]:
+        if isinstance(custom_method, str):
+            custom_method = {"name": custom_method, "label": custom_method.replace("_", " ")}
+        if not isinstance(custom_method, dict):
+            continue
         mtd = SectionCustomMethod(
             name = custom_method["name"],
             body = custom_method.get("body"),

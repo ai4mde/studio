@@ -264,7 +264,15 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     // postMessage -> select section from iframe click / drag-reorder
     useEffect(() => {
         const handler = (e: MessageEvent) => {
-            if (e.data?.type === 'section-selected') {
+            if (e.data?.type === 'navigate-page') {
+                const targetPage = e.data.page;
+                const pageIndex = (latestState.current.pages as any[]).findIndex((page: any) =>
+                    page?.name === targetPage || page?.id === targetPage
+                );
+                if (pageIndex !== -1) {
+                    setPreviewPageIndex(pageIndex);
+                }
+            } else if (e.data?.type === 'section-selected') {
                 setSelectedSectionId(e.data.id);
             } else if (e.data?.type === 'section-reorder') {
                 const { fromId, toId } = e.data;
