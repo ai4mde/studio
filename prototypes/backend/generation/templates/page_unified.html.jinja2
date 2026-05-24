@@ -2713,6 +2713,9 @@
 /* Lift hovered/active section above adjacent content so handles are always on top */
 [data-section-id]:hover { z-index: 5; }
 [data-section-id].si-resizing, [data-section-id].si-vresizing { z-index: 10; }
+/* Left/right insert indicators during drag-over */
+[data-section-id].si-drag-before { box-shadow: inset 4px 0 0 0 var(--accent, #3b82f6); }
+[data-section-id].si-drag-after  { box-shadow: inset -4px 0 0 0 var(--accent, #3b82f6); }
 /* Drop separator zones shown during drag */
 .si-drop-separator {
   position: fixed; left: 0; right: 0; height: 32px;
@@ -2810,6 +2813,25 @@
     separators.push(sep);
   }
 
+  // Next main-content section in DOM order after el
+  function getNextSection(el) {
+    var found = false;
+    var nodes = document.querySelectorAll('[data-section-id]');
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i]; var p = n.dataset.position;
+      if (p === 'header' || p === 'footer') continue;
+      if (found) return n;
+      if (n === el) found = true;
+    }
+    return null;
+  }
+
+  function clearDragClasses() {
+    document.querySelectorAll('[data-section-id]').forEach(function(x) {
+      x.classList.remove('si-drag-before', 'si-drag-after');
+    });
+  }
+
   document.querySelectorAll('[data-section-id]').forEach(function(el) {
     var pos = el.dataset.position;
     if (pos === 'header' || pos === 'footer') return;
@@ -2836,7 +2858,6 @@
       el.classList.add('si-dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', draggingId);
-      // Defer so drag-image is captured first
       setTimeout(function() { createSeparators(el); }, 0);
     });
 
@@ -2845,27 +2866,47 @@
       draggingId = null;
       el.classList.remove('si-dragging');
       el.setAttribute('draggable', 'false');
-      document.querySelectorAll('.si-drag-over').forEach(function(x) { x.classList.remove('si-drag-over'); });
+      clearDragClasses();
       removeSeparators();
     });
 
     el.addEventListener('dragover', function(e) {
-      if (!isDragging) return;
+      if (!isDragging || el.dataset.sectionId === draggingId) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      if (el.dataset.sectionId !== draggingId) { el.classList.add('si-drag-over'); }
+      // Show left or right insert indicator based on mouse X position
+      var rect = el.getBoundingClientRect();
+      el.classList.remove('si-drag-before', 'si-drag-after');
+      if (e.clientX < rect.left + rect.width / 2) {
+        el.classList.add('si-drag-before');
+      } else {
+        el.classList.add('si-drag-after');
+      }
     });
 
-    el.addEventListener('dragleave', function() { el.classList.remove('si-drag-over'); });
+    el.addEventListener('dragleave', function(e) {
+      if (!e.relatedTarget || !el.contains(e.relatedTarget)) {
+        el.classList.remove('si-drag-before', 'si-drag-after');
+      }
+    });
 
     el.addEventListener('drop', function(e) {
       e.preventDefault();
-      el.classList.remove('si-drag-over');
-      var fromId = draggingId || e.dataTransfer.getData('text/plain');
+      var fromId = draggingId;
       var toId = el.dataset.sectionId;
+      el.classList.remove('si-drag-before', 'si-drag-after');
       if (fromId && toId && fromId !== toId) {
-        // Insert before the drop target (same semantics as separator drop)
-        window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: toId }, '*');
+        var rect = el.getBoundingClientRect();
+        var beforeId;
+        if (e.clientX < rect.left + rect.width / 2) {
+          // Left half → insert before this section
+          beforeId = toId;
+        } else {
+          // Right half → insert after this section
+          var next = getNextSection(el);
+          beforeId = next ? next.dataset.sectionId : '__end__';
+        }
+        window.parent.postMessage({ type: 'section-insert', fromId: fromId, beforeId: beforeId }, '*');
       }
     });
   });
