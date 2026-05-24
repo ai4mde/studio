@@ -222,6 +222,40 @@
     {%- endif %}
 
     .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
+
+    /* ── Multi-select (operations.select) ── */
+    .si-sel-item { position: relative; cursor: pointer; }
+    .si-sel-item .si-sel-cb {
+      position: absolute; top: 8px; left: 8px; z-index: 10;
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--border-strong); background: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity 0.15s;
+    }
+    .si-sel-item:hover .si-sel-cb,
+    .si-sel-item.si-selected .si-sel-cb { opacity: 1; }
+    .si-sel-item.si-selected .si-sel-cb {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .si-sel-item.si-selected .si-sel-cb::after {
+      content: ''; display: block; width: 5px; height: 9px;
+      border: 2px solid white; border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+    .si-sel-item.si-selected { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .si-sel-bar {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--page-text); color: white;
+      padding: 10px 20px; border-radius: 100px;
+      display: flex; align-items: center; gap: 16px;
+      font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+      z-index: 9999; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      transform: translateX(-50%) translateY(8px);
+    }
+    .si-sel-bar.active { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .si-sel-bar button { background: transparent; border: 1px solid rgba(255,255,255,.4); color: white; padding: 4px 14px; border-radius: 100px; cursor: pointer; font-size: 12px; }
+    .si-sel-bar button.danger { background: #ef4444; border-color: #ef4444; }
   </style>
   <title>{{ page.display_name }}</title>
 </head>
@@ -338,10 +372,9 @@
     {%- endfor %}
     {%- else %}
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
+    <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-
     </span>
     {%- endif %}
   </div>
@@ -363,10 +396,9 @@
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
+    <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-
     </span>
   </div>
 </header>
@@ -430,7 +462,7 @@
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75">Logout</a>
-    <span class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</span>
+    <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
   </div>
 </header>
@@ -587,9 +619,9 @@
     <div class="w-full h-36 bg-gray-50"></div>
     {%- endif %}
     {%- if favorite_url %}
-    <a href="{{ favorite_url }}" class="absolute top-2 right-2 text-gray-400 hover:text-red-400 text-lg leading-none">♡</a>
+    <a href="{{ favorite_url }}" class="absolute top-2 right-2 text-gray-400 hover:text-red-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></a>
     {%- else %}
-    <span class="absolute top-2 right-2 text-gray-400 text-lg leading-none">♡</span>
+    <span class="absolute top-2 right-2 text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     {%- endif %}
   </div>
   <div class="p-2.5">
@@ -651,7 +683,7 @@
     <div class="flex items-center gap-3 mt-2">
       <select class="border border-gray-300 rounded px-2 py-1 text-sm"><option>1</option><option>2</option><option>3</option></select>
       <button class="text-gray-400 hover:text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
-      <button class="text-gray-400 hover:text-red-400 text-lg leading-none">♡</button>
+      <button class="text-gray-400 hover:text-red-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
     </div>
   </div>
 </div>
@@ -689,7 +721,7 @@
     {%- set _aa_target_is_activity.value = true %}
   {%- endif %}
 {%- endfor %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
 {%- if page.type == 'activity' and not preview_mode %}
   {%- if _aa_target_page and _aa_target_is_activity.value %}
     {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
@@ -765,7 +797,7 @@
 {%- set _as_card = section_component.style.get('card_style', 'elevated') %}
 {%- set _as_col_class = 'grid-cols-1' if _as_cols == 1 else ('grid-cols-2' if _as_cols == 2 else ('grid-cols-3' if _as_cols == 3 else 'grid-cols-4')) %}
 {%- set _as_card_cls = 'bg-white rounded-xl shadow-md p-5' if _as_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _as_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
 {%- if preview_mode %}
   {%- set _as_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
@@ -805,7 +837,7 @@
 {%- set _at_card = section_component.style.get('card_style', 'elevated') %}
 {%- set _at_col_class = 'grid-cols-1' if _at_cols == 1 else ('grid-cols-2' if _at_cols == 2 else ('grid-cols-3' if _at_cols == 3 else 'grid-cols-4')) %}
 {%- set _at_card_cls = 'bg-white rounded-xl shadow-md p-5' if _at_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _at_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
 {%- if preview_mode %}
   {%- set _at_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
@@ -985,7 +1017,7 @@
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}">
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
 
   {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') %}
   <div class="flex items-center justify-between mb-3">
@@ -1165,9 +1197,10 @@
   </div>
 {%- else %}
   {# Default card grid #}
-  <div class="grid {{ col }} {{ d.gap }}">
+  <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
     {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       {%- for attribute in section_component.attributes %}
       <div class="flex flex-col gap-0.5">
         <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
@@ -1219,9 +1252,10 @@
   </div>
 {%- else %}
   {# Default list #}
-  <div class="flex flex-col {{ d.gap }}">
+  <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
     {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
         {%- for attribute in section_component.attributes %}
         <div class="flex flex-col gap-0.5">
@@ -1252,6 +1286,7 @@
     <table class="min-w-full text-left">
       <thead>
         <tr>
+          {%- if section_component.has_select_operation %}<th class="si-table-header px-4 py-3 w-10"></th>{%- endif %}
           {% for attribute in section_component.attributes %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
           {% endfor %}
@@ -1263,9 +1298,10 @@
           {% endif %}
         </tr>
       </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
+      <tbody class="divide-y"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %} style="border-color:var(--table-border); background-color:var(--region-main-bg)">
         {%- for _mock_row in range(section_mock_rows) %}
-        <tr class="si-table-row transition-colors" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+        <tr class="si-table-row transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+          {%- if section_component.has_select_operation %}<td class="px-4 py-3 w-10"><span class="si-sel-cb" style="position:static;display:inline-flex;width:16px;height:16px;border-radius:3px;border:2px solid var(--border-strong);background:white;flex-shrink:0;"></span></td>{%- endif %}
           {%- for attribute in section_component.attributes %}
           <td class="px-4 py-3 {{ d.text }}" style="color:var(--page-text)">
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
@@ -1660,11 +1696,12 @@
   </div>
 {%- else %}
 
-  <div class="grid {{ col }} {{ d.gap }}">
+  <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3">
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
@@ -1825,7 +1862,7 @@
           {%- endif %}
           <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="favorite_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
-            <button type="submit" class="text-gray-400 hover:text-red-400 text-lg leading-none">♡</button>
+            <button type="submit" class="text-gray-400 hover:text-red-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
           </form>
         </div>
       </div>
@@ -1874,10 +1911,11 @@
   {%- endif %}
 {%- else %}
 
-  <div class="flex flex-col {{ d.gap }}">
+  <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4">
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
@@ -2513,6 +2551,393 @@
     else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
     else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
     else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
+})();
+</script>
+
+<script>
+/* ── Multi-select (si-selectable sections) ── */
+(function() {
+  var bars = {};
+  document.querySelectorAll('[data-selectable]').forEach(function(grid) {
+    var sid = grid.dataset.selectable;
+    var bar = document.createElement('div');
+    bar.className = 'si-sel-bar';
+    bar.id = 'sel-bar-' + sid;
+    bar.innerHTML = '<span class="sel-count">0 selected</span>'
+      + '<button onclick="siSelClear(\'' + sid + '\')">Clear</button>'
+      + '<button class="danger" onclick="siSelDelete(\'' + sid + '\')">Delete selected</button>';
+    document.body.appendChild(bar);
+    bars[sid] = bar;
+  });
+
+  window.siSelUpdate = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (!grid) return;
+    var selected = grid.querySelectorAll('.si-selected');
+    var bar = bars[sid];
+    if (!bar) return;
+    bar.querySelector('.sel-count').textContent = selected.length + ' selected';
+    bar.classList.toggle('active', selected.length > 0);
+  };
+
+  window.siSelClear = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (grid) grid.querySelectorAll('.si-selected').forEach(function(el) { el.classList.remove('si-selected'); });
+    siSelUpdate(sid);
+  };
+
+  window.siSelDelete = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (!grid) return;
+    var ids = [];
+    grid.querySelectorAll('.si-selected[data-item-idx]').forEach(function(el) { ids.push(el.dataset.itemIdx); });
+    window.parent.postMessage({ type: 'si-select-delete', sectionId: sid, indices: ids }, '*');
+    grid.querySelectorAll('.si-selected').forEach(function(el) { el.classList.add('opacity-30'); el.classList.remove('si-selected'); });
+    siSelUpdate(sid);
+  };
+
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.si-sel-item[data-selectable-sid]');
+    if (!item) return;
+    var sid = item.dataset.selectableSid;
+    var grid = item.closest('[data-selectable]');
+    if (e.shiftKey && grid) {
+      var items = Array.from(grid.querySelectorAll('.si-sel-item'));
+      var lastSel = grid.querySelector('.si-last-sel');
+      var start = lastSel ? items.indexOf(lastSel) : 0;
+      var end = items.indexOf(item);
+      if (start > end) { var tmp = start; start = end; end = tmp; }
+      items.slice(start, end + 1).forEach(function(el) { el.classList.add('si-selected'); });
+    } else {
+      item.classList.toggle('si-selected');
+      if (item.classList.contains('si-selected') && grid) {
+        grid.querySelectorAll('.si-last-sel').forEach(function(el) { el.classList.remove('si-last-sel'); });
+        item.classList.add('si-last-sel');
+      }
+    }
+    siSelUpdate(sid);
+  }, true);
+})();
+</script>
+
+<style>
+/* ── Drag-and-drop sections ── */
+[data-section-id] { position: relative; }
+.si-drag-handle {
+  position: absolute; top: 6px; right: 6px; z-index: 20;
+  width: 24px; height: 24px; border-radius: 4px;
+  background: rgba(0,0,0,.06); color: #6b7280;
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab; font-size: 14px; line-height: 1;
+  opacity: 0; transition: opacity 0.15s;
+  user-select: none;
+}
+[data-section-id]:hover .si-drag-handle { opacity: 1; }
+[data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
+[data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
+
+/* ── Section resize ── */
+.si-resize-handle {
+  position: absolute; top: 0; right: -5px;
+  width: 10px; height: 100%; min-height: 40px;
+  cursor: col-resize; z-index: 25;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+[data-section-id]:hover .si-resize-handle,
+[data-section-id].si-resizing .si-resize-handle { opacity: 1; }
+.si-resize-handle::after {
+  content: '';
+  width: 3px; height: 48px;
+  background: var(--accent, #3b82f6);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px white;
+}
+.si-resize-snap-line {
+  position: fixed; top: 0; bottom: 0; width: 2px;
+  background: var(--accent, #3b82f6); opacity: 0.45;
+  pointer-events: none; z-index: 9998;
+}
+.si-resize-tooltip {
+  position: fixed; background: var(--accent, #3b82f6); color: white;
+  font-size: 11px; font-weight: 600; padding: 2px 7px;
+  border-radius: 4px; pointer-events: none; z-index: 9999;
+  transform: translateX(-50%);
+}
+
+/* ── Section vertical (height) resize ── */
+.si-vresize-handle {
+  position: absolute; bottom: -5px; left: 0; right: 0;
+  height: 10px; cursor: row-resize; z-index: 25;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+}
+[data-section-id]:hover .si-vresize-handle,
+[data-section-id].si-vresizing .si-vresize-handle { opacity: 1; }
+.si-vresize-handle::after {
+  content: '';
+  width: 48px; height: 3px;
+  background: var(--accent, #3b82f6);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px white;
+}
+.si-vresize-hline {
+  position: fixed; left: 0; right: 0; height: 2px;
+  background: var(--accent, #3b82f6); opacity: 0.4;
+  pointer-events: none; z-index: 9998;
+}
+.si-vresize-tip {
+  position: fixed; background: var(--accent, #3b82f6); color: white;
+  font-size: 11px; font-weight: 600; padding: 2px 7px;
+  border-radius: 4px; pointer-events: none; z-index: 9999;
+}
+</style>
+
+<script>
+/* ── Section drag-and-drop ── */
+(function() {
+  var draggingId = null;
+  var isDragging = false;
+
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    // Only main-content sections (not header/footer chrome)
+    var pos = el.dataset.position;
+    if (pos === 'header' || pos === 'footer') return;
+
+    // Drag handle
+    var handle = document.createElement('div');
+    handle.className = 'si-drag-handle';
+    handle.title = 'Drag to reorder';
+    handle.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="4" cy="2" r="1"/><circle cx="8" cy="2" r="1"/><circle cx="4" cy="6" r="1"/><circle cx="8" cy="6" r="1"/><circle cx="4" cy="10" r="1"/><circle cx="8" cy="10" r="1"/></svg>';
+    el.appendChild(handle);
+
+    el.setAttribute('draggable', 'false');
+
+    // Start drag only from handle
+    handle.addEventListener('mousedown', function() {
+      el.setAttribute('draggable', 'true');
+    });
+    document.addEventListener('mouseup', function() {
+      el.setAttribute('draggable', 'false');
+    });
+
+    el.addEventListener('dragstart', function(e) {
+      isDragging = true;
+      draggingId = el.dataset.sectionId;
+      el.classList.add('si-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggingId);
+    });
+
+    el.addEventListener('dragend', function() {
+      isDragging = false;
+      draggingId = null;
+      el.classList.remove('si-dragging');
+      el.setAttribute('draggable', 'false');
+      document.querySelectorAll('.si-drag-over').forEach(function(x) {
+        x.classList.remove('si-drag-over');
+      });
+    });
+
+    el.addEventListener('dragover', function(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (el.dataset.sectionId !== draggingId) {
+        el.classList.add('si-drag-over');
+      }
+    });
+
+    el.addEventListener('dragleave', function() {
+      el.classList.remove('si-drag-over');
+    });
+
+    el.addEventListener('drop', function(e) {
+      e.preventDefault();
+      el.classList.remove('si-drag-over');
+      var fromId = e.dataTransfer.getData('text/plain');
+      var toId = el.dataset.sectionId;
+      if (fromId && toId && fromId !== toId) {
+        window.parent.postMessage({ type: 'section-reorder', fromId: fromId, toId: toId }, '*');
+      }
+    });
+  });
+
+  // Block section-click when drag just ended
+  document.addEventListener('click', function(e) {
+    if (isDragging) { e.stopPropagation(); }
+  }, true);
+})();
+</script>
+
+<script>
+/* ── Section column-span resize ── */
+(function() {
+  var resizing = false;
+  var resizingEl = null;
+  var resizingId = null;
+  var startColSpan = 1;
+  var snapLine = null;
+  var tooltip = null;
+  var currentColSpan = 1;
+
+  function getColSpan(el) {
+    var cls = Array.from(el.classList).find(function(c) { return /^col-span-\d+$/.test(c); });
+    return cls ? parseInt(cls.slice(9), 10) : 12;
+  }
+
+  function setColSpan(el, n) {
+    var cls = Array.from(el.classList).find(function(c) { return /^col-span-\d+$/.test(c); });
+    if (cls) el.classList.remove(cls);
+    el.classList.add('col-span-' + n);
+  }
+
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    var pos = el.dataset.position;
+    if (pos === 'header' || pos === 'footer') return;
+
+    var handle = document.createElement('div');
+    handle.className = 'si-resize-handle';
+    handle.title = 'Drag to resize width';
+    el.appendChild(handle);
+
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      resizing = true;
+      resizingEl = el;
+      resizingId = el.dataset.sectionId;
+      startColSpan = getColSpan(el);
+      currentColSpan = startColSpan;
+      el.classList.add('si-resizing');
+
+      snapLine = document.createElement('div');
+      snapLine.className = 'si-resize-snap-line';
+      document.body.appendChild(snapLine);
+
+      tooltip = document.createElement('div');
+      tooltip.className = 'si-resize-tooltip';
+      tooltip.textContent = startColSpan + '/12';
+      document.body.appendChild(tooltip);
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!resizing || !resizingEl) return;
+    var grid = document.getElementById('page-sections-grid');
+    if (!grid) return;
+    var gridRect = grid.getBoundingClientRect();
+    var elRect = resizingEl.getBoundingClientRect();
+    var colW = gridRect.width / 12;
+    var newW = e.clientX - elRect.left;
+    var n = Math.max(1, Math.min(12, Math.round(newW / colW)));
+    if (n !== currentColSpan) {
+      currentColSpan = n;
+      setColSpan(resizingEl, n);
+    }
+    var snapX = elRect.left + n * colW;
+    if (snapLine) { snapLine.style.left = snapX + 'px'; }
+    if (tooltip) {
+      tooltip.textContent = n + '/12';
+      tooltip.style.left = snapX + 'px';
+      tooltip.style.top = (elRect.top - 24) + 'px';
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseup', function() {
+    if (!resizing) return;
+    if (snapLine) { snapLine.remove(); snapLine = null; }
+    if (tooltip)  { tooltip.remove();  tooltip = null; }
+    if (resizingEl) resizingEl.classList.remove('si-resizing');
+    if (resizingId && currentColSpan !== startColSpan) {
+      window.parent.postMessage({ type: 'section-resize', id: resizingId, col_span: currentColSpan }, '*');
+    }
+    resizing = false;
+    resizingEl = null;
+    resizingId = null;
+  });
+})();
+</script>
+
+<script>
+/* ── Section vertical height resize ── */
+(function() {
+  var vresizing = false;
+  var vresizingEl = null;
+  var vresizingId = null;
+  var startY = 0;
+  var startH = 0;
+  var hline = null;
+  var vtip = null;
+  var currentH = 0;
+
+  document.querySelectorAll('[data-section-id]').forEach(function(el) {
+    var pos = el.dataset.position;
+    if (pos === 'header' || pos === 'footer') return;
+
+    var handle = document.createElement('div');
+    handle.className = 'si-vresize-handle';
+    handle.title = 'Drag to resize height';
+    el.appendChild(handle);
+
+    handle.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      vresizing = true;
+      vresizingEl = el;
+      vresizingId = el.dataset.sectionId;
+      startY = e.clientY;
+      startH = el.getBoundingClientRect().height;
+      currentH = startH;
+      el.classList.add('si-vresizing');
+
+      hline = document.createElement('div');
+      hline.className = 'si-vresize-hline';
+      hline.style.top = e.clientY + 'px';
+      document.body.appendChild(hline);
+
+      vtip = document.createElement('div');
+      vtip.className = 'si-vresize-tip';
+      vtip.textContent = Math.round(startH) + 'px';
+      vtip.style.top = (e.clientY + 6) + 'px';
+      vtip.style.left = (e.clientX + 12) + 'px';
+      document.body.appendChild(vtip);
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!vresizing || !vresizingEl) return;
+    var delta = e.clientY - startY;
+    var newH = Math.max(40, startH + delta);
+    currentH = newH;
+    // Use height (not min-height) so dragging up visually shrinks the section
+    vresizingEl.style.height = newH + 'px';
+    vresizingEl.style.overflow = 'hidden';
+    if (hline) hline.style.top = e.clientY + 'px';
+    if (vtip) {
+      vtip.textContent = Math.round(newH) + 'px';
+      vtip.style.top = (e.clientY + 6) + 'px';
+      vtip.style.left = (e.clientX + 12) + 'px';
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseup', function() {
+    if (!vresizing) return;
+    if (hline) { hline.remove(); hline = null; }
+    if (vtip)  { vtip.remove();  vtip = null; }
+    if (vresizingEl) {
+      vresizingEl.classList.remove('si-vresizing');
+      // Clear the temporary inline height; min-height will be applied after refresh
+      vresizingEl.style.height = '';
+      vresizingEl.style.overflow = '';
+    }
+    if (vresizingId && Math.abs(currentH - startH) > 4) {
+      window.parent.postMessage({ type: 'section-height', id: vresizingId, min_height: Math.round(currentH) }, '*');
+    }
+    vresizing = false;
+    vresizingEl = null;
+    vresizingId = null;
   });
 })();
 </script>

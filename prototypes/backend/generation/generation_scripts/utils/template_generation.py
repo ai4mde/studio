@@ -33,6 +33,8 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     header_sections = _collect_position_sections(application_component.pages, 'header')
     footer_sections = _collect_position_sections(application_component.pages, 'footer')
 
+    tokens = dict(getattr(application_component, "tokens", {}) or {})
+
     data = {
         "application_name": application_name,
         "logo": logo,
@@ -45,6 +47,7 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
         "footer_sections": footer_sections,
         "_accent_hex": accent_hex,
         "_brand_name": application_name,
+        "tokens": tokens,
     }
     if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
         return True

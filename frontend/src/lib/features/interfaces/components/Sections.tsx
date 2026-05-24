@@ -351,7 +351,7 @@ export const Sections: React.FC<Props> = () => {
         setEditIndex(-1);
     };
 
-    const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete') => {
+    const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete' | 'select') => {
         const sectionOperations = selectedOperations || {};
         const updatedOperations = {
             ...sectionOperations,
@@ -590,6 +590,12 @@ export const Sections: React.FC<Props> = () => {
                                                 color={selectedOperations.delete ? 'primary' : 'neutral'}
                                             >
                                                 Delete
+                                            </Chip>
+                                            <Chip
+                                                onClick={() => toggleOperation(index, 'select')}
+                                                color={selectedOperations.select ? 'primary' : 'neutral'}
+                                            >
+                                                Select
                                             </Chip>
                                         </div>
                                     </div>
