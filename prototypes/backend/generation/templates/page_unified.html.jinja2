@@ -2626,18 +2626,27 @@
 [data-section-id] { position: relative; }
 /* Full-width drag bar at top of section (starts below the top-resize handle) */
 .si-move-bar {
-  position: absolute; top: 10px; left: 0; right: 0; height: 20px;
-  cursor: grab; z-index: 20;
+  position: absolute; top: 6px; right: 6px;
+  width: 24px; height: 24px;
+  cursor: grab; z-index: 40;
   display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s, background 0.1s;
   user-select: none;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(100,116,139,0.25);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
 }
 .si-move-bar::after {
   content: '';
-  width: 36px; height: 4px;
-  background: rgba(100,116,139,0.35);
-  border-radius: 2px;
+  display: block;
+  width: 12px; height: 10px;
+  background-image: radial-gradient(circle, rgba(100,116,139,0.7) 1.5px, transparent 1.5px);
+  background-size: 4px 4px;
+  background-repeat: repeat;
 }
+.si-move-bar:hover { background: rgba(241,245,249,0.98); }
 .si-move-bar:active { cursor: grabbing; }
 [data-section-id]:hover .si-move-bar { opacity: 1; pointer-events: auto; }
 [data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
