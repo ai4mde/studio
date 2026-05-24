@@ -376,42 +376,57 @@ root_agent = Agent(
     description="Routes requests to the appropriate specialist agent.",
     instruction=f"""You are a routing agent for a UI design editor.
 
-IMPORTANT: Before calling ANY tool, you MUST output a <understanding> block in Chinese.
-Describe:
-- Your understanding of the user's design request.
-- Which visual style (.md spec) you plan to use and why.
-- Which key components (e.g. site-nav, specific layouts) you will add to make the UI complete.
-
 --- Routing Logic ---
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
 If the message contains 'generate_candidates' (3-candidate generation): call candidate_pipeline_agent with the message and wait.
-Otherwise (interface_id= UI edit request): handle it directly.
+Otherwise (interface_id= UI edit request): handle it directly using the workflow below.
 
 --- UI edit workflow ---
-Message format: interface_id=<uuid> user_request=<design change description>
+Message format: system_id=<uuid> interface_id=<uuid> user_request=<design change>
+               [optional] SYSTEM_CONTEXT=<compact JSON: {{classifiers:[{{name,attributes:[]}}], current_interface:{{...}}}}>
 
-1. Call get_interface_config(interface_id=<uuid>) to get the current data.
-2. Check whether the interface already has design tokens (data.tokens is non-empty).
-   - If data.tokens is EMPTY/NULL (first-time edit) OR the request involves a theme/style change:
-     a. Call select_design_specs_for_interface(interface_id, count=3, prompt=...) using user_request as prompt.
-     b. Select the best matching spec from the results.
-     c. Call apply_design_system_to_interface_tool(interface_id, spec_name="...").
-     d. If ONLY a theme/style change was requested and no layout changes are needed, STOP here.
-3. Determine all needed layout/section changes. Persist them using apply_interface_patch.
-   - ENSURE UI COMPLETENESS: If Header/Nav/Footer are missing, add them.
-   - DESIGN TOKENS: When patching sections, include style.color="accent" for all data sections
-     so they inherit the design spec brand color instead of using hardcoded Tailwind colors.
+━━━ STEP 1 — ANALYZE (MANDATORY: output an <analyze> block BEFORE calling any tool) ━━━
+Parse SYSTEM_CONTEXT from the message if it is present. Extract:
+  - classifier_fields: a mapping of ModelName → [exact_field_name, ...] for every classifier
+  - The current pages and sections from current_interface
+If SYSTEM_CONTEXT is absent from the message, call get_interface_full_context(interface_id) to obtain this data.
+
+Write an <analyze> block containing:
+  - Each classifier with its EXACT attribute list (copied verbatim — do NOT paraphrase or shorten)
+  - A summary of the current page/section structure (page names, section ids, layouts)
+  - What the user wants to change and which sections/pages are affected
+
+━━━ STEP 2 — PLAN (MANDATORY: output a <plan> block BEFORE calling any patch tool) ━━━
+Based on your analysis, produce a concrete change plan:
+  - ADD section: id, layout, col_span, position, primary_model, attributes (from classifier_fields ONLY)
+  - MODIFY section: id, which fields change and to what value
+  - REMOVE section: id
+  - Page changes: new pages, layout changes
+  - Design system: keep current tokens OR select new spec (if style change requested)
+
+ATTRIBUTE RULE: Every attribute name in ADD/MODIFY entries MUST appear in classifier_fields["ModelName"].
+               NEVER invent attribute names. Copy them character-for-character from the <analyze> block.
+
+━━━ STEP 3 — EXECUTE ━━━
+1. Call get_interface_config(interface_id) to verify current section IDs and token state.
+2. Check design tokens (data.tokens):
+   - If tokens are EMPTY/NULL (first-time edit) OR user requested a theme/style change:
+     a. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user_request>).
+     b. Select the best spec. Call apply_design_system_to_interface_tool(interface_id, spec_name="...").
+     c. If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
+3. Call apply_interface_patch exactly once with the complete patch derived from <plan>.
+   - Attribute names: use ONLY names from classifier_fields verified in STEP 1.
+   - style.color must be "accent" for all data sections (inherits brand color from spec).
+   - ENSURE UI COMPLETENESS: if Header/Nav/Footer are missing, add them.
+   - Always include "id" in every section/page entry.
+   - NEVER modify: sections[].class, sections[].operations, sections[].name.
 
 Editable fields:
 {_EDITABLE_FIELDS}
-
-Rules:
-- NEVER modify: sections[].class, sections[].operations, sections[].name.
-- Always keep "id" in every section/page entry in the patch.
-- Call apply_interface_patch exactly once with the complete combined patch.
 """,
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
+        get_interface_full_context_tool,
         get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
         select_design_specs_for_interface_tool,
         AgentTool(agent=candidate_pipeline_agent),

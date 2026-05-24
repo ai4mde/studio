@@ -80,7 +80,19 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             return
 
         # 2. Stream SSE from gemini-make-agent
-        prompt = f"system_id={system.id} interface_id={id} user_request={payload.prompt}"
+        # Pre-load classifier attribute names so agent doesn't need a reactive tool call
+        classifiers_summary = []
+        for c in system.classifiers.all():
+            c_data = c.data or {}
+            name = c_data.get("name", "")
+            attrs = [a.get("name") for a in (c_data.get("attributes") or []) if a.get("name")]
+            if name:
+                classifiers_summary.append({"name": name, "attributes": attrs})
+        context_block = json.dumps(
+            {"classifiers": classifiers_summary, "current_interface": interface.data or {}},
+            separators=(",", ":"),
+        )
+        prompt = f"system_id={system.id} interface_id={id} user_request={payload.prompt}\nSYSTEM_CONTEXT={context_block}"
 
         agent_status_map = {
             "gemini_make_agent": "Analyzing request... (分析中...)",
@@ -120,11 +132,24 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
         except Exception as e:
             yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
 
-        # 3. The agent persists interface.data via update_interface_tool.
-        # Refresh and render the preview.
+        # 3. Refresh and render the preview.
+        # For candidate generation runs, render from candidate 0 (which has design spec tokens).
+        # For direct edits, render from interface.data (agent updated it via patch tool).
         interface.refresh_from_db()
+        data = interface.data or {}
+        render_data = data
+        if "generate_candidates" in (payload.prompt or ""):
+            candidates = data.get("candidates") or []
+            c0 = next((c for c in candidates if c), None)
+            if c0:
+                render_data = {
+                    "pages": c0.get("pages", data.get("pages", [])),
+                    "sections": c0.get("sections", data.get("sections", [])),
+                    "tokens": c0.get("tokens", data.get("tokens", {})),
+                    "styling": c0.get("styling", data.get("styling", {})),
+                }
         files = render_layout(
-            interface_data=interface.data,
+            interface_data=render_data,
             classifiers=renderer_classifiers,
             layout_config=None,
             interface_name=interface.name,

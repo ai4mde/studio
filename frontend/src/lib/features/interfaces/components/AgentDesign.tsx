@@ -214,6 +214,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
+    const [isAIExpanded, setIsAIExpanded] = useState(true);
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -260,16 +261,47 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const selectedSection = (sections as any[]).find((s: any) => s.id === selectedSectionId);
 
-    // postMessage -> select section from iframe click
+    // postMessage -> select section from iframe click / drag-reorder
     useEffect(() => {
         const handler = (e: MessageEvent) => {
             if (e.data?.type === 'section-selected') {
                 setSelectedSectionId(e.data.id);
+            } else if (e.data?.type === 'section-reorder') {
+                const { fromId, toId } = e.data;
+                setSections((prev: any[]) => {
+                    const arr = [...prev];
+                    const fi = arr.findIndex((s: any) => s.id === fromId);
+                    const ti = arr.findIndex((s: any) => s.id === toId);
+                    if (fi === -1 || ti === -1) return prev;
+                    arr.splice(ti, 0, arr.splice(fi, 1)[0]);
+                    return arr;
+                });
+                setPages((prev: any[]) => prev.map((page: any) => {
+                    const rawIds: string[] = (page.sections || []).map((ref: any) =>
+                        typeof ref === 'string' ? ref : ref?.value
+                    );
+                    const fi = rawIds.indexOf(fromId);
+                    const ti = rawIds.indexOf(toId);
+                    if (fi === -1 || ti === -1) return page;
+                    const newRefs = [...(page.sections || [])];
+                    newRefs.splice(ti, 0, newRefs.splice(fi, 1)[0]);
+                    return { ...page, sections: newRefs };
+                }));
+            } else if (e.data?.type === 'section-resize') {
+                const { id, col_span } = e.data;
+                setSections((prev: any[]) => prev.map((s: any) =>
+                    s.id === id ? { ...s, col_span } : s
+                ));
+            } else if (e.data?.type === 'section-height') {
+                const { id, min_height } = e.data;
+                setSections((prev: any[]) => prev.map((s: any) =>
+                    s.id === id ? { ...s, min_height } : s
+                ));
             }
         };
         window.addEventListener('message', handler);
         return () => window.removeEventListener('message', handler);
-    }, []);
+    }, [setSections, setPages]);
 
     const doRefreshPreview = useCallback(async () => {
         if (!interfaceId) return;
@@ -459,12 +491,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
-        const { sections: secs, pages: pgs } = latestState.current;
+        const { sections: secs, pages: pgs, styling: stl } = latestState.current;
         try {
             await authAxios.post('/v1/generator/prototypes/hot_reload/', {
                 interface_id: interfaceId,
                 sections: secs,
                 pages: pgs,
+                ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
             });
             setLiveKey((k: number) => k + 1);
         } catch {
@@ -480,13 +513,13 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
     }, [sections, pages, previewPageIndex, styling, interfaceId, doRefreshPreview]);
 
-    // Debounce: hot-reload live prototype 800 ms after sections/pages change
+    // Debounce: hot-reload live prototype 800 ms after sections/pages/styling change
     useEffect(() => {
         if (!interfaceId || previewMode !== 'live') return;
         if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current);
         hotReloadTimer.current = setTimeout(doHotReload, 800);
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
-    }, [sections, pages, interfaceId, previewMode, doHotReload]);
+    }, [sections, pages, styling, interfaceId, previewMode, doHotReload]);
 
 const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
         setSections((prev: any[]) => prev.map((s: any) => {
@@ -1508,59 +1541,72 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                 </div>
 
                 {/* AI generate */}
-                <div style={{ borderTop: '1px solid #e5e7eb', padding: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <div style={{ borderTop: '1px solid #e5e7eb' }}>
+                    <div
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', cursor: 'pointer', userSelect: 'none' }}
+                        onClick={() => setIsAIExpanded(v => !v)}
+                    >
                         <Typography level="title-sm" sx={{ fontSize: 13 }}>AI Generate</Typography>
-                        <Tooltip title="Try these commands to change layout or style" variant="soft">
-                            <span style={{ fontSize: 11, color: '#2563eb', cursor: 'help', display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Info size={12} /> Prompting Guide
-                            </span>
-                        </Tooltip>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Tooltip title="Try these commands to change layout or style" variant="soft">
+                                <span
+                                    style={{ fontSize: 11, color: '#2563eb', cursor: 'help', display: 'flex', alignItems: 'center', gap: 2 }}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <Info size={12} /> Prompting Guide
+                                </span>
+                            </Tooltip>
+                            <span style={{ fontSize: 10, color: '#9ca3af' }}>{isAIExpanded ? '▲' : '▼'}</span>
+                        </div>
                     </div>
 
-                    {/* Example Prompt Chips */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                        {[
-                            'Dark mode with emerald accents',
-                            'Convert to multi-step Wizard',
-                            'Modern style with large border radius',
-                            'Split layout: Details left, List right',
-                            'Compact density and flat card style',
-                        ].map(suggestion => (
-                            <button
-                                key={suggestion}
-                                onClick={() => setCurrentPrompt(suggestion)}
-                                style={{
-                                    fontSize: 10, padding: '2px 8px', borderRadius: 12,
-                                    background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe',
-                                    cursor: 'pointer', whiteSpace: 'nowrap'
-                                }}
-                            >
-                                {suggestion}
-                            </button>
-                        ))}
-                    </div>
+                    {isAIExpanded && (
+                        <div style={{ padding: '0 12px 12px' }}>
+                            {/* Example Prompt Chips */}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {[
+                                    'Dark mode with emerald accents',
+                                    'Convert to multi-step Wizard',
+                                    'Modern style with large border radius',
+                                    'Split layout: Details left, List right',
+                                    'Compact density and flat card style',
+                                ].map(suggestion => (
+                                    <button
+                                        key={suggestion}
+                                        onClick={() => setCurrentPrompt(suggestion)}
+                                        style={{
+                                            fontSize: 10, padding: '2px 8px', borderRadius: 12,
+                                            background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe',
+                                            cursor: 'pointer', whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {suggestion}
+                                    </button>
+                                ))}
+                            </div>
 
-                    {agentStatus && (
-                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4 }}>
-                            {agentStatus}
-                        </p>
+                            {agentStatus && (
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4 }}>
+                                    {agentStatus}
+                                </p>
+                            )}
+                            <div style={{ display: 'flex', gap: 6 }}>
+                                <input
+                                    type="text"
+                                    placeholder="Describe a design change..."
+                                    value={currentPrompt}
+                                    onChange={e => setCurrentPrompt(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
+                                    disabled={isLoadingAgent}
+                                    style={{ flex: 1, padding: '6px 10px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', outline: 'none' }}
+                                />
+                                <Button size="sm" onClick={handleSendMessage}
+                                    loading={isLoadingAgent} disabled={!currentPrompt.trim() || isLoadingAgent}>
+                                    Go
+                                </Button>
+                            </div>
+                        </div>
                     )}
-                    <div style={{ display: 'flex', gap: 6 }}>
-                        <input
-                            type="text"
-                            placeholder="Describe a design change..."
-                            value={currentPrompt}
-                            onChange={e => setCurrentPrompt(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}
-                            disabled={isLoadingAgent}
-                            style={{ flex: 1, padding: '6px 10px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', outline: 'none' }}
-                        />
-                        <Button size="sm" onClick={handleSendMessage}
-                            loading={isLoadingAgent} disabled={!currentPrompt.trim() || isLoadingAgent}>
-                            Go
-                        </Button>
-                    </div>
                 </div>
                 </>}
             </div>

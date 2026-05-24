@@ -22,10 +22,12 @@ _DESIGN_DOMAIN_PRIORITIES = {
 
 _DOMAIN_KEYWORDS = {
     "commerce": {"product", "cart", "order", "customer", "seller", "inventory", "catalog", "checkout", "shipment", "address", "review"},
-    "finance": {"payment", "transaction", "invoice", "subscription", "account", "balance", "payout", "refund", "card", "wallet", "price"},
+    "finance": {"payment", "transaction", "invoice", "subscription", "account", "balance", "payout", "refund", "card", "wallet", "price",
+                "loan", "credit", "application", "applicant", "approval", "disbursement", "interest", "amount", "collateral", "assessment", "lender", "borrower", "banking", "finance", "financial"},
     "devtool": {"api", "deployment", "repository", "query", "log", "event", "metric", "cluster", "database", "pipeline", "build"},
     "creative": {"design", "canvas", "prototype", "board", "asset", "frame", "comment", "project", "workspace"},
-    "enterprise": {"organization", "employee", "team", "role", "permission", "ticket", "case", "contract", "report", "dashboard"},
+    "enterprise": {"organization", "employee", "team", "role", "permission", "ticket", "case", "contract", "report", "dashboard",
+                   "form", "submission", "review", "status", "workflow", "request", "assignment", "task", "document", "approval"},
     "luxury": {"vehicle", "car", "model", "configuration", "dealer", "lifestyle", "event"},
 }
 
@@ -890,6 +892,20 @@ def update_interface_data(interface_id: str, data: dict) -> str:
         return f"Successfully updated interface {interface_id} data."
     except Exception as e: return f"Error updating interface data: {e}"
 
+def _build_known_attrs(system_id: str) -> dict[str, set[str]]:
+    """Returns {ModelName: {attr_name, ...}} for validation. Empty on error."""
+    try:
+        ctx = _fetch_system_context_data(system_id)
+        result = {}
+        for c in _as_list(ctx, "classifiers"):
+            name = (c.get("data") or {}).get("name", "")
+            attrs = {a.get("name") for a in ((c.get("data") or {}).get("attributes") or []) if a.get("name")}
+            if name:
+                result[name] = attrs
+        return result
+    except Exception:
+        return {}
+
 def apply_interface_patch(interface_id: str, patch: dict) -> str:
     try:
         resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
@@ -922,6 +938,21 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
             data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
         if "tokens" in patch:
             data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+        # Validate attribute names against real classifier fields; warn agent so it can self-correct
+        if "sections" in patch:
+            known_attrs = _build_known_attrs(current.get("system", ""))
+            warnings = []
+            for sec in patch["sections"]:
+                model = sec.get("primary_model") or sec.get("class", "")
+                raw_attrs = sec.get("attributes") or []
+                attr_names = [a if isinstance(a, str) else (a.get("name") if isinstance(a, dict) else "") for a in raw_attrs]
+                valid = known_attrs.get(model, set())
+                if valid:
+                    bad = [a for a in attr_names if a and a not in valid and "." not in a]
+                    if bad:
+                        warnings.append(f"section '{sec.get('id')}': unknown attributes {bad} for model '{model}' — valid: {sorted(valid)}")
+            if warnings:
+                return "WARNING — patch rejected due to invented attribute names. Fix these and retry:\n" + "\n".join(warnings)
         try:
             data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
         except Exception:

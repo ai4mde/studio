@@ -347,6 +347,7 @@ class HotReloadPayload(Schema):
     interface_id: str
     sections: Optional[List[Any]] = None
     pages: Optional[List[Any]] = None
+    styling: Optional[Dict[str, Any]] = None
 
 
 @prototypes.post("/hot_reload/")
@@ -381,6 +382,8 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         interface_data["sections"] = payload.sections
     if payload.pages is not None:
         interface_data["pages"] = payload.pages
+    if payload.styling is not None:
+        interface_data["styling"] = payload.styling
 
     classifiers = [
         {"id": str(c.id), "data": c.data}

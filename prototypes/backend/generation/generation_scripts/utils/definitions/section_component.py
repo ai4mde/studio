@@ -115,6 +115,7 @@ class SectionComponent():
             has_create_operation: bool = False,
             has_delete_operation: bool = False,
             has_update_operation: bool = False,
+            has_select_operation: bool = False,
             custom_methods = List[SectionCustomMethod],
             layout: str = "table",
             style: Optional[dict] = None,
@@ -127,6 +128,7 @@ class SectionComponent():
             component_type: str = "data",
             label: Optional[str] = None,
             workflow: Optional[dict] = None,
+            min_height: Optional[int] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -139,6 +141,7 @@ class SectionComponent():
         self.has_create_operation = has_create_operation
         self.has_delete_operation = has_delete_operation
         self.has_update_operation = has_update_operation
+        self.has_select_operation = has_select_operation
         self.custom_methods = custom_methods
         self.text = parse_section_text(text)
         self.layout = layout or "table"
@@ -155,6 +158,7 @@ class SectionComponent():
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
         self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
         return self.name

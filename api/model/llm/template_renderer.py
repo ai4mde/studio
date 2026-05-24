@@ -73,10 +73,10 @@ ACTIVITY_ACTION_VARIANTS = {"button", "link", "fab", "row_action", "wizard_next"
 
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
-                 has_create_operation, has_update_operation, has_delete_operation, text,
+                 has_create_operation, has_update_operation, has_delete_operation, has_select_operation, text,
                  layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
                  related_to_section_id=None, relation_field=None, query=None, position="main",
-                 component_type="data", label=None, workflow=None):
+                 component_type="data", label=None, workflow=None, min_height=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -86,6 +86,7 @@ class _SectionComponent:
         self.has_create_operation = has_create_operation
         self.has_update_operation = has_update_operation
         self.has_delete_operation = has_delete_operation
+        self.has_select_operation = has_select_operation
         self.text = text
         self.layout = layout or "table"
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
@@ -103,6 +104,7 @@ class _SectionComponent:
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
         self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
         return self.name
@@ -115,7 +117,7 @@ def _make_activity_start_section(s_raw: dict = None) -> "_SectionComponent":
         name="activity_start",
         display_name=s.get("name") or s.get("label") or "Start a Process",
         primary_model="", parent_models=[], attributes=[],
-        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False, has_select_operation=False,
         text="",
         col_span=int(s.get("col_span", 12)),
         position=s.get("position", "main"),
@@ -136,7 +138,7 @@ def _make_activity_tasks_section(s_raw: dict = None) -> "_SectionComponent":
         name="activity_tasks",
         display_name=s.get("name") or s.get("label") or "My Tasks",
         primary_model="", parent_models=[], attributes=[],
-        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False, has_select_operation=False,
         text="",
         col_span=int(s.get("col_span", 12)),
         position=s.get("position", "main"),
@@ -168,7 +170,7 @@ def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionCo
         name="activity_action",
         display_name=label,
         primary_model="", parent_models=[], attributes=[],
-        has_create_operation=False, has_update_operation=False, has_delete_operation=False,
+        has_create_operation=False, has_update_operation=False, has_delete_operation=False, has_select_operation=False,
         text="",
         col_span=int(s.get("col_span", 12)),
         position=s.get("position", "main"),
@@ -404,11 +406,13 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 has_create_operation=bool(ops.get("create", False)),
                 has_update_operation=bool(ops.get("update", False)),
                 has_delete_operation=bool(ops.get("delete", False)),
+                has_select_operation=bool(ops.get("select", sec_layout in ("card", "list"))),
                 text=_parse_text(s_raw.get("text", "")),
                 layout=sec_layout,
                 style=sec_style,
                 custom_methods=_parse_custom_methods(s_raw),
                 col_span=int(s_raw.get("col_span", 12)),
+                min_height=s_raw.get("min_height"),
                 view_detail_page=s_raw.get("view_detail_page"),
                 related_to_section_id=s_raw.get("related_to"),
                 relation_field=s_raw.get("relation_field"),
