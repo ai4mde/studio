@@ -1,4 +1,4 @@
-{% if preview_mode -%}
+﻿{% if preview_mode -%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +11,7 @@
     {% include "helpers/tailwind_fallback.css.jinja2" %}
 
     :root {
-      /* 鈹€鈹€ Radius 鈹€鈹€ */
+      /* 閳光偓閳光偓 Radius 閳光偓閳光偓 */
       --radius:    {{ tokens.get('page.radius.px', '8') }}px;
       --radius-sm: {{ tokens.get('radius.sm.px', '4') }}px;
       --radius-lg: {{ tokens.get('radius.lg.px', '12') }}px;
@@ -19,7 +19,7 @@
       --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
       --input-radius: {{ tokens.get('input.radius.px', tokens.get('page.radius.px', '8')) }}px;
 
-      /* 鈹€鈹€ Typography 鈹€鈹€ */
+      /* 閳光偓閳光偓 Typography 閳光偓閳光偓 */
       --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
       --text-hero-size:     {{ tokens.get('typography.hero.size', '56px') }};
       --text-hero-weight:   {{ tokens.get('typography.hero.weight', '600') }};
@@ -41,10 +41,10 @@
       --text-label-size:    {{ tokens.get('typography.label.size', '14px') }};
       --text-label-weight:  {{ tokens.get('typography.label.weight', '500') }};
 
-      /* 鈹€鈹€ Page & Region Colors 鈹€鈹€ */
+      /* 閳光偓閳光偓 Page & Region Colors 閳光偓閳光偓 */
       --accent:               {{ tokens.get('accent.hex', '#2563eb') }};
       --accent-secondary:     {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
-      --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+      --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
       --page-text:            {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
       --text-muted:           {{ tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280')) }};
       --text-subtle:          {{ tokens.get('text.subtle.hex', tokens.get('color.text.subtle_hex', '#9ca3af')) }};
@@ -59,17 +59,17 @@
       --border-color:         {{ tokens.get('region.border_hex', tokens.get('border.default.hex', '#e5e7eb')) }};
       --border-strong:        {{ tokens.get('border.strong.hex', tokens.get('region.border_strong_hex', '#d1d5db')) }};
 
-      /* 鈹€鈹€ Shadows 鈹€鈹€ */
+      /* 閳光偓閳光偓 Shadows 閳光偓閳光偓 */
       --shadow-sm: {{ tokens.get('shadow.sm', '0 1px 2px 0 rgb(0 0 0 / 0.05)') }};
       --shadow-md: {{ tokens.get('shadow.md', '0 4px 6px -1px rgb(0 0 0 / 0.10)') }};
       --shadow-lg: {{ tokens.get('shadow.lg', '0 10px 15px -3px rgb(0 0 0 / 0.10)') }};
 
-      /* 鈹€鈹€ Card 鈹€鈹€ */
+      /* 閳光偓閳光偓 Card 閳光偓閳光偓 */
       --card-bg:     {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
       --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
       --card-shadow: {{ tokens.get('component.card.shadow', 'var(--shadow-sm)') }};
 
-      /* 鈹€鈹€ Buttons 鈹€鈹€ */
+      /* 閳光偓閳光偓 Buttons 閳光偓閳光偓 */
       --button-primary-bg:      {{ tokens.get('button.primary.bg_hex', 'var(--accent)') }};
       --button-primary-text:    {{ tokens.get('button.primary.text_hex', '#ffffff') }};
       --button-primary-border:  {{ tokens.get('button.primary.border_hex', 'var(--accent)') }};
@@ -80,20 +80,20 @@
       --button-danger-bg:       {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
       --button-danger-text:     {{ tokens.get('button.danger.text_hex', '#ffffff') }};
 
-      /* 鈹€鈹€ Inputs 鈹€鈹€ */
+      /* 閳光偓閳光偓 Inputs 閳光偓閳光偓 */
       --input-bg:           {{ tokens.get('input.bg_hex', 'var(--region-main-bg)') }};
       --input-border:       {{ tokens.get('input.border_hex', 'var(--border-color)') }};
       --input-border-focus: {{ tokens.get('input.border_focus_hex', 'var(--accent)') }};
       --input-text:         {{ tokens.get('input.text_hex', 'var(--page-text)') }};
       --input-placeholder:  {{ tokens.get('input.placeholder_hex', 'var(--text-subtle)') }};
 
-      /* 鈹€鈹€ Table 鈹€鈹€ */
+      /* 閳光偓閳光偓 Table 閳光偓閳光偓 */
       --table-header-bg:   {{ tokens.get('table.header.bg_hex', 'var(--region-main-bg-sunken)') }};
       --table-header-text: {{ tokens.get('table.header.text_hex', 'var(--text-muted)') }};
       --table-row-hover:   {{ tokens.get('table.row.hover_hex', 'var(--region-main-bg-sunken)') }};
       --table-border:      {{ tokens.get('table.border_hex', 'var(--border-color)') }};
 
-      /* 鈹€鈹€ Semantic Badge Colors 鈹€鈹€ */
+      /* 閳光偓閳光偓 Semantic Badge Colors 閳光偓閳光偓 */
       --badge-success-bg:  {{ tokens.get('badge.success.bg_hex', '#16a34a') }};
       --badge-success-text:{{ tokens.get('badge.success.text_hex', '#ffffff') }};
       --badge-error-bg:    {{ tokens.get('badge.error.bg_hex', '#dc2626') }};
@@ -113,7 +113,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 鈹€鈹€ Typography Classes 鈹€鈹€ */
+    /* 閳光偓閳光偓 Typography Classes 閳光偓閳光偓 */
     .si-text-hero    { font-size: var(--text-hero-size);    font-weight: var(--text-hero-weight);    line-height: var(--text-hero-lh);    letter-spacing: var(--text-hero-ls); }
     .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
     .si-text-title   { font-size: var(--text-title-size);   font-weight: var(--text-title-weight); }
@@ -124,13 +124,13 @@
     .si-text-muted   { color: var(--text-muted); }
     .si-text-subtle  { color: var(--text-subtle); }
 
-    /* 鈹€鈹€ Layout Utilities 鈹€鈹€ */
+    /* 閳光偓閳光偓 Layout Utilities 閳光偓閳光偓 */
     .si-container     { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
     .si-container-full{ max-width: 100% !important; padding: 0 !important; }
     .si-sticky-top    { position: sticky; top: 0; z-index: 40; }
     .si-divider       { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
 
-    /* 鈹€鈹€ Cards 鈹€鈹€ */
+    /* 閳光偓閳光偓 Cards 閳光偓閳光偓 */
     .si-card {
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -141,7 +141,7 @@
     .si-card-elevated { background-color: var(--region-main-bg-elevated); box-shadow: var(--shadow-md); }
     .si-card-sunken   { background-color: var(--region-main-bg-sunken); }
 
-    /* 鈹€鈹€ Buttons 鈹€鈹€ */
+    /* 閳光偓閳光偓 Buttons 閳光偓閳光偓 */
     .si-btn         { border-radius: var(--btn-radius); border-color: transparent; cursor: pointer; }
     .si-btn-primary { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
     .si-btn-primary:hover { opacity: 0.9; }
@@ -150,21 +150,21 @@
     .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
     .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
 
-    /* 鈹€鈹€ Accent color classes (follow design spec primary color) 鈹€鈹€ */
+    /* 閳光偓閳光偓 Accent color classes (follow design spec primary color) 閳光偓閳光偓 */
     .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }
     .si-accent-btn:hover  { opacity: 0.9; }
     .si-accent-text       { color: var(--accent); }
     .si-accent-border     { border-color: var(--accent); }
     .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
 
-    /* 鈹€鈹€ Accent-secondary (second brand color) 鈹€鈹€ */
+    /* 閳光偓閳光偓 Accent-secondary (second brand color) 閳光偓閳光偓 */
     .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
     .si-btn-accent-secondary:hover { opacity: 0.9; }
     .si-accent-secondary-text   { color: var(--accent-secondary); }
     .si-accent-secondary-border { border-color: var(--accent-secondary); }
     .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
 
-    /* 鈹€鈹€ Inputs 鈹€鈹€ */
+    /* 閳光偓閳光偓 Inputs 閳光偓閳光偓 */
     .si-input {
       background-color: var(--input-bg);
       border: 1px solid var(--input-border);
@@ -176,19 +176,19 @@
     .si-input::placeholder { color: var(--input-placeholder); }
     .si-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); color: var(--page-text); }
 
-    /* 鈹€鈹€ Tables 鈹€鈹€ */
+    /* 閳光偓閳光偓 Tables 閳光偓閳光偓 */
     .si-table-header { background-color: var(--table-header-bg); color: var(--table-header-text); font-size: var(--text-caption-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .si-table-row    { border-bottom: 1px solid var(--table-border); }
     .si-table-row:hover { background-color: var(--table-row-hover); }
 
-    /* 鈹€鈹€ Badges 鈹€鈹€ */
+    /* 閳光偓閳光偓 Badges 閳光偓閳光偓 */
     .si-badge         { display: inline-flex; align-items: center; border-radius: var(--radius-full); padding: 2px 8px; font-size: var(--text-caption-size); font-weight: 600; }
     .si-badge-success { background-color: var(--badge-success-bg); color: var(--badge-success-text); }
     .si-badge-error   { background-color: var(--badge-error-bg);   color: var(--badge-error-text); }
     .si-badge-warning { background-color: var(--badge-warning-bg); color: var(--badge-warning-text); }
     .si-badge-neutral { background-color: var(--badge-neutral-bg); color: var(--badge-neutral-text); }
 
-    /* 鈹€鈹€ Override hardcoded Tailwind colors with design spec tokens 鈹€鈹€ */
+    /* 閳光偓閳光偓 Override hardcoded Tailwind colors with design spec tokens 閳光偓閳光偓 */
     /* Border colors */
     .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
     .border-gray-300, .border-gray-400 { border-color: var(--border-strong) !important; }
@@ -201,17 +201,17 @@
     .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
     .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
     .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
-    /* Border radius 鈥?follow design spec radius */
+    /* Border radius 閳?follow design spec radius */
     .rounded-xl  { border-radius: var(--radius-lg) !important; }
     .rounded-lg  { border-radius: var(--radius) !important; }
     .rounded-md  { border-radius: var(--radius-sm) !important; }
     .rounded-2xl { border-radius: var(--radius-lg) !important; }
-    /* Shadows 鈥?follow design spec shadow tokens */
+    /* Shadows 閳?follow design spec shadow tokens */
     .shadow-sm { box-shadow: var(--shadow-sm) !important; }
     .shadow-md { box-shadow: var(--shadow-md) !important; }
     .shadow-lg { box-shadow: var(--shadow-lg) !important; }
 
-    /* 鈹€鈹€ Card Hover Effects 鈹€鈹€ */
+    /* 閳光偓閳光偓 Card Hover Effects 閳光偓閳光偓 */
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
     .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -226,7 +226,7 @@
     .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
     .si-video { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; background-color: #000; }
 
-    /* 鈹€鈹€ Multi-select (operations.select) 鈹€鈹€ */
+    /* 閳光偓閳光偓 Multi-select (operations.select) 閳光偓閳光偓 */
     .si-sel-item { position: relative; cursor: pointer; }
     .si-sel-item .si-sel-cb {
       position: absolute; top: 8px; left: 8px; z-index: 10;
@@ -266,21 +266,34 @@
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
+{%- set _raw_page_layout = page.layout if page.layout is defined and page.layout else {} %}
+{%- set _page_layout = _raw_page_layout if _raw_page_layout is mapping else {'value': _raw_page_layout} %}
+{%- set _main_width = _page_layout.get('main_width', tokens.get('page.main_width', 'contained')) %}
+{%- set _header_width = _page_layout.get('header_width', tokens.get('page.header_width', 'contained')) %}
+{%- set _hero_width = _page_layout.get('hero_width', tokens.get('page.hero_width', 'contained')) %}
+{%- set _footer_width = _page_layout.get('footer_width', tokens.get('page.footer_width', 'full')) %}
+{%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else _container_class) %}
+{%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else _container_class ~ ' mx-auto px-6' %}
 {%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
 {%- set _btn_solid  = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
 {%- set _btn_outline = 'font-semibold px-4 py-2 si-btn border-2 bg-transparent transition-colors hover:bg-opacity-10' %}
 {%- set _btn_ghost  = 'font-semibold px-4 py-2 si-btn bg-transparent hover:bg-gray-100 transition-colors' %}
 {%- set _btn_gradient = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
+{%- macro nav_href_attrs(target_page) -%}
+{%- if preview_mode -%}
+href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ target_page }}'},'*');return false;"
+{%- else -%}
+href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
+{%- endif -%}
+{%- endmacro %}
 {%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- for sc in page.section_components %}
-  {%- if sc.position == 'header' and sc.layout in _header_chrome %}{% set _ = _header_secs.append(sc) %}{%- endif %}
-  {%- if sc.position == 'footer' and sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
 
-{# 鈹€鈹€ header chrome: render all header-position section components 鈹€鈹€
+{# 閳光偓閳光偓 header chrome: render all header-position section components 閳光偓閳光偓
    Granular row logic: logo + search-bar + icon-actions are opened/closed in
    a shared flex row; all other header layouts are full-width blocks.
 #}
@@ -295,7 +308,7 @@
 </header>
 {%- endif %}
 
-{# 鈹€鈹€ ACTIVITY ACTION (header-position workflow button) 鈹€鈹€ #}
+{# 閳光偓閳光偓 ACTIVITY ACTION (header-position workflow button) 閳光偓閳光偓 #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -335,9 +348,10 @@
   </div>
 </div>
 
-{# 鈹€鈹€ PROMO BAR (promo-bar / promo-strip) 鈹€鈹€ #}
+{# 閳光偓閳光偓 PROMO BAR (promo-bar / promo-strip) 閳光偓閳光偓 #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
-<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+{%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
   <div class="flex items-center gap-6">
     {%- for m in sc.custom_methods[:3] %}
@@ -348,13 +362,13 @@
 </div>
 </div>
 
-{# 鈹€鈹€ LOGO (inline inside main-header-row) 鈹€鈹€ #}
+{# 閳光偓閳光偓 LOGO (inline inside main-header-row) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'logo' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
 </div>
 
-{# 鈹€鈹€ SEARCH BAR (inline inside main-header-row) 鈹€鈹€ #}
+{# 閳光偓閳光偓 SEARCH BAR (inline inside main-header-row) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
@@ -365,7 +379,7 @@
   </form>
 </div>
 
-{# 鈹€鈹€ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) 鈹€鈹€ #}
+{# 閳光偓閳光偓 ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'icon-actions' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
@@ -383,7 +397,7 @@
   </div>
 </div>
 
-{# 鈹€鈹€ COMBINED MAIN HEADER (main-header 鈥?legacy single-section variant) 鈹€鈹€ #}
+{# 閳光偓閳光偓 COMBINED MAIN HEADER (main-header 閳?legacy single-section variant) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
@@ -407,20 +421,22 @@
 </header>
 </div>
 
-{# 鈹€鈹€ NAV BAR (nav-links / nav-bar) 鈹€鈹€ #}
+{# 閳光偓閳光偓 NAV BAR (nav-links / nav-bar) 閳光偓閳光偓 #}
 {%- elif sc.layout in ('nav-links', 'nav-bar') %}
-<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
+{%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 鈻?
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 閳?
       </span>
       {%- for p in (all_pages or []) %}
-      {%- if not (p.is_task_page is defined and p.is_task_page) %}
-      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
+      {%- set _p_name = p.name if p.name is defined else p %}
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
       {%- for m in sc.custom_methods[1:4] %}
@@ -436,7 +452,7 @@
 </nav>
 </div>
 
-{# 鈹€鈹€ MINIMAL HEADER (minimal-header 鈥?checkout/login) 鈹€鈹€ #}
+{# 閳光偓閳光偓 MINIMAL HEADER (minimal-header 閳?checkout/login) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
@@ -448,9 +464,10 @@
 </header>
 </div>
 
-{# 鈹€鈹€ SITE-NAV (legacy: full header in one section) 鈹€鈹€ #}
+{# 閳光偓閳光偓 SITE-NAV (legacy: full header in one section) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'site-nav' %}
-<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
+{%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
   <div class="flex items-center gap-6">
     {%- for m in sc.custom_methods[:3] %}<span>{{ m }}</span>{%- endfor %}
@@ -474,8 +491,8 @@
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 鈻?/span>
-      {%- for p in (all_pages or []) %}{% if not (p.is_task_page is defined and p.is_task_page) %}<span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>{% endif %}{%- endfor %}
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 閳?/span>
+      {%- for p in (all_pages or []) %}{% if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{% endif %}{%- endfor %}
     </div>
     <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
   </div>
@@ -487,7 +504,7 @@
 {%- if _main_row_open %}</header>{%- endif %}
 
 {% if not _header_secs %}
-<header class="px-6 py-3 flex items-center justify-between shadow-sm" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
+<header class="{{ _header_shell_class }} py-3 flex items-center justify-between shadow-sm" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
   <div class="flex items-center gap-3">
     <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
       {{ _brand_name | capitalize }}
@@ -496,18 +513,19 @@
   <a href="#" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
 </header>
 <nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+  <div class="{{ _header_shell_class }} flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
     <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
     {%- for p in (all_pages or []) %}
     {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
-    <a href="#" class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
+    {%- set _p_name = p.name if p.name is defined else p %}
+    <a {{ nav_href_attrs(_p_name) }} class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
     {%- endif %}
     {%- endfor %}
   </div>
 </nav>
 {% endif %}
 
-<main class="px-6 py-6 {{ _container_class }} mx-auto">
+<main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
@@ -519,7 +537,7 @@
     --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
     --accent: {{ tokens.get('accent.hex', '#2563eb') }};
     --accent-secondary: {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
-    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
+    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
     --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
     --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
     --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
@@ -563,9 +581,17 @@
   .si-accent-secondary-border { border-color: var(--accent-secondary); }
   .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
   .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
-  .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
-  .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
-  [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+    .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
+    .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+    [data-nav-height="compact"] { --si-nav-row-y: .25rem; --si-nav-link-y: .25rem; --si-nav-min-height: 32px; }
+    [data-nav-height="normal"] { --si-nav-row-y: .5rem; --si-nav-link-y: .375rem; --si-nav-min-height: 40px; }
+    [data-nav-height="tall"] { --si-nav-row-y: .875rem; --si-nav-link-y: .625rem; --si-nav-min-height: 56px; }
+    [data-nav-height="xl"] { --si-nav-row-y: 1.25rem; --si-nav-link-y: .875rem; --si-nav-min-height: 72px; }
+    [data-nav-height] nav > div { min-height: var(--si-nav-min-height); padding-top: var(--si-nav-row-y) !important; padding-bottom: var(--si-nav-row-y) !important; }
+    [data-nav-height] nav > div > span,
+    [data-nav-height] nav > div > div > span,
+    [data-nav-height] nav a.si-nav-link { padding-top: var(--si-nav-link-y) !important; padding-bottom: var(--si-nav-link-y) !important; }
+    [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
   [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
   [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
   [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
@@ -576,7 +602,7 @@
 </style>
 {%- endif %}
 
-{# 鈹€鈹€ Global lookup maps (defined once, used per section) 鈹€鈹€ #}
+{# 閳光偓閳光偓 Global lookup maps (defined once, used per section) 閳光偓閳光偓 #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -609,7 +635,10 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# 鈹€鈹€ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) 鈹€鈹€ #}
+{# 閳光偓閳光偓 Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) 閳光偓閳光偓 #}
+{%- macro nav_href_attrs(target_page) -%}
+href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
+{%- endmacro %}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
 {%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
 {%- set _mock_rows = 3 %}
@@ -623,7 +652,7 @@
   'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&fit=crop'
 ] %}
 
-{# 鈹€鈹€ Shared item-template macros (used by preview and generation mode) 鈹€鈹€ #}
+{# 閳光偓閳光偓 Shared item-template macros (used by preview and generation mode) 閳光偓閳光偓 #}
 {%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
@@ -641,14 +670,14 @@
   <div class="p-2.5">
     <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
     <div class="flex items-center gap-0.5 mt-1">
-      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
+      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
       {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
     </div>
     <div class="mt-1 flex items-center gap-1">
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 馃洅</a>
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 棣冩磪</a>
   </div>
 </div>
 {%- endmacro %}
@@ -663,7 +692,7 @@
   <div class="flex-1 min-w-0">
     <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
+      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
     </div>
     <div class="flex items-center gap-2 mt-2">
       {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
@@ -672,7 +701,7 @@
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 馃洅</a>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 棣冩磪</a>
   </div>
 </div>
 {%- endmacro %}
@@ -687,7 +716,7 @@
   <div class="flex-1">
     <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
+      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
     </div>
     <div class="flex items-baseline gap-2 mt-1">
       <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
@@ -727,10 +756,7 @@
 {% endif %}
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
-{%- for section_component in page.section_components if not (
-    (section_component.position == 'header' and section_component.layout in _header_chrome) or
-    (section_component.position == 'footer' and section_component.layout in _footer_chrome)
-) %}
+{%- for section_component in page.section_components %}
 {%- if section_component.component_type == 'activity_action' %}
 {%- set _aa_variant = section_component.style.get('variant', 'button') %}
 {%- set _aa_align   = section_component.style.get('align', 'right') %}
@@ -745,7 +771,7 @@
     {%- set _aa_target_is_activity.value = true %}
   {%- endif %}
 {%- endfor %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_action" data-col-span="{{ section_component.col_span or 12 }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
 {%- if page.type == 'activity' and not preview_mode %}
   {%- if _aa_target_page and _aa_target_is_activity.value %}
     {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
@@ -779,16 +805,16 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} 鈫?/button>
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} 閳?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
   <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
-    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">鈫?Back</a>
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">閳?Back</a>
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} 鈫?/button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} 閳?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
@@ -822,7 +848,7 @@
 {%- set _as_button_label = section_component.style.get('cta_label') or section_component.label or 'Start' %}
 {%- set _as_col_class = 'grid-cols-1' if _as_cols == 1 else ('grid-cols-2' if _as_cols == 2 else ('grid-cols-3' if _as_cols == 3 else 'grid-cols-4')) %}
 {%- set _as_card_cls = 'bg-white rounded-xl shadow-md p-5' if _as_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _as_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_start" data-col-span="{{ section_component.col_span or 12 }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
 {%- if preview_mode %}
   {%- set _as_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
@@ -862,7 +888,7 @@
 {%- set _at_card = section_component.style.get('card_style', 'elevated') %}
 {%- set _at_col_class = 'grid-cols-1' if _at_cols == 1 else ('grid-cols-2' if _at_cols == 2 else ('grid-cols-3' if _at_cols == 3 else 'grid-cols-4')) %}
 {%- set _at_card_cls = 'bg-white rounded-xl shadow-md p-5' if _at_card == 'elevated' else ('bg-white rounded-xl border border-gray-200 p-5' if _at_card == 'outlined' else 'bg-gray-50 rounded-xl p-5') %}
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="activity_tasks" data-col-span="{{ section_component.col_span or 12 }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   <h3 class="text-lg font-semibold text-gray-800 mb-4">{{ section_component.label or section_component.display_name }}</h3>
 {%- if preview_mode %}
   {%- set _at_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
@@ -899,7 +925,7 @@
 {%- endif %}
 </div>
 {%- else %}
-{# 鈹€鈹€ Resolve per-section style 鈹€鈹€ #}
+{# 閳光偓閳光偓 Resolve per-section style 閳光偓閳光偓 #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
@@ -914,7 +940,7 @@
   {%- set _person_names = ['Amina Khan','Luca Ferrari','Jan de Vries','Emma Bakker','Maya Chen','Noah Smith'] -%}
   {%- set _document_names = ['Proof of income','Bank statement','Identity document','Contract draft','Approval letter','Monthly report'] -%}
   {%- set _finance_names = ['Standard Review','Priority Check','Approved Account','Pending Payment','Low Risk Loan','Manual Review'] -%}
-  {%- set _mock_prices = ['鈧?.99','鈧?4.99','鈧?9.99','鈧?4.99','鈧?9.00','鈧?.50'] -%}
+  {%- set _mock_prices = ['閳?.99','閳?4.99','閳?9.99','閳?4.99','閳?9.00','閳?.50'] -%}
   {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
   {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
   {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
@@ -1015,24 +1041,24 @@
   {%- endset -%}
   {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
     {%- if target_page %}
-    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="inline-flex">{{ value_html }}</a>
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="si-field-value inline-flex">{{ value_html }}</a>
     {%- else -%}
-    {{ value_html }}
+    <span class="si-field-value">{{ value_html }}</span>
     {%- endif -%}
   {%- elif action_type == 'operation' -%}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="inline-flex">
       <input type="hidden" name="instance_id_{{ operation_class }}" value="{{ row_id }}">
       <input type="hidden" name="custom_{{ operation_class }}_{{ operation_name }}" value="{{ row_id }}">
-      <button type="submit" class="inline-flex">{{ value_html }}</button>
+      <button type="submit" class="si-field-value inline-flex">{{ value_html }}</button>
     </form>
   {%- elif action_type == 'copy' -%}
-    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.copyValue)" data-copy-value="{{ row_value }}" class="inline-flex">{{ value_html }}</button>
+    <button type="button" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.copyValue)" data-copy-value="{{ row_value }}" class="si-field-value inline-flex">{{ value_html }}</button>
   {%- elif action_type == 'filter' -%}
-    <a href="?{{ field_name }}={{ row_value|urlencode }}" data-filter-field="{{ field_name }}" class="inline-flex">{{ value_html }}</a>
+    <a href="?{{ field_name }}={{ row_value|urlencode }}" data-filter-field="{{ field_name }}" class="si-field-value inline-flex">{{ value_html }}</a>
   {%- elif action_type == 'expand' -%}
-    <details class="inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ row_value }}</span></details>
+    <details class="si-field-value inline-block"><summary class="cursor-pointer list-none">{{ value_html }}</summary><span class="{{ d.text }} text-gray-500">{{ row_value }}</span></details>
   {%- else -%}
-    {{ value_html }}
+    <span class="si-field-value">{{ value_html }}</span>
   {%- endif -%}
 {%- endmacro %}
 
@@ -1060,7 +1086,7 @@
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
-{# 鈹€鈹€ Attribute slot extraction 鈹€鈹€ #}
+{# 閳光偓閳光偓 Attribute slot extraction 閳光偓閳光偓 #}
 {%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set _vattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
 {%- set _mattrs   = _iattrs + _vattrs %}
@@ -1070,37 +1096,52 @@
 {%- set _fl_secondary_raw = _fl.get('secondary') or [] %}
 {%- set _fl_columns_raw = _fl.get('columns') or _fl.get('fields') or [] %}
 {%- set _fl_hero_raw = _fl.get('hero') or [] %}
+{%- set _fl_hidden_raw = _fl.get('hidden') or [] %}
 {%- set _fl_secondary_names = [_fl_secondary_raw] if _fl_secondary_raw is string else _fl_secondary_raw %}
 {%- set _fl_columns_names = [_fl_columns_raw] if _fl_columns_raw is string else _fl_columns_raw %}
 {%- set _fl_hero_names = [_fl_hero_raw] if _fl_hero_raw is string else _fl_hero_raw %}
+{%- set _fl_hidden_names = [_fl_hidden_raw] if _fl_hidden_raw is string else _fl_hidden_raw %}
 {%- set _slot = namespace(image=None, video=None, media=None, title=None, subtitle=None, primary=None, secondary=[], columns=[], hero=[]) %}
 {%- for _attr in section_component.attributes %}
   {%- set _an = _attr|string %}
-  {%- if _fl.get('image') and _an == _fl.get('image') %}{%- set _slot.image = _attr %}{%- endif %}
-  {%- if _fl.get('video') and _an == _fl.get('video') %}{%- set _slot.video = _attr %}{%- endif %}
-  {%- if _fl.get('media') and _an == _fl.get('media') %}{%- set _slot.media = _attr %}{%- endif %}
-  {%- if _fl.get('title') and _an == _fl.get('title') %}{%- set _slot.title = _attr %}{%- endif %}
-  {%- if _fl.get('subtitle') and _an == _fl.get('subtitle') %}{%- set _slot.subtitle = _attr %}{%- endif %}
-  {%- if _fl.get('primary') and _an == _fl.get('primary') %}{%- set _slot.primary = _attr %}{%- endif %}
-  {%- if _an in _fl_secondary_names %}{%- set _ = _slot.secondary.append(_attr) %}{%- endif %}
-  {%- if _an in _fl_columns_names %}{%- set _ = _slot.columns.append(_attr) %}{%- endif %}
-  {%- if _an in _fl_hero_names %}{%- set _ = _slot.hero.append(_attr) %}{%- endif %}
+  {%- set _fcfg = (_fl.get('field_styles') or {}).get(_an) or {} %}
+  {%- if _an not in _fl_hidden_names and _fcfg.get('visible') != 'hidden' %}
+    {%- if _fl.get('image') and _an == _fl.get('image') %}{%- set _slot.image = _attr %}{%- endif %}
+    {%- if _fl.get('video') and _an == _fl.get('video') %}{%- set _slot.video = _attr %}{%- endif %}
+    {%- if _fl.get('media') and _an == _fl.get('media') %}{%- set _slot.media = _attr %}{%- endif %}
+    {%- if _fl.get('title') and _an == _fl.get('title') %}{%- set _slot.title = _attr %}{%- endif %}
+    {%- if _fl.get('subtitle') and _an == _fl.get('subtitle') %}{%- set _slot.subtitle = _attr %}{%- endif %}
+    {%- if _fl.get('primary') and _an == _fl.get('primary') %}{%- set _slot.primary = _attr %}{%- endif %}
+    {%- if _an in _fl_secondary_names %}{%- set _ = _slot.secondary.append(_attr) %}{%- endif %}
+    {%- if _an in _fl_columns_names %}{%- set _ = _slot.columns.append(_attr) %}{%- endif %}
+    {%- if _an in _fl_hero_names %}{%- set _ = _slot.hero.append(_attr) %}{%- endif %}
+  {%- endif %}
 {%- endfor %}
-{%- set _title_attr = _slot.title or (_tattrs[0] if _tattrs else (section_component.attributes[0] if section_component.attributes else none)) %}
+{%- set _visible_attrs = [] %}
+{%- for _attr in section_component.attributes %}
+  {%- set _an = _attr|string %}
+  {%- set _fcfg = (_fl.get('field_styles') or {}).get(_an) or {} %}
+  {%- if _an not in _fl_hidden_names and _fcfg.get('visible') != 'hidden' %}{%- set _ = _visible_attrs.append(_attr) %}{%- endif %}
+{%- endfor %}
+{%- set _visible_tattrs = [] %}
+{%- for _attr in _tattrs %}
+  {%- if _attr in _visible_attrs %}{%- set _ = _visible_tattrs.append(_attr) %}{%- endif %}
+{%- endfor %}
+{%- set _title_attr = _slot.title or (_visible_tattrs[0] if _visible_tattrs else (_visible_attrs[0] if _visible_attrs else none)) %}
 {%- set _image_attr = _slot.image or (_iattrs[0] if _iattrs else none) %}
 {%- set _video_attr = _slot.video or (_vattrs[0] if _vattrs else none) %}
 {%- set _media_attr = _slot.media or _video_attr or _image_attr %}
-{%- set _primary_attr = _slot.primary or (_tattrs[1] if _tattrs|length > 1 else none) %}
-{%- set _secondary_attrs = _slot.secondary if _slot.secondary else (_tattrs[2:5] if _tattrs|length > 2 else []) %}
-{%- set _column_attrs = _slot.columns if _slot.columns else section_component.attributes %}
-{%- set _detail_attrs = (_slot.hero + _slot.columns) if (_slot.hero or _slot.columns) else section_component.attributes %}
-{%- set _form_attrs = _slot.columns if _slot.columns else section_component.attributes %}
+{%- set _primary_attr = _slot.primary or (_visible_tattrs[1] if _visible_tattrs|length > 1 else none) %}
+{%- set _secondary_attrs = _slot.secondary if _slot.secondary else (_visible_tattrs[2:5] if _visible_tattrs|length > 2 else []) %}
+{%- set _column_attrs = _slot.columns if _slot.columns else _visible_attrs %}
+{%- set _detail_attrs = (_slot.hero + _slot.columns) if (_slot.hero or _slot.columns) else _visible_attrs %}
+{%- set _form_attrs = _slot.columns if _slot.columns else _visible_attrs %}
 {%- set _card_ns = namespace(attrs=[]) %}
 {%- for _attr in [_media_attr, _title_attr, _slot.subtitle, _primary_attr] + _secondary_attrs %}
   {%- if _attr and _attr not in _card_ns.attrs %}{%- set _ = _card_ns.attrs.append(_attr) %}{%- endif %}
 {%- endfor %}
 {%- set _card_attrs = _card_ns.attrs if _card_ns.attrs else section_component.attributes %}
-{# 鈹€鈹€ Generic layout normalisation (legacy aliases 鈫?canonical names) 鈹€鈹€ #}
+{# 閳光偓閳光偓 Generic layout normalisation (legacy aliases 閳?canonical names) 閳光偓閳光偓 #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
@@ -1115,11 +1156,11 @@
 {%- if _component == 'CategoryTileGrid' %}{%- set _cstyle = 'category' %}{%- endif %}
 {%- if _component in ('DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList') and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
-{# 鈹€鈹€ Shared mock data 鈹€鈹€ #}
+{# 閳光偓閳光偓 Shared mock data 閳光偓閳光偓 #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   {%- set _field_cfgs = _fl.get('field_styles') or {} %}
   {%- if _field_cfgs %}
   <style>
@@ -1132,13 +1173,20 @@
     {%- if fcfg.get('align') in ['left', 'center', 'right'] %} text-align: {{ fcfg.get('align') }};{% endif %}
     {%- if fcfg.get('col_span') %}
       flex-basis: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
+      width: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
       {%- if (fcfg.get('col_span')|string) in ['8', '12'] %} grid-column: 1 / -1;{% endif %}
     {%- endif %}
   }
+  {%- if fcfg.get('visible') == 'hidden' %}
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] { display: none !important; }
+  {%- endif %}
   {%- if fcfg.get('text_size') %}
   [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"],
   [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-value {
-    font-size: {{ _field_text.get(fcfg.get('text_size')|string, 'inherit') }};
+    font-size: {{ _field_text.get(fcfg.get('text_size')|string, 'inherit') }} !important;
+  }
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] :where(span, a, button, input, select, textarea, label, p, div) {
+    font-size: inherit !important;
   }
   {%- endif %}
   {%- if fcfg.get('height') %}
@@ -1168,10 +1216,10 @@
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW MODE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW MODE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% if preview_mode %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: ACTION PANEL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: ACTION PANEL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1207,7 +1255,7 @@
   </div>
 {% endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: DETAIL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: DETAIL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1266,7 +1314,7 @@
     {%- endfor %}
   </div>
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: CARD (carousel / banner / grid 脙鈥?product / category / compact / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: CARD (carousel / banner / grid 鑴欓垾?product / category / compact / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif _glay == "card" %}
 {%- if _disp == "carousel" %}
   {# Scrollable card strip #}
@@ -1280,7 +1328,7 @@
     {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
     {%- endif %}
-    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">鈥?/button></div>
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">閳?/button></div>
   </div>
 {%- elif _disp == "banner" %}
   {# Hero banner #}
@@ -1363,7 +1411,7 @@
   </div>
 {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: LIST (product / cart-item / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: LIST (product / cart-item / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif _glay == "list" %}
 {%- if _lstyle == "cart-item" %}
   {# Cart item list #}
@@ -1375,7 +1423,7 @@
     {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
     {{ _cart_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
     {%- endfor %}
-    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">鈥?Verder winkelen</a>
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">閳?Verder winkelen</a>
   </div>
 {%- elif _lstyle == "product" %}
   {# Product list with image + price + rating #}
@@ -1388,7 +1436,7 @@
       <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
-      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">鈥?/button>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">閳?/button>
     </div>
   </div>
 {%- else %}
@@ -1422,7 +1470,7 @@
   </div>
 {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: TABLE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: TABLE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
@@ -1473,7 +1521,7 @@
     </table>
   </div>
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: GALLERY 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: GALLERY 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif eff_lay == "gallery" %}
 {%- set img_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set video_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
@@ -1507,7 +1555,7 @@
   </div>
 
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: FILTER (filter-panel) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: FILTER (filter-panel) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif _glay == "filter" %}
   <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4 text-sm">
     <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
@@ -1518,7 +1566,7 @@
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>鈥?/span>
+        <span>閳?/span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1545,10 +1593,10 @@
     {%- if section_component.attributes %}<button class="w-full border border-gray-300 rounded-lg py-2 text-xs text-gray-600 hover:bg-gray-50 mt-2">Clear filters</button>{%- endif %}
   </div>
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: FORM (auth / step / summary / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: FORM (auth / step / summary / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
-  {# Auth form 鈥?login / register #}
+  {# Auth form 閳?login / register #}
   <div class="flex items-center justify-center py-16">
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
       <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -1608,15 +1656,15 @@
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label', 'Total:') }}</span><span>鈥?/span>
+      <span>{{ _s.get('total_label', 'Total:') }}</span><span>閳?/span>
     </div>
     <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 鈫?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 閳?
     </button>
     {%- if section_component.custom_methods %}<div class="flex items-center justify-center gap-2 pt-1 text-xs text-gray-500">{%- for m in section_component.custom_methods %}<span>{{ m }}</span>{%- endfor %}</div>{%- endif %}
   </div>
 {%- else %}
-  {# Default form 鈥?generic input fields #}
+  {# Default form 閳?generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
     <div class="space-y-4">
       {%- if section_component.attributes %}
@@ -1682,8 +1730,9 @@
       <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
       {%- for p in (all_pages or []) %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
-      <span class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- set _p_name = p.name if p.name is defined else p %}
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
@@ -1696,8 +1745,11 @@
         {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
       </span>
       {%- for p in (all_pages or []) %}
-      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
+      {%- set _p_name = p.name if p.name is defined else p %}
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+      {%- endif %}
       {%- endfor %}
     </div>
   </nav>
@@ -1729,7 +1781,7 @@
   {%- endif %}
 
 {%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
-{# Chrome section landed in main content area 鈥?render a compact placeholder #}
+{# Chrome section landed in main content area 閳?render a compact placeholder #}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
     {%- if lay == 'search-bar' %}
     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1754,10 +1806,10 @@
   </button>
   {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?GENERATION MODE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?GENERATION MODE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% else %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?ACTION PANEL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?ACTION PANEL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1803,7 +1855,7 @@
   </div>
 {% endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?DETAIL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?DETAIL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1887,7 +1939,7 @@
 
   </div>
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?CARD 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?CARD 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -1905,7 +1957,7 @@
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
     {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
     {{ '{% empty %}{% endfor %}' }}
-    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">鈥?/a></div>
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">閳?/a></div>
   </div>
 {%- elif _cstyle == "category" %}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -1925,7 +1977,7 @@
       <div class="flex-1">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
         {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} 鈫?/a>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} 閳?/a>{%- endif %}
       </div>
     </div>
   </div>
@@ -2049,7 +2101,7 @@
 {%- endif %}{# end card sub-dispatch #}
 {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?LIST 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?LIST 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif _glay == "list" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -2077,7 +2129,7 @@
       <div class="flex-1">
         <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
-          <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
+          <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
@@ -2146,7 +2198,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">鈥?Add {{ section_component.display_name }}</button>
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">閳?Add {{ section_component.display_name }}</button>
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
@@ -2182,7 +2234,7 @@
 
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
         {% for attribute in _column_attrs -%}
-        <div class="flex flex-col gap-0.5">
+        <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
           <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
           {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
@@ -2262,7 +2314,7 @@
 {%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?TABLE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?TABLE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
@@ -2273,7 +2325,7 @@
           <th class="{{ c.th }} px-4 py-3 w-10"></th>
           {% endif %}
           {% for attribute in _column_attrs %}
-          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider" data-field-name="{{ attribute }}">{{ attribute }}</th>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
@@ -2293,7 +2345,7 @@
           {% raw %}{% csrf_token %}{% endraw %}
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
           {% for attribute in _column_attrs %}
-          <td class="px-4 py-2">
+          <td class="px-4 py-2" data-field-name="{{ attribute }}">
             {% if attribute.updatable and not attribute.derived %}
               {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
               {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2326,7 +2378,7 @@
         <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
           {% if section_component.has_select_operation %}<td class="px-4 py-3"><span class="si-sel-cb"></span></td>{% endif %}
           {% for attribute in _column_attrs %}
-          <td class="px-4 py-3 {{ d.text }} text-gray-700">
+          <td class="px-4 py-3 {{ d.text }} text-gray-700" data-field-name="{{ attribute }}">
             {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
             {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}{% endif %}
           </td>
@@ -2412,12 +2464,12 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?GALLERY 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?GALLERY 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif eff_lay == "gallery" %}
-{% set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{% set video_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
-{% set media_attrs = video_attrs if video_attrs else img_attrs %}
-{% set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{% set img_attrs = [_image_attr] if _image_attr else [] %}
+{% set video_attrs = [_video_attr] if _video_attr else [] %}
+{% set media_attrs = [_media_attr] if _media_attr else [] %}
+{% set text_attrs = _card_attrs %}
 
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
@@ -2426,17 +2478,17 @@
       {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
       {%- if media_attrs %}
       <div class="overflow-hidden">
-        {%- if video_attrs %}
-        <video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ video_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video transition-transform group-hover:scale-105"></video>
+        {%- if _video_attr %}
+        <video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _video_attr }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video transition-transform group-hover:scale-105"></video>
         {%- else %}
-        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="si-img object-cover transition-transform group-hover:scale-105" />
+        <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _image_attr }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ _image_attr }}" class="si-img object-cover transition-transform group-hover:scale-105" />
         {%- endif %}
       </div>
       {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        {{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
+        <div class="si-field" data-field-name="{{ attribute }}">{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}</div>
         {%- endfor %}
       </div>
       {%- endif %}
@@ -2472,7 +2524,7 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?FORM 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?FORM 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {% elif _glay == "form" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if _fstyle == "summary" %}
@@ -2489,18 +2541,18 @@
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label','Total:') }}</span><span>鈥?/span>
+      <span>{{ _s.get('total_label','Total:') }}</span><span>閳?/span>
     </div>
     {%- if page.type == 'activity' %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} 鈫?
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} 閳?
       </button>
     </form>
     {%- else %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 鈫?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 閳?
     </a>
     {%- endif %}
   </div>
@@ -2518,7 +2570,7 @@
           {%- if page.type == 'activity' %}
           <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '鈥? {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '閳? {% raw %}}}{% endraw %}</span>
           {%- endif %}
         </div>
         {%- endfor %}
@@ -2601,8 +2653,9 @@
       <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
       {%- for p in (all_pages or []) %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
-      <span class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- set _p_name = p.name if p.name is defined else p %}
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
@@ -2616,8 +2669,9 @@
       </span>
       {%- for p in (all_pages or []) %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
-      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- set _p_name = p.name if p.name is defined else p %}
+      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
@@ -2684,7 +2738,7 @@
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?END GENERATION LAYOUTS 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
+{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?END GENERATION LAYOUTS 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 
 {% endif %}{# end preview_mode branch #}
 
@@ -2715,6 +2769,9 @@
   if (byPos.header.length) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    if ('{{ _header_width }}' === 'full') {
+      headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
+    }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });
     wrap.appendChild(headerEl);
   }
@@ -2723,18 +2780,24 @@
     var heroEl = document.createElement('div');
     heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
     heroEl.style.cssText = 'background:linear-gradient(135deg,#fffbe6 0%,#fff9c4 50%,#fef3c7 100%);padding:40px 48px;';
+    if ('{{ _hero_width }}' === 'full') {
+      heroEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);border-radius:0;';
+    }
     byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
     wrap.appendChild(heroEl);
   }
 
   var hasSidebar = byPos.sidebar.length > 0;
-  var contentRow = document.createElement('div');
-  contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
-  var mainGrid = document.createElement('div');
-  mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
-  byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
+  var hasMain = byPos.main.length > 0;
+  if (hasSidebar || hasMain) {
+    var contentRow = document.createElement('div');
+    contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
+    contentRow.dataset.regionRow = 'body';
+    var mainGrid = document.createElement('div');
+    mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+    byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
 
-  if (hasSidebar) {
+    if (hasSidebar) {
     // Sidebar placement is explicit when style.sidebar_side is set.
     // Otherwise filters and navigation rails go left; summaries/actions stay right.
     var leftSidebarItems = [], rightSidebarItems = [];
@@ -2745,30 +2808,52 @@
       else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
       else rightSidebarItems.push(el);
     });
+    function sidebarSpan(items, fallback) {
+      var vals = items.map(function(el) { return parseInt(el.dataset.sidebarWidth || '', 10); }).filter(function(n) { return Number.isFinite(n) && n > 0; });
+      return Math.max(2, Math.min(6, vals.length ? Math.max.apply(null, vals) : fallback));
+    }
+    function sidebarBasis(span) {
+      return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
+    }
 
     if (leftSidebarItems.length) {
       var leftEl = document.createElement('aside');
-      leftEl.className = 'w-64 flex-shrink-0 flex flex-col gap-4';
-      leftSidebarItems.forEach(function(el) { el.className = 'w-full'; leftEl.appendChild(el); });
+      var leftSpan = sidebarSpan(leftSidebarItems, 3);
+      leftEl.className = 'flex-shrink-0 flex flex-col gap-4';
+      leftEl.dataset.regionSide = 'left';
+      leftEl.dataset.sidebarSpan = String(leftSpan);
+      leftEl.style.flexBasis = sidebarBasis(leftSpan);
+      leftEl.style.maxWidth = sidebarBasis(leftSpan);
+      leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
       contentRow.appendChild(leftEl);
     }
     contentRow.appendChild(mainGrid);
     if (rightSidebarItems.length) {
       var rightEl = document.createElement('aside');
-      rightEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
-      rightSidebarItems.forEach(function(el) { el.className = 'w-full'; rightEl.appendChild(el); });
+      var rightSpan = sidebarSpan(rightSidebarItems, 3);
+      rightEl.className = 'flex-shrink-0 flex flex-col gap-4';
+      rightEl.dataset.regionSide = 'right';
+      rightEl.dataset.sidebarSpan = String(rightSpan);
+      rightEl.style.flexBasis = sidebarBasis(rightSpan);
+      rightEl.style.maxWidth = sidebarBasis(rightSpan);
+      rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
       contentRow.appendChild(rightEl);
     }
-  } else {
-    contentRow.appendChild(mainGrid);
+    } else {
+      contentRow.appendChild(mainGrid);
+    }
+    wrap.appendChild(contentRow);
   }
-  wrap.appendChild(contentRow);
 
   if (byPos.footer.length) {
     var footerEl = document.createElement('div');
-    footerEl.className = 'mt-8 rounded-xl overflow-hidden';
+    footerEl.className = 'mt-8';
+    footerEl.style.cssText = 'background:var(--region-footer-bg);color:var(--region-footer-text);';
+    if ('{{ _footer_width }}' !== 'contained') {
+      footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
+    }
     var footerInner = document.createElement('div');
-    footerInner.className = 'grid grid-cols-12 gap-4 px-8 py-6 bg-white border-t-4';
+    footerInner.className = ('{{ _footer_width }}' === 'contained' ? '{{ _container_class }} mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
     footerInner.style.borderColor = accentHex;
     byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
     footerEl.appendChild(footerInner);
@@ -2780,7 +2865,7 @@
 </script>
 </main>
 
-{# 鈹€鈹€ footer chrome: consecutive link-grid sections are grouped into one flex row 鈹€鈹€ #}
+{# 閳光偓閳光偓 footer chrome: consecutive link-grid sections are grouped into one flex row 閳光偓閳光偓 #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
@@ -2832,7 +2917,7 @@
 </div>
 
 {%- elif sc.layout in ('service-strip', 'service-bar') %}
-{# Screenshot match: blue bar 鈥?"Service & contact" + icon/text links #}
+{# Screenshot match: blue bar 閳?"Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
   <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
@@ -2933,7 +3018,7 @@
 </script>
 
 <script>
-/* 鈹€鈹€ Multi-select (si-selectable sections) 鈹€鈹€ */
+/* 閳光偓閳光偓 Multi-select (si-selectable sections) 閳光偓閳光偓 */
 (function() {
   var bars = {};
   document.querySelectorAll('[data-selectable]').forEach(function(grid) {
@@ -3025,7 +3110,7 @@
 </script>
 
 <style>
-/* 鈹€鈹€ Drag-and-drop sections 鈹€鈹€ */
+/* 閳光偓閳光偓 Drag-and-drop sections 閳光偓閳光偓 */
 [data-section-id] { position: relative; }
 /* Full-width drag bar at top of section (starts below the top-resize handle) */
 .si-move-bar {
@@ -3054,8 +3139,33 @@
 [data-section-id]:hover .si-move-bar { opacity: 1; pointer-events: auto; }
 [data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
 [data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
+.si-drop-layer {
+  position: fixed; inset: 0; z-index: 35;
+  pointer-events: none;
+}
+.si-drop-zone {
+  position: fixed; pointer-events: auto;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent, #2563eb);
+  background: color-mix(in srgb, var(--accent, #2563eb) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent, #2563eb) 55%, transparent);
+  border-radius: 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  opacity: .25; transition: opacity .12s, background .12s, transform .12s;
+}
+.si-drop-zone.active {
+  opacity: .95;
+  background: color-mix(in srgb, var(--accent, #2563eb) 16%, white);
+  transform: scale(1.01);
+}
+.si-drop-zone-header { top: 8px; left: 16px; right: 16px; height: 52px; }
+.si-drop-zone-hero { top: 68px; left: 16px; right: 16px; height: 58px; }
+.si-drop-zone-left-sidebar { top: 136px; left: 16px; bottom: 84px; width: 132px; }
+.si-drop-zone-right-sidebar { top: 136px; right: 16px; bottom: 84px; width: 132px; }
+.si-drop-zone-main { top: 136px; left: 160px; right: 160px; bottom: 84px; }
+.si-drop-zone-footer { left: 16px; right: 16px; bottom: 16px; height: 56px; }
 
-/* 鈹€鈹€ Section resize (left + right handles) 鈹€鈹€ */
+/* 閳光偓閳光偓 Section resize (left + right handles) 閳光偓閳光偓 */
 .si-resize-handle, .si-lresize-handle {
   position: absolute; top: 0;
   width: 10px; height: 100%; min-height: 40px;
@@ -3090,7 +3200,7 @@
   transform: translateX(-50%);
 }
 
-/* 鈹€鈹€ Section vertical resize (top + bottom handles) 鈹€鈹€ */
+/* 閳光偓閳光偓 Section vertical resize (top + bottom handles) 閳光偓閳光偓 */
 .si-vresize-handle, .si-tresize-handle {
   position: absolute; left: 0; right: 0;
   height: 10px; cursor: row-resize; z-index: 30;
@@ -3146,13 +3256,13 @@
 .si-ctx-sep { height: 1px; background: #e2e8f0; margin: 4px 0; }
 .si-ctx-item.danger { color: #dc2626; }
 .si-ctx-item.danger:hover { background: #fef2f2; }
-/* Drop row indicator 鈥?shown above/below a row during cross-row drag */
+/* Drop row indicator 閳?shown above/below a row during cross-row drag */
 [data-section-id].si-drag-row-before { box-shadow: inset 0 4px 0 0 var(--accent, #3b82f6); }
 [data-section-id].si-drag-row-after  { box-shadow: inset 0 -4px 0 0 var(--accent, #3b82f6); }
 </style>
 
 <script>
-/* 鈹€鈹€ Section right-click context menu 鈹€鈹€ */
+/* 閳光偓閳光偓 Section right-click context menu 閳光偓閳光偓 */
 (function() {
   var menu = null;
 
@@ -3168,7 +3278,7 @@
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
 
-    // sectionId is captured here in the closure 鈥?safe from hideMenu clearing it
+    // sectionId is captured here in the closure 閳?safe from hideMenu clearing it
     function item(icon, label, cls, action) {
       var el = document.createElement('div');
       el.className = 'si-ctx-item' + (cls ? ' ' + cls : '');
@@ -3222,12 +3332,13 @@
 </script>
 
 <script>
-/* 鈹€鈹€ Section drag-and-drop (pure mouse events, tracks drop target during mousemove) 鈹€鈹€ */
+/* 閳光偓閳光偓 Section drag-and-drop (pure mouse events, tracks drop target during mousemove) 閳光偓閳光偓 */
 (function() {
   var dragging = false;
   var draggingId = null;
   var draggingEl = null;
   var currentDrop = null; // updated every mousemove
+  var dropLayer = null;
 
   function allSections() {
     return Array.from(document.querySelectorAll('[data-section-id]'));
@@ -3235,7 +3346,7 @@
 
   function sectionRegion(el) {
     var pos = el.dataset.position || 'main';
-    return (pos === 'header' || pos === 'footer') ? pos : 'main';
+    return ['header', 'hero', 'main', 'sidebar', 'footer'].indexOf(pos) >= 0 ? pos : 'main';
   }
 
   function regionBounds(region) {
@@ -3246,34 +3357,93 @@
     return { top: Math.min.apply(null, tops), bottom: Math.max.apply(null, bots) };
   }
 
-  // Determine which region (header/footer/main) the cursor Y falls in, including blank space.
-  function regionAtPoint(x, y) {
-    var hit = document.elementFromPoint(x, y);
-    var hitSec = hit && hit.closest && hit.closest('[data-section-id]');
-    if (hitSec) return sectionRegion(hitSec);
+  function showDropZones() {
+    if (dropLayer) return;
+    dropLayer = document.createElement('div');
+    dropLayer.className = 'si-drop-layer';
+    [
+      ['header', '', 'Header'],
+      ['hero', '', 'Hero'],
+      ['sidebar', 'left', 'Left Sidebar'],
+      ['main', '', 'Main'],
+      ['sidebar', 'right', 'Right Sidebar'],
+      ['footer', '', 'Footer']
+    ].forEach(function(spec) {
+      var region = spec[0], side = spec[1], label = spec[2];
+      var zone = document.createElement('div');
+      zone.className = 'si-drop-zone si-drop-zone-' + (side ? side + '-' : '') + region;
+      zone.dataset.dropRegion = region;
+      if (side) zone.dataset.dropSidebarSide = side;
+      zone.textContent = 'Drop in ' + label;
+      dropLayer.appendChild(zone);
+    });
+    document.body.appendChild(dropLayer);
+  }
+
+  function hideDropZones() {
+    if (dropLayer) { dropLayer.remove(); dropLayer = null; }
+  }
+
+  function setActiveDropZone(drop) {
+    if (!dropLayer) return;
+    dropLayer.querySelectorAll('.si-drop-zone').forEach(function(zone) {
+      var sameRegion = zone.dataset.dropRegion === (drop && drop.position);
+      var sameSide = (zone.dataset.dropSidebarSide || '') === (drop && drop.sidebarSide || '');
+      zone.classList.toggle('active', sameRegion && sameSide);
+    });
+  }
+
+  function pointContext(x, y) {
+    var stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : [];
+    var hitSec = null, hitZone = null;
+    for (var i = 0; i < stack.length; i++) {
+      if (!hitSec && stack[i].closest) {
+        var sec = stack[i].closest('[data-section-id]');
+        if (sec && sec.dataset.sectionId !== draggingId) hitSec = sec;
+      }
+      if (!hitZone && stack[i].closest) {
+        hitZone = stack[i].closest('[data-drop-region]');
+      }
+    }
+    if (hitSec) return { region: sectionRegion(hitSec), sidebarSide: hitSec.dataset.sidebarSide || '', hitSection: hitSec };
+    if (hitZone) return { region: hitZone.dataset.dropRegion || 'main', sidebarSide: hitZone.dataset.dropSidebarSide || '', hitSection: null };
 
     var hb = regionBounds('header');
+    var heroB = regionBounds('hero');
     var mb = regionBounds('main');
+    var sb = regionBounds('sidebar');
     var fb = regionBounds('footer');
 
-    if (hb && y <= hb.bottom + 48) return 'header';
-    if (fb && y >= fb.top - 48) return 'footer';
+    if (hb && y <= hb.bottom + 48) return { region: 'header', sidebarSide: '' };
+    if (fb && y >= fb.top - 48) return { region: 'footer', sidebarSide: '' };
+    if (!fb && y >= window.innerHeight * 0.82) return { region: 'footer', sidebarSide: '' };
+
+    if (sb && y >= sb.top - 24 && y <= sb.bottom + 24) {
+      var sidebarSecs = siblingsIn('sidebar');
+      if (sidebarSecs.length) {
+        var left = Math.min.apply(null, sidebarSecs.map(function(el) { return el.getBoundingClientRect().left; }));
+        var right = Math.max.apply(null, sidebarSecs.map(function(el) { return el.getBoundingClientRect().right; }));
+        if (x >= left - 48 && x <= right + 48) return { region: 'sidebar', sidebarSide: '' };
+      }
+    }
 
     if (hb && mb) {
       var headerMainSplit = hb.bottom + (mb.top - hb.bottom) / 2;
-      if (y < headerMainSplit) return 'header';
+      if (y < headerMainSplit) return { region: 'header', sidebarSide: '' };
     } else if (!hb && mb && y < mb.top - 24) {
-      return 'header';
+      return { region: 'header', sidebarSide: '' };
     }
+
+    if (heroB && y >= heroB.top - 24 && y <= heroB.bottom + 24) return { region: 'hero', sidebarSide: '' };
 
     if (mb && fb) {
       var mainFooterSplit = mb.bottom + (fb.top - mb.bottom) / 2;
-      if (y > mainFooterSplit) return 'footer';
+      if (y > mainFooterSplit) return { region: 'footer', sidebarSide: '' };
     } else if (!fb && mb && y > mb.bottom + 24) {
-      return 'footer';
+      return { region: 'footer', sidebarSide: '' };
     }
 
-    return 'main';
+    return { region: 'main', sidebarSide: '' };
   }
 
   // Sections in a given region, excluding the section being dragged
@@ -3303,11 +3473,16 @@
   }
 
   function findDrop(mx, my) {
-    var region = regionAtPoint(mx, my);
+    var ctx = pointContext(mx, my);
+    var region = ctx.region || 'main';
+    var sidebarSide = ctx.sidebarSide || '';
     var secs = siblingsIn(region);
+    if (region === 'sidebar' && sidebarSide) {
+      secs = secs.filter(function(el) { return (el.dataset.sidebarSide || '') === sidebarSide; });
+    }
 
     if (secs.length === 0) {
-      return { beforeId: '__end__', position: region, indicEl: null, indicSide: null };
+      return { beforeId: '__end__', position: region, sidebarSide: sidebarSide, indicEl: null, indicSide: null };
     }
 
     var rows = toRows(secs);
@@ -3315,13 +3490,13 @@
     // Above all rows
     if (my < rows[0].top) {
       var s0 = rows[0].secs[0];
-      return { beforeId: s0.dataset.sectionId, position: region, indicEl: s0, indicSide: 'row-before' };
+      return { beforeId: s0.dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: s0, indicSide: 'row-before' };
     }
     // Below all rows
     var last = rows[rows.length - 1];
     if (my > last.bottom) {
       var sLast = last.secs[last.secs.length - 1];
-      return { beforeId: '__end__', position: region, indicEl: sLast, indicSide: 'row-after' };
+      return { beforeId: '__end__', position: region, sidebarSide: sidebarSide, indicEl: sLast, indicSide: 'row-after' };
     }
 
     // Find the row containing cursor Y (or the nearest one)
@@ -3331,32 +3506,32 @@
     }
     var row = rows[ri];
 
-    // Sort row sections left鈫抮ight
+    // Sort row sections left閳姰ight
     var rowSecs = row.secs.slice().sort(function(a, b) {
       return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
     });
 
     if (my < row.top + (row.bottom - row.top) * 0.25) {
-      return { beforeId: rowSecs[0].dataset.sectionId, position: region, indicEl: rowSecs[0], indicSide: 'row-before' };
+      return { beforeId: rowSecs[0].dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[0], indicSide: 'row-before' };
     }
     if (my > row.top + (row.bottom - row.top) * 0.75) {
       var belowId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
-      return { beforeId: belowId, position: region, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
+      return { beforeId: belowId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
     }
 
-    // Scan left鈫抮ight to find insert position within the row
+    // Scan left閳姰ight to find insert position within the row
     for (var s = 0; s < rowSecs.length; s++) {
       var sr = rowSecs[s].getBoundingClientRect();
       var midX = sr.left + sr.width / 2;
       if (mx <= midX) {
-        return { beforeId: rowSecs[s].dataset.sectionId, position: region, indicEl: rowSecs[s], indicSide: 'before' };
+        return { beforeId: rowSecs[s].dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[s], indicSide: 'before' };
       }
     }
 
-    // Mouse is past the last section in the row 鈫?insert at start of next row (or end)
+    // Mouse is past the last section in the row 閳?insert at start of next row (or end)
     var lastInRow = rowSecs[rowSecs.length - 1];
     var nextId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
-    return { beforeId: nextId, position: region, indicEl: lastInRow, indicSide: 'after' };
+    return { beforeId: nextId, position: region, sidebarSide: sidebarSide, indicEl: lastInRow, indicSide: 'after' };
   }
 
   function clearIndicators() {
@@ -3382,6 +3557,7 @@
       el.classList.add('si-dragging');
       el.style.pointerEvents = 'none';
       document.body.style.cursor = 'grabbing';
+      showDropZones();
     });
   });
 
@@ -3389,6 +3565,7 @@
     if (!dragging) return;
     clearIndicators();
     currentDrop = findDrop(e.clientX, e.clientY);
+    setActiveDropZone(currentDrop);
     if (currentDrop.indicEl) {
       var cls = currentDrop.indicSide === 'before'     ? 'si-drag-before'
               : currentDrop.indicSide === 'after'      ? 'si-drag-after'
@@ -3410,13 +3587,15 @@
     dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
     document.body.style.cursor = '';
     clearIndicators();
+    hideDropZones();
 
     if (fromId && drop && drop.beforeId) {
       window.parent.postMessage({
         type: 'section-move',
         fromId: fromId,
         beforeId: drop.beforeId,
-        newPosition: drop.position
+        newPosition: drop.position,
+        sidebarSide: drop.sidebarSide || ''
       }, '*');
     }
   });
@@ -3430,13 +3609,14 @@
       dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
       document.body.style.cursor = '';
       clearIndicators();
+      hideDropZones();
     }
   });
 })();
 </script>
 
 <script>
-/* 鈹€鈹€ Section column-span resize (left + right handles) 鈹€鈹€ */
+/* 閳光偓閳光偓 Section column-span resize (left + right handles) 閳光偓閳光偓 */
 (function() {
   var resizing = false;
   var resizingEl = null;
@@ -3448,6 +3628,7 @@
   var tooltip = null;
   var currentColSpan = 1;
   var resizeDir = 'right';
+  var resizeMode = 'section';
 
   function getColSpan(el) {
     // Prefer the largest-breakpoint class: lg > sm > bare (handles "_spanm" responsive strings)
@@ -3486,7 +3667,10 @@
       resizing = true;
       resizingEl = el;
       resizingId = el.dataset.sectionId;
-      startColSpan = getColSpan(el);
+      resizeMode = (el.dataset.position || '') === 'sidebar' ? 'sidebar' : 'section';
+      startColSpan = resizeMode === 'sidebar'
+        ? parseInt(el.dataset.sidebarWidth || (el.closest('aside') && el.closest('aside').dataset.sidebarSpan) || '3', 10)
+        : getColSpan(el);
       currentColSpan = startColSpan;
       startLeft = rect.left;
       startRight = rect.right;
@@ -3509,7 +3693,9 @@
 
   document.addEventListener('mousemove', function(e) {
     if (!resizing || !resizingEl) return;
-    var grid = resizingEl.closest('.grid-cols-12') || document.getElementById('page-sections-grid') || resizingEl.parentElement;
+    var grid = resizeMode === 'sidebar'
+      ? (resizingEl.closest('[data-region-row]') || resizingEl.closest('main') || resizingEl.parentElement)
+      : (resizingEl.closest('.grid-cols-12') || document.getElementById('page-sections-grid') || resizingEl.parentElement);
     if (!grid) return;
     var colW = grid.getBoundingClientRect().width / 12;
     // Right: distance from element's fixed left edge to cursor
@@ -3517,13 +3703,25 @@
     var newW = resizeDir === 'right'
       ? e.clientX - startLeft
       : startRight - e.clientX;
-    var n = Math.max(1, Math.min(12, Math.round(newW / colW)));
+    var n = resizeMode === 'sidebar'
+      ? Math.max(2, Math.min(6, Math.round(newW / colW)))
+      : Math.max(1, Math.min(12, Math.round(newW / colW)));
     if (n !== currentColSpan) {
       currentColSpan = n;
-      setColSpan(resizingEl, n);
+      if (resizeMode === 'sidebar') {
+        var aside = resizingEl.closest('aside');
+        if (aside) {
+          aside.dataset.sidebarSpan = String(n);
+          aside.style.flexBasis = 'calc((100% - 1.5rem) * ' + n + ' / 12)';
+          aside.style.maxWidth = aside.style.flexBasis;
+        }
+        resizingEl.dataset.sidebarWidth = String(n);
+      } else {
+        setColSpan(resizingEl, n);
+      }
     }
     if (resizeDir === 'left') {
-      // Shift element right so its right edge stays fixed 鈥?left edge appears to move
+      // Shift element right so its right edge stays fixed 閳?left edge appears to move
       var tx = (startColSpan - n) * colW;
       resizingEl.style.transform = 'translateX(' + tx + 'px)';
       // Snap line and tooltip at the apparent left edge
@@ -3554,18 +3752,21 @@
       resizingEl.classList.remove('si-resizing');
       resizingEl.style.transform = '';
     }
-    if (resizingId && currentColSpan !== startColSpan) {
+    if (resizingId && currentColSpan !== startColSpan && resizeMode === 'sidebar') {
+      window.parent.postMessage({ type: 'section-sidebar-width', id: resizingId, sidebar_width: currentColSpan }, '*');
+    } else if (resizingId && currentColSpan !== startColSpan) {
       window.parent.postMessage({ type: 'section-resize', id: resizingId, col_span: currentColSpan }, '*');
     }
     resizing = false;
     resizingEl = null;
     resizingId = null;
+    resizeMode = 'section';
   });
 })();
 </script>
 
 <script>
-/* 鈹€鈹€ Section vertical height resize (top + bottom handles) 鈹€鈹€ */
+/* 閳光偓閳光偓 Section vertical height resize (top + bottom handles) 閳光偓閳光偓 */
 (function() {
   var vresizing = false;
   var vresizingEl = null;
@@ -3595,8 +3796,6 @@
       vresizingEl = el;
       vresizingId = el.dataset.sectionId;
       startY = e.clientY;
-      // Clear inline min-height before measuring so we get the real rendered height
-      el.style.minHeight = '0';
       startH = el.getBoundingClientRect().height;
       currentH = startH;
       vresizeDir = dir;
@@ -3627,9 +3826,10 @@
     var newH = Math.max(40, startH + delta);
     currentH = newH;
     vresizingEl.style.height = newH + 'px';
+    vresizingEl.style.minHeight = newH + 'px';
     vresizingEl.style.overflow = 'hidden';
     if (vresizeDir === 'top') {
-      // Shift element down so its bottom edge stays fixed 鈥?top edge appears to move
+      // Shift element down so its bottom edge stays fixed 閳?top edge appears to move
       var ty = startH - newH;
       vresizingEl.style.transform = 'translateY(' + ty + 'px)';
       // Guide line follows the apparent top edge (getBoundingClientRect accounts for transform)
@@ -3652,7 +3852,7 @@
     if (vresizingEl) {
       vresizingEl.classList.remove('si-vresizing');
       vresizingEl.style.height = '';
-      vresizingEl.style.minHeight = '';
+      vresizingEl.style.minHeight = Math.round(currentH) + 'px';
       vresizingEl.style.overflow = '';
       vresizingEl.style.transform = '';
     }
@@ -3680,15 +3880,29 @@
     if (!byPos[pos]) byPos[pos] = [];
     byPos[pos].push(el);
   });
+  var hasHeader = byPos.header && byPos.header.length;
   var hasHero = byPos.hero && byPos.hero.length;
   var hasSidebar = byPos.sidebar && byPos.sidebar.length;
-  if (!hasHero && !hasSidebar) return;
+  var hasFooter = byPos.footer && byPos.footer.length;
+  if (!hasHeader && !hasHero && !hasSidebar && !hasFooter) return;
   var parent = grid.parentNode;
   var wrap = document.createElement('div');
   wrap.className = 'flex flex-col gap-6';
+  if (hasHeader) {
+    var headerEl = document.createElement('div');
+    headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
+    if ('{{ _header_width }}' === 'full') {
+      headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
+    }
+    byPos.header.forEach(function(el) { headerEl.appendChild(el); });
+    wrap.appendChild(headerEl);
+  }
   if (hasHero) {
     var heroEl = document.createElement('div');
     heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    if ('{{ _hero_width }}' === 'full') {
+      heroEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);border-radius:0;';
+    }
     byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
     wrap.appendChild(heroEl);
   }
@@ -3698,6 +3912,7 @@
     var hasSidebarEl = sidebarSecs.length > 0;
     var contentRow = document.createElement('div');
     contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
+    contentRow.dataset.regionRow = 'body';
     var mainGrid = document.createElement('div');
     mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
     mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
@@ -3710,23 +3925,54 @@
         else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
         else rightSidebarItems.push(el);
       });
+      function sidebarSpan(items, fallback) {
+        var vals = items.map(function(el) { return parseInt(el.dataset.sidebarWidth || '', 10); }).filter(function(n) { return Number.isFinite(n) && n > 0; });
+        return Math.max(2, Math.min(6, vals.length ? Math.max.apply(null, vals) : fallback));
+      }
+      function sidebarBasis(span) {
+        return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
+      }
       if (leftSidebarItems.length) {
         var leftEl = document.createElement('aside');
-        leftEl.className = 'w-64 flex-shrink-0 flex flex-col gap-4';
-        leftSidebarItems.forEach(function(el) { el.className = 'w-full'; leftEl.appendChild(el); });
+        var leftSpan = sidebarSpan(leftSidebarItems, 3);
+        leftEl.className = 'flex-shrink-0 flex flex-col gap-4';
+        leftEl.dataset.regionSide = 'left';
+        leftEl.dataset.sidebarSpan = String(leftSpan);
+        leftEl.style.flexBasis = sidebarBasis(leftSpan);
+        leftEl.style.maxWidth = sidebarBasis(leftSpan);
+        leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
         contentRow.appendChild(leftEl);
       }
       contentRow.appendChild(mainGrid);
       if (rightSidebarItems.length) {
         var rightEl = document.createElement('aside');
-        rightEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
-        rightSidebarItems.forEach(function(el) { el.className = 'w-full'; rightEl.appendChild(el); });
+        var rightSpan = sidebarSpan(rightSidebarItems, 3);
+        rightEl.className = 'flex-shrink-0 flex flex-col gap-4';
+        rightEl.dataset.regionSide = 'right';
+        rightEl.dataset.sidebarSpan = String(rightSpan);
+        rightEl.style.flexBasis = sidebarBasis(rightSpan);
+        rightEl.style.maxWidth = sidebarBasis(rightSpan);
+        rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
         contentRow.appendChild(rightEl);
       }
     } else {
       contentRow.appendChild(mainGrid);
     }
     wrap.appendChild(contentRow);
+  }
+  if (hasFooter) {
+    var footerEl = document.createElement('div');
+    footerEl.className = 'mt-8';
+    footerEl.style.cssText = 'background:var(--region-footer-bg);color:var(--region-footer-text);';
+    if ('{{ _footer_width }}' !== 'contained') {
+      footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
+    }
+    var footerInner = document.createElement('div');
+    footerInner.className = ('{{ _footer_width }}' === 'contained' ? '{{ _container_class }} mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
+    footerInner.style.borderColor = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#2563eb';
+    byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
+    footerEl.appendChild(footerInner);
+    wrap.appendChild(footerEl);
   }
   parent.replaceChild(wrap, grid);
 })();
@@ -3751,3 +3997,4 @@
 
 {% raw %}{% endblock %}{% endraw %}
 {% endif %}
+

@@ -422,7 +422,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             declared_primary_model = str(s_raw.get("primary_model") or s_raw.get("object") or "")
             if not cls_data and declared_primary_model:
                 cls_data = classifier_name_map.get(_sanitize(declared_primary_model), {})
-            primary_model = _sanitize(cls_data.get("name", declared_primary_model or "item")) if cls_data or declared_primary_model else "item"
+            primary_model = _sanitize(cls_data.get("name", "")) if cls_data else ""
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
 
             attributes = []
@@ -519,7 +519,10 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
         page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
 
         layout_field = p_raw.get("layout")
-        page_layout = layout_field.get("value", "vertical") if isinstance(layout_field, dict) else (str(layout_field) if layout_field else "vertical")
+        if isinstance(layout_field, dict):
+            page_layout = {**layout_field, "value": layout_field.get("value", "vertical")}
+        else:
+            page_layout = str(layout_field) if layout_field else "vertical"
 
         gap_field = p_raw.get("gap")
         page_gap = gap_field.get("value", "normal") if isinstance(gap_field, dict) else (str(gap_field) if gap_field else "normal")

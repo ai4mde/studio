@@ -495,11 +495,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                             metadata,
                             raw_section_class or declared_primary_model,
                         )
-                    primary_model = (
-                        find_model_by_class_ptr(metadata, section_class)
-                        if section_class
-                        else (model_name_sanitization(declared_primary_model) if declared_primary_model else None)
-                    )
+                    primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None
                     operations = section.get("operations") or {}
                     query = dict(section.get("query") or {})
                     relationship = section.get("relationship") or {}
@@ -603,9 +599,10 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     category = page["category"]["value"]["name"]
 
                 layout_field = page.get("layout")
-                page_layout = layout_field.get("value") if isinstance(layout_field, dict) else layout_field
-                if not page_layout:
-                    page_layout = "vertical"
+                if isinstance(layout_field, dict):
+                    page_layout = {**layout_field, "value": layout_field.get("value") or "vertical"}
+                else:
+                    page_layout = layout_field or "vertical"
 
                 gap_field = page.get("gap")
                 page_gap = gap_field.get("value") if isinstance(gap_field, dict) else gap_field
@@ -635,7 +632,7 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                     activity_name = activity_name,
                     type = page_type,
                     section_components = section_components,
-                    layout = str(page_layout),
+                    layout = page_layout,
                     gap = str(page_gap),
                 )
                 out.append(pg)

@@ -480,6 +480,13 @@ def preview_template():
     with open(path, 'r') as f:
         content = f.read()
 
+    fallback_css_path = os.path.join(TEMPLATES_DIR, 'helpers', 'tailwind_fallback.css.jinja2')
+    try:
+        with open(fallback_css_path, 'r') as f:
+            fallback_css = f.read()
+    except OSError:
+        fallback_css = ''
+
     # Strip Jinja2 template-inheritance wrappers — page_vN templates are
     # designed as code-gen sources that extend a Django base; we want only
     # the block content for a self-contained preview.
@@ -491,6 +498,7 @@ def preview_template():
         '<!doctype html><html><head>'
         '<meta charset="UTF-8">'
         '<script src="https://cdn.tailwindcss.com"></script>'
+        '<style>' + fallback_css + '</style>'
         '</head><body>'
         + content +
         '</body></html>'

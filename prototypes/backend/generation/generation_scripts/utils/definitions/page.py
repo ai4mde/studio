@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 from utils.definitions.category import Category
 from utils.definitions.section_component import SectionComponent
 from utils.sanitization import page_name_sanitization, category_name_sanitization
@@ -15,7 +15,7 @@ class Page():
             activity_name: Optional[str],
             type: Literal['normal', 'activity'],
             section_components: List[SectionComponent],
-            layout: str = 'vertical',
+            layout: Any = 'vertical',
             gap: str = 'normal',
     ):
         self.name = page_name_sanitization(name)

@@ -13,6 +13,7 @@ type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery' | 'filter' 
     | 'site-nav' | 'site-footer';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
+type NavHeightOption = 'compact' | 'normal' | 'tall' | 'xl';
 type DisplayModeOption = 'grid' | 'carousel' | 'banner';
 type CardStyleOption = 'default' | 'product' | 'category' | 'compact';
 type ListStyleOption = 'default' | 'product' | 'cart-item';
@@ -46,9 +47,9 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
 };
 
 const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
-    NavBar: ['methods', 'density', 'bg', 'shadow', 'sidebar_side'],
+    NavBar: ['methods', 'nav_height', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
     IconActions: ['methods', 'density'],
-    SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side'],
+    SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
     SiteFooter: ['text', 'methods', 'density', 'bg', 'shadow'],
     FooterLinkGrid: ['methods', 'density', 'bg'],
     ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
@@ -65,12 +66,12 @@ const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
     MediaDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
     ObjectDetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
     DetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
-    SummaryPanel: ['density', 'shadow', 'border', 'bg', 'header_style', 'sidebar_side'],
+    SummaryPanel: ['density', 'shadow', 'border', 'bg', 'header_style', 'sidebar_side', 'sidebar_width'],
     ObjectForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
     AddressForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
     PaymentMethodForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
     ReviewForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
-    FilterPanel: ['density', 'bg', 'sidebar_side'],
+    FilterPanel: ['density', 'bg', 'sidebar_side', 'sidebar_width'],
 };
 
 const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
@@ -155,13 +156,16 @@ const previewFileMatchesPage = (file: any, page: any, interfaceName?: string) =>
     return previewPathPageKey(file?.path, interfaceName) === pageKey;
 };
 
+const djangoName = (value: string | undefined) =>
+    String(value || '').trim().replace(/\W+/g, '_').replace(/^_+|_+$/g, '');
+
 const livePathForPage = (interfaceName: string | undefined, page: any) => {
-    const app = String(interfaceName || '').trim();
+    const app = djangoName(interfaceName);
     if (!app) return '/';
     if (!page || String(page?.id || page?.name || '').toLowerCase() === 'task') return `/${app}/`;
     const pageType = String(page?.type?.value || page?.type || '').toLowerCase();
     if (pageType === 'activity') return `/${app}/`;
-    const pageName = String(page?.name || page?.id || '').trim();
+    const pageName = djangoName(page?.name || page?.id);
     return pageName ? `/${app}/render_${app}_${pageName}` : `/${app}/`;
 };
 
@@ -212,18 +216,21 @@ const FIELD_LAYOUT_SLOTS: Record<string, { slot: string; label: string; multiple
         { slot: 'subtitle', label: 'Subtitle' },
         { slot: 'primary', label: 'Primary' },
         { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
     CategoryTileGrid: [
         { slot: 'image', label: 'Image' },
         { slot: 'title', label: 'Title' },
         { slot: 'subtitle', label: 'Subtitle' },
         { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
     PersonCardGrid: [
         { slot: 'image', label: 'Avatar' },
         { slot: 'title', label: 'Name' },
         { slot: 'subtitle', label: 'Role' },
         { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
     CardGrid: [
         { slot: 'media', label: 'Media' },
@@ -231,33 +238,37 @@ const FIELD_LAYOUT_SLOTS: Record<string, { slot: string; label: string; multiple
         { slot: 'subtitle', label: 'Subtitle' },
         { slot: 'primary', label: 'Primary' },
         { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
-    DataTable: [{ slot: 'columns', label: 'Columns', multiple: true }],
-    ObjectList: [{ slot: 'columns', label: 'Fields', multiple: true }],
-    LineItemList: [{ slot: 'columns', label: 'Line fields', multiple: true }],
-    RelatedObjectList: [{ slot: 'columns', label: 'Related fields', multiple: true }],
+    DataTable: [{ slot: 'columns', label: 'Columns', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    ObjectList: [{ slot: 'columns', label: 'Fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    LineItemList: [{ slot: 'columns', label: 'Line fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    RelatedObjectList: [{ slot: 'columns', label: 'Related fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
     ProductDetailPanel: [
         { slot: 'image', label: 'Image' },
         { slot: 'video', label: 'Video' },
         { slot: 'title', label: 'Title' },
         { slot: 'hero', label: 'Hero fields', multiple: true },
         { slot: 'fields', label: 'Detail fields', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
     DetailPanel: [
         { slot: 'title', label: 'Title' },
         { slot: 'hero', label: 'Hero fields', multiple: true },
         { slot: 'fields', label: 'Detail fields', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
     SummaryPanel: [
         { slot: 'title', label: 'Title' },
         { slot: 'fields', label: 'Summary fields', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
     ],
-    ObjectForm: [{ slot: 'fields', label: 'Editable fields', multiple: true }],
-    AddressForm: [{ slot: 'fields', label: 'Address fields', multiple: true }],
-    PaymentMethodForm: [{ slot: 'fields', label: 'Payment fields', multiple: true }],
-    ReviewForm: [{ slot: 'fields', label: 'Review fields', multiple: true }],
-    FilterPanel: [{ slot: 'fields', label: 'Filter fields', multiple: true }],
-    SearchBar: [{ slot: 'fields', label: 'Search fields', multiple: true }],
+    ObjectForm: [{ slot: 'fields', label: 'Editable fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    AddressForm: [{ slot: 'fields', label: 'Address fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    PaymentMethodForm: [{ slot: 'fields', label: 'Payment fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    ReviewForm: [{ slot: 'fields', label: 'Review fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    FilterPanel: [{ slot: 'fields', label: 'Filter fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
+    SearchBar: [{ slot: 'fields', label: 'Search fields', multiple: true }, { slot: 'hidden', label: 'Hidden', multiple: true }],
 };
 
 const COL_SPAN_OPTIONS: { value: ColSpanOption; label: string }[] = [
@@ -525,15 +536,55 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     newRefs.splice(ti, 0, newRefs.splice(fi, 1)[0]);
                     return { ...page, sections: newRefs };
                 }));
+            } else if (e.data?.type === 'section-move') {
+                const { fromId, beforeId, newPosition, sidebarSide } = e.data;
+                setSections((prev: any[]) => {
+                    const arr = [...prev];
+                    const fi = arr.findIndex((s: any) => s.id === fromId);
+                    if (fi === -1) return prev;
+                    const [moving] = arr.splice(fi, 1);
+                    const normalizedPosition = ['header', 'hero', 'main', 'sidebar', 'footer'].includes(newPosition)
+                        ? newPosition
+                        : (moving.position || 'main');
+                    const nextStyle = { ...(moving.style || {}) };
+                    if (normalizedPosition === 'sidebar' && ['left', 'right'].includes(sidebarSide)) {
+                        nextStyle.sidebar_side = sidebarSide;
+                    } else if (normalizedPosition !== 'sidebar') {
+                        delete nextStyle.sidebar_side;
+                    }
+                    const nextMoving = { ...moving, position: normalizedPosition, style: nextStyle };
+                    const ti = beforeId === '__end__' ? arr.length : arr.findIndex((s: any) => s.id === beforeId);
+                    arr.splice(ti === -1 ? arr.length : ti, 0, nextMoving);
+                    return arr;
+                });
+                setPages((prev: any[]) => prev.map((page: any) => {
+                    const refs = [...(page.sections || [])];
+                    const refId = (ref: any) => typeof ref === 'string' ? ref : ref?.value;
+                    const fi = refs.findIndex((ref: any) => refId(ref) === fromId);
+                    if (fi === -1) return page;
+                    const [movingRef] = refs.splice(fi, 1);
+                    const ti = beforeId === '__end__' ? refs.length : refs.findIndex((ref: any) => refId(ref) === beforeId);
+                    refs.splice(ti === -1 ? refs.length : ti, 0, movingRef);
+                    return { ...page, sections: refs };
+                }));
             } else if (e.data?.type === 'section-resize') {
                 const { id, col_span } = e.data;
                 setSections((prev: any[]) => prev.map((s: any) =>
                     s.id === id ? { ...s, col_span } : s
                 ));
+            } else if (e.data?.type === 'section-sidebar-width') {
+                const { id, sidebar_width } = e.data;
+                const nextWidth = Number(sidebar_width);
+                if (!Number.isFinite(nextWidth) || nextWidth < 1) return;
+                setSections((prev: any[]) => prev.map((s: any) =>
+                    s.id === id ? { ...s, style: { ...(s.style || {}), sidebar_width: Math.round(nextWidth) } } : s
+                ));
             } else if (e.data?.type === 'section-height') {
                 const { id, min_height } = e.data;
+                const nextHeight = Number(min_height);
+                if (!Number.isFinite(nextHeight) || nextHeight < 0) return;
                 setSections((prev: any[]) => prev.map((s: any) =>
-                    s.id === id ? { ...s, min_height } : s
+                    s.id === id ? { ...s, min_height: Math.round(nextHeight) } : s
                 ));
             } else if (e.data?.type === 'section-duplicate') {
                 const { id } = e.data;
@@ -1028,6 +1079,22 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         });
     }, [setPages]);
 
+    const updatePageLayoutSetting = useCallback((pageIndex: number, field: string, value: any) => {
+        setPages((prev: any[]) => {
+            const next = [...prev];
+            if (next[pageIndex]) {
+                const existing = next[pageIndex].layout && typeof next[pageIndex].layout === 'object'
+                    ? next[pageIndex].layout
+                    : { value: next[pageIndex].layout || 'vertical' };
+                next[pageIndex] = {
+                    ...next[pageIndex],
+                    layout: { ...existing, [field]: value },
+                };
+            }
+            return next;
+        });
+    }, [setPages]);
+
     const handleSendMessage = async () => {
         if (!currentPrompt.trim() || isLoadingAgent || !interfaceId) return;
         const prompt = currentPrompt;
@@ -1108,6 +1175,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secStyle = selectedSection?.style || {};
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
     const secDensity: DensityOption = (secStyle.density as DensityOption) || 'normal';
+    const secNavHeight: NavHeightOption = (secStyle.nav_height as NavHeightOption) || 'normal';
     const secColumns = String(secStyle.columns ?? '3');
     const secDisplayMode: DisplayModeOption = (secStyle.display_mode as DisplayModeOption) || 'grid';
     const secCardStyle: CardStyleOption = (secStyle.card_style as CardStyleOption) || 'default';
@@ -1120,6 +1188,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secBg: BgOption = (secStyle.bg as BgOption) || 'white';
     const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
     const secSidebarSide: SidebarSideOption = (secStyle.sidebar_side as SidebarSideOption) || 'left';
+    const secSidebarWidth = Number(secStyle.sidebar_width || 3);
     const isActivityAction = selectedSection?.type === 'activity_action' || selectedSection?.layout === 'activity_action';
     const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
     const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
@@ -1171,7 +1240,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     }, [availableFieldNames, fieldLayoutFields]);
     const fieldLayoutValue = (slot: string) => {
         const value = fieldLayout[slot];
-        if (Array.isArray(value)) return value.join(', ');
+        if (Array.isArray(value)) return value.map((item: any) => typeof item === 'object' ? item?.field : item).filter(Boolean).join(', ');
         return value || '';
     };
     const updateFieldLayoutSlot = (slot: string, rawValue: string, multiple?: boolean) => {
@@ -1197,6 +1266,66 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 [field]: next,
             },
         });
+    };
+    const multipleFieldSlots = new Set(fieldLayoutSlots.filter((slot) => slot.multiple).map((slot) => slot.slot));
+    const assignableFieldSlots = fieldLayoutSlots.map((slot) => slot.slot);
+    const currentFieldSlot = (field: string) => {
+        const cfg = fieldLayoutFields[field] || {};
+        if (cfg.visible === 'hidden') return 'hidden';
+        for (const slot of assignableFieldSlots) {
+            const value = fieldLayout[slot];
+            if (Array.isArray(value)) {
+                if (value.some((item: any) => (typeof item === 'object' ? item?.field : item) === field)) return slot;
+            } else if (value === field) {
+                return slot;
+            }
+        }
+        return '';
+    };
+    const updateFieldSlot = (field: string, nextSlot: string) => {
+        if (!selectedSection) return;
+        const nextLayout: any = { ...fieldLayout };
+        for (const slot of assignableFieldSlots) {
+            const value = nextLayout[slot];
+            if (Array.isArray(value)) {
+                nextLayout[slot] = value.filter((item: any) => (typeof item === 'object' ? item?.field : item) !== field);
+            } else if (value === field) {
+                delete nextLayout[slot];
+            }
+        }
+        const nextFieldStyles = { ...fieldLayoutFields };
+        const currentCfg = { ...(nextFieldStyles[field] || {}) };
+        if (nextSlot === 'hidden') {
+            currentCfg.visible = 'hidden';
+            nextFieldStyles[field] = currentCfg;
+            nextLayout.hidden = Array.from(new Set([...(Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []), field]));
+        } else {
+            delete currentCfg.visible;
+            nextFieldStyles[field] = currentCfg;
+            nextLayout.hidden = (Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []).filter((item: any) => item !== field);
+            if (nextSlot) {
+                if (multipleFieldSlots.has(nextSlot)) {
+                    nextLayout[nextSlot] = Array.from(new Set([...(Array.isArray(nextLayout[nextSlot]) ? nextLayout[nextSlot] : []), field]));
+                } else {
+                    nextLayout[nextSlot] = field;
+                }
+            }
+        }
+        nextLayout.field_styles = nextFieldStyles;
+        updateSection(selectedSection.id, 'field_layout', nextLayout);
+    };
+    const updateFieldVisibility = (field: string, visible: string) => {
+        if (!selectedSection) return;
+        if (visible === 'hidden') {
+            updateFieldSlot(field, 'hidden');
+            return;
+        }
+        const nextLayout: any = { ...fieldLayout };
+        nextLayout.hidden = (Array.isArray(nextLayout.hidden) ? nextLayout.hidden : []).filter((item: any) => item !== field);
+        const current = { ...(fieldLayoutFields[field] || {}) };
+        delete current.visible;
+        nextLayout.field_styles = { ...fieldLayoutFields, [field]: current };
+        updateSection(selectedSection.id, 'field_layout', nextLayout);
     };
     const reorderFieldLayoutFields = (sourceField: string, targetField: string) => {
         if (!selectedSection || sourceField === targetField) return;
@@ -1228,11 +1357,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     });
     const componentControls = COMPONENT_CONTROLS[secComponent];
     const baseLayoutControls = CHROME_LAYOUTS.includes(secLayout)
-        ? ['text', 'methods', 'density', 'bg', 'shadow', 'sidebar_side']
+        ? ['text', 'methods', ...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
     const layoutControls = Array.from(new Set(componentControls || baseLayoutControls))
         .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail'));
-    const hasControl = (c: string) => layoutControls.includes(c) && (c !== 'sidebar_side' || selectedSection?.position === 'sidebar');
+    const hasControl = (c: string) => layoutControls.includes(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
     const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
     const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
     const layoutGroupsForSelected = (isChromeLike && !hasDataShape
@@ -1250,6 +1379,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const currentPage = (pages as any[])[previewPageIndex];
     const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
     const pageLayout = currentPage?.layout?.value || 'vertical';
+    const pageMainWidth = currentPage?.layout?.main_width || 'contained';
+    const pageHeaderWidth = currentPage?.layout?.header_width || 'contained';
+    const pageHeroWidth = currentPage?.layout?.hero_width || 'contained';
+    const pageFooterWidth = currentPage?.layout?.footer_width || 'full';
     const pageGap = currentPage?.gap?.value || 'normal';
 
     const btnBase: React.CSSProperties = {
@@ -1547,11 +1680,31 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     { label: 'Left', value: 'horizontal-reverse' },
                                 ].map(opt => (
                                     <button key={opt.value} style={{ ...btnBase, ...active(pageLayout === opt.value) }}
-                                        onClick={() => updatePageProperty(previewPageIndex, 'layout', opt)}>
+                                        onClick={() => updatePageLayoutSetting(previewPageIndex, 'value', opt.value)}>
                                         {opt.label}
                                     </button>
                                 ))}
                             </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Region Width</p>
+                            {[
+                                { label: 'Main', field: 'main_width', value: pageMainWidth, options: ['contained', 'wide', 'full'] },
+                                { label: 'Header', field: 'header_width', value: pageHeaderWidth, options: ['contained', 'full'] },
+                                { label: 'Hero', field: 'hero_width', value: pageHeroWidth, options: ['contained', 'full'] },
+                                { label: 'Footer', field: 'footer_width', value: pageFooterWidth, options: ['contained', 'full'] },
+                            ].map(row => (
+                                <div key={row.field} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                                    <span style={{ width: 44, fontSize: 11, color: '#4b5563' }}>{row.label}</span>
+                                    <div style={{ display: 'flex', gap: 4 }}>
+                                        {row.options.map(opt => (
+                                            <button key={opt} style={{ ...btnBase, ...active(row.value === opt), padding: '3px 7px', fontSize: 11 }}
+                                                onClick={() => updatePageLayoutSetting(previewPageIndex, row.field, opt)}>
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Page Gap</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
@@ -1773,8 +1926,18 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 </div>
                             </div>
 
-                            <div style={{ border: '1px solid #bfdbfe', borderRadius: 8, padding: 8, marginBottom: 12, background: '#eff6ff' }}>
-                                <p style={{ fontSize: 11, color: '#1d4ed8', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Edit Field Position & Size</p>
+                            <div style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
+                                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                                    <div>
+                                        <p style={{ fontSize: 11, color: '#111827', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Field Composer</p>
+                                        <p style={{ fontSize: 10, color: '#6b7280', margin: '2px 0 0' }}>Slot, visibility, order and sizing for fields this component can render.</p>
+                                    </div>
+                                    {fieldLayoutSlots.length > 0 && (
+                                        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', whiteSpace: 'nowrap' }}>
+                                            {fieldLayoutSlots.length} slots
+                                        </span>
+                                    )}
+                                </div>
                                 {availableFieldNames.length === 0 ? (
                                     <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
                                         No fields selected for this section. Add attributes in Section Components first.
@@ -1794,12 +1957,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                         setDraggedField(null);
                                                     }}
                                                     style={{
-                                                        border: `1px solid ${draggedField && draggedField !== field ? '#60a5fa' : '#bfdbfe'}`,
-                                                        borderRadius: 6,
-                                                        padding: 6,
+                                                        border: `1px solid ${draggedField && draggedField !== field ? '#2563eb' : '#e5e7eb'}`,
+                                                        borderRadius: 8,
+                                                        padding: 8,
                                                         display: 'grid',
-                                                        gap: 5,
-                                                        background: draggedField === field ? '#dbeafe' : '#fff',
+                                                        gap: 8,
+                                                        background: draggedField === field ? '#eff6ff' : '#ffffff',
+                                                        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)',
                                                         opacity: draggedField === field ? 0.72 : 1,
                                                     }}
                                                 >
@@ -1816,10 +1980,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             aria-label={`Drag ${field}`}
                                                             title="Drag to reorder"
                                                             style={{
-                                                                border: '1px solid #bfdbfe',
+                                                                border: '1px solid #d1d5db',
                                                                 borderRadius: 5,
-                                                                background: '#eff6ff',
-                                                                color: '#2563eb',
+                                                                background: '#f9fafb',
+                                                                color: '#4b5563',
                                                                 width: 24,
                                                                 height: 24,
                                                                 display: 'flex',
@@ -1832,9 +1996,36 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                         >
                                                             <GripVertical size={14} />
                                                         </button>
-                                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={field}>{field}</div>
+                                                        <div style={{ fontSize: 12, fontWeight: 800, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={field}>{field}</div>
+                                                        <span style={{ fontSize: 10, color: currentFieldSlot(field) === 'hidden' ? '#b91c1c' : '#6b7280', background: currentFieldSlot(field) === 'hidden' ? '#fee2e2' : '#f3f4f6', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>
+                                                            {currentFieldSlot(field) || 'auto'}
+                                                        </span>
                                                     </div>
-                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Slot</span>
+                                                            <select
+                                                                value={currentFieldSlot(field)}
+                                                                onChange={(e) => updateFieldSlot(field, e.target.value)}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="">Auto</option>
+                                                                {fieldLayoutSlots.map((slot) => (
+                                                                    <option key={slot.slot} value={slot.slot}>{slot.label}</option>
+                                                                ))}
+                                                            </select>
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Visible</span>
+                                                            <select
+                                                                value={cfg.visible || 'show'}
+                                                                onChange={(e) => updateFieldVisibility(field, e.target.value)}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="show">Show</option>
+                                                                <option value="hidden">Hide</option>
+                                                            </select>
+                                                        </label>
                                                         <label style={{ display: 'grid', gap: 2 }}>
                                                             <span style={{ fontSize: 10, color: '#6b7280' }}>Order</span>
                                                             <input
@@ -1843,7 +2034,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                                 value={cfg.order ?? ''}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'order', e.target.value)}
                                                                 placeholder="Auto"
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11 }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11 }}
                                                             />
                                                         </label>
                                                         <label style={{ display: 'grid', gap: 2 }}>
@@ -1851,7 +2042,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             <select
                                                                 value={cfg.col_span || 'auto'}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'col_span', e.target.value)}
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
                                                             >
                                                                 <option value="auto">Auto</option>
                                                                 <option value="3">25%</option>
@@ -1866,7 +2057,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             <select
                                                                 value={cfg.text_size || 'auto'}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'text_size', e.target.value)}
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
                                                             >
                                                                 <option value="auto">Auto</option>
                                                                 <option value="xs">XS</option>
@@ -1881,7 +2072,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             <select
                                                                 value={cfg.height || 'auto'}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'height', e.target.value)}
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
                                                             >
                                                                 <option value="auto">Auto</option>
                                                                 <option value="sm">SM</option>
@@ -1895,7 +2086,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             <select
                                                                 value={cfg.align || 'auto'}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'align', e.target.value)}
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
                                                             >
                                                                 <option value="auto">Auto</option>
                                                                 <option value="left">Left</option>
@@ -1908,7 +2099,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             <select
                                                                 value={cfg.label || 'auto'}
                                                                 onChange={(e) => updateFieldLayoutField(field, 'label', e.target.value)}
-                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                                style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 7px', fontSize: 11, background: '#fff' }}
                                                             >
                                                                 <option value="auto">Auto</option>
                                                                 <option value="show">Show</option>
@@ -1935,33 +2126,35 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     ))}
                                 </select>
                                 {fieldLayoutSlots.length > 0 && (
-                                    <div style={{ display: 'grid', gap: 6 }}>
-                                        <div style={{ fontSize: 11, color: '#6b7280' }}>Field layout slots</div>
-                                        {fieldLayoutSlots.map((slot) => (
-                                            <label key={slot.slot} style={{ display: 'grid', gap: 3 }}>
-                                                <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{slot.label}</span>
-                                                {slot.multiple ? (
-                                                    <input
-                                                        value={fieldLayoutValue(slot.slot)}
-                                                        onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value, true)}
-                                                        placeholder={availableFieldNames.slice(0, 4).join(', ')}
-                                                        style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
-                                                    />
-                                                ) : (
-                                                    <select
-                                                        value={fieldLayoutValue(slot.slot)}
-                                                        onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value)}
-                                                        style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
-                                                    >
-                                                        <option value="">None</option>
-                                                        {availableFieldNames.map((field) => (
-                                                            <option key={field} value={field}>{field}</option>
-                                                        ))}
-                                                    </select>
-                                                )}
-                                            </label>
-                                        ))}
-                                    </div>
+                                    <details style={{ marginTop: 8 }}>
+                                        <summary style={{ fontSize: 11, color: '#6b7280', cursor: 'pointer', fontWeight: 700 }}>Advanced raw slots</summary>
+                                        <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                                            {fieldLayoutSlots.map((slot) => (
+                                                <label key={slot.slot} style={{ display: 'grid', gap: 3 }}>
+                                                    <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{slot.label}</span>
+                                                    {slot.multiple ? (
+                                                        <input
+                                                            value={fieldLayoutValue(slot.slot)}
+                                                            onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value, true)}
+                                                            placeholder={availableFieldNames.slice(0, 4).join(', ')}
+                                                            style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                        />
+                                                    ) : (
+                                                        <select
+                                                            value={fieldLayoutValue(slot.slot)}
+                                                            onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value)}
+                                                            style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                        >
+                                                            <option value="">None</option>
+                                                            {availableFieldNames.map((field) => (
+                                                                <option key={field} value={field}>{field}</option>
+                                                            ))}
+                                                        </select>
+                                                    )}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </details>
                                 )}
                             </div>
 
@@ -2022,6 +2215,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 {([{value:'left',label:'Left'},{value:'right',label:'Right'}] as {value:SidebarSideOption;label:string}[]).map(o => (
                                     <button key={o.value} style={{ ...btnBase, ...active(secSidebarSide === o.value), padding: '3px 7px', fontSize: 11 }}
                                         onClick={() => updateSection(selectedSection.id, 'sidebar_side', o.value)}>{o.label}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('sidebar_width') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sidebar Width</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {[2,3,4,5,6].map(n => (
+                                    <button key={n} style={{ ...btnBase, ...active(secSidebarWidth === n), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'sidebar_width', n)}>{n}/12</button>
                                 ))}
                             </div></>)}
 
@@ -2121,6 +2323,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 {(['compact','normal','spacious'] as DensityOption[]).map(d => (
                                     <button key={d} style={{ ...btnBase, ...active(secDensity === d), padding: '3px 7px', fontSize: 11 }}
                                         onClick={() => updateSection(selectedSection.id, 'density', d)}>{d}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('nav_height') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nav Height</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['compact','normal','tall','xl'] as NavHeightOption[]).map(h => (
+                                    <button key={h} style={{ ...btnBase, ...active(secNavHeight === h), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'nav_height', h)}>{h}</button>
                                 ))}
                             </div></>)}
 

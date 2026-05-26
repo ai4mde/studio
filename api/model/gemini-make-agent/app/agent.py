@@ -36,7 +36,11 @@ Data & Query fields:
   sections[].attributes    : list of attribute names OR objects. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
     Attribute objects may mark read-only values: {name: "Seller.name", readonly: true, source: "related"}.
     Attributes are DISPLAY fields only. Do not use them as the query/SQL select list.
-  sections[].field_layout  : for data/form components, maps fields into component slots such as image/title/primary/columns/groups. Slot fields must exist in attributes or be valid related dot notation.
+  sections[].field_layout  : for data/form components only. Use only slots consumed by that component; do not invent slots.
+    Card/Gallery: image, video, media, title, subtitle, primary, secondary, hidden.
+    Table/List: columns, hidden.
+    Detail: image, video, media, title, hero, fields, hidden.
+    Form/Filter: fields, hidden.
     Media slots: use image for image fields, video for video URL/file fields, or media for whichever field should occupy the main media area.
     Per-field layout overrides live in field_layout.field_styles:
       {"field_name": {"order": 0, "col_span": 12, "height": "sm"|"md"|"lg"|"xl", "text_size": "xs"|"sm"|"md"|"lg"|"xl", "align": "left"|"center"|"right", "label": "show"|"hidden"}}
@@ -113,6 +117,8 @@ Universal style controls:
     "accent" = design spec primary brand color; "accent-secondary" = second brand color.
     Hardcoded names (green/blue/etc.) ignore the design spec and lock the section to that Tailwind color.
   sections[].style.density       : "compact" | "normal" | "spacious"
+  sections[].style.nav_height    : navigation/header nav only, "compact" | "normal" | "tall" | "xl"
+  sections[].style.sidebar_width : sidebar only, integer 2..6 meaning the sidebar region width in twelfths of the content row
   sections[].style.shadow        : "none" | "sm" | "md" | "lg"
   sections[].style.border        : "none" | "light" | "colored"
   sections[].style.bg            : "white" | "light" | "dark" | "transparent"
@@ -125,6 +131,10 @@ Static label controls (empty string = hidden):
 
 Page layout:
   pages[].layout.value : "vertical" | "vertical-reverse" | "horizontal" | "horizontal-reverse"
+  pages[].layout.main_width   : "contained" | "wide" | "full"
+  pages[].layout.header_width : "contained" | "full"
+  pages[].layout.hero_width   : "contained" | "full"
+  pages[].layout.footer_width : "contained" | "full" (usually "full" for normal site footers)
   pages[].gap.value    : "compact" | "normal" | "spacious"
 
 Style/token fields (global theme):
@@ -220,8 +230,13 @@ generate_agent = Agent(
 COMPLETENESS & FIDELITY MANDATE: Every candidate MUST be a "ready-to-use" high-fidelity app.
 1. REQUIRED CHROME (Every page):
    - Header/nav/footer/sidebar are designable regions, not fixed boilerplate.
+   - Header is a composable layout region like main: any section layout may use position="header" when it belongs above the page body, including tables, cards, summaries, forms, hero content, nav, logo, search, and actions.
+   - Header ordering and col_span matter. Compose multi-row headers by ordering several header sections and using col_span values (for example logo col_span=3, search col_span=6, icon actions col_span=3, nav col_span=12).
+   - Sidebar and footer are also composable layout regions like main: any suitable section layout may use position="sidebar" or position="footer", not only filter/nav/footer chrome. Use col_span and ordering to create side rails, utility panels, summary/footer cards, legal/footer nav, actions, and data snippets.
+   - For sidebar region width, set style.sidebar_width to 2..6. Main content automatically uses remaining horizontal space.
    - Use varied chrome across candidates unless the user explicitly asks for one fixed pattern.
-   - 'site-nav' or 'nav-links' may be position="header" OR position="sidebar" with style.sidebar_side="left".
+   - 'site-nav' or 'nav-links' may be position="header" OR position="sidebar" with style.sidebar_side="left" or "right".
+   - Sidebar order matters: a sidebar nav can appear at the top, between filters/summaries/actions, or near the bottom by ordering that section differently in the page's sections list. Do not always place sidebar nav first.
    - 'site-footer', 'brand-strip', service bars, and link grids may vary in density and composition.
 
 2. HIGH-FIDELITY STYLING:
@@ -302,6 +317,7 @@ Do NOT delegate this to any other agent. You must make the actual function call 
 
 DATA STRUCTURE — CRITICAL:
 validate_and_save_candidate requires TWO separate top-level arrays:
+  pages may include layout/gap settings; each page's sections field still contains only section ID references.
   pages    — each item: {{id, name, sections: [{{value: "section_id"}}, ...]}}
              pages do NOT contain section data — only a list of section ID references
   sections — flat list of ALL section objects for ALL pages combined
@@ -322,6 +338,7 @@ CHROME SECTIONS (add to EVERY page's reference list, include once in sections[])
     For sidebar navigation use role="navigation", layout="site-nav" or "nav-links", component="NavBar", position="sidebar", col_span=12, style.sidebar_side="left".
   - Header can be main-header, minimal-header, or separate logo/search-bar/icon-actions sections.
   - Footer can be site-footer, service-bar + link-grid, or brand-strip.
+  - Use pages[].layout.*_width to control region width. Set main_width="full" only for intentionally edge-to-edge applications; otherwise prefer contained or wide. Keep page body/main background aligned unless the prompt explicitly wants visible margins.
   - Generate different chrome structure across the 3 candidates when the prompt does not force one pattern.
 
 WORKFLOW ENTRY SECTIONS:
@@ -350,11 +367,11 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
   - component: choose the UI Kit component. Examples:
     gallery Product -> ProductCardGrid; gallery Category -> CategoryTileGrid; gallery person/user/customer/seller -> PersonCardGrid;
     table -> DataTable; list child item/line -> LineItemList; detail Product -> ProductDetailPanel; form -> ObjectForm/AddressForm/PaymentMethodForm/ReviewForm; filter -> FilterPanel.
-  - field_layout: for display/form components, map fields into slots. Example ProductCardGrid: {{"image":"image_url","video":"video_url","title":"name","primary":"price","secondary":["brand"]}}.
+  - field_layout: for display/form components, map fields into supported slots only. Example ProductCardGrid: {{"image":"image_url","video":"video_url","title":"name","primary":"price","secondary":["brand"],"hidden":["id"]}}.
     For video fields, include the video field in attributes as {{"name":"video_url","type":"video"}} and put it in field_layout.video or field_layout.media.
     To control individual field position/size, use field_layout.field_styles, e.g.
       {{"field_styles": {{"price": {{"order": 2, "col_span": 4, "text_size": "xl", "align": "right"}}, "description": {{"order": 3, "col_span": 12, "label": "hidden"}}}}}}
-    For DataTable use {{"columns":[{{"field":"name","label":"Name"}}]}}. For ObjectForm use {{"groups":[{{"title":"Details","fields":["name"]}}]}}.
+    For DataTable/List use {{"columns":["name","status","created_at"]}}. For ObjectForm/Filter use {{"fields":["name","status"]}}. Do not output groups/labels unless the renderer explicitly consumes them.
   - data_source/query: leave them empty by default. Only add query for explicit filtering/sorting/limits or page semantics such as "active only", "my orders", "same category", "recent", "top 5". Only add data_source when joins or a non-default source are actually needed.
   - behavior: for controls like SearchBar/NavBar/IconActions, use {{"type":"search|navigate|action","target_page":"Page_Name","target_model":"ModelName","fields":["name"],"param":"q"}}.
     For card/list/table/gallery item navigation, use {{"item_click": {{"type":"navigate","target_page":"Detail_Page","params":{{"id":"$Model.id"}}}}}}.
@@ -381,7 +398,8 @@ STRUCTURAL DIVERSITY — across the 3 candidates:
 Make candidates structurally different using these axes:
   - Column organization: one candidate uses col_span=12 dominant, another uses col_span=6 splits
     (col_span=4+4+4 for dashboards), another uses filter sidebar (col_span=3)
-  - Chrome/regions: vary header/nav/footer/sidebar composition. At least one candidate should use a left sidebar navigation rail when the app has multiple normal pages.
+  - Chrome/regions: vary header/nav/footer/sidebar composition. At least one candidate should use a sidebar navigation rail when the app has multiple normal pages.
+    Vary the rail's side and vertical placement: top, middle, or bottom relative to other sidebar sections.
     Other candidates should use different header/footer treatments, not the exact same site-nav/header/footer layout.
   - Density and spacing: each candidate uses a different style.density ("compact"/"normal"/"spacious")
   - For the SAME page purpose, pick DIFFERENT layouts across candidates:

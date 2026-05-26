@@ -1347,8 +1347,23 @@ def _apply_builtin_workflow_logic(interface_data: dict, system_id: str | None, a
 def _page_type_value(page: dict) -> str:
     page_type = page.get("type")
     if isinstance(page_type, dict):
-        return str(page_type.get("value") or "")
-    return str(page_type or "")
+        return str(page_type.get("value") or "").strip().lower()
+    return str(page_type or "").strip().lower()
+
+def _infer_page_type_value(page: dict) -> str:
+    explicit = _page_type_value(page)
+    if explicit in {"normal", "activity"}:
+        return explicit
+    action = page.get("action")
+    page_key = f"{page.get('id', '')} {page.get('name', '')} {page.get('display_name', '')}".lower()
+    if action or "workflow" in page_key:
+        return "activity"
+    return "normal"
+
+def _canonical_page_type(value: str) -> dict:
+    if value == "activity":
+        return {"value": "activity", "label": "Activity"}
+    return {"value": "normal", "label": "Normal"}
 
 def _ref_id(ref) -> str:
     return str(ref.get("value") if isinstance(ref, dict) else ref or "")
@@ -1459,7 +1474,7 @@ def _field_layout_field_refs(field_layout) -> set[str]:
     if not isinstance(field_layout, dict):
         return refs
     slot_keys = {"image", "video", "media", "avatar", "hero", "title", "subtitle", "primary", "price", "description", "count"}
-    list_keys = {"secondary", "badges", "meta", "facts", "fields"}
+    list_keys = {"secondary", "badges", "meta", "facts", "fields", "hidden"}
     for key, value in field_layout.items():
         if key in slot_keys and isinstance(value, str) and value:
             refs.add(value)
@@ -1476,6 +1491,178 @@ def _field_layout_field_refs(field_layout) -> set[str]:
         elif key == "field_styles" and isinstance(value, dict):
             refs.update(str(field) for field in value.keys() if field)
     return refs
+
+_FIELD_SLOT_MAP = {
+    "card": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "hidden"},
+    "gallery": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "hidden"},
+    "list": {"columns", "hidden"},
+    "table": {"columns", "hidden"},
+    "detail": {"image", "video", "media", "title", "hero", "fields", "hidden"},
+    "form": {"fields", "hidden"},
+    "filter": {"fields", "hidden"},
+}
+_COMPONENT_FIELD_SLOT_MAP = {
+    "ProductCardGrid": _FIELD_SLOT_MAP["card"],
+    "CategoryTileGrid": {"image", "title", "subtitle", "secondary", "hidden"},
+    "PersonCardGrid": {"image", "title", "subtitle", "secondary", "hidden"},
+    "CardGrid": _FIELD_SLOT_MAP["card"],
+    "DataTable": _FIELD_SLOT_MAP["table"],
+    "ObjectList": _FIELD_SLOT_MAP["list"],
+    "LineItemList": _FIELD_SLOT_MAP["list"],
+    "RelatedObjectList": _FIELD_SLOT_MAP["list"],
+    "ProductDetailPanel": _FIELD_SLOT_MAP["detail"],
+    "DetailPanel": _FIELD_SLOT_MAP["detail"],
+    "SummaryPanel": {"title", "fields", "hidden"},
+    "ObjectForm": _FIELD_SLOT_MAP["form"],
+    "AddressForm": _FIELD_SLOT_MAP["form"],
+    "PaymentMethodForm": _FIELD_SLOT_MAP["form"],
+    "ReviewForm": _FIELD_SLOT_MAP["form"],
+    "FilterPanel": _FIELD_SLOT_MAP["filter"],
+    "SearchBar": _FIELD_SLOT_MAP["filter"],
+}
+
+def _attr_name(attr) -> str:
+    return str(attr.get("name") if isinstance(attr, dict) else attr or "")
+
+def _attr_type(attr) -> str:
+    return str(attr.get("type") if isinstance(attr, dict) else "").lower()
+
+def _field_kind(name: str, type_name: str = "") -> str:
+    low = name.lower()
+    if type_name in {"image", "video"} or any(term in low for term in ("image", "img", "photo", "avatar", "thumbnail", "media", "video", "poster")):
+        return "media"
+    if low in {"id", "uuid"} or low.endswith("_id") or any(term in low for term in ("internal", "password", "token", "secret")):
+        return "hidden"
+    if any(term in low for term in ("name", "title", "code", "number", "label", "subject")):
+        return "title"
+    if any(term in low for term in ("price", "amount", "total", "status", "state", "date", "created", "updated", "count", "quantity")):
+        return "primary"
+    if any(term in low for term in ("description", "summary", "body", "content", "note", "comment", "message")):
+        return "body"
+    return "secondary"
+
+def _supported_field_slots(section: dict) -> set[str]:
+    component = str(section.get("component") or "")
+    layout = str(section.get("layout") or "")
+    return set(_COMPONENT_FIELD_SLOT_MAP.get(component) or _FIELD_SLOT_MAP.get(layout) or set())
+
+def _field_list(value) -> list[str]:
+    if isinstance(value, str):
+        return [value] if value else []
+    if not isinstance(value, list):
+        return []
+    result = []
+    for item in value:
+        if isinstance(item, dict) and item.get("field"):
+            result.append(str(item["field"]))
+        elif isinstance(item, str) and item:
+            result.append(item)
+    return result
+
+def _normalize_field_layout(section: dict) -> dict:
+    attrs = section.get("attributes") or []
+    attr_names = [_attr_name(attr) for attr in attrs if _attr_name(attr)]
+    if not attr_names or not section.get("primary_model"):
+        return {}
+    attr_set = set(attr_names)
+    supported = _supported_field_slots(section)
+    if not supported:
+        return {}
+
+    raw = section.get("field_layout") if isinstance(section.get("field_layout"), dict) else {}
+    existing_styles = raw.get("field_styles") if isinstance(raw.get("field_styles"), dict) else {}
+    cleaned_styles = {}
+    for fname, cfg in existing_styles.items():
+        if fname not in attr_set or not isinstance(cfg, dict):
+            continue
+        clean = {}
+        if isinstance(cfg.get("order"), int) or str(cfg.get("order", "")).isdigit():
+            clean["order"] = int(cfg.get("order"))
+        if str(cfg.get("col_span", "")) in {"3", "4", "6", "8", "12"}:
+            clean["col_span"] = int(cfg.get("col_span"))
+        if cfg.get("height") in {"sm", "md", "lg", "xl"}:
+            clean["height"] = cfg.get("height")
+        if cfg.get("text_size") in {"xs", "sm", "md", "lg", "xl"}:
+            clean["text_size"] = cfg.get("text_size")
+        if cfg.get("align") in {"left", "center", "right"}:
+            clean["align"] = cfg.get("align")
+        if cfg.get("label") in {"show", "hidden"}:
+            clean["label"] = cfg.get("label")
+        if cfg.get("visible") in {"show", "hidden"}:
+            clean["visible"] = cfg.get("visible")
+        if clean:
+            cleaned_styles[fname] = clean
+
+    hidden = [f for f in _field_list(raw.get("hidden")) if f in attr_set]
+    for attr in attrs:
+        name = _attr_name(attr)
+        if name and _field_kind(name, _attr_type(attr)) == "hidden" and name not in hidden:
+            hidden.append(name)
+    for name, cfg in cleaned_styles.items():
+        if cfg.get("visible") == "hidden" and name not in hidden:
+            hidden.append(name)
+    visible_names = [name for name in attr_names if name not in set(hidden)]
+
+    def first_existing(keys: list[str]) -> str:
+        for key in keys:
+            value = raw.get(key)
+            if isinstance(value, str) and value in visible_names:
+                return value
+        return ""
+
+    media = first_existing(["media", "image", "video", "avatar"])
+    title = first_existing(["title"])
+    subtitle = first_existing(["subtitle"])
+    primary = first_existing(["primary", "price", "count"])
+    secondary = [f for f in (_field_list(raw.get("secondary")) + _field_list(raw.get("meta")) + _field_list(raw.get("facts"))) if f in visible_names]
+    fields = [f for f in (_field_list(raw.get("fields")) + _field_list(raw.get("columns"))) if f in visible_names]
+    hero = [f for f in _field_list(raw.get("hero")) if f in visible_names]
+
+    by_kind = {name: _field_kind(name, _attr_type(attr)) for name, attr in zip(attr_names, attrs)}
+    if not media:
+        media = next((n for n in visible_names if by_kind.get(n) == "media"), "")
+    if not title:
+        title = next((n for n in visible_names if by_kind.get(n) == "title"), "")
+    if not primary:
+        primary = next((n for n in visible_names if by_kind.get(n) == "primary" and n != title), "")
+    if not secondary:
+        secondary = [n for n in visible_names if n not in {media, title, primary} and by_kind.get(n) in {"secondary", "body", "primary"}][:4]
+    if not fields:
+        fields = visible_names
+    if not hero:
+        hero = [n for n in visible_names if n in {title, primary} or by_kind.get(n) == "body"][:4]
+
+    out = {}
+    if "image" in supported and media:
+        media_attr = next((a for a in attrs if _attr_name(a) == media), None)
+        if _attr_type(media_attr) == "video":
+            if "video" in supported:
+                out["video"] = media
+            elif "media" in supported:
+                out["media"] = media
+        else:
+            out["image"] = media
+    elif "media" in supported and media:
+        out["media"] = media
+    if "title" in supported and title:
+        out["title"] = title
+    if "subtitle" in supported and subtitle:
+        out["subtitle"] = subtitle
+    if "primary" in supported and primary:
+        out["primary"] = primary
+    if "secondary" in supported:
+        out["secondary"] = [f for f in secondary if f not in {media, title, primary}]
+    if "columns" in supported:
+        out["columns"] = fields
+    if "fields" in supported:
+        out["fields"] = fields
+    if "hero" in supported:
+        out["hero"] = hero
+    if "hidden" in supported and hidden:
+        out["hidden"] = hidden
+    if cleaned_styles:
+        out["field_styles"] = cleaned_styles
+    return out
 
 def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[str]:
     preferred = ["name", "title", "status", "price", "total", "quantity", "description", "created_at"]
@@ -2213,7 +2400,7 @@ def validate_and_save_candidate(
         def _canonical_model_name(name: str) -> str:
             return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
         errors = []; _VALID_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks", "promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip"}
-        _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate", "accent", "accent-secondary"},"density": {"compact", "normal", "spacious"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}}
+        _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate", "accent", "accent-secondary"},"density": {"compact", "normal", "spacious"}, "nav_height": {"compact", "normal", "tall", "xl"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}}
         for s in sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
@@ -2236,6 +2423,7 @@ def validate_and_save_candidate(
                 (attr.get("name", attr) if isinstance(attr, dict) else attr)
                 for attr in s.get("attributes", [])
             }
+            s["field_layout"] = _normalize_field_layout(s)
             for field_ref in _field_layout_field_refs(s.get("field_layout")):
                 if field_ref not in available_field_layout_attrs:
                     errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
@@ -2306,6 +2494,9 @@ def validate_and_save_candidate(
                         key: _rename_field_layout_value(value)
                         for key, value in (s.get("field_layout") or {}).items()
                     }
+                s["field_layout"] = _normalize_field_layout(s)
+            else:
+                s["field_layout"] = _normalize_field_layout(s)
             fixed_sections.append(s)
         # Auto-correct hardcoded Tailwind color names → "accent" so sections inherit
         # the design spec brand color via CSS variables instead of being locked to one color.
@@ -2320,13 +2511,9 @@ def validate_and_save_candidate(
 
         fixed_pages = []
         for i, p in enumerate(pages):
-            page_type = _page_type_value(p)
-            if page_type not in {"normal", "activity"}:
-                return (
-                    f"INCOMPLETE: page '{p.get('name') or p.get('id') or i}' must include "
-                    "required type {'value':'normal','label':'Normal'} or "
-                    "{'value':'activity','label':'Activity'}."
-                )
+            p = dict(p)
+            page_type = _infer_page_type_value(p)
+            p["type"] = _canonical_page_type(page_type)
             if not p.get("id"): p = {**p, "id": f"page_{candidate_index}_{i}"}
             if "category" not in p: p = {**p, "category": None}
             fixed_pages.append(p)
@@ -2338,6 +2525,7 @@ def validate_and_save_candidate(
         for s in fixed_sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
+            s["field_layout"] = _normalize_field_layout(s)
         fixed_pages, fixed_sections = _ensure_workflow_entry_sections(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0))
         fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
