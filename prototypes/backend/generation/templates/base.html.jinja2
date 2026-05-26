@@ -23,8 +23,8 @@
 {%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else 'max-w-7xl') %}
 {%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else 'max-w-7xl mx-auto px-6' %}
 {%- set _footer_shell_class = 'w-full px-8' if _footer_width == 'full' else 'max-w-7xl mx-auto px-8' %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- set _has_header_chrome = [] %}
@@ -48,12 +48,15 @@
 {%- set _search_pages = pages | selectattr('type', 'equalto', 'normal') | list %}
 {%- set _search_page = _search_pages[0] if _search_pages else none %}
 
+{% raw %}{% block chrome_header %}{% endraw %}
 {%- set _main_row_open = [] %}
 {%- for sc in ([] if _has_header_chrome else _header_secs) %}
 {%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
 {%- if _inline_lay and not _main_row_open %}
   {%- set _ = _main_row_open.append(1) %}
-<header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4" data-position="header" data-layout="main-header-row">
+  {%- set _row_style = sc.style if sc.style is defined and sc.style else {} %}
+  {%- set _row_variant = _row_style.get('header_variant', '') %}
+<header class="{% if _row_variant == 'split-dark' %}{{ _header_shell_class }} py-3 flex items-center gap-4 shadow-sm{% elif _row_variant == 'showcase' %}bg-white {{ _header_shell_class }} py-5 flex items-center gap-5 border-b border-gray-100 shadow-sm{% else %}bg-white {{ _header_shell_class }} py-3 flex items-center gap-4{% endif %}" style="{% if _row_variant == 'split-dark' %}background-color:#111827;color:#ffffff;{% endif %}" data-position="header" data-layout="main-header-row" data-header-variant="{{ _row_variant }}">
 {%- elif not _inline_lay and _main_row_open %}
   {%- set _ = _main_row_open.clear() %}
 </header>
@@ -85,8 +88,8 @@
         {%- endif %}
         {%- if _logo_variant != 'image-only' %}
         <span class="flex flex-col min-w-0">
-            <span class="text-3xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
-            {%- if _tagline %}<span class="text-xs font-medium text-gray-500 mt-1 truncate">{{ _tagline }}</span>{%- endif %}
+            <span class="text-3xl font-black truncate" style="color:{% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}#ffffff{% else %}{{ _accent_hex }}{% endif %};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+            {%- if _tagline %}<span class="text-xs font-medium {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-gray-300{% else %}text-gray-500{% endif %} mt-1 truncate">{{ _tagline }}</span>{%- endif %}
         </span>
         {%- endif %}
     </a>
@@ -94,7 +97,8 @@
 
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
-    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+    {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
         <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
             <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -109,7 +113,7 @@
 {%- set _logout_label = _sc_style.get('logout_label', 'Logout') %}
 {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
-    <div class="flex items-center gap-3 text-sm text-gray-700 shrink-0">
+    <div class="flex items-center gap-3 text-sm {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-white{% else %}text-gray-700{% endif %} shrink-0">
         {%- if sc.custom_methods %}
         {%- for m in sc.custom_methods %}
         <span class="{{ _action_cls }}">{{ m }}</span>
@@ -146,9 +150,10 @@
     </header>
 </div>
 
-{%- elif sc.layout in ('nav-links', 'nav-bar') %}
+{%- elif sc.layout in ('nav', 'nav-links', 'nav-bar') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+    {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+    <nav class="{% if _sc_style.get('nav_variant') == 'pills' %}bg-white border-b border-gray-100{% else %}bg-white border-b border-gray-200 sticky top-0 z-40{% endif %}">
         <div class="{{ _header_shell_class }} flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
             <div class="flex items-center gap-0">
                 <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
@@ -161,8 +166,8 @@
                    style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
                 {%- else %}
                 <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
-                   class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-                   style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+                   class="{% if _sc_style.get('nav_variant') == 'pills' %}px-3 py-2 cursor-pointer rounded-full font-semibold transition-colors {% if page is defined and p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% else %}px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% endif %}"
+                   style="{% if _sc_style.get('nav_variant') == 'pills' and page is defined and p.display_name == page.display_name %}background-color:{{ _accent_hex }};{% elif page is defined and p.display_name == page.display_name %}border-color:{{ _accent_hex }};color:{{ _accent_hex }}{% endif %}">{{ p.display_name }}</a>
                 {%- endif %}
                 {%- endfor %}
                 {%- for m in sc.custom_methods[1:4] %}
@@ -238,21 +243,33 @@
 {%- if _main_row_open %}</header>{%- endif %}
 
 {% if not _header_secs and not _has_header_chrome %}
-{# Fallback: generic header + nav when no header section components are defined #}
-<header class="{{ _header_shell_class }} py-3 flex items-center justify-between shadow-sm" style="background-color: {{ _accent_hex }};">
-    <div class="flex items-center gap-3">
-        {% if logo %}<img src="{{ logo }}" class="h-8 w-auto">{% endif %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
-            {{ application_name | capitalize }}
+{# Fallback: section-style composed header when no header section components are defined #}
+{%- set _fallback_logo = namespace(url='') %}
+{%- if tokens is defined and tokens.get('brand.logo_url', '') %}
+  {%- set _fallback_logo.url = tokens.get('brand.logo_url') %}
+{%- elif logo is defined and logo %}
+  {%- set _fallback_logo.url = logo %}
+{%- endif %}
+<header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="{{ _header_shell_class }} py-3 flex items-center gap-4">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+            {%- if _fallback_logo.url %}<img src="{{ _fallback_logo.url }}" class="h-9 w-9 rounded-xl object-cover" alt="{{ _brand_name }}">{%- endif %}
+            <span class="text-2xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;">{{ application_name | capitalize }}.</span>
         </a>
-    </div>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+            <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="Site Navigation" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
+            <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+                <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+        </form>
     {% if authentication_present -%}
-    <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
+        <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
     {%- else -%}
-    <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Other Application</a>
+        <a href="{% raw %}{% url 'noauth_home-homerender' %}{% endraw %}" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Other Application</a>
     {%- endif %}
+    </div>
 </header>
-<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
     <div class="{{ _header_shell_class }} flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Home</a>
         {% if settings and settings.manager_access %}
@@ -277,11 +294,13 @@
     </div>
 </nav>
 {% endif %}
+{% raw %}{% endblock %}{% endraw %}
 
 <main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}">
     {% raw %}{% block content %}{% endblock %}{% endraw %}
 </main>
 
+{% raw %}{% block chrome_footer %}{% endraw %}
 {%- set _link_row_open = [] %}
 {%- for sc in ([] if _has_footer_chrome else _footer_secs) %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
@@ -351,6 +370,7 @@
 {%- endif %}
 {%- endfor %}
 {%- if _link_row_open %}</div>{%- endif %}
+{% raw %}{% endblock %}{% endraw %}
 
 <style>
 :root {

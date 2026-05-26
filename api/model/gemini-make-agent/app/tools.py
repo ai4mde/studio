@@ -10,7 +10,6 @@ METADATA_API_BASE = os.getenv("METADATA_API_BASE", "http://studio-api:8000/api/v
 PROTOTYPE_API_BASE = os.getenv("PROTOTYPE_API_BASE", "http://studio-prototypes:8010")
 _METADATA_API_KEY = os.getenv("METADATA_API_KEY")
 _AUTH_HEADERS = {"Authorization": f"Bearer {_METADATA_API_KEY}"} if _METADATA_API_KEY else {}
-TEMPLATES_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../prototypes/backend/generation/templates"))
 DESIGN_SPECS_DIR = os.getenv("DESIGN_SPECS_DIR", "/design_specs")
 
 _DESIGN_DOMAIN_PRIORITIES = {
@@ -90,6 +89,90 @@ def _normalize_radius(value: str | None, default: str = "8") -> str:
         return "0"
     match = re.search(r"(\d+)", str(value))
     return match.group(1) if match else default
+
+def _hex_to_rgb(value: object) -> tuple[int, int, int] | None:
+    if not isinstance(value, str):
+        return None
+    raw = value.strip()
+    if not raw.startswith("#"):
+        return None
+    raw = raw[1:]
+    if len(raw) == 3:
+        raw = "".join(ch * 2 for ch in raw)
+    if len(raw) != 6 or not re.fullmatch(r"[0-9a-fA-F]{6}", raw):
+        return None
+    return int(raw[0:2], 16), int(raw[2:4], 16), int(raw[4:6], 16)
+
+def _relative_luminance(value: object) -> float | None:
+    rgb = _hex_to_rgb(value)
+    if rgb is None:
+        return None
+    channels = []
+    for channel in rgb:
+        normalized = channel / 255
+        channels.append(normalized / 12.92 if normalized <= 0.03928 else ((normalized + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+def _contrast_ratio(fg: object, bg: object) -> float | None:
+    fg_lum = _relative_luminance(fg)
+    bg_lum = _relative_luminance(bg)
+    if fg_lum is None or bg_lum is None:
+        return None
+    lighter = max(fg_lum, bg_lum)
+    darker = min(fg_lum, bg_lum)
+    return (lighter + 0.05) / (darker + 0.05)
+
+def _needs_contrast_fix(fg: object, bg: object, minimum: float) -> bool:
+    ratio = _contrast_ratio(fg, bg)
+    return ratio is not None and ratio < minimum
+
+def _is_dark_hex(value: object) -> bool:
+    luminance = _relative_luminance(value)
+    return luminance is not None and luminance < 0.28
+
+def _set_readable_token(tokens: dict, keys: tuple[str, ...], fallback: str, bg: str, minimum: float) -> str:
+    current = next((tokens.get(key) for key in keys if tokens.get(key)), fallback)
+    value = fallback if _needs_contrast_fix(current, bg, minimum) else current
+    for key in keys:
+        tokens[key] = value
+    return value
+
+def _ensure_readable_text_tokens(tokens: dict) -> None:
+    page_bg = tokens.get("page.bg.hex") or tokens.get("page.body.bg_hex") or tokens.get("region.main.bg_hex") or "#ffffff"
+    main_bg = tokens.get("region.main.bg_hex") or page_bg
+    card_bg = tokens.get("component.card.bg_hex") or main_bg
+    if not any(_is_dark_hex(value) for value in (page_bg, main_bg, card_bg)):
+        return
+
+    main_text = "#f8fafc" if _is_dark_hex(main_bg) else "#111827"
+    main_muted = "#cbd5e1" if _is_dark_hex(main_bg) else "#4b5563"
+    main_subtle = "#94a3b8" if _is_dark_hex(main_bg) else "#6b7280"
+    card_text = "#f8fafc" if _is_dark_hex(card_bg) else "#111827"
+    card_muted = "#cbd5e1" if _is_dark_hex(card_bg) else "#4b5563"
+
+    text = _set_readable_token(tokens, ("page.body.text_hex", "page.text.hex", "text.primary.hex"), main_text, main_bg, 4.5)
+    muted = _set_readable_token(tokens, ("color.text.muted_hex", "text.muted.hex", "table.header.text_hex"), main_muted, main_bg, 3.0)
+    _set_readable_token(tokens, ("color.text.subtle_hex", "text.subtle.hex", "input.placeholder_hex"), main_subtle, main_bg, 2.4)
+    _set_readable_token(tokens, ("region.main.text_hex",), main_text, main_bg, 4.5)
+    _set_readable_token(tokens, ("component.card.text_hex",), card_text, card_bg, 4.5)
+    _set_readable_token(tokens, ("component.card.muted_text_hex",), card_muted, card_bg, 3.0)
+
+    if _needs_contrast_fix(tokens.get("region.footer.text_hex", text), tokens.get("region.footer.bg_hex", page_bg), 4.5):
+        tokens["region.footer.text_hex"] = "#f8fafc" if _is_dark_hex(tokens.get("region.footer.bg_hex", page_bg)) else "#111827"
+    if _needs_contrast_fix(tokens.get("button.secondary.text_hex", text), tokens.get("button.secondary.bg_hex", card_bg), 4.5):
+        tokens["button.secondary.text_hex"] = "#f8fafc" if _is_dark_hex(tokens.get("button.secondary.bg_hex", card_bg)) else "#111827"
+    if _needs_contrast_fix(tokens.get("input.text_hex", text), tokens.get("input.bg_hex", card_bg), 4.5):
+        tokens["input.text_hex"] = "#f8fafc" if _is_dark_hex(tokens.get("input.bg_hex", card_bg)) else "#111827"
+    if _needs_contrast_fix(tokens.get("badge.neutral.text_hex", muted), tokens.get("badge.neutral.bg_hex", page_bg), 3.0):
+        tokens["badge.neutral.text_hex"] = "#cbd5e1" if _is_dark_hex(tokens.get("badge.neutral.bg_hex", page_bg)) else "#4b5563"
+    if _needs_contrast_fix(tokens.get("component.card.border_hex", tokens.get("region.border_hex")), card_bg, 1.5):
+        tokens["component.card.border_hex"] = "#334155" if _is_dark_hex(card_bg) else "#e5e7eb"
+    if _needs_contrast_fix(tokens.get("region.border_hex"), main_bg, 1.5):
+        tokens["region.border_hex"] = "#334155" if _is_dark_hex(main_bg) else "#e5e7eb"
+    tokens.setdefault("region.border_hex", "#334155")
+    tokens.setdefault("border.default.hex", tokens["region.border_hex"])
+    tokens.setdefault("component.card.border_hex", tokens["region.border_hex"])
+    tokens["page.body.text"] = f"text-[{text}]"
 
 def _yaml_block_objects(content: str, block_name: str) -> dict:
     """Parses a YAML-like block into a nested dictionary (2 levels)."""
@@ -399,6 +482,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
     tokens.setdefault("shadow.lg", shadow_lg)
     tokens.setdefault("--button-primary-bg", f"var(--accent)")
     tokens.setdefault("--button-primary-text", "#ffffff")
+    _ensure_readable_text_tokens(tokens)
     return tokens
 
 _PROMPT_COLOR_THEMES = {
@@ -752,6 +836,13 @@ def _prompt_color_scope_lock(prompt: str = "") -> str | None:
 def compile_prompt_intent(prompt: str = "") -> dict:
     text = str(prompt or "").lower()
     original_prompt = str(prompt or "")
+    has_image_word = any(term in text for term in ("image", "picture", "photo", "media", "banner")) or any(
+        term in original_prompt for term in ("\u56fe\u7247", "\u56fe\u50cf", "\u7167\u7247", "\u6d77\u62a5")
+    )
+    has_header_word = any(term in text for term in ("header", "top bar", "banner")) or any(
+        term in original_prompt for term in ("\u9875\u5934", "\u5934\u90e8", "\u9876\u90e8", "\u6a2a\u5e45")
+    )
+    header_media = has_image_word and has_header_word
     color_overrides = _prompt_scoped_color_overrides(prompt)
     color_scope_lock = _prompt_color_scope_lock(prompt)
     layout_intent = _prompt_layout_traits(prompt)
@@ -761,7 +852,7 @@ def compile_prompt_intent(prompt: str = "") -> dict:
             "hide id", "hide ids", "hide internal", "no id fields", "without ids", "不要id", "隐藏id", "隱藏id",
         )),
         "table_targets": [],
-        "single_card_media": any(term in text for term in (
+        "single_card_media": header_media or any(term in text for term in (
             "single card", "one card", "single image card", "image only", "only image", "media only",
             "limit 1 card", "limit one card",
         )) or (
@@ -769,6 +860,7 @@ def compile_prompt_intent(prompt: str = "") -> dict:
             and ("image" in text or "media" in text or "图片" in str(prompt or "") or "照片" in str(prompt or ""))
             and ("single" in text or "one" in text or "only" in text or "单个" in str(prompt or "") or "一张" in str(prompt or "") or "只" in str(prompt or ""))
         ),
+        "media_position": "header" if header_media else "",
     }
     data_intent["query_hints"] = {}
     interaction_intent = {
@@ -886,7 +978,7 @@ def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: d
             page["layout"] = layout
         if layout_intent.get("sidebar"):
             side = layout_intent.get("sidebar_side") or "left"
-            nav_sections = [s for s in sections if s.get("layout") in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar"]
+            nav_sections = [s for s in sections if _normalize_layout_alias(s.get("layout")) in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar"]
             for nav in nav_sections[:1]:
                 nav["position"] = "sidebar"
                 nav["layout"] = "site-nav"
@@ -931,7 +1023,11 @@ def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: d
             attr_names = [_attr_name(attr) for attr in attrs if _attr_name(attr)]
             section["layout"] = "card"
             section["component"] = "ImageCard"
-            section["col_span"] = int(section.get("col_span") or 12)
+            if data_intent.get("media_position") == "header":
+                section["position"] = "header"
+                section["col_span"] = 12
+            else:
+                section["col_span"] = int(section.get("col_span") or 12)
             query = dict(section.get("query") or {})
             query["limit"] = 1
             query_hints = data_intent.get("query_hints") or {}
@@ -978,12 +1074,14 @@ def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: d
             section["query"] = query
             style = dict(section.get("style") or {})
             style.update({
-                "display_mode": "grid",
+                "display_mode": "banner" if data_intent.get("media_position") == "header" else "grid",
                 "card_style": "default",
                 "columns": "1",
                 "image_position": "top",
                 "image_size": "lg",
             })
+            if data_intent.get("media_position") == "header":
+                style["header_style"] = "hidden"
             section["style"] = style
             hidden = [name for name in attr_names if name != media_attr]
             section["field_layout"] = {
@@ -1800,6 +1898,37 @@ def _normalize_section_operations(operations) -> dict:
         }
     return defaults.copy()
 
+_LAYOUT_ALIASES = {
+    "nav": "nav-links",
+    "navigation": "nav-links",
+    "navbar": "nav-links",
+    "side-nav": "nav-links",
+    "top-nav": "nav-links",
+    "footer-links": "link-grid",
+    "footer-brand": "brand-strip",
+    "service-strip": "service-bar",
+}
+
+_HEADER_TEMPLATE_LAYOUTS = {
+    "promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header",
+    "commerce-header", "dashboard-header", "split-header", "app-header", "compact-header", "mega-header",
+    "site-nav",
+}
+_HEADER_SHELL_LAYOUTS = {
+    "promo-bar", "nav-links", "main-header", "minimal-header", "commerce-header", "dashboard-header",
+    "split-header", "app-header", "compact-header", "mega-header", "site-nav",
+}
+_HEADER_ELEMENT_LAYOUTS = {"logo", "search-bar", "icon-actions"}
+_FOOTER_TEMPLATE_LAYOUTS = {
+    "service-bar", "link-grid", "brand-strip", "compact-footer", "legal-footer",
+    "newsletter-footer", "social-footer", "mega-footer", "site-footer",
+}
+_CHROME_TEMPLATE_LAYOUTS = _HEADER_TEMPLATE_LAYOUTS | _FOOTER_TEMPLATE_LAYOUTS
+
+def _normalize_layout_alias(layout) -> str:
+    value = str(layout or "").strip()
+    return _LAYOUT_ALIASES.get(value, value)
+
 def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
     page_id = _section_id(step.get("page_id") or step.get("page_name") or "workflow")
     model_id = _section_id(model)
@@ -1989,57 +2118,6 @@ def _navigation_methods(names: list[str]) -> list[dict]:
         if name
     ]
 
-def _resolve_component_semantics(section: dict) -> dict:
-    """
-    Generically resolves the semantic role and intent of a section.
-    Prioritizes explicit metadata, then infers from component patterns.
-    """
-    # 1. Respect explicit metadata if provided by the Agent/Designer
-    explicit_role = section.get("role")
-    explicit_intent = section.get("intent")
-    
-    if explicit_role and explicit_intent:
-        return {"role": str(explicit_role), "intent": str(explicit_intent)}
-
-    # 2. Infer from component name patterns (Generic suffixes)
-    component = str(section.get("component") or _infer_section_component(section))
-    
-    # Mapping patterns to semantic roles/intents
-    patterns = [
-        (r".*Detail(Panel|View|Card)?$", {"role": "detail", "intent": "view_object"}),
-        (r".*Form(Step|Group)?$", {"role": "form", "intent": "manage_object"}),
-        (r".*(Grid|Gallery|TileGrid)$", {"role": "collection", "intent": "view_collection"}),
-        (r".*(Table|List|ObjectList)$", {"role": "collection", "intent": "view_collection"}),
-        (r".*LineItem.*", {"role": "child_collection", "intent": "view_related_collection"}),
-        (r".*(NavBar|NavLinks|SideBar)$", {"role": "navigation", "intent": "navigate"}),
-        (r".*(Button|Action)$", {"role": "action", "intent": "trigger"}),
-        (r".*SearchBar$", {"role": "search", "intent": "query"})
-    ]
-
-    for pattern, semantics in patterns:
-        if re.match(pattern, component, re.I):
-            return {
-                "role": explicit_role or semantics["role"],
-                "intent": explicit_intent or semantics["intent"]
-            }
-
-    # 3. Fallback to layout-based semantics
-    layout = str(section.get("layout") or "card")
-    layout_map = {
-        "form": {"role": "form", "intent": "manage_object"},
-        "detail": {"role": "detail", "intent": "view_object"},
-        "list": {"role": "collection", "intent": "view_collection"},
-        "table": {"role": "collection", "intent": "view_collection"},
-        "gallery": {"role": "collection", "intent": "view_collection"},
-        "card": {"role": "item", "intent": "view_object"}
-    }
-    
-    fallback = layout_map.get(layout, {"role": layout, "intent": "unknown"})
-    return {
-        "role": explicit_role or fallback["role"],
-        "intent": explicit_intent or fallback["intent"]
-    }
-
 def _infer_section_component(section: dict) -> str:
     """
     Generically infers a suitable high-fidelity component name based on 
@@ -2049,7 +2127,7 @@ def _infer_section_component(section: dict) -> str:
     if component:
         return str(component)
     
-    layout = str(section.get("layout") or "")
+    layout = _normalize_layout_alias(section.get("layout"))
     role = str(section.get("role") or "")
     model_name = str(section.get("primary_model") or section.get("class") or "").lower()
     attrs = {str(a.get("name") if isinstance(a, dict) else a).lower() for a in section.get("attributes", [])}
@@ -2061,7 +2139,9 @@ def _infer_section_component(section: dict) -> str:
     if layout == "logo": return "Logo"
     if layout == "search-bar": return "SearchBar"
     if layout == "icon-actions": return "IconActions"
-    if layout in {"site-footer", "service-bar", "link-grid", "brand-strip"}: return "SiteFooter"
+    if layout in _FOOTER_TEMPLATE_LAYOUTS: return "FooterTemplate"
+    if layout in _HEADER_TEMPLATE_LAYOUTS and layout not in {"logo", "search-bar", "icon-actions", "site-nav", "nav-links"}:
+        return "HeaderTemplate"
     if layout in {"site-nav", "nav-links", "nav-bar"}: return "NavBar"
     
     if layout == "form":
@@ -2081,10 +2161,6 @@ def _infer_section_component(section: dict) -> str:
     if layout == "list": return "ObjectList"
     
     return "SectionPanel"
-
-def _get_section_semantic_role(section: dict) -> str:
-    """Returns the semantic role of a section using the generic resolver."""
-    return _resolve_component_semantics(section)["role"]
 
 def _field_layout_field_refs(field_layout) -> set[str]:
     refs = set()
@@ -2294,6 +2370,59 @@ def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[st
     selected.extend([name for name in attrs if name and name not in selected and name.lower() != "id"])
     return selected[:limit] or attrs[:limit]
 
+def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: int = 8) -> list:
+    data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form"}
+    model_names = set(model_attrs.keys())
+    model_names_fuzzy = {re.sub(r"[\s_-]", "", str(name or "")).lower(): name for name in model_names}
+
+    def canonical_model(name: str) -> str:
+        if name in model_attrs:
+            return name
+        return model_names_fuzzy.get(re.sub(r"[\s_-]", "", str(name or "")).lower(), "")
+
+    fixed = []
+    for section in sections:
+        section = dict(section)
+        section["layout"] = _normalize_layout_alias(section.get("layout"))
+        layout = section.get("layout", "")
+        component = str(section.get("component") or "")
+        if component == "NavBar" and layout in {"", "nav", "navigation", "navbar"}:
+            section["layout"] = "nav-links"
+            layout = "nav-links"
+
+        pm = canonical_model(str(section.get("primary_model") or section.get("class") or ""))
+        if pm:
+            section["primary_model"] = pm
+            section["class"] = pm
+
+        if pm and layout in data_layouts:
+            valid_attrs = set(model_attrs.get(pm) or [])
+            normalized_attrs = []
+            for attr in section.get("attributes") or []:
+                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                attr_name = str(attr_name or "")
+                if not attr_name:
+                    continue
+                if "." in attr_name:
+                    first, rest = attr_name.split(".", 1)
+                    related_model = canonical_model(first)
+                    if related_model and rest in set(model_attrs.get(related_model) or []):
+                        normalized = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
+                        normalized["name"] = f"{related_model}.{rest}"
+                        normalized.setdefault("source", "related")
+                        normalized.setdefault("readonly", True)
+                        normalized_attrs.append(normalized)
+                    continue
+                if attr_name in valid_attrs:
+                    normalized_attrs.append(attr)
+            if not normalized_attrs:
+                normalized_attrs = _model_field_names(model_attrs, pm, limit)
+            section["attributes"] = normalized_attrs
+        section["component"] = _infer_section_component(section)
+        section["field_layout"] = _normalize_field_layout(section)
+        fixed.append(section)
+    return fixed
+
 def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
     name = f"{page.get('name', '')} {page.get('id', '')}".lower()
     if any(term in name for term in ("detail", "view_", "account", "profile")):
@@ -2352,124 +2481,199 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
         "style": style,
     }
 
-def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs: dict, candidate_index: int = 0) -> tuple[list, list]:
+def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0, model_attrs: dict | None = None) -> list[dict]:
+    """Create a single editable header template section with deterministic variation."""
+    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+    variant = candidate_index % 3
+    ops = {"create": False, "update": False, "delete": False}
+    templates = ("main-header", "split-header", "dashboard-header", "commerce-header", "app-header", "compact-header", "mega-header", "minimal-header")
+    layout = templates[candidate_index % len(templates)]
+    style = {
+        "color": "accent",
+        "density": ("normal", "compact", "spacious")[variant],
+        "shadow": ("sm", "md", "lg")[variant],
+        "border": "light",
+        "bg": "white",
+        "header_variant": {
+            "main-header": "commerce",
+            "commerce-header": "commerce",
+            "split-header": "split-dark",
+            "dashboard-header": "dashboard",
+            "app-header": "app",
+            "compact-header": "compact",
+            "mega-header": "mega",
+            "minimal-header": "minimal",
+        }.get(layout, "commerce"),
+        "nav_height": ("normal", "compact", "tall")[variant],
+    }
+    return [{
+        "id": "app_header_template",
+        "name": "Header",
+        "role": "header",
+        "layout": layout,
+        "component": "HeaderTemplate",
+        "primary_model": "",
+        "class": "",
+        "attributes": [],
+        "operations": ops,
+        "methods": nav_methods,
+        "text": "Search",
+        "col_span": 12,
+        "position": "header",
+        "style": style,
+    }]
+
+def _footer_sections_for_candidate(candidate_index: int = 0) -> list[dict]:
+    ops = {"create": False, "update": False, "delete": False}
+    templates = ("site-footer", "mega-footer", "legal-footer", "newsletter-footer", "compact-footer", "social-footer")
+    layout = templates[candidate_index % len(templates)]
+    return [{
+        "id": "app_footer_template",
+        "name": "Footer",
+        "role": "footer",
+        "layout": layout,
+        "component": "FooterTemplate",
+        "primary_model": "",
+        "class": "",
+        "attributes": [],
+        "operations": ops,
+        "methods": ["Help", "Privacy", "Terms", "Contact"],
+        "col_span": 12,
+        "position": "footer",
+        "style": {
+            "color": "accent",
+            "density": ("normal", "compact", "spacious")[candidate_index % 3],
+            "shadow": "sm",
+            "border": "light",
+            "bg": "white",
+            "footer_variant": layout,
+        },
+    }]
+
+def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list]:
+    """Agent output may compose many header elements, but only one header/nav shell."""
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    header_shell_ids = [
+        sid for sid, section in section_map.items()
+        if section.get("position") == "header"
+        and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+    ]
+    if len(header_shell_ids) <= 1:
+        return pages, sections
+    duplicate_ids = set(header_shell_ids[1:])
+    next_sections = [section for section in sections if str(section.get("id")) not in duplicate_ids]
+    next_pages = []
+    for page in pages:
+        page = dict(page)
+        page["sections"] = [
+            ref for ref in (page.get("sections") or [])
+            if _ref_id(ref) and _ref_id(ref) not in duplicate_ids
+        ]
+        next_pages.append(page)
+    return next_pages, next_sections
+
+def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs: dict, candidate_index: int = 0, prompt: str = "") -> tuple[list, list]:
     known_models = set(model_attrs.keys())
     sections = [dict(s) for s in sections]
+    for section in sections:
+        section["layout"] = _normalize_layout_alias(section.get("layout"))
+        if section.get("component") == "NavBar" and not section.get("layout"):
+            section["layout"] = "nav-links"
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
     activity_section_ids = {sid for sid, s in section_map.items() if s.get("type") == "activity_action" or s.get("layout") == "activity_action"}
-    chrome_layouts = {"promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip", "activity_start", "activity_tasks"}
+    chrome_layouts = _CHROME_TEMPLATE_LAYOUTS | {"activity_start", "activity_tasks"}
+
+    sections_pages = _dedupe_agent_header_shells([], sections)
+    sections = sections_pages[1]
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    keep_header_shell_id = next(
+        (
+            sid for sid, section in section_map.items()
+            if section.get("position") == "header"
+            and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+        ),
+        "",
+    )
 
     fixed_pages = []
     normal_pages = []
     activity_pages = []
+    normal_pages_by_key = {}
     for page in pages:
         page = dict(page)
         refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+        if keep_header_shell_id:
+            seen_header_shell = False
+            deduped_refs = []
+            for ref in refs:
+                section = section_map.get(ref["value"]) or {}
+                is_header_shell_ref = (
+                    section.get("position") == "header"
+                    and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+                )
+                if is_header_shell_ref:
+                    if seen_header_shell:
+                        continue
+                    seen_header_shell = True
+                deduped_refs.append(ref)
+            refs = deduped_refs
         if _page_type_value(page) != "activity":
             refs = [ref for ref in refs if ref["value"] not in activity_section_ids]
             page["sections"] = refs
+            page_key = _section_id(page.get("name") or page.get("id") or page.get("display_name"))
+            if page_key and page_key in normal_pages_by_key:
+                existing = normal_pages_by_key[page_key]
+                existing_refs = [{"value": _ref_id(ref)} for ref in existing.get("sections") or [] if _ref_id(ref)]
+                existing_ids = {_ref_id(ref) for ref in existing_refs}
+                existing["sections"] = existing_refs + [ref for ref in refs if ref["value"] not in existing_ids]
+                continue
+            normal_pages_by_key[page_key] = page
             normal_pages.append(page)
         else:
             page["sections"] = refs
             activity_pages.append(page)
 
     normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
-    has_header_region = any(s.get("id") and s.get("position") == "header" for s in sections)
-    has_sidebar_navigation = any(
-        s.get("id")
-        and s.get("position") == "sidebar"
-        and (s.get("layout") in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar")
+    has_header_region = any(
+        s.get("id") and s.get("position") == "header"
         for s in sections
     )
-    if normal_pages and not (has_header_region or has_sidebar_navigation):
-        header_sections = [
-            {
-                "id": "app_header_logo",
-                "name": "Brand",
-                "role": "brand",
-                "layout": "logo",
-                "component": "Logo",
-                "primary_model": "",
-                "class": "",
-                "attributes": [],
-                "operations": {"create": False, "update": False, "delete": False},
-                "col_span": 3,
-                "position": "header",
-                "style": {
-                    "color": "accent",
-                    "density": "normal",
-                    "shadow": "none",
-                    "border": "none",
-                    "bg": "white",
-                    "logo_size": "md",
-                    "logo_shape": "rounded",
-                    "tagline": "",
-                },
-            },
-            {
-                "id": "app_header_search",
-                "name": "Search",
-                "role": "search",
-                "layout": "search-bar",
-                "component": "SearchBar",
-                "primary_model": "",
-                "class": "",
-                "attributes": [],
-                "operations": {"create": False, "update": False, "delete": False},
-                "col_span": 6,
-                "position": "header",
-                "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
-            },
-            {
-                "id": "app_header_actions",
-                "name": "Account actions",
-                "role": "actions",
-                "layout": "icon-actions",
-                "component": "IconActions",
-                "primary_model": "",
-                "class": "",
-                "attributes": [],
-                "operations": {"create": False, "update": False, "delete": False},
-                "col_span": 3,
-                "position": "header",
-                "style": {
-                    "color": "accent",
-                    "density": "normal",
-                    "shadow": "none",
-                    "border": "none",
-                    "bg": "white",
-                    "align": "right",
-                    "action_variant": "link",
-                    "show_logout": True,
-                    "logout_label": "Logout",
-                },
-            },
-            {
-                "id": "app_header_nav",
-                "name": "Site Navigation",
-                "role": "navigation",
-                "layout": "nav-links",
-                "component": "NavBar",
-                "primary_model": "",
-                "class": "",
-                "attributes": [],
-                "operations": {"create": False, "update": False, "delete": False},
-                "col_span": 12,
-                "position": "header",
-                "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
-                "methods": _navigation_methods([p.get("name") for p in normal_pages if p.get("name")]),
-            },
-        ]
+    if normal_pages and not has_header_region:
+        header_sections = _header_sections_for_candidate(normal_pages, candidate_index, model_attrs)
         for header_section in header_sections:
-            if header_section["id"] not in section_map:
-                sections.append(header_section)
-                section_map[header_section["id"]] = header_section
+            sid = header_section["id"]
+            suffix = 2
+            while sid in section_map:
+                sid = f"{header_section['id']}_{suffix}"
+                suffix += 1
+            header_section["id"] = sid
+            sections.append(header_section)
+            section_map[sid] = header_section
         for page in normal_pages:
             refs = page.get("sections") or []
             ref_ids = {_ref_id(ref) for ref in refs}
             missing_header_refs = [{"value": s["id"]} for s in header_sections if s["id"] not in ref_ids]
             if missing_header_refs:
                 page["sections"] = missing_header_refs + refs
+
+    has_footer_region = any(s.get("id") and s.get("position") == "footer" for s in sections)
+    if normal_pages and not has_footer_region:
+        footer_sections = _footer_sections_for_candidate(candidate_index)
+        for footer_section in footer_sections:
+            sid = footer_section["id"]
+            suffix = 2
+            while sid in section_map:
+                sid = f"{footer_section['id']}_{suffix}"
+                suffix += 1
+            footer_section["id"] = sid
+            sections.append(footer_section)
+            section_map[sid] = footer_section
+        for page in normal_pages:
+            refs = page.get("sections") or []
+            ref_ids = {_ref_id(ref) for ref in refs}
+            missing_footer_refs = [{"value": s["id"]} for s in footer_sections if s["id"] not in ref_ids]
+            if missing_footer_refs:
+                page["sections"] = refs + missing_footer_refs
 
     def _is_global_region_section(section: dict) -> bool:
         position = section.get("position")
@@ -2741,7 +2945,9 @@ def _apply_ooui_navigation_methods(pages: list, sections: list, usecase_navigati
     fixed = []
     for section in sections:
         section = dict(section)
-        if section.get("layout") in {"site-nav", "nav-links", "main-header"} or section.get("position") in {"header", "sidebar"} and section.get("layout") in {"site-nav", "nav-links"}:
+        layout = _normalize_layout_alias(section.get("layout"))
+        if layout in {"site-nav", "nav-links", "main-header"} or section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links"}:
+            section["layout"] = layout
             section["methods"] = _navigation_methods(nav_names)
         fixed.append(section)
     return fixed
@@ -2824,33 +3030,6 @@ def get_interface_config(interface_id: str) -> str:
         response = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); response.raise_for_status()
         return json.dumps(response.json(), indent=2)
     except Exception as e: return f"Error fetching interface config: {e}"
-
-def list_existing_templates() -> list:
-    try:
-        if not os.path.exists(TEMPLATES_DIR): return [f"Templates directory not found at {TEMPLATES_DIR}"]
-        return os.listdir(TEMPLATES_DIR)
-    except Exception as e: return [f"Error listing templates: {e}"]
-
-def read_template_file(filename: str) -> str:
-    try:
-        path = os.path.join(TEMPLATES_DIR, filename)
-        if not os.path.exists(path): return f"File {filename} not found."
-        with open(path, "r", encoding="utf-8") as f: return f.read()
-    except Exception as e: return f"Error reading template: {e}"
-
-def write_prototype_template(filename: str, content: str) -> str:
-    try:
-        if not filename.endswith((".html", ".jinja2")): return "Error: File must be .html or .jinja2"
-        os.makedirs(TEMPLATES_DIR, exist_ok=True); path = os.path.join(TEMPLATES_DIR, filename)
-        with open(path, "w", encoding="utf-8") as f: f.write(content)
-        return f"Successfully wrote {filename} to {TEMPLATES_DIR}"
-    except Exception as e: return f"Error writing template: {e}"
-
-def update_interface_data(interface_id: str, data: dict) -> str:
-    try:
-        resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); resp.raise_for_status(); current = resp.json(); payload = {"id": interface_id, "name": current["name"], "description": current["description"], "system_id": current["system"], "actor_id": current["actor"], "data": data}; response = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); response.raise_for_status()
-        return f"Successfully updated interface {interface_id} data."
-    except Exception as e: return f"Error updating interface data: {e}"
 
 def _build_known_attrs(system_id: str) -> dict[str, set[str]]:
     """Returns {ModelName: {attr_name, ...}} for validation. Empty on error."""
@@ -3155,9 +3334,10 @@ def validate_and_save_candidate(
         model_names_fuzzy = {_norm_model(m): m for m in known_models}
         def _canonical_model_name(name: str) -> str:
             return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
-        errors = []; _VALID_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks", "promo-bar", "logo", "search-bar", "icon-actions", "nav-links", "main-header", "minimal-header", "site-nav", "site-footer", "service-bar", "link-grid", "brand-strip"}
-        _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate", "accent", "accent-secondary"},"density": {"compact", "normal", "spacious"}, "nav_height": {"compact", "normal", "tall", "xl"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}}
+        errors = []; _VALID_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks"} | _CHROME_TEMPLATE_LAYOUTS
+        _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate", "accent", "accent-secondary"},"density": {"compact", "normal", "spacious"}, "nav_height": {"compact", "normal", "tall", "xl"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}, "banner_height": {"sm", "md", "lg", "xl"}, "image_ratio": {"wide", "16:9", "4:3", "1:1", "portrait"}, "logo_size": {"sm", "md", "lg", "xl"}, "logo_shape": {"rounded", "circle", "square"}}
         for s in sections:
+            s["layout"] = _normalize_layout_alias(s.get("layout"))
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
             sname = s.get("name", "?"); layout = s.get("layout", "")
@@ -3204,6 +3384,7 @@ def validate_and_save_candidate(
         fixed_sections = []
         for s in sections:
             s = dict(s)
+            s["layout"] = _normalize_layout_alias(s.get("layout"))
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
             pm = s.get("primary_model", "")
@@ -3283,10 +3464,12 @@ def validate_and_save_candidate(
             s["component"] = _infer_section_component(s)
             s["field_layout"] = _normalize_field_layout(s)
         fixed_pages, fixed_sections = _ensure_workflow_entry_sections(fixed_pages, fixed_sections, usecase_navigation)
-        fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0))
+        fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0), prompt_for_style)
         fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
         fixed_sections = _apply_ooui_navigation_methods(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
+        fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
+        fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
         for s in fixed_sections:
             s["component"] = _infer_section_component(s)
         chrome_positions = {"header", "hero", "footer", "sidebar"}
@@ -3478,7 +3661,7 @@ def _baseline_layout_intent(pages: list, sections: list) -> dict:
     layout = _page_layout_dict(first_page)
     nav_sections = [
         s for s in sections or []
-        if str(s.get("layout") or "") in {"site-nav", "nav-links", "nav-bar"} or str(s.get("component") or "") == "NavBar"
+        if _normalize_layout_alias(s.get("layout")) in {"site-nav", "nav-links", "nav-bar"} or str(s.get("component") or "") == "NavBar"
     ]
     sidebar_nav = next((s for s in nav_sections if s.get("position") == "sidebar"), None)
     sidebar_section = next((s for s in sections or [] if s.get("position") == "sidebar"), None)
@@ -3607,7 +3790,8 @@ def _apply_layout_intent_to_sections(sections: list, intent: dict, prompt: str =
     mode = intent.get("mode", "explore")
     for raw in sections or []:
         section = copy.deepcopy(raw)
-        layout = str(section.get("layout") or "")
+        layout = _normalize_layout_alias(section.get("layout"))
+        section["layout"] = layout
         role = str(section.get("role") or "")
         style = dict(section.get("style") or {})
         section_id = str(section.get("id") or "")
@@ -3633,25 +3817,22 @@ def _apply_layout_intent_to_sections(sections: list, intent: dict, prompt: str =
             section["component"] = "IconActions"
             style["align"] = "right"
             section["position"] = "header"
-        elif layout in {"main-header", "minimal-header", "logo", "search-bar"}:
+        elif layout in _HEADER_TEMPLATE_LAYOUTS:
             section["position"] = "header"
             if mode == "explore" and intent.get("name") == "full-showcase" and layout == "main-header":
                 section["layout"] = "minimal-header"
-                section["component"] = "NavBar"
+                section["component"] = "HeaderTemplate"
             if layout in {"logo", "search-bar"} and intent.get("density") == "compact":
                 style["density"] = "compact"
-        elif layout == "site-footer":
-            section["component"] = "SiteFooter"
+        elif layout in _FOOTER_TEMPLATE_LAYOUTS:
+            section["position"] = "footer"
+            section["component"] = "FooterTemplate"
             style["density"] = intent.get("density", style.get("density", "normal"))
             if mode == "explore" and intent.get("nav") == "sidebar-left":
                 section["layout"] = "link-grid"
                 section["component"] = "FooterLinkGrid"
             elif intent.get("footer_width") == "full":
                 style["surface_level"] = "elevated"
-        elif layout in {"service-bar", "link-grid", "brand-strip"}:
-            section["position"] = "footer"
-            if mode == "explore" and intent.get("name") == "full-showcase" and layout == "link-grid":
-                section["layout"] = "brand-strip"
         elif explicit_region_position == "sidebar" or (intent.get("nav") == "sidebar-left" and (layout == "filter" or role in {"filter", "navigation", "summary", "kpi", "stats", "tasklist", "help"})):
             section["position"] = "sidebar"
             section["col_span"] = 12
@@ -3709,6 +3890,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
             variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
             variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
+            variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
             tokens = _variant_tokens(base_tokens, prompt, index)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index
@@ -3753,6 +3935,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
             variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
             variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, designer_requirements)
+            variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
             tokens = _variant_tokens(base_tokens, designer_requirements, index)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index

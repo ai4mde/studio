@@ -17,7 +17,8 @@ type Props = {
 
 const CHROME_LAYOUTS = [
     'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
-    'service-bar', 'link-grid', 'brand-strip',
+    'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header',
+    'service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer',
     'site-nav', 'site-footer',
 ];
 
@@ -29,9 +30,20 @@ const METHODS_HINTS: Record<string, string> = {
     'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links (e.g. "Zakelijk").',
     'main-header':    'Text field = search placeholder. Uses promo-bar/logo/search-bar/icon-actions sections instead.',
     'minimal-header': 'Text field = cart amount shown in header button (e.g. "0,00").',
+    'commerce-header': 'Full commerce header template.',
+    'dashboard-header': 'Dense dashboard/app header template.',
+    'split-header': 'Dark split header template.',
+    'app-header': 'Operational app header template.',
+    'compact-header': 'Compact one-row header template.',
+    'mega-header': 'Large navigation-heavy header template.',
     'service-bar':    'Each line = a service bar link in the footer.',
     'link-grid':      'Line 1 = column title. Lines 2+ = footer links in that column.',
     'brand-strip':    'Each line = a brand name shown in the brand strip.',
+    'compact-footer': 'Small compact footer template.',
+    'legal-footer': 'Legal links footer template.',
+    'newsletter-footer': 'Newsletter/CTA footer template.',
+    'social-footer': 'Social/brand footer template.',
+    'mega-footer': 'Large multi-column footer template.',
     'site-nav':       'Lines 1–3: promo strip items. Line 4: right-side highlight text.',
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
@@ -129,10 +141,13 @@ export const Sections: React.FC<Props> = () => {
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [newText, setNewText] = useState('');
+    const [newImageUrl, setNewImageUrl] = useState('');
+    const [newImageAlt, setNewImageAlt] = useState('');
     const [newRelationField, setNewRelationField] = useState('');
     const [selectedOperations, setSelectedOperations] = useLocalStorage('selectedOperations', []);
     const [pencelClick, setPencelClick] = useState(false);
     const [pencelClickText, setPencelClickText] = useState(false);
+    const [pencelClickImageUrl, setPencelClickImageUrl] = useState(false);
     const [classes, isSuccessClasses] = useSystemClasses(systemId);
     const [selectedClass, setSelectedClass] = useLocalStorage('selectedClass', '');
     const selectedClassObject = React.useMemo(() => {
@@ -252,6 +267,8 @@ export const Sections: React.FC<Props> = () => {
         } else {
             setNewText('');
         }
+        setNewImageUrl(data[index].style?.image_url || data[index].image_url || '');
+        setNewImageAlt(data[index].style?.image_alt || data[index].image_alt || '');
 
         setNewRelationField(data[index].relation_field || '');
         setEditIndex(index);
@@ -295,6 +312,30 @@ export const Sections: React.FC<Props> = () => {
 
     const handleTextCancel = () => {
         setPencelClickText(false);
+    };
+
+    const handleImageUrlChange = (index: number) => {
+        const newData = [...data];
+        const style = { ...(newData[index].style || {}) };
+        if (newImageUrl) style.image_url = newImageUrl;
+        else delete style.image_url;
+        if (newImageAlt) style.image_alt = newImageAlt;
+        else delete style.image_alt;
+        newData[index].style = style;
+        setData(newData);
+        setPencelClickImageUrl(false);
+    };
+
+    const handlePencilClickImageUrl = () => {
+        setPencelClickImageUrl(true);
+    };
+
+    const handleImageUrlCancel = () => {
+        setPencelClickImageUrl(false);
+        if (editIndex >= 0) {
+            setNewImageUrl(data[editIndex].style?.image_url || data[editIndex].image_url || '');
+            setNewImageAlt(data[editIndex].style?.image_alt || data[editIndex].image_alt || '');
+        }
     };
 
     const handleRelatedToChange = (index: number, sectionId: string) => {
@@ -593,6 +634,14 @@ export const Sections: React.FC<Props> = () => {
 
     const handleInputChangeText = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setNewText(event.target.value);
+    };
+
+    const handleInputChangeImageUrl = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNewImageUrl(event.target.value);
+    };
+
+    const handleInputChangeImageAlt = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setNewImageAlt(event.target.value);
     };
 
     const handleDelete = (index: number) => {
@@ -1114,6 +1163,62 @@ export const Sections: React.FC<Props> = () => {
                                                     </button>
                                                     <button
                                                         onClick={handleTextCancel}
+                                                        className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
+                                                    >
+                                                        <Ban />
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </FormControl>
+                                    <FormControl className="space-y-1">
+                                        <h3 className="text-xl font-bold">Image URL</h3>
+                                        {!pencelClickImageUrl && (
+                                            <div className="flex flex-wrap gap-2">
+                                                <h2 className="text-l break-all">
+                                                    {section.style?.image_url ? (
+                                                        <span>{section.style.image_url}</span>
+                                                    ) : (
+                                                        <span style={{ color: 'grey' }}>No image URL specified...</span>
+                                                    )}
+                                                </h2>
+                                                <Pencil
+                                                    className="cursor-pointer ml-auto"
+                                                    onClick={handlePencilClickImageUrl}
+                                                />
+                                                {section.style?.image_url && (
+                                                    <img
+                                                        src={section.style.image_url}
+                                                        alt={section.style?.image_alt || section.name || 'Section image'}
+                                                        className="w-full h-24 object-cover rounded-md border border-gray-200"
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {pencelClickImageUrl && (
+                                            <>
+                                                <Input
+                                                    name="image_url"
+                                                    placeholder="https://example.com/header.jpg"
+                                                    value={newImageUrl}
+                                                    onChange={handleInputChangeImageUrl}
+                                                />
+                                                <Input
+                                                    name="image_alt"
+                                                    placeholder="Alt text"
+                                                    value={newImageAlt}
+                                                    onChange={handleInputChangeImageAlt}
+                                                />
+                                                <div className="flex flex-wrap gap-2 ml-auto">
+                                                    <button
+                                                        onClick={() => handleImageUrlChange(index)}
+                                                        className="w-[40px] h-[40px] bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600"
+                                                    >
+                                                        <Save />
+                                                    </button>
+                                                    <button
+                                                        onClick={handleImageUrlCancel}
                                                         className="w-[40px] h-[40px] bg-gray-300 text-gray-700 px-2 py-1 rounded-md hover:bg-gray-400"
                                                     >
                                                         <Ban />

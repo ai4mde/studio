@@ -252,6 +252,38 @@ def _sanitize(name: str) -> str:
     name = re.sub(r"\s+", "_", name.strip())
     return name.lower()
 
+_LAYOUT_ALIASES = {
+    "nav": "nav-links",
+    "navigation": "nav-links",
+    "navbar": "nav-links",
+    "side-nav": "nav-links",
+    "top-nav": "nav-links",
+    "footer-links": "link-grid",
+    "footer-brand": "brand-strip",
+    "service-strip": "service-bar",
+}
+
+def _normalize_layout_alias(layout) -> str:
+    value = str(layout or "").strip()
+    return _LAYOUT_ALIASES.get(value, value)
+
+def _attrs_for_section_render(section_raw: Dict, cls_data: Dict, layout: str) -> List:
+    raw_attrs = section_raw.get("attributes") or []
+    if raw_attrs:
+        return raw_attrs
+    if not cls_data or layout not in {"card", "list", "table", "detail", "gallery", "filter", "form"}:
+        return []
+    attrs = [
+        attr for attr in (cls_data.get("attributes") or [])
+        if isinstance(attr, dict) and attr.get("name") and str(attr.get("name")).lower() not in {"id", "pk"}
+    ]
+    preferred = ["name", "title", "status", "amount", "price", "total", "email", "phone", "date", "description"]
+    selected = []
+    for key in preferred:
+        selected.extend([attr for attr in attrs if key in str(attr.get("name", "")).lower() and attr not in selected])
+    selected.extend([attr for attr in attrs if attr not in selected])
+    return selected[:8]
+
 
 def _parse_text(text: str) -> str:
     if not text:
@@ -424,6 +456,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 cls_data = classifier_name_map.get(_sanitize(declared_primary_model), {})
             primary_model = _sanitize(cls_data.get("name", "")) if cls_data else ""
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
+            sec_layout = _normalize_layout_alias(s_raw.get("layout", "table"))
 
             attributes = []
             classifier_attr_types = {
@@ -431,7 +464,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 for attr in cls_data.get("attributes", [])
                 if isinstance(attr, dict)
             }
-            for attr_raw in s_raw.get("attributes", []):
+            for attr_raw in _attrs_for_section_render(s_raw, cls_data, sec_layout):
                 if isinstance(attr_raw, str):
                     attr_data = {"name": attr_raw}
                 else:
@@ -481,7 +514,6 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
             ops = _parse_operations(s_raw.get("operations", {}))
 
-            sec_layout = s_raw.get("layout", "table")
             sec_style = {**DEFAULT_SECTION_STYLE, **(s_raw.get("style") or {})}
             if layout_config and not s_raw.get("layout"):
                 sec_layout = layout_config.get("layout", sec_layout)

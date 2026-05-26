@@ -1,4 +1,4 @@
-﻿{% if preview_mode -%}
+{% if preview_mode -%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +11,7 @@
     {% include "helpers/tailwind_fallback.css.jinja2" %}
 
     :root {
-      /* 閳光偓閳光偓 Radius 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Radius éˆ¹â‚¬éˆ¹â‚¬ */
       --radius:    {{ tokens.get('page.radius.px', '8') }}px;
       --radius-sm: {{ tokens.get('radius.sm.px', '4') }}px;
       --radius-lg: {{ tokens.get('radius.lg.px', '12') }}px;
@@ -19,7 +19,7 @@
       --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
       --input-radius: {{ tokens.get('input.radius.px', tokens.get('page.radius.px', '8')) }}px;
 
-      /* 閳光偓閳光偓 Typography 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Typography éˆ¹â‚¬éˆ¹â‚¬ */
       --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
       --text-hero-size:     {{ tokens.get('typography.hero.size', '56px') }};
       --text-hero-weight:   {{ tokens.get('typography.hero.weight', '600') }};
@@ -41,7 +41,7 @@
       --text-label-size:    {{ tokens.get('typography.label.size', '14px') }};
       --text-label-weight:  {{ tokens.get('typography.label.weight', '500') }};
 
-      /* 閳光偓閳光偓 Page & Region Colors 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Page & Region Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --accent:               {{ tokens.get('accent.hex', '#2563eb') }};
       --accent-secondary:     {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
       --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
@@ -59,17 +59,19 @@
       --border-color:         {{ tokens.get('region.border_hex', tokens.get('border.default.hex', '#e5e7eb')) }};
       --border-strong:        {{ tokens.get('border.strong.hex', tokens.get('region.border_strong_hex', '#d1d5db')) }};
 
-      /* 閳光偓閳光偓 Shadows 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Shadows éˆ¹â‚¬éˆ¹â‚¬ */
       --shadow-sm: {{ tokens.get('shadow.sm', '0 1px 2px 0 rgb(0 0 0 / 0.05)') }};
       --shadow-md: {{ tokens.get('shadow.md', '0 4px 6px -1px rgb(0 0 0 / 0.10)') }};
       --shadow-lg: {{ tokens.get('shadow.lg', '0 10px 15px -3px rgb(0 0 0 / 0.10)') }};
 
-      /* 閳光偓閳光偓 Card 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Card éˆ¹â‚¬éˆ¹â‚¬ */
       --card-bg:     {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
       --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
       --card-shadow: {{ tokens.get('component.card.shadow', 'var(--shadow-sm)') }};
+      --card-text:   {{ tokens.get('component.card.text_hex', tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827'))) }};
+      --card-muted:  {{ tokens.get('component.card.muted_text_hex', tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280'))) }};
 
-      /* 閳光偓閳光偓 Buttons 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
       --button-primary-bg:      {{ tokens.get('button.primary.bg_hex', 'var(--accent)') }};
       --button-primary-text:    {{ tokens.get('button.primary.text_hex', '#ffffff') }};
       --button-primary-border:  {{ tokens.get('button.primary.border_hex', 'var(--accent)') }};
@@ -80,20 +82,20 @@
       --button-danger-bg:       {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
       --button-danger-text:     {{ tokens.get('button.danger.text_hex', '#ffffff') }};
 
-      /* 閳光偓閳光偓 Inputs 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
       --input-bg:           {{ tokens.get('input.bg_hex', 'var(--region-main-bg)') }};
       --input-border:       {{ tokens.get('input.border_hex', 'var(--border-color)') }};
       --input-border-focus: {{ tokens.get('input.border_focus_hex', 'var(--accent)') }};
       --input-text:         {{ tokens.get('input.text_hex', 'var(--page-text)') }};
       --input-placeholder:  {{ tokens.get('input.placeholder_hex', 'var(--text-subtle)') }};
 
-      /* 閳光偓閳光偓 Table 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Table éˆ¹â‚¬éˆ¹â‚¬ */
       --table-header-bg:   {{ tokens.get('table.header.bg_hex', 'var(--region-main-bg-sunken)') }};
       --table-header-text: {{ tokens.get('table.header.text_hex', 'var(--text-muted)') }};
       --table-row-hover:   {{ tokens.get('table.row.hover_hex', 'var(--region-main-bg-sunken)') }};
       --table-border:      {{ tokens.get('table.border_hex', 'var(--border-color)') }};
 
-      /* 閳光偓閳光偓 Semantic Badge Colors 閳光偓閳光偓 */
+      /* éˆ¹â‚¬éˆ¹â‚¬ Semantic Badge Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --badge-success-bg:  {{ tokens.get('badge.success.bg_hex', '#16a34a') }};
       --badge-success-text:{{ tokens.get('badge.success.text_hex', '#ffffff') }};
       --badge-error-bg:    {{ tokens.get('badge.error.bg_hex', '#dc2626') }};
@@ -113,7 +115,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* 閳光偓閳光偓 Typography Classes 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Typography Classes éˆ¹â‚¬éˆ¹â‚¬ */
     .si-text-hero    { font-size: var(--text-hero-size);    font-weight: var(--text-hero-weight);    line-height: var(--text-hero-lh);    letter-spacing: var(--text-hero-ls); }
     .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
     .si-text-title   { font-size: var(--text-title-size);   font-weight: var(--text-title-weight); }
@@ -124,15 +126,16 @@
     .si-text-muted   { color: var(--text-muted); }
     .si-text-subtle  { color: var(--text-subtle); }
 
-    /* 閳光偓閳光偓 Layout Utilities 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Layout Utilities éˆ¹â‚¬éˆ¹â‚¬ */
     .si-container     { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
     .si-container-full{ max-width: 100% !important; padding: 0 !important; }
     .si-sticky-top    { position: sticky; top: 0; z-index: 40; }
     .si-divider       { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
 
-    /* 閳光偓閳光偓 Cards 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Cards éˆ¹â‚¬éˆ¹â‚¬ */
     .si-card {
       background-color: var(--card-bg);
+      color: var(--card-text);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
       box-shadow: var(--card-shadow);
@@ -141,7 +144,7 @@
     .si-card-elevated { background-color: var(--region-main-bg-elevated); box-shadow: var(--shadow-md); }
     .si-card-sunken   { background-color: var(--region-main-bg-sunken); }
 
-    /* 閳光偓閳光偓 Buttons 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
     .si-btn         { border-radius: var(--btn-radius); border-color: transparent; cursor: pointer; }
     .si-btn-primary { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
     .si-btn-primary:hover { opacity: 0.9; }
@@ -150,21 +153,21 @@
     .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
     .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
 
-    /* 閳光偓閳光偓 Accent color classes (follow design spec primary color) 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Accent color classes (follow design spec primary color) éˆ¹â‚¬éˆ¹â‚¬ */
     .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }
     .si-accent-btn:hover  { opacity: 0.9; }
     .si-accent-text       { color: var(--accent); }
     .si-accent-border     { border-color: var(--accent); }
     .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
 
-    /* 閳光偓閳光偓 Accent-secondary (second brand color) 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Accent-secondary (second brand color) éˆ¹â‚¬éˆ¹â‚¬ */
     .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
     .si-btn-accent-secondary:hover { opacity: 0.9; }
     .si-accent-secondary-text   { color: var(--accent-secondary); }
     .si-accent-secondary-border { border-color: var(--accent-secondary); }
     .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
 
-    /* 閳光偓閳光偓 Inputs 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
     .si-input {
       background-color: var(--input-bg);
       border: 1px solid var(--input-border);
@@ -176,19 +179,19 @@
     .si-input::placeholder { color: var(--input-placeholder); }
     .si-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); color: var(--page-text); }
 
-    /* 閳光偓閳光偓 Tables 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Tables éˆ¹â‚¬éˆ¹â‚¬ */
     .si-table-header { background-color: var(--table-header-bg); color: var(--table-header-text); font-size: var(--text-caption-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .si-table-row    { border-bottom: 1px solid var(--table-border); }
     .si-table-row:hover { background-color: var(--table-row-hover); }
 
-    /* 閳光偓閳光偓 Badges 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Badges éˆ¹â‚¬éˆ¹â‚¬ */
     .si-badge         { display: inline-flex; align-items: center; border-radius: var(--radius-full); padding: 2px 8px; font-size: var(--text-caption-size); font-weight: 600; }
     .si-badge-success { background-color: var(--badge-success-bg); color: var(--badge-success-text); }
     .si-badge-error   { background-color: var(--badge-error-bg);   color: var(--badge-error-text); }
     .si-badge-warning { background-color: var(--badge-warning-bg); color: var(--badge-warning-text); }
     .si-badge-neutral { background-color: var(--badge-neutral-bg); color: var(--badge-neutral-text); }
 
-    /* 閳光偓閳光偓 Override hardcoded Tailwind colors with design spec tokens 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Override hardcoded Tailwind colors with design spec tokens éˆ¹â‚¬éˆ¹â‚¬ */
     /* Border colors */
     .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
     .border-gray-300, .border-gray-400 { border-color: var(--border-strong) !important; }
@@ -201,17 +204,19 @@
     .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
     .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
     .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
-    /* Border radius 閳?follow design spec radius */
+    .si-card .text-gray-900, .si-card .text-gray-800 { color: var(--card-text) !important; }
+    .si-card .text-gray-700, .si-card .text-gray-600 { color: var(--card-muted) !important; }
+    /* Border radius éˆ?follow design spec radius */
     .rounded-xl  { border-radius: var(--radius-lg) !important; }
     .rounded-lg  { border-radius: var(--radius) !important; }
     .rounded-md  { border-radius: var(--radius-sm) !important; }
     .rounded-2xl { border-radius: var(--radius-lg) !important; }
-    /* Shadows 閳?follow design spec shadow tokens */
+    /* Shadows éˆ?follow design spec shadow tokens */
     .shadow-sm { box-shadow: var(--shadow-sm) !important; }
     .shadow-md { box-shadow: var(--shadow-md) !important; }
     .shadow-lg { box-shadow: var(--shadow-lg) !important; }
 
-    /* 閳光偓閳光偓 Card Hover Effects 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Card Hover Effects éˆ¹â‚¬éˆ¹â‚¬ */
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
     .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -226,7 +231,7 @@
     .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
     .si-video { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; background-color: #000; }
 
-    /* 閳光偓閳光偓 Multi-select (operations.select) 閳光偓閳光偓 */
+    /* éˆ¹â‚¬éˆ¹â‚¬ Multi-select (operations.select) éˆ¹â‚¬éˆ¹â‚¬ */
     .si-sel-item { position: relative; cursor: pointer; }
     .si-sel-item .si-sel-cb {
       position: absolute; top: 8px; left: 8px; z-index: 10;
@@ -286,18 +291,32 @@ href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({t
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
 {%- endmacro %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- set _has_header_chrome = [] %}
+{%- set _nav_pages = [] %}
+{%- set _nav_page_keys = [] %}
+{%- for _p in (all_pages or []) %}
+  {%- if _p.type != 'activity' and not (_p.is_task_page is defined and _p.is_task_page) %}
+    {%- set _p_key = (_p.name if _p.name is defined else _p)|string %}
+    {%- if _p_key not in _nav_page_keys %}
+      {%- set _ = _nav_page_keys.append(_p_key) %}
+      {%- set _ = _nav_pages.append(_p) %}
+    {%- endif %}
+  {%- endif %}
+{%- endfor %}
 {%- for sc in page.section_components %}
   {%- if sc.layout in _header_chrome or sc.position == 'header' %}
     {%- set _ = _has_header_chrome.append(sc) %}
+    {%- set _ = _header_secs.append(sc) %}
+  {%- elif sc.layout in _footer_chrome or sc.position == 'footer' %}
+    {%- set _ = _footer_secs.append(sc) %}
   {%- endif %}
 {%- endfor %}
 
-{# 閳光偓閳光偓 header chrome: render all header-position section components 閳光偓閳光偓
+{# éˆ¹â‚¬éˆ¹â‚¬ header chrome: render all header-position section components éˆ¹â‚¬éˆ¹â‚¬
    Granular row logic: logo + search-bar + icon-actions are opened/closed in
    a shared flex row; all other header layouts are full-width blocks.
 #}
@@ -306,13 +325,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
 {%- if _inline_lay and not _main_row_open %}
   {%- set _ = _main_row_open.append(1) %}
-<header class="bg-white px-6 py-3 flex items-center gap-4" data-position="header" data-layout="main-header-row">
+  {%- set _row_style = sc.style if sc.style is defined and sc.style else {} %}
+  {%- set _row_variant = _row_style.get('header_variant', '') %}
+<header class="{% if _row_variant == 'split-dark' %}px-6 py-3 flex items-center gap-4 shadow-sm{% elif _row_variant == 'showcase' %}bg-white px-8 py-5 flex items-center gap-5 border-b border-gray-100 shadow-sm{% else %}bg-white px-6 py-3 flex items-center gap-4{% endif %}" style="{% if _row_variant == 'split-dark' %}background-color:#111827;color:#ffffff;{% endif %}" data-position="header" data-layout="main-header-row" data-header-variant="{{ _row_variant }}">
 {%- elif not _inline_lay and _main_row_open %}
   {%- set _ = _main_row_open.clear() %}
 </header>
 {%- endif %}
 
-{# 閳光偓閳光偓 ACTIVITY ACTION (header-position workflow button) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ ACTIVITY ACTION (header-position workflow button) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -352,7 +373,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{# 閳光偓閳光偓 PROMO BAR (promo-bar / promo-strip) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ PROMO BAR (promo-bar / promo-strip) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -366,7 +387,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{# 閳光偓閳光偓 LOGO (inline inside main-header-row) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ LOGO (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- elif sc.layout == 'logo' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _logo_url = _sc_style.get('logo_url') or _sc_style.get('image_url') or tokens.get('brand.logo_url', '') %}
@@ -381,17 +402,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
     {%- if _logo_variant != 'image-only' %}
     <span class="flex flex-col min-w-0">
-      <span class="text-3xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
-      {%- if _tagline %}<span class="text-xs font-medium text-gray-500 mt-1 truncate">{{ _tagline }}</span>{%- endif %}
+      <span class="text-3xl font-black truncate" style="color:{% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}#ffffff{% else %}{{ _accent_hex }}{% endif %};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+      {%- if _tagline %}<span class="text-xs font-medium {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-gray-300{% else %}text-gray-500{% endif %} mt-1 truncate">{{ _tagline }}</span>{%- endif %}
     </span>
     {%- endif %}
   </a>
 </div>
 
-{# 閳光偓閳光偓 SEARCH BAR (inline inside main-header-row) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ SEARCH BAR (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
-  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+  {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
     <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -399,7 +421,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </form>
 </div>
 
-{# 閳光偓閳光偓 ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- elif sc.layout == 'icon-actions' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _action_variant = _sc_style.get('action_variant', 'link') %}
@@ -407,7 +429,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _logout_label = _sc_style.get('logout_label', 'Logout') %}
 {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
-  <div class="flex items-center justify-end gap-3 text-sm text-gray-700 shrink-0">
+  <div class="flex items-center justify-end gap-3 text-sm {% if _sc_style.get('header_variant') == 'split-dark' or _sc_style.get('bg') == 'dark' %}text-white{% else %}text-gray-700{% endif %} shrink-0">
     {%- if sc.custom_methods %}
     {%- for m in sc.custom_methods %}
     <span class="{{ _action_cls }}">{{ m }}</span>
@@ -422,8 +444,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{# 閳光偓閳光偓 COMBINED MAIN HEADER (main-header 閳?legacy single-section variant) 閳光偓閳光偓 #}
-{%- elif sc.layout == 'main-header' %}
+{# éˆ¹â‚¬éˆ¹â‚¬ COMBINED MAIN HEADER (main-header éˆ?legacy single-section variant) éˆ¹â‚¬éˆ¹â‚¬ #}
+{%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
   <span style="font-weight:600;letter-spacing:.05em;">{{ _brand_name | upper }}</span>
@@ -446,8 +468,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# 閳光偓閳光偓 NAV BAR (nav-links / nav-bar) 閳光偓閳光偓 #}
-{%- elif sc.layout in ('nav-links', 'nav-bar') %}
+{# éˆ¹â‚¬éˆ¹â‚¬ NAV BAR (nav-links / nav-bar) éˆ¹â‚¬éˆ¹â‚¬ #}
+{%- elif sc.layout in ('nav', 'nav-links', 'nav-bar') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -455,9 +477,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     <div class="flex items-center gap-0">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 閳?
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} éˆ?
       </span>
-      {%- for p in (all_pages or []) %}
+      {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
       <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
@@ -477,8 +499,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </nav>
 </div>
 
-{# 閳光偓閳光偓 MINIMAL HEADER (minimal-header 閳?checkout/login) 閳光偓閳光偓 #}
-{%- elif sc.layout == 'minimal-header' %}
+{# éˆ¹â‚¬éˆ¹â‚¬ MINIMAL HEADER (minimal-header éˆ?checkout/login) éˆ¹â‚¬éˆ¹â‚¬ #}
+{%- elif sc.layout in ('minimal-header','compact-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
   <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -489,7 +511,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# 閳光偓閳光偓 SITE-NAV (legacy: full header in one section) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ SITE-NAV (legacy: full header in one section) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- elif sc.layout == 'site-nav' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -516,8 +538,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 閳?/span>
-      {%- for p in (all_pages or []) %}{% if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{% endif %}{%- endfor %}
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} éˆ?/span>
+      {%- for p in _nav_pages %}{% if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{% endif %}{%- endfor %}
     </div>
     <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
   </div>
@@ -529,18 +551,30 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _main_row_open %}</header>{%- endif %}
 
 {% if not _has_header_chrome %}
-<header class="{{ _header_shell_class }} py-3 flex items-center justify-between shadow-sm" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
-  <div class="flex items-center gap-3">
-    <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
-      {{ _brand_name | capitalize }}
+{%- set _fallback_logo = namespace(url='') %}
+{%- if tokens.get('brand.logo_url', '') %}{%- set _fallback_logo.url = tokens.get('brand.logo_url') %}{%- endif %}
+{%- set _fallback_nav_style = {} %}
+<header class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="{{ _header_shell_class }} py-3 flex items-center gap-4">
+    <a href="#" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+      {%- if _fallback_logo.url %}
+      <img src="{{ _fallback_logo.url }}" alt="{{ _brand_name }}" class="h-9 w-9 rounded-xl object-cover">
+      {%- endif %}
+      <span class="text-2xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;">{{ _brand_name | capitalize }}.</span>
     </a>
+    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+      <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
+      <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+        <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+    <a href="#" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
   </div>
-  <a href="#" class="text-sm text-white opacity-80 hover:opacity-100 transition-opacity">Logout</a>
 </header>
-<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40">
+<nav class="{% if _fallback_nav_style.get('nav_variant') == 'pills' %}bg-white border-b border-gray-100{% else %}bg-white border-b border-gray-200 sticky top-0 z-40{% endif %}">
   <div class="{{ _header_shell_class }} flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
     <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
-    {%- for p in (all_pages or []) %}
+    {%- for p in _nav_pages %}
     {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
     {%- set _p_name = p.name if p.name is defined else p %}
     <a {{ nav_href_attrs(_p_name) }} class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
@@ -553,9 +587,22 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 <main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block chrome_header %}{% endblock %}{% endraw %}
+{% raw %}{% block chrome_footer %}{% endblock %}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
+{%- set _nav_pages = [] %}
+{%- set _nav_page_keys = [] %}
+{%- for _p in (all_pages or []) %}
+  {%- if _p.type != 'activity' and not (_p.is_task_page is defined and _p.is_task_page) %}
+    {%- set _p_key = (_p.name if _p.name is defined else _p)|string %}
+    {%- if _p_key not in _nav_page_keys %}
+      {%- set _ = _nav_page_keys.append(_p_key) %}
+      {%- set _ = _nav_pages.append(_p) %}
+    {%- endif %}
+  {%- endif %}
+{%- endfor %}
 <style>
   :root {
     --radius: {{ tokens.get('page.radius.px', '8') }}px;
@@ -564,6 +611,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     --accent-secondary: {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
     --page-bg: {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
     --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
+    --text-muted: {{ tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280')) }};
+    --text-subtle: {{ tokens.get('text.subtle.hex', tokens.get('color.text.subtle_hex', '#9ca3af')) }};
     --region-main-bg: {{ tokens.get('region.main.bg_hex', '#ffffff') }};
     --region-sidebar-bg: {{ tokens.get('region.sidebar.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
     --region-footer-bg: {{ tokens.get('region.footer.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
@@ -572,6 +621,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     --card-bg: {{ tokens.get('component.card.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
     --card-border: {{ tokens.get('component.card.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
     --card-shadow: {{ tokens.get('component.card.shadow', '0 1px 3px 0 rgb(0 0 0 / 0.1)') }};
+    --card-text: {{ tokens.get('component.card.text_hex', tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827'))) }};
+    --card-muted: {{ tokens.get('component.card.muted_text_hex', tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280'))) }};
     --component-form-bg: {{ tokens.get('component.form.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
     --component-table-bg: {{ tokens.get('component.table.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
     --component-list-bg: {{ tokens.get('component.list.bg_hex', tokens.get('component.card.bg_hex', '#ffffff')) }};
@@ -596,7 +647,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     --badge-text: {{ tokens.get('component.badge.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
   }
   body { font-family: var(--font-family); background-color: var(--page-bg) !important; color: var(--page-text); }
-  .si-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .si-card { background-color: var(--card-bg); color: var(--card-text); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
+  .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
+  .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
+  .si-card .text-gray-900, .si-card .text-gray-800 { color: var(--card-text) !important; }
+  .si-card .text-gray-700, .si-card .text-gray-600 { color: var(--card-muted) !important; }
   .si-btn { border-radius: var(--btn-radius); }
   .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
   .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
@@ -627,7 +683,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </style>
 {%- endif %}
 
-{# 閳光偓閳光偓 Global lookup maps (defined once, used per section) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Global lookup maps (defined once, used per section) éˆ¹â‚¬éˆ¹â‚¬ #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -660,7 +716,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# 閳光偓閳光偓 Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- macro nav_href_attrs(target_page) -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endmacro %}
@@ -677,7 +733,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&fit=crop'
 ] %}
 
-{# 閳光偓閳光偓 Shared item-template macros (used by preview and generation mode) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Shared item-template macros (used by preview and generation mode) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
@@ -695,14 +751,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="p-2.5">
     <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
     <div class="flex items-center gap-0.5 mt-1">
-      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
+      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
       {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
     </div>
     <div class="mt-1 flex items-center gap-1">
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 棣冩磪</a>
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ é¦ƒæ´…</a>
   </div>
 </div>
 {%- endmacro %}
@@ -717,7 +773,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="flex-1 min-w-0">
     <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
+      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
     </div>
     <div class="flex items-center gap-2 mt-2">
       {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
@@ -726,7 +782,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 棣冩磪</a>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ é¦ƒæ´…</a>
   </div>
 </div>
 {%- endmacro %}
@@ -741,7 +797,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="flex-1">
     <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
+      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
     </div>
     <div class="flex items-baseline gap-2 mt-1">
       <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
@@ -830,16 +886,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} 閳?/button>
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} éˆ?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
   <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
-    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">閳?Back</a>
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">éˆ?Back</a>
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} 閳?/button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} éˆ?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
@@ -950,7 +1006,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 </div>
 {%- else %}
-{# 閳光偓閳光偓 Resolve per-section style 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Resolve per-section style éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
@@ -965,7 +1021,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- set _person_names = ['Amina Khan','Luca Ferrari','Jan de Vries','Emma Bakker','Maya Chen','Noah Smith'] -%}
   {%- set _document_names = ['Proof of income','Bank statement','Identity document','Contract draft','Approval letter','Monthly report'] -%}
   {%- set _finance_names = ['Standard Review','Priority Check','Approved Account','Pending Payment','Low Risk Loan','Manual Review'] -%}
-  {%- set _mock_prices = ['閳?.99','閳?4.99','閳?9.99','閳?4.99','閳?9.00','閳?.50'] -%}
+  {%- set _mock_prices = ['éˆ?.99','éˆ?4.99','éˆ?9.99','éˆ?4.99','éˆ?9.00','éˆ?.50'] -%}
   {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
   {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
   {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
@@ -1088,11 +1144,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endmacro %}
 
 {% set _s   = section_component.style %}
+{% set _sc_style = _s %}
 {% set c    = _cm.get(_s.get("color","blue"), _cm["blue"]) %}
 {% set r    = _rm.get(_s.get("radius","xl"), "rounded-xl") %}
 {% set d    = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
 {% set col  = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
-{% set lay  = section_component.layout %}
+{% set raw_lay = section_component.layout %}
+{% set lay  = "nav-links" if raw_lay in ["nav", "navigation", "navbar", "side-nav", "top-nav"] else ("link-grid" if raw_lay == "footer-links" else ("brand-strip" if raw_lay == "footer-brand" else ("service-bar" if raw_lay == "service-strip" else raw_lay))) %}
 {% set _is_chrome_layout = lay in _header_chrome or lay in _footer_chrome %}
 {% set _bg_key  = _s.get("bg","white") %}
 {% set _sec_bg  = c.light if _bg_key == "light" else _bgm.get(_bg_key,"bg-white") %}
@@ -1111,7 +1169,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
-{# 閳光偓閳光偓 Attribute slot extraction 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Attribute slot extraction éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set _vattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
 {%- set _mattrs   = _iattrs + _vattrs %}
@@ -1152,25 +1210,33 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- for _attr in _tattrs %}
   {%- if _attr in _visible_attrs %}{%- set _ = _visible_tattrs.append(_attr) %}{%- endif %}
 {%- endfor %}
+{%- set _visible_mattrs = [] %}
+{%- for _attr in _mattrs %}
+  {%- if _attr in _visible_attrs %}{%- set _ = _visible_mattrs.append(_attr) %}{%- endif %}
+{%- endfor %}
 {%- set _title_attr = _slot.title or (_visible_tattrs[0] if _visible_tattrs else (_visible_attrs[0] if _visible_attrs else none)) %}
 {%- set _image_attr = _slot.image or (_iattrs[0] if _iattrs else none) %}
 {%- set _video_attr = _slot.video or (_vattrs[0] if _vattrs else none) %}
 {%- set _media_attr = _slot.media or _video_attr or _image_attr %}
+{%- set _static_image_url = _s.get('image_url') or _s.get('src') or _s.get('background_image') or _s.get('background_url') %}
 {%- set _primary_attr = _slot.primary or (_visible_tattrs[1] if _visible_tattrs|length > 1 else none) %}
 {%- set _secondary_attrs = _slot.secondary if _slot.secondary else (_visible_tattrs[2:5] if _visible_tattrs|length > 2 else []) %}
 {%- set _column_attrs = _slot.columns if _slot.columns else _visible_attrs %}
 {%- set _detail_attrs = (_slot.hero + _slot.columns) if (_slot.hero or _slot.columns) else _visible_attrs %}
 {%- set _form_attrs = _slot.columns if _slot.columns else _visible_attrs %}
 {%- set _card_ns = namespace(attrs=[]) %}
-{%- for _attr in [_media_attr, _title_attr, _slot.subtitle, _primary_attr] + _secondary_attrs %}
+{%- for _attr in _visible_mattrs + [_title_attr, _slot.subtitle, _primary_attr] + _secondary_attrs %}
   {%- if _attr and _attr not in _card_ns.attrs %}{%- set _ = _card_ns.attrs.append(_attr) %}{%- endif %}
 {%- endfor %}
 {%- set _card_attrs = _card_ns.attrs if _card_ns.attrs else section_component.attributes %}
-{# 閳光偓閳光偓 Generic layout normalisation (legacy aliases 閳?canonical names) 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Generic layout normalisation (legacy aliases éˆ?canonical names) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
 {%- set _fstyle = _s.get('form_style',  'auth'     if eff_lay == 'auth-form' else ('step' if eff_lay == 'form-step' else ('summary' if eff_lay == 'summary-panel' else 'default'))) %}
+{%- set _banner_h = {'sm': '180px', 'md': '240px', 'lg': '320px', 'xl': '420px'}.get(_s.get('banner_height', 'md'), '240px') %}
+{%- set _banner_img_h = {'sm': '160px', 'md': '220px', 'lg': '300px', 'xl': '400px'}.get(_s.get('banner_height', 'md'), '220px') %}
+{%- set _image_ratio_css = {'wide': '21 / 9', '16:9': '16 / 9', '4:3': '4 / 3', '1:1': '1 / 1', 'portrait': '3 / 4'}.get(_s.get('image_ratio', _s.get('imageRatio', 'wide')), '21 / 9') %}
 {%- set _glay   = 'card'   if eff_lay in ('card','product-carousel','category-grid','hero-banner') else
                   ('list'   if eff_lay in ('list','product-list','item-list') else
                   ('form'   if eff_lay in ('form','auth-form','form-step','summary-panel') else
@@ -1181,11 +1247,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _component == 'CategoryTileGrid' %}{%- set _cstyle = 'category' %}{%- endif %}
 {%- if _component in ('DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList') and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
-{# 閳光偓閳光偓 Shared mock data 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ Shared mock data éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ lay }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   {%- set _field_cfgs = _fl.get('field_styles') or {} %}
   {%- if _field_cfgs %}
   <style>
@@ -1241,10 +1307,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW MODE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW MODE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% if preview_mode %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: ACTION PANEL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: ACTION PANEL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1280,7 +1346,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {% endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: DETAIL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: DETAIL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1345,7 +1411,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endfor %}
   </div>
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: CARD (carousel / banner / grid 鑴欓垾?product / category / compact / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: CARD (carousel / banner / grid è„™éˆ¥?product / category / compact / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif _glay == "card" %}
 {%- if _disp == "carousel" %}
   {# Scrollable card strip #}
@@ -1359,13 +1425,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
     {%- endif %}
-    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">閳?/button></div>
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">éˆ?/button></div>
   </div>
 {%- elif _disp == "banner" %}
   {# Hero banner #}
-  <div class="rounded-xl overflow-hidden relative" style="background:linear-gradient(120deg,#fffde7 0%,#fff9c4 60%,#fef3c7 100%);min-height:200px;">
-    <div class="flex items-center gap-6 px-10 py-8">
-      <div class="flex-1">
+  <div class="rounded-xl overflow-hidden relative bg-white border border-gray-100 shadow-sm" style="min-height:{{ section_component.min_height or _banner_h }};">
+    <div class="flex flex-col sm:flex-row items-stretch">
+      <div class="flex-1 px-8 py-7">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
         {%- if section_component.text %}<p class="text-base text-gray-600 mt-1 max-w-xs">{{ section_component.text }}</p>{%- endif %}
         {%- if section_component.custom_methods %}
@@ -1374,12 +1440,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         </span>
         {%- endif %}
       </div>
-      <div class="flex gap-3 flex-wrap justify-end">
-        {%- for _mock_row in range(4) %}
-        <div class="bg-white rounded-xl shadow p-2 w-24 h-24 flex items-center justify-center relative">
-          {%- if _image_attr %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover rounded-lg" />{%- else %}<div class="w-full h-full bg-gray-50"></div>{%- endif %}
-        </div>
-        {%- endfor %}
+      <div class="sm:w-1/2 bg-gray-50" style="min-height:{{ _banner_img_h }};aspect-ratio:{{ _image_ratio_css }};">
+        {%- if _static_image_url %}
+        <img src="{{ _static_image_url }}" alt="{{ _s.get('image_alt') or section_component.display_name }}" class="w-full h-full object-cover" />
+        {%- elif _image_attr %}
+        <img src="{{ _mock_imgs[0] }}" alt="{{ section_component.display_name }}" class="w-full h-full object-cover" />
+        {%- else %}
+        <div class="w-full h-full flex items-center justify-center text-sm text-gray-400">{{ section_component.display_name }}</div>
+        {%- endif %}
       </div>
     </div>
   </div>
@@ -1444,7 +1512,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: LIST (product / cart-item / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: LIST (product / cart-item / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif _glay == "list" %}
 {%- if _lstyle == "cart-item" %}
   {# Cart item list #}
@@ -1456,7 +1524,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
     {{ _cart_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
     {%- endfor %}
-    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">閳?Verder winkelen</a>
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">éˆ?Verder winkelen</a>
   </div>
 {%- elif _lstyle == "product" %}
   {# Product list with image + price + rating #}
@@ -1469,7 +1537,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
-      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">閳?/button>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">éˆ?/button>
     </div>
   </div>
 {%- else %}
@@ -1503,7 +1571,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: TABLE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: TABLE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
@@ -1554,7 +1622,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     </table>
   </div>
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: GALLERY 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: GALLERY èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif eff_lay == "gallery" %}
 {%- set img_attrs = [_image_attr] if _image_attr else [] %}
 {%- set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -1593,7 +1661,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: FILTER (filter-panel) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: FILTER (filter-panel) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif _glay == "filter" %}
   <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4 text-sm">
     <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
@@ -1604,7 +1672,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>閳?/span>
+        <span>éˆ?/span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1631,10 +1699,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- if section_component.attributes %}<button class="w-full border border-gray-300 rounded-lg py-2 text-xs text-gray-600 hover:bg-gray-50 mt-2">Clear filters</button>{%- endif %}
   </div>
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: FORM (auth / step / summary / default) 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: FORM (auth / step / summary / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
-  {# Auth form 閳?login / register #}
+  {# Auth form éˆ?login / register #}
   <div class="flex items-center justify-center py-16">
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
       <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -1694,15 +1762,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label', 'Total:') }}</span><span>閳?/span>
+      <span>{{ _s.get('total_label', 'Total:') }}</span><span>éˆ?/span>
     </div>
     <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 閳?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} éˆ?
     </button>
     {%- if section_component.custom_methods %}<div class="flex items-center justify-center gap-2 pt-1 text-xs text-gray-500">{%- for m in section_component.custom_methods %}<span>{{ m }}</span>{%- endfor %}</div>{%- endif %}
   </div>
 {%- else %}
-  {# Default form 閳?generic input fields #}
+  {# Default form éˆ?generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
     <div class="space-y-4">
       {%- if section_component.attributes %}
@@ -1780,12 +1848,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   </a>
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
   {%- if section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
   <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <div class="px-3 py-3 flex flex-col gap-1 text-sm">
       <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
-      {%- for p in (all_pages or []) %}
+      {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
       <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
@@ -1801,16 +1869,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
       </span>
-      {%- for p in (all_pages or []) %}
+      {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
-      <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
-        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
+      <a {{ nav_href_attrs(_p_name) }} class="{% if _sc_style.get('nav_variant') == 'pills' %}px-3 py-2 cursor-pointer rounded-full font-semibold transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% else %}px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% endif %}"
+        style="{% if _sc_style.get('nav_variant') == 'pills' and p.display_name == page.display_name %}background-color:{{ _accent_hex }};{% elif p.display_name == page.display_name %}border-color:{{ _accent_hex }};color:{{ _accent_hex }}{% endif %}">{{ p.display_name }}</a>
       {%- endif %}
       {%- endfor %}
     </div>
   </nav>
-  {%- elif lay == 'minimal-header' %}
+  {%- elif lay in ('minimal-header', 'compact-header') %}
   <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
     <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
     <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
@@ -1837,8 +1905,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
   {%- endif %}
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
-{# Chrome section landed in main content area 閳?render a compact placeholder #}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
+{# Chrome section landed in main content area éˆ?render a compact placeholder #}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
     {%- if lay == 'search-bar' %}
     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1863,11 +1931,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </button>
   {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?GENERATION MODE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?GENERATION MODE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% else %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?ACTION PANEL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
-{% if eff_lay != "action_panel" and _glay in ["card", "table", "list", "detail", "gallery", "form", "filter"] and (not section_component.primary_model or not list_var_name) %}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?ACTION PANEL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{% if eff_lay != "action_panel" and _glay in ["card", "table", "list", "detail", "gallery", "form", "filter"] and (not section_component.primary_model or not list_var_name) and not (_glay == "card" and _static_image_url) %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
   </div>
@@ -1917,7 +1985,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {% endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?DETAIL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?DETAIL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -2003,10 +2071,35 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
   </div>
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?CARD 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?CARD èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model or '' %}
-{%- if not _m or not list_var_name %}
+{%- if (not _m or not list_var_name) and _static_image_url %}
+  {%- if _disp == "banner" %}
+  <div class="rounded-xl overflow-hidden relative bg-white border border-gray-100 shadow-sm" style="min-height:{{ section_component.min_height or _banner_h }};">
+    <div class="flex flex-col sm:flex-row items-stretch">
+      <div class="flex-1 px-8 py-7">
+        <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
+        {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
+      </div>
+      <div class="sm:w-1/2 bg-gray-50" style="min-height:{{ _banner_img_h }};aspect-ratio:{{ _image_ratio_css }};">
+        <img src="{{ _static_image_url }}" alt="{{ _s.get('image_alt') or section_component.display_name }}" class="w-full h-full object-cover">
+      </div>
+    </div>
+  </div>
+  {%- else %}
+  <div class="{{ cs }} si-card {{ r }} overflow-hidden">
+    <img src="{{ _static_image_url }}" alt="{{ _s.get('image_alt') or section_component.display_name }}" class="w-full h-48 object-cover">
+    {%- if not _hs_hide or section_component.text %}
+    <div class="{{ d.p }}">
+      {%- if not _hs_hide %}<h2 class="{{ _hs }}">{{ section_component.display_name }}</h2>{%- endif %}
+      {%- if section_component.text %}<p class="text-gray-500 {{ d.text }} mt-1">{{ section_component.text }}</p>{%- endif %}
+    </div>
+    {%- endif %}
+  </div>
+  {%- endif %}
+{%- elif not _m or not list_var_name %}
   <div class="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-500">
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
   </div>
@@ -2021,7 +2114,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
     {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
     {{ '{% empty %}{% endfor %}' }}
-    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">閳?/a></div>
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">éˆ?/a></div>
   </div>
 {%- elif _cstyle == "category" %}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -2036,15 +2129,24 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {{ '{% empty %}{% endfor %}' }}
   </div>
 {%- elif _disp == "banner" %}
-  <div class="rounded-xl overflow-hidden relative" style="background:linear-gradient(120deg,#fffde7 0%,#fff9c4 60%,#fef3c7 100%);min-height:200px;">
-    <div class="flex items-center gap-6 px-10 py-8">
-      <div class="flex-1">
-        <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
-        {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} 閳?/a>{%- endif %}
+  {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+  <div class="rounded-xl overflow-hidden relative bg-white border border-gray-100 shadow-sm" style="min-height:200px;">
+    <div class="flex flex-col sm:flex-row items-stretch">
+      <div class="flex-1 px-8 py-7">
+        <h2 class="text-3xl font-black text-gray-900 leading-tight">{% if _title_attr %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _title_attr }} {% raw %}}}{% endraw %}{% else %}{{ section_component.display_name }}{% endif %}</h2>
+        {%- if _primary_attr %}<p class="text-base text-gray-600 mt-1">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _primary_attr }} {% raw %}}}{% endraw %}</p>{%- elif section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
+      </div>
+      <div class="sm:w-1/2 min-h-[180px] bg-gray-50">
+        {%- if _image_attr %}
+        {% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ _image_attr }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ _image_attr }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ _image_attr }}" class="w-full h-full min-h-[180px] object-cover">{% raw %}{% endwith %}{% endraw %}
+        {%- else %}
+        <div class="w-full h-full min-h-[180px] flex items-center justify-center text-sm text-gray-400">{{ section_component.display_name }}</div>
+        {%- endif %}
       </div>
     </div>
   </div>
+  {% raw %}{% empty %}{% endfor %}{% endraw %}
 {%- else %}
 
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
@@ -2167,7 +2269,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}{# end card sub-dispatch #}
 {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?LIST 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?LIST èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif _glay == "list" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -2195,7 +2297,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div class="flex-1">
         <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
-          <span class="text-yellow-400 text-xs">閳藉應妲勯埥鍛</span><span class="text-gray-200 text-xs">閳?/span>
+          <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
@@ -2264,7 +2366,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">閳?Add {{ section_component.display_name }}</button>
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">éˆ?Add {{ section_component.display_name }}</button>
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
@@ -2380,7 +2482,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?TABLE 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?TABLE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
@@ -2530,7 +2632,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?GALLERY 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?GALLERY èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif eff_lay == "gallery" %}
 {% set img_attrs = [_image_attr] if _image_attr else [] %}
 {% set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -2590,7 +2692,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?FORM 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?FORM èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 {% elif _glay == "form" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if _fstyle == "summary" %}
@@ -2607,18 +2709,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label','Total:') }}</span><span>閳?/span>
+      <span>{{ _s.get('total_label','Total:') }}</span><span>éˆ?/span>
     </div>
     {%- if page.type == 'activity' %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} 閳?
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} éˆ?
       </button>
     </form>
     {%- else %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 閳?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} éˆ?
     </a>
     {%- endif %}
   </div>
@@ -2636,7 +2738,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           {%- if page.type == 'activity' %}
           <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '閳? {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else 'éˆ? {% raw %}}}{% endraw %}</span>
           {%- endif %}
         </div>
         {%- endfor %}
@@ -2723,8 +2825,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   </div>
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
-  {%- if lay == 'minimal-header' %}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
+  {%- if lay in ('minimal-header', 'compact-header') %}
   <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
     <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
     <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
@@ -2736,7 +2838,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <div class="px-3 py-3 flex flex-col gap-1 text-sm">
       <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
-      {%- for p in (all_pages or []) %}
+      {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
       <a {{ nav_href_attrs(_p_name) }} class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
@@ -2752,7 +2854,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
       </span>
-      {%- for p in (all_pages or []) %}
+      {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
       {%- set _p_name = p.name if p.name is defined else p %}
       <a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
@@ -2798,13 +2900,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     </ul>
   </div>
 
-{%- elif lay in ('footer-brand', 'brand-strip') %}
+{%- elif lay in ('footer-brand', 'brand-strip', 'social-footer') %}
   <div class="bg-white border border-gray-100 rounded-xl py-6 flex flex-col items-center gap-2">
     <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
     <p class="text-xs text-gray-400">{{ section_component.text }}</p>
   </div>
 
-{%- elif lay == 'site-footer' %}
+{%- elif lay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer') %}
   <footer class="rounded-xl overflow-hidden border border-gray-100">
     <div class="px-6 py-4 flex items-center gap-6" style="background-color:{{ _accent_hex }};">
       <span class="text-white font-bold">{{ section_component.display_name }}</span>
@@ -2823,7 +2925,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?END GENERATION LAYOUTS 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
+{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?END GENERATION LAYOUTS èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
 
 {% endif %}{# end preview_mode branch #}
 
@@ -2890,7 +2992,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       var lay = el.getAttribute('data-layout') || '';
       var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
       if (side === 'right') rightSidebarItems.push(el);
-      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
       else rightSidebarItems.push(el);
     });
     function sidebarSpan(items, fallback) {
@@ -2950,7 +3052,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 </main>
 
-{# 閳光偓閳光偓 footer chrome: consecutive link-grid sections are grouped into one flex row 閳光偓閳光偓 #}
+{# éˆ¹â‚¬éˆ¹â‚¬ footer chrome: consecutive link-grid sections are grouped into one flex row éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
@@ -3002,7 +3104,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 
 {%- elif sc.layout in ('service-strip', 'service-bar') %}
-{# Screenshot match: blue bar 閳?"Service & contact" + icon/text links #}
+{# Screenshot match: blue bar éˆ?"Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
   <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
@@ -3025,7 +3127,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </ul>
 </div>
 
-{%- elif sc.layout in ('footer-brand', 'brand-strip') %}
+{%- elif sc.layout in ('footer-brand', 'brand-strip', 'social-footer') %}
 {# Footer brand strip #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="footer-brand">
 <div class="bg-white border-t border-gray-200 py-6 flex flex-col items-center gap-2">
@@ -3039,7 +3141,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{%- elif sc.layout == 'site-footer' %}
+{%- elif sc.layout in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer') %}
 {# Legacy: full footer in one section (backward compat) #}
 <footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
   <!-- Service & contact strip -->
@@ -3103,7 +3205,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 
 <script>
-/* 閳光偓閳光偓 Multi-select (si-selectable sections) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Multi-select (si-selectable sections) éˆ¹â‚¬éˆ¹â‚¬ */
 (function() {
   var bars = {};
   document.querySelectorAll('[data-selectable]').forEach(function(grid) {
@@ -3195,7 +3297,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 
 <style>
-/* 閳光偓閳光偓 Drag-and-drop sections 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Drag-and-drop sections éˆ¹â‚¬éˆ¹â‚¬ */
 [data-section-id] { position: relative; }
 /* Full-width drag bar at top of section (starts below the top-resize handle) */
 .si-move-bar {
@@ -3250,7 +3352,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 .si-drop-zone-main { top: 136px; left: 160px; right: 160px; bottom: 84px; }
 .si-drop-zone-footer { left: 16px; right: 16px; bottom: 16px; height: 56px; }
 
-/* 閳光偓閳光偓 Section resize (left + right handles) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section resize (left + right handles) éˆ¹â‚¬éˆ¹â‚¬ */
 .si-resize-handle, .si-lresize-handle {
   position: absolute; top: 0;
   width: 10px; height: 100%; min-height: 40px;
@@ -3285,7 +3387,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   transform: translateX(-50%);
 }
 
-/* 閳光偓閳光偓 Section vertical resize (top + bottom handles) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section vertical resize (top + bottom handles) éˆ¹â‚¬éˆ¹â‚¬ */
 .si-vresize-handle, .si-tresize-handle {
   position: absolute; left: 0; right: 0;
   height: 10px; cursor: row-resize; z-index: 30;
@@ -3341,13 +3443,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 .si-ctx-sep { height: 1px; background: #e2e8f0; margin: 4px 0; }
 .si-ctx-item.danger { color: #dc2626; }
 .si-ctx-item.danger:hover { background: #fef2f2; }
-/* Drop row indicator 閳?shown above/below a row during cross-row drag */
+/* Drop row indicator éˆ?shown above/below a row during cross-row drag */
 [data-section-id].si-drag-row-before { box-shadow: inset 0 4px 0 0 var(--accent, #3b82f6); }
 [data-section-id].si-drag-row-after  { box-shadow: inset 0 -4px 0 0 var(--accent, #3b82f6); }
 </style>
 
 <script>
-/* 閳光偓閳光偓 Section right-click context menu 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section right-click context menu éˆ¹â‚¬éˆ¹â‚¬ */
 (function() {
   var menu = null;
 
@@ -3363,7 +3465,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
 
-    // sectionId is captured here in the closure 閳?safe from hideMenu clearing it
+    // sectionId is captured here in the closure éˆ?safe from hideMenu clearing it
     function item(icon, label, cls, action) {
       var el = document.createElement('div');
       el.className = 'si-ctx-item' + (cls ? ' ' + cls : '');
@@ -3417,7 +3519,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 
 <script>
-/* 閳光偓閳光偓 Section drag-and-drop (pure mouse events, tracks drop target during mousemove) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section drag-and-drop (pure mouse events, tracks drop target during mousemove) éˆ¹â‚¬éˆ¹â‚¬ */
 (function() {
   var dragging = false;
   var draggingId = null;
@@ -3591,7 +3693,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     }
     var row = rows[ri];
 
-    // Sort row sections left閳姰ight
+    // Sort row sections leftéˆ«æŠ®ight
     var rowSecs = row.secs.slice().sort(function(a, b) {
       return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
     });
@@ -3604,7 +3706,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       return { beforeId: belowId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
     }
 
-    // Scan left閳姰ight to find insert position within the row
+    // Scan leftéˆ«æŠ®ight to find insert position within the row
     for (var s = 0; s < rowSecs.length; s++) {
       var sr = rowSecs[s].getBoundingClientRect();
       var midX = sr.left + sr.width / 2;
@@ -3613,7 +3715,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       }
     }
 
-    // Mouse is past the last section in the row 閳?insert at start of next row (or end)
+    // Mouse is past the last section in the row éˆ?insert at start of next row (or end)
     var lastInRow = rowSecs[rowSecs.length - 1];
     var nextId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
     return { beforeId: nextId, position: region, sidebarSide: sidebarSide, indicEl: lastInRow, indicSide: 'after' };
@@ -3701,7 +3803,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 
 <script>
-/* 閳光偓閳光偓 Section column-span resize (left + right handles) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section column-span resize (left + right handles) éˆ¹â‚¬éˆ¹â‚¬ */
 (function() {
   var resizing = false;
   var resizingEl = null;
@@ -3806,7 +3908,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       }
     }
     if (resizeDir === 'left') {
-      // Shift element right so its right edge stays fixed 閳?left edge appears to move
+      // Shift element right so its right edge stays fixed éˆ?left edge appears to move
       var tx = (startColSpan - n) * colW;
       resizingEl.style.transform = 'translateX(' + tx + 'px)';
       // Snap line and tooltip at the apparent left edge
@@ -3851,7 +3953,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 
 <script>
-/* 閳光偓閳光偓 Section vertical height resize (top + bottom handles) 閳光偓閳光偓 */
+/* éˆ¹â‚¬éˆ¹â‚¬ Section vertical height resize (top + bottom handles) éˆ¹â‚¬éˆ¹â‚¬ */
 (function() {
   var vresizing = false;
   var vresizingEl = null;
@@ -3914,7 +4016,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     vresizingEl.style.minHeight = newH + 'px';
     vresizingEl.style.overflow = 'hidden';
     if (vresizeDir === 'top') {
-      // Shift element down so its bottom edge stays fixed 閳?top edge appears to move
+      // Shift element down so its bottom edge stays fixed éˆ?top edge appears to move
       var ty = startH - newH;
       vresizingEl.style.transform = 'translateY(' + ty + 'px)';
       // Guide line follows the apparent top edge (getBoundingClientRect accounts for transform)
@@ -4007,7 +4109,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         var lay = el.getAttribute('data-layout') || '';
         var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
         if (side === 'right') rightSidebarItems.push(el);
-        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
         else rightSidebarItems.push(el);
       });
       function sidebarSpan(items, fallback) {

@@ -9,12 +9,15 @@ import useLocalStorage from './useLocalStorage';
 type LayoutOption = 'card' | 'list' | 'table' | 'detail' | 'gallery' | 'filter' | 'form'
     | 'activity_action'
     | 'promo-bar' | 'logo' | 'search-bar' | 'icon-actions' | 'nav-links' | 'main-header' | 'minimal-header'
-    | 'service-bar' | 'link-grid' | 'brand-strip'
+    | 'commerce-header' | 'dashboard-header' | 'split-header' | 'app-header' | 'compact-header' | 'mega-header'
+    | 'service-bar' | 'link-grid' | 'brand-strip' | 'compact-footer' | 'legal-footer' | 'newsletter-footer' | 'social-footer' | 'mega-footer'
     | 'site-nav' | 'site-footer';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
 type NavHeightOption = 'compact' | 'normal' | 'tall' | 'xl';
 type DisplayModeOption = 'grid' | 'carousel' | 'banner';
+type BannerHeightOption = 'sm' | 'md' | 'lg' | 'xl';
+type ImageRatioOption = 'wide' | '16:9' | '4:3' | '1:1' | 'portrait';
 type CardStyleOption = 'default' | 'product' | 'category' | 'compact';
 type ListStyleOption = 'default' | 'product' | 'cart-item';
 type FormStyleOption = 'default' | 'auth' | 'step' | 'summary';
@@ -34,14 +37,15 @@ type ActionVariantOption = 'link' | 'ghost' | 'button';
 
 const CHROME_LAYOUTS: LayoutOption[] = [
     'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
-    'service-bar', 'link-grid', 'brand-strip', 'site-nav', 'site-footer',
+    'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header',
+    'service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer', 'site-nav', 'site-footer',
 ];
-const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header', 'site-nav'];
-const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'site-footer'];
+const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav'];
+const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer', 'site-footer'];
 
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
-    card:    ['display_mode', 'card_style', 'columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
+    card:    ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
     list:    ['list_style', 'color', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'availability_label', 'delivery_label'],
     detail:  ['image_position', 'image_size', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
     gallery: ['columns', 'color', 'density', 'shadow', 'border', 'bg', 'header_style'],
@@ -64,7 +68,8 @@ const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
     PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
     CardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
     ObjectCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
-    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ImageCard: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'banner_height', 'image_ratio', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
     DataTable: ['density', 'shadow', 'border', 'bg', 'header_style'],
     ObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
     LineItemList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
@@ -89,9 +94,20 @@ const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
     'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links.',
     'main-header':    'Text field = search placeholder.',
     'minimal-header': 'Text field = cart amount in header button (e.g. "0,00").',
+    'commerce-header': 'Full commerce header with promo/search/actions/nav treatment.',
+    'dashboard-header': 'Dense app dashboard header with workspace navigation.',
+    'split-header': 'Dark split header with compact brand/search/action treatment.',
+    'app-header': 'Application-style top bar for operational tools.',
+    'compact-header': 'Compact one-row header for focused workflows.',
+    'mega-header': 'Large navigation-heavy header for multi-page apps.',
     'service-bar':    'Each line = a service bar link in the footer.',
     'link-grid':      'Line 1 = column title. Lines 2+ = footer links in that column.',
     'brand-strip':    'Each line = a brand name shown in the brand strip.',
+    'compact-footer': 'Small legal/status footer.',
+    'legal-footer': 'Legal links and copyright-style footer.',
+    'newsletter-footer': 'Footer with subscribe/CTA emphasis.',
+    'social-footer': 'Footer with brand/social/action links.',
+    'mega-footer': 'Large multi-column footer.',
     'site-nav':       'Lines 1–3: promo strip items. Line 4: right-side highlight text.',
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
@@ -129,11 +145,22 @@ const LAYOUT_GROUPS: LayoutGroup[] = [
         { value: 'nav-links',      label: 'Nav Links',    icon: <Monitor size={13} /> },
         { value: 'main-header',    label: 'Main Header',  icon: <Monitor size={13} /> },
         { value: 'minimal-header', label: 'Min. Header',  icon: <Monitor size={13} /> },
+        { value: 'commerce-header', label: 'Commerce',    icon: <Monitor size={13} /> },
+        { value: 'dashboard-header', label: 'Dashboard',  icon: <Monitor size={13} /> },
+        { value: 'split-header',    label: 'Split',       icon: <Monitor size={13} /> },
+        { value: 'app-header',      label: 'App Header',  icon: <Monitor size={13} /> },
+        { value: 'compact-header',  label: 'Compact',     icon: <Monitor size={13} /> },
+        { value: 'mega-header',     label: 'Mega Header', icon: <Monitor size={13} /> },
     ]},
     { label: 'Footer', options: [
         { value: 'service-bar', label: 'Service Bar', icon: <Monitor size={13} /> },
         { value: 'link-grid',   label: 'Link Grid',   icon: <Monitor size={13} /> },
         { value: 'brand-strip', label: 'Brand Strip', icon: <Monitor size={13} /> },
+        { value: 'compact-footer', label: 'Compact', icon: <Monitor size={13} /> },
+        { value: 'legal-footer', label: 'Legal', icon: <Monitor size={13} /> },
+        { value: 'newsletter-footer', label: 'Newsletter', icon: <Monitor size={13} /> },
+        { value: 'social-footer', label: 'Social', icon: <Monitor size={13} /> },
+        { value: 'mega-footer', label: 'Mega Footer', icon: <Monitor size={13} /> },
         { value: 'site-nav',    label: 'Site Nav',    icon: <Monitor size={13} /> },
         { value: 'site-footer', label: 'Site Footer', icon: <Monitor size={13} /> },
     ]},
@@ -200,7 +227,7 @@ const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
 
 const COMPONENT_OPTIONS_BY_LAYOUT: Partial<Record<LayoutOption, string[]>> = {
     gallery: ['ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid'],
-    card: ['ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid', 'SummaryPanel'],
+    card: ['ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid', 'ImageCard', 'ImageCardGrid', 'SummaryPanel'],
     table: ['DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList'],
     list: ['ObjectList', 'LineItemList', 'RelatedObjectList'],
     detail: ['ProductDetailPanel', 'DetailPanel', 'SummaryPanel'],
@@ -208,11 +235,26 @@ const COMPONENT_OPTIONS_BY_LAYOUT: Partial<Record<LayoutOption, string[]>> = {
     filter: ['FilterPanel', 'SearchBar'],
     'search-bar': ['SearchBar'],
     'logo': ['Logo', 'BrandLockup', 'ImageLogo'],
+    'main-header': ['HeaderTemplate', 'NavBar'],
+    'minimal-header': ['HeaderTemplate', 'NavBar'],
+    'commerce-header': ['HeaderTemplate'],
+    'dashboard-header': ['HeaderTemplate'],
+    'split-header': ['HeaderTemplate'],
+    'app-header': ['HeaderTemplate'],
+    'compact-header': ['HeaderTemplate'],
+    'mega-header': ['HeaderTemplate'],
     'site-nav': ['NavBar'],
     'nav-links': ['NavBar'],
     'icon-actions': ['IconActions'],
-    'site-footer': ['SiteFooter', 'FooterLinkGrid'],
+    'site-footer': ['FooterTemplate', 'SiteFooter', 'FooterLinkGrid'],
+    'compact-footer': ['FooterTemplate', 'SiteFooter'],
+    'legal-footer': ['FooterTemplate', 'SiteFooter'],
+    'newsletter-footer': ['FooterTemplate', 'SiteFooter'],
+    'social-footer': ['FooterTemplate', 'SiteFooter'],
+    'mega-footer': ['FooterTemplate', 'SiteFooter', 'FooterLinkGrid'],
     'link-grid': ['FooterLinkGrid'],
+    'service-bar': ['FooterTemplate', 'SiteFooter'],
+    'brand-strip': ['FooterTemplate', 'SiteFooter'],
     activity_action: ['WorkflowActionButton', 'StartWorkflowButton'],
 };
 
@@ -242,6 +284,24 @@ const FIELD_LAYOUT_SLOTS: Record<string, { slot: string; label: string; multiple
     ],
     CardGrid: [
         { slot: 'media', label: 'Media' },
+        { slot: 'title', label: 'Title' },
+        { slot: 'subtitle', label: 'Subtitle' },
+        { slot: 'primary', label: 'Primary' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
+    ],
+    ImageCard: [
+        { slot: 'image', label: 'Image' },
+        { slot: 'media', label: 'Extra media', multiple: true },
+        { slot: 'title', label: 'Title' },
+        { slot: 'subtitle', label: 'Subtitle' },
+        { slot: 'primary', label: 'Primary' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+        { slot: 'hidden', label: 'Hidden', multiple: true },
+    ],
+    ImageCardGrid: [
+        { slot: 'image', label: 'Image' },
+        { slot: 'media', label: 'Extra media', multiple: true },
         { slot: 'title', label: 'Title' },
         { slot: 'subtitle', label: 'Subtitle' },
         { slot: 'primary', label: 'Primary' },
@@ -1213,7 +1273,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         }
     };
 
-    const secLayout: LayoutOption = (selectedSection?.layout as LayoutOption) || 'table';
+    const rawSectionLayout = selectedSection?.layout;
+    const secLayout: LayoutOption = ((typeof rawSectionLayout === 'string' ? rawSectionLayout : rawSectionLayout?.value) as LayoutOption) || 'table';
     const secColSpan: ColSpanOption = (selectedSection?.col_span as ColSpanOption) ?? 12;
     const secStyle = selectedSection?.style || {};
     const secColor: ColorOption = (secStyle.color as ColorOption) || 'blue';
@@ -1221,6 +1282,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secNavHeight: NavHeightOption = (secStyle.nav_height as NavHeightOption) || 'normal';
     const secColumns = String(secStyle.columns ?? '3');
     const secDisplayMode: DisplayModeOption = (secStyle.display_mode as DisplayModeOption) || 'grid';
+    const secBannerHeight: BannerHeightOption = (secStyle.banner_height as BannerHeightOption) || 'md';
+    const secImageRatio: ImageRatioOption = (secStyle.image_ratio as ImageRatioOption) || 'wide';
     const secCardStyle: CardStyleOption = (secStyle.card_style as CardStyleOption) || 'default';
     const secListStyle: ListStyleOption = (secStyle.list_style as ListStyleOption) || 'default';
     const secFormStyle: FormStyleOption = (secStyle.form_style as FormStyleOption) || 'default';
@@ -1248,6 +1311,9 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const selectedAttrs = (selectedSection?.attributes || []).map((attr: any) => ({
         raw: attr,
         name: attrNameOf(attr),
+        source: typeof attr === 'object' ? attr?.source || '' : '',
+        type: typeof attr === 'object' ? attr?.type || '' : '',
+        value: typeof attr === 'object' ? attr?.value || '' : '',
         readonly: typeof attr === 'object' && !!(attr?.readonly || attr?.source === 'related'),
     })).filter((attr: any) => attr.name);
     const selectedPrimaryAttrs = selectedAttrs.filter((attr: any) => !attr.name.includes('.'));
@@ -1407,7 +1473,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const baseLayoutControls = CHROME_LAYOUTS.includes(secLayout)
         ? ['text', 'methods', ...(['nav-links', 'site-nav'].includes(secLayout) ? ['nav_height'] : []), 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
-    const layoutControls = Array.from(new Set(componentControls || baseLayoutControls))
+    const layoutControls = Array.from(new Set([...(baseLayoutControls || []), ...(componentControls || [])]))
         .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail'));
     const hasControl = (c: string) => layoutControls.includes(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
     const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
@@ -2602,6 +2668,24 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 {['2','3','4','5','6'].map(n => (
                                     <button key={n} style={{ ...btnBase, ...active(secColumns === n), width: 28, justifyContent: 'center' }}
                                         onClick={() => updateSection(selectedSection.id, 'columns', n)}>{n}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('banner_height') && secDisplayMode === 'banner' && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Banner Height</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['sm','md','lg','xl'] as BannerHeightOption[]).map(h => (
+                                    <button key={h} style={{ ...btnBase, ...active(secBannerHeight === h), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'banner_height', h)}>{h}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('image_ratio') && secDisplayMode === 'banner' && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Image Ratio</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {(['wide','16:9','4:3','1:1','portrait'] as ImageRatioOption[]).map(r => (
+                                    <button key={r} style={{ ...btnBase, ...active(secImageRatio === r), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'image_ratio', r)}>{r}</button>
                                 ))}
                             </div></>)}
 

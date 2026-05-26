@@ -4,6 +4,8 @@ from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools import AgentTool
+from google.adk.tools.mcp_tool import McpToolset, StdioConnectionParams
+from mcp import StdioServerParameters
 from app.tools import (
     interface_config_tool, update_interface_patch_tool, system_context_tool,
     run_seed_script_tool, get_available_paths_tool,
@@ -23,10 +25,24 @@ def _model():
         return AGENT_MODEL.removeprefix("gemini/")
     return LiteLlm(model=AGENT_MODEL) if "/" in AGENT_MODEL else AGENT_MODEL
 
+
+def _image_search_mcp_toolset() -> McpToolset:
+    return McpToolset(
+        connection_params=StdioConnectionParams(
+            server_params=StdioServerParameters(
+                command="python",
+                args=["-m", "app.image_search_mcp_server"],
+            ),
+            timeout=10,
+        ),
+        tool_filter=["search_images"],
+        tool_name_prefix="image_",
+    )
+
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
-  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action" | "activity_start" | "activity_tasks"
-  sections[].component     : UI Kit component name, e.g. ProductCardGrid, DataTable, DetailPanel, ObjectForm, SearchBar, IconActions, NavBar, FooterLinkGrid
+  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action" | "activity_start" | "activity_tasks" | supported header/footer template layouts
+  sections[].component     : UI Kit component name, e.g. ProductCardGrid, DataTable, DetailPanel, ObjectForm, HeaderTemplate, FooterTemplate, SearchBar, IconActions, NavBar, FooterLinkGrid
   sections[].role          : semantic role, e.g. object_collection, object_detail, object_summary, child_collection, object_form, search_control, navigation, chrome_action, workflow_entry
   sections[].col_span      : 12 | 6 | 4 | 3
   sections[].position      : "main" | "sidebar" | "header" | "footer"
@@ -36,12 +52,13 @@ Data & Query fields:
   sections[].attributes    : list of attribute names OR objects. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
     Attribute objects may mark read-only values: {name: "Seller.name", readonly: true, source: "related"}.
     Attributes are DISPLAY fields only. Do not use them as the query/SQL select list.
+    Every attribute MUST be a real primary-model field or a valid related-class dot-notation field. Static image URLs from search/MCP are not attributes and must never be placed here.
   sections[].field_layout  : for data/form components only. Use only slots consumed by that component; do not invent slots.
     Card/Gallery: image, video, media, title, subtitle, primary, secondary, hidden.
     Table/List: columns, hidden.
     Detail: image, video, media, title, hero, fields, hidden.
     Form/Filter: fields, hidden.
-    Media slots: use image for image fields, video for video URL/file fields, or media for whichever field should occupy the main media area.
+    Media slots: use image for the primary image field, video for the primary video URL/file field, or media for whichever field should occupy the main media area. If a card section has multiple image/video fields, include all of them in attributes; field_layout.image only marks the cover image and must not hide the other media fields unless the user explicitly asked to hide them.
     Per-field layout overrides live in field_layout.field_styles:
       {"field_name": {"order": 0, "col_span": 12, "height": "sm"|"md"|"lg"|"xl", "text_size": "xs"|"sm"|"md"|"lg"|"xl", "align": "left"|"center"|"right", "label": "show"|"hidden"}}
   sections[].behavior      : for control/chrome components, e.g. SearchBar/NavBar/IconActions workflow/search config with target_page, target_model, fields, param.
@@ -79,6 +96,18 @@ Card style (layout="card"):
   sections[].style.display_mode : "grid" | "carousel" | "banner"
   sections[].style.card_style   : "default" | "product" | "category" | "compact"
   sections[].style.columns      : "1" | "2" | "3" | "4"
+  sections[].style.banner_height: "sm" | "md" | "lg" | "xl" for ImageCard/banner sections.
+  sections[].style.image_ratio  : "wide" | "16:9" | "4:3" | "1:1" for image card media cropping.
+  Header/footer templates: by default, create header/footer region sections using existing template layouts, not custom image/card compositions.
+    Header layouts: "promo-bar" | "logo" | "search-bar" | "icon-actions" | "nav-links" | "main-header" | "minimal-header" | "commerce-header" | "dashboard-header" | "split-header" | "app-header" | "compact-header" | "mega-header".
+    Footer layouts: "service-bar" | "link-grid" | "brand-strip" | "site-footer" | "compact-footer" | "legal-footer" | "newsletter-footer" | "social-footer" | "mega-footer".
+    Use component="HeaderTemplate" for combined header templates and component="FooterTemplate" for combined footer templates.
+  Static online image URLs from MCP/search may be used only when the user explicitly asks for online images/photos/banner imagery. Put URLs in style.image_url or style.logo_url, never in attributes.
+
+Logo image style (layout="logo"):
+  sections[].style.logo_url     : image URL for the logo/brand mark. Use MCP-found image URL here when creating an image-based logo.
+  sections[].style.logo_size    : "sm" | "md" | "lg" | "xl". Use sm/md in dense top bars, lg/xl in spacious/showcase headers.
+  sections[].style.logo_shape   : "rounded" | "circle" | "square".
 
 List style (layout="list"):
   sections[].style.list_style   : "default" | "product" | "cart-item"
@@ -342,11 +371,19 @@ REGION COMPOSITION (header/footer/sidebar/hero are containers, not chrome-only z
   - If a region section is global, include its section reference on every normal page. If it is page-specific, include it only on that page.
   - Navigation can be horizontal header nav OR a left sidebar rail.
     For sidebar navigation use role="navigation", layout="site-nav" or "nav-links", component="NavBar", position="sidebar", col_span=12, style.sidebar_side="left".
-  - Headers should be assembled from appropriate sections, not a fixed single header template. A header may include brand/search/actions/nav, but it can also include compact status, KPI, alert, task, or primary-action sections.
+  - Headers should use existing header template sections by default. Prefer combined templates such as main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, or minimal-header, with component="HeaderTemplate".
+    Do not rely on fallback headers. Explicitly create header-position sections so each candidate has an intentional, editable header selected from the supported templates.
+    ONE HEADER SHELL RULE: Agent-generated candidates may include at most ONE header/nav shell section per candidate/page.
+    Header/nav shell layouts are promo-bar, main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, minimal-header, site-nav, and nav-links.
+    Do not create both promo-bar/nav-links and main-header/site-nav, and do not create two nav/header template sections on the same page.
+    You may add header element sections in addition to that one shell, such as logo, search-bar, icon-actions, or compact header data/action widgets.
+    Header/nav page links must list normal pages only. Do not include activity/task pages such as Task, Overview, Completeness, Decision, or workflow steps in normal header navigation.
+    Use image/logo URL styles only when the user explicitly asks for imagery or provides a URL.
     Preferred editable header patterns:
-      * Brand lockup: layout="logo", component="Logo", position="header", text=<brand name>, style.logo_url=<image URL>, style.tagline=<short subtitle>, style.logo_size="md|lg|xl", style.logo_shape="rounded|circle|square".
+      * Brand lockup/logo image: layout="logo", component="Logo", position="header", text=<brand name>, style.logo_url=<MCP-found or provided image URL>, style.tagline=<short subtitle>, style.logo_size="md|lg|xl", style.logo_shape="rounded|circle|square". Use this for logo/brand mark images, not banner photos.
       * Search: layout="search-bar", component="SearchBar", position="header", text=<placeholder>, behavior.type="search".
       * Logout/actions: layout="icon-actions", component="IconActions", position="header", methods with a Logout action label, style.action_variant="link|button|ghost", style.logout_label="Logout".
+      * Combined template: layout="main-header" or one of the expanded header templates, component="HeaderTemplate", position="header", methods=<page nav labels>, text=<search placeholder>, style.header_variant=<template tone>.
       * Context widgets: compact card/list/filter/detail sections with position="header" when they improve the workflow.
   - Footers can be site-footer, service-bar, link-grid, brand-strip, contact/legal/action sections, or compact summaries depending on the app.
   - Sidebars can contain nav, filters, task queues, summaries, help panels, related records, or compact forms when appropriate.
@@ -358,7 +395,8 @@ WORKFLOW ENTRY SECTIONS:
    - Use style.cta_label from button_label, for example "Checkout".
    - Never make an activity_start button the only meaningful section on that page. Add the pre-workflow workspace first: lists/tables/details/forms for the use case's primary_model and related child collections.
    - If the use case exposes child collection models such as Item/Line/Entry/Detail/Selection rows, render them as list/table sections before the activity_start button. Enable update/delete where the user is expected to adjust the collection before submitting, such as quantity changes or removing rows.
-   - Do not put activity pages such as Payment or Shipping Address in the normal site nav; they are entered through the workflow engine only.
+  - Do not put activity pages such as Payment or Shipping Address in the normal site nav; they are entered through the workflow engine only.
+  - activity_tasks is a content/work queue section, not a header/nav shell. Keep it in main or sidebar and do not duplicate its task labels in header navigation.
 
 ACTIVITY TASK PAGES:
   - An activity page must not be only a Continue/Start button.
@@ -376,11 +414,17 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
   - style: {{"color": "accent|accent-secondary", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
     ALWAYS use "accent" for data section colors — this uses the design spec's brand color via CSS variables.
+    DARK BACKGROUND RULE: If page.body.bg_hex, page.bg.hex, region.main.bg_hex, component.card.bg_hex, or section style.bg is black/dark/slate,
+    set readable light text tokens in the same patch/spec: page.body.text_hex/page.text.hex/text.primary.hex="#f8fafc",
+    color.text.muted_hex/text.muted.hex="#cbd5e1", color.text.subtle_hex/text.subtle.hex="#94a3b8",
+    component.card.text_hex="#f8fafc", and component.card.muted_text_hex="#cbd5e1". Never leave dark gray text on a dark surface.
   - component: choose the UI Kit component. Examples:
     gallery Product -> ProductCardGrid; gallery Category -> CategoryTileGrid; gallery person/user/customer/seller -> PersonCardGrid;
     table -> DataTable; list child item/line -> LineItemList; detail Product -> ProductDetailPanel; form -> ObjectForm/AddressForm/PaymentMethodForm/ReviewForm; filter -> FilterPanel.
   - field_layout: for display/form components, map fields into supported slots only. Example ProductCardGrid: {{"image":"image_url","video":"video_url","title":"name","primary":"price","secondary":["brand"],"hidden":["id"]}}.
-  - For a single media card, use layout="card", component="ImageCard", query.limit=1, field_layout.image=<image/media/url field>, and hide non-media fields if the user asks for image-only.
+    Card sections can display multiple image/video attributes. Use field_layout.image for the cover/primary media, but keep other image/video attributes visible in attributes so the renderer shows them inside the card.
+  - For a single media card from data, including a header/banner image, use layout="card", component="ImageCard", query.limit=1, field_layout.image=<image/media/url field>, and hide non-media fields if the user asks for image-only. Put it in position="header" when it belongs in the header; use query.filters to select one featured/current row when the model has suitable status/featured fields.
+  - For a single media card from a URL, use layout="card", component="ImageCard", attributes=[], field_layout={{}}, style.image_url=<image URL>, style.image_alt=<short alt>, style.display_mode="banner", style.banner_height="md|lg", style.image_ratio="wide", and no primary_model. This is valid for header imagery, brand campaigns, venue/product photos, or decorative-but-relevant app visuals. Never put this URL into attributes or field_layout.
     For video fields, include the video field in attributes as {{"name":"video_url","type":"video"}} and put it in field_layout.video or field_layout.media.
     To control individual field position/size, use field_layout.field_styles, e.g.
       {{"field_styles": {{"price": {{"order": 2, "col_span": 4, "text_size": "xl", "align": "right"}}, "description": {{"order": 3, "col_span": 12, "label": "hidden"}}}}}}
@@ -413,7 +457,7 @@ Make candidates structurally different using these axes:
     (col_span=4+4+4 for dashboards), another uses filter sidebar (col_span=3)
   - Chrome/regions: vary header/nav/footer/sidebar composition. At least one candidate should use a sidebar navigation rail when the app has multiple normal pages.
     Vary the rail's side and vertical placement: top, middle, or bottom relative to other sidebar sections.
-    Other candidates should use different header/footer treatments, not the exact same site-nav/header/footer layout.
+    Other candidates should use different header/footer templates, not the exact same site-nav/header/footer layout.
   - Density and spacing: each candidate uses a different style.density ("compact"/"normal"/"spacious")
   - For the SAME page purpose, pick DIFFERENT layouts across candidates:
     e.g. browse page → candidate 0 uses "table", candidate 1 uses "card", candidate 2 uses "gallery"
@@ -448,6 +492,7 @@ call render_candidate_preview(interface_id, candidate_index) for each index 0, 1
         validate_save_candidate_tool,
         render_candidate_preview_tool,
         select_design_specs_for_interface_tool,
+        _image_search_mcp_toolset(),
     ],
 )
 
@@ -461,11 +506,12 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 Rules:
 - Immediately call generate_candidate_set(interface_id, prompt).
+- Only call image_search_images first if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
 - Color/style-only prompts such as "generate pink pages" are valid designer requirements.
 - Do not refuse style-only prompts.
 - After the tool returns OK, output the tool result. If it returns ERROR, output the error.
 """,
-    tools=[generate_candidate_set_tool],
+    tools=[generate_candidate_set_tool, _image_search_mcp_toolset()],
 )
 
 candidate_regeneration_agent = Agent(
@@ -479,11 +525,13 @@ Message format:
 
 Rules:
 - Immediately call regenerate_candidate_set(interface_id, selected_candidate_index, designer_requirements).
+- Only call image_search_images first if the requirements explicitly ask for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
 - Do not create candidates yourself. The tool preserves page semantics, workflow/page types, data bindings, and activity flow order.
 - After the tool returns OK, output the tool result. If it returns ERROR, output the error.
 """,
     tools=[
         regenerate_candidate_set_tool,
+        _image_search_mcp_toolset(),
     ],
 )
 
@@ -554,7 +602,7 @@ Write an <analyze> block containing:
 
 ━━━ STEP 2 — PLAN (MANDATORY: output a <plan> block BEFORE calling any patch tool) ━━━
 Based on your analysis, produce a concrete change plan:
-  - ADD section: id, layout, col_span, position, primary_model, attributes (from classifier_fields ONLY)
+  - ADD section: id, layout, component, col_span, position, primary_model, attributes
   - MODIFY section: id, which fields change and to what value
   - REMOVE section: id
   - Page changes: new pages, layout changes, or sections reference order changes
@@ -564,9 +612,22 @@ HUMAN-IN-THE-LOOP LAYOUT RULE:
   Treat current_interface.pages and current_interface.sections as the source of truth. Preserve human/editor changes
   unless the user explicitly asks to change them. Apply surgical patches only: section layout/position/col_span/min_height,
   style, text/methods, and page.sections ordering. Do not regenerate or overwrite the whole interface for a small edit.
+  For additive requests like "add five more card section components", "add cards", "add picture cards", or "display pictures",
+  add the requested supported section component type to the named/current page's main area unless the user names another region.
+  Do not modify existing header, nav, sidebar, footer,
+  page layout, tokens, design system, or existing section order except appending/inserting the new section ids.
+  Supported section components include all layouts/components listed in Editable fields and already present in current_interface.sections.
+  Use the requested component type literally when it is supported (card, list, table, detail, gallery, filter, form, activity sections,
+  header/footer templates, logo/search/actions/nav, image cards, text/static sections, etc.).
 
 ATTRIBUTE RULE: Every attribute name in ADD/MODIFY entries MUST appear in classifier_fields["ModelName"].
                NEVER invent attribute names. Copy them character-for-character from the <analyze> block.
+               Data-bound sections must have primary_model/class and real attributes from that class or valid related dot-notation.
+               Non-data/static/control/chrome sections such as static ImageCard, Text, Logo, SearchBar, IconActions, HeaderTemplate,
+               FooterTemplate, NavBar, and static URL/media cards should use primary_model="", class="", attributes=[], and field_layout={{}}.
+IMAGE URL RULE: If the user wants an online/static image or asks to display pictures/photos, call image_search_images if no URL was provided, then put the chosen URL only in sections[].style.image_url on a card/ImageCard section.
+                For five picture cards, create five separate layout="card", component="ImageCard", position="main" sections, each with its own style.image_url/image_alt.
+                Do not add static image URLs to attributes, read-only attributes, field_layout, or any classifier.
 
 ━━━ STEP 3 — EXECUTE ━━━
 1. Call get_interface_config(interface_id) to verify current section IDs and token state.
@@ -580,7 +641,7 @@ ATTRIBUTE RULE: Every attribute name in ADD/MODIFY entries MUST appear in classi
 3. Call apply_interface_patch exactly once with the complete patch derived from <plan>.
    - Attribute names: use ONLY names from classifier_fields verified in STEP 1.
    - style.color must be "accent" for all data sections (inherits brand color from spec).
-   - ENSURE UI COMPLETENESS: if Header/Nav/Footer are missing, add them.
+   - ENSURE UI COMPLETENESS only for broad/full-page generation requests. For surgical edits/additive content requests, do not add Header/Nav/Footer.
    - To layout in the editor, patch sections[].position, sections[].layout, sections[].col_span, sections[].min_height,
      and pages[].sections order. Header/footer/sidebar are normal editable regions.
    - New sections/pages are allowed; include complete section/page objects and attach new sections through pages[].sections.
@@ -595,6 +656,7 @@ Editable fields:
         get_interface_full_context_tool,
         get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
         select_design_specs_for_interface_tool,
+        _image_search_mcp_toolset(),
         AgentTool(agent=candidate_regeneration_agent),
         AgentTool(agent=candidate_direct_agent),
     ],
