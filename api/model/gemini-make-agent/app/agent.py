@@ -333,13 +333,25 @@ ALLOWED LAYOUTS: {", ".join(sorted(["card","list","table","detail","gallery","fi
                "activity_action","activity_start","activity_tasks","promo-bar","logo","search-bar","icon-actions","nav-links",
                "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
 
-CHROME SECTIONS (add to EVERY page's reference list, include once in sections[]):
+REGION COMPOSITION (header/footer/sidebar/hero are containers, not chrome-only zones):
+  - Any suitable section layout may be placed in header, footer, sidebar, or hero by setting position.
+    Valid examples: filter panels in sidebar, task lists in sidebar, summary/status cards in header, quick-action cards in header,
+    compact data cards in sidebar, legal/contact/link lists in footer, service/status summaries in footer, showcase/detail sections in hero.
+  - Chrome layouts such as logo/search-bar/icon-actions/nav-links/site-footer are optional building blocks, not the only allowed region components.
+    Use them only when they are the best fit; combine them with data/summary/action sections when that creates a better UI.
+  - If a region section is global, include its section reference on every normal page. If it is page-specific, include it only on that page.
   - Navigation can be horizontal header nav OR a left sidebar rail.
     For sidebar navigation use role="navigation", layout="site-nav" or "nav-links", component="NavBar", position="sidebar", col_span=12, style.sidebar_side="left".
-  - Header can be main-header, minimal-header, or separate logo/search-bar/icon-actions sections.
-  - Footer can be site-footer, service-bar + link-grid, or brand-strip.
+  - Headers should be assembled from appropriate sections, not a fixed single header template. A header may include brand/search/actions/nav, but it can also include compact status, KPI, alert, task, or primary-action sections.
+    Preferred editable header patterns:
+      * Brand lockup: layout="logo", component="Logo", position="header", text=<brand name>, style.logo_url=<image URL>, style.tagline=<short subtitle>, style.logo_size="md|lg|xl", style.logo_shape="rounded|circle|square".
+      * Search: layout="search-bar", component="SearchBar", position="header", text=<placeholder>, behavior.type="search".
+      * Logout/actions: layout="icon-actions", component="IconActions", position="header", methods with a Logout action label, style.action_variant="link|button|ghost", style.logout_label="Logout".
+      * Context widgets: compact card/list/filter/detail sections with position="header" when they improve the workflow.
+  - Footers can be site-footer, service-bar, link-grid, brand-strip, contact/legal/action sections, or compact summaries depending on the app.
+  - Sidebars can contain nav, filters, task queues, summaries, help panels, related records, or compact forms when appropriate.
   - Use pages[].layout.*_width to control region width. Set main_width="full" only for intentionally edge-to-edge applications; otherwise prefer contained or wide. Keep page body/main background aligned unless the prompt explicitly wants visible margins.
-  - Generate different chrome structure across the 3 candidates when the prompt does not force one pattern.
+  - Generate different region composition across the 3 candidates when the prompt does not force one pattern.
 
 WORKFLOW ENTRY SECTIONS:
   - For each system.usecase_navigation.workflow_entry_points item, add or keep an activity_start section on that normal OOUI object page.
@@ -368,6 +380,7 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
     gallery Product -> ProductCardGrid; gallery Category -> CategoryTileGrid; gallery person/user/customer/seller -> PersonCardGrid;
     table -> DataTable; list child item/line -> LineItemList; detail Product -> ProductDetailPanel; form -> ObjectForm/AddressForm/PaymentMethodForm/ReviewForm; filter -> FilterPanel.
   - field_layout: for display/form components, map fields into supported slots only. Example ProductCardGrid: {{"image":"image_url","video":"video_url","title":"name","primary":"price","secondary":["brand"],"hidden":["id"]}}.
+  - For a single media card, use layout="card", component="ImageCard", query.limit=1, field_layout.image=<image/media/url field>, and hide non-media fields if the user asks for image-only.
     For video fields, include the video field in attributes as {{"name":"video_url","type":"video"}} and put it in field_layout.video or field_layout.media.
     To control individual field position/size, use field_layout.field_styles, e.g.
       {{"field_styles": {{"price": {{"order": 2, "col_span": 4, "text_size": "xl", "align": "right"}}, "description": {{"order": 3, "col_span": 12, "label": "hidden"}}}}}}

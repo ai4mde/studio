@@ -1,0 +1,147 @@
+[     106ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-6UPLEOQD.js?v=0d92a099:21579
+[     143ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4402
+[     144ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4402
+[     294ms] [ERROR] Warning: Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s 
+
+Check the render method of `TopNavigation`.  
+    at TopNavigation (http://ai4mde.localhost/src/lib/shared/components/TopNavigation.tsx:20:33)
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=0d92a099:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-YRAN5R3W.js?v=0d92a099:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=0d92a099:63
+[     418ms] [ERROR] Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <button> button 
+    at button
+    at div
+    at button
+    at div
+    at div
+    at ShowInterface (http://ai4mde.localhost/src/lib/features/interfaces/components/ShowInterface.tsx:39:26)
+    at div
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=0d92a099:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=0d92a099:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-YRAN5R3W.js?v=0d92a099:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-6UPLEOQD.js?v=0d92a099:520
+[    2097ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:srcdoc:0
+[    2106ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[  418287ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-6UPLEOQD.js?v=e8d97e34:21579
+[  418427ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4402
+[  418427ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4402
+[  419488ms] [ERROR] Warning: Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s 
+
+Check the render method of `TopNavigation`.  
+    at TopNavigation (http://ai4mde.localhost/src/lib/shared/components/TopNavigation.tsx:20:33)
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=e8d97e34:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-YRAN5R3W.js?v=e8d97e34:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=e8d97e34:63
+[  419616ms] [ERROR] Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <button> button 
+    at button
+    at div
+    at button
+    at div
+    at div
+    at ShowInterface (http://ai4mde.localhost/src/lib/features/interfaces/components/ShowInterface.tsx:39:26)
+    at div
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-GG4OTI5F.js?v=e8d97e34:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=e8d97e34:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-YRAN5R3W.js?v=e8d97e34:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-6UPLEOQD.js?v=e8d97e34:520
+[  421535ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:srcdoc:0
+[  421550ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63
+[  440076ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-WUVWK3JO.js?v=e7d18cab:21579
+[  440201ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4402
+[  440202ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4402
+[  445101ms] [ERROR] Warning: Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.%s 
+
+Check the render method of `TopNavigation`.  
+    at TopNavigation (http://ai4mde.localhost/src/lib/shared/components/TopNavigation.tsx:20:33)
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=e7d18cab:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-7G4Y6YMR.js?v=e7d18cab:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=e7d18cab:63
+[  445310ms] [ERROR] Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <button> button 
+    at button
+    at div
+    at button
+    at div
+    at div
+    at ShowInterface (http://ai4mde.localhost/src/lib/features/interfaces/components/ShowInterface.tsx:39:26)
+    at div
+    at div
+    at div
+    at SystemLayout (http://ai4mde.localhost/src/lib/features/browser/components/systems/SystemLayout.tsx:22:25)
+    at SystemInterfaces (http://ai4mde.localhost/src/routes/systems/[systemId]/interfaces/[interfaceId]/index.tsx:23:24)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at RenderedRoute (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4097:5)
+    at Suspense
+    at main
+    at Layout (http://ai4mde.localhost/src/lib/shared/components/Layout/Layout.tsx:29:26)
+    at App (http://ai4mde.localhost/src/main.tsx:48:3)
+    at Router (http://ai4mde.localhost/node_modules/.vite/deps/chunk-OKK7CPP7.js?v=e7d18cab:4582:15)
+    at BrowserRouter (http://ai4mde.localhost/node_modules/.vite/deps/react-router-dom.js?v=e7d18cab:559:5)
+    at QueryClientProvider (http://ai4mde.localhost/node_modules/.vite/deps/chunk-7G4Y6YMR.js?v=e7d18cab:2892:3) @ http://ai4mde.localhost/node_modules/.vite/deps/chunk-WUVWK3JO.js?v=e7d18cab:520
+[  447390ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ about:srcdoc:0
+[  447399ms] [WARNING] cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation @ https://cdn.tailwindcss.com/:63

@@ -84,19 +84,19 @@ class ActionNode(models.Model):
         module_name, function_name = self.custom_code.rsplit(".", 1)
         
         try:
-            # Import the module and function dynamically
             module = importlib.import_module(module_name)
-            custom_function = getattr(module, function_name)
-
-            if not callable(custom_function):
-                raise TypeError(f"{function_name} is not callable in module {module_name}")
-            
-            # Execute the custom function
-            custom_function(active_process=active_process)
         except ImportError as e:
-            raise ImportError(f"Failled to import module when executing custom code: {module_name}") from e
+            raise ImportError(f"Failed to import module when executing custom code: {module_name}") from e
+
+        try:
+            custom_function = getattr(module, function_name)
         except AttributeError as e:
             raise AttributeError(f"Module {module_name} does not have function named {function_name}") from e
+
+        if not callable(custom_function):
+            raise TypeError(f"{function_name} is not callable in module {module_name}")
+
+        custom_function(active_process=active_process)
  
     def _get_next_user(self, current_user: User | None) -> User | None:
         """Determine the next user for the given node."""
@@ -366,12 +366,72 @@ class ActiveProcess(models.Model):
 
     # Properties
 
+    def _associated_queryset(self, model: type[models.Model]) -> QuerySet:
+        return model.objects.filter(
+            id__in=self.associated_model_instances.filter(
+                content_type=ContentType.objects.get_for_model(model)
+            ).values_list("instance_id", flat=True)
+        )
+
+    def _fallback_value_for_field(self, field: models.Field):
+        if field.has_default():
+            return field.get_default()
+        if getattr(field, "null", False):
+            return None
+        internal_type = field.get_internal_type()
+        if internal_type in {"CharField", "TextField", "SlugField", "EmailField", "URLField"}:
+            return field.name.replace("_", " ")
+        if internal_type in {"BooleanField", "NullBooleanField"}:
+            return False
+        if internal_type in {"IntegerField", "PositiveIntegerField", "PositiveSmallIntegerField", "SmallIntegerField", "BigIntegerField"}:
+            return 0
+        if internal_type in {"FloatField", "DecimalField"}:
+            return 0
+        if internal_type in {"DateField", "DateTimeField", "TimeField"}:
+            return now()
+        return None
+
+    def _get_or_create_process_instance(self, model: type[models.Model], seen: set[str] | None = None) -> models.Model | None:
+        qs = self._associated_queryset(model)
+        instance = qs.first()
+        if instance:
+            return instance
+
+        instance = model.objects.first()
+        if instance:
+            self.add_associated_instance(instance)
+            return instance
+
+        seen = seen or set()
+        model_key = model._meta.label_lower
+        if model_key in seen:
+            return None
+        seen.add(model_key)
+
+        defaults = {}
+        for field in model._meta.fields:
+            if field.primary_key or getattr(field, "auto_created", False):
+                continue
+            related_model = getattr(getattr(field, "remote_field", None), "model", None)
+            if related_model:
+                related_instance = User.objects.first() if related_model is User else self._get_or_create_process_instance(related_model, seen)
+                if related_instance is not None:
+                    defaults[field.name] = related_instance
+                elif getattr(field, "null", False):
+                    defaults[field.name] = None
+                continue
+            defaults[field.name] = self._fallback_value_for_field(field)
+
+        instance = model.objects.create(**defaults)
+        self.add_associated_instance(instance)
+        return instance
+
     def add_associated_instance(self, instance: models.Model) -> None:
-        AssociatedModelInstance.objects.create(
-            instance=instance,
+        AssociatedModelInstance.objects.get_or_create(
             content_type=ContentType.objects.get_for_model(instance),
             instance_id=instance.pk,
             active_process=self,
+            defaults={"instance": instance},
         )
     
     def remove_associated_instance(self, instance: models.Model) -> None:

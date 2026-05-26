@@ -591,6 +591,76 @@ _MAX_WIDTH_CLASS = {
     "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
 }
 
+def normalize_interface_schema(interface_data: Dict) -> Dict:
+    """Return the canonical schema consumed by both preview and generated live templates."""
+    raw = dict(interface_data or {})
+    canonical = raw.get("canonical_schema")
+    if isinstance(canonical, dict):
+        merged = dict(raw)
+        for key in ("pages", "sections", "tokens", "styling", "prompt_intent"):
+            if key in canonical:
+                merged[key] = canonical[key]
+        raw = merged
+
+    pages = []
+    for page in raw.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        page = dict(page)
+        layout = page.get("layout") or {}
+        if isinstance(layout, str):
+            layout = {"value": layout}
+        elif not isinstance(layout, dict):
+            layout = {}
+        layout.setdefault("value", "vertical")
+        layout.setdefault("main_width", "contained")
+        layout.setdefault("header_width", "contained")
+        layout.setdefault("hero_width", "contained")
+        layout.setdefault("footer_width", "full")
+        page["layout"] = layout
+
+        refs = []
+        for ref in page.get("sections") or []:
+            if isinstance(ref, dict):
+                value = ref.get("value") or ref.get("id")
+                if value:
+                    refs.append({**ref, "value": value})
+            elif isinstance(ref, str):
+                refs.append({"value": ref})
+        page["sections"] = refs
+        pages.append(page)
+
+    sections = []
+    for section in raw.get("sections") or []:
+        if not isinstance(section, dict):
+            continue
+        section = dict(section)
+        section.setdefault("position", "main")
+        section.setdefault("style", {})
+        section.setdefault("operations", {"create": False, "update": False, "delete": False, "select": False})
+        if not isinstance(section.get("style"), dict):
+            section["style"] = {}
+        if not isinstance(section.get("operations"), dict):
+            section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
+        if section.get("field_layout") is None:
+            section["field_layout"] = {}
+        sections.append(section)
+
+    normalized = dict(raw)
+    normalized["pages"] = pages
+    normalized["sections"] = sections
+    normalized["tokens"] = dict(raw.get("tokens") or {})
+    normalized["styling"] = dict(raw.get("styling") or {})
+    normalized["canonical_schema"] = {
+        "version": 1,
+        "pages": pages,
+        "sections": sections,
+        "tokens": normalized["tokens"],
+        "styling": normalized["styling"],
+        **({"prompt_intent": raw.get("prompt_intent")} if raw.get("prompt_intent") else {}),
+    }
+    return normalized
+
 
 def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> None:
     """Merge styling dict into tokens in-place. Tokens already set take priority."""
@@ -664,6 +734,7 @@ def render_layout(
     inject_click_handlers: bool = False,
     relations: Optional[List[Dict]] = None,
 ) -> List[Dict]:
+    interface_data = normalize_interface_schema(interface_data)
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
 
     tokens = dict(interface_data.get("tokens", {}))
@@ -701,6 +772,7 @@ def render_preview(
     interface_name: str = "interface",
     relations: Optional[List[Dict]] = None,
 ) -> List[Dict]:
+    interface_data = normalize_interface_schema(interface_data)
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, relations=relations)
     tokens = dict(interface_data.get("tokens", {}))
     styling = interface_data.get("styling", {})

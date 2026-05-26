@@ -19,6 +19,77 @@ ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
 interfaces = Router()
 
 
+_AGENT_CONTEXT_SKIP_KEYS = {
+    "candidates",
+    "canonical_schema",
+    "preview",
+    "preview_html",
+    "html",
+    "files",
+    "generated_files",
+    "rendered_files",
+    "screenshots",
+    "thumbnail",
+    "thumbnails",
+    "image_data",
+    "base64",
+}
+
+
+def _compact_agent_value(value, depth: int = 0):
+    """Keep AI edit context small enough for ADK/Gemini while preserving editable schema."""
+    if depth > 8:
+        return None
+    if isinstance(value, dict):
+        compact = {}
+        for key, child in value.items():
+            key_str = str(key)
+            if key_str in _AGENT_CONTEXT_SKIP_KEYS or key_str.endswith("_html") or key_str.endswith("_preview"):
+                continue
+            compact[key_str] = _compact_agent_value(child, depth + 1)
+        return compact
+    if isinstance(value, list):
+        return [_compact_agent_value(item, depth + 1) for item in value[:120]]
+    if isinstance(value, str):
+        return value if len(value) <= 2000 else value[:2000] + "...[truncated]"
+    return value
+
+
+def _compact_interface_data_for_agent(data: dict) -> dict:
+    """Send only the canonical editable interface DSL to the AI edit agent."""
+    if not isinstance(data, dict):
+        return {}
+    compact = {}
+    for key in ("pages", "sections", "tokens", "styling", "layout_config"):
+        if key in data:
+            compact[key] = _compact_agent_value(data.get(key))
+    return compact
+
+
+def _extract_adk_event_error(event) -> str:
+    found = []
+
+    def walk(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_l = str(key).lower()
+                if key_l in {"error", "error_message", "errormessage", "message", "status"} and isinstance(child, str):
+                    text = child.strip()
+                    if any(term in text.lower() for term in ("error", "failed", "invalid", "exceeds", "bad request", "timeout")):
+                        found.append(text)
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+        elif isinstance(value, str):
+            text = value.strip()
+            if any(term in text.lower() for term in ("input token count exceeds", "bad request", "agent error", "failed to")):
+                found.append(text)
+
+    walk(event)
+    return " | ".join(dict.fromkeys(found))[:1200]
+
+
 @interfaces.get("/", response=List[ReadInterface])
 def list_interfaces(request, system: Optional[str] = None):
     if system:
@@ -90,7 +161,10 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             if name:
                 classifiers_summary.append({"name": name, "attributes": attrs})
         context_block = json.dumps(
-            {"classifiers": classifiers_summary, "current_interface": interface.data or {}},
+            {
+                "classifiers": classifiers_summary,
+                "current_interface": _compact_interface_data_for_agent(interface.data or {}),
+            },
             separators=(",", ":"),
         )
         prompt = f"system_id={system.id} interface_id={id} user_request={payload.prompt}\nSYSTEM_CONTEXT={context_block}"
@@ -124,6 +198,10 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
                         continue
                     try:
                         event = json.loads(line_str[6:])
+                        event_error = _extract_adk_event_error(event)
+                        if event_error:
+                            yield json.dumps({"status": f"Agent error: {event_error}"}) + "\n"
+                            return
                         author = event.get("author", "")
                         if author and author not in seen_authors and author in agent_status_map:
                             seen_authors.add(author)
@@ -359,6 +437,10 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
                         continue
                     try:
                         event = json.loads(line_str[6:])
+                        event_error = _extract_adk_event_error(event)
+                        if event_error:
+                            yield json.dumps({"status": f"Agent error: {event_error}"}) + "\n"
+                            return
                         author = event.get("author", "")
                         if author and author not in seen_authors and author in agent_status_map:
                             seen_authors.add(author)

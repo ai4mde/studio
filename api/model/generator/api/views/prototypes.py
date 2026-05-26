@@ -9,6 +9,7 @@ from django.http import StreamingHttpResponse
 import json
 import os
 import queue
+import re
 import requests
 import threading
 import time
@@ -700,11 +701,114 @@ class HotReloadPayload(Schema):
     styling: Optional[Dict[str, Any]] = None
     tokens: Optional[Dict[str, Any]] = None
 
+def _html_signature(html: str) -> Dict[str, Any]:
+    html = html or ""
+    css_vars = dict(re.findall(r"(--[a-zA-Z0-9_-]+)\s*:\s*([^;}{]+)", html))
+    text = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", html, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    words = re.findall(r"[A-Za-z0-9_]{3,}", text.lower())
+    return {
+        "css_vars": {k: v.strip() for k, v in css_vars.items() if k in {"--accent", "--button-primary-bg", "--nav-bg", "--header-bg", "--footer-bg", "--page-bg"}},
+        "word_sample": words[:80],
+        "button_count": len(re.findall(r"<(?:button|a)\b[^>]*(?:si-btn|button|btn)", html, flags=re.I)),
+        "section_count": len(re.findall(r"data-section-id=", html)),
+    }
+
+
+class VisualCheckPayload(Schema):
+    interface_id: str
+    pages: Optional[List[Any]] = None
+    sections: Optional[List[Any]] = None
+    styling: Optional[Dict[str, Any]] = None
+    tokens: Optional[Dict[str, Any]] = None
+    live_user: Optional[str] = None
+
+
+@prototypes.post("/visual_check/")
+def visual_check(request, payload: VisualCheckPayload):
+    from llm.template_renderer import render_layout, normalize_interface_schema
+
+    try:
+        status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype", timeout=10).json()
+    except Exception as e:
+        raise HttpError(502, f"Could not reach prototype API: {e}")
+    if not status.get("running"):
+        raise HttpError(404, "No prototype running")
+
+    try:
+        iface = Interface.objects.get(pk=payload.interface_id)
+    except Interface.DoesNotExist:
+        raise HttpError(404, "Interface not found")
+
+    interface_data = dict(iface.data or {})
+    if payload.sections is not None:
+        interface_data["sections"] = payload.sections
+    if payload.pages is not None:
+        interface_data["pages"] = payload.pages
+    if payload.styling is not None:
+        interface_data["styling"] = payload.styling
+    if payload.tokens is not None:
+        interface_data["tokens"] = payload.tokens
+    interface_data = normalize_interface_schema(interface_data)
+
+    classifiers = [{"id": str(c.id), "data": c.data} for c in iface.system.classifiers.filter(data__type='class')]
+    relations = [{"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data} for r in iface.system.relations.all()]
+    expected_files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
+
+    proto_host = os.environ.get("RUNNING_PROTOTYPE_HOST", "prototype.ai4mde.localhost")
+    proto_proto = os.environ.get("RUNNING_PROTOTYPE_PROTO", "http://")
+    base_url = f"{proto_proto}{proto_host}"
+    app = re.sub(r"\W+", "_", iface.name).strip("_")
+    live_session = requests.Session()
+    live_user = payload.live_user or "jan_devries"
+
+    checks = []
+    for file in expected_files[:8]:
+        basename = os.path.basename(file["path"])
+        stem = os.path.splitext(basename)[0]
+        page_name = stem
+        if page_name.lower().startswith(app.lower() + "_"):
+            page_name = page_name[len(app) + 1:]
+        live_path = f"/{app}/" if page_name.lower() == "task" else f"/{app}/render_{app}_{page_name}"
+        live_url = f"{base_url}{live_path}"
+        fetch_url = f"{base_url}/autologin?as={live_user}&next={live_path}"
+        try:
+            live_resp = live_session.get(fetch_url, timeout=10, allow_redirects=True)
+            live_html = live_resp.text if live_resp.ok else ""
+            live_status = live_resp.status_code
+        except Exception:
+            live_html = ""
+            live_status = 0
+        expected_sig = _html_signature(file.get("content", ""))
+        live_sig = _html_signature(live_html)
+        mismatches = []
+        for key, value in expected_sig["css_vars"].items():
+            if live_sig["css_vars"].get(key) != value:
+                mismatches.append(f"{key}: expected {value}, live {live_sig['css_vars'].get(key)}")
+        if expected_sig["button_count"] != live_sig["button_count"]:
+            mismatches.append(f"button_count: expected {expected_sig['button_count']}, live {live_sig['button_count']}")
+        if expected_sig["section_count"] != live_sig["section_count"]:
+            mismatches.append(f"section_count: expected {expected_sig['section_count']}, live {live_sig['section_count']}")
+        checks.append({
+            "page": page_name,
+            "live_url": live_url,
+            "live_status": live_status,
+            "ok": live_status == 200 and not mismatches,
+            "mismatches": mismatches,
+            "expected": expected_sig,
+            "live": live_sig,
+        })
+    return {
+        "ok": all(item["ok"] for item in checks),
+        "checks": checks,
+        "schema_version": interface_data.get("canonical_schema", {}).get("version", 1),
+    }
+
 
 @prototypes.post("/hot_reload/")
 def hot_reload_templates(request, payload: HotReloadPayload):
     from metadata.models import Interface
-    from llm.template_renderer import render_layout
+    from llm.template_renderer import render_layout, normalize_interface_schema
 
     # Fetch active prototype info
     try:
@@ -737,6 +841,7 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         interface_data["styling"] = payload.styling
     if payload.tokens is not None:
         interface_data["tokens"] = payload.tokens
+    interface_data = normalize_interface_schema(interface_data)
 
     classifiers = [
         {"id": str(c.id), "data": c.data}

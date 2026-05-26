@@ -27,6 +27,10 @@ type ShadowOption = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 type BorderOption = 'none' | 'light' | 'colored' | 'strong';
 type BgOption = 'white' | 'light' | 'gray' | 'dark';
 type HeaderStyleOption = 'default' | 'large' | 'small' | 'colored' | 'hidden';
+type LogoSizeOption = 'sm' | 'md' | 'lg' | 'xl';
+type LogoShapeOption = 'rounded' | 'circle' | 'square';
+type LogoVariantOption = 'lockup' | 'image-only' | 'text-only';
+type ActionVariantOption = 'link' | 'ghost' | 'button';
 
 const CHROME_LAYOUTS: LayoutOption[] = [
     'promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header',
@@ -48,7 +52,10 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
 
 const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
     NavBar: ['methods', 'nav_height', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
-    IconActions: ['methods', 'density'],
+    Logo: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    BrandLockup: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    ImageLogo: ['text', 'logo_url', 'tagline', 'logo_size', 'logo_shape', 'logo_variant', 'density', 'bg', 'shadow'],
+    IconActions: ['methods', 'action_variant', 'show_logout', 'logout_label', 'density'],
     SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side', 'sidebar_width'],
     SiteFooter: ['text', 'methods', 'density', 'bg', 'shadow'],
     FooterLinkGrid: ['methods', 'density', 'bg'],
@@ -76,7 +83,7 @@ const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
 
 const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
     'promo-bar':      'Each line = promo strip item (e.g. "Gratis verzending vanaf €25,-"). Text field = right-side CTA label.',
-    'logo':           'Text field = brand name shown in the logo.',
+    'logo':           'Text field = brand name. Logo URL/tagline/size/shape are editable below.',
     'search-bar':     'Text field = search input placeholder.',
     'icon-actions':   'Each line = action label (e.g. "Inloggen", "♡", "Cart icon").',
     'nav-links':      'Line 1 = categories label. Lines 2–4 = extra nav links. Lines 5+ = top-right links.',
@@ -200,6 +207,7 @@ const COMPONENT_OPTIONS_BY_LAYOUT: Partial<Record<LayoutOption, string[]>> = {
     form: ['ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm'],
     filter: ['FilterPanel', 'SearchBar'],
     'search-bar': ['SearchBar'],
+    'logo': ['Logo', 'BrandLockup', 'ImageLogo'],
     'site-nav': ['NavBar'],
     'nav-links': ['NavBar'],
     'icon-actions': ['IconActions'],
@@ -351,6 +359,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isSyncingLive, setIsSyncingLive] = useState(false);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [isVisualChecking, setIsVisualChecking] = useState(false);
+    const [visualCheckStatus, setVisualCheckStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [visualCheckSummary, setVisualCheckSummary] = useState('');
     const [previewMode, setPreviewMode] = useState<'design' | 'live'>('design');
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [isMetadataOpen, setIsMetadataOpen] = useState(false);
@@ -857,6 +868,38 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates, resolveLiveUser]);
 
+    const handleVisualCheck = useCallback(async () => {
+        if (!interfaceId || isVisualChecking) return;
+        setIsVisualChecking(true);
+        setVisualCheckStatus('idle');
+        setVisualCheckSummary('');
+        try {
+            const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
+            const activeCandidate = designMode === 'explore' && previewCandidateIdx !== null ? candidates[previewCandidateIdx] : null;
+            const effectiveStyling = activeCandidate?.styling || stl;
+            const effectiveTokens = normalizeDesignTokens(activeCandidate?.tokens || tks, effectiveStyling);
+            const { data } = await authAxios.post('/v1/generator/prototypes/visual_check/', {
+                interface_id: interfaceId,
+                live_user: liveUser,
+                sections: activeCandidate?.sections || secs,
+                pages: activeCandidate?.pages || pgs,
+                ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
+                ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
+            });
+            const failed = (data?.checks || []).filter((item: any) => !item.ok);
+            setVisualCheckStatus(failed.length ? 'error' : 'ok');
+            setVisualCheckSummary(failed.length
+                ? `${failed.length}/${(data?.checks || []).length} pages differ`
+                : `${(data?.checks || []).length} pages match`);
+        } catch (error: any) {
+            setVisualCheckStatus('error');
+            setVisualCheckSummary(error?.response?.data?.detail || error?.message || 'Visual check failed');
+        } finally {
+            setIsVisualChecking(false);
+            setTimeout(() => setVisualCheckStatus('idle'), 5000);
+        }
+    }, [interfaceId, isVisualChecking, designMode, previewCandidateIdx, candidates, liveUser]);
+
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
         const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
@@ -1189,6 +1232,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
     const secSidebarSide: SidebarSideOption = (secStyle.sidebar_side as SidebarSideOption) || 'left';
     const secSidebarWidth = Number(secStyle.sidebar_width || 3);
+    const secLogoSize: LogoSizeOption = (secStyle.logo_size as LogoSizeOption) || 'md';
+    const secLogoShape: LogoShapeOption = (secStyle.logo_shape as LogoShapeOption) || 'rounded';
+    const secLogoVariant: LogoVariantOption = (secStyle.logo_variant as LogoVariantOption) || 'lockup';
+    const secActionVariant: ActionVariantOption = (secStyle.action_variant as ActionVariantOption) || 'link';
+    const secShowLogout = !(secStyle.show_logout === false || secStyle.show_logout === 'false' || secStyle.show_logout === '0' || secStyle.show_logout === 'hidden');
     const isActivityAction = selectedSection?.type === 'activity_action' || selectedSection?.layout === 'activity_action';
     const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
     const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
@@ -1363,7 +1411,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail'));
     const hasControl = (c: string) => layoutControls.includes(c) && (!['sidebar_side', 'sidebar_width'].includes(c) || selectedSection?.position === 'sidebar');
     const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
-    const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
+    const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'Logo', 'BrandLockup', 'ImageLogo', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
     const layoutGroupsForSelected = (isChromeLike && !hasDataShape
         ? LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer')
         : hasDataShape
@@ -1397,8 +1445,21 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     });
 
     const stl = styling as Record<string, string>;
+    const designTokens = tokens as Record<string, string>;
     const updateStyling = (key: string, value: string) =>
         setStyling((prev: Record<string, string>) => ({ ...prev, [key]: value }));
+    const updateDesignToken = (key: string, value: string) =>
+        setTokens((prev: Record<string, string>) => {
+            const next = { ...(prev || {}) };
+            if (value === '' || value == null) delete next[key];
+            else next[key] = value;
+            return normalizeDesignTokens(next, styling);
+        });
+    const updateTokenGroup = (updates: Record<string, string>, legacy?: Record<string, string>) => {
+        setTokens((prev: Record<string, string>) => normalizeDesignTokens({ ...(prev || {}), ...updates }, styling));
+        if (legacy) setStyling((prev: Record<string, string>) => ({ ...(prev || {}), ...legacy }));
+    };
+    const tokenValue = (key: string, fallback = '') => String(designTokens?.[key] ?? fallback);
 
     const BG_PRESETS = [
         { label: 'White', hex: '#ffffff' },
@@ -1415,6 +1476,68 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         { label: 'Rose',   hex: '#f43f5e' },
         { label: 'Slate',  hex: '#64748b' },
     ];
+    const TOKEN_COLOR_PRESETS = [
+        { label: 'Blue', hex: '#2563eb' },
+        { label: 'Sky', hex: '#60a5fa' },
+        { label: 'Red', hex: '#dc2626' },
+        { label: 'Green', hex: '#16a34a' },
+        { label: 'Purple', hex: '#7c3aed' },
+        { label: 'Orange', hex: '#f97316' },
+        { label: 'Pink', hex: '#db2777' },
+        { label: 'Slate', hex: '#111827' },
+        { label: 'Gray', hex: '#6b7280' },
+        { label: 'White', hex: '#ffffff' },
+    ];
+    const tokenColorPicker = (
+        label: string,
+        tokenKey: string,
+        fallback: string,
+        legacyKey?: string,
+        extraUpdates?: (hex: string) => Record<string, string>,
+    ) => {
+        const value = tokenValue(tokenKey, fallback);
+        return (
+            <div key={tokenKey} style={{ display: 'grid', gap: 5, padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#334155' }}>{label}</span>
+                    <span style={{ fontSize: 10, color: '#64748b', fontFamily: 'monospace' }}>{value}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                    {TOKEN_COLOR_PRESETS.map(p => (
+                        <button
+                            key={`${tokenKey}-${p.hex}`}
+                            title={p.label}
+                            onClick={() => {
+                                const updates = { [tokenKey]: p.hex, ...(extraUpdates ? extraUpdates(p.hex) : {}) };
+                                updateTokenGroup(updates, legacyKey ? { [legacyKey]: p.hex } : undefined);
+                            }}
+                            style={{
+                                width: 19,
+                                height: 19,
+                                borderRadius: 999,
+                                background: p.hex,
+                                cursor: 'pointer',
+                                border: value.toLowerCase() === p.hex.toLowerCase() ? '2px solid #111827' : '1px solid #cbd5e1',
+                                boxShadow: value.toLowerCase() === p.hex.toLowerCase() ? '0 0 0 2px #bfdbfe' : 'none',
+                            }}
+                        />
+                    ))}
+                    <label style={{ position: 'relative', width: 22, height: 22, borderRadius: 999, overflow: 'hidden', border: '1px solid #cbd5e1', cursor: 'pointer', background: value }}>
+                        <input
+                            type="color"
+                            value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : fallback}
+                            onChange={(e) => {
+                                const hex = e.target.value;
+                                const updates = { [tokenKey]: hex, ...(extraUpdates ? extraUpdates(hex) : {}) };
+                                updateTokenGroup(updates, legacyKey ? { [legacyKey]: hex } : undefined);
+                            }}
+                            style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                        />
+                    </label>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <>
@@ -1722,7 +1845,148 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                             {/* Global Theme */}
                             <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 12 }}>
-                                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 8px' }}>Global Theme</p>
+                                <p style={{ fontSize: 12, fontWeight: 700, color: '#111827', margin: '0 0 3px' }}>Design System Tokens</p>
+                                <p style={{ fontSize: 10, color: '#64748b', margin: '0 0 8px', lineHeight: 1.35 }}>
+                                    Shared tokens consumed by preview and live: colors, radius, spacing, shadows and typography.
+                                </p>
+
+                                <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '2px 8px 8px', background: '#fff', marginBottom: 10 }}>
+                                    {tokenColorPicker('Accent', 'accent.hex', '#2563eb', 'accentColor', (hex) => ({
+                                        'button.ghost.text_hex': hex,
+                                        'button.link.text_hex': hex,
+                                        'input.border_focus_hex': hex,
+                                        'badge.info.bg_hex': hex,
+                                    }))}
+                                    {tokenColorPicker('Page background', 'page.body.bg_hex', '#f9fafb', 'backgroundColor', (hex) => ({
+                                        'page.bg.hex': hex,
+                                    }))}
+                                    {tokenColorPicker('Main surface', 'region.main.bg_hex', '#ffffff')}
+                                    {tokenColorPicker('Text', 'page.body.text_hex', '#111827', 'textColor', (hex) => ({
+                                        'text.primary.hex': hex,
+                                    }))}
+                                    {tokenColorPicker('Header', 'region.header.bg_hex', tokenValue('accent.hex', '#2563eb'), undefined, () => ({
+                                        'region.header.text_hex': '#ffffff',
+                                    }))}
+                                    {tokenColorPicker('Navigation', 'nav.bg_hex', tokenValue('accent.hex', '#2563eb'), undefined, () => ({
+                                        'nav.text_hex': '#ffffff',
+                                    }))}
+                                    {tokenColorPicker('Footer', 'region.footer.bg_hex', tokenValue('accent.hex', '#2563eb'), undefined, () => ({
+                                        'region.footer.text_hex': '#ffffff',
+                                    }))}
+                                    {tokenColorPicker('Primary button', 'button.primary.bg_hex', tokenValue('accent.hex', '#2563eb'), undefined, (hex) => ({
+                                        'button.primary.border_hex': hex,
+                                        'button.primary.text_hex': '#ffffff',
+                                    }))}
+                                    {tokenColorPicker('Card surface', 'component.card.bg_hex', '#ffffff', undefined, (hex) => ({
+                                        'component.table.bg_hex': hex,
+                                        'component.list.bg_hex': hex,
+                                        'component.detail.bg_hex': hex,
+                                        'component.form.bg_hex': hex,
+                                    }))}
+                                    {tokenColorPicker('Borders', 'region.border_hex', '#e5e7eb', undefined, (hex) => ({
+                                        'region.border_strong_hex': hex,
+                                        'component.card.border_hex': hex,
+                                        'input.border_hex': hex,
+                                        'table.border_hex': hex,
+                                    }))}
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, paddingTop: 8 }}>
+                                        <label style={{ display: 'grid', gap: 3 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: '#475569' }}>Radius</span>
+                                            <select
+                                                value={tokenValue('page.radius.px', String(stl.radius || '8'))}
+                                                onChange={(e) => updateTokenGroup({
+                                                    'page.radius.px': e.target.value,
+                                                    'button.radius.px': e.target.value,
+                                                    'input.radius.px': e.target.value,
+                                                }, { radius: e.target.value })}
+                                                style={{ height: 28, borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 11, padding: '0 7px', background: '#fff' }}
+                                            >
+                                                <option value="0">0</option>
+                                                <option value="4">4</option>
+                                                <option value="8">8</option>
+                                                <option value="12">12</option>
+                                                <option value="16">16</option>
+                                                <option value="24">24</option>
+                                            </select>
+                                        </label>
+                                        <label style={{ display: 'grid', gap: 3 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: '#475569' }}>Base spacing</span>
+                                            <select
+                                                value={tokenValue('spacing.md', '16px')}
+                                                onChange={(e) => updateTokenGroup({
+                                                    'spacing.sm': e.target.value === '12px' ? '6px' : e.target.value === '20px' ? '10px' : '8px',
+                                                    'spacing.md': e.target.value,
+                                                    'spacing.lg': e.target.value === '12px' ? '18px' : e.target.value === '20px' ? '32px' : '24px',
+                                                    'spacing.xl': e.target.value === '12px' ? '24px' : e.target.value === '20px' ? '40px' : '32px',
+                                                })}
+                                                style={{ height: 28, borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 11, padding: '0 7px', background: '#fff' }}
+                                            >
+                                                <option value="12px">Compact</option>
+                                                <option value="16px">Normal</option>
+                                                <option value="20px">Spacious</option>
+                                            </select>
+                                        </label>
+                                        <label style={{ display: 'grid', gap: 3 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: '#475569' }}>Shadow</span>
+                                            <select
+                                                value={tokenValue('component.card.shadow', '0 1px 2px 0 rgb(0 0 0 / 0.05)')}
+                                                onChange={(e) => {
+                                                    const presets: Record<string, string> = {
+                                                        none: 'none',
+                                                        sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+                                                        md: '0 8px 18px -8px rgb(15 23 42 / 0.22)',
+                                                        lg: '0 18px 36px -18px rgb(15 23 42 / 0.30)',
+                                                    };
+                                                    const shadow = presets[e.target.value] || presets.sm;
+                                                    updateTokenGroup({
+                                                        'shadow.sm': presets.sm,
+                                                        'shadow.md': presets.md,
+                                                        'shadow.lg': presets.lg,
+                                                        'component.card.shadow': shadow,
+                                                    });
+                                                }}
+                                                style={{ height: 28, borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 11, padding: '0 7px', background: '#fff' }}
+                                            >
+                                                <option value="none">None</option>
+                                                <option value="sm">Small</option>
+                                                <option value="md">Medium</option>
+                                                <option value="lg">Large</option>
+                                            </select>
+                                        </label>
+                                        <label style={{ display: 'grid', gap: 3 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: '#475569' }}>Font</span>
+                                            <select
+                                                value={tokenValue('page.font.family', stl.fontFamily || 'inter')}
+                                                onChange={(e) => {
+                                                    updateDesignToken('page.font.family', e.target.value);
+                                                    updateStyling('fontFamily', e.target.value);
+                                                }}
+                                                style={{ height: 28, borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 11, padding: '0 7px', background: '#fff' }}
+                                            >
+                                                <option value="inter">Inter</option>
+                                                <option value="roboto">Roboto</option>
+                                                <option value="poppins">Poppins</option>
+                                                <option value="playfair">Playfair</option>
+                                                <option value="mono">Mono</option>
+                                                <option value="geist">Geist</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            setTokens({});
+                                            setStyling({});
+                                        }}
+                                        style={{ marginTop: 8, fontSize: 11, color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', padding: '4px 8px' }}
+                                    >
+                                        Reset design system
+                                    </button>
+                                </div>
+
+                                <details>
+                                    <summary style={{ fontSize: 11, color: '#64748b', cursor: 'pointer', fontWeight: 700, marginBottom: 8 }}>Legacy quick presets</summary>
 
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
@@ -1846,6 +2110,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                         Reset theme
                                     </button>
                                 )}
+                                </details>
                             </div>
                         </>
                     ) : (
@@ -2237,6 +2502,59 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 ))}
                             </div>
 
+                            {hasControl('logo_url') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Image URL</p>
+                            <input type="text" placeholder="https://.../logo.png"
+                                value={secStyle.logo_url ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'logo_url', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('logo_size') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Size</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['sm','md','lg','xl'] as LogoSizeOption[]).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active(secLogoSize === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'logo_size', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('logo_shape') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Shape</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['rounded','circle','square'] as LogoShapeOption[]).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active(secLogoShape === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'logo_shape', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('logo_variant') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Variant</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
+                                {([{value:'lockup',label:'Image + Text'},{value:'image-only',label:'Image Only'},{value:'text-only',label:'Text Only'}] as {value:LogoVariantOption;label:string}[]).map(o => (
+                                    <button key={o.value} style={{ ...btnBase, ...active(secLogoVariant === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'logo_variant', o.value)}>{o.label}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('action_variant') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action Style</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {(['link','ghost','button'] as ActionVariantOption[]).map(v => (
+                                    <button key={v} style={{ ...btnBase, ...active(secActionVariant === v), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'action_variant', v)}>{v}</button>
+                                ))}
+                            </div></>)}
+
+                            {hasControl('show_logout') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logout Link</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {([{value:true,label:'Show'},{value:false,label:'Hide'}] as {value:boolean;label:string}[]).map(o => (
+                                    <button key={String(o.value)} style={{ ...btnBase, ...active(secShowLogout === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'show_logout', o.value)}>{o.label}</button>
+                                ))}
+                            </div></>)}
+
                             {/* card: display_mode */}
                             {hasControl('display_mode') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Display</p>
@@ -2372,6 +2690,22 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             </div></>)}
 
                             {/* label inputs */}
+                            {hasControl('tagline') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Tagline</p>
+                            <input type="text" placeholder="Short subtitle under the brand"
+                                value={secStyle.tagline ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'tagline', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
+                            {hasControl('logout_label') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logout Label</p>
+                            <input type="text" placeholder="Logout"
+                                value={secStyle.logout_label ?? ''}
+                                onChange={e => updateSection(selectedSection.id, 'logout_label', e.target.value)}
+                                style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 10, boxSizing: 'border-box' }}
+                            /></>)}
+
                             {hasControl('cta_label') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CTA Button Label</p>
                             <input type="text" placeholder="e.g. In winkelwagen"
@@ -2700,6 +3034,19 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             }}>
                             {isSyncingLive ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <RefreshCw size={12} />}
                             {syncStatus === 'ok' ? 'Synced!' : syncStatus === 'error' ? 'Sync Failed' : 'Sync Live'}
+                        </button>
+                        <button onClick={handleVisualCheck} disabled={isVisualChecking || !interfaceId}
+                            title={visualCheckSummary || 'Compare current design schema against the live prototype'}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
+                                cursor: isVisualChecking ? 'default' : 'pointer',
+                                border: `1px solid ${visualCheckStatus === 'ok' ? '#86efac' : visualCheckStatus === 'error' ? '#fca5a5' : '#d1d5db'}`,
+                                background: visualCheckStatus === 'ok' ? '#f0fdf4' : visualCheckStatus === 'error' ? '#fef2f2' : '#fff',
+                                color: visualCheckStatus === 'ok' ? '#16a34a' : visualCheckStatus === 'error' ? '#dc2626' : '#374151',
+                                opacity: isVisualChecking ? 0.6 : 1,
+                            }}>
+                            {isVisualChecking ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Monitor size={12} />}
+                            {visualCheckStatus === 'ok' ? 'Matched' : visualCheckStatus === 'error' ? 'Diff' : 'Visual Check'}
                         </button>
                         <button onClick={handleViewGeneratorMetadata} disabled={!interfaceId || !systemId || isLoadingMetadata}
                             title="View metadata sent to the prototype generator"

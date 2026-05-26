@@ -290,7 +290,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
+{%- set _has_header_chrome = [] %}
 {%- for sc in page.section_components %}
+  {%- if sc.layout in _header_chrome or sc.position == 'header' %}
+    {%- set _ = _has_header_chrome.append(sc) %}
+  {%- endif %}
 {%- endfor %}
 
 {# 閳光偓閳光偓 header chrome: render all header-position section components 閳光偓閳光偓
@@ -364,8 +368,24 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 {# 閳光偓閳光偓 LOGO (inline inside main-header-row) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'logo' %}
+{%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+{%- set _logo_url = _sc_style.get('logo_url') or _sc_style.get('image_url') or tokens.get('brand.logo_url', '') %}
+{%- set _logo_size_px = {'sm':'28','md':'36','lg':'48','xl':'60'}.get(_sc_style.get('logo_size', 'md'), '36') %}
+{%- set _logo_shape = _sc_style.get('logo_shape', 'rounded') %}
+{%- set _logo_variant = _sc_style.get('logo_variant', 'lockup') %}
+{%- set _tagline = _sc_style.get('tagline') or _sc_style.get('subtitle') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
-  <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
+  <a href="#" class="inline-flex items-center gap-3 leading-none min-w-0">
+    {%- if _logo_url %}
+    <img src="{{ _logo_url }}" alt="{{ sc.text or _brand_name }}" class="shrink-0 object-cover {% if _logo_shape == 'circle' %}rounded-full{% elif _logo_shape == 'square' %}rounded-md{% else %}rounded-xl{% endif %}" style="width:{{ _logo_size_px }}px;height:{{ _logo_size_px }}px;">
+    {%- endif %}
+    {%- if _logo_variant != 'image-only' %}
+    <span class="flex flex-col min-w-0">
+      <span class="text-3xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _sc_style.get('logo_text') or _brand_name }}{% if _sc_style.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+      {%- if _tagline %}<span class="text-xs font-medium text-gray-500 mt-1 truncate">{{ _tagline }}</span>{%- endif %}
+    </span>
+    {%- endif %}
+  </a>
 </div>
 
 {# 閳光偓閳光偓 SEARCH BAR (inline inside main-header-row) 閳光偓閳光偓 #}
@@ -381,14 +401,19 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 {# 閳光偓閳光偓 ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) 閳光偓閳光偓 #}
 {%- elif sc.layout == 'icon-actions' %}
+{%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
+{%- set _action_variant = _sc_style.get('action_variant', 'link') %}
+{%- set _show_logout = _sc_style.get('show_logout', true) not in [false, 'false', '0', 'no', 'hidden'] %}
+{%- set _logout_label = _sc_style.get('logout_label', 'Logout') %}
+{%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
-  <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+  <div class="flex items-center justify-end gap-3 text-sm text-gray-700 shrink-0">
     {%- if sc.custom_methods %}
     {%- for m in sc.custom_methods %}
-    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    <span class="{{ _action_cls }}">{{ m }}</span>
     {%- endfor %}
     {%- else %}
-    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    {%- if _show_logout %}<a href="#" class="{{ _action_cls }}">{{ _logout_label }}</a>{%- endif %}
     <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer">
       <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -503,7 +528,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endfor %}
 {%- if _main_row_open %}</header>{%- endif %}
 
-{% if not _header_secs %}
+{% if not _has_header_chrome %}
 <header class="{{ _header_shell_class }} py-3 flex items-center justify-between shadow-sm" style="background-color:var(--region-header-bg);color:var(--region-header-text);">
   <div class="flex items-center gap-3">
     <a href="#" class="text-lg font-bold text-white hover:opacity-90 transition-opacity">
@@ -1263,14 +1288,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- for _mock_row in range(1) %}
     {%- if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
-      {%- if _mattrs %}
+      {%- if _media_attr %}
       <div class="{{ img_w }} flex-shrink-0">
-        <div class="w-full h-56 {{ r }} {{ 'bg-black' if _video_attr else 'bg-gray-50' }} flex items-center justify-center text-white/70">{% if _video_attr %}&#9658;{% endif %}</div>
+        {%- if _video_attr %}
+        <div class="w-full h-56 {{ r }} bg-black flex items-center justify-center text-white/70">&#9658;</div>
+        {%- else %}
+        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-56 object-cover {{ r }}" />
+        {%- endif %}
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
         {%- for attribute in _detail_attrs %}
-        {%- if attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
+        {%- if not (_media_attr and attribute|string == _media_attr|string) and attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
         <div class="si-field flex flex-col gap-1" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
@@ -1297,7 +1326,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media w-full h-48 rounded mt-1 bg-gray-50"></div>
+          {%- elif _image_attr and attribute|string == _image_attr|string %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+          {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
+          {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
           {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
           {%- else -%}
             {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
@@ -1395,6 +1426,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+        {%- elif _image_attr and attribute|string == _image_attr|string %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+        {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
         {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
         {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
         {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
@@ -1523,10 +1556,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 {# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?PREVIEW: GALLERY 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
 {%- elif eff_lay == "gallery" %}
-{%- set img_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{%- set video_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{%- set img_attrs = [_image_attr] if _image_attr else [] %}
+{%- set video_attrs = [_video_attr] if _video_attr else [] %}
 {%- set media_attrs = video_attrs if video_attrs else img_attrs %}
-{%- set text_attrs = _card_attrs | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{%- set text_attrs = [] %}
+{%- for _attr in _card_attrs %}
+  {%- if not (_media_attr and _attr|string == _media_attr|string) and not (_image_attr and _attr|string == _image_attr|string) and not (_video_attr and _attr|string == _video_attr|string) %}
+    {%- set _ = text_attrs.append(_attr) %}
+  {%- endif %}
+{%- endfor %}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
@@ -1700,13 +1738,17 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 
 {%- elif lay == 'icon-actions' %}
-  <div class="flex items-center gap-5 text-sm text-gray-700">
+  {%- set _action_variant = _s.get('action_variant', 'link') %}
+  {%- set _show_logout = _s.get('show_logout', true) not in [false, 'false', '0', 'no', 'hidden'] %}
+  {%- set _logout_label = _s.get('logout_label', 'Logout') %}
+  {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
+  <div class="flex items-center gap-3 text-sm text-gray-700 justify-end">
     {%- if section_component.custom_methods %}
     {%- for m in section_component.custom_methods %}
-    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    <span class="{{ _action_cls }}">{{ m }}</span>
     {%- endfor %}
     {%- else %}
-    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    {%- if _show_logout %}<a href="#" class="{{ _action_cls }}">{{ _logout_label }}</a>{%- endif %}
     <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
     {%- endif %}
@@ -1721,7 +1763,22 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </form>
 
 {%- elif lay == 'logo' %}
-  <a href="#" class="inline-flex text-3xl font-black leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</a>
+  {%- set _logo_url = _s.get('logo_url') or _s.get('image_url') or tokens.get('brand.logo_url', '') %}
+  {%- set _logo_size_px = {'sm':'28','md':'36','lg':'48','xl':'60'}.get(_s.get('logo_size', 'md'), '36') %}
+  {%- set _logo_shape = _s.get('logo_shape', 'rounded') %}
+  {%- set _logo_variant = _s.get('logo_variant', 'lockup') %}
+  {%- set _tagline = _s.get('tagline') or _s.get('subtitle') %}
+  <a href="#" class="inline-flex items-center gap-3 leading-none min-w-0">
+    {%- if _logo_url %}
+    <img src="{{ _logo_url }}" alt="{{ section_component.text or _brand_name }}" class="shrink-0 object-cover {% if _logo_shape == 'circle' %}rounded-full{% elif _logo_shape == 'square' %}rounded-md{% else %}rounded-xl{% endif %}" style="width:{{ _logo_size_px }}px;height:{{ _logo_size_px }}px;">
+    {%- endif %}
+    {%- if _logo_variant != 'image-only' %}
+    <span class="flex flex-col min-w-0">
+      <span class="text-3xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _s.get('logo_text') or _brand_name }}{% if _s.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+      {%- if _tagline %}<span class="text-xs font-medium text-gray-500 mt-1 truncate">{{ _tagline }}</span>{%- endif %}
+    </span>
+    {%- endif %}
+  </a>
 
 {%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
   {%- if section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
@@ -1810,7 +1867,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% else %}
 
 {# 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?ACTION PANEL 鑺掗垾鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷欐兎鈶┾偓鈷?#}
-{% if eff_lay == "action_panel" %}
+{% if eff_lay != "action_panel" and _glay in ["card", "table", "list", "detail", "gallery", "form", "filter"] and (not section_component.primary_model or not list_var_name) %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
+    {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
+  </div>
+
+{% elif eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
     {% if section_component.primary_model -%}
@@ -1879,7 +1941,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
         {%- for attribute in _detail_attrs %}
-        {%- if attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
+        {%- if not (_media_attr and attribute|string == _media_attr|string) and attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
         <div class="si-field flex flex-col gap-1" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
@@ -1911,6 +1973,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         <div class="si-field flex flex-col gap-1{% if attribute.type in [AttributeType.IMAGE, AttributeType.VIDEO] %} sm:col-span-2{% endif %}" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+          {%- elif _image_attr and attribute|string == _image_attr|string -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
+          {%- elif _video_attr and attribute|string == _video_attr|string -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
           {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
           {%- elif attribute.type == AttributeType.VIDEO -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
           {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
@@ -2016,6 +2080,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
         <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+        {%- elif _image_attr and attribute|string == _image_attr|string -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="si-img object-cover rounded">{% raw %}{% endwith %}{% endraw %}
+        {%- elif _video_attr and attribute|string == _video_attr|string -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
         {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="si-img object-cover rounded">{% raw %}{% endwith %}{% endraw %}
         {%- elif attribute.type == AttributeType.VIDEO -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
         {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
@@ -2613,8 +2679,23 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 
 {%- elif lay == 'logo' %}
+  {%- set _logo_url = _s.get('logo_url') or _s.get('image_url') or tokens.get('brand.logo_url', '') %}
+  {%- set _logo_size_px = {'sm':'28','md':'36','lg':'48','xl':'60'}.get(_s.get('logo_size', 'md'), '36') %}
+  {%- set _logo_shape = _s.get('logo_shape', 'rounded') %}
+  {%- set _logo_variant = _s.get('logo_variant', 'lockup') %}
+  {%- set _tagline = _s.get('tagline') or _s.get('subtitle') %}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3">
-    <a href="#" class="inline-flex text-3xl font-black leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</a>
+    <a href="#" class="inline-flex items-center gap-3 leading-none min-w-0">
+      {%- if _logo_url %}
+      <img src="{{ _logo_url }}" alt="{{ section_component.text or _brand_name }}" class="shrink-0 object-cover {% if _logo_shape == 'circle' %}rounded-full{% elif _logo_shape == 'square' %}rounded-md{% else %}rounded-xl{% endif %}" style="width:{{ _logo_size_px }}px;height:{{ _logo_size_px }}px;">
+      {%- endif %}
+      {%- if _logo_variant != 'image-only' %}
+      <span class="flex flex-col min-w-0">
+        <span class="text-3xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _s.get('logo_text') or _brand_name }}{% if _s.get('dot', true) not in [false, 'false', '0', 'no'] %}.{% endif %}</span>
+        {%- if _tagline %}<span class="text-xs font-medium text-gray-500 mt-1 truncate">{{ _tagline }}</span>{%- endif %}
+      </span>
+      {%- endif %}
+    </a>
   </div>
 
 {%- elif lay == 'search-bar' %}
@@ -2626,13 +2707,17 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </form>
 
 {%- elif lay == 'icon-actions' %}
-  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-5 text-sm text-gray-700">
+  {%- set _action_variant = _s.get('action_variant', 'link') %}
+  {%- set _show_logout = _s.get('show_logout', true) not in [false, 'false', '0', 'no', 'hidden'] %}
+  {%- set _logout_label = _s.get('logout_label', 'Logout') %}
+  {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
+  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center justify-end gap-3 text-sm text-gray-700">
     {%- if section_component.custom_methods %}
     {%- for m in section_component.custom_methods %}
-    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    <span class="{{ _action_cls }}">{{ m }}</span>
     {%- endfor %}
     {%- else %}
-    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    {%- if _show_logout %}<a href="{% raw %}{% url 'logout' %}{% endraw %}" class="{{ _action_cls }}">{{ _logout_label }}</a>{%- endif %}
     <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
     <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
     {%- endif %}

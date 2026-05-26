@@ -1,0 +1,29 @@
+- generic [active]:
+  - generic:
+    - banner [ref=e1]:
+      - link "AI4MDE Studio" [ref=e2] [cursor=pointer]:
+        - /url: /
+        - img [ref=e3]
+        - generic [ref=e7]: AI4MDE
+        - generic [ref=e8]: Studio
+      - button "Chatbot" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+    - generic [ref=e15]:
+      - link "Dashboard" [ref=e16] [cursor=pointer]:
+        - /url: /
+        - img [ref=e17]
+        - generic [ref=e22]: Dashboard
+      - link "Build" [ref=e23] [cursor=pointer]:
+        - /url: /build/
+        - img [ref=e24]
+        - generic [ref=e27]: Build
+      - link "Projects" [ref=e28] [cursor=pointer]:
+        - /url: /projects/
+        - img [ref=e29]
+        - generic [ref=e32]: Projects
+      - button "Logout" [ref=e34] [cursor=pointer]:
+        - img [ref=e35]
+        - generic [ref=e38]: Logout
+    - main [ref=e39]:
+      - progressbar [ref=e40]:
+        - img [ref=e41]

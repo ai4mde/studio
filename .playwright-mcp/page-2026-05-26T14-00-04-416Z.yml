@@ -1,0 +1,48 @@
+- generic [active]:
+  - generic:
+    - generic [ref=e1]:
+      - img [ref=e3]
+      - button "Open Tanstack query devtools" [ref=e51] [cursor=pointer]:
+        - img [ref=e52]
+    - banner [ref=e100]:
+      - link "AI4MDE Studio" [ref=e101] [cursor=pointer]:
+        - /url: /
+        - img [ref=e102]
+        - generic [ref=e106]: AI4MDE
+        - generic [ref=e107]: Studio
+      - button "Chatbot" [ref=e110] [cursor=pointer]:
+        - img [ref=e111]
+    - generic [ref=e114]:
+      - link "Dashboard" [ref=e115] [cursor=pointer]:
+        - /url: /
+        - img [ref=e116]
+        - generic [ref=e121]: Dashboard
+      - link "Build" [ref=e122] [cursor=pointer]:
+        - /url: /build/
+        - img [ref=e123]
+        - generic [ref=e126]: Build
+      - link "Projects" [ref=e127] [cursor=pointer]:
+        - /url: /projects/
+        - img [ref=e128]
+        - generic [ref=e131]: Projects
+      - button "Logout" [ref=e133] [cursor=pointer]:
+        - img [ref=e134]
+        - generic [ref=e137]: Logout
+    - main [ref=e138]:
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - heading "Welcome to AI4MDE Studio" [level=1] [ref=e142]
+          - heading "Build applications through conversation" [level=3] [ref=e143]
+        - separator [ref=e144]
+        - generic [ref=e145]:
+          - link "Import a requirements text" [ref=e146] [cursor=pointer]:
+            - /url: /build
+            - img [ref=e147]
+            - generic [ref=e150]: Import a requirements text
+          - button "Start chatting with our chatbot" [ref=e151] [cursor=pointer]:
+            - img [ref=e152]
+            - generic [ref=e154]: Start chatting with our chatbot
+          - link "Create a project & system by hand" [ref=e155] [cursor=pointer]:
+            - /url: /projects
+            - img [ref=e156]
+            - generic [ref=e159]: Create a project & system by hand

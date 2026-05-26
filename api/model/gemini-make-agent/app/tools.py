@@ -415,6 +415,34 @@ _PROMPT_COLOR_THEMES = {
     "slate": {"accent": "#475569", "secondary": "#94a3b8", "page": "#f8fafc", "surface": "#ffffff", "border": "#cbd5e1"},
 }
 
+_COLOR_KEYWORDS = {
+    "purple": "#7c3aed",
+    "violet": "#7c3aed",
+    "blue": "#2563eb",
+    "green": "#16a34a",
+    "orange": "#f97316",
+    "rose": "#e11d48",
+    "pink": "#db2777",
+    "red": "#dc2626",
+    "dark": "#111827",
+    "black": "#111827",
+    "slate": "#475569",
+    "gray": "#6b7280",
+    "grey": "#6b7280",
+    "white": "#ffffff",
+}
+
+_ZH_COLOR_KEYWORDS = {
+    "紫": "purple",
+    "蓝": "blue",
+    "绿": "green",
+    "橙": "orange",
+    "粉": "pink",
+    "红": "red",
+    "黑": "black",
+    "灰": "slate",
+}
+
 def _prompt_color_theme(prompt: str = "") -> tuple[str | None, dict]:
     text = str(prompt or "").lower()
     if not text:
@@ -427,8 +455,590 @@ def _prompt_color_theme(prompt: str = "") -> tuple[str | None, dict]:
         return "custom", {"accent": hex_match.group(0), "secondary": hex_match.group(0), "page": "#f9fafb", "surface": "#ffffff", "border": "#e5e7eb"}
     return None, {}
 
+def _color_word_to_hex(word: str | None) -> str | None:
+    if not word:
+        return None
+    value = str(word).strip().lower()
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+        return value
+    return _COLOR_KEYWORDS.get(value)
+
+def _find_color_near(text: str, target_terms: tuple[str, ...]) -> tuple[str | None, str | None]:
+    color_words = "|".join(re.escape(name) for name in _COLOR_KEYWORDS)
+    target_words = "|".join(re.escape(term) for term in target_terms)
+    patterns = (
+        rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b(?:\W+\w+){{0,4}}\W+\b(?P<target>{target_words})s?\b",
+        rf"\b(?P<target>{target_words})s?\b(?:\W+\w+){{0,6}}\W+\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
+    )
+    clauses = re.split(r"[,.;\n]|(?:\s+\b(?:and|but|while|whereas)\b\s+)", text)
+    for clause in [c.strip() for c in clauses if c.strip()]:
+        for pattern in patterns:
+            match = re.search(pattern, clause)
+            if match:
+                return match.group("color"), _color_word_to_hex(match.group("color"))
+    return None, None
+
+def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, color_hex: str | None) -> None:
+    if not color_hex:
+        return
+    theme = _PROMPT_COLOR_THEMES.get(str(color_name or ""), {})
+    secondary = theme.get("secondary", color_hex)
+    page = theme.get("page", color_hex)
+    border = theme.get("border", color_hex)
+    if scope == "button":
+        overrides.update({
+            "button.primary.bg_hex": color_hex,
+            "button.primary.border_hex": color_hex,
+            "button.primary.text_hex": "#ffffff",
+        })
+        if color_name == "red":
+            overrides.update({
+                "button.danger.bg_hex": color_hex,
+                "button.danger.border_hex": color_hex,
+            })
+    elif scope == "nav":
+        overrides.update({
+            "nav.bg_hex": color_hex,
+            "nav.text_hex": "#ffffff",
+        })
+    elif scope == "header":
+        overrides.update({
+            "region.header.bg_hex": color_hex,
+            "region.header.text_hex": "#ffffff",
+        })
+    elif scope == "footer":
+        overrides.update({
+            "region.footer.bg_hex": color_hex,
+            "region.footer.text_hex": "#ffffff",
+        })
+    elif scope == "sidebar":
+        overrides.update({
+            "region.sidebar.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "region.sidebar.text_hex": "#ffffff" if color_name in {"black", "dark", "slate"} else overrides.get("page.body.text_hex", "#111827"),
+        })
+    elif scope == "background":
+        overrides.update({
+            "page.body.bg_hex": page,
+            "page.bg.hex": page,
+            "region.main.bg_hex": page,
+        })
+    elif scope == "main":
+        overrides.update({"region.main.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex})
+    elif scope == "card":
+        overrides.update({
+            "component.card.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "component.card.border_hex": border,
+        })
+    elif scope == "border":
+        overrides.update({
+            "region.border_hex": border,
+            "region.border_strong_hex": color_hex,
+            "component.card.border_hex": border,
+            "input.border_hex": border,
+            "table.border_hex": border,
+        })
+    elif scope == "text":
+        overrides.update({
+            "page.body.text_hex": color_hex,
+            "text.primary.hex": color_hex,
+        })
+    elif scope == "muted":
+        overrides.update({
+            "color.text.muted_hex": color_hex,
+            "text.muted.hex": color_hex,
+        })
+    elif scope == "input":
+        overrides.update({
+            "input.border_focus_hex": color_hex,
+            "input.border_hex": border,
+        })
+    elif scope == "table":
+        overrides.update({
+            "table.header.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "table.border_hex": border,
+            "table.row.hover_hex": page,
+        })
+    elif scope == "link":
+        overrides.update({
+            "button.link.text_hex": color_hex,
+            "button.ghost.text_hex": color_hex,
+        })
+    elif scope == "badge":
+        overrides.update({
+            "badge.info.bg_hex": color_hex,
+            "badge.info.text_hex": "#ffffff",
+        })
+    elif scope == "accent":
+        overrides.update({
+            "accent.hex": color_hex,
+            "color.secondary.hex": secondary,
+            "input.border_focus_hex": color_hex,
+            "button.ghost.text_hex": color_hex,
+            "button.link.text_hex": color_hex,
+            "badge.info.bg_hex": color_hex,
+        })
+
+def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
+    text = str(prompt or "").lower()
+    original = str(prompt or "")
+    if not text and not original:
+        return {}
+    overrides: dict[str, str] = {}
+
+    scopes = (
+        ("button", ("button", "cta", "action")),
+        ("nav", ("nav", "navbar", "navigation", "menu")),
+        ("header", ("header", "topbar", "top bar")),
+        ("footer", ("footer",)),
+        ("sidebar", ("sidebar", "side nav", "side bar")),
+        ("background", ("background", "page background", "body")),
+        ("main", ("main", "content")),
+        ("card", ("card", "cards", "panel", "tile")),
+        ("border", ("border", "outline", "stroke")),
+        ("text", ("text", "font", "copy")),
+        ("muted", ("muted", "secondary text", "subtle text")),
+        ("input", ("input", "field", "form field")),
+        ("table", ("table", "grid")),
+        ("link", ("link", "links")),
+        ("badge", ("badge", "tag", "pill")),
+        ("accent", ("accent", "primary color", "theme color")),
+    )
+    for scope, terms in scopes:
+        color_name, color_hex = _find_color_near(text, terms)
+        _apply_scoped_color(overrides, scope, color_name, color_hex)
+
+    zh_scopes = {
+        "按钮": "button",
+        "按鈕": "button",
+        "导航": "nav",
+        "導覽": "nav",
+        "菜单": "nav",
+        "頁首": "header",
+        "页首": "header",
+        "头部": "header",
+        "顶部": "header",
+        "footer": "footer",
+        "页脚": "footer",
+        "頁腳": "footer",
+        "侧边栏": "sidebar",
+        "側邊欄": "sidebar",
+        "背景": "background",
+        "卡片": "card",
+        "边框": "border",
+        "邊框": "border",
+        "文字": "text",
+        "输入框": "input",
+        "輸入框": "input",
+        "表格": "table",
+        "链接": "link",
+        "連結": "link",
+        "标签": "badge",
+        "標籤": "badge",
+    }
+    for zh_term, scope in zh_scopes.items():
+        if zh_term not in original:
+            continue
+        for zh_color, color_name in _ZH_COLOR_KEYWORDS.items():
+            if zh_color in original:
+                _apply_scoped_color(overrides, scope, color_name, _color_word_to_hex(color_name))
+                break
+
+    other_color_name = None
+    other_hex = None
+    color_words = "|".join(re.escape(name) for name in _COLOR_KEYWORDS)
+    other_patterns = (
+        rf"\b(?:other|rest|everything else|non[-\s]?button|not buttons?)\b(?:\W+\w+){{0,6}}\W+\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
+        rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b(?:\W+\w+){{0,6}}\W+\b(?:other|rest|everything else|non[-\s]?button|not buttons?)\b",
+    )
+    for pattern in other_patterns:
+        match = re.search(pattern, text)
+        if match:
+            other_color_name = match.group("color")
+            other_hex = _color_word_to_hex(other_color_name)
+            break
+    if not other_hex:
+        for zh, color_name in _ZH_COLOR_KEYWORDS.items():
+            if ("其他" in original or "其它" in original) and zh in original:
+                other_color_name = color_name
+                other_hex = _color_word_to_hex(color_name)
+                break
+    if other_hex:
+        theme = _PROMPT_COLOR_THEMES.get(str(other_color_name), {})
+        secondary = theme.get("secondary", other_hex)
+        page = theme.get("page")
+        border = theme.get("border")
+        overrides.update({
+            "accent.hex": other_hex,
+            "color.secondary.hex": secondary,
+            "region.header.bg_hex": other_hex,
+            "region.footer.bg_hex": other_hex,
+            "nav.bg_hex": other_hex,
+            "button.ghost.text_hex": other_hex,
+            "button.link.text_hex": other_hex,
+            "input.border_focus_hex": other_hex,
+            "badge.info.bg_hex": other_hex,
+        })
+        if page:
+            overrides.setdefault("page.body.bg_hex", page)
+            overrides.setdefault("page.bg.hex", page)
+        if border:
+            overrides.setdefault("region.border_hex", border)
+            overrides.setdefault("region.border_strong_hex", border)
+    return {key: value for key, value in overrides.items() if value}
+
+def _prompt_is_button_only_color(prompt: str = "") -> bool:
+    text = str(prompt or "").lower()
+    if not text:
+        return False
+    if _prompt_color_scope_lock(prompt) == "button":
+        return True
+    _, button_hex = _find_color_near(text, ("button", "cta", "action"))
+    if not button_hex:
+        return False
+    has_global_target = any(term in text for term in (
+        "theme", "page", "background", "header", "footer", "nav", "navbar",
+        "sidebar", "all colors", "whole", "entire", "everything", "other",
+        "rest", "non-button", "not button",
+    ))
+    return not has_global_target
+
+def _prompt_color_scope_lock(prompt: str = "") -> str | None:
+    """Detect prompts that intentionally constrain a color change to one scope.
+
+    This is intentionally conservative: when the user says "keep other colors the
+    same" and asks only for button color, variant planning must not recolor the
+    global accent/header/nav/footer tokens later in the pipeline.
+    """
+    text = str(prompt or "").lower()
+    original = str(prompt or "")
+    if not text and not original:
+        return None
+
+    _, button_hex = _find_color_near(text, ("button", "buttons", "cta", "action"))
+    has_button_term = any(term in text for term in ("button", "buttons", "cta", "action")) or ("\u6309\u94ae" in original)
+    if not button_hex or not has_button_term:
+        return None
+
+    preserve_other = any(phrase in text for phrase in (
+        "keep other color",
+        "keep other colors",
+        "keep the other color",
+        "keep the other colors",
+        "other color the same",
+        "other colors the same",
+        "other colours the same",
+        "rest color the same",
+        "rest colors the same",
+        "everything else the same",
+        "leave other colors",
+        "leave the other colors",
+        "do not change other",
+        "don't change other",
+        "dont change other",
+        "without changing other",
+    ))
+    only_button = bool(re.search(
+        r"\b(?:only|just)\b(?:\W+\w+){0,8}\W+\b(?:button|buttons|cta|action)s?\b"
+        r"|\b(?:button|buttons|cta|action)s?\b(?:\W+\w+){0,8}\W+\b(?:only|just)\b",
+        text,
+    ))
+    preserve_other = preserve_other or (
+        ("\u5176\u4ed6" in original or "\u5176\u5b83" in original)
+        and ("\u4e0d\u53d8" in original or "\u4fdd\u6301" in original or "\u4e00\u6837" in original)
+    )
+    only_button = only_button or ("\u53ea" in original and "\u6309\u94ae" in original)
+    return "button" if preserve_other or only_button else None
+
+def compile_prompt_intent(prompt: str = "") -> dict:
+    text = str(prompt or "").lower()
+    original_prompt = str(prompt or "")
+    color_overrides = _prompt_scoped_color_overrides(prompt)
+    color_scope_lock = _prompt_color_scope_lock(prompt)
+    layout_intent = _prompt_layout_traits(prompt)
+    component_intent: dict[str, str] = {}
+    data_intent = {
+        "hide_id_fields": any(term in text for term in (
+            "hide id", "hide ids", "hide internal", "no id fields", "without ids", "不要id", "隐藏id", "隱藏id",
+        )),
+        "table_targets": [],
+        "single_card_media": any(term in text for term in (
+            "single card", "one card", "single image card", "image only", "only image", "media only",
+            "limit 1 card", "limit one card",
+        )) or (
+            ("card" in text or "卡片" in str(prompt or ""))
+            and ("image" in text or "media" in text or "图片" in str(prompt or "") or "照片" in str(prompt or ""))
+            and ("single" in text or "one" in text or "only" in text or "单个" in str(prompt or "") or "一张" in str(prompt or "") or "只" in str(prompt or ""))
+        ),
+    }
+    data_intent["query_hints"] = {}
+    interaction_intent = {
+        "delete": "default",
+        "multi_delete": False,
+        "navigation_required": any(term in text for term in ("navigate", "navigation", "link to", "go to", "跳转", "导航")),
+    }
+
+    data_layouts = ("table", "card", "cards", "gallery", "list", "form", "detail")
+    target_patterns = (
+        r"\b(?P<target>[a-zA-Z][\w\s-]{1,40}?)\s+(?:as|in|with|use|using|into|to)\s+(?P<layout>table|cards?|gallery|list|form|detail)\b",
+        r"\b(?P<layout>table|cards?|gallery|list|form|detail)\s+(?:for|on|of)\s+(?P<target>[a-zA-Z][\w\s-]{1,40}?)\b",
+    )
+    for pattern in target_patterns:
+        for match in re.finditer(pattern, text):
+            target = re.sub(r"\s+", " ", match.group("target")).strip(" .,:;")
+            layout = match.group("layout")
+            if layout == "cards":
+                layout = "card"
+            if target and layout in data_layouts:
+                component_intent[target] = layout
+                if layout == "table":
+                    data_intent["table_targets"].append(target)
+
+    if any(term in text for term in ("all sections table", "everything table", "all data as table", "所有表格")):
+        component_intent["*"] = "table"
+    elif any(term in text for term in ("all cards", "everything card", "all data as cards", "所有卡片")):
+        component_intent["*"] = "card"
+
+    if any(term in text for term in ("no delete", "disable delete", "hide delete", "without delete", "不要删除", "禁用删除")):
+        interaction_intent["delete"] = "disabled"
+    elif any(term in text for term in ("enable delete", "allow delete", "show delete", "可以删除")):
+        interaction_intent["delete"] = "enabled"
+    if any(term in text for term in ("multi delete", "bulk delete", "delete selected", "batch delete", "多选删除", "批量删除")):
+        interaction_intent["multi_delete"] = True
+        interaction_intent["delete"] = "enabled"
+
+    if any(term in text for term in ("sidebar left", "left sidebar", "left nav", "左侧栏", "左侧导航")):
+        layout_intent["sidebar"] = True
+        layout_intent["sidebar_side"] = "left"
+    elif any(term in text for term in ("sidebar right", "right sidebar", "right nav", "右侧栏", "右侧导航")):
+        layout_intent["sidebar"] = True
+        layout_intent["sidebar_side"] = "right"
+    if any(term in text for term in ("main full", "full main", "main full width", "full-width main", "主区域全宽")):
+        layout_intent["full"] = True
+        layout_intent["main_width"] = "full"
+    if any(term in text for term in ("header full", "full header", "页首全宽")):
+        layout_intent["header_width"] = "full"
+    if any(term in text for term in ("footer full", "full footer", "页脚全宽")):
+        layout_intent["footer_width"] = "full"
+
+    query_hints = data_intent["query_hints"]
+    if any(term in text for term in ("latest", "newest", "recent", "most recent", "last item")):
+        query_hints["order"] = "latest"
+    elif any(term in text for term in ("oldest", "first item", "earliest")):
+        query_hints["order"] = "oldest"
+    if any(term in text for term in ("active only", "only active", "enabled only")):
+        query_hints.setdefault("filters", []).append({"kind": "active", "value": "true"})
+    for status_value in ("approved", "pending", "rejected", "accepted", "completed", "open", "closed"):
+        if re.search(rf"\b(?:only\s+)?{status_value}\b", text):
+            query_hints.setdefault("filters", []).append({"kind": "status", "value": status_value})
+    for match in re.finditer(r"\b(?P<field>[a-zA-Z_][\w]*)\s*(?:=|equals|is)\s*['\"]?(?P<value>[a-zA-Z0-9_. -]{1,40})['\"]?", text):
+        field = match.group("field").strip()
+        value = match.group("value").strip(" .,'\"")
+        if field and value and field not in {"button", "color", "style", "layout", "card", "image"}:
+            query_hints.setdefault("filters", []).append({"kind": "field", "field": field, "value": value})
+
+    return {
+        "version": 1,
+        "source": prompt or "",
+        "colorIntent": color_overrides,
+        "colorPolicy": {
+            "scope_lock": color_scope_lock,
+            "preserve_other_colors": bool(color_scope_lock),
+        },
+        "layoutIntent": layout_intent,
+        "componentIntent": component_intent,
+        "dataIntent": data_intent,
+        "interactionIntent": interaction_intent,
+    }
+
+def _intent_target_matches(section: dict, target: str) -> bool:
+    if target == "*":
+        return bool(section.get("primary_model")) or section.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
+    haystack = " ".join(str(section.get(key, "")) for key in ("id", "name", "primary_model", "class", "role", "layout")).lower()
+    needle = re.sub(r"[\s_-]+", "", str(target or "").lower())
+    compact_haystack = re.sub(r"[\s_-]+", "", haystack)
+    return bool(needle and (needle in compact_haystack or str(target).lower() in haystack))
+
+def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: dict, prompt_intent: dict) -> tuple[list, list, dict, dict]:
+    pages = copy.deepcopy(pages or [])
+    sections = copy.deepcopy(sections or [])
+    tokens = dict(tokens or {})
+    styling = dict(styling or {})
+    intent = prompt_intent or {}
+
+    color_intent = intent.get("colorIntent") or {}
+    if color_intent:
+        tokens.update(color_intent)
+
+    layout_intent = intent.get("layoutIntent") or {}
+    if layout_intent:
+        for page in pages:
+            layout = _page_layout_dict(page)
+            if layout_intent.get("main_width"):
+                layout["main_width"] = layout_intent["main_width"]
+            elif layout_intent.get("full"):
+                layout["main_width"] = "full"
+            if layout_intent.get("header_width"):
+                layout["header_width"] = layout_intent["header_width"]
+            if layout_intent.get("footer_width"):
+                layout["footer_width"] = layout_intent["footer_width"]
+            if layout_intent.get("hero_width"):
+                layout["hero_width"] = layout_intent["hero_width"]
+            page["layout"] = layout
+        if layout_intent.get("sidebar"):
+            side = layout_intent.get("sidebar_side") or "left"
+            nav_sections = [s for s in sections if s.get("layout") in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar"]
+            for nav in nav_sections[:1]:
+                nav["position"] = "sidebar"
+                nav["layout"] = "site-nav"
+                nav["component"] = "NavBar"
+                style = dict(nav.get("style") or {})
+                style["sidebar_side"] = side
+                style.setdefault("sidebar_width", 3)
+                nav["style"] = style
+
+    component_intent = intent.get("componentIntent") or {}
+    if component_intent:
+        for section in sections:
+            for target, layout in component_intent.items():
+                if _intent_target_matches(section, target):
+                    section["layout"] = layout
+                    section["component"] = _component_for_layout(section, layout)
+                    if layout == "table":
+                        section["col_span"] = 12
+                    style = dict(section.get("style") or {})
+                    if layout in {"gallery", "card"}:
+                        style.setdefault("columns", "3" if layout == "gallery" else "2")
+                    section["style"] = style
+
+    data_intent = intent.get("dataIntent") or {}
+    hide_ids = data_intent.get("hide_id_fields")
+    if data_intent.get("single_card_media"):
+        converted_media_card = False
+        for section in sections:
+            if converted_media_card or not section.get("primary_model"):
+                continue
+            attrs = section.get("attributes") or []
+            media_attr = next(
+                (
+                    _attr_name(attr)
+                    for attr in attrs
+                    if _attr_name(attr) and _field_kind(_attr_name(attr), _attr_type(attr)) == "media"
+                ),
+                "",
+            )
+            if not media_attr:
+                continue
+            attr_names = [_attr_name(attr) for attr in attrs if _attr_name(attr)]
+            section["layout"] = "card"
+            section["component"] = "ImageCard"
+            section["col_span"] = int(section.get("col_span") or 12)
+            query = dict(section.get("query") or {})
+            query["limit"] = 1
+            query_hints = data_intent.get("query_hints") or {}
+            attr_lookup = {name.lower(): name for name in attr_names}
+
+            def _first_attr(candidates: tuple[str, ...]) -> str:
+                for exact in candidates:
+                    if exact in attr_lookup:
+                        return attr_lookup[exact]
+                for attr_name in attr_names:
+                    low = attr_name.lower()
+                    if any(candidate in low for candidate in candidates):
+                        return attr_name
+                return ""
+
+            if query_hints.get("order"):
+                order_field = _first_attr(("created_at", "updated_at", "date", "time", "timestamp", "id"))
+                if order_field:
+                    direction = "asc" if query_hints.get("order") == "oldest" else "desc"
+                    query["order_by"] = [{"field": order_field, "direction": direction}]
+
+            query_filters = list(query.get("filters") or [])
+
+            def _append_filter(field: str, value: str, operator: str = "eq") -> None:
+                if not field:
+                    return
+                item = {"field": field, "operator": operator, "value": str(value)}
+                if item not in query_filters:
+                    query_filters.append(item)
+
+            for filter_hint in query_hints.get("filters") or []:
+                kind = filter_hint.get("kind")
+                if kind == "field":
+                    field = attr_lookup.get(str(filter_hint.get("field") or "").lower())
+                    _append_filter(field, filter_hint.get("value", ""))
+                elif kind == "active":
+                    field = _first_attr(("is_active", "active", "enabled", "is_enabled"))
+                    _append_filter(field, filter_hint.get("value", "true"))
+                elif kind == "status":
+                    field = _first_attr(("status", "state", "decision"))
+                    _append_filter(field, filter_hint.get("value", ""))
+            if query_filters:
+                query["filters"] = query_filters
+            section["query"] = query
+            style = dict(section.get("style") or {})
+            style.update({
+                "display_mode": "grid",
+                "card_style": "default",
+                "columns": "1",
+                "image_position": "top",
+                "image_size": "lg",
+            })
+            section["style"] = style
+            hidden = [name for name in attr_names if name != media_attr]
+            section["field_layout"] = {
+                "image": media_attr,
+                "hidden": hidden,
+                "field_styles": {
+                    media_attr: {"col_span": 12, "height": "lg", "label": "hidden"},
+                    **{name: {"visible": "hidden"} for name in hidden},
+                },
+            }
+            ops = _normalize_section_operations(section.get("operations"))
+            ops["create"] = False
+            ops["update"] = False
+            ops["delete"] = False
+            section["operations"] = ops
+            converted_media_card = True
+    interaction_intent = intent.get("interactionIntent") or {}
+    for section in sections:
+        if hide_ids and section.get("attributes"):
+            attrs = [a.get("name", a) if isinstance(a, dict) else a for a in section.get("attributes", [])]
+            hidden = [field for field in attrs if re.search(r"(^id$|_id$|id$|uuid|pk|internal)", str(field), re.I)]
+            if hidden:
+                layout = dict(section.get("field_layout") or {})
+                layout["hidden"] = sorted(set([*(layout.get("hidden") or []), *hidden]))
+                field_styles = dict(layout.get("field_styles") or {})
+                for field in hidden:
+                    field_styles[field] = {**(field_styles.get(field) or {}), "visible": "hidden"}
+                layout["field_styles"] = field_styles
+                section["field_layout"] = layout
+        ops = _normalize_section_operations(section.get("operations"))
+        if interaction_intent.get("delete") == "disabled":
+            ops["delete"] = False
+        elif interaction_intent.get("delete") == "enabled" and section.get("primary_model"):
+            ops["delete"] = True
+        if interaction_intent.get("multi_delete") and section.get("primary_model"):
+            ops["select"] = True
+            ops["delete"] = True
+            style = dict(section.get("style") or {})
+            style["multi_select"] = True
+            section["style"] = style
+        section["operations"] = ops
+        if intent.get("interactionIntent", {}).get("navigation_required") and section.get("layout") in {"card", "list", "table", "gallery"}:
+            section.setdefault("behavior", {})
+
+    return pages, sections, tokens, styling
+
 def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
     color_name, theme = _prompt_color_theme(prompt)
+    scoped_overrides = _prompt_scoped_color_overrides(prompt)
+    if not theme or _prompt_is_button_only_color(prompt):
+        if scoped_overrides:
+            tokens = dict(tokens or {})
+            tokens.update(scoped_overrides)
+            _expand_design_tokens(tokens)
+        return tokens
     if not theme:
         return tokens
     tokens = dict(tokens or {})
@@ -487,10 +1097,14 @@ def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
             "input.border_focus_hex": accent,
             "design.variant_index": variant_index,
         })
+    if scoped_overrides:
+        tokens.update(scoped_overrides)
     _expand_design_tokens(tokens)
     return tokens
 
 def _prompt_styling_overrides(prompt: str = "") -> dict:
+    if _prompt_color_scope_lock(prompt):
+        return {}
     color_name, theme = _prompt_color_theme(prompt)
     if not theme:
         return {}
@@ -1444,7 +2058,10 @@ def _infer_section_component(section: dict) -> str:
     has_image = any(term in attrs for term in ("image", "img", "url", "avatar", "photo", "media"))
     is_person = any(term in model_name for term in ("user", "customer", "employee", "doctor", "member", "actor"))
     
+    if layout == "logo": return "Logo"
     if layout == "search-bar": return "SearchBar"
+    if layout == "icon-actions": return "IconActions"
+    if layout in {"site-footer", "service-bar", "link-grid", "brand-strip"}: return "SiteFooter"
     if layout in {"site-nav", "nav-links", "nav-bar"}: return "NavBar"
     
     if layout == "form":
@@ -1519,6 +2136,12 @@ _COMPONENT_FIELD_SLOT_MAP = {
     "ReviewForm": _FIELD_SLOT_MAP["form"],
     "FilterPanel": _FIELD_SLOT_MAP["filter"],
     "SearchBar": _FIELD_SLOT_MAP["filter"],
+    "Logo": set(),
+    "BrandLockup": set(),
+    "ImageLogo": set(),
+    "IconActions": set(),
+    "SiteFooter": set(),
+    "FooterLinkGrid": set(),
 }
 
 def _attr_name(attr) -> str:
@@ -1751,48 +2374,178 @@ def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs
             activity_pages.append(page)
 
     normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
-    if normal_pages and not any((s.get("layout") in {"site-nav", "nav-links", "main-header"} or s.get("position") == "header") and s.get("layout") in chrome_layouts for s in sections):
-        nav_id = "app_site_nav"
-        sections.append({
-            "id": nav_id,
-            "name": "Site Navigation",
-            "layout": "site-nav",
-            "primary_model": "",
-            "class": "",
-            "attributes": [],
-            "operations": {"create": False, "update": False, "delete": False},
-            "col_span": 12,
-            "position": "header",
-            "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
-            "methods": _navigation_methods([p.get("name") for p in normal_pages if p.get("name")]),
-        })
-        section_map[nav_id] = sections[-1]
+    has_header_region = any(s.get("id") and s.get("position") == "header" for s in sections)
+    has_sidebar_navigation = any(
+        s.get("id")
+        and s.get("position") == "sidebar"
+        and (s.get("layout") in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar")
+        for s in sections
+    )
+    if normal_pages and not (has_header_region or has_sidebar_navigation):
+        header_sections = [
+            {
+                "id": "app_header_logo",
+                "name": "Brand",
+                "role": "brand",
+                "layout": "logo",
+                "component": "Logo",
+                "primary_model": "",
+                "class": "",
+                "attributes": [],
+                "operations": {"create": False, "update": False, "delete": False},
+                "col_span": 3,
+                "position": "header",
+                "style": {
+                    "color": "accent",
+                    "density": "normal",
+                    "shadow": "none",
+                    "border": "none",
+                    "bg": "white",
+                    "logo_size": "md",
+                    "logo_shape": "rounded",
+                    "tagline": "",
+                },
+            },
+            {
+                "id": "app_header_search",
+                "name": "Search",
+                "role": "search",
+                "layout": "search-bar",
+                "component": "SearchBar",
+                "primary_model": "",
+                "class": "",
+                "attributes": [],
+                "operations": {"create": False, "update": False, "delete": False},
+                "col_span": 6,
+                "position": "header",
+                "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
+            },
+            {
+                "id": "app_header_actions",
+                "name": "Account actions",
+                "role": "actions",
+                "layout": "icon-actions",
+                "component": "IconActions",
+                "primary_model": "",
+                "class": "",
+                "attributes": [],
+                "operations": {"create": False, "update": False, "delete": False},
+                "col_span": 3,
+                "position": "header",
+                "style": {
+                    "color": "accent",
+                    "density": "normal",
+                    "shadow": "none",
+                    "border": "none",
+                    "bg": "white",
+                    "align": "right",
+                    "action_variant": "link",
+                    "show_logout": True,
+                    "logout_label": "Logout",
+                },
+            },
+            {
+                "id": "app_header_nav",
+                "name": "Site Navigation",
+                "role": "navigation",
+                "layout": "nav-links",
+                "component": "NavBar",
+                "primary_model": "",
+                "class": "",
+                "attributes": [],
+                "operations": {"create": False, "update": False, "delete": False},
+                "col_span": 12,
+                "position": "header",
+                "style": {"color": "accent", "density": "normal", "shadow": "none", "border": "light", "bg": "white"},
+                "methods": _navigation_methods([p.get("name") for p in normal_pages if p.get("name")]),
+            },
+        ]
+        for header_section in header_sections:
+            if header_section["id"] not in section_map:
+                sections.append(header_section)
+                section_map[header_section["id"]] = header_section
         for page in normal_pages:
             refs = page.get("sections") or []
-            if nav_id not in {_ref_id(ref) for ref in refs}:
-                page["sections"] = [{"value": nav_id}] + refs
+            ref_ids = {_ref_id(ref) for ref in refs}
+            missing_header_refs = [{"value": s["id"]} for s in header_sections if s["id"] not in ref_ids]
+            if missing_header_refs:
+                page["sections"] = missing_header_refs + refs
 
-    header_chrome_ids = [
+    def _is_global_region_section(section: dict) -> bool:
+        position = section.get("position")
+        if position not in {"header", "sidebar", "footer"} or not section.get("id"):
+            return False
+        layout = section.get("layout")
+        style = section.get("style") or {}
+        role = str(section.get("role") or "").lower()
+        scope = str(section.get("scope") or style.get("scope") or "").lower()
+        if scope == "global":
+            return True
+        if layout in chrome_layouts:
+            return True
+        if not section.get("primary_model"):
+            return True
+        return role in {
+            "brand", "navigation", "search", "actions", "action", "promo", "utility",
+            "status", "summary", "kpi", "stats", "legal", "contact", "help", "footer",
+        }
+
+    header_region_ids = [
         str(s.get("id")) for s in sections
-        if s.get("id") and s.get("position") == "header" and s.get("layout") in chrome_layouts
+        if _is_global_region_section(s) and s.get("position") == "header"
     ]
-    sidebar_chrome_ids = [
+    sidebar_region_ids = [
         str(s.get("id")) for s in sections
-        if s.get("id") and s.get("position") == "sidebar" and s.get("layout") in chrome_layouts
+        if _is_global_region_section(s) and s.get("position") == "sidebar"
     ]
-    footer_chrome_ids = [
+    footer_region_ids = [
         str(s.get("id")) for s in sections
-        if s.get("id") and s.get("position") == "footer" and s.get("layout") in chrome_layouts
+        if _is_global_region_section(s) and s.get("position") == "footer"
     ]
-    if header_chrome_ids or sidebar_chrome_ids or footer_chrome_ids:
+    if header_region_ids or sidebar_region_ids or footer_region_ids:
         for page in normal_pages:
             refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
             ref_ids = {_ref_id(ref) for ref in refs}
-            header_refs = [{"value": sid} for sid in header_chrome_ids if sid not in ref_ids]
-            sidebar_refs = [{"value": sid} for sid in sidebar_chrome_ids if sid not in ref_ids]
-            footer_refs = [{"value": sid} for sid in footer_chrome_ids if sid not in ref_ids]
+            header_refs = [{"value": sid} for sid in header_region_ids if sid not in ref_ids]
+            sidebar_refs = [{"value": sid} for sid in sidebar_region_ids if sid not in ref_ids]
+            footer_refs = [{"value": sid} for sid in footer_region_ids if sid not in ref_ids]
             if header_refs or sidebar_refs or footer_refs:
                 page["sections"] = header_refs + sidebar_refs + refs + footer_refs
+
+    referenced_region_ids = {
+        _ref_id(ref)
+        for page in normal_pages
+        for ref in (page.get("sections") or [])
+        if _ref_id(ref)
+    }
+
+    def _best_page_for_region_section(section: dict) -> dict | None:
+        if not normal_pages:
+            return None
+        pm = str(section.get("primary_model") or "")
+        if pm:
+            pm_key = _section_id(pm)
+            for page in normal_pages:
+                page_pm = str(page.get("primary_model") or "")
+                page_text = f"{page.get('id', '')} {page.get('name', '')}"
+                if page_pm == pm or pm_key in _section_id(page_text):
+                    return page
+        return normal_pages[0]
+
+    for section in sections:
+        sid = str(section.get("id") or "")
+        position = section.get("position")
+        if not sid or sid in referenced_region_ids or position not in {"header", "sidebar", "footer"}:
+            continue
+        page = _best_page_for_region_section(section)
+        if not page:
+            continue
+        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+        if position == "footer":
+            page["sections"] = refs + [{"value": sid}]
+        else:
+            page["sections"] = [{"value": sid}] + refs
+        referenced_region_ids.add(sid)
 
     for page in normal_pages:
         model = _fallback_model_for_page(page, known_models)
@@ -2343,6 +3096,7 @@ def validate_and_save_candidate(
         if isinstance(sections, str):
             sections = json.loads(sections)
         prompt_for_style = designer_requirements or prompt
+        prompt_intent = compile_prompt_intent(prompt_for_style)
         if styling:
             if isinstance(styling, str):
                 try:
@@ -2374,6 +3128,8 @@ def validate_and_save_candidate(
             if design_spec_name:
                 tokens["design.spec_name"] = design_spec_name
             tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
+        if prompt_intent.get("colorIntent"):
+            tokens = {**(tokens or {}), **prompt_intent["colorIntent"]}
         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}
         for c in raw_classifiers:
             cdata = c.get("data", {}); cname = cdata.get("name", ""); attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
@@ -2530,6 +3286,7 @@ def validate_and_save_candidate(
         fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0))
         fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
         fixed_sections = _apply_ooui_navigation_methods(fixed_pages, fixed_sections, usecase_navigation)
+        fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
         for s in fixed_sections:
             s["component"] = _infer_section_component(s)
         chrome_positions = {"header", "hero", "footer", "sidebar"}
@@ -2575,7 +3332,15 @@ def validate_and_save_candidate(
                 sid = ref.get("value") if isinstance(ref, dict) else str(ref)
                 if sid and sid not in section_ids: orphans.append(f"page '{p.get('name')}' references section '{sid}' which is not in sections[]")
         if orphans: return f"INCOMPLETE: pages reference section IDs that are missing from sections[]. Missing: {'; '.join(orphans[:5])}."
-        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements, "fallback": False, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
+        canonical_schema = {
+            "version": 1,
+            "pages": fixed_pages,
+            "sections": fixed_sections,
+            "tokens": tokens or {},
+            "styling": styling or {},
+            "prompt_intent": prompt_intent,
+        }
+        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements, "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
         if derived_from != "":
             candidate["derived_from"] = derived_from
         if designer_requirements:
@@ -2649,6 +3414,13 @@ def _candidate_variant_name(prompt: str, index: int) -> str:
 
 def _variant_tokens(tokens: dict, prompt: str, index: int) -> dict:
     tokens = _apply_prompt_style_overrides(dict(tokens or {}), prompt)
+    scoped_overrides = _prompt_scoped_color_overrides(prompt)
+    if _prompt_color_scope_lock(prompt):
+        if scoped_overrides:
+            tokens.update(scoped_overrides)
+        tokens["design.variant_index"] = str(index)
+        _expand_design_tokens(tokens)
+        return tokens
     color_name, theme = _prompt_color_theme(prompt)
     if color_name in {"pink", "rose"}:
         accents = ("#db2777", "#be185d", "#ec4899")
@@ -2676,25 +3448,118 @@ def _variant_tokens(tokens: dict, prompt: str, index: int) -> dict:
         "input.border_focus_hex": accent,
         "design.variant_index": str(index),
     })
+    if scoped_overrides:
+        tokens.update(scoped_overrides)
     _expand_design_tokens(tokens)
     return tokens
 
-def _variant_pages(pages: list, index: int) -> list:
+def _prompt_layout_traits(prompt: str) -> dict:
+    text = str(prompt or "").lower()
+    return {
+        "full": any(term in text for term in ("full width", "full-width", "edge to edge", "edge-to-edge", "full bleed", "full-bleed")),
+        "dashboard": any(term in text for term in ("dashboard", "admin", "analytics", "operational", "dense")),
+        "sidebar": any(term in text for term in ("sidebar", "side nav", "left nav", "rail")),
+        "minimal": any(term in text for term in ("minimal", "clean", "simple", "focused")),
+        "form": any(term in text for term in ("form", "wizard", "application", "checkout", "onboarding")),
+    }
+
+def _page_layout_dict(page: dict) -> dict:
+    raw = page.get("layout") or {}
+    if isinstance(raw, dict):
+        out = dict(raw)
+    elif raw:
+        out = {"value": raw}
+    else:
+        out = {"value": "default"}
+    return out
+
+def _baseline_layout_intent(pages: list, sections: list) -> dict:
+    first_page = next((p for p in pages or [] if isinstance(p, dict)), {})
+    layout = _page_layout_dict(first_page)
+    nav_sections = [
+        s for s in sections or []
+        if str(s.get("layout") or "") in {"site-nav", "nav-links", "nav-bar"} or str(s.get("component") or "") == "NavBar"
+    ]
+    sidebar_nav = next((s for s in nav_sections if s.get("position") == "sidebar"), None)
+    sidebar_section = next((s for s in sections or [] if s.get("position") == "sidebar"), None)
+    data_sections = [s for s in sections or [] if s.get("primary_model") and s.get("layout") in {"card", "gallery", "table", "list", "detail", "form"}]
+    dominant_data_layout = (data_sections[0].get("layout") if data_sections else "card") or "card"
+    dominant_density = ((data_sections[0].get("style") or {}).get("density") if data_sections else "normal") or "normal"
+    return {
+        "name": "selected-baseline",
+        "main_width": layout.get("main_width", "contained"),
+        "header_width": layout.get("header_width", "contained"),
+        "hero_width": layout.get("hero_width", "contained"),
+        "footer_width": layout.get("footer_width", "full"),
+        "nav": "sidebar-left" if sidebar_nav or sidebar_section else "top",
+        "sidebar_side": ((sidebar_nav or sidebar_section).get("style") or {}).get("sidebar_side", "left") if (sidebar_nav or sidebar_section) else "left",
+        "sidebar_width": int(((sidebar_nav or sidebar_section).get("style") or {}).get("sidebar_width", 3)) if (sidebar_nav or sidebar_section) else 3,
+        "density": dominant_density,
+        "data_layout": dominant_data_layout,
+        "data_columns": str(((data_sections[0].get("style") or {}).get("columns")) if data_sections else "3") or "3",
+    }
+
+def _layout_intent_for_candidate(mode: str, prompt: str, index: int, base_pages: list | None = None, base_sections: list | None = None) -> dict:
+    traits = _prompt_layout_traits(prompt)
+    if mode == "refine":
+        base = _baseline_layout_intent(base_pages or [], base_sections or [])
+        variants = [
+            {"density": base["density"], "shadow": "sm", "spacing": "steady"},
+            {"density": "compact" if base["density"] != "compact" else "normal", "shadow": "none", "spacing": "dense"},
+            {"density": "spacious" if base["density"] != "spacious" else "normal", "shadow": "md", "spacing": "airy"},
+        ]
+        intent = {**base, **variants[index % 3], "mode": "refine", "name": f"refine-{index}"}
+        forced = _prompt_forced_layout(prompt, {"id": "all", "name": "all", "role": "data", "primary_model": "all"})
+        if forced:
+            intent["forced_data_layout"] = forced
+        if traits["full"] or traits["dashboard"]:
+            intent["main_width"] = "full" if index != 0 else "wide"
+            intent["header_width"] = "full"
+            intent["footer_width"] = "full"
+        if traits["sidebar"]:
+            intent["nav"] = "sidebar-left"
+        return intent
+
+    presets = [
+        {"name": "balanced-contained", "main_width": "contained", "header_width": "contained", "hero_width": "contained", "footer_width": "full", "nav": "top", "density": "normal", "data_layout": "card", "data_columns": "2", "shadow": "sm"},
+        {"name": "wide-sidebar", "main_width": "wide", "header_width": "full", "hero_width": "contained", "footer_width": "full", "nav": "sidebar-left", "sidebar_side": "left", "sidebar_width": 3, "density": "compact", "data_layout": "table", "data_columns": "1", "shadow": "none"},
+        {"name": "full-showcase", "main_width": "full", "header_width": "full", "hero_width": "full", "footer_width": "full", "nav": "top", "density": "spacious", "data_layout": "gallery", "data_columns": "3", "shadow": "md"},
+    ]
+    intent = {**presets[index % 3], "mode": "explore"}
+    forced = _prompt_forced_layout(prompt, {"id": "all", "name": "all", "role": "data", "primary_model": "all"})
+    if forced:
+        intent["forced_data_layout"] = forced
+    if traits["full"] or traits["dashboard"]:
+        widths = ("wide", "full", "full")
+        intent["main_width"] = widths[index % 3]
+        intent["header_width"] = "full"
+        intent["footer_width"] = "full"
+        intent["data_layout"] = "table" if traits["dashboard"] and index != 2 else intent["data_layout"]
+        intent["density"] = "compact" if traits["dashboard"] and index != 2 else intent["density"]
+    if traits["sidebar"]:
+        intent["nav"] = "sidebar-left"
+        intent["main_width"] = "wide" if intent["main_width"] == "contained" else intent["main_width"]
+    if traits["minimal"]:
+        intent["main_width"] = "contained" if index == 0 else "wide"
+        intent["header_width"] = "contained"
+        intent["density"] = "compact" if index == 1 else "normal"
+        intent["shadow"] = "none"
+    if traits["form"]:
+        intent["data_layout"] = "form" if index == 0 else ("detail" if index == 1 else "card")
+        intent["main_width"] = "contained" if index == 0 else "wide"
+    return intent
+
+def _apply_layout_intent_to_pages(pages: list, intent: dict) -> list:
     next_pages = copy.deepcopy(pages or [])
-    if index == 1:
-        for page in next_pages:
-            refs = page.get("sections") or []
-            chrome = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) in {"site_nav", "icon_actions"}]
-            footer = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) == "site_footer"]
-            body = [ref for ref in refs if ref not in chrome and ref not in footer]
-            page["sections"] = chrome + body + footer
-    elif index == 2:
-        for page in next_pages:
-            refs = page.get("sections") or []
-            header = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) in {"site_nav", "icon_actions"}]
-            footer = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) == "site_footer"]
-            body = [ref for ref in refs if ref not in header and ref not in footer]
-            page["sections"] = header + body + footer
+    for page in next_pages:
+        layout = _page_layout_dict(page)
+        layout.update({
+            "main_width": intent.get("main_width", layout.get("main_width", "contained")),
+            "header_width": intent.get("header_width", layout.get("header_width", "contained")),
+            "hero_width": intent.get("hero_width", layout.get("hero_width", "contained")),
+            "footer_width": intent.get("footer_width", layout.get("footer_width", "full")),
+        })
+        page["layout"] = layout
     return next_pages
 
 def _prompt_forced_layout(prompt: str, section: dict) -> str | None:
@@ -2737,78 +3602,85 @@ def _component_for_layout(section: dict, layout: str) -> str:
         return _infer_section_component(section)
     return _infer_section_component(section)
 
-def _variant_sections(sections: list, index: int, prompt: str = "") -> list:
+def _apply_layout_intent_to_sections(sections: list, intent: dict, prompt: str = "") -> list:
     next_sections = []
+    mode = intent.get("mode", "explore")
     for raw in sections or []:
         section = copy.deepcopy(raw)
         layout = str(section.get("layout") or "")
         role = str(section.get("role") or "")
         style = dict(section.get("style") or {})
         section_id = str(section.get("id") or "")
+        explicit_region_position = str(section.get("position") or "main")
         if layout in {"site-nav", "nav-links", "nav-bar"}:
             section["component"] = "NavBar"
-            style["density"] = ("normal", "compact", "spacious")[index % 3]
-            style["variant"] = ("tabs", "rail", "mega")[index % 3]
-            if index == 1:
+            style["density"] = intent.get("density", style.get("density", "normal"))
+            if intent.get("nav") == "sidebar-left":
                 section["position"] = "sidebar"
                 section["layout"] = "site-nav"
                 section["col_span"] = 12
-                style["sidebar_side"] = "left"
+                style["sidebar_side"] = intent.get("sidebar_side", "left")
+                style["sidebar_width"] = intent.get("sidebar_width", style.get("sidebar_width", 3))
                 style["variant"] = "rail"
                 style["bg"] = "white"
                 style["shadow"] = "sm"
             else:
                 section["position"] = "header"
+                if layout == "site-nav":
+                    section["layout"] = "nav-links"
                 style.pop("sidebar_side", None)
         elif layout == "icon-actions":
             section["component"] = "IconActions"
-            style["align"] = ("right", "compact", "floating")[index % 3]
+            style["align"] = "right"
             section["position"] = "header"
         elif layout in {"main-header", "minimal-header", "logo", "search-bar"}:
             section["position"] = "header"
-            if layout == "main-header" and index == 2:
+            if mode == "explore" and intent.get("name") == "full-showcase" and layout == "main-header":
                 section["layout"] = "minimal-header"
                 section["component"] = "NavBar"
-            if layout in {"logo", "search-bar"} and index == 1:
+            if layout in {"logo", "search-bar"} and intent.get("density") == "compact":
                 style["density"] = "compact"
         elif layout == "site-footer":
             section["component"] = "SiteFooter"
-            style["density"] = ("normal", "compact", "spacious")[index % 3]
-            if index == 1:
+            style["density"] = intent.get("density", style.get("density", "normal"))
+            if mode == "explore" and intent.get("nav") == "sidebar-left":
                 section["layout"] = "link-grid"
                 section["component"] = "FooterLinkGrid"
-            elif index == 2:
+            elif intent.get("footer_width") == "full":
                 style["surface_level"] = "elevated"
         elif layout in {"service-bar", "link-grid", "brand-strip"}:
             section["position"] = "footer"
-            if index == 2 and layout == "link-grid":
+            if mode == "explore" and intent.get("name") == "full-showcase" and layout == "link-grid":
                 section["layout"] = "brand-strip"
+        elif explicit_region_position == "sidebar" or (intent.get("nav") == "sidebar-left" and (layout == "filter" or role in {"filter", "navigation", "summary", "kpi", "stats", "tasklist", "help"})):
+            section["position"] = "sidebar"
+            section["col_span"] = 12
+            style["sidebar_side"] = style.get("sidebar_side", intent.get("sidebar_side", "left"))
+            style["sidebar_width"] = style.get("sidebar_width", intent.get("sidebar_width", 3))
+            style.setdefault("bg", "white")
+        elif explicit_region_position in {"header", "footer", "hero"}:
+            section["position"] = explicit_region_position
         if role in {"data", "collection", "child_collection"} or section.get("primary_model"):
-            forced_layout = _prompt_forced_layout(prompt, section)
+            forced_layout = intent.get("forced_data_layout") or _prompt_forced_layout(prompt, section)
             if forced_layout:
                 section["layout"] = forced_layout
                 section["component"] = _component_for_layout(section, forced_layout)
                 section["col_span"] = 12 if forced_layout == "table" else section.get("col_span", 12)
                 if forced_layout in {"gallery", "card"}:
                     style["columns"] = "3" if forced_layout == "gallery" else "2"
-            elif index == 1:
-                section["layout"] = "table"
-                section["component"] = "DataTable"
-                section["col_span"] = 12
-            elif index == 2:
-                section["layout"] = "gallery"
-                section["component"] = _infer_section_component(section)
-                style["columns"] = "3"
-                section["col_span"] = 12 if "task" in section_id else section.get("col_span", 12)
-                style["surface_level"] = "elevated"
-                style["text_class"] = "si-text-display"
-            elif index == 0:
-                section["layout"] = "card"
-                section["component"] = _infer_section_component(section)
-                style["columns"] = "2"
-                section["col_span"] = 6 if section.get("primary_model") and section.get("position") == "main" else section.get("col_span", 12)
-        style["density"] = ("normal", "compact", "spacious")[index % 3]
-        style["shadow"] = ("sm", "none", "md")[index % 3]
+            elif mode == "explore" and section.get("layout") in {"card", "gallery", "table", "list", "detail", "form"}:
+                target_layout = intent.get("data_layout") or section.get("layout")
+                section["layout"] = target_layout
+                section["component"] = _component_for_layout(section, target_layout)
+                section["col_span"] = 12 if target_layout in {"table", "gallery"} else (6 if target_layout == "card" and intent.get("main_width") != "full" else section.get("col_span", 12))
+                style["columns"] = intent.get("data_columns", style.get("columns", "3"))
+                if target_layout == "gallery":
+                    style["surface_level"] = "elevated"
+                    style["text_class"] = "si-text-display"
+            elif mode == "refine" and section.get("layout") in {"card", "gallery", "table", "list", "detail", "form"}:
+                style.setdefault("columns", intent.get("data_columns", style.get("columns", "3")))
+        style["density"] = intent.get("density", style.get("density", "normal"))
+        style["shadow"] = intent.get("shadow", style.get("shadow", "sm"))
         style.setdefault("color", "accent")
         section["style"] = style
         if section.get("layout") in {"table", "gallery", "card", "list", "detail", "form"}:
@@ -2834,12 +3706,14 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
         base_styling = {**dict(data.get("styling") or {}), **_prompt_styling_overrides(prompt)}
         results = []
         for index in range(3):
-            variant_pages = _variant_pages(pages, index)
-            variant_sections = _variant_sections(sections, index, prompt)
+            layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
+            variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
+            variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
             tokens = _variant_tokens(base_tokens, prompt, index)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index
-            styling["variantName"] = ("Card Gallery", "Data Table", "Showcase")[index]
+            styling["variantName"] = layout_intent.get("name") or ("Card Gallery", "Data Table", "Showcase")[index]
+            styling["layoutIntent"] = layout_intent
             result = validate_and_save_candidate(
                 interface_id=interface_id,
                 candidate_index=index,
@@ -2850,7 +3724,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                 tokens=json.dumps(tokens) if tokens else "",
                 styling=json.dumps(styling) if styling else "",
                 prompt=prompt,
-                variation_strategy=("balanced", "dense table-oriented", "expressive gallery-oriented")[index],
+                variation_strategy=layout_intent.get("name", ("balanced", "dense table-oriented", "expressive gallery-oriented")[index]),
             )
             results.append(result)
             if not str(result).startswith("OK:"):
@@ -2876,12 +3750,14 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
         base_styling = {**dict(base.get("styling") or {}), **_prompt_styling_overrides(designer_requirements)}
         results = []
         for index in range(3):
-            variant_pages = _variant_pages(pages, index)
-            variant_sections = _variant_sections(sections, index, designer_requirements)
+            layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
+            variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
+            variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, designer_requirements)
             tokens = _variant_tokens(base_tokens, designer_requirements, index)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index
-            styling["variantName"] = ("Selected Refinement", "Selected Table", "Selected Showcase")[index]
+            styling["variantName"] = layout_intent.get("name") or ("Selected Refinement", "Selected Table", "Selected Showcase")[index]
+            styling["layoutIntent"] = layout_intent
             result = validate_and_save_candidate(
                 interface_id=interface_id,
                 candidate_index=index,
@@ -2894,7 +3770,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                 prompt=designer_requirements,
                 derived_from=str(selected_candidate_index),
                 designer_requirements=designer_requirements,
-                variation_strategy=styling["variantName"],
+                variation_strategy=layout_intent.get("name", styling["variantName"]),
             )
             results.append(result)
             if not str(result).startswith("OK:"):
