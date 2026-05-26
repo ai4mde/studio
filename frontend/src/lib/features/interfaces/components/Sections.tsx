@@ -87,7 +87,41 @@ const getAttributeAction = (attr: any) => {
     return attr?.action || { type: attr?.is_link ? 'navigate' : 'none' };
 };
 const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...(attr || {}) };
+const isReadonlyAttribute = (attr: any) => {
+    const normalized = normalizeAttribute(attr);
+    return !!normalized.readonly || normalized.source === 'related' || String(normalized.name || '').includes('.');
+};
 const isActivityActionSection = (section: any) => section?.type === 'activity_action' || section?.layout === 'activity_action';
+const isCollectionSection = (section: any) => {
+    const layout = String(section?.layout || '').toLowerCase();
+    const role = String(section?.role || '').toLowerCase();
+    return ['card', 'list', 'table', 'gallery'].includes(layout)
+        || ['object_collection', 'child_collection', 'object_summary'].includes(role);
+};
+const sqlTableName = (name: string) => String(name || 'items')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[\s.-]+/g, '_')
+    .toLowerCase();
+const sqlFieldRef = (field: string, fromModel: string) => {
+    const raw = String(field || '').trim();
+    if (!raw) return '';
+    if (raw.includes('.')) {
+        const [model, attr] = raw.split('.', 2);
+        return `${sqlTableName(model)}.${attr}`;
+    }
+    return `${sqlTableName(fromModel)}.${raw}`;
+};
+const sqlOperator = (op: string) => ({
+    eq: '=', neq: '!=', lt: '<', lte: '<=', gt: '>', gte: '>=',
+    contains: 'LIKE', in: 'IN', isnull: 'IS NULL',
+}[op] || '=');
+const sqlValue = (filter: any) => {
+    if (filter.operator === 'isnull') return '';
+    if (filter.value_from) return `:${filter.value_from}`;
+    if (filter.operator === 'contains') return `'%${filter.value || ''}%'`;
+    if (filter.operator === 'in') return `(${String(filter.value || '').split(',').map((v) => `'${v.trim()}'`).join(', ')})`;
+    return filter.value ? `'${filter.value}'` : ':value';
+};
 
 export const Sections: React.FC<Props> = () => {
     const { systemId } = useParams();
@@ -117,11 +151,51 @@ export const Sections: React.FC<Props> = () => {
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
     const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
-    const [customAttr, setCustomAttr] = useState('');
     const [availablePaths, setAvailablePaths] = useState<string[]>([]);
     const selectedAttributeOptions = React.useMemo(
-        () => (selectedAttributes || []).map(toAttributeOption).filter((attr: any) => attr.name),
+        () => (selectedAttributes || [])
+            .filter((attr: any) => !isReadonlyAttribute(attr))
+            .map(toAttributeOption)
+            .filter((attr: any) => attr.name),
         [selectedAttributes],
+    );
+    const selectedReadonlyAttributeOptions = React.useMemo(
+        () => (selectedAttributes || [])
+            .filter(isReadonlyAttribute)
+            .map((attr: any) => ({ ...toAttributeOption(attr), readonly: true, source: 'related' }))
+            .filter((attr: any) => attr.name),
+        [selectedAttributes],
+    );
+    const selectedAttributeNames = React.useMemo(
+        () => new Set((selectedAttributes || []).map(getAttributeName).filter(Boolean)),
+        [selectedAttributes],
+    );
+    const readonlyAttributeOptions = React.useMemo(
+        () => availablePaths
+            .filter((path) => !selectedClassName || !path.toLowerCase().startsWith(`${String(selectedClassName).toLowerCase()}.`))
+            .filter((path) => !selectedAttributeNames.has(path))
+            .map((path) => ({ name: path, readonly: true, source: 'related' })),
+        [availablePaths, selectedClassName, selectedAttributeNames],
+    );
+    const classNameOptions = React.useMemo(
+        () => (classes || []).map((cls: any) => cls.data?.name).filter(Boolean),
+        [classes],
+    );
+    const findClassForSection = React.useCallback((section: any) => {
+        const ref = section?.class || section?.primary_model || '';
+        if (!classes || !ref) return null;
+        return classes.find((cls: any) =>
+            cls.id === ref ||
+            cls.data?.name === ref ||
+            cls.data?.name?.toLowerCase() === String(ref).toLowerCase()
+        ) || null;
+    }, [classes]);
+    const queryFieldOptions = React.useMemo(
+        () => [
+            ...(classAttributes || []).map((attr: any) => attr.name).filter(Boolean),
+            ...availablePaths,
+        ],
+        [classAttributes, availablePaths],
     );
 
     React.useEffect(() => {
@@ -142,9 +216,15 @@ export const Sections: React.FC<Props> = () => {
         }
 
         // Retrieve local storage vars from data
-        if (data[index].class) {
-            const classId = data[index].class;
-            setSelectedClass(classId);
+        const sectionClass = findClassForSection(data[index]);
+        if (sectionClass) {
+            setSelectedClass(sectionClass.id);
+            const newData = [...data];
+            newData[index].class = sectionClass.id;
+            newData[index].primary_model = sectionClass.data?.name || newData[index].primary_model || '';
+            setData(newData);
+        } else if (data[index].class) {
+            setSelectedClass(data[index].class);
         } else if (data[index].primary_model) {
             setSelectedClass(data[index].primary_model);
         }
@@ -339,6 +419,127 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const handleAddSelectField = (index: number) => {
+        const newData = [...data];
+        const firstField = queryFieldOptions[0] || '';
+        newData[index].query = {
+            ...(newData[index].query || {}),
+            select: [...(newData[index].query?.select || []), firstField],
+        };
+        setData(newData);
+    };
+
+    const handleSelectFieldChange = (index: number, fieldIndex: number, value: string) => {
+        const newData = [...data];
+        const select = [...(newData[index].query?.select || [])];
+        select[fieldIndex] = value;
+        newData[index].query = { ...(newData[index].query || {}), select };
+        setData(newData);
+    };
+
+    const handleRemoveSelectField = (index: number, fieldIndex: number) => {
+        const newData = [...data];
+        const select = [...(newData[index].query?.select || [])];
+        select.splice(fieldIndex, 1);
+        newData[index].query = { ...(newData[index].query || {}), select };
+        setData(newData);
+    };
+
+    const handleDataSourceFromChange = (index: number, model: string) => {
+        const newData = [...data];
+        newData[index].data_source = {
+            ...(newData[index].data_source || {}),
+            mode: 'query',
+            from: { model },
+        };
+        setData(newData);
+    };
+
+    const handleAddJoin = (index: number) => {
+        const newData = [...data];
+        const fromModel = newData[index].data_source?.from?.model || newData[index].primary_model || selectedClassName || '';
+        const model = classNameOptions.find((name: string) => name !== fromModel) || '';
+        const joins = [...(newData[index].data_source?.joins || [])];
+        joins.push({
+            type: 'left',
+            model,
+            on: model && fromModel ? `${fromModel}.${sqlTableName(model)}_id = ${model}.id` : '',
+        });
+        newData[index].data_source = {
+            ...(newData[index].data_source || {}),
+            mode: 'query',
+            from: { model: fromModel },
+            joins,
+        };
+        setData(newData);
+    };
+
+    const handleJoinChange = (index: number, joinIndex: number, key: 'type' | 'model' | 'on', value: string) => {
+        const newData = [...data];
+        const joins = [...(newData[index].data_source?.joins || [])];
+        joins[joinIndex] = { ...(joins[joinIndex] || {}), [key]: value };
+        newData[index].data_source = {
+            ...(newData[index].data_source || {}),
+            mode: 'query',
+            joins,
+        };
+        setData(newData);
+    };
+
+    const handleRemoveJoin = (index: number, joinIndex: number) => {
+        const newData = [...data];
+        const joins = [...(newData[index].data_source?.joins || [])];
+        joins.splice(joinIndex, 1);
+        newData[index].data_source = {
+            ...(newData[index].data_source || {}),
+            mode: 'query',
+            joins,
+        };
+        setData(newData);
+    };
+
+    const buildSqlPreview = (section: any) => {
+        const fromModel = section.data_source?.from?.model || section.primary_model || selectedClassName || 'Item';
+        const fromTable = sqlTableName(fromModel);
+        const selectedFields = (section.query?.select || []).filter(Boolean);
+        const selectFields = selectedFields.length
+            ? selectedFields.map((field: string) => {
+                const ref = sqlFieldRef(field, fromModel);
+                const alias = field.includes('.') ? ` AS ${field.replace(/[.\s-]+/g, '_').toLowerCase()}` : '';
+                return `  ${ref}${alias}`;
+            }).join(',\n')
+            : '  *';
+        const joins = (section.data_source?.joins || [])
+            .filter((join: any) => join.model)
+            .map((join: any) => `${String(join.type || 'left').toUpperCase()} JOIN ${sqlTableName(join.model)} ON ${join.on || '-- configure join condition'}`)
+            .join('\n');
+        const filters = (section.query?.filters || [])
+            .filter((filter: any) => filter.field)
+            .map((filter: any) => {
+                const op = sqlOperator(filter.operator || 'eq');
+                const value = sqlValue(filter);
+                return `  ${sqlFieldRef(filter.field, fromModel)} ${op}${value ? ` ${value}` : ''}`;
+            });
+        const relatedClause = section.related_to
+            ? ['  -- plus current-object filter from Related To shortcut']
+            : [];
+        const orderBy = (section.query?.order_by || [])
+            .filter((order: any) => order.field)
+            .map((order: any) => `${sqlFieldRef(order.field, fromModel)} ${String(order.direction || 'asc').toUpperCase()}`)
+            .join(', ');
+        return [
+            'SELECT',
+            selectFields,
+            `FROM ${fromTable}`,
+            joins,
+            [...filters, ...relatedClause].length ? `WHERE\n${[...filters, ...relatedClause].join('\n  AND ')}` : '',
+            orderBy ? `ORDER BY ${orderBy}` : '',
+            section.query?.limit ? `LIMIT ${section.query.limit}` : '',
+            section.query?.offset ? `OFFSET ${section.query.offset}` : '',
+            ';',
+        ].filter(Boolean).join('\n');
+    };
+
     const handleRelationFieldChange = (index: number, value: string) => {
         setNewRelationField(value);
         const newData = [...data];
@@ -346,9 +547,39 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
-    const handleViewDetailPageChange = (index: number, pageName: string) => {
+    const handleItemClickTypeChange = (index: number, type: string) => {
         const newData = [...data];
-        newData[index].view_detail_page = pageName || null;
+        const behavior = { ...(newData[index].behavior || {}) };
+        if (!type || type === 'none') {
+            delete behavior.item_click;
+        } else {
+            behavior.item_click = {
+                ...(behavior.item_click || {}),
+                type,
+            };
+            if (type !== 'navigate') {
+                delete behavior.item_click.target_page;
+            }
+        }
+        newData[index].behavior = behavior;
+        setData(newData);
+    };
+
+    const handleItemClickTargetPageChange = (index: number, pageName: string) => {
+        const newData = [...data];
+        const behavior = { ...(newData[index].behavior || {}) };
+        behavior.item_click = {
+            ...(behavior.item_click || {}),
+            type: pageName ? 'navigate' : (behavior.item_click?.type || 'none'),
+            target_page: pageName || '',
+            params: behavior.item_click?.params || {},
+        };
+        if (!pageName) {
+            delete behavior.item_click.target_page;
+        } else {
+            behavior.item_click.type = 'navigate';
+        }
+        newData[index].behavior = behavior;
         setData(newData);
     };
 
@@ -416,6 +647,27 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const handleReadonlyAttributeSelect = (selectedList, selectedItem, sectionIndex: number) => {
+        const selectedName = getAttributeName(selectedItem);
+        if (!selectedName) return;
+        const existingNames = new Set((selectedAttributes || []).map(getAttributeName));
+        const readonlyAttr = {
+            ...toAttributeOption(selectedItem),
+            name: selectedName,
+            readonly: true,
+            source: 'related',
+            render: selectedItem?.render || { as: 'text' },
+            action: selectedItem?.action || { type: 'none' },
+        };
+        const updatedAttributes = existingNames.has(selectedName)
+            ? selectedAttributes
+            : [...selectedAttributes, readonlyAttr];
+        setSelectedAttributes(updatedAttributes);
+        const newData = [...data];
+        newData[sectionIndex].attributes = updatedAttributes;
+        setData(newData);
+    };
+
     const handleAttributeRenderChange = (sectionIndex: number, attrIndex: number, renderAs: string) => {
         const updatedAttributes = [...selectedAttributes];
         const attr = normalizeAttribute(updatedAttributes[attrIndex]);
@@ -444,16 +696,6 @@ export const Sections: React.FC<Props> = () => {
         const newData = [...data];
         newData[sectionIndex].attributes = updatedAttributes;
         setData(newData);
-    };
-
-    const handleAddCustomAttribute = (sectionIndex: number) => {
-        if (!customAttr) return;
-        const updatedAttributes = [...selectedAttributes, { name: customAttr, render: { as: 'text' }, action: { type: 'none' } }];
-        setSelectedAttributes(updatedAttributes);
-        const newData = [...data];
-        newData[sectionIndex].attributes = updatedAttributes;
-        setData(newData);
-        setCustomAttr('');
     };
 
     const handleCustomMethodSelect = (selectedList, selectedItem, sectionIndex: number) => {
@@ -587,7 +829,7 @@ export const Sections: React.FC<Props> = () => {
                                                     <Chip
                                                         key={e.id}
                                                         onClick={() => toggleClass(index, e)}
-                                                        color={selectedClass === e.id ? 'primary' : 'neutral'}
+                                                        color={selectedClassObject?.id === e.id ? 'primary' : 'neutral'}
                                                         sx={{ maxWidth: '100%' }}
                                                     >
                                                         {e.data.name}
@@ -644,6 +886,7 @@ export const Sections: React.FC<Props> = () => {
                                         )}
                                         <div className="mt-2 space-y-1">
                                             {selectedAttributes.map((attr, attrIdx) => {
+                                                if (isReadonlyAttribute(attr)) return null;
                                                 const action = getAttributeAction(attr);
                                                 return (
                                                     <div key={attrIdx} className="bg-stone-50 px-2 py-1 rounded-md border border-stone-200 space-y-1">
@@ -695,24 +938,88 @@ export const Sections: React.FC<Props> = () => {
                                                 );
                                             })}
                                         </div>
-                                        <div className="flex gap-1 mt-1">
-                                            <input
-                                                type="text"
-                                                list="available-paths"
-                                                value={customAttr}
-                                                onChange={(e) => setCustomAttr(e.target.value)}
-                                                placeholder="e.g. seller.name"
-                                                className="border border-gray-300 rounded-md px-2 py-1 text-xs flex-1 min-w-0"
-                                            />
-                                            <datalist id="available-paths">
-                                                {availablePaths.map(path => <option key={path} value={path} />)}
-                                            </datalist>
-                                            <button
-                                                onClick={() => handleAddCustomAttribute(index)}
-                                                className="bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600"
-                                            >
-                                                Add
-                                            </button>
+                                        <h3 className="text-base font-bold pt-3">Read-only Attributes</h3>
+                                        <Multiselect
+                                            options={readonlyAttributeOptions}
+                                            displayValue='name'
+                                            placeholder="Select read-only attributes..."
+                                            showCheckbox={true}
+                                            style={{ chips: { background: 'rgb(254 215 170)', color: 'rgb(124 45 18)' } }}
+                                            selectedValues={[]}
+                                            onSelect={(selectedList, selectedItem) => handleReadonlyAttributeSelect(selectedList, selectedItem, index)}
+                                        />
+                                        <p className="text-[11px] text-gray-500 mt-1">
+                                            Read-only attributes are displayed from related or non-primary classes and are not generated as editable form fields.
+                                        </p>
+                                        <div className="mt-2 space-y-1">
+                                            {selectedAttributes.map((attr, attrIdx) => {
+                                                if (!isReadonlyAttribute(attr)) return null;
+                                                const action = getAttributeAction(attr);
+                                                return (
+                                                    <div key={attrIdx} className="bg-orange-50 px-2 py-1 rounded-md border border-orange-200 space-y-1">
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span
+                                                                className="text-xs font-medium truncate flex-1 min-w-0"
+                                                                title={getAttributeName(attr)}
+                                                            >
+                                                                {getAttributeName(attr)}
+                                                            </span>
+                                                            <span className="text-[10px] rounded-full bg-orange-100 text-orange-700 px-1.5 py-0.5 shrink-0">read-only</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleAttributeRemove([], attr, index)}
+                                                                className="shrink-0 rounded-md border border-orange-200 bg-white p-1 text-orange-700 hover:bg-orange-100"
+                                                                title="Remove read-only attribute"
+                                                            >
+                                                                <Trash size={12} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {getAttributeRenderAs(attr) === 'link' && <LinkIcon size={13} className="text-blue-600 shrink-0" />}
+                                                            <select
+                                                                value={getAttributeRenderAs(attr)}
+                                                                onChange={(e) => handleAttributeRenderChange(index, attrIdx, e.target.value)}
+                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs flex-1 min-w-0"
+                                                                title="Field render mode"
+                                                            >
+                                                                {FIELD_RENDER_OPTIONS.map(option => (
+                                                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                                                ))}
+                                                            </select>
+                                                            <select
+                                                                value={action.type || 'none'}
+                                                                onChange={(e) => updateAttributeAction(index, attrIdx, { type: e.target.value })}
+                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs flex-1 min-w-0"
+                                                                title="Field action"
+                                                            >
+                                                                {FIELD_ACTION_OPTIONS.map(option => (
+                                                                    <option key={option.value} value={option.value}>{option.label}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        {action.type !== 'none' && (
+                                                            <input
+                                                                type="text"
+                                                                value={action.targetPageId || action.operation || action.field || action.tooltip || ''}
+                                                                onChange={(e) => {
+                                                                    const key = action.type === 'navigate' ? 'targetPageId'
+                                                                        : action.type === 'operation' ? 'operation'
+                                                                            : action.type === 'tooltip' ? 'tooltip'
+                                                                                : 'field';
+                                                                    updateAttributeAction(index, attrIdx, { [key]: e.target.value });
+                                                                }}
+                                                                placeholder={
+                                                                    action.type === 'navigate' ? 'target page id/name'
+                                                                        : action.type === 'operation' ? 'operation name'
+                                                                            : action.type === 'tooltip' ? 'tooltip text'
+                                                                                : 'field/value'
+                                                                }
+                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                     <FormControl className="space-y-1">
@@ -868,7 +1175,109 @@ export const Sections: React.FC<Props> = () => {
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-2">
-                                        <h3 className="text-xl font-bold">Query</h3>
+                                        <h3 className="text-xl font-bold">Data Source / Query</h3>
+                                        <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-gray-500">From</label>
+                                            <select
+                                                value={data[index].data_source?.from?.model || data[index].primary_model || selectedClassName || ''}
+                                                onChange={(e) => handleDataSourceFromChange(index, e.target.value)}
+                                                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                            >
+                                                <option value="">Auto from primary class</option>
+                                                {classNameOptions.map((name: string) => (
+                                                    <option key={name} value={name}>{name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label className="text-xs text-gray-500">Joins</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddJoin(index)}
+                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            {(data[index].data_source?.joins || []).map((join, joinIndex) => (
+                                                <div key={joinIndex} className="space-y-1 rounded-md border border-gray-200 bg-stone-50 p-2">
+                                                    <div className="grid grid-cols-[74px_1fr_28px] gap-1">
+                                                        <select
+                                                            value={join.type || 'left'}
+                                                            onChange={(e) => handleJoinChange(index, joinIndex, 'type', e.target.value)}
+                                                            className="border border-gray-300 rounded-md px-1 py-1.5 text-xs"
+                                                        >
+                                                            <option value="left">Left</option>
+                                                            <option value="inner">Inner</option>
+                                                            <option value="right">Right</option>
+                                                        </select>
+                                                        <select
+                                                            value={join.model || ''}
+                                                            onChange={(e) => handleJoinChange(index, joinIndex, 'model', e.target.value)}
+                                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0"
+                                                        >
+                                                            <option value="">Model</option>
+                                                            {classNameOptions.map((name: string) => (
+                                                                <option key={name} value={name}>{name}</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveJoin(index, joinIndex)}
+                                                            className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                                        >
+                                                            X
+                                                        </button>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={join.on || ''}
+                                                        onChange={(e) => handleJoinChange(index, joinIndex, 'on', e.target.value)}
+                                                        placeholder="e.g. CartItem.product_id = Product.id"
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs w-full"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label className="text-xs text-gray-500">Select Columns</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddSelectField(index)}
+                                                    className="text-xs border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                            <p className="text-[11px] text-gray-400">Used only for SQL/query preview. It does not change rendered attributes.</p>
+                                            {(data[index].query?.select || []).map((field, fieldIndex) => (
+                                                <div key={fieldIndex} className="flex gap-1">
+                                                    <input
+                                                        type="text"
+                                                        list={`query-field-list-${index}`}
+                                                        value={field || ''}
+                                                        onChange={(e) => handleSelectFieldChange(index, fieldIndex, e.target.value)}
+                                                        placeholder="field or joined.field"
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveSelectField(index, fieldIndex)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1 text-xs hover:bg-gray-100"
+                                                    >
+                                                        X
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <datalist id={`query-field-list-${index}`}>
+                                                {queryFieldOptions.map((field: string) => (
+                                                    <option key={field} value={field}>{field}</option>
+                                                ))}
+                                            </datalist>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div className="space-y-1">
                                                 <label className="text-xs text-gray-500">Limit</label>
@@ -918,17 +1327,12 @@ export const Sections: React.FC<Props> = () => {
                                                 <div key={orderIndex} className="flex gap-1">
                                                     <input
                                                         type="text"
-                                                        list={`attr-list-${index}`}
+                                                        list={`query-field-list-${index}`}
                                                         value={order.field || ''}
                                                         onChange={(e) => handleOrderByChange(index, orderIndex, 'field', e.target.value)}
                                                         placeholder="field"
                                                         className="border border-gray-300 rounded-md px-2 py-1.5 text-xs min-w-0 flex-1"
                                                     />
-                                                    <datalist id={`attr-list-${index}`}>
-                                                        {classAttributes.map((attr) => (
-                                                            <option key={attr.name} value={attr.name}>{attr.name}</option>
-                                                        ))}
-                                                    </datalist>
                                                     <select
                                                         value={order.direction || 'asc'}
                                                         onChange={(e) => handleOrderByChange(index, orderIndex, 'direction', e.target.value)}
@@ -962,7 +1366,7 @@ export const Sections: React.FC<Props> = () => {
                                                 <div key={filterIndex} className="grid grid-cols-[1fr_78px_1fr_28px] gap-1">
                                                     <input
                                                         type="text"
-                                                        list={`attr-list-${index}`}
+                                                        list={`query-field-list-${index}`}
                                                         value={filter.field || ''}
                                                         onChange={(e) => handleFilterChange(index, filterIndex, 'field', e.target.value)}
                                                         placeholder="field"
@@ -999,21 +1403,43 @@ export const Sections: React.FC<Props> = () => {
                                                 </div>
                                             ))}
                                         </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-gray-500">SQL Preview</label>
+                                            <pre className="max-h-44 overflow-auto rounded-md border border-gray-200 bg-gray-950 p-2 text-[11px] leading-relaxed text-green-100 whitespace-pre-wrap">
+                                                {buildSqlPreview(data[index])}
+                                            </pre>
+                                        </div>
                                     </FormControl>
-                                    <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">View Detail Page</h3>
-                                        <p className="text-xs text-gray-500">Each item links to this page, passing its ID as a parameter.</p>
-                                        <select
-                                            value={data[index].view_detail_page || ''}
-                                            onChange={(e) => handleViewDetailPageChange(index, e.target.value)}
-                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                        >
-                                            <option value="">None</option>
-                                            {pages.filter((p) => !p.type || p.type?.value !== 'activity').map((p) => (
-                                                <option key={p.id} value={p.name}>{p.name}</option>
-                                            ))}
-                                        </select>
-                                    </FormControl>
+                                    {isCollectionSection(data[index]) && (
+                                        <FormControl className="space-y-2">
+                                            <h3 className="text-xl font-bold">Item Click Action</h3>
+                                            <p className="text-xs text-gray-500">Component-level interaction for clicking a card, list item, or table row.</p>
+                                            <select
+                                                value={data[index].behavior?.item_click?.type || 'none'}
+                                                onChange={(e) => handleItemClickTypeChange(index, e.target.value)}
+                                                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                            >
+                                                <option value="none">None</option>
+                                                <option value="navigate">Navigate to page</option>
+                                                <option value="select">Select item</option>
+                                            </select>
+                                            {data[index].behavior?.item_click?.type === 'navigate' && (
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-gray-500">Target Page</label>
+                                                    <select
+                                                        value={data[index].behavior?.item_click?.target_page || ''}
+                                                        onChange={(e) => handleItemClickTargetPageChange(index, e.target.value)}
+                                                        className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                                    >
+                                                        <option value="">None</option>
+                                                        {pages.filter((p) => !p.type || p.type?.value !== 'activity').map((p) => (
+                                                            <option key={p.id} value={p.name}>{p.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            )}
+                                        </FormControl>
+                                    )}
                                     </>)}
                                     <Divider />
                                     <div className="flex gap-2">
@@ -1045,11 +1471,12 @@ export const Sections: React.FC<Props> = () => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
+                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
 
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {
                                 newSection.class = classes[0].id;
+                                newSection.primary_model = classes[0].data?.name || '';
                             }
                             setData([...data, newSection]);
                         }}

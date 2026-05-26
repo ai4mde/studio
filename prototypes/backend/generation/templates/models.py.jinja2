@@ -39,6 +39,8 @@ class {{ model.name }}(models.Model):
     {% elif attribute.name == "username" or attribute.name == "password" -%}
     {% elif attribute.type == AttributeType.STRING -%}
     {{ attribute.name }} = models.CharField(max_length=255, default='', null=True, blank=True)
+    {% elif attribute.type == AttributeType.VIDEO -%}
+    {{ attribute.name }} = models.URLField(max_length=500, default='', null=True, blank=True)
     {% elif attribute.type == AttributeType.FOREIGN_MODEL -%}
 
     {% if attribute.cardinality == Cardinality.ONE_TO_ONE_SOURCE %}

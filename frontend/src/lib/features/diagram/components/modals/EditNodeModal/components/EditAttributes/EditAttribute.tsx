@@ -47,6 +47,8 @@ const EditAttribute: React.FC<{
         { value: 'str', label: 'string', id: 'string' },
         { value: 'int', label: 'integer', id: 'integer' },
         { value: 'bool', label: 'boolean', id: 'boolean' },
+        { value: 'image', label: 'image', id: 'image' },
+        { value: 'video', label: 'video', id: 'video' },
     ];
 
     const dynamicOptions = enumClassifiers.map((e) => ({

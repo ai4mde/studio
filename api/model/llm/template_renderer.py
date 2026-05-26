@@ -51,10 +51,11 @@ class AttributeType(IntEnum):
     BOOLEAN = 3
     ENUM = 4
     IMAGE = 5
+    VIDEO = 6
 
 
 class _Attribute:
-    def __init__(self, name, type_, enum_literals, updatable, derived, is_link=False, render_as="text", action=None):
+    def __init__(self, name, type_, enum_literals, updatable, derived, is_link=False, render_as="text", action=None, readonly=False, source="primary"):
         self.name = name
         self.type = type_
         self.enum_literals = enum_literals
@@ -63,6 +64,8 @@ class _Attribute:
         self.is_link = is_link
         self.render_as = render_as
         self.action = action or {"type": "none"}
+        self.readonly = readonly
+        self.source = source or "primary"
 
     def __str__(self):
         return self.name
@@ -74,9 +77,10 @@ ACTIVITY_ACTION_VARIANTS = {"button", "link", "fab", "row_action", "wizard_next"
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, has_select_operation, text,
-                 layout="table", style=None, custom_methods=None, col_span=12, view_detail_page=None,
+                 layout="table", style=None, custom_methods=None, col_span=12,
                  related_to_section_id=None, relation_field=None, query=None, position="main",
-                 component_type="data", label=None, workflow=None, min_height=None):
+                 component_type="data", label=None, workflow=None, min_height=None,
+                 component=None, role=None, field_layout=None, behavior=None):
         self.id = id
         self.name = name
         self.display_name = display_name
@@ -89,11 +93,14 @@ class _SectionComponent:
         self.has_select_operation = has_select_operation
         self.text = text
         self.layout = layout or "table"
+        self.component = component or ""
+        self.role = role or ""
+        self.field_layout = field_layout or {}
+        self.behavior = behavior or {}
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.style["columns"] = str(self.style.get("columns", "3"))
         self.custom_methods = custom_methods or []
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
-        self.view_detail_page = view_detail_page
         self.related_to_section_id = related_to_section_id
         self.relation_field = relation_field
         self.query = query or {}
@@ -104,6 +111,12 @@ class _SectionComponent:
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
         self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        item_click = self.behavior.get("item_click") if isinstance(self.behavior.get("item_click"), dict) else {}
+        self.item_click_target_page = (
+            item_click.get("target_page") or item_click.get("targetPage")
+            if item_click.get("type") == "navigate"
+            else None
+        )
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
@@ -125,6 +138,8 @@ def _make_activity_start_section(s_raw: dict = None) -> "_SectionComponent":
             "card_style": (s.get("style") or {}).get("card_style", "elevated"),
             "columns": str((s.get("style") or {}).get("columns", "3")),
             "align": (s.get("style") or {}).get("align", "left"),
+            "cta_label": (s.get("style") or {}).get("cta_label", "Start"),
+            "process_label": (s.get("style") or {}).get("process_label", ""),
         },
         component_type="activity_start",
         label=s.get("label") or s.get("name") or "Start a Process",
@@ -185,7 +200,7 @@ def _make_activity_action_section(label: str, s_raw: dict = None) -> "_SectionCo
 
 
 class _Page:
-    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal"):
+    def __init__(self, name, display_name, type_, activity_name, category, section_components, layout="vertical", gap="normal", is_task_page=False):
         self.name = name
         self.display_name = display_name
         self.type = type_
@@ -194,9 +209,41 @@ class _Page:
         self.section_components = section_components
         self.layout = layout or "vertical"
         self.gap = gap or "normal"
+        self.is_task_page = is_task_page
 
     def __str__(self):
         return self.name
+
+
+def _make_task_home_page(chrome_sections=None) -> "_Page":
+    sections = [
+        _make_activity_start_section({
+            "id": "task-home-activity-start",
+            "name": "Processes you can start",
+            "label": "Processes you can start",
+            "col_span": 6,
+            "style": {"columns": "1", "card_style": "elevated", "cta_label": "Start"},
+        }),
+        _make_activity_tasks_section({
+            "id": "task-home-activity-tasks",
+            "name": "Tasks to complete",
+            "label": "Tasks to complete",
+            "col_span": 6,
+            "style": {"columns": "1", "card_style": "elevated"},
+        }),
+    ]
+    sections.extend(chrome_sections or [])
+    return _Page(
+        name="task",
+        display_name="Task",
+        type_="normal",
+        activity_name=None,
+        category=None,
+        section_components=sections,
+        layout="vertical",
+        gap="normal",
+        is_task_page=True,
+    )
 
 
 def _sanitize(name: str) -> str:
@@ -311,6 +358,11 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
     classifier_map: Dict[str, Dict] = {
         str(c["id"]): c.get("data", {}) for c in (classifiers or [])
     }
+    classifier_name_map: Dict[str, Dict] = {
+        _sanitize(c.get("data", {}).get("name", "")): c.get("data", {})
+        for c in (classifiers or [])
+        if c.get("data", {}).get("name")
+    }
 
     sections_raw = interface_data.get("sections", [])
     section_by_id: Dict[str, Dict] = {s["id"]: s for s in sections_raw}
@@ -365,18 +417,33 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 section_components.append(_make_activity_tasks_section(s_raw=s_raw))
                 continue
 
-            cls_data = classifier_map.get(str(s_raw.get("class", "")), {})
-            primary_model = _sanitize(cls_data.get("name", "item")) if cls_data else "item"
+            class_ref = str(s_raw.get("class", "") or "")
+            cls_data = classifier_map.get(class_ref, {}) or classifier_name_map.get(_sanitize(class_ref), {})
+            declared_primary_model = str(s_raw.get("primary_model") or s_raw.get("object") or "")
+            if not cls_data and declared_primary_model:
+                cls_data = classifier_name_map.get(_sanitize(declared_primary_model), {})
+            primary_model = _sanitize(cls_data.get("name", declared_primary_model or "item")) if cls_data or declared_primary_model else "item"
             parent_models = _infer_parent_models(str(s_raw.get("class", "")), classifiers, relations)
 
             attributes = []
+            classifier_attr_types = {
+                _sanitize(attr.get("name", "")): str(attr.get("type", "str")).lower()
+                for attr in cls_data.get("attributes", [])
+                if isinstance(attr, dict)
+            }
             for attr_raw in s_raw.get("attributes", []):
                 if isinstance(attr_raw, str):
                     attr_data = {"name": attr_raw}
                 else:
                     attr_data = attr_raw or {}
 
-                type_str = attr_data.get("type", "str")
+                attr_name = _sanitize(attr_data.get("name", ""))
+                inferred_type = classifier_attr_types.get(attr_name)
+                if not inferred_type and any(token in attr_name.lower() for token in ("image", "photo", "thumbnail", "thumb", "avatar")):
+                    inferred_type = "image"
+                if not inferred_type and any(token in attr_name.lower() for token in ("video", "trailer", "media_url")):
+                    inferred_type = "video"
+                type_str = attr_data.get("type") or inferred_type or "str"
                 if type_str == "int":
                     attr_type = AttributeType.INTEGER
                 elif type_str == "bool":
@@ -385,6 +452,8 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     attr_type = AttributeType.ENUM
                 elif type_str == "image":
                     attr_type = AttributeType.IMAGE
+                elif type_str == "video":
+                    attr_type = AttributeType.VIDEO
                 else:
                     attr_type = AttributeType.STRING
 
@@ -396,15 +465,18 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 render_config = attr_data.get("render") or {}
                 render_as = render_config.get("as") or attr_data.get("render_as") or ("link" if attr_data.get("is_link") else "text")
                 action = attr_data.get("action") or ({"type": "navigate"} if attr_data.get("is_link") else {"type": "none"})
+                readonly = bool(attr_data.get("readonly", False))
                 attributes.append(_Attribute(
                     name=_sanitize(attr_data.get("name", "")),
                     type_=attr_type,
                     enum_literals=enum_literals,
-                    updatable=True,
+                    updatable=not readonly,
                     derived=bool(attr_data.get("derived", False)),
                     is_link=bool(attr_data.get("is_link")) or render_as == "link",
                     render_as=render_as,
                     action=action,
+                    readonly=readonly,
+                    source=attr_data.get("source") or ("related" if "." in str(attr_data.get("name", "")) else "primary"),
                 ))
 
             ops = _parse_operations(s_raw.get("operations", {}))
@@ -433,11 +505,14 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 custom_methods=_parse_custom_methods(s_raw),
                 col_span=int(s_raw.get("col_span", 12)),
                 min_height=s_raw.get("min_height"),
-                view_detail_page=s_raw.get("view_detail_page"),
                 related_to_section_id=s_raw.get("related_to"),
                 relation_field=s_raw.get("relation_field"),
                 query=_parse_query(s_raw),
                 position=s_raw.get("position", "main"),
+                component=s_raw.get("component"),
+                role=s_raw.get("role"),
+                field_layout=s_raw.get("field_layout") if isinstance(s_raw.get("field_layout"), dict) else {},
+                behavior=s_raw.get("behavior") if isinstance(s_raw.get("behavior"), dict) else {},
             ))
 
         type_field = p_raw.get("type")
@@ -458,13 +533,6 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 label=activity_name or p_raw.get("name", "Complete"),
             ))
 
-        # Auto-inject activity_start + activity_tasks sections on start-type pages
-        if page_type == "start":
-            if not any(s.component_type == "activity_start" for s in section_components):
-                section_components.insert(0, _make_activity_start_section())
-            if not any(s.component_type == "activity_tasks" for s in section_components):
-                section_components.append(_make_activity_tasks_section())
-
         pages.append(_Page(
             name=_sanitize(p_raw.get("name", "")),
             display_name=p_raw.get("name", "").replace("_", " ").replace("-", " ").strip(),
@@ -475,6 +543,16 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
             layout=page_layout,
             gap=page_gap,
         ))
+
+    if not any(page.name == "task" for page in pages):
+        chrome_sections = []
+        seen_chrome = set()
+        for page in pages:
+            for section in page.section_components:
+                if section.position in ("header", "footer") and section.id not in seen_chrome:
+                    seen_chrome.add(section.id)
+                    chrome_sections.append(section)
+        pages.insert(0, _make_task_home_page(chrome_sections))
 
     return app_name, pages
 
@@ -513,10 +591,14 @@ _MAX_WIDTH_CLASS = {
 
 def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> None:
     """Merge styling dict into tokens in-place. Tokens already set take priority."""
-    accent = styling.get("accentColor", "")
-    if accent and "accent.hex" not in tokens:
-        tokens["accent.hex"] = accent
-        tokens["brand.name"] = interface_name
+    tokens.setdefault("brand.name", interface_name)
+    default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
+    styling_accent = styling.get("accentColor", "")
+    current_accent = tokens.get("accent.hex")
+    if styling_accent and current_accent in default_blues:
+        tokens["accent.hex"] = styling_accent
+    accent = tokens.get("accent.hex")
+    if accent:
         if "region.header.bg" not in tokens:
             tokens["region.header.bg"] = f"bg-[{accent}]"
             tokens["page.header.text"] = "text-white"
@@ -561,6 +643,14 @@ def _apply_styling_tokens(tokens: dict, styling: dict, interface_name: str) -> N
     tokens.setdefault("theme.card.hover", styling.get("cardHover", "lift"))
     tokens.setdefault("theme.image.ratio", styling.get("imageRatio", "4:3"))
     tokens.setdefault("theme.divider", styling.get("divider", "none"))
+
+    accent_hex = tokens.get("accent.hex")
+    if accent_hex:
+        for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
+            if tokens.get(key) in default_blues:
+                tokens[key] = accent_hex
+        tokens.setdefault("region.header.text_hex", "#ffffff")
+        tokens.setdefault("region.footer.text_hex", "#ffffff")
 
 
 def render_layout(

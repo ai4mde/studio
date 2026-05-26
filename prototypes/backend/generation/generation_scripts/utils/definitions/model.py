@@ -39,6 +39,7 @@ class AttributeType(Enum):
     FOREIGN_MODEL = 5
     NONE = 6
     IMAGE = 7
+    VIDEO = 8
 
 
 class Cardinality(Enum):

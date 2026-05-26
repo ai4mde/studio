@@ -68,6 +68,21 @@ def _is_pid_alive(pid: int) -> bool:
         return False
 
 
+def _is_pid_zombie(pid: int) -> bool:
+    try:
+        with open(f"/proc/{pid}/stat", "r") as f:
+            return f.read().split()[2] == "Z"
+    except (OSError, IndexError):
+        return False
+
+
+def _pid_cwd(pid: int) -> str | None:
+    try:
+        return os.path.realpath(os.readlink(f"/proc/{pid}/cwd"))
+    except OSError:
+        return None
+
+
 def _is_port_accepting(port: int, host: str = "127.0.0.1", timeout: float = 0.5) -> bool:
     try:
         with socket.create_connection((host, int(port)), timeout=timeout):
@@ -81,33 +96,83 @@ def _running_prototype_is_healthy() -> bool:
         return False
     pid = int(running_prototype["pid"])
     port = int(running_prototype["port"])
-    return _is_pid_alive(pid) and _is_port_accepting(port)
+    prototype_path = os.path.realpath(
+        os.path.join(
+            ROOT_DIR,
+            running_prototype.get("system", ""),
+            running_prototype.get("name", ""),
+        )
+    )
+    return (
+        _is_pid_alive(pid)
+        and not _is_pid_zombie(pid)
+        and _pid_cwd(pid) == prototype_path
+        and _is_port_accepting(port)
+    )
+
+
+def _terminate_pid(pid: int):
+    try:
+        pgid = os.getpgid(pid)
+        os.killpg(pgid, signal.SIGTERM)
+    except OSError:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except OSError:
+            return
+
+    for _ in range(20):
+        if not _is_pid_alive(pid) or _is_pid_zombie(pid):
+            return
+        time.sleep(0.1)
+
+    try:
+        os.killpg(os.getpgid(pid), signal.SIGKILL)
+    except OSError:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+
+
+def _stop_stale_runservers():
+    subprocess.run(
+        ["pkill", "-f", f"manage.py runserver 0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
+        check=False,
+    )
+    for _ in range(20):
+        if not _is_port_accepting(RUNNING_PROTOTYPE_PORT):
+            return
+        time.sleep(0.1)
 
 
 def stop_prototype():
     with lock:
         if "id" in running_prototype:
             pid = running_prototype["pid"]
-            os.kill(pid, signal.SIGTERM)
+            _terminate_pid(pid)
             running_prototype.clear()
+        _stop_stale_runservers()
 
 
 def start_prototype(prototype_id: str, prototype_name: str, prototype_system: str):
     with lock:
         if "id" in running_prototype:
             pid = running_prototype["pid"]
-            os.kill(pid, signal.SIGTERM)
+            _terminate_pid(pid)
             running_prototype.clear()
+        _stop_stale_runservers()
 
         prototype_path = os.path.join(ROOT_DIR, prototype_system, prototype_name)
         if not os.path.isdir(prototype_path):
             return None, "prototype_dir_not_found"
         
         process = subprocess.Popen(
-            ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}"],
+            ["python", "manage.py", "runserver", f"0.0.0.0:{RUNNING_PROTOTYPE_PORT}", "--noreload"],
             cwd=prototype_path,
             stdout=sys.stdout,
             stderr=sys.stderr,
+            start_new_session=True,
         )
         ready = False
         for _ in range(16):
@@ -302,12 +367,15 @@ def _patch_autologin(proto_path: str, project_name: str):
 def autologin(request):
     from django.contrib.auth import login as _login
     username = request.GET.get('as', '')
+    next_url = request.GET.get('next', '')
     user = User.objects.filter(username=username).first() if username else None
     if user is None:
         user = User.objects.filter(is_superuser=False).first()
     if user:
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         _login(request, user)
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         for field in [f.name for f in user._meta.get_fields()
                       if f.name.startswith('is_') and f.name not in ('is_superuser', 'is_staff', 'is_active')]:
             if getattr(user, field, False):

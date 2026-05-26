@@ -8,8 +8,10 @@
   {%- set _font_cdn = tokens.get('page.font.cdn', '') %}
   {%- if _font_cdn %}<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="{{ _font_cdn }}">{% endif %}
   <style>
+    {% include "helpers/tailwind_fallback.css.jinja2" %}
+
     :root {
-      /* ── Radius ── */
+      /* 鈹€鈹€ Radius 鈹€鈹€ */
       --radius:    {{ tokens.get('page.radius.px', '8') }}px;
       --radius-sm: {{ tokens.get('radius.sm.px', '4') }}px;
       --radius-lg: {{ tokens.get('radius.lg.px', '12') }}px;
@@ -17,7 +19,7 @@
       --btn-radius: {{ tokens.get('button.radius.px', tokens.get('page.radius.px', '8')) }}px;
       --input-radius: {{ tokens.get('input.radius.px', tokens.get('page.radius.px', '8')) }}px;
 
-      /* ── Typography ── */
+      /* 鈹€鈹€ Typography 鈹€鈹€ */
       --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
       --text-hero-size:     {{ tokens.get('typography.hero.size', '56px') }};
       --text-hero-weight:   {{ tokens.get('typography.hero.weight', '600') }};
@@ -39,7 +41,7 @@
       --text-label-size:    {{ tokens.get('typography.label.size', '14px') }};
       --text-label-weight:  {{ tokens.get('typography.label.weight', '500') }};
 
-      /* ── Page & Region Colors ── */
+      /* 鈹€鈹€ Page & Region Colors 鈹€鈹€ */
       --accent:               {{ tokens.get('accent.hex', '#2563eb') }};
       --accent-secondary:     {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
       --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
@@ -57,17 +59,17 @@
       --border-color:         {{ tokens.get('region.border_hex', tokens.get('border.default.hex', '#e5e7eb')) }};
       --border-strong:        {{ tokens.get('border.strong.hex', tokens.get('region.border_strong_hex', '#d1d5db')) }};
 
-      /* ── Shadows ── */
+      /* 鈹€鈹€ Shadows 鈹€鈹€ */
       --shadow-sm: {{ tokens.get('shadow.sm', '0 1px 2px 0 rgb(0 0 0 / 0.05)') }};
       --shadow-md: {{ tokens.get('shadow.md', '0 4px 6px -1px rgb(0 0 0 / 0.10)') }};
       --shadow-lg: {{ tokens.get('shadow.lg', '0 10px 15px -3px rgb(0 0 0 / 0.10)') }};
 
-      /* ── Card ── */
+      /* 鈹€鈹€ Card 鈹€鈹€ */
       --card-bg:     {{ tokens.get('component.card.bg_hex', 'var(--region-main-bg)') }};
       --card-border: {{ tokens.get('component.card.border_hex', 'var(--border-color)') }};
       --card-shadow: {{ tokens.get('component.card.shadow', 'var(--shadow-sm)') }};
 
-      /* ── Buttons ── */
+      /* 鈹€鈹€ Buttons 鈹€鈹€ */
       --button-primary-bg:      {{ tokens.get('button.primary.bg_hex', 'var(--accent)') }};
       --button-primary-text:    {{ tokens.get('button.primary.text_hex', '#ffffff') }};
       --button-primary-border:  {{ tokens.get('button.primary.border_hex', 'var(--accent)') }};
@@ -78,20 +80,20 @@
       --button-danger-bg:       {{ tokens.get('button.danger.bg_hex', '#dc2626') }};
       --button-danger-text:     {{ tokens.get('button.danger.text_hex', '#ffffff') }};
 
-      /* ── Inputs ── */
+      /* 鈹€鈹€ Inputs 鈹€鈹€ */
       --input-bg:           {{ tokens.get('input.bg_hex', 'var(--region-main-bg)') }};
       --input-border:       {{ tokens.get('input.border_hex', 'var(--border-color)') }};
       --input-border-focus: {{ tokens.get('input.border_focus_hex', 'var(--accent)') }};
       --input-text:         {{ tokens.get('input.text_hex', 'var(--page-text)') }};
       --input-placeholder:  {{ tokens.get('input.placeholder_hex', 'var(--text-subtle)') }};
 
-      /* ── Table ── */
+      /* 鈹€鈹€ Table 鈹€鈹€ */
       --table-header-bg:   {{ tokens.get('table.header.bg_hex', 'var(--region-main-bg-sunken)') }};
       --table-header-text: {{ tokens.get('table.header.text_hex', 'var(--text-muted)') }};
       --table-row-hover:   {{ tokens.get('table.row.hover_hex', 'var(--region-main-bg-sunken)') }};
       --table-border:      {{ tokens.get('table.border_hex', 'var(--border-color)') }};
 
-      /* ── Semantic Badge Colors ── */
+      /* 鈹€鈹€ Semantic Badge Colors 鈹€鈹€ */
       --badge-success-bg:  {{ tokens.get('badge.success.bg_hex', '#16a34a') }};
       --badge-success-text:{{ tokens.get('badge.success.text_hex', '#ffffff') }};
       --badge-error-bg:    {{ tokens.get('badge.error.bg_hex', '#dc2626') }};
@@ -111,7 +113,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Typography Classes ── */
+    /* 鈹€鈹€ Typography Classes 鈹€鈹€ */
     .si-text-hero    { font-size: var(--text-hero-size);    font-weight: var(--text-hero-weight);    line-height: var(--text-hero-lh);    letter-spacing: var(--text-hero-ls); }
     .si-text-display { font-size: var(--text-display-size); font-weight: var(--text-display-weight); line-height: var(--text-display-lh); letter-spacing: var(--text-display-ls); }
     .si-text-title   { font-size: var(--text-title-size);   font-weight: var(--text-title-weight); }
@@ -122,13 +124,13 @@
     .si-text-muted   { color: var(--text-muted); }
     .si-text-subtle  { color: var(--text-subtle); }
 
-    /* ── Layout Utilities ── */
+    /* 鈹€鈹€ Layout Utilities 鈹€鈹€ */
     .si-container     { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1.5rem; padding-right: 1.5rem; }
     .si-container-full{ max-width: 100% !important; padding: 0 !important; }
     .si-sticky-top    { position: sticky; top: 0; z-index: 40; }
     .si-divider       { height: 1px; background-color: var(--border-color); width: 100%; margin: 1rem 0; }
 
-    /* ── Cards ── */
+    /* 鈹€鈹€ Cards 鈹€鈹€ */
     .si-card {
       background-color: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -139,7 +141,7 @@
     .si-card-elevated { background-color: var(--region-main-bg-elevated); box-shadow: var(--shadow-md); }
     .si-card-sunken   { background-color: var(--region-main-bg-sunken); }
 
-    /* ── Buttons ── */
+    /* 鈹€鈹€ Buttons 鈹€鈹€ */
     .si-btn         { border-radius: var(--btn-radius); border-color: transparent; cursor: pointer; }
     .si-btn-primary { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
     .si-btn-primary:hover { opacity: 0.9; }
@@ -148,21 +150,21 @@
     .si-btn-ghost:hover { background-color: var(--region-main-bg-sunken) !important; }
     .si-btn-danger { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; }
 
-    /* ── Accent color classes (follow design spec primary color) ── */
+    /* 鈹€鈹€ Accent color classes (follow design spec primary color) 鈹€鈹€ */
     .si-accent-btn        { background-color: var(--button-primary-bg); color: var(--button-primary-text); border-radius: var(--btn-radius); }
     .si-accent-btn:hover  { opacity: 0.9; }
     .si-accent-text       { color: var(--accent); }
     .si-accent-border     { border-color: var(--accent); }
     .si-accent-bg-light   { background-color: color-mix(in srgb, var(--accent) 10%, white); }
 
-    /* ── Accent-secondary (second brand color) ── */
+    /* 鈹€鈹€ Accent-secondary (second brand color) 鈹€鈹€ */
     .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
     .si-btn-accent-secondary:hover { opacity: 0.9; }
     .si-accent-secondary-text   { color: var(--accent-secondary); }
     .si-accent-secondary-border { border-color: var(--accent-secondary); }
     .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
 
-    /* ── Inputs ── */
+    /* 鈹€鈹€ Inputs 鈹€鈹€ */
     .si-input {
       background-color: var(--input-bg);
       border: 1px solid var(--input-border);
@@ -174,19 +176,19 @@
     .si-input::placeholder { color: var(--input-placeholder); }
     .si-label { font-size: var(--text-label-size); font-weight: var(--text-label-weight); color: var(--page-text); }
 
-    /* ── Tables ── */
+    /* 鈹€鈹€ Tables 鈹€鈹€ */
     .si-table-header { background-color: var(--table-header-bg); color: var(--table-header-text); font-size: var(--text-caption-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .si-table-row    { border-bottom: 1px solid var(--table-border); }
     .si-table-row:hover { background-color: var(--table-row-hover); }
 
-    /* ── Badges ── */
+    /* 鈹€鈹€ Badges 鈹€鈹€ */
     .si-badge         { display: inline-flex; align-items: center; border-radius: var(--radius-full); padding: 2px 8px; font-size: var(--text-caption-size); font-weight: 600; }
     .si-badge-success { background-color: var(--badge-success-bg); color: var(--badge-success-text); }
     .si-badge-error   { background-color: var(--badge-error-bg);   color: var(--badge-error-text); }
     .si-badge-warning { background-color: var(--badge-warning-bg); color: var(--badge-warning-text); }
     .si-badge-neutral { background-color: var(--badge-neutral-bg); color: var(--badge-neutral-text); }
 
-    /* ── Override hardcoded Tailwind colors with design spec tokens ── */
+    /* 鈹€鈹€ Override hardcoded Tailwind colors with design spec tokens 鈹€鈹€ */
     /* Border colors */
     .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
     .border-gray-300, .border-gray-400 { border-color: var(--border-strong) !important; }
@@ -199,17 +201,17 @@
     .text-gray-900, .text-gray-800 { color: var(--page-text) !important; }
     .text-gray-700, .text-gray-600 { color: var(--text-muted) !important; }
     .text-gray-500, .text-gray-400 { color: var(--text-subtle) !important; }
-    /* Border radius — follow design spec radius */
+    /* Border radius 鈥?follow design spec radius */
     .rounded-xl  { border-radius: var(--radius-lg) !important; }
     .rounded-lg  { border-radius: var(--radius) !important; }
     .rounded-md  { border-radius: var(--radius-sm) !important; }
     .rounded-2xl { border-radius: var(--radius-lg) !important; }
-    /* Shadows — follow design spec shadow tokens */
+    /* Shadows 鈥?follow design spec shadow tokens */
     .shadow-sm { box-shadow: var(--shadow-sm) !important; }
     .shadow-md { box-shadow: var(--shadow-md) !important; }
     .shadow-lg { box-shadow: var(--shadow-lg) !important; }
 
-    /* ── Card Hover Effects ── */
+    /* 鈹€鈹€ Card Hover Effects 鈹€鈹€ */
     {%- if tokens.get('theme.card.hover', 'lift') == 'lift' %}
     .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
     .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -222,8 +224,9 @@
     {%- endif %}
 
     .si-img { aspect-ratio: {{ tokens.get('theme.image.ratio', '4/3') }}; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
+    .si-video { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; background-color: #000; }
 
-    /* ── Multi-select (operations.select) ── */
+    /* 鈹€鈹€ Multi-select (operations.select) 鈹€鈹€ */
     .si-sel-item { position: relative; cursor: pointer; }
     .si-sel-item .si-sel-cb {
       position: absolute; top: 8px; left: 8px; z-index: 10;
@@ -277,7 +280,7 @@
   {%- if sc.position == 'footer' and sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
 
-{# ── header chrome: render all header-position section components ──
+{# 鈹€鈹€ header chrome: render all header-position section components 鈹€鈹€
    Granular row logic: logo + search-bar + icon-actions are opened/closed in
    a shared flex row; all other header layouts are full-width blocks.
 #}
@@ -292,7 +295,7 @@
 </header>
 {%- endif %}
 
-{# ── ACTIVITY ACTION (header-position workflow button) ── #}
+{# 鈹€鈹€ ACTIVITY ACTION (header-position workflow button) 鈹€鈹€ #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -332,7 +335,7 @@
   </div>
 </div>
 
-{# ── PROMO BAR (promo-bar / promo-strip) ── #}
+{# 鈹€鈹€ PROMO BAR (promo-bar / promo-strip) 鈹€鈹€ #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
@@ -345,13 +348,13 @@
 </div>
 </div>
 
-{# ── LOGO (inline inside main-header-row) ── #}
+{# 鈹€鈹€ LOGO (inline inside main-header-row) 鈹€鈹€ #}
 {%- elif sc.layout == 'logo' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ sc.text or _brand_name }}.</a>
 </div>
 
-{# ── SEARCH BAR (inline inside main-header-row) ── #}
+{# 鈹€鈹€ SEARCH BAR (inline inside main-header-row) 鈹€鈹€ #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
@@ -362,7 +365,7 @@
   </form>
 </div>
 
-{# ── ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) ── #}
+{# 鈹€鈹€ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) 鈹€鈹€ #}
 {%- elif sc.layout == 'icon-actions' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="icon-actions">
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
@@ -380,7 +383,7 @@
   </div>
 </div>
 
-{# ── COMBINED MAIN HEADER (main-header — legacy single-section variant) ── #}
+{# 鈹€鈹€ COMBINED MAIN HEADER (main-header 鈥?legacy single-section variant) 鈹€鈹€ #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
@@ -404,7 +407,7 @@
 </header>
 </div>
 
-{# ── NAV BAR (nav-links / nav-bar) ── #}
+{# 鈹€鈹€ NAV BAR (nav-links / nav-bar) 鈹€鈹€ #}
 {%- elif sc.layout in ('nav-links', 'nav-bar') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}">
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -412,11 +415,13 @@
     <div class="flex items-center gap-0">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} ▾
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 鈻?
       </span>
       {%- for p in (all_pages or []) %}
+      {%- if not (p.is_task_page is defined and p.is_task_page) %}
       <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
         style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endif %}
       {%- endfor %}
       {%- for m in sc.custom_methods[1:4] %}
       <span class="px-3 py-1.5 cursor-pointer rounded text-gray-700 hover:bg-gray-100">{{ m }}</span>
@@ -431,7 +436,7 @@
 </nav>
 </div>
 
-{# ── MINIMAL HEADER (minimal-header — checkout/login) ── #}
+{# 鈹€鈹€ MINIMAL HEADER (minimal-header 鈥?checkout/login) 鈹€鈹€ #}
 {%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
@@ -443,7 +448,7 @@
 </header>
 </div>
 
-{# ── SITE-NAV (legacy: full header in one section) ── #}
+{# 鈹€鈹€ SITE-NAV (legacy: full header in one section) 鈹€鈹€ #}
 {%- elif sc.layout == 'site-nav' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1.5 flex items-center justify-between text-xs select-none">
@@ -469,8 +474,8 @@
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} ▾</span>
-      {%- for p in (all_pages or []) %}<span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>{%- endfor %}
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 鈻?/span>
+      {%- for p in (all_pages or []) %}{% if not (p.is_task_page is defined and p.is_task_page) %}<span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>{% endif %}{%- endfor %}
     </div>
     <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
   </div>
@@ -494,7 +499,7 @@
   <div class="max-w-7xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
     <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
     {%- for p in (all_pages or []) %}
-    {%- if p.type != 'activity' %}
+    {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
     <a href="#" class="hover:text-gray-900 transition-colors">{{ p.display_name }}</a>
     {%- endif %}
     {%- endfor %}
@@ -506,6 +511,8 @@
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav-links','nav-bar','main-header','minimal-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer'] %}
 <style>
   :root {
     --radius: {{ tokens.get('page.radius.px', '8') }}px;
@@ -569,7 +576,7 @@
 </style>
 {%- endif %}
 
-{# ── Global lookup maps (defined once, used per section) ── #}
+{# 鈹€鈹€ Global lookup maps (defined once, used per section) 鈹€鈹€ #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -602,14 +609,21 @@
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# ── Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) ── #}
+{# 鈹€鈹€ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) 鈹€鈹€ #}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
 {%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
 {%- set _mock_rows = 3 %}
 {%- set _mock_opacities = ["1", "0.8", "0.6"] %}
-{%- set _mock_imgs = [] %}
+{%- set _mock_imgs = [
+  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa?w=800&fit=crop',
+  'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&fit=crop',
+  'https://images.unsplash.com/photo-1611186871525-e07b873d4fc2?w=800&fit=crop',
+  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&fit=crop',
+  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&fit=crop',
+  'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&fit=crop'
+] %}
 
-{# ── Shared item-template macros (used by preview and generation mode) ── #}
+{# 鈹€鈹€ Shared item-template macros (used by preview and generation mode) 鈹€鈹€ #}
 {%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
@@ -627,14 +641,14 @@
   <div class="p-2.5">
     <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
     <div class="flex items-center gap-0.5 mt-1">
-      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
+      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
       {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
     </div>
     <div class="mt-1 flex items-center gap-1">
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 🛒</a>
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 馃洅</a>
   </div>
 </div>
 {%- endmacro %}
@@ -649,7 +663,7 @@
   <div class="flex-1 min-w-0">
     <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
+      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
     </div>
     <div class="flex items-center gap-2 mt-2">
       {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
@@ -658,7 +672,7 @@
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 🛒</a>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 馃洅</a>
   </div>
 </div>
 {%- endmacro %}
@@ -673,7 +687,7 @@
   <div class="flex-1">
     <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
+      <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
     </div>
     <div class="flex items-baseline gap-2 mt-1">
       <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
@@ -700,6 +714,16 @@
 
 {% if page.type == 'activity' and not preview_mode %}
 <h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
+{% endif %}
+{% if page.is_task_page is defined and page.is_task_page %}
+<div class="mb-6">
+  {% if preview_mode %}
+  <p class="text-sm text-gray-700">Welcome, <strong>jan_devries</strong></p>
+  {% else %}
+  <p class="text-sm text-gray-700">Welcome, <strong>{% raw %}{{ user }}{% endraw %}</strong></p>
+  {% endif %}
+  <p class="text-sm text-gray-600">Use the navigation menu on the left to navigate through this application.</p>
+</div>
 {% endif %}
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
@@ -755,16 +779,16 @@
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} →</button>
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} 鈫?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
   <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
-    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">← Back</a>
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">鈫?Back</a>
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} →</button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} 鈫?/button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
@@ -803,21 +827,21 @@
 {%- if preview_mode %}
   {%- set _as_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
   {%- if _as_pages %}
+  {%- set _first_activity = _as_pages[0] %}
+  {%- set _process_label = section_component.style.get('process_label') or ((_brand_name | replace('_', ' ') | title) ~ ' Workflow') %}
   <div class="grid {{ _as_col_class }} gap-4">
-    {%- for _asp in _as_pages %}
     <div class="{{ _as_card_cls }}">
-      <div class="font-medium text-gray-800 mb-3">{{ _asp.display_name }}</div>
-      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _asp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">{{ _as_button_label }}</button>
+      <div class="font-medium text-gray-800 mb-3">{{ _process_label }}</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _first_activity.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">{{ _as_button_label }}</button>
     </div>
-    {%- endfor %}
   </div>
   {%- else %}
   <p class="text-gray-400 text-sm italic">No activity pages defined.</p>
   {%- endif %}
 {%- else %}
-  {% raw %}{% if available_processes %}{% endraw %}
+  {% raw %}{% if available_processes or all_processes %}{% endraw %}
   <div class="grid {{ _as_col_class }} gap-4">
-    {% raw %}{% for process in available_processes %}{% endraw %}
+    {% raw %}{% for process in available_processes|default:all_processes %}{% endraw %}
     <div class="{{ _as_card_cls }}">
       <div class="font-medium text-gray-800 mb-3">{% raw %}{{ process.name }}{% endraw %}</div>
       <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
@@ -843,14 +867,14 @@
 {%- if preview_mode %}
   {%- set _at_pages = all_pages | selectattr('type', 'equalto', 'activity') | list %}
   {%- if _at_pages %}
+  {%- set _first_task = _at_pages[0] %}
+  {%- set _process_label = section_component.style.get('process_label') or ((_brand_name | replace('_', ' ') | title) ~ ' Workflow') %}
   <div class="grid {{ _at_col_class }} gap-4">
-    {%- for _atp in _at_pages %}
     <div class="{{ _at_card_cls }}">
-      <div class="font-medium text-gray-800">{{ _atp.display_name }}</div>
-      <div class="text-sm text-gray-500 mb-3">Step 1 · In progress</div>
-      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _atp.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
+      <div class="font-medium text-gray-800">{{ _process_label }}</div>
+      <div class="text-sm text-gray-500 mb-3">{{ _first_task.display_name }}</div>
+      <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ _first_task.name }}'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
     </div>
-    {%- endfor %}
   </div>
   {%- else %}
   <p class="text-gray-400 text-sm italic">No tasks in progress.</p>
@@ -875,23 +899,50 @@
 {%- endif %}
 </div>
 {%- else %}
-{# ── Resolve per-section style ── #}
+{# 鈹€鈹€ Resolve per-section style 鈹€鈹€ #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
   {%- set _aname = (attribute ~ '')|lower -%}
-  {%- set _mock_prices = ['€9.99','€24.99','€49.99','€14.99','€99.00','€7.50'] -%}
+  {%- set _section_context = ((section_component.display_name if section_component is defined else '') ~ ' ' ~ (section_component.primary_model if section_component is defined else ''))|lower -%}
+  {%- set _is_product_context = 'product' in _section_context or 'catalog' in _section_context or 'cart' in _section_context -%}
+  {%- set _is_person_context = 'customer' in _section_context or 'user' in _section_context or 'applicant' in _section_context or 'employee' in _section_context or 'person' in _section_context -%}
+  {%- set _is_document_context = 'document' in _section_context or 'file' in _section_context or 'attachment' in _section_context -%}
+  {%- set _is_finance_context = 'loan' in _section_context or 'payment' in _section_context or 'invoice' in _section_context or 'account' in _section_context -%}
+  {%- set _generic_names = ['Alpha Record','Beta Record','Gamma Record','Delta Record','Epsilon Record','Zeta Record'] -%}
+  {%- set _person_names = ['Amina Khan','Luca Ferrari','Jan de Vries','Emma Bakker','Maya Chen','Noah Smith'] -%}
+  {%- set _document_names = ['Proof of income','Bank statement','Identity document','Contract draft','Approval letter','Monthly report'] -%}
+  {%- set _finance_names = ['Standard Review','Priority Check','Approved Account','Pending Payment','Low Risk Loan','Manual Review'] -%}
+  {%- set _mock_prices = ['鈧?.99','鈧?4.99','鈧?9.99','鈧?4.99','鈧?9.00','鈧?.50'] -%}
   {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
   {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
   {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
   {%- set _mock_emails = ['alice@example.com','bob@example.com','carol@example.com','dave@example.com','eve@example.com','frank@example.com'] -%}
   {%- set _mock_nums   = ['12','47','8','253','31','19'] -%}
+  {%- set _mock_prices = ['EUR 1499','EUR 1349','EUR 799','EUR 1149','EUR 1029','EUR 299'] -%}
+  {%- set _product_names  = ['MacBook Air M3 15-inch','Dell XPS 15 OLED','Google Pixel 8 Pro','Samsung Galaxy S24 Ultra','Apple iPhone 15 Pro','Sony WH-1000XM5'] -%}
+  {%- set _mock_brands = ['Apple','Dell','Google','Samsung','Apple','Sony'] -%}
+  {%- set _mock_product_ids = ['prod-003','prod-004','prod-005','prod-001','prod-002','prod-006'] -%}
+  {%- set _mock_descriptions = ['M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.','15.6-inch OLED laptop, Intel Core i7, 16GB RAM, 512GB SSD. InfinityEdge display.','Google AI phone with Tensor G3, 50MP camera, Magic Eraser and 7 years of OS updates.','Flagship smartphone with 200MP camera and Galaxy AI. 6.8-inch QHD+ AMOLED, S Pen included.','Titanium design with A17 Pro chip, 48MP main camera, and Action Button. 128GB storage.','Industry-leading noise cancelling headphones. 30-hour battery, multipoint connection.'] -%}
+  {%- set _mock_ratings = ['4.9','4.6','4.5','4.7','4.8','4.8'] -%}
+  {%- set _mock_weights = ['1.51','1.86','0.21','0.23','0.19','0.25'] -%}
+  {%- set _mock_stock = ['15','8','33','42','28','67'] -%}
   {%- set _row = mock_row % 6 -%}
-  {%- if 'price' in _aname or 'cost' in _aname or 'amount' in _aname or 'total' in _aname or 'fee' in _aname -%}
+  {%- if 'product_id' in _aname or _aname == 'productid' -%}
+    {%- set label = _mock_product_ids[_row] -%}
+  {%- elif 'brand' in _aname -%}
+    {%- set label = _mock_brands[_row] -%}
+  {%- elif ('description' in _aname or 'summary' in _aname or 'body' in _aname) and _is_product_context -%}
+    {%- set label = _mock_descriptions[_row] -%}
+  {%- elif 'rating' in _aname -%}
+    {%- set label = _mock_ratings[_row] -%}
+  {%- elif 'weight' in _aname -%}
+    {%- set label = _mock_weights[_row] -%}
+  {%- elif 'price' in _aname or 'cost' in _aname or 'amount' in _aname or 'total' in _aname or 'fee' in _aname -%}
     {%- set label = _mock_prices[_row] -%}
   {%- elif 'name' in _aname or 'title' in _aname or 'label' in _aname or 'product' in _aname -%}
-    {%- set label = _mock_names[_row] -%}
+    {%- set label = _product_names[_row] if _is_product_context else (_person_names[_row] if _is_person_context else (_document_names[_row] if _is_document_context else (_finance_names[_row] if _is_finance_context else _generic_names[_row]))) -%}
   {%- elif 'date' in _aname or 'time' in _aname -%}
     {%- set label = _mock_dates[_row] -%}
   {%- elif 'status' in _aname or 'state' in _aname or 'phase' in _aname -%}
@@ -899,7 +950,7 @@
   {%- elif 'email' in _aname or 'mail' in _aname -%}
     {%- set label = _mock_emails[_row] -%}
   {%- elif 'count' in _aname or 'qty' in _aname or 'stock' in _aname or 'quantity' in _aname -%}
-    {%- set label = _mock_nums[_row] -%}
+    {%- set label = _mock_stock[_row] if 'stock' in _aname else _mock_nums[_row] -%}
   {%- else -%}
     {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
   {%- endif -%}
@@ -938,11 +989,18 @@
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
   {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
-  {%- set target_page = action.get('targetPage') or section_component.view_detail_page -%}
+  {%- set target_page = action.get('targetPage') or section_component.item_click_target_page -%}
   {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
   {%- set operation_class = action.get('class') or section_component.primary_model -%}
   {%- set field_name = action.get('field') or attribute -%}
+  {%- if attribute.readonly is defined and attribute.readonly and '.' in attribute.name -%}
+    {%- set _parts = attribute.name.split('.') -%}
+    {%- set _related_object = _parts[0]|lower -%}
+    {%- set _related_field = _parts[1] -%}
+    {%- set row_value -%}{% raw %}{{{% endraw %} {{ object_name }}.{{ _related_object }}.{{ _related_field }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}{%- endset -%}
+  {%- else -%}
   {%- set row_value -%}{% raw %}{{{% endraw %} {{ object_name }}.{{ attribute }} {% raw %}}}{% endraw %}{%- endset -%}
+  {%- endif -%}
   {%- set row_id -%}{% raw %}{{{% endraw %} {{ object_name }}.id {% raw %}}}{% endraw %}{%- endset -%}
   {%- set value_html -%}
   {%- if render_as == 'badge' -%}
@@ -984,6 +1042,7 @@
 {% set d    = _dm.get(_s.get("density","normal"), _dm["normal"]) %}
 {% set col  = _colm.get(_s.get("columns","3")|string, "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3") %}
 {% set lay  = section_component.layout %}
+{% set _is_chrome_layout = lay in _header_chrome or lay in _footer_chrome %}
 {% set _bg_key  = _s.get("bg","white") %}
 {% set _sec_bg  = c.light if _bg_key == "light" else _bgm.get(_bg_key,"bg-white") %}
 {% set _sec_sh  = _shm.get(_s.get("shadow","none"),"") %}
@@ -1001,11 +1060,47 @@
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
-{# ── Attribute slot extraction ── #}
+{# 鈹€鈹€ Attribute slot extraction 鈹€鈹€ #}
 {%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{%- set _tattrs   = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.INTEGER) | list %}
+{%- set _vattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{%- set _mattrs   = _iattrs + _vattrs %}
+{%- set _tattrs   = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | rejectattr('type', 'equalto', AttributeType.INTEGER) | list %}
 {%- set _intattrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.INTEGER) | list %}
-{# ── Generic layout normalisation (legacy aliases → canonical names) ── #}
+{%- set _fl = section_component.field_layout or {} %}
+{%- set _fl_secondary_raw = _fl.get('secondary') or [] %}
+{%- set _fl_columns_raw = _fl.get('columns') or _fl.get('fields') or [] %}
+{%- set _fl_hero_raw = _fl.get('hero') or [] %}
+{%- set _fl_secondary_names = [_fl_secondary_raw] if _fl_secondary_raw is string else _fl_secondary_raw %}
+{%- set _fl_columns_names = [_fl_columns_raw] if _fl_columns_raw is string else _fl_columns_raw %}
+{%- set _fl_hero_names = [_fl_hero_raw] if _fl_hero_raw is string else _fl_hero_raw %}
+{%- set _slot = namespace(image=None, video=None, media=None, title=None, subtitle=None, primary=None, secondary=[], columns=[], hero=[]) %}
+{%- for _attr in section_component.attributes %}
+  {%- set _an = _attr|string %}
+  {%- if _fl.get('image') and _an == _fl.get('image') %}{%- set _slot.image = _attr %}{%- endif %}
+  {%- if _fl.get('video') and _an == _fl.get('video') %}{%- set _slot.video = _attr %}{%- endif %}
+  {%- if _fl.get('media') and _an == _fl.get('media') %}{%- set _slot.media = _attr %}{%- endif %}
+  {%- if _fl.get('title') and _an == _fl.get('title') %}{%- set _slot.title = _attr %}{%- endif %}
+  {%- if _fl.get('subtitle') and _an == _fl.get('subtitle') %}{%- set _slot.subtitle = _attr %}{%- endif %}
+  {%- if _fl.get('primary') and _an == _fl.get('primary') %}{%- set _slot.primary = _attr %}{%- endif %}
+  {%- if _an in _fl_secondary_names %}{%- set _ = _slot.secondary.append(_attr) %}{%- endif %}
+  {%- if _an in _fl_columns_names %}{%- set _ = _slot.columns.append(_attr) %}{%- endif %}
+  {%- if _an in _fl_hero_names %}{%- set _ = _slot.hero.append(_attr) %}{%- endif %}
+{%- endfor %}
+{%- set _title_attr = _slot.title or (_tattrs[0] if _tattrs else (section_component.attributes[0] if section_component.attributes else none)) %}
+{%- set _image_attr = _slot.image or (_iattrs[0] if _iattrs else none) %}
+{%- set _video_attr = _slot.video or (_vattrs[0] if _vattrs else none) %}
+{%- set _media_attr = _slot.media or _video_attr or _image_attr %}
+{%- set _primary_attr = _slot.primary or (_tattrs[1] if _tattrs|length > 1 else none) %}
+{%- set _secondary_attrs = _slot.secondary if _slot.secondary else (_tattrs[2:5] if _tattrs|length > 2 else []) %}
+{%- set _column_attrs = _slot.columns if _slot.columns else section_component.attributes %}
+{%- set _detail_attrs = (_slot.hero + _slot.columns) if (_slot.hero or _slot.columns) else section_component.attributes %}
+{%- set _form_attrs = _slot.columns if _slot.columns else section_component.attributes %}
+{%- set _card_ns = namespace(attrs=[]) %}
+{%- for _attr in [_media_attr, _title_attr, _slot.subtitle, _primary_attr] + _secondary_attrs %}
+  {%- if _attr and _attr not in _card_ns.attrs %}{%- set _ = _card_ns.attrs.append(_attr) %}{%- endif %}
+{%- endfor %}
+{%- set _card_attrs = _card_ns.attrs if _card_ns.attrs else section_component.attributes %}
+{# 鈹€鈹€ Generic layout normalisation (legacy aliases 鈫?canonical names) 鈹€鈹€ #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
@@ -1014,26 +1109,69 @@
                   ('list'   if eff_lay in ('list','product-list','item-list') else
                   ('form'   if eff_lay in ('form','auth-form','form-step','summary-panel') else
                   ('filter' if eff_lay in ('filter','filter-panel') else eff_lay))) %}
-{# ── Shared mock data ── #}
+{%- set _component = section_component.component or '' %}
+{%- if _component in ('ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid') and eff_lay == 'gallery' %}{%- set _glay = 'card' %}{%- endif %}
+{%- if _component == 'ProductCardGrid' %}{%- set _cstyle = 'product' %}{%- endif %}
+{%- if _component == 'CategoryTileGrid' %}{%- set _cstyle = 'category' %}{%- endif %}
+{%- if _component in ('DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList') and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
+{%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
+{# 鈹€鈹€ Shared mock data 鈹€鈹€ #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
-<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+<div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ section_component.layout }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
+  {%- set _field_cfgs = _fl.get('field_styles') or {} %}
+  {%- if _field_cfgs %}
+  <style>
+  {%- set _field_width = {'3':'25%', '4':'33.333%', '6':'50%', '8':'66.666%', '12':'100%'} %}
+  {%- set _field_text = {'xs':'0.75rem', 'sm':'0.875rem', 'md':'1rem', 'lg':'1.125rem', 'xl':'1.25rem'} %}
+  {%- set _field_height = {'sm':'96px', 'md':'160px', 'lg':'240px', 'xl':'320px'} %}
+  {%- for fname, fcfg in _field_cfgs.items() %}
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] {
+    {%- if fcfg.get('order') is not none %} order: {{ fcfg.get('order') }};{% endif %}
+    {%- if fcfg.get('align') in ['left', 'center', 'right'] %} text-align: {{ fcfg.get('align') }};{% endif %}
+    {%- if fcfg.get('col_span') %}
+      flex-basis: {{ _field_width.get(fcfg.get('col_span')|string, 'auto') }};
+      {%- if (fcfg.get('col_span')|string) in ['8', '12'] %} grid-column: 1 / -1;{% endif %}
+    {%- endif %}
+  }
+  {%- if fcfg.get('text_size') %}
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"],
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-value {
+    font-size: {{ _field_text.get(fcfg.get('text_size')|string, 'inherit') }};
+  }
+  {%- endif %}
+  {%- if fcfg.get('height') %}
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-media,
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] img,
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] video,
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-img,
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-video {
+    height: {{ _field_height.get(fcfg.get('height')|string, 'auto') }};
+    aspect-ratio: auto;
+  }
+  {%- endif %}
+  {%- if fcfg.get('label') == 'hidden' %}
+  [data-section-id="{{ section_component.id }}"] [data-field-name="{{ fname|e }}"] .si-field-label { display: none !important; }
+  {%- endif %}
+  {%- endfor %}
+  </style>
+  {%- endif %}
 
-  {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') %}
+  {% if page.type != 'activity' and not _hs_hide and _glay not in ('form', 'filter') and not _is_chrome_layout %}
   <div class="flex items-center justify-between mb-3">
     <h2 class="{{ _hs }}">{{ section_component.display_name }}</h2>
   </div>
   {% endif %}
 
-  {% if section_component.text %}
+  {% if section_component.text and not _is_chrome_layout %}
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• PREVIEW MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW MODE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% if preview_mode %}
 
-{# â•â•â•â• PREVIEW: ACTION PANEL â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: ACTION PANEL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1069,7 +1207,7 @@
   </div>
 {% endif %}
 
-{# â•â•â•â• PREVIEW: DETAIL â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: DETAIL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1077,21 +1215,21 @@
     {%- for _mock_row in range(1) %}
     {%- if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
-      {%- if section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+      {%- if _mattrs %}
       <div class="{{ img_w }} flex-shrink-0">
-        <div class="w-full h-56 {{ r }} bg-gray-50"></div>
+        <div class="w-full h-56 {{ r }} {{ 'bg-black' if _video_attr else 'bg-gray-50' }} flex items-center justify-center text-white/70">{% if _video_attr %}&#9658;{% endif %}</div>
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {%- for attribute in section_component.attributes %}
-        {%- if attribute.type != AttributeType.IMAGE %}
-        <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- for attribute in _detail_attrs %}
+        {%- if attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
+        <div class="si-field flex flex-col gap-1" data-field-name="{{ attribute }}">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -1105,15 +1243,16 @@
     {%- else %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
       <div class="grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {%- for attribute in section_component.attributes %}
-        <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- for attribute in _detail_attrs %}
+        <div class="si-field flex flex-col gap-1{% if attribute.type in [AttributeType.IMAGE, AttributeType.VIDEO] %} sm:col-span-2{% endif %}" data-field-name="{{ attribute }}">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-full h-48 rounded mt-1 bg-gray-50"></div>
+          {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media w-full h-48 rounded mt-1 bg-gray-50"></div>
+          {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -1127,21 +1266,21 @@
     {%- endfor %}
   </div>
 
-{# â•â•â•â• PREVIEW: CARD (carousel / banner / grid Ã— product / category / compact / default) â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: CARD (carousel / banner / grid 脙鈥?product / category / compact / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif _glay == "card" %}
 {%- if _disp == "carousel" %}
   {# Scrollable card strip #}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
     {%- if _cstyle == "category" %}
     {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
-    {{ _category_tile('', (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
     {%- endfor %}
     {%- else %}
     {%- for _mock_row in range(section_mock_rows if section_mock_rows > 3 else 6) %}
-    {{ _mini_card('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
+    {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
     {%- endif %}
-    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">›</button></div>
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">鈥?/button></div>
   </div>
 {%- elif _disp == "banner" %}
   {# Hero banner #}
@@ -1159,7 +1298,7 @@
       <div class="flex gap-3 flex-wrap justify-end">
         {%- for _mock_row in range(4) %}
         <div class="bg-white rounded-xl shadow p-2 w-24 h-24 flex items-center justify-center relative">
-          <div class="w-full h-full bg-gray-50"></div>
+          {%- if _image_attr %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover rounded-lg" />{%- else %}<div class="w-full h-full bg-gray-50"></div>{%- endif %}
         </div>
         {%- endfor %}
       </div>
@@ -1169,14 +1308,14 @@
   {# Category tile grid #}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
-    {{ _category_tile('', (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string if _title_attr else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
     {%- endfor %}
   </div>
 {%- elif _cstyle == "product" %}
   {# Product card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
-    {{ _mini_card('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
+    {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
   </div>
 {%- elif _cstyle == "compact" %}
@@ -1184,12 +1323,12 @@
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} {{ r }} p-3 flex items-center gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
-      {%- if _iattrs %}<div class="w-12 h-12 bg-gray-50 rounded flex-shrink-0"></div>{%- endif %}
+      {%- if _media_attr %}<div class="w-12 h-12 {{ 'bg-black text-white/70' if _video_attr else 'bg-gray-50' }} rounded flex-shrink-0 flex items-center justify-center overflow-hidden">{% if _video_attr %}&#9658;{% elif _image_attr %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover" />{% endif %}</div>{%- endif %}
       <div class="flex-1 min-w-0">
-        {%- for attribute in _tattrs[:2] %}<div class="block">{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}</div>{%- endfor %}
+        {%- for attribute in _card_attrs[:2] %}<div class="block">{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endfor %}
       </div>
       <div class="flex gap-1 shrink-0">
-        {%- if section_component.view_detail_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
+        {%- if section_component.item_click_target_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="text-xs {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="text-xs text-red-400 hover:underline">Del</button>{%- endif %}
       </div>
@@ -1202,19 +1341,20 @@
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
-      {%- for attribute in section_component.attributes %}
-      <div class="flex flex-col gap-0.5">
-        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+      {%- for attribute in _card_attrs %}
+      <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
         {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-        {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-img bg-gray-50 rounded mt-1"></div>
-        {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+        {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+        {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
+        {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
+        {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1223,7 +1363,7 @@
   </div>
 {%- endif %}
 
-{# â•â•â•â• PREVIEW: LIST (product / cart-item / default) â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: LIST (product / cart-item / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif _glay == "list" %}
 {%- if _lstyle == "cart-item" %}
   {# Cart item list #}
@@ -1233,22 +1373,22 @@
       {%- if _s.get('delivery_label') %}<span class="text-sm font-semibold" style="color:#388e3c;">{{ _s.get('delivery_label') }}</span>{%- endif %}
     </div>
     {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
-    {{ _cart_row('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', '', _accent_hex) }}
+    {{ _cart_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
     {%- endfor %}
-    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">‹ Verder winkelen</a>
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">鈥?Verder winkelen</a>
   </div>
 {%- elif _lstyle == "product" %}
   {# Product list with image + price + rating #}
   <div class="flex flex-col gap-3">
     {%- for _mock_row in range(section_mock_rows) %}
-    {{ _product_row('', (_tattrs[0]|string + ' ' + (_mock_row + 1)|string) if _tattrs else (section_component.display_name + ' ' + (_mock_row + 1)|string), '', _accent_hex, view_url='#', opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.6')) }}
+    {{ _product_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, view_url='#', opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.6')) }}
     {%- endfor %}
     <div class="flex items-center justify-center gap-1 mt-4">
       {%- for p in range(1, 6) %}
       <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
-      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">›</button>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">鈥?/button>
     </div>
   </div>
 {%- else %}
@@ -1258,21 +1398,22 @@
     <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
-        {%- for attribute in section_component.attributes %}
-        <div class="flex flex-col gap-0.5">
-          <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- for attribute in _column_attrs %}
+        <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
+          <span class="si-field-label text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
           {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-10 h-10 bg-gray-50 rounded mt-0.5"></div>
+          {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-14 h-10 bg-black rounded mt-0.5 flex items-center justify-center text-white/70 text-xs">&#9658;</div>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
       </div>
       <div class="flex gap-2 shrink-0">
-        {%- if section_component.view_detail_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
+        {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1281,20 +1422,20 @@
   </div>
 {%- endif %}
 
-{# â•â•â•â• PREVIEW: TABLE â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: TABLE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
       <thead>
         <tr>
           {%- if section_component.has_select_operation %}<th class="si-table-header px-4 py-3 w-10"></th>{%- endif %}
-          {% for attribute in section_component.attributes %}
+          {% for attribute in _column_attrs %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -1303,23 +1444,24 @@
         {%- for _mock_row in range(section_mock_rows) %}
         <tr class="si-table-row transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
           {%- if section_component.has_select_operation %}<td class="px-4 py-3 w-10"><span class="si-sel-cb" style="position:static;display:inline-flex;width:16px;height:16px;border-radius:3px;border:2px solid var(--border-strong);background:white;flex-shrink:0;"></span></td>{%- endif %}
-          {%- for attribute in section_component.attributes %}
-          <td class="px-4 py-3 {{ d.text }}" style="color:var(--page-text)">
+          {%- for attribute in _column_attrs %}
+          <td class="si-field px-4 py-3 {{ d.text }}" data-field-name="{{ attribute }}" style="color:var(--page-text)">
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
             {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-8 h-8 bg-gray-50 rounded"></div>
-            {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+            {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-10 h-8 bg-black rounded flex items-center justify-center text-white/70 text-xs">&#9658;</div>
+            {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
             {%- endif %}
           </td>
           {%- endfor %}
           {%- for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
           {%- endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
-              {%- if section_component.view_detail_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
+              {%- if section_component.item_click_target_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -1331,27 +1473,33 @@
     </table>
   </div>
 
-{# â•â•â•â• PREVIEW: GALLERY â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: GALLERY 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif eff_lay == "gallery" %}
-{%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{%- set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{%- set img_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{%- set video_attrs = _card_attrs | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{%- set media_attrs = video_attrs if video_attrs else img_attrs %}
+{%- set text_attrs = _card_attrs | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | list %}
   <div class="grid {{ col }} {{ d.gap }}">
     {%- for _mock_row in range(section_mock_rows) %}
     <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
-      {%- if img_attrs %}
+      {%- if media_attrs %}
       <div class="overflow-hidden">
-        <div class="si-img transition-transform group-hover:scale-105"></div>
+        {%- if video_attrs %}
+        <div class="si-video transition-transform group-hover:scale-105 flex items-center justify-center text-white/70">&#9658;</div>
+        {%- else %}
+        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-img transition-transform group-hover:scale-105" />
+        {%- endif %}
       </div>
       {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        {{ _field_value(attribute, _mock_row, c, d, r, section_component.view_detail_page) }}
+        {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {%- if section_component.view_detail_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
+        {%- if section_component.item_click_target_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
       </div>
     </div>
@@ -1359,18 +1507,18 @@
   </div>
 
 
-{# â•â•â•â• PREVIEW: FILTER (filter-panel) â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: FILTER (filter-panel) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif _glay == "filter" %}
   <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4 text-sm">
     <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
     {%- if section_component.attributes %}
-    {%- for attribute in section_component.attributes %}
+    {%- for attribute in _column_attrs %}
     <div class="space-y-2 border-t border-gray-100 pt-3">
       <h4 class="font-semibold text-gray-700 text-xs uppercase tracking-wide">{{ attribute }}</h4>
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>—</span>
+        <span>鈥?/span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1397,18 +1545,18 @@
     {%- if section_component.attributes %}<button class="w-full border border-gray-300 rounded-lg py-2 text-xs text-gray-600 hover:bg-gray-50 mt-2">Clear filters</button>{%- endif %}
   </div>
 
-{# â•â•â•â• PREVIEW: FORM (auth / step / summary / default) â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?PREVIEW: FORM (auth / step / summary / default) 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
-  {# Auth form — login / register #}
+  {# Auth form 鈥?login / register #}
   <div class="flex items-center justify-center py-16">
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
       <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
       <h2 class="text-xl font-bold text-gray-900 mb-6">{{ section_component.display_name }}</h2>
       {%- if _tattrs %}
-      {%- for attribute in _tattrs %}
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
+      {%- for attribute in _form_attrs %}
+      <div class="si-field mb-4" data-field-name="{{ attribute }}">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
         <input type="{% if 'wacht' in (attribute|string|lower) or 'pass' in (attribute|string|lower) %}password{% else %}text{% endif %}" placeholder="{{ attribute }}" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm outline-none focus:border-blue-500" />
       </div>
       {%- endfor %}
@@ -1430,7 +1578,7 @@
         <p class="text-sm text-gray-700">{{ section_component.text }}</p>
         {%- elif _tattrs %}
         <div class="space-y-2">
-          {%- for attribute in _tattrs %}
+          {%- for attribute in _form_attrs %}
           <div class="flex flex-col gap-0.5">
             <span class="text-xs text-gray-500 uppercase">{{ attribute }}</span>
             <span class="text-sm font-medium text-gray-800">{{ attribute }}</span>
@@ -1454,27 +1602,27 @@
     <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
     <div class="space-y-2 text-sm">
       {%- if _tattrs %}
-      {%- for attribute in _tattrs %}
+      {%- for attribute in _form_attrs %}
       <div class="flex justify-between"><span class="text-gray-600">{{ attribute }}</span><span class="font-medium">{{ attribute }}</span></div>
       {%- endfor %}
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label', 'Total:') }}</span><span>—</span>
+      <span>{{ _s.get('total_label', 'Total:') }}</span><span>鈥?/span>
     </div>
     <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} →
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 鈫?
     </button>
     {%- if section_component.custom_methods %}<div class="flex items-center justify-center gap-2 pt-1 text-xs text-gray-500">{%- for m in section_component.custom_methods %}<span>{{ m }}</span>{%- endfor %}</div>{%- endif %}
   </div>
 {%- else %}
-  {# Default form — generic input fields #}
+  {# Default form 鈥?generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
     <div class="space-y-4">
       {%- if section_component.attributes %}
-      {%- for attribute in section_component.attributes %}
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
+      {%- for attribute in _form_attrs %}
+      <div class="si-field" data-field-name="{{ attribute }}">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">{{ attribute }}</label>
         {%- if attribute.type == AttributeType.BOOLEAN %}
         <input type="checkbox" class="h-4 w-4 rounded" />
         {%- elif attribute.type == AttributeType.INTEGER %}
@@ -1485,6 +1633,8 @@
         </select>
         {%- elif attribute.type == AttributeType.IMAGE %}
         <input type="file" accept="image/*" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" />
+        {%- elif attribute.type == AttributeType.VIDEO %}
+        <input type="file" accept="video/*" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" />
         {%- else %}
         <input type="text" placeholder="{{ attribute }}" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2" />
         {%- endif %}
@@ -1501,8 +1651,85 @@
   </div>
 {%- endif %}
 
-{%- elif lay in ('search-bar', 'nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links', 'icon-actions', 'logo') %}
-{# Chrome section landed in main content area — render a compact placeholder #}
+{%- elif lay == 'icon-actions' %}
+  <div class="flex items-center gap-5 text-sm text-gray-700">
+    {%- if section_component.custom_methods %}
+    {%- for m in section_component.custom_methods %}
+    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    {%- endfor %}
+    {%- else %}
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+    <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+    {%- endif %}
+  </div>
+
+{%- elif lay == 'search-bar' %}
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+
+{%- elif lay == 'logo' %}
+  <a href="#" class="inline-flex text-3xl font-black leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</a>
+
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
+  {%- if section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div class="px-3 py-3 flex flex-col gap-1 text-sm">
+      <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
+      {%- for p in (all_pages or []) %}
+      {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
+      <span class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endif %}
+      {%- endfor %}
+    </div>
+  </nav>
+  {%- elif lay in ('nav-links', 'nav-bar') %}
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+    <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
+      </span>
+      {%- for p in (all_pages or []) %}
+      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endfor %}
+    </div>
+  </nav>
+  {%- elif lay == 'minimal-header' %}
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
+    <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
+    <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      {{ section_component.text or '0,00' }}
+    </button>
+  </div>
+  {%- else %}
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <header class="px-5 py-3 flex items-center gap-4">
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
+        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+      </div>
+    </header>
+  </div>
+  {%- endif %}
+
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
+{# Chrome section landed in main content area 鈥?render a compact placeholder #}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
     {%- if lay == 'search-bar' %}
     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1527,10 +1754,10 @@
   </button>
   {%- endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• GENERATION MODE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?GENERATION MODE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% else %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• ACTION PANEL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?ACTION PANEL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1576,7 +1803,7 @@
   </div>
 {% endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• DETAIL â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?DETAIL 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1586,19 +1813,25 @@
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
     {% if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
-      {%- set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-      {%- if img_attrs %}
+      {%- set img_attrs = [_image_attr] if _image_attr else [] %}
+      {%- set video_attrs = [_video_attr] if _video_attr else [] %}
+      {%- set media_attrs = video_attrs if video_attrs else img_attrs %}
+      {%- if media_attrs %}
       <div class="{{ img_w }} flex-shrink-0">
+        {%- if video_attrs %}
+        <video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ video_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="w-full h-56 object-cover {{ r }} bg-black"></video>
+        {%- else %}
         <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="w-full h-56 object-cover {{ r }}" />
+        {%- endif %}
       </div>
       {%- endif %}
       <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {%- for attribute in section_component.attributes %}
-        {%- if attribute.type != AttributeType.IMAGE %}
-        <div class="flex flex-col gap-1">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {%- for attribute in _detail_attrs %}
+        {%- if attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
+        <div class="si-field flex flex-col gap-1" data-field-name="{{ attribute }}">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -1622,12 +1855,13 @@
     {% else %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
       <div class="grid grid-cols-1 sm:grid-cols-2 {{ d.gap }}">
-        {% for attribute in section_component.attributes -%}
-        <div class="flex flex-col gap-1{% if attribute.type == AttributeType.IMAGE %} sm:col-span-2{% endif %}">
-          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+        {% for attribute in _detail_attrs -%}
+        <div class="si-field flex flex-col gap-1{% if attribute.type in [AttributeType.IMAGE, AttributeType.VIDEO] %} sm:col-span-2{% endif %}" data-field-name="{{ attribute }}">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.IMAGE -%}<img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ attribute }}" class="w-full max-h-64 object-contain rounded">
-          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
+          {%- elif attribute.type == AttributeType.VIDEO -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -1653,7 +1887,7 @@
 
   </div>
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• CARD â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?CARD 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -1661,17 +1895,17 @@
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
   </div>
 {%- else %}
-{%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
-{%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
-{%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
-{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.view_detail_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.view_detail_page else '#' %}
+{%- set _gen_name  = '{{ ' + _m + '.' + (_title_attr|string if _title_attr else 'name') + ' }}' %}
+{%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
+{%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
+{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
 {%- set _gen_fav_url = '?favorite_' + _m + '={{ ' + _m + '.id }}' if _m else '' %}
 {%- if _disp == "carousel" %}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
     {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
     {{ '{% empty %}{% endfor %}' }}
-    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">›</a></div>
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">鈥?/a></div>
   </div>
 {%- elif _cstyle == "category" %}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -1691,7 +1925,7 @@
       <div class="flex-1">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
         {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} →</a>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }} 鈫?/a>{%- endif %}
       </div>
     </div>
   </div>
@@ -1701,17 +1935,17 @@
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
       <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in section_component.attributes %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-1">
           <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ attribute }}</label>
-          {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+          {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
@@ -1726,19 +1960,20 @@
       {% raw %}{% else %}{% endraw %}
       {%- endif %}
 
-      {% for attribute in section_component.attributes -%}
-      <div class="flex flex-col gap-0.5">
-        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+      {% for attribute in _card_attrs -%}
+        <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
         {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
         {%- elif attribute.type == AttributeType.IMAGE -%}{% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ attribute }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ attribute }}" class="si-img object-cover rounded">{% raw %}{% endwith %}{% endraw %}
-        {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
+        {%- elif attribute.type == AttributeType.VIDEO -%}<video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video rounded"></video>
+        {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
 
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
-        {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
+        {%- if section_component.item_click_target_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -1767,10 +2002,10 @@
       <h4 class="{{ d.text }} font-semibold {{ c.label }} mb-1">New {{ section_component.display_name }}</h4>
       <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-1">
           <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ attribute }}</label>
-          {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+          {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
@@ -1814,7 +2049,7 @@
 {%- endif %}{# end card sub-dispatch #}
 {%- endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LIST â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?LIST 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif _glay == "list" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -1822,10 +2057,10 @@
     {{ section_component.display_name }}
   </div>
 {%- else %}
-{%- set _gen_name  = '{{ ' + _m + '.' + (_tattrs[0]|string if _tattrs else 'name') + ' }}' %}
-{%- set _gen_img   = ('{{ ' + _m + '.' + _iattrs[0]|string + ' }}') if _iattrs else '' %}
-{%- set _gen_price = ('{{ ' + _m + '.' + _tattrs[1]|string + ' }}') if _tattrs|length > 1 else '' %}
-{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.view_detail_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.view_detail_page else '#' %}
+{%- set _gen_name  = '{{ ' + _m + '.' + (_title_attr|string if _title_attr else 'name') + ' }}' %}
+{%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
+{%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
+{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
 {%- if _lstyle == "product" %}
   <div class="flex flex-col gap-3">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
@@ -1842,7 +2077,7 @@
       <div class="flex-1">
         <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
-          <span class="text-yellow-400 text-xs">★★★★</span><span class="text-gray-200 text-xs">★</span>
+          <span class="text-yellow-400 text-xs">鈽呪槄鈽呪槄</span><span class="text-gray-200 text-xs">鈽?/span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
@@ -1880,7 +2115,7 @@
   <div class="bg-white border border-gray-200 rounded-lg p-4 mt-4">
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3">
       {% raw %}{% csrf_token %}{% endraw %}
-      {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
       <div class="flex flex-col gap-1">
         <label class="text-xs font-medium text-gray-600 uppercase">{{ attribute }}</label>
         {% if attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
@@ -1911,7 +2146,7 @@
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">‹ Add {{ section_component.display_name }}</button>
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">鈥?Add {{ section_component.display_name }}</button>
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
@@ -1920,17 +2155,17 @@
   <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
       <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in section_component.attributes %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-0.5 min-w-24">
           <label class="text-xs font-medium {{ c.label }} uppercase">{{ attribute }}</label>
-          {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
+          {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} class="h-4 w-4 rounded mt-1">
           {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="border border-gray-300 {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option>{{ lit }}</option>{% endfor %}</select>
@@ -1946,19 +2181,19 @@
       {%- endif %}
 
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
-        {% for attribute in section_component.attributes -%}
+        {% for attribute in _column_attrs -%}
         <div class="flex flex-col gap-0.5">
           <span class="text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
           {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
+          {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
       </div>
 
       <div class="flex gap-2 shrink-0">
-        {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
+        {%- if section_component.item_click_target_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
@@ -1990,10 +2225,10 @@
         {% if section_component.primary_model -%}
         <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
         {% endif -%}
-        {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-0.5">
           <label class="text-xs font-medium {{ c.label }} uppercase">{{ attribute }}</label>
-          {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
+          {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
           {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded mt-1">
           {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option>{{ lit }}</option>{% endfor %}</select>
@@ -2027,25 +2262,28 @@
 {%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TABLE â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?TABLE 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
       <thead>
         <tr>
-          {% for attribute in section_component.attributes %}
+          {% if section_component.has_select_operation %}
+          <th class="{{ c.th }} px-4 py-3 w-10"></th>
+          {% endif %}
+          {% for attribute in _column_attrs %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ attribute }}</th>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-100">
+      <tbody class="divide-y divide-gray-100"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
         {%- if section_component.has_update_operation %}
@@ -2053,10 +2291,11 @@
         <tr class="{{ c.light }}">
           <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
-          {% for attribute in section_component.attributes %}
+          {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
+          {% for attribute in _column_attrs %}
           <td class="px-4 py-2">
             {% if attribute.updatable and not attribute.derived %}
-              {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
+              {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
               {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
               {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} class="h-4 w-4 rounded">
               {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option>{{ lit }}</option>{% endfor %}</select>
@@ -2084,21 +2323,22 @@
         </tr>
         {% raw %}{% else %}{% endraw %}
         {%- endif %}
-        <tr class="hover:bg-gray-50 transition-colors">
-          {% for attribute in section_component.attributes %}
+        <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+          {% if section_component.has_select_operation %}<td class="px-4 py-3"><span class="si-sel-cb"></span></td>{% endif %}
+          {% for attribute in _column_attrs %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">
             {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
-            {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}{% endif %}
+            {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}{% endif %}
           </td>
           {% endfor %}
           {% for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.view_detail_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
-              {%- if section_component.view_detail_page %}
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
+              {%- if section_component.item_click_target_page %}
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -2124,9 +2364,10 @@
         <tr class="{{ c.light }}">
           <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
-          {% for attribute in section_component.attributes %}{% if not attribute.derived %}
+          {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
+          {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
           <td class="px-4 py-2">
-            {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
+            {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
             {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
             {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">{% for lit in attribute.enum_literals %}<option>{{ lit }}</option>{% endfor %}</select>
@@ -2171,30 +2412,37 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• GALLERY â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?GALLERY 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif eff_lay == "gallery" %}
 {% set img_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{% set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | list %}
+{% set video_attrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{% set media_attrs = video_attrs if video_attrs else img_attrs %}
+{% set text_attrs = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | list %}
 
-  <div class="grid {{ col }} {{ d.gap }}">
+  <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative">
-      {%- if img_attrs %}
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+      {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
+      {%- if media_attrs %}
       <div class="overflow-hidden">
+        {%- if video_attrs %}
+        <video controls src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ video_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" class="si-video transition-transform group-hover:scale-105"></video>
+        {%- else %}
         <img src="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ img_attrs[0] }}{% raw %}|default:''{% endraw %} {% raw %}}}{% endraw %}" alt="{{ img_attrs[0] }}" class="si-img object-cover transition-transform group-hover:scale-105" />
+        {%- endif %}
       </div>
       {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        {{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.view_detail_page) }}
+        {{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {%- if section_component.view_detail_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.view_detail_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
+        {%- if section_component.item_click_target_page %}
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
@@ -2224,7 +2472,7 @@
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• FORM â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?FORM 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 {% elif _glay == "form" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if _fstyle == "summary" %}
@@ -2241,18 +2489,18 @@
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label','Total:') }}</span><span>—</span>
+      <span>{{ _s.get('total_label','Total:') }}</span><span>鈥?/span>
     </div>
     {%- if page.type == 'activity' %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} →
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} 鈫?
       </button>
     </form>
     {%- else %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} →
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 鈫?
     </a>
     {%- endif %}
   </div>
@@ -2268,9 +2516,9 @@
         <div class="flex flex-col gap-1 mb-2">
           <label class="text-xs font-medium text-gray-500 uppercase">{{ attr }}</label>
           {%- if page.type == 'activity' %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.get('{{ attr }}','') {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '—' {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '鈥? {% raw %}}}{% endraw %}</span>
           {%- endif %}
         </div>
         {%- endfor %}
@@ -2295,10 +2543,10 @@
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
     {%- endif %}
-      {% for attribute in section_component.attributes %}{% if not attribute.derived %}
-      <div>
-        <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ attribute }}</label>
-        {% if attribute.type == AttributeType.STRING %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+      <div class="si-field" data-field-name="{{ attribute }}">
+        <label class="si-field-label block {{ d.text }} font-medium {{ c.label }} mb-1">{{ attribute }}</label>
+        {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
         {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
         {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
         {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
@@ -2312,12 +2560,131 @@
   </div>
 {%- endif %}
 
+{%- elif lay == 'logo' %}
+  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3">
+    <a href="#" class="inline-flex text-3xl font-black leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ section_component.text or _brand_name }}.</a>
+  </div>
+
+{%- elif lay == 'search-bar' %}
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+
+{%- elif lay == 'icon-actions' %}
+  <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-5 text-sm text-gray-700">
+    {%- if section_component.custom_methods %}
+    {%- for m in section_component.custom_methods %}
+    <span class="cursor-pointer hover:opacity-75 whitespace-nowrap">{{ m }}</span>
+    {%- endfor %}
+    {%- else %}
+    <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+    <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+    <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+    {%- endif %}
+  </div>
+
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'site-nav', 'nav-links') %}
+  {%- if lay == 'minimal-header' %}
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
+    <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
+    <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2-1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      {{ section_component.text or '0,00' }}
+    </button>
+  </div>
+  {%- elif section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div class="px-3 py-3 flex flex-col gap-1 text-sm">
+      <div class="font-bold text-gray-900 px-2 py-2">{{ section_component.display_name }}</div>
+      {%- for p in (all_pages or []) %}
+      {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
+      <span class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endif %}
+      {%- endfor %}
+    </div>
+  </nav>
+  {%- elif lay in ('nav-links', 'nav-bar') %}
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+    <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        {{ section_component.custom_methods[0] if section_component.custom_methods else section_component.display_name }}
+      </span>
+      {%- for p in (all_pages or []) %}
+      {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
+      <span class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
+        style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
+      {%- endif %}
+      {%- endfor %}
+    </div>
+  </nav>
+  {%- else %}
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <header class="px-5 py-3 flex items-center gap-4">
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
+        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+      </div>
+    </header>
+  </div>
+  {%- endif %}
+
+{%- elif lay in ('service-bar', 'service-strip') %}
+  <div class="px-6 py-4 flex items-center gap-6 rounded-xl" style="background-color:{{ _accent_hex }};">
+    <span class="text-white font-bold">{{ section_component.display_name }}</span>
+    {%- for m in section_component.custom_methods %}
+    <span class="text-sm text-white opacity-80">{{ m }}</span>
+    {%- endfor %}
+  </div>
+
+{%- elif lay in ('footer-links', 'link-grid') %}
+  <div class="bg-white border border-gray-100 rounded-xl p-4">
+    <h4 class="font-bold text-gray-800 mb-3">{{ section_component.display_name }}</h4>
+    <ul class="space-y-2 text-sm text-gray-600">
+      {%- for m in section_component.custom_methods %}
+      <li>{{ m }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+
+{%- elif lay in ('footer-brand', 'brand-strip') %}
+  <div class="bg-white border border-gray-100 rounded-xl py-6 flex flex-col items-center gap-2">
+    <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+    <p class="text-xs text-gray-400">{{ section_component.text }}</p>
+  </div>
+
+{%- elif lay == 'site-footer' %}
+  <footer class="rounded-xl overflow-hidden border border-gray-100">
+    <div class="px-6 py-4 flex items-center gap-6" style="background-color:{{ _accent_hex }};">
+      <span class="text-white font-bold">{{ section_component.display_name }}</span>
+      {%- for m in section_component.custom_methods %}
+      <span class="text-sm text-white opacity-80">{{ m }}</span>
+      {%- endfor %}
+    </div>
+    <div class="bg-white border-t border-gray-100 py-6 flex flex-col items-center gap-2">
+      <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+      {%- if section_component.text %}<p class="text-xs text-gray-400">{{ section_component.text }}</p>{%- endif %}
+    </div>
+  </footer>
+
 {% else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• END GENERATION LAYOUTS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• #}
+{# 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?END GENERATION LAYOUTS 芒鈥⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙惷⑩€⒙?#}
 
 {% endif %}{# end preview_mode branch #}
 
@@ -2368,11 +2735,14 @@
   byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
 
   if (hasSidebar) {
-    // filter-panel goes LEFT (before main); summary-panel / other sidebars go RIGHT
+    // Sidebar placement is explicit when style.sidebar_side is set.
+    // Otherwise filters and navigation rails go left; summaries/actions stay right.
     var leftSidebarItems = [], rightSidebarItems = [];
     byPos.sidebar.forEach(function(el) {
       var lay = el.getAttribute('data-layout') || '';
-      if (lay === 'filter-panel') leftSidebarItems.push(el);
+      var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
+      if (side === 'right') rightSidebarItems.push(el);
+      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
       else rightSidebarItems.push(el);
     });
 
@@ -2410,7 +2780,7 @@
 </script>
 </main>
 
-{# ── footer chrome: consecutive link-grid sections are grouped into one flex row ── #}
+{# 鈹€鈹€ footer chrome: consecutive link-grid sections are grouped into one flex row 鈹€鈹€ #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
@@ -2462,7 +2832,7 @@
 </div>
 
 {%- elif sc.layout in ('service-strip', 'service-bar') %}
-{# Screenshot match: blue bar — "Service & contact" + icon/text links #}
+{# Screenshot match: blue bar 鈥?"Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
   <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
@@ -2563,7 +2933,7 @@
 </script>
 
 <script>
-/* ── Multi-select (si-selectable sections) ── */
+/* 鈹€鈹€ Multi-select (si-selectable sections) 鈹€鈹€ */
 (function() {
   var bars = {};
   document.querySelectorAll('[data-selectable]').forEach(function(grid) {
@@ -2594,14 +2964,40 @@
     siSelUpdate(sid);
   };
 
+  function siGetCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
   window.siSelDelete = function(sid) {
     var grid = document.querySelector('[data-selectable="' + sid + '"]');
     if (!grid) return;
-    var ids = [];
-    grid.querySelectorAll('.si-selected[data-item-idx]').forEach(function(el) { ids.push(el.dataset.itemIdx); });
-    window.parent.postMessage({ type: 'si-select-delete', sectionId: sid, indices: ids }, '*');
-    grid.querySelectorAll('.si-selected').forEach(function(el) { el.classList.add('opacity-30'); el.classList.remove('si-selected'); });
-    siSelUpdate(sid);
+    var selected = Array.from(grid.querySelectorAll('.si-selected[data-item-idx]'));
+    var ids = selected.map(function(el) { return el.dataset.itemIdx; });
+    var urls = selected.map(function(el) { return el.dataset.deleteUrl; }).filter(Boolean);
+    if (!urls.length) {
+      window.parent.postMessage({ type: 'si-select-delete', sectionId: sid, indices: ids }, '*');
+      selected.forEach(function(el) { el.classList.add('opacity-30'); el.classList.remove('si-selected'); });
+      siSelUpdate(sid);
+      return;
+    }
+    if (!window.confirm('Delete ' + urls.length + ' selected item' + (urls.length === 1 ? '' : 's') + '?')) return;
+    var csrf = siGetCsrfToken();
+    Promise.all(urls.map(function(url) {
+      return fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: csrf ? { 'X-CSRFToken': csrf } : {}
+      });
+    })).then(function(responses) {
+      var failed = responses.filter(function(response) { return !response.ok; });
+      if (failed.length) window.alert('Some selected items could not be deleted.');
+      window.location.reload();
+    }).catch(function() {
+      window.alert('Could not delete selected items.');
+    });
   };
 
   document.addEventListener('click', function(e) {
@@ -2629,7 +3025,7 @@
 </script>
 
 <style>
-/* ── Drag-and-drop sections ── */
+/* 鈹€鈹€ Drag-and-drop sections 鈹€鈹€ */
 [data-section-id] { position: relative; }
 /* Full-width drag bar at top of section (starts below the top-resize handle) */
 .si-move-bar {
@@ -2659,7 +3055,7 @@
 [data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
 [data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
 
-/* ── Section resize (left + right handles) ── */
+/* 鈹€鈹€ Section resize (left + right handles) 鈹€鈹€ */
 .si-resize-handle, .si-lresize-handle {
   position: absolute; top: 0;
   width: 10px; height: 100%; min-height: 40px;
@@ -2694,7 +3090,7 @@
   transform: translateX(-50%);
 }
 
-/* ── Section vertical resize (top + bottom handles) ── */
+/* 鈹€鈹€ Section vertical resize (top + bottom handles) 鈹€鈹€ */
 .si-vresize-handle, .si-tresize-handle {
   position: absolute; left: 0; right: 0;
   height: 10px; cursor: row-resize; z-index: 30;
@@ -2750,13 +3146,13 @@
 .si-ctx-sep { height: 1px; background: #e2e8f0; margin: 4px 0; }
 .si-ctx-item.danger { color: #dc2626; }
 .si-ctx-item.danger:hover { background: #fef2f2; }
-/* Drop row indicator — shown above/below a row during cross-row drag */
+/* Drop row indicator 鈥?shown above/below a row during cross-row drag */
 [data-section-id].si-drag-row-before { box-shadow: inset 0 4px 0 0 var(--accent, #3b82f6); }
 [data-section-id].si-drag-row-after  { box-shadow: inset 0 -4px 0 0 var(--accent, #3b82f6); }
 </style>
 
 <script>
-/* ── Section right-click context menu ── */
+/* 鈹€鈹€ Section right-click context menu 鈹€鈹€ */
 (function() {
   var menu = null;
 
@@ -2772,7 +3168,7 @@
     menu.style.left = x + 'px';
     menu.style.top  = y + 'px';
 
-    // sectionId is captured here in the closure — safe from hideMenu clearing it
+    // sectionId is captured here in the closure 鈥?safe from hideMenu clearing it
     function item(icon, label, cls, action) {
       var el = document.createElement('div');
       el.className = 'si-ctx-item' + (cls ? ' ' + cls : '');
@@ -2826,7 +3222,7 @@
 </script>
 
 <script>
-/* ── Section drag-and-drop (pure mouse events, tracks drop target during mousemove) ── */
+/* 鈹€鈹€ Section drag-and-drop (pure mouse events, tracks drop target during mousemove) 鈹€鈹€ */
 (function() {
   var dragging = false;
   var draggingId = null;
@@ -2935,7 +3331,7 @@
     }
     var row = rows[ri];
 
-    // Sort row sections left→right
+    // Sort row sections left鈫抮ight
     var rowSecs = row.secs.slice().sort(function(a, b) {
       return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
     });
@@ -2948,7 +3344,7 @@
       return { beforeId: belowId, position: region, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
     }
 
-    // Scan left→right to find insert position within the row
+    // Scan left鈫抮ight to find insert position within the row
     for (var s = 0; s < rowSecs.length; s++) {
       var sr = rowSecs[s].getBoundingClientRect();
       var midX = sr.left + sr.width / 2;
@@ -2957,7 +3353,7 @@
       }
     }
 
-    // Mouse is past the last section in the row → insert at start of next row (or end)
+    // Mouse is past the last section in the row 鈫?insert at start of next row (or end)
     var lastInRow = rowSecs[rowSecs.length - 1];
     var nextId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
     return { beforeId: nextId, position: region, indicEl: lastInRow, indicSide: 'after' };
@@ -3040,7 +3436,7 @@
 </script>
 
 <script>
-/* ── Section column-span resize (left + right handles) ── */
+/* 鈹€鈹€ Section column-span resize (left + right handles) 鈹€鈹€ */
 (function() {
   var resizing = false;
   var resizingEl = null;
@@ -3127,7 +3523,7 @@
       setColSpan(resizingEl, n);
     }
     if (resizeDir === 'left') {
-      // Shift element right so its right edge stays fixed — left edge appears to move
+      // Shift element right so its right edge stays fixed 鈥?left edge appears to move
       var tx = (startColSpan - n) * colW;
       resizingEl.style.transform = 'translateX(' + tx + 'px)';
       // Snap line and tooltip at the apparent left edge
@@ -3169,7 +3565,7 @@
 </script>
 
 <script>
-/* ── Section vertical height resize (top + bottom handles) ── */
+/* 鈹€鈹€ Section vertical height resize (top + bottom handles) 鈹€鈹€ */
 (function() {
   var vresizing = false;
   var vresizingEl = null;
@@ -3233,7 +3629,7 @@
     vresizingEl.style.height = newH + 'px';
     vresizingEl.style.overflow = 'hidden';
     if (vresizeDir === 'top') {
-      // Shift element down so its bottom edge stays fixed — top edge appears to move
+      // Shift element down so its bottom edge stays fixed 鈥?top edge appears to move
       var ty = startH - newH;
       vresizingEl.style.transform = 'translateY(' + ty + 'px)';
       // Guide line follows the apparent top edge (getBoundingClientRect accounts for transform)
@@ -3305,12 +3701,30 @@
     var mainGrid = document.createElement('div');
     mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
     mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
-    contentRow.appendChild(mainGrid);
     if (hasSidebarEl) {
-      var sideEl = document.createElement('aside');
-      sideEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
-      sidebarSecs.forEach(function(el) { el.className = 'w-full'; sideEl.appendChild(el); });
-      contentRow.appendChild(sideEl);
+      var leftSidebarItems = [], rightSidebarItems = [];
+      sidebarSecs.forEach(function(el) {
+        var lay = el.getAttribute('data-layout') || '';
+        var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
+        if (side === 'right') rightSidebarItems.push(el);
+        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+        else rightSidebarItems.push(el);
+      });
+      if (leftSidebarItems.length) {
+        var leftEl = document.createElement('aside');
+        leftEl.className = 'w-64 flex-shrink-0 flex flex-col gap-4';
+        leftSidebarItems.forEach(function(el) { el.className = 'w-full'; leftEl.appendChild(el); });
+        contentRow.appendChild(leftEl);
+      }
+      contentRow.appendChild(mainGrid);
+      if (rightSidebarItems.length) {
+        var rightEl = document.createElement('aside');
+        rightEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+        rightSidebarItems.forEach(function(el) { el.className = 'w-full'; rightEl.appendChild(el); });
+        contentRow.appendChild(rightEl);
+      }
+    } else {
+      contentRow.appendChild(mainGrid);
     }
     wrap.appendChild(contentRow);
   }

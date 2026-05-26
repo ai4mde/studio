@@ -1,6 +1,7 @@
 import re
 from functools import cached_property
 import json
+import logging
 from typing import Any, NamedTuple
 
 from utils.file_generation import write_to_file
@@ -62,6 +63,40 @@ class ActivityDiagramParser:
         self.join_node_id = 1
         self.rules_id = 1
         
+    def _cls(self, node: dict[str, Any]) -> dict[str, Any]:
+        cls = node.get("cls") or {}
+        if isinstance(cls.get("data"), dict):
+            return cls["data"]
+        return cls
+
+    def _node_type(self, node: dict[str, Any]) -> str | None:
+        return self._cls(node).get("type")
+
+    def _edge_data(self, edge: dict[str, Any]) -> dict[str, Any]:
+        rel = edge.get("rel") or {}
+        if isinstance(rel.get("data"), dict):
+            return rel["data"]
+        return rel
+
+    def _edge_source(self, edge: dict[str, Any]) -> str | None:
+        source = edge.get("source_ptr") or edge.get("source")
+        if isinstance(source, dict):
+            return source.get("id")
+        return source
+
+    def _edge_target(self, edge: dict[str, Any]) -> str | None:
+        target = edge.get("target_ptr") or edge.get("target")
+        if isinstance(target, dict):
+            return target.get("id")
+        return target
+
+    def _actor_name(self, cls_data: dict[str, Any]) -> str | None:
+        actor_ref = cls_data.get("actorNode")
+        if actor_ref and self.actors.get(actor_ref):
+            return self.actors[actor_ref]
+        actor_name = cls_data.get("actorNodeName")
+        return app_name_sanitization(actor_name) if actor_name else None
+
     
     @cached_property
     def actors(self) -> dict[str, str]:
@@ -70,9 +105,10 @@ class ActivityDiagramParser:
         activity actorNode fields referencing either format are resolved.
         """
         result = {}
-        for usecase_diagram in filter(lambda diagram: diagram['type'] == 'usecase', self.metadata['diagrams']):
-            for actor_node in filter(lambda node: node['cls']['type'] == 'actor', usecase_diagram['nodes']):
-                name = app_name_sanitization(actor_node['cls']['name'])
+        for usecase_diagram in filter(lambda diagram: diagram.get('type') == 'usecase', self.metadata.get('diagrams', [])):
+            for actor_node in filter(lambda node: self._node_type(node) == 'actor', usecase_diagram.get('nodes', [])):
+                actor_cls = self._cls(actor_node)
+                name = app_name_sanitization(actor_cls.get('name', 'actor'))
                 result[actor_node['id']] = name
                 if actor_node.get('cls_ptr'):
                     result[actor_node['cls_ptr']] = name
@@ -83,18 +119,16 @@ class ActivityDiagramParser:
         """Map from the action node UUID to a possible interface url"""
         interface_map = {}
 
-        for interface in self.metadata['interfaces']:
+        for interface in self.metadata.get('interfaces', []):
             interface_name = interface['value']['name']
 
-            for page in interface['value']['data']['pages']:
-                if page['type']['value'] == 'normal':
+            for page in interface['value']['data'].get('pages', []):
+                page_type = page.get('type') or {}
+                if page_type.get('value') != 'activity':
                     continue
 
                 if page.get('action') is None:
-                    raise ValueError(
-                        f"Page '{page['name']}' in interface '{interface_name}' "
-                        f"is missing an action."
-                    )
+                    continue
                 
                 interface_map[page['action']['value']] = (
                     f"/{app_name_sanitization(interface_name)}"
@@ -107,7 +141,7 @@ class ActivityDiagramParser:
     def _get_incoming_edges_count(self, edges: list[dict[str, Any]], target_id: str) -> int:
         """Get the number of incoming edges for a node"""
         return sum(
-            1 for _ in filter(lambda edge: edge['target_ptr'] == target_id, edges)
+            1 for _ in filter(lambda edge: self._edge_target(edge) == target_id, edges)
         )
 
     def find_node(self, nodes: list[dict[str, Any]], node_id: str) -> dict[str, Any]:
@@ -121,17 +155,17 @@ class ActivityDiagramParser:
         """Find all edges that have a given source Node"""
         return [
             Edge(
-                target_node=edge['target_ptr'],
+                target_node=self._edge_target(edge),
                 condition=Condition(
-                    isElse=edge['rel']['condition']['isElse'],
-                    operator=edge['rel']['condition']['operator'],
-                    threshold=edge['rel']['condition']['threshold'],
-                    aggregator=edge['rel']['condition']['aggregator'],
-                    target_attribute=edge['rel']['condition']['target_attribute'],
-                    target_class_name=edge['rel']['condition']['target_class_name'],
-                    target_attribute_type=edge['rel']['condition']['target_attribute_type'],
-                ) if edge['rel']['condition'] else None,
-            ) for edge in filter(lambda edge: edge['source_ptr'] == source_id, edges)
+                    isElse=(self._edge_data(edge).get('condition') or {}).get('isElse'),
+                    operator=(self._edge_data(edge).get('condition') or {}).get('operator'),
+                    threshold=(self._edge_data(edge).get('condition') or {}).get('threshold'),
+                    aggregator=(self._edge_data(edge).get('condition') or {}).get('aggregator'),
+                    target_attribute=(self._edge_data(edge).get('condition') or {}).get('target_attribute'),
+                    target_class_name=(self._edge_data(edge).get('condition') or {}).get('target_class_name'),
+                    target_attribute_type=(self._edge_data(edge).get('condition') or {}).get('target_attribute_type'),
+                ) if self._edge_data(edge).get('condition') else None,
+            ) for edge in filter(lambda edge: self._edge_source(edge) == source_id and self._edge_target(edge), edges)
         ]
 
     def create_nodes(self, diagram: dict[str, Any], node_id: str) -> dict[str, Node] | None:
@@ -144,17 +178,18 @@ class ActivityDiagramParser:
         current_node = self.find_node(diagram['nodes'], node_id)
         outgoing_edges = self.find_edges(diagram['edges'], node_id)
         incoming_edges_count = self._get_incoming_edges_count(diagram['edges'], node_id)
+        current_cls = self._cls(current_node)
 
         node = Node(
             id=current_node['id'],
-            name=current_node['cls'].get('name'),
-            type=current_node['cls']['type'],
-            actor_node=self.actors.get(current_node['cls'].get('actorNode')),
+            name=current_cls.get('name'),
+            type=current_cls.get('type'),
+            actor_node=self._actor_name(current_cls),
             next_nodes=[edge.target_node for edge in outgoing_edges],
             conditions=[edge.condition for edge in outgoing_edges],
             incoming_edges_count=incoming_edges_count,
             url=self.interface_map.get(current_node['id']),
-            custom_code=current_node['cls'].get('customCode'),
+            custom_code=current_cls.get('customCode'),
         )
         self.nodes[node_id] = node
 
@@ -167,30 +202,70 @@ class ActivityDiagramParser:
         """Parse an activity diagram starting from the initial node"""
         self.nodes = {}
 
-        start_node = list(filter(lambda node: node['cls']['type'] == 'initial', diagram['nodes']))
+        start_node = list(filter(lambda node: self._node_type(node) == 'initial', diagram.get('nodes', [])))
         if len(start_node) != 1:
             raise ValueError("Activity diagrams must have exactly one start node")
         start_node = start_node[0]
+        start_cls = self._cls(start_node)
         cron_job = CronJob(
             process_id=0, # Corrected later in get_workflow_engine_data
-            schedule=start_node['cls'].get('schedule', '')
-        ) if start_node['cls'].get('scheduled', False) and start_node['cls'].get('schedule', '') else None
+            schedule=start_cls.get('schedule', '')
+        ) if start_cls.get('scheduled', False) and start_cls.get('schedule', '') else None
         self.create_nodes(diagram, start_node['id'])
+
+        initial_node = self.nodes.get(start_node['id'])
+        if initial_node and not initial_node.next_nodes:
+            orphan_start_edges = [
+                edge for edge in diagram.get('edges', [])
+                if not self._edge_source(edge) and self._edge_target(edge)
+            ]
+            if orphan_start_edges:
+                targets = [self._edge_target(edge) for edge in orphan_start_edges if self._edge_target(edge)]
+                self.nodes[start_node['id']] = initial_node._replace(
+                    next_nodes=targets,
+                    conditions=[None for _ in targets],
+                )
+                for target in targets:
+                    self.create_nodes(diagram, target)
         return cron_job, dict(self.nodes)
 
     def parse_metadata(self) -> list[Diagram]:
         """Parse all activity diagrams in the metadata"""
         diagrams = []
-        for diagram in filter(lambda diagram: diagram['type'] == 'activity', self.metadata['diagrams']):
-            cron_job, nodes = self.parse_activity_diagram(diagram)
+        for diagram in filter(lambda diagram: diagram.get('type') == 'activity', self.metadata.get('diagrams', [])):
+            try:
+                cron_job, nodes = self.parse_activity_diagram(diagram)
+            except Exception as exc:
+                logging.warning(
+                    "Skipping activity diagram %s during workflow generation: %s",
+                    diagram.get("name") or diagram.get("id") or "<unnamed>",
+                    exc,
+                )
+                continue
             if nodes is None:
                 continue
             diagrams.append(Diagram(
-                name=diagram['name'],
+                name=diagram.get('name') or 'Activity Diagram',
                 nodes=nodes,
                 cron_job=cron_job
             ))
         return diagrams
+
+    def _first_reachable_action_id(self, nodes: dict[str, Node], start_ids: list[str] | None) -> str | None:
+        queue = list(start_ids or [])
+        seen = set()
+        while queue:
+            node_id = queue.pop(0)
+            if node_id in seen:
+                continue
+            seen.add(node_id)
+            node = nodes.get(node_id)
+            if not node:
+                continue
+            if node.type == "action":
+                return node_id
+            queue.extend(node.next_nodes or [])
+        return None
 
     def create_relevant_nodes(self, nodes: dict[str, Node]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
         for id, node in nodes.items():
@@ -221,11 +296,15 @@ class ActivityDiagramParser:
         start_node = next((node for node in nodes.values() if node.type == 'initial'), None)
         if not start_node:
             raise ValueError("Activity diagrams must have exactly one start node")
-        if not start_node.next_nodes or len(start_node.next_nodes or []) != 1:
-            raise ValueError("An initial node must have exactly one outgoing edge")
-        
-        # Get the ID of the start node
-        start_node_id = self.action_nodes[start_node.next_nodes[0]]['id']
+        if not start_node.next_nodes:
+            raise ValueError("An initial node must have at least one outgoing edge")
+
+        first_action_id = self._first_reachable_action_id(nodes, start_node.next_nodes)
+        if not first_action_id or first_action_id not in self.action_nodes:
+            raise ValueError("An initial node must lead to at least one action node")
+
+        # Get the ID of the first executable action node
+        start_node_id = self.action_nodes[first_action_id]['id']
 
         # Return the action nodes, join nodes and the start node ID
         return list(self.action_nodes.values()), list(self.join_nodes.values()), start_node_id

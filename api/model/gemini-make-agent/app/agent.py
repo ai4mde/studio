@@ -1,24 +1,50 @@
+import os
+
 from google.adk.agents import Agent
 from google.adk.apps import App
+from google.adk.models.lite_llm import LiteLlm
 from google.adk.tools import AgentTool
 from app.tools import (
     interface_config_tool, update_interface_patch_tool, system_context_tool,
     run_seed_script_tool, get_available_paths_tool,
-    get_interface_full_context_tool, validate_save_candidate_tool, render_candidate_preview_tool,
+    get_interface_full_context_tool, get_candidate_regeneration_context_tool,
+    generate_candidate_set_tool, regenerate_candidate_set_tool,
+    validate_save_candidate_tool, render_candidate_preview_tool,
     get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
     select_design_specs_for_interface_tool,
 )
 
+AGENT_MODEL = os.environ.get("ADK_AGENT_MODEL", "openai/gpt-4o")
+print(f"ADK agent model: {AGENT_MODEL}", flush=True)
+
+
+def _model():
+    if AGENT_MODEL.startswith("gemini/"):
+        return AGENT_MODEL.removeprefix("gemini/")
+    return LiteLlm(model=AGENT_MODEL) if "/" in AGENT_MODEL else AGENT_MODEL
+
 _EDITABLE_FIELDS = """
 Layout fields (sections/pages):
   sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action" | "activity_start" | "activity_tasks"
+  sections[].component     : UI Kit component name, e.g. ProductCardGrid, DataTable, DetailPanel, ObjectForm, SearchBar, IconActions, NavBar, FooterLinkGrid
+  sections[].role          : semantic role, e.g. object_collection, object_detail, object_summary, child_collection, object_form, search_control, navigation, chrome_action, workflow_entry
   sections[].col_span      : 12 | 6 | 4 | 3
   sections[].position      : "main" | "sidebar" | "header" | "footer"
+  sections[].style.sidebar_side : "left" | "right" when position="sidebar"; use left for navigation/filter rails and right for summaries/actions.
 
 Data & Query fields:
   sections[].attributes    : list of attribute names OR objects. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
+    Attribute objects may mark read-only values: {name: "Seller.name", readonly: true, source: "related"}.
+    Attributes are DISPLAY fields only. Do not use them as the query/SQL select list.
+  sections[].field_layout  : for data/form components, maps fields into component slots such as image/title/primary/columns/groups. Slot fields must exist in attributes or be valid related dot notation.
+    Media slots: use image for image fields, video for video URL/file fields, or media for whichever field should occupy the main media area.
+    Per-field layout overrides live in field_layout.field_styles:
+      {"field_name": {"order": 0, "col_span": 12, "height": "sm"|"md"|"lg"|"xl", "text_size": "xs"|"sm"|"md"|"lg"|"xl", "align": "left"|"center"|"right", "label": "show"|"hidden"}}
+  sections[].behavior      : for control/chrome components, e.g. SearchBar/NavBar/IconActions workflow/search config with target_page, target_model, fields, param.
+    For collection components (card/list/table/gallery), use behavior.item_click for whole-item interactions:
+      {item_click: {type: "navigate", target_page: "Product_Detail", params: {"product_id": "$Product.product_id"}}}
     Attribute object shape:
-      {name: string, render: {as: "text" | "link" | "button" | "badge"}, action: {type: string}}
+      {name: string, type?: "str" | "int" | "bool" | "enum" | "image" | "video", render: {as: "text" | "link" | "button" | "badge"}, action: {type: string}}
       Backward-compatible shortcut: {name: string, is_link: bool}
     Render modes:
       text   = normal field value
@@ -33,10 +59,17 @@ Data & Query fields:
       filter    = filter list content by this field/value
       expand    = expand long text
       tooltip   = show explanatory hover text; include tooltip
+  sections[].data_source.mode       : "query"
+  sections[].data_source.from.model : primary source model name
+  sections[].data_source.joins      : optional list of {type: "left"|"inner"|"right", model: "ModelName", on: "ModelA.field_id = ModelB.id"}
+    data_source defines where rows come from. It is separate from display attributes.
+    Do not emit data_source for ordinary sections unless joins or a non-default source are needed.
+  sections[].query.select  : optional list of query/SQL select columns, separate from attributes. Use exact primary fields or valid related dot notation (e.g. ["id", "name", "Seller.name"]).
   sections[].query.limit   : number
   sections[].query.offset  : number
-  sections[].query.order_by: list of field names (e.g. ["-created_at", "name"])
-  sections[].query.filters : dict of field lookups (e.g. {"is_active": true, "price__gt": 100})
+  sections[].query.order_by: list of {field: string, direction: "asc"|"desc"}
+  sections[].query.filters : list of {field: string, operator: "eq"|"neq"|"lt"|"lte"|"gt"|"gte"|"contains"|"in"|"isnull", value: string}
+    Do not emit query for ordinary sections unless the user asked for filtering/sorting/limits, or the page semantics require it. query is for data retrieval constraints, not display fields.
 
 Card style (layout="card"):
   sections[].style.display_mode : "grid" | "carousel" | "banner"
@@ -119,7 +152,7 @@ Style/token fields (global theme):
 
 reason_agent = Agent(
     name="reason_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Analyses UML metadata and designer prompt to produce a structured reasoning JSON for interface generation.",
     instruction="""You analyse a system's UML metadata and a designer prompt to produce a structured reasoning JSON that will guide generation of 3 interface candidates.
 
@@ -131,6 +164,7 @@ Workflow:
    - Visual Tone: How do the selected_specs align with the user prompt?
    - Completeness: Plan for a full app experience (Site Nav, Headers, Footers, Search, etc.).
    - Pages/sections: Start from system.usecase_navigation.ooui_plan. Its pages[] and sections[] are the canonical OOUI blueprint. Do not invent one page per use case.
+   - Component model: layout controls page arrangement; component controls the UI Kit component; field_layout controls field slots inside data components; behavior controls search/nav/workflow/action components.
    - Pages: Pages are OOUI object workspaces; use cases become capabilities on those pages.
    - Navigation and buttons: Use system.usecase_navigation.nav_bar_pages for site navigation and icon_actions for compact header/cart/account/order buttons.
    - Permissions: Use system.usecase_navigation.actor_permissions to decide section operations. Do not expose create/update/delete controls that the use case permissions do not allow.
@@ -179,15 +213,16 @@ Rules:
 
 generate_agent = Agent(
     name="generate_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Generates 3 complete Interface DSL candidates from the reasoning JSON.",
     instruction=f"""You generate 3 complete Interface DSL candidates from the reasoning JSON.
 
 COMPLETENESS & FIDELITY MANDATE: Every candidate MUST be a "ready-to-use" high-fidelity app.
 1. REQUIRED CHROME (Every page):
-   - 'main-header' or 'minimal-header' (position="header")
-   - 'site-nav' or 'nav-links' (position="header", list all nav_bar_pages in 'methods')
-   - 'site-footer' or 'brand-strip' (position="footer")
+   - Header/nav/footer/sidebar are designable regions, not fixed boilerplate.
+   - Use varied chrome across candidates unless the user explicitly asks for one fixed pattern.
+   - 'site-nav' or 'nav-links' may be position="header" OR position="sidebar" with style.sidebar_side="left".
+   - 'site-footer', 'brand-strip', service bars, and link grids may vary in density and composition.
 
 2. HIGH-FIDELITY STYLING:
    - Typography: Use `style.text_class` (e.g., "si-text-hero", "si-text-display", "si-text-lead") for prominent headers to trigger the deep typography tokens (letter-spacing, line-height) from the style guide.
@@ -221,7 +256,7 @@ After all 3 are saved, output: "All 3 candidates saved. Transferring to render_a
 
 render_agent = Agent(
     name="render_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Renders preview HTML for all 3 saved candidates.",
     instruction="""You render preview HTML for all 3 saved interface candidates.
 For candidate_index 0, 1, 2:
@@ -234,11 +269,19 @@ After all renders are attempted, output: "Previews rendered. Pipeline complete."
 
 candidate_pipeline_agent = Agent(
     name="candidate_pipeline_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Runs the 3-candidate interface generation pipeline: reason → generate 3 candidates → render previews.",
     instruction=f"""You generate 3 interface design candidates by executing three phases in order.
 
 Message format: interface_id=<uuid> prompt=<designer intent>
+
+IMPORTANT STYLE-PROMPT RULE:
+- Color/style-only prompts such as "generate pink pages", "purple style page", "dark minimalist", or "make it blue"
+  are valid designer requirements, not refusal cases.
+- Interpret them as: preserve the current interface metadata, pages, workflow, data bindings, and interactions,
+  then generate 3 functional candidates using that visual theme.
+- Never refuse because a prompt only names a color or visual style. The app must remain functional and data-driven.
+- If a prompt names a color, that color must be visibly reflected in tokens, nav/header accents, buttons, and key UI states.
 
 ━━━ PHASE 1 — REASON ━━━
 1. Call get_interface_full_context(interface_id) to load classifiers, attributes, usecase_navigation, activity diagrams.
@@ -249,8 +292,7 @@ Message format: interface_id=<uuid> prompt=<designer intent>
    Also extract system.usecase_navigation.ooui_plan: pages[] are object workspaces, sections[] are the intended section blueprint, operations[] are inline object actions, workflows[] are activity workflow entries.
    Use system.usecase_navigation.nav_bar_pages for navigation, workflow_entry_points for activity_start buttons, and actor_permissions for data operations.
 2. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user prompt>).
-3. Call reason_agent with message: "interface_id=<uuid> prompt=<prompt> selected_specs=<spec names list>"
-   reason_agent returns a JSON with pages[], navigation_edges[], diversity_hints[].
+3. Use the compact context plus selected specs directly. Do not call a separate reasoning agent.
    Save that JSON — you will use it in Phase 2.
 
 ━━━ PHASE 2 — GENERATE (YOU must call validate_and_save_candidate yourself, 3 times) ━━━
@@ -263,7 +305,7 @@ validate_and_save_candidate requires TWO separate top-level arrays:
   pages    — each item: {{id, name, sections: [{{value: "section_id"}}, ...]}}
              pages do NOT contain section data — only a list of section ID references
   sections — flat list of ALL section objects for ALL pages combined
-             each item: {{id, name, layout, position, col_span, primary_model, attributes, operations, style}}
+             each item: {{id, name, role, layout, component, position, col_span, primary_model, attributes, field_layout, behavior, operations, style}}
 
 OOUI BLUEPRINT:
   - Prefer section IDs/roles from system.usecase_navigation.ooui_plan.sections when building sections[].
@@ -276,9 +318,11 @@ ALLOWED LAYOUTS: {", ".join(sorted(["card","list","table","detail","gallery","fi
                "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
 
 CHROME SECTIONS (add to EVERY page's reference list, include once in sections[]):
-  - site_nav: layout="site-nav", position="header", col_span=12, primary_model="", attributes=[]
-  - icon_actions: layout="icon-actions", position="header", col_span=12, primary_model="", attributes=[]
-  - site_footer: layout="site-footer", position="footer", col_span=12, primary_model="", attributes=[]
+  - Navigation can be horizontal header nav OR a left sidebar rail.
+    For sidebar navigation use role="navigation", layout="site-nav" or "nav-links", component="NavBar", position="sidebar", col_span=12, style.sidebar_side="left".
+  - Header can be main-header, minimal-header, or separate logo/search-bar/icon-actions sections.
+  - Footer can be site-footer, service-bar + link-grid, or brand-strip.
+  - Generate different chrome structure across the 3 candidates when the prompt does not force one pattern.
 
 WORKFLOW ENTRY SECTIONS:
   - For each system.usecase_navigation.workflow_entry_points item, add or keep an activity_start section on that normal OOUI object page.
@@ -303,6 +347,17 @@ DATA SECTIONS (for layout in card/list/table/detail/gallery/form/filter):
   - style: {{"color": "accent|accent-secondary", "density": "compact|normal|spacious",
              "shadow": "none|sm|md", "bg": "white|light|dark|transparent"}}
     ALWAYS use "accent" for data section colors — this uses the design spec's brand color via CSS variables.
+  - component: choose the UI Kit component. Examples:
+    gallery Product -> ProductCardGrid; gallery Category -> CategoryTileGrid; gallery person/user/customer/seller -> PersonCardGrid;
+    table -> DataTable; list child item/line -> LineItemList; detail Product -> ProductDetailPanel; form -> ObjectForm/AddressForm/PaymentMethodForm/ReviewForm; filter -> FilterPanel.
+  - field_layout: for display/form components, map fields into slots. Example ProductCardGrid: {{"image":"image_url","video":"video_url","title":"name","primary":"price","secondary":["brand"]}}.
+    For video fields, include the video field in attributes as {{"name":"video_url","type":"video"}} and put it in field_layout.video or field_layout.media.
+    To control individual field position/size, use field_layout.field_styles, e.g.
+      {{"field_styles": {{"price": {{"order": 2, "col_span": 4, "text_size": "xl", "align": "right"}}, "description": {{"order": 3, "col_span": 12, "label": "hidden"}}}}}}
+    For DataTable use {{"columns":[{{"field":"name","label":"Name"}}]}}. For ObjectForm use {{"groups":[{{"title":"Details","fields":["name"]}}]}}.
+  - data_source/query: leave them empty by default. Only add query for explicit filtering/sorting/limits or page semantics such as "active only", "my orders", "same category", "recent", "top 5". Only add data_source when joins or a non-default source are actually needed.
+  - behavior: for controls like SearchBar/NavBar/IconActions, use {{"type":"search|navigate|action","target_page":"Page_Name","target_model":"ModelName","fields":["name"],"param":"q"}}.
+    For card/list/table/gallery item navigation, use {{"item_click": {{"type":"navigate","target_page":"Detail_Page","params":{{"id":"$Model.id"}}}}}}.
 
 PAGE-DRIVEN LAYOUT SELECTION — MANDATORY:
 Choose each section's layout based on what the PAGE IS, not which candidate index:
@@ -319,7 +374,6 @@ Choose each section's layout based on what the PAGE IS, not which candidate inde
       PLUS a main data section with col_span=12, position="main"
 
 STRUCTURAL DIVERSITY — across the 3 candidates:
-Each candidate follows a different visual direction from reason_agent's diversity_hints[].
   Candidate 0 → diversity_hints[0]
   Candidate 1 → diversity_hints[1]
   Candidate 2 → diversity_hints[2]
@@ -327,6 +381,8 @@ Each candidate follows a different visual direction from reason_agent's diversit
 Make candidates structurally different using these axes:
   - Column organization: one candidate uses col_span=12 dominant, another uses col_span=6 splits
     (col_span=4+4+4 for dashboards), another uses filter sidebar (col_span=3)
+  - Chrome/regions: vary header/nav/footer/sidebar composition. At least one candidate should use a left sidebar navigation rail when the app has multiple normal pages.
+    Other candidates should use different header/footer treatments, not the exact same site-nav/header/footer layout.
   - Density and spacing: each candidate uses a different style.density ("compact"/"normal"/"spacious")
   - For the SAME page purpose, pick DIFFERENT layouts across candidates:
     e.g. browse page → candidate 0 uses "table", candidate 1 uses "card", candidate 2 uses "gallery"
@@ -343,8 +399,10 @@ PROCEDURE for each candidate index 0, 1, 2:
        candidate_index=<0|1|2>,
        name=<short name>,
        description=<one sentence>,
-       pages=<pages list>,
-       sections=<sections list>,
+       pages=<JSON string containing pages list>,
+       sections=<JSON string containing sections list>,
+       tokens=<optional JSON string, not object>,
+       styling=<optional JSON string, not object>,
        prompt=<original user prompt from the message>
      )
   e. If the call returns an error, fix it and retry.
@@ -358,18 +416,50 @@ call render_candidate_preview(interface_id, candidate_index) for each index 0, 1
         get_interface_full_context_tool,
         validate_save_candidate_tool,
         render_candidate_preview_tool,
-        get_available_paths_tool,
-        list_design_specs_tool,
-        get_design_system_tool,
         select_design_specs_for_interface_tool,
-        AgentTool(agent=reason_agent),
+    ],
+)
+
+candidate_direct_agent = Agent(
+    name="candidate_direct_agent",
+    model=_model(),
+    description="Reliably generates and saves 3 interface candidates through one deterministic tool call.",
+    instruction="""You generate interface candidates by calling exactly one tool.
+
+Message format: interface_id=<uuid> prompt=<designer intent>
+
+Rules:
+- Immediately call generate_candidate_set(interface_id, prompt).
+- Color/style-only prompts such as "generate pink pages" are valid designer requirements.
+- Do not refuse style-only prompts.
+- After the tool returns OK, output the tool result. If it returns ERROR, output the error.
+""",
+    tools=[generate_candidate_set_tool],
+)
+
+candidate_regeneration_agent = Agent(
+    name="candidate_regeneration_agent",
+    model=_model(),
+    description="Reliably regenerates 3 candidates from a selected candidate through one deterministic tool call.",
+    instruction="""You regenerate interface candidates by calling exactly one tool.
+
+Message format:
+  interface_id=<uuid> regenerate_candidates selected_candidate_index=<0|1|2> designer_requirements=<human requirements>
+
+Rules:
+- Immediately call regenerate_candidate_set(interface_id, selected_candidate_index, designer_requirements).
+- Do not create candidates yourself. The tool preserves page semantics, workflow/page types, data bindings, and activity flow order.
+- After the tool returns OK, output the tool result. If it returns ERROR, output the error.
+""",
+    tools=[
+        regenerate_candidate_set_tool,
     ],
 )
 
 
 seed_agent = Agent(
     name="seed_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Generates and runs realistic seed data for a running Django prototype based on its UML classifiers.",
     instruction="""You generate and run seed data for a running Django prototype.
 
@@ -406,12 +496,13 @@ Rules:
 
 root_agent = Agent(
     name="gemini_make_agent",
-    model="openai/gpt-4o",
+    model=_model(),
     description="Routes requests to the appropriate specialist agent.",
     instruction=f"""You are a routing agent for a UI design editor.
 
 --- Routing Logic ---
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
+If the message contains 'regenerate_candidates' (selected-candidate regeneration): call candidate_regeneration_agent with the message and wait.
 If the message contains 'generate_candidates' (3-candidate generation): call candidate_pipeline_agent with the message and wait.
 Otherwise (interface_id= UI edit request): handle it directly using the workflow below.
 
@@ -435,8 +526,13 @@ Based on your analysis, produce a concrete change plan:
   - ADD section: id, layout, col_span, position, primary_model, attributes (from classifier_fields ONLY)
   - MODIFY section: id, which fields change and to what value
   - REMOVE section: id
-  - Page changes: new pages, layout changes
+  - Page changes: new pages, layout changes, or sections reference order changes
   - Design system: keep current tokens OR select new spec (if style change requested)
+
+HUMAN-IN-THE-LOOP LAYOUT RULE:
+  Treat current_interface.pages and current_interface.sections as the source of truth. Preserve human/editor changes
+  unless the user explicitly asks to change them. Apply surgical patches only: section layout/position/col_span/min_height,
+  style, text/methods, and page.sections ordering. Do not regenerate or overwrite the whole interface for a small edit.
 
 ATTRIBUTE RULE: Every attribute name in ADD/MODIFY entries MUST appear in classifier_fields["ModelName"].
                NEVER invent attribute names. Copy them character-for-character from the <analyze> block.
@@ -446,14 +542,19 @@ ATTRIBUTE RULE: Every attribute name in ADD/MODIFY entries MUST appear in classi
 2. Check design tokens (data.tokens):
    - If tokens are EMPTY/NULL (first-time edit) OR user requested a theme/style change:
      a. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user_request>).
-     b. Select the best spec. Call apply_design_system_to_interface_tool(interface_id, spec_name="...").
+     b. Select the best spec. Call apply_design_system_to_interface_tool(interface_id, spec_name="...", prompt=<user_request>).
+        If the user names a color such as purple, violet, blue, green, orange, rose, pink, red, dark, black, or slate,
+        that color request is mandatory and must be reflected in tokens/accent/nav/button colors.
      c. If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
 3. Call apply_interface_patch exactly once with the complete patch derived from <plan>.
    - Attribute names: use ONLY names from classifier_fields verified in STEP 1.
    - style.color must be "accent" for all data sections (inherits brand color from spec).
    - ENSURE UI COMPLETENESS: if Header/Nav/Footer are missing, add them.
+   - To layout in the editor, patch sections[].position, sections[].layout, sections[].col_span, sections[].min_height,
+     and pages[].sections order. Header/footer/sidebar are normal editable regions.
+   - New sections/pages are allowed; include complete section/page objects and attach new sections through pages[].sections.
    - Always include "id" in every section/page entry.
-   - NEVER modify: sections[].class, sections[].operations, sections[].name.
+   - NEVER modify existing sections[].class, sections[].operations, sections[].name.
 
 Editable fields:
 {_EDITABLE_FIELDS}
@@ -463,10 +564,12 @@ Editable fields:
         get_interface_full_context_tool,
         get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
         select_design_specs_for_interface_tool,
-        AgentTool(agent=candidate_pipeline_agent),
+        AgentTool(agent=candidate_regeneration_agent),
+        AgentTool(agent=candidate_direct_agent),
     ],
     sub_agents=[seed_agent],
 )
 
 app = App(name="app", root_agent=root_agent)
-candidate_app = App(name="candidate_app", root_agent=candidate_pipeline_agent)
+candidate_app = App(name="candidate_app", root_agent=candidate_direct_agent)
+candidate_regeneration_app = App(name="candidate_regeneration_app", root_agent=candidate_regeneration_agent)

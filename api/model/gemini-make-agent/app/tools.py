@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import re
+import copy
 from google.adk.tools import FunctionTool
 from .ooui_planner import DATA_SECTION_ROLES, build_ooui_plan_from_navigation
 
@@ -400,6 +401,106 @@ def _expand_design_tokens(tokens: dict) -> dict:
     tokens.setdefault("--button-primary-text", "#ffffff")
     return tokens
 
+_PROMPT_COLOR_THEMES = {
+    "purple": {"accent": "#7c3aed", "secondary": "#c084fc", "page": "#faf5ff", "surface": "#ffffff", "border": "#ddd6fe"},
+    "violet": {"accent": "#7c3aed", "secondary": "#c084fc", "page": "#faf5ff", "surface": "#ffffff", "border": "#ddd6fe"},
+    "blue": {"accent": "#2563eb", "secondary": "#60a5fa", "page": "#eff6ff", "surface": "#ffffff", "border": "#bfdbfe"},
+    "green": {"accent": "#16a34a", "secondary": "#86efac", "page": "#f0fdf4", "surface": "#ffffff", "border": "#bbf7d0"},
+    "orange": {"accent": "#f97316", "secondary": "#fdba74", "page": "#fff7ed", "surface": "#ffffff", "border": "#fed7aa"},
+    "rose": {"accent": "#e11d48", "secondary": "#fb7185", "page": "#fff1f2", "surface": "#ffffff", "border": "#fecdd3"},
+    "pink": {"accent": "#db2777", "secondary": "#f9a8d4", "page": "#fdf2f8", "surface": "#ffffff", "border": "#fbcfe8"},
+    "red": {"accent": "#dc2626", "secondary": "#f87171", "page": "#fef2f2", "surface": "#ffffff", "border": "#fecaca"},
+    "dark": {"accent": "#8b5cf6", "secondary": "#22d3ee", "page": "#0f172a", "surface": "#111827", "border": "#334155", "text": "#f8fafc", "muted": "#cbd5e1"},
+    "black": {"accent": "#111827", "secondary": "#6b7280", "page": "#f9fafb", "surface": "#ffffff", "border": "#d1d5db"},
+    "slate": {"accent": "#475569", "secondary": "#94a3b8", "page": "#f8fafc", "surface": "#ffffff", "border": "#cbd5e1"},
+}
+
+def _prompt_color_theme(prompt: str = "") -> tuple[str | None, dict]:
+    text = str(prompt or "").lower()
+    if not text:
+        return None, {}
+    for name, theme in _PROMPT_COLOR_THEMES.items():
+        if re.search(rf"\b{re.escape(name)}\b", text):
+            return name, theme
+    hex_match = re.search(r"#[0-9a-fA-F]{6}\b", text)
+    if hex_match:
+        return "custom", {"accent": hex_match.group(0), "secondary": hex_match.group(0), "page": "#f9fafb", "surface": "#ffffff", "border": "#e5e7eb"}
+    return None, {}
+
+def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
+    color_name, theme = _prompt_color_theme(prompt)
+    if not theme:
+        return tokens
+    tokens = dict(tokens or {})
+    variant_index = str(tokens.get("design.variant_index", ""))
+    accent = theme["accent"]
+    secondary = theme.get("secondary", accent)
+    page = theme.get("page", tokens.get("page.body.bg_hex", "#f9fafb"))
+    surface = theme.get("surface", tokens.get("region.main.bg_hex", "#ffffff"))
+    border = theme.get("border", tokens.get("region.border_hex", "#e5e7eb"))
+    text = theme.get("text", tokens.get("page.body.text_hex", "#111827"))
+    muted = theme.get("muted", tokens.get("color.text.muted_hex", "#6b7280"))
+
+    tokens.update({
+        "accent.hex": accent,
+        "color.secondary.hex": secondary,
+        "page.body.bg_hex": page,
+        "page.bg.hex": page,
+        "region.main.bg_hex": surface,
+        "region.sidebar.bg_hex": surface,
+        "region.footer.bg_hex": accent,
+        "region.border_hex": border,
+        "region.border_strong_hex": border,
+        "page.body.text_hex": text,
+        "color.text.muted_hex": muted,
+        "region.header.bg_hex": accent,
+        "region.header.bg": f"bg-[{accent}]",
+        "nav.bg_hex": accent,
+        "nav.text_hex": "#ffffff",
+        "button.primary.bg_hex": accent,
+        "button.primary.border_hex": accent,
+        "button.ghost.text_hex": accent,
+        "button.link.text_hex": accent,
+        "input.border_focus_hex": accent,
+        "badge.info.bg_hex": accent,
+        "design.prompt_color": color_name or "",
+    })
+    if variant_index in {"1", "2"}:
+        if color_name in {"pink", "rose"}:
+            accent = {"1": "#be185d", "2": "#ec4899"}[variant_index]
+            secondary = {"1": "#f472b6", "2": "#fbcfe8"}[variant_index]
+        elif color_name in {"purple", "violet"}:
+            accent = {"1": "#6d28d9", "2": "#a855f7"}[variant_index]
+            secondary = {"1": "#a78bfa", "2": "#ddd6fe"}[variant_index]
+        else:
+            accent = {"1": theme.get("accent", "#2563eb"), "2": theme.get("secondary", theme.get("accent", "#2563eb"))}[variant_index]
+            secondary = theme.get("secondary", accent)
+        tokens.update({
+            "accent.hex": accent,
+            "color.secondary.hex": secondary,
+            "region.header.bg_hex": accent,
+            "region.footer.bg_hex": accent,
+            "nav.bg_hex": accent,
+            "button.primary.bg_hex": accent,
+            "button.primary.border_hex": accent,
+            "button.ghost.text_hex": accent,
+            "input.border_focus_hex": accent,
+            "design.variant_index": variant_index,
+        })
+    _expand_design_tokens(tokens)
+    return tokens
+
+def _prompt_styling_overrides(prompt: str = "") -> dict:
+    color_name, theme = _prompt_color_theme(prompt)
+    if not theme:
+        return {}
+    return {
+        "accentColor": theme["accent"],
+        "backgroundColor": theme.get("page", "#f9fafb"),
+        "textColor": theme.get("text", "#111827"),
+        "selectedStyle": color_name or "custom",
+    }
+
 def list_design_specs_tool_func() -> str:
     """Lists all available design specification templates (e.g. ecommerce.md, minimal.md)."""
     return json.dumps(_design_spec_files())
@@ -417,15 +518,16 @@ def get_design_system_tool_func(spec_name: str = "minimal.md") -> str:
     except Exception as exc:
         return f"Error: {exc}"
 
-def apply_design_system_to_interface_tool_func(interface_id: str, spec_name: str = "minimal.md") -> str:
+def apply_design_system_to_interface_tool_func(interface_id: str, spec_name: str = "minimal.md", prompt: str = "") -> str:
     """
     Updates the specified Interface with design tokens from a template in the library.
     Ideal for quickly switching between themes (e.g. switching to ecommerce.md).
+    Pass the original user prompt so explicit color requests like "purple style" override the spec palette.
     """
     try:
         safe_name = os.path.basename(spec_name)
         content = _read_design_spec(safe_name)
-        tokens = _parse_design_md_to_tokens(content)
+        tokens = _apply_prompt_style_overrides(_parse_design_md_to_tokens(content), prompt)
         tokens["design.spec_name"] = safe_name
     except Exception as exc:
         return f"Error: {exc}"
@@ -516,7 +618,10 @@ def _candidate_design_spec(interface_id: str, candidate_index: int = 0, prompt: 
         return None, {}
     spec_name = selected[int(candidate_index) % len(selected)]
     iface = context.get("interface") or {}
-    return spec_name, _tokens_for_design_spec(spec_name, iface.get("name") or "App")
+    return spec_name, _apply_prompt_style_overrides(
+        _tokens_for_design_spec(spec_name, iface.get("name") or "App"),
+        prompt,
+    )
 
 def select_design_specs_for_interface_func(interface_id: str, count: int = 3, prompt: str = "") -> str:
     """Deterministically maps interface/system metadata and designer prompt to design specs and resolved tokens."""
@@ -529,7 +634,13 @@ def select_design_specs_for_interface_func(interface_id: str, count: int = 3, pr
         scores = _domain_scores(terms)
         result = []
         for spec in specs:
-            result.append({"spec_name": spec, "tokens": _tokens_for_design_spec(spec, iface.get("name") or "App")})
+            result.append({
+                "spec_name": spec,
+                "tokens": _apply_prompt_style_overrides(
+                    _tokens_for_design_spec(spec, iface.get("name") or "App"),
+                    prompt,
+                ),
+            })
         return json.dumps({"domain_scores": scores, "selected": result}, indent=2)
     except Exception as exc:
         return f"Error selecting design specs: {exc}"
@@ -1104,7 +1215,7 @@ def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
             "update": layout in {"form", "list", "table", "detail"},
             "delete": layout in {"list", "table"},
         },
-        "query": {"limit": 12, "order_by": []},
+        "query": {},
         "col_span": 12,
         "position": "main",
         "style": style,
@@ -1249,6 +1360,123 @@ def _navigation_methods(names: list[str]) -> list[dict]:
         if name
     ]
 
+def _resolve_component_semantics(section: dict) -> dict:
+    """
+    Generically resolves the semantic role and intent of a section.
+    Prioritizes explicit metadata, then infers from component patterns.
+    """
+    # 1. Respect explicit metadata if provided by the Agent/Designer
+    explicit_role = section.get("role")
+    explicit_intent = section.get("intent")
+    
+    if explicit_role and explicit_intent:
+        return {"role": str(explicit_role), "intent": str(explicit_intent)}
+
+    # 2. Infer from component name patterns (Generic suffixes)
+    component = str(section.get("component") or _infer_section_component(section))
+    
+    # Mapping patterns to semantic roles/intents
+    patterns = [
+        (r".*Detail(Panel|View|Card)?$", {"role": "detail", "intent": "view_object"}),
+        (r".*Form(Step|Group)?$", {"role": "form", "intent": "manage_object"}),
+        (r".*(Grid|Gallery|TileGrid)$", {"role": "collection", "intent": "view_collection"}),
+        (r".*(Table|List|ObjectList)$", {"role": "collection", "intent": "view_collection"}),
+        (r".*LineItem.*", {"role": "child_collection", "intent": "view_related_collection"}),
+        (r".*(NavBar|NavLinks|SideBar)$", {"role": "navigation", "intent": "navigate"}),
+        (r".*(Button|Action)$", {"role": "action", "intent": "trigger"}),
+        (r".*SearchBar$", {"role": "search", "intent": "query"})
+    ]
+
+    for pattern, semantics in patterns:
+        if re.match(pattern, component, re.I):
+            return {
+                "role": explicit_role or semantics["role"],
+                "intent": explicit_intent or semantics["intent"]
+            }
+
+    # 3. Fallback to layout-based semantics
+    layout = str(section.get("layout") or "card")
+    layout_map = {
+        "form": {"role": "form", "intent": "manage_object"},
+        "detail": {"role": "detail", "intent": "view_object"},
+        "list": {"role": "collection", "intent": "view_collection"},
+        "table": {"role": "collection", "intent": "view_collection"},
+        "gallery": {"role": "collection", "intent": "view_collection"},
+        "card": {"role": "item", "intent": "view_object"}
+    }
+    
+    fallback = layout_map.get(layout, {"role": layout, "intent": "unknown"})
+    return {
+        "role": explicit_role or fallback["role"],
+        "intent": explicit_intent or fallback["intent"]
+    }
+
+def _infer_section_component(section: dict) -> str:
+    """
+    Generically infers a suitable high-fidelity component name based on 
+    layout and model characteristics, avoiding app-specific hardcoding.
+    """
+    component = section.get("component")
+    if component:
+        return str(component)
+    
+    layout = str(section.get("layout") or "")
+    role = str(section.get("role") or "")
+    model_name = str(section.get("primary_model") or section.get("class") or "").lower()
+    attrs = {str(a.get("name") if isinstance(a, dict) else a).lower() for a in section.get("attributes", [])}
+    
+    # Generic rules based on data traits
+    has_image = any(term in attrs for term in ("image", "img", "url", "avatar", "photo", "media"))
+    is_person = any(term in model_name for term in ("user", "customer", "employee", "doctor", "member", "actor"))
+    
+    if layout == "search-bar": return "SearchBar"
+    if layout in {"site-nav", "nav-links", "nav-bar"}: return "NavBar"
+    
+    if layout == "form":
+        if any(term in model_name for term in ("address", "location")): return "AddressForm"
+        if any(term in model_name for term in ("payment", "card", "billing")): return "PaymentForm"
+        return "ObjectForm"
+        
+    if layout == "gallery" or layout == "card":
+        if has_image: return "ImageCardGrid" if layout == "gallery" else "ImageCard"
+        if is_person: return "PersonCardGrid"
+        return "ObjectCardGrid"
+        
+    if layout == "detail":
+        return "ObjectDetailPanel" if not has_image else "MediaDetailPanel"
+        
+    if layout == "table": return "DataTable"
+    if layout == "list": return "ObjectList"
+    
+    return "SectionPanel"
+
+def _get_section_semantic_role(section: dict) -> str:
+    """Returns the semantic role of a section using the generic resolver."""
+    return _resolve_component_semantics(section)["role"]
+
+def _field_layout_field_refs(field_layout) -> set[str]:
+    refs = set()
+    if not isinstance(field_layout, dict):
+        return refs
+    slot_keys = {"image", "video", "media", "avatar", "hero", "title", "subtitle", "primary", "price", "description", "count"}
+    list_keys = {"secondary", "badges", "meta", "facts", "fields"}
+    for key, value in field_layout.items():
+        if key in slot_keys and isinstance(value, str) and value:
+            refs.add(value)
+        elif key in list_keys and isinstance(value, list):
+            refs.update(str(v) for v in value if isinstance(v, str) and v)
+        elif key == "columns" and isinstance(value, list):
+            for column in value:
+                if isinstance(column, dict) and column.get("field"):
+                    refs.add(str(column["field"]))
+        elif key == "groups" and isinstance(value, list):
+            for group in value:
+                if isinstance(group, dict) and isinstance(group.get("fields"), list):
+                    refs.update(str(v) for v in group["fields"] if isinstance(v, str) and v)
+        elif key == "field_styles" and isinstance(value, dict):
+            refs.update(str(field) for field in value.keys() if field)
+    return refs
+
 def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[str]:
     preferred = ["name", "title", "status", "price", "total", "quantity", "description", "created_at"]
     attrs = list(model_attrs.get(model) or [])
@@ -1308,7 +1536,7 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
         "class": model,
         "attributes": attrs,
         "operations": operations,
-        "query": {"limit": 12, "order_by": ["name"] if "name" in attrs else []},
+        "query": {},
         "col_span": 12,
         "position": "main",
         "style": style,
@@ -1356,6 +1584,28 @@ def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs
             refs = page.get("sections") or []
             if nav_id not in {_ref_id(ref) for ref in refs}:
                 page["sections"] = [{"value": nav_id}] + refs
+
+    header_chrome_ids = [
+        str(s.get("id")) for s in sections
+        if s.get("id") and s.get("position") == "header" and s.get("layout") in chrome_layouts
+    ]
+    sidebar_chrome_ids = [
+        str(s.get("id")) for s in sections
+        if s.get("id") and s.get("position") == "sidebar" and s.get("layout") in chrome_layouts
+    ]
+    footer_chrome_ids = [
+        str(s.get("id")) for s in sections
+        if s.get("id") and s.get("position") == "footer" and s.get("layout") in chrome_layouts
+    ]
+    if header_chrome_ids or sidebar_chrome_ids or footer_chrome_ids:
+        for page in normal_pages:
+            refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+            ref_ids = {_ref_id(ref) for ref in refs}
+            header_refs = [{"value": sid} for sid in header_chrome_ids if sid not in ref_ids]
+            sidebar_refs = [{"value": sid} for sid in sidebar_chrome_ids if sid not in ref_ids]
+            footer_refs = [{"value": sid} for sid in footer_chrome_ids if sid not in ref_ids]
+            if header_refs or sidebar_refs or footer_refs:
+                page["sections"] = header_refs + sidebar_refs + refs + footer_refs
 
     for page in normal_pages:
         model = _fallback_model_for_page(page, known_models)
@@ -1413,7 +1663,7 @@ def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
             "id": page_id,
             "name": page_entry.get("page_name") or _page_name(page_id),
             "primary_model": page_entry.get("primary_model", ""),
-            "type": {"value": "content", "label": "Content"},
+            "type": {"value": "normal", "label": "Normal"},
             "sections": [],
             "category": None,
             "source_usecases": page_entry.get("usecases") or [],
@@ -1477,7 +1727,7 @@ def _ensure_pre_workflow_content_sections(pages: list, sections: list, usecase_n
             section_map.get(sid) or {}
             for sid in ref_ids
             if (section_map.get(sid) or {}).get("position", "main") == "main"
-            and (section_map.get(sid) or {}).get("layout") in {"card", "list", "table", "detail", "gallery", "filter", "form"}
+            and (section_map.get(sid) or {}).get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
         ]
         preferred_models = [
             m for m in (entry.get("pre_workflow_collections") or [])
@@ -1524,7 +1774,7 @@ def _ensure_pre_workflow_content_sections(pages: list, sections: list, usecase_n
                 "update": layout in {"list", "table", "detail", "form"},
                 "delete": layout in {"list", "table", "card", "gallery"},
             },
-            "query": {"limit": 12, "order_by": []},
+            "query": {},
             "col_span": 12,
             "position": "main",
             "style": style,
@@ -1551,7 +1801,7 @@ def _apply_ooui_navigation_methods(pages: list, sections: list, usecase_navigati
     fixed = []
     for section in sections:
         section = dict(section)
-        if section.get("layout") in {"site-nav", "nav-links", "main-header"} or section.get("position") == "header" and section.get("layout") in {"site-nav", "nav-links"}:
+        if section.get("layout") in {"site-nav", "nav-links", "main-header"} or section.get("position") in {"header", "sidebar"} and section.get("layout") in {"site-nav", "nav-links"}:
             section["methods"] = _navigation_methods(nav_names)
         fixed.append(section)
     return fixed
@@ -1591,12 +1841,17 @@ def _materialize_ooui_plan_sections(pages: list, sections: list, ooui_plan: dict
         section = {
             "id": sid,
             "name": section_plan.get("name") or sid,
+            "role": section_plan.get("role"),
             "layout": section_plan.get("layout") or "detail",
+            "component": section_plan.get("component") or _infer_section_component(section_plan),
             "primary_model": model,
             "class": model,
             "attributes": attrs,
+            "field_layout": section_plan.get("field_layout") or {},
+            "behavior": section_plan.get("behavior") or {},
             "operations": operations,
-            "query": {"limit": 12, "order_by": []},
+            "data_source": section_plan.get("data_source") or {},
+            "query": section_plan.get("query") or {},
             "col_span": section_plan.get("col_span", 12),
             "position": "main",
             "style": section_plan.get("style") or {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white"},
@@ -1677,13 +1932,41 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
         resp.raise_for_status()
         current = resp.json()
         data = dict(current.get("data") or {})
+        def _norm_refs(refs: list) -> list:
+            out = []
+            for ref in refs or []:
+                sid = ref.get("value") if isinstance(ref, dict) else ref
+                if sid:
+                    out.append({"value": str(sid)})
+            return out
+
         if "sections" in patch:
             section_map = {str(s["id"]): s for s in data.get("sections", [])}
             for ps in patch["sections"]:
                 sid = str(ps.get("id", ""))
-                if sid not in section_map:
+                if not sid:
                     continue
-                for field in ("layout", "col_span", "position", "attributes", "query", "workflow", "label", "target_page", "workflow_action"):
+                is_new = sid not in section_map
+                if is_new:
+                    section_map[sid] = {
+                        "id": sid,
+                        "name": ps.get("name") or sid,
+                        "role": ps.get("role", ""),
+                        "layout": ps.get("layout", "card"),
+                        "component": ps.get("component") or _infer_section_component(ps),
+                        "position": ps.get("position", "main"),
+                        "col_span": ps.get("col_span", 12),
+                        "primary_model": ps.get("primary_model", ""),
+                        "class": ps.get("class") or ps.get("primary_model", ""),
+                        "attributes": ps.get("attributes", []),
+                        "field_layout": ps.get("field_layout", {}),
+                        "behavior": ps.get("behavior", {}),
+                        "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
+                        "data_source": ps.get("data_source", {}),
+                        "query": ps.get("query", {}),
+                        "style": ps.get("style", {}),
+                    }
+                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:
@@ -1693,11 +1976,21 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
             page_map = {str(p["id"]): p for p in data.get("pages", [])}
             for pp in patch["pages"]:
                 pid = str(pp.get("id", ""))
-                if pid not in page_map:
+                if not pid:
                     continue
-                for field in ("layout", "gap"):
+                if pid not in page_map:
+                    page_map[pid] = {
+                        "id": pid,
+                        "name": pp.get("name") or pid,
+                        "sections": _norm_refs(pp.get("sections") or []),
+                        "primary_model": pp.get("primary_model", ""),
+                        "category": pp.get("category", None),
+                    }
+                for field in ("layout", "gap", "name", "primary_model", "category", "type"):
                     if field in pp:
                         page_map[pid][field] = pp[field]
+                if "sections" in pp:
+                    page_map[pid]["sections"] = _norm_refs(pp["sections"])
             data["pages"] = list(page_map.values())
         if "styling" in patch:
             data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
@@ -1772,6 +2065,47 @@ def get_interface_full_context(interface_id: str) -> str:
             cname = cdata.get("name", "")
             if cname and cdata.get("type") not in ("actor",):
                 attr_ref[cname] = [a.get("name") for a in cdata.get("attributes", []) if a.get("name")]
+        if os.environ.get("ADK_FULL_CONTEXT", "").lower() not in {"1", "true", "yes"}:
+            current_data = iface.get("data") or {}
+            usecase_navigation = system_ctx.get("usecase_navigation") or {}
+            activity_steps = [
+                {
+                    "activity_node_id": step.get("activity_node_id"),
+                    "activity_node_name": step.get("activity_node_name"),
+                    "actor": step.get("actor"),
+                    "page_name": step.get("page_name"),
+                    "primary_models": step.get("primary_models", []),
+                    "next_activity_node_ids": step.get("next_activity_node_ids", []),
+                }
+                for step in system_ctx.get("workflow_plan", [])
+            ]
+            ooui_plan = usecase_navigation.get("ooui_plan") or {}
+            return json.dumps({
+                "ATTRIBUTE_REFERENCE": {
+                    "_note": "USE ONLY these exact field names as section attributes. DO NOT invent new names.",
+                    "models": attr_ref,
+                },
+                "interface": iface_clean,
+                "current_interface": {
+                    "pages": current_data.get("pages", []),
+                    "sections": current_data.get("sections", []),
+                    "styling": current_data.get("styling", {}),
+                },
+                "usecase_navigation": {
+                    "pages": usecase_navigation.get("pages", []),
+                    "nav_bar_pages": usecase_navigation.get("nav_bar_pages", []),
+                    "icon_actions": usecase_navigation.get("icon_actions", []),
+                    "workflow_entry_points": usecase_navigation.get("workflow_entry_points", []),
+                    "actor_permissions": usecase_navigation.get("actor_permissions", {}),
+                    "ooui_plan": {
+                        "pages": ooui_plan.get("pages", []),
+                        "sections": ooui_plan.get("sections", []),
+                        "operations": ooui_plan.get("operations", []),
+                        "workflows": ooui_plan.get("workflows", []),
+                    },
+                },
+                "workflow_plan": activity_steps,
+            }, separators=(",", ":"))
         return json.dumps({
             "ATTRIBUTE_REFERENCE": {
                 "_note": "USE ONLY these exact field names as section attributes. DO NOT invent new names.",
@@ -1787,11 +2121,14 @@ def validate_and_save_candidate(
     candidate_index: int,
     name: str,
     description: str,
-    pages: list,
-    sections: list,
-    tokens: dict = None,
-    styling: dict = None,
+    pages: str,
+    sections: str,
+    tokens: str = "",
+    styling: str = "",
     prompt: str = "",
+    derived_from: str = "",
+    designer_requirements: str = "",
+    variation_strategy: str = "",
 ) -> str:
     """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
 
@@ -1800,22 +2137,41 @@ def validate_and_save_candidate(
         candidate_index: 0, 1, or 2.
         name: Short display name for this design direction (e.g. "Card-forward Commerce").
         description: One sentence describing this candidate's visual approach.
-        pages: List of page objects. Each page: {id, name, type?, sections: [{value: section_id}, ...]}.
+        pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
+               type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
                Pages do NOT contain section data — they only reference section IDs.
-        sections: List of ALL section definition objects. Each section must have:
+        sections: JSON string containing a list of ALL section definition objects. Each section must have:
                   id, name, layout, position, col_span, primary_model, attributes, operations, style.
                   This is SEPARATE from pages. Both pages[] and sections[] are required.
-        tokens: Design token dict from select_design_specs_for_interface (optional but strongly recommended).
-        styling: Global styling overrides dict (optional).
+        tokens: Optional JSON string with design tokens from select_design_specs_for_interface.
+        styling: Optional JSON string with global styling overrides.
         prompt: Original user design prompt (optional, for logging).
+        derived_from: Optional source candidate index/id when regenerating from a selected candidate.
+        designer_requirements: Optional human-in-the-loop requirements used for regeneration.
+        variation_strategy: Optional short label for how this candidate differs from the source.
     """
     try:
+        if isinstance(pages, str):
+            pages = json.loads(pages)
+        if isinstance(sections, str):
+            sections = json.loads(sections)
+        prompt_for_style = designer_requirements or prompt
         if styling:
+            if isinstance(styling, str):
+                try:
+                    styling = json.loads(styling)
+                except Exception:
+                    styling = {}
             styling = dict(styling); alias_map = {"accent_color": "accentColor", "background_color": "backgroundColor", "text_color": "textColor", "selected_style": "selectedStyle"}
             for old_key, new_key in alias_map.items():
                 if old_key in styling and new_key not in styling: styling[new_key] = styling.pop(old_key)
             if isinstance(styling.get("radius"), str):
                 radius_map = {"none": 0, "sm": 4, "md": 8, "lg": 12, "xl": 16, "2xl": 24}; styling["radius"] = radius_map.get(styling["radius"], 8)
+        else:
+            styling = {}
+        prompt_styling = _prompt_styling_overrides(prompt_for_style)
+        if prompt_styling:
+            styling = {**styling, **prompt_styling}
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS); iface_resp.raise_for_status(); iface = iface_resp.json(); system_id = iface.get("system")
         design_spec_name = None
         if not tokens:
@@ -1830,6 +2186,7 @@ def validate_and_save_candidate(
             design_spec_name = design_spec_name or tokens.get("design.spec_name") or tokens.get("spec_name")
             if design_spec_name:
                 tokens["design.spec_name"] = design_spec_name
+            tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}
         for c in raw_classifiers:
             cdata = c.get("data", {}); cname = cdata.get("name", ""); attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
@@ -1859,6 +2216,7 @@ def validate_and_save_candidate(
         _VALID_STYLE = {"color": {"blue", "green", "purple", "orange", "rose", "slate", "accent", "accent-secondary"},"density": {"compact", "normal", "spacious"}, "shadow": {"none", "sm", "md", "lg", "xl"}, "border": {"none", "light", "colored", "strong"}, "bg": {"white", "light", "gray", "dark"}, "header_style": {"default", "large", "small", "colored", "hidden"}, "display_mode": {"grid", "carousel", "banner"}, "card_style": {"default", "product", "category", "compact"}, "list_style": {"default", "product", "cart-item"}, "form_style": {"default", "auth", "step", "summary"}, "image_position": {"left", "top", "right"}, "image_size": {"sm", "md", "lg"}}
         for s in sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
             sname = s.get("name", "?"); layout = s.get("layout", "")
             if layout and layout not in _VALID_LAYOUTS: errors.append(f"section '{sname}': invalid layout '{layout}'")
             pm = s.get("primary_model", "")
@@ -1874,9 +2232,13 @@ def validate_and_save_candidate(
                     elif rest not in model_attrs.get(canonical, set()):
                         errors.append(f"section '{sname}': related attribute '{rest}' not found on {canonical}")
                 elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]: errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
-            vdp = s.get("view_detail_page", "")
-            if vdp and vdp not in page_names:
-                errors.append(f"section '{sname}': view_detail_page '{vdp}' not in pages")
+            available_field_layout_attrs = {
+                (attr.get("name", attr) if isinstance(attr, dict) else attr)
+                for attr in s.get("attributes", [])
+            }
+            for field_ref in _field_layout_field_refs(s.get("field_layout")):
+                if field_ref not in available_field_layout_attrs:
+                    errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
             sp = (s.get("style") or {}).get("success_page", "")
             if sp and sp not in page_names:
                 errors.append(f"section '{sname}': success_page '{sp}' not in pages")
@@ -1899,6 +2261,7 @@ def validate_and_save_candidate(
         for s in sections:
             s = dict(s)
             s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
             pm = s.get("primary_model", "")
             # Normalize primary_model name: handles CamelCase / snake_case / space variants
             if pm and pm not in model_attrs:
@@ -1909,6 +2272,7 @@ def validate_and_save_candidate(
                     pm = canonical
             if pm and pm in model_attrs:
                 new_attrs = []
+                attr_renames = {}
                 for attr in s.get("attributes", []):
                     attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
                     if "." in attr_name:
@@ -1916,9 +2280,12 @@ def validate_and_save_candidate(
                         canonical = _canonical_model_name(first)
                         if canonical and rest in model_attrs.get(canonical, set()):
                             normalized = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
-                            normalized["name"] = f"{canonical}.{rest}"
+                            canonical_attr_name = f"{canonical}.{rest}"
+                            normalized["name"] = canonical_attr_name
                             normalized.setdefault("source", "related")
                             normalized.setdefault("readonly", True)
+                            if canonical_attr_name != attr_name:
+                                attr_renames[attr_name] = canonical_attr_name
                             new_attrs.append(normalized)
                     elif not pm or attr_name in model_attrs.get(pm, set()):
                         new_attrs.append(attr)
@@ -1926,6 +2293,19 @@ def validate_and_save_candidate(
                 if not new_attrs and s.get("layout") in _data_layouts_set:
                     new_attrs = list(_model_field_names(model_attrs, pm, 6))
                 s["attributes"] = new_attrs
+                if attr_renames and isinstance(s.get("field_layout"), dict):
+                    def _rename_field_layout_value(value):
+                        if isinstance(value, str):
+                            return attr_renames.get(value, value)
+                        if isinstance(value, list):
+                            return [_rename_field_layout_value(item) for item in value]
+                        if isinstance(value, dict):
+                            return {key: _rename_field_layout_value(item) for key, item in value.items()}
+                        return value
+                    s["field_layout"] = {
+                        key: _rename_field_layout_value(value)
+                        for key, value in (s.get("field_layout") or {}).items()
+                    }
             fixed_sections.append(s)
         # Auto-correct hardcoded Tailwind color names → "accent" so sections inherit
         # the design spec brand color via CSS variables instead of being locked to one color.
@@ -1940,6 +2320,13 @@ def validate_and_save_candidate(
 
         fixed_pages = []
         for i, p in enumerate(pages):
+            page_type = _page_type_value(p)
+            if page_type not in {"normal", "activity"}:
+                return (
+                    f"INCOMPLETE: page '{p.get('name') or p.get('id') or i}' must include "
+                    "required type {'value':'normal','label':'Normal'} or "
+                    "{'value':'activity','label':'Activity'}."
+                )
             if not p.get("id"): p = {**p, "id": f"page_{candidate_index}_{i}"}
             if "category" not in p: p = {**p, "category": None}
             fixed_pages.append(p)
@@ -1950,11 +2337,20 @@ def validate_and_save_candidate(
         fixed_pages, fixed_sections = _materialize_ooui_plan_sections(fixed_pages, fixed_sections, usecase_navigation.get("ooui_plan") or {}, model_attrs)
         for s in fixed_sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
         fixed_pages, fixed_sections = _ensure_workflow_entry_sections(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0))
         fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
         fixed_sections = _apply_ooui_navigation_methods(fixed_pages, fixed_sections, usecase_navigation)
-        chrome_positions = {"header", "hero", "footer", "sidebar"}; content_sections = [s for s in fixed_sections if s.get("position", "main") not in chrome_positions]
+        for s in fixed_sections:
+            s["component"] = _infer_section_component(s)
+        chrome_positions = {"header", "hero", "footer", "sidebar"}
+        assignable_layouts = {"card", "list", "table", "detail", "gallery", "form"}
+        content_sections = [
+            s for s in fixed_sections
+            if s.get("position", "main") not in chrome_positions
+            and s.get("layout") in assignable_layouts
+        ]
         def _norm_section_refs(refs: list) -> list:
             result = []
             for r in refs:
@@ -1970,6 +2366,11 @@ def validate_and_save_candidate(
             rebuilt_pages = []; model_assigned = defaultdict(int)
             for p in fixed_pages:
                 if p.get("sections"): rebuilt_pages.append(p); continue
+                page_type = _page_type_value(p)
+                page_key = f"{p.get('id', '')} {p.get('name', '')}".lower()
+                if page_type == "activity" or "workflow" in page_key:
+                    rebuilt_pages.append(p)
+                    continue
                 pm = p.get("primary_model", ""); candidates_for_page = model_to_sections.get(pm, []); start = model_assigned[pm]; assigned = []
                 if start < len(candidates_for_page): assigned = [{"value": candidates_for_page[start]}]; model_assigned[pm] += 1
                 if not assigned and model_to_sections.get("", []):
@@ -1986,11 +2387,334 @@ def validate_and_save_candidate(
                 sid = ref.get("value") if isinstance(ref, dict) else str(ref)
                 if sid and sid not in section_ids: orphans.append(f"page '{p.get('name')}' references section '{sid}' which is not in sections[]")
         if orphans: return f"INCOMPLETE: pages reference section IDs that are missing from sections[]. Missing: {'; '.join(orphans[:5])}."
-        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
+        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements, "fallback": False, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
+        if derived_from != "":
+            candidate["derived_from"] = derived_from
+        if designer_requirements:
+            candidate["designer_requirements"] = designer_requirements
+        if variation_strategy:
+            candidate["variation_strategy"] = variation_strategy
         while len(candidates) <= candidate_index: candidates.append(None)
         candidates[candidate_index] = candidate; data["candidates"] = candidates; payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}; put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS); put_resp.raise_for_status()
         return f"OK: candidate {candidate_index} '{name}' saved successfully."
     except Exception as e: return f"Error saving candidate: {e}"
+
+def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
+    """Return the selected candidate as the baseline for human-guided regeneration."""
+    try:
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        data = dict(iface.get("data") or {})
+        candidates = list(data.get("candidates") or [])
+        idx = int(candidate_index)
+        regeneration_base = data.get("regeneration_base_candidate") or {}
+        if idx < 0 or idx >= len(candidates) or not candidates[idx]:
+            if int(regeneration_base.get("selected_candidate_index", -1)) != idx or not regeneration_base.get("candidate"):
+                return f"ERROR: candidate {candidate_index} not found."
+            base = dict(regeneration_base.get("candidate") or {})
+        else:
+            base = dict(candidates[idx])
+        context = {
+            "interface_id": interface_id,
+            "selected_candidate_index": idx,
+            "designer_requirements": designer_requirements,
+            "regeneration_contract": {
+                "overwrite_candidate_indices": [0, 1, 2],
+                "derive_from_selected_candidate": True,
+                "preserve_page_semantics": True,
+                "preserve_workflow_sections": [
+                    "activity_start",
+                    "activity_tasks",
+                    "activity_action",
+                ],
+                "keep_task_pages_as_activity_pages": True,
+                "keep_normal_pages_as_normal_pages": True,
+            },
+            "current_interface": {
+                "name": iface.get("name"),
+                "description": iface.get("description", ""),
+                "system": iface.get("system"),
+                "actor": iface.get("actor"),
+            },
+            "base_candidate": {
+                "id": base.get("id"),
+                "name": base.get("name"),
+                "description": base.get("description", ""),
+                "pages": base.get("pages", []),
+                "sections": base.get("sections", []),
+                "tokens": base.get("tokens", data.get("tokens", {})),
+                "styling": base.get("styling", data.get("styling", {})),
+                "design_spec": base.get("design_spec"),
+                "variation_strategy": base.get("variation_strategy"),
+            },
+        }
+        return json.dumps(context, indent=2)
+    except Exception as e:
+        return f"Error fetching candidate regeneration context: {e}"
+
+def _candidate_variant_name(prompt: str, index: int) -> str:
+    color_name, _ = _prompt_color_theme(prompt)
+    prefix = (color_name or "Agent").replace("_", " ").title()
+    suffixes = ("Card Gallery", "Data Table", "Showcase")
+    return f"{prefix} {suffixes[index % len(suffixes)]}"
+
+def _variant_tokens(tokens: dict, prompt: str, index: int) -> dict:
+    tokens = _apply_prompt_style_overrides(dict(tokens or {}), prompt)
+    color_name, theme = _prompt_color_theme(prompt)
+    if color_name in {"pink", "rose"}:
+        accents = ("#db2777", "#be185d", "#ec4899")
+        secondaries = ("#f9a8d4", "#f472b6", "#fbcfe8")
+    elif color_name in {"purple", "violet"}:
+        accents = ("#7c3aed", "#6d28d9", "#a855f7")
+        secondaries = ("#c084fc", "#a78bfa", "#ddd6fe")
+    elif theme:
+        accents = (theme.get("accent", "#2563eb"), theme.get("accent", "#2563eb"), theme.get("secondary", theme.get("accent", "#2563eb")))
+        secondaries = (theme.get("secondary", accents[0]), theme.get("border", accents[1]), theme.get("secondary", accents[2]))
+    else:
+        accents = ("#2563eb", "#111827", "#f97316")
+        secondaries = ("#60a5fa", "#64748b", "#fdba74")
+    accent = accents[index % 3]
+    secondary = secondaries[index % 3]
+    tokens.update({
+        "accent.hex": accent,
+        "color.secondary.hex": secondary,
+        "region.header.bg_hex": accent,
+        "region.footer.bg_hex": accent,
+        "nav.bg_hex": accent,
+        "button.primary.bg_hex": accent,
+        "button.primary.border_hex": accent,
+        "button.ghost.text_hex": accent,
+        "input.border_focus_hex": accent,
+        "design.variant_index": str(index),
+    })
+    _expand_design_tokens(tokens)
+    return tokens
+
+def _variant_pages(pages: list, index: int) -> list:
+    next_pages = copy.deepcopy(pages or [])
+    if index == 1:
+        for page in next_pages:
+            refs = page.get("sections") or []
+            chrome = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) in {"site_nav", "icon_actions"}]
+            footer = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) == "site_footer"]
+            body = [ref for ref in refs if ref not in chrome and ref not in footer]
+            page["sections"] = chrome + body + footer
+    elif index == 2:
+        for page in next_pages:
+            refs = page.get("sections") or []
+            header = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) in {"site_nav", "icon_actions"}]
+            footer = [ref for ref in refs if (ref.get("value") if isinstance(ref, dict) else ref) == "site_footer"]
+            body = [ref for ref in refs if ref not in header and ref not in footer]
+            page["sections"] = header + body + footer
+    return next_pages
+
+def _prompt_forced_layout(prompt: str, section: dict) -> str | None:
+    text = str(prompt or "").lower()
+    if not text:
+        return None
+    layout = None
+    if "table" in text:
+        layout = "table"
+    elif "gallery" in text or "showcase" in text:
+        layout = "gallery"
+    elif "card" in text or "cards" in text:
+        layout = "card"
+    if not layout:
+        return None
+
+    section_text = " ".join(
+        str(section.get(key, ""))
+        for key in ("id", "name", "role", "layout", "component", "primary_model", "class")
+    ).lower()
+    target_terms = []
+    for term in ("order", "prder", "cart", "product", "catalog", "account", "customer", "payment", "shipping", "address", "item", "line"):
+        if term in text:
+            target_terms.append("order" if term == "prder" else term)
+    if "all" in text or not target_terms:
+        if "card" in text or "cards" in text or layout in {"table", "gallery"}:
+            return layout
+    if any(term in section_text for term in target_terms):
+        return layout
+    return None
+
+def _component_for_layout(section: dict, layout: str) -> str:
+    if layout == "table":
+        return "DataTable"
+    if layout == "gallery":
+        section = {**section, "layout": "gallery"}
+        return _infer_section_component(section)
+    if layout == "card":
+        section = {**section, "layout": "card"}
+        return _infer_section_component(section)
+    return _infer_section_component(section)
+
+def _variant_sections(sections: list, index: int, prompt: str = "") -> list:
+    next_sections = []
+    for raw in sections or []:
+        section = copy.deepcopy(raw)
+        layout = str(section.get("layout") or "")
+        role = str(section.get("role") or "")
+        style = dict(section.get("style") or {})
+        section_id = str(section.get("id") or "")
+        if layout in {"site-nav", "nav-links", "nav-bar"}:
+            section["component"] = "NavBar"
+            style["density"] = ("normal", "compact", "spacious")[index % 3]
+            style["variant"] = ("tabs", "rail", "mega")[index % 3]
+            if index == 1:
+                section["position"] = "sidebar"
+                section["layout"] = "site-nav"
+                section["col_span"] = 12
+                style["sidebar_side"] = "left"
+                style["variant"] = "rail"
+                style["bg"] = "white"
+                style["shadow"] = "sm"
+            else:
+                section["position"] = "header"
+                style.pop("sidebar_side", None)
+        elif layout == "icon-actions":
+            section["component"] = "IconActions"
+            style["align"] = ("right", "compact", "floating")[index % 3]
+            section["position"] = "header"
+        elif layout in {"main-header", "minimal-header", "logo", "search-bar"}:
+            section["position"] = "header"
+            if layout == "main-header" and index == 2:
+                section["layout"] = "minimal-header"
+                section["component"] = "NavBar"
+            if layout in {"logo", "search-bar"} and index == 1:
+                style["density"] = "compact"
+        elif layout == "site-footer":
+            section["component"] = "SiteFooter"
+            style["density"] = ("normal", "compact", "spacious")[index % 3]
+            if index == 1:
+                section["layout"] = "link-grid"
+                section["component"] = "FooterLinkGrid"
+            elif index == 2:
+                style["surface_level"] = "elevated"
+        elif layout in {"service-bar", "link-grid", "brand-strip"}:
+            section["position"] = "footer"
+            if index == 2 and layout == "link-grid":
+                section["layout"] = "brand-strip"
+        if role in {"data", "collection", "child_collection"} or section.get("primary_model"):
+            forced_layout = _prompt_forced_layout(prompt, section)
+            if forced_layout:
+                section["layout"] = forced_layout
+                section["component"] = _component_for_layout(section, forced_layout)
+                section["col_span"] = 12 if forced_layout == "table" else section.get("col_span", 12)
+                if forced_layout in {"gallery", "card"}:
+                    style["columns"] = "3" if forced_layout == "gallery" else "2"
+            elif index == 1:
+                section["layout"] = "table"
+                section["component"] = "DataTable"
+                section["col_span"] = 12
+            elif index == 2:
+                section["layout"] = "gallery"
+                section["component"] = _infer_section_component(section)
+                style["columns"] = "3"
+                section["col_span"] = 12 if "task" in section_id else section.get("col_span", 12)
+                style["surface_level"] = "elevated"
+                style["text_class"] = "si-text-display"
+            elif index == 0:
+                section["layout"] = "card"
+                section["component"] = _infer_section_component(section)
+                style["columns"] = "2"
+                section["col_span"] = 6 if section.get("primary_model") and section.get("position") == "main" else section.get("col_span", 12)
+        style["density"] = ("normal", "compact", "spacious")[index % 3]
+        style["shadow"] = ("sm", "none", "md")[index % 3]
+        style.setdefault("color", "accent")
+        section["style"] = style
+        if section.get("layout") in {"table", "gallery", "card", "list", "detail", "form"}:
+            section["component"] = _infer_section_component(section)
+        next_sections.append(section)
+    return next_sections
+
+def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
+    """Generate and save exactly 3 candidates from the current interface DSL and designer prompt."""
+    try:
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        data = dict(iface.get("data") or {})
+        pages = data.get("pages") or []
+        sections = data.get("sections") or []
+        if not pages or not sections:
+            return "ERROR: Interface has no pages/sections to generate candidates from."
+
+        base_tokens = _apply_prompt_style_overrides(dict(data.get("tokens") or {}), prompt)
+        if not base_tokens:
+            _, base_tokens = _candidate_design_spec(interface_id, 0, prompt=prompt)
+        base_styling = {**dict(data.get("styling") or {}), **_prompt_styling_overrides(prompt)}
+        results = []
+        for index in range(3):
+            variant_pages = _variant_pages(pages, index)
+            variant_sections = _variant_sections(sections, index, prompt)
+            tokens = _variant_tokens(base_tokens, prompt, index)
+            styling = dict(base_styling or {})
+            styling["variantIndex"] = index
+            styling["variantName"] = ("Card Gallery", "Data Table", "Showcase")[index]
+            result = validate_and_save_candidate(
+                interface_id=interface_id,
+                candidate_index=index,
+                name=_candidate_variant_name(prompt, index),
+                description=f"Agent-generated candidate {index + 1} using '{prompt or 'current'}' as the designer requirement.",
+                pages=json.dumps(variant_pages),
+                sections=json.dumps(variant_sections),
+                tokens=json.dumps(tokens) if tokens else "",
+                styling=json.dumps(styling) if styling else "",
+                prompt=prompt,
+                variation_strategy=("balanced", "dense table-oriented", "expressive gallery-oriented")[index],
+            )
+            results.append(result)
+            if not str(result).startswith("OK:"):
+                return f"ERROR: candidate {index} failed: {result}"
+            render_candidate_preview_func(interface_id, index)
+        return "OK: generated and saved 3 candidates. " + " | ".join(results)
+    except Exception as e:
+        return f"ERROR: generate_candidate_set failed: {e}"
+
+def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, designer_requirements: str = "") -> str:
+    """Regenerate exactly 3 candidates from a selected/base candidate using deterministic variants."""
+    try:
+        context_raw = get_candidate_regeneration_context(interface_id, selected_candidate_index, designer_requirements)
+        if str(context_raw).startswith("ERROR") or str(context_raw).startswith("Error"):
+            return context_raw
+        context = json.loads(context_raw)
+        base = context.get("base_candidate") or {}
+        pages = base.get("pages") or []
+        sections = base.get("sections") or []
+        if not pages or not sections:
+            return "ERROR: selected candidate has no pages/sections."
+        base_tokens = _variant_tokens(base.get("tokens") or {}, designer_requirements, 0)
+        base_styling = {**dict(base.get("styling") or {}), **_prompt_styling_overrides(designer_requirements)}
+        results = []
+        for index in range(3):
+            variant_pages = _variant_pages(pages, index)
+            variant_sections = _variant_sections(sections, index, designer_requirements)
+            tokens = _variant_tokens(base_tokens, designer_requirements, index)
+            styling = dict(base_styling or {})
+            styling["variantIndex"] = index
+            styling["variantName"] = ("Selected Refinement", "Selected Table", "Selected Showcase")[index]
+            result = validate_and_save_candidate(
+                interface_id=interface_id,
+                candidate_index=index,
+                name=f"{_candidate_variant_name(designer_requirements, index)} Regen",
+                description=f"Regenerated from candidate {selected_candidate_index + 1} with {styling['variantName']} structure.",
+                pages=json.dumps(variant_pages),
+                sections=json.dumps(variant_sections),
+                tokens=json.dumps(tokens) if tokens else "",
+                styling=json.dumps(styling) if styling else "",
+                prompt=designer_requirements,
+                derived_from=str(selected_candidate_index),
+                designer_requirements=designer_requirements,
+                variation_strategy=styling["variantName"],
+            )
+            results.append(result)
+            if not str(result).startswith("OK:"):
+                return f"ERROR: regenerated candidate {index} failed: {result}"
+            render_candidate_preview_func(interface_id, index)
+        return "OK: regenerated and saved 3 candidates. " + " | ".join(results)
+    except Exception as e:
+        return f"ERROR: regenerate_candidate_set failed: {e}"
 
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
     try:
@@ -2005,6 +2729,9 @@ update_interface_patch_tool = FunctionTool(func=apply_interface_patch)
 run_seed_script_tool = FunctionTool(func=run_seed_script)
 get_available_paths_tool = FunctionTool(func=get_available_paths)
 get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
+get_candidate_regeneration_context_tool = FunctionTool(func=get_candidate_regeneration_context)
+generate_candidate_set_tool = FunctionTool(func=generate_candidate_set)
+regenerate_candidate_set_tool = FunctionTool(func=regenerate_candidate_set)
 validate_save_candidate_tool = FunctionTool(func=validate_and_save_candidate)
 render_candidate_preview_tool = FunctionTool(func=render_candidate_preview_func)
 list_design_specs_tool = FunctionTool(func=list_design_specs_tool_func)

@@ -38,8 +38,8 @@ def _is_strict_child_collection_model(model_name: str) -> bool:
 def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> list[str]:
     attrs = list(model_attrs.get(model) or [])
     preferred_by_role = {
-        "object_collection": ["image_url", "name", "title", "price", "status", "rating", "created_at"],
-        "object_detail": ["image_url", "name", "title", "description", "price", "status", "rating"],
+        "object_collection": ["image_url", "video_url", "name", "title", "price", "status", "rating", "created_at"],
+        "object_detail": ["image_url", "video_url", "name", "title", "description", "price", "status", "rating"],
         "object_summary": ["status", "total", "total_price", "item_count", "created_at"],
         "child_collection": ["name", "title", "quantity", "unit_price", "price", "subtotal", "status"],
         "object_form": ["name", "title", "address", "street", "city", "postcode", "method", "status"],
@@ -80,6 +80,78 @@ def _editable_fields_for_model(model_attrs: dict, model: str, role: str, operati
     return [field for field in _pick_fields(model_attrs, model, "object_form", 10) if field.lower() not in excluded]
 
 
+def _component_for_section(role: str, layout: str, model: str = "", page_id: str = "") -> str:
+    model_l = str(model or "").lower()
+    page_l = str(page_id or "").lower()
+    if role == "child_collection":
+        return "LineItemList" if any(term in f"{model_l} {page_l}" for term in ("item", "line", "cart", "order")) else "RelatedObjectList"
+    if role == "object_summary":
+        return "SummaryPanel"
+    if role == "object_detail":
+        if model_l == "product":
+            return "ProductDetailPanel"
+        return "DetailPanel"
+    if role == "object_form":
+        if "payment" in model_l or "payment" in page_l:
+            return "PaymentMethodForm"
+        if "address" in model_l or "address" in page_l:
+            return "AddressForm"
+        if "review" in model_l or "review" in page_l:
+            return "ReviewForm"
+        return "ObjectForm"
+    if layout == "gallery":
+        if model_l == "product":
+            return "ProductCardGrid"
+        if "category" in model_l:
+            return "CategoryTileGrid"
+        if any(term in model_l for term in ("user", "customer", "seller", "employee", "doctor", "agent", "member")):
+            return "PersonCardGrid"
+        return "CardGrid"
+    if layout == "table":
+        return "DataTable"
+    if layout == "list":
+        return "ObjectList"
+    if layout == "form":
+        return "ObjectForm"
+    if layout == "filter":
+        return "FilterPanel"
+    return "CardGrid" if layout == "card" else "SectionPanel"
+
+
+def _field_layout_for_component(component: str, attrs: list[str], related_attrs: list[str] | None = None) -> dict:
+    related_attrs = related_attrs or []
+    all_attrs = attrs + related_attrs
+
+    def first(*names: str) -> str:
+        for name in names:
+            if name in all_attrs:
+                return name
+        return ""
+
+    if component in {"ProductCardGrid", "CardGrid", "CategoryTileGrid", "PersonCardGrid"}:
+        return {
+            "image": first("image_url", "photo_url", "avatar_url", "thumbnail_url"),
+            "video": first("video_url", "trailer_url", "media_url"),
+            "title": first("name", "title", "full_name"),
+            "subtitle": first("brand", "category", "role", "description"),
+            "primary": first("price", "total", "status"),
+            "secondary": [field for field in all_attrs if field not in {first("image_url", "photo_url", "avatar_url", "thumbnail_url"), first("video_url", "trailer_url", "media_url"), first("name", "title", "full_name"), first("brand", "category", "role", "description"), first("price", "total", "status")}][:3],
+        }
+    if component in {"DataTable", "ObjectList", "LineItemList", "RelatedObjectList"}:
+        return {"columns": [{"field": field, "label": field.replace("_", " ").title()} for field in all_attrs[:8]]}
+    if component in {"DetailPanel", "ProductDetailPanel", "SummaryPanel"}:
+        return {
+            "hero": first("image_url", "photo_url", "thumbnail_url"),
+            "video": first("video_url", "trailer_url", "media_url"),
+            "title": first("name", "title"),
+            "description": first("description", "summary"),
+            "facts": [field for field in all_attrs if field not in {first("image_url", "photo_url", "thumbnail_url"), first("video_url", "trailer_url", "media_url"), first("name", "title"), first("description", "summary")}][:6],
+        }
+    if component.endswith("Form") or component == "ObjectForm":
+        return {"groups": [{"title": "Details", "fields": attrs[:8]}], "submit_label": "Save"}
+    return {}
+
+
 def _section_for_page(page: dict, model_attrs: dict, actor_permissions: dict | None = None) -> dict | None:
     model = page.get("primary_model") or ""
     if not model:
@@ -103,17 +175,22 @@ def _section_for_page(page: dict, model_attrs: dict, actor_permissions: dict | N
         style.update({"display_mode": "grid", "columns": "3", "card_style": "product" if model.lower() == "product" else "default"})
     if layout == "list":
         style["list_style"] = "default"
+    visible_fields = _pick_fields(model_attrs, model, role)
+    component = _component_for_section(role, layout, model, page_id)
     return {
         "id": f"{page_id}_{_section_id(model)}_{role}",
         "page_id": page_id,
         "role": role,
         "name": f"{page.get('name') or page.get('page_name') or _page_name(page_id)} {model}",
         "layout": layout,
+        "component": component,
         "primary_model": model,
-        "visible_fields": _pick_fields(model_attrs, model, role),
+        "visible_fields": visible_fields,
         "editable_fields": _editable_fields_for_model(model_attrs, model, role, operations),
         "related_visible_fields": [],
+        "field_layout": _field_layout_for_component(component, visible_fields),
         "operations": operations,
+        "query": {},
         "style": style,
         "col_span": 12,
     }
@@ -129,13 +206,14 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
         "list_style": "cart-item" if any(term in f"{page_id} {model}".lower() for term in ("cart", "basket", "item", "line")) else "default",
     }
     editable = [field for field in ("quantity", "status") if field in (model_attrs.get(model) or set())]
+    visible_fields = _pick_fields(model_attrs, model, "child_collection")
     related_visible = []
     for related_model in related_models or []:
         if related_model == model or related_model not in model_attrs:
             continue
         related_attrs = model_attrs.get(related_model) or set()
         if related_model.lower() == "product":
-            related_visible.extend([f"{related_model}.{field}" for field in ("name", "image_url", "price") if field in related_attrs])
+            related_visible.extend([f"{related_model}.{field}" for field in ("name", "image_url", "video_url", "price") if field in related_attrs])
         elif related_model.lower() in model.lower() or model.lower() in related_model.lower():
             continue
     return {
@@ -144,11 +222,19 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
         "role": "child_collection",
         "name": label or f"{model} Items",
         "layout": "list",
+        "component": _component_for_section("child_collection", "list", model, page_id),
         "primary_model": model,
-        "visible_fields": _pick_fields(model_attrs, model, "child_collection"),
+        "visible_fields": visible_fields,
         "editable_fields": editable,
         "related_visible_fields": related_visible,
+        "field_layout": _field_layout_for_component(
+            _component_for_section("child_collection", "list", model, page_id),
+            visible_fields,
+            related_visible,
+        ),
         "operations": ["view", "update", "delete"],
+        "data_source": {"mode": "query", "from": {"model": model}, "joins": []} if related_visible else {},
+        "query": {},
         "style": style,
         "col_span": 12,
     }
@@ -202,10 +288,13 @@ def build_ooui_plan_from_navigation(usecase_navigation: dict, model_attrs: dict 
             "role": "workflow_entry",
             "name": entry.get("label") or "Start Workflow",
             "layout": "activity_start",
+            "component": "StartWorkflowButton",
             "primary_model": "",
             "visible_fields": [],
             "editable_fields": [],
             "related_visible_fields": [],
+            "field_layout": {},
+            "behavior": {"type": "start_workflow", "target_activity_node_id": entry.get("starts_activity_node_id", "")},
             "operations": ["start_workflow"],
             "label": entry.get("button_label") or entry.get("label") or "Start",
             "style": {"cta_label": entry.get("button_label") or entry.get("label") or "Start"},

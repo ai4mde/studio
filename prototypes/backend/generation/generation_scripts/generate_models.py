@@ -76,6 +76,10 @@ def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
                 enum_literals = []
             else:
                 enum_literals = get_enum_literals(metadata, attribute["enum"])
+        elif attribute["type"] == "image":
+            att_type = AttributeType.IMAGE
+        elif attribute["type"] == "video":
+            att_type = AttributeType.VIDEO
         
         att = Attribute(
             name = attribute_name_sanitization(attribute["name"]),
@@ -212,6 +216,8 @@ def retrieve_models(metadata: str) -> List[Model]:
                     att_type = AttributeType.INTEGER
                 elif attribute.get("type") == "image":
                     att_type = AttributeType.IMAGE
+                elif attribute.get("type") == "video":
+                    att_type = AttributeType.VIDEO
                 attrs_out.append(Attribute(
                     name=attribute_name_sanitization(attribute.get("name", "")),
                     type=att_type,

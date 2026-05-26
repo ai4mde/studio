@@ -14,6 +14,16 @@ const useLocalStorage = (key, initialValue) => {
     const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
+        try {
+            const item = window.localStorage.getItem(key);
+            setStoredValue(item ? JSON.parse(item) : initialValue);
+        } catch (error) {
+            console.error(error);
+            setStoredValue(initialValue);
+        }
+    }, [key]);
+
+    useEffect(() => {
         if (storedValue !== initialValue) {
             setIsSuccess(true);
         }

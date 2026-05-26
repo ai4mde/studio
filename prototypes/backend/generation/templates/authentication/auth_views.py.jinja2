@@ -46,12 +46,15 @@ def logout_user(request):
 
 def autologin(request):
     username = request.GET.get('as', '')
+    next_url = request.GET.get('next', '')
     user = User.objects.filter(username=username).first() if username else None
     if user is None:
         user = User.objects.filter(is_superuser=False).first()
     if user:
         user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         {% for user_type in user_types %}
         if user.is_{{ user_type }}:
             return redirect('/{{ user_type }}/')

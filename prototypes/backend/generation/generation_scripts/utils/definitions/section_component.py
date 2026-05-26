@@ -39,7 +39,9 @@ class SectionAttribute():
             derived: bool = False,
             is_link: bool = False,
             render_as: str = "text",
-            action: Optional[dict] = None
+            action: Optional[dict] = None,
+            readonly: bool = False,
+            source: str = "primary"
     ):
         self.name = name
         self.type = type
@@ -49,6 +51,8 @@ class SectionAttribute():
         self.is_link = is_link
         self.render_as = render_as
         self.action = action or {"type": "none"}
+        self.readonly = readonly
+        self.source = source or "primary"
 
     def __str__(self):
         return self.name
@@ -122,13 +126,16 @@ class SectionComponent():
             related_to_section_id: Optional[str] = None,
             relation_field: Optional[str] = None,
             query: Optional[dict] = None,
-            view_detail_page: Optional[str] = None,
             col_span: int = 12,
             position: Optional[str] = None,
             component_type: str = "data",
             label: Optional[str] = None,
             workflow: Optional[dict] = None,
             min_height: Optional[int] = None,
+            component: Optional[str] = None,
+            role: Optional[str] = None,
+            field_layout: Optional[dict] = None,
+            behavior: Optional[dict] = None,
     ):
         self.name = section_name_sanitization(name)
         self.display_name = name
@@ -145,12 +152,15 @@ class SectionComponent():
         self.custom_methods = custom_methods
         self.text = parse_section_text(text)
         self.layout = layout or "table"
+        self.component = component or ""
+        self.role = role or ""
+        self.field_layout = field_layout or {}
+        self.behavior = behavior or {}
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.related_to_section_id = related_to_section_id
         self.relation_field = relation_field
         self.query = query or {}
         self.query_literal = repr(self.query)
-        self.view_detail_page = view_detail_page
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
         self.position = position or 'main'
         self.component_type = component_type
@@ -158,6 +168,12 @@ class SectionComponent():
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
         self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        item_click = self.behavior.get("item_click") if isinstance(self.behavior.get("item_click"), dict) else {}
+        self.item_click_target_page = (
+            item_click.get("target_page") or item_click.get("targetPage")
+            if item_click.get("type") == "navigate"
+            else None
+        )
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):

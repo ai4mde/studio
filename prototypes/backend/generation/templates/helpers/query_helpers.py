@@ -86,8 +86,10 @@ def _apply_section_query(qs, query, source_obj=None):
             pass
     offset = query.get('offset') or 0
     limit = query.get('limit')
+    if limit is None:
+        limit = 3
     if limit:
-        return qs[offset:offset + limit]
+        return qs[offset:offset + int(limit)]
     if offset:
         return qs[offset:]
     return qs

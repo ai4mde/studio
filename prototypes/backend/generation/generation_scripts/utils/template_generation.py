@@ -1,7 +1,9 @@
 from utils.definitions.application_component import ApplicationComponent
+from utils.definitions.page import Page
 from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
 from utils.file_generation import generate_output_file, read_template_file, write_to_file
 from utils.definitions.model import AttributeType
+from utils.loading_json_utils import make_activity_start_section, make_activity_tasks_section
 from os import makedirs
 import re
 import difflib
@@ -21,7 +23,7 @@ def _collect_position_sections(pages, position):
     return out
 
 
-def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str, tokens_override: dict = None) -> bool:
     application_name = app_name_sanitization(application_component.name)
 
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/base.html.jinja2"
@@ -29,11 +31,14 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
 
     logo = "" # TODO: retrieve from metadata
     categories = application_component.categories
-    accent_hex = (application_component.styling.accent_color or '#0000a4') if application_component.styling else '#0000a4'
+    tokens = dict(tokens_override or getattr(application_component, "tokens", {}) or {})
+    default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
+    styling_accent = (application_component.styling.accent_color or '') if application_component.styling else ''
+    if styling_accent and tokens.get("accent.hex") in default_blues:
+        tokens["accent.hex"] = styling_accent
+    accent_hex = tokens.get("accent.hex") or styling_accent or '#0000a4'
     header_sections = _collect_position_sections(application_component.pages, 'header')
     footer_sections = _collect_position_sections(application_component.pages, 'footer')
-
-    tokens = dict(getattr(application_component, "tokens", {}) or {})
 
     data = {
         "application_name": application_name,
@@ -54,20 +59,54 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
     return False
 
 
-def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str) -> bool:
+def _make_task_home_page(application_component: ApplicationComponent) -> Page:
+    application_name = app_name_sanitization(application_component.name)
+    start_section = make_activity_start_section(application_name, "Home", {
+        "id": "task-home-activity-start",
+        "name": "Processes you can start",
+        "label": "Processes you can start",
+        "col_span": 6,
+        "style": {"columns": "1", "card_style": "elevated", "cta_label": "Start"},
+    })
+    tasks_section = make_activity_tasks_section(application_name, "Home", {
+        "id": "task-home-activity-tasks",
+        "name": "Tasks to complete",
+        "label": "Tasks to complete",
+        "col_span": 6,
+        "style": {"columns": "1", "card_style": "elevated"},
+    })
+    chrome_sections = _collect_position_sections(application_component.pages, 'header')
+    chrome_sections.extend(_collect_position_sections(application_component.pages, 'footer'))
+    return Page(
+        id="task-home",
+        application=application_name,
+        name="Task",
+        category=None,
+        activity_name=None,
+        type="normal",
+        section_components=[start_section, tasks_section] + chrome_sections,
+        layout="vertical",
+        gap="normal",
+    )
+
+
+def generate_home_page(application_component: ApplicationComponent, OUTPUT_TEMPLATES_DIRECTORY: str, tokens: dict) -> bool:
     application_name = app_name_sanitization(application_component.name)
 
-    TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/home.html.jinja2"
     OUTPUT_FILE_PATH = OUTPUT_TEMPLATES_DIRECTORY + "/" + application_name + "_home.html"
-    
-    data = {
-        "application_name": application_name,
-        "authentication_present": application_component.authentication_present,
-    }
-    if generate_output_file(TEMPLATE_PATH, OUTPUT_FILE_PATH, data):
-        return True
-    
-    return False
+    home_page = _make_task_home_page(application_component)
+    home_page.is_task_page = True
+    gen_html = _render_unified_page(
+        page=home_page,
+        all_pages=application_component.pages,
+        tokens=tokens,
+        styling=application_component.styling,
+        application_name=application_name,
+        project_name=project_name_sanitization(application_component.project),
+        preview_mode=False,
+    )
+    write_to_file(OUTPUT_FILE_PATH, gen_html)
+    return True
 
 
 def _render_unified_page(page, all_pages, tokens, styling, application_name, project_name, preview_mode=False):
@@ -142,10 +181,13 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
         "sm": "max-w-3xl", "md": "max-w-4xl", "lg": "max-w-5xl",
         "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
     }
+    default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     if styling:
-        accent = getattr(styling, 'accent_color', None)
+        styling_accent = getattr(styling, 'accent_color', None)
+        if styling_accent and tokens.get("accent.hex") in default_blues:
+            tokens["accent.hex"] = styling_accent
+        accent = tokens.get("accent.hex")
         if accent:
-            tokens.setdefault("accent.hex", accent)
             tokens.setdefault("region.header.bg", f"bg-[{accent}]")
             tokens.setdefault("page.header.text", "text-white")
             tokens.setdefault("brand.name", application_name)
@@ -166,6 +208,13 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
     tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')
     tokens.setdefault("theme.divider", getattr(styling, 'divider', 'none') if styling else 'none')
+    accent_hex = tokens.get("accent.hex")
+    if accent_hex:
+        for key in ("region.header.bg_hex", "region.footer.bg_hex", "button.primary.bg_hex", "button.primary.border_hex", "input.border_focus_hex"):
+            if tokens.get(key) in default_blues:
+                tokens[key] = accent_hex
+        tokens.setdefault("region.header.text_hex", "#ffffff")
+        tokens.setdefault("region.footer.text_hex", "#ffffff")
 
     OUTPUT_TEMPLATES_DIRECTORY = "/usr/src/prototypes/generated_prototypes/" + system_id + "/" + project_name + "/" + application_name + "/templates"
     
@@ -174,10 +223,10 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     except:
         raise Exception("Failed to create templates directory for " + application_name + " application")
     
-    if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+    if not generate_base_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
         raise Exception("Failed to generate base page")
     
-    if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY):
+    if not generate_home_page(application_component, OUTPUT_TEMPLATES_DIRECTORY, tokens):
         raise Exception("Failed to generate home page")
     
     if application_component.settings and application_component.settings.manager_access:

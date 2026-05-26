@@ -109,6 +109,8 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"  # TODO: Investigate if need to change this to UUIDField
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(environ.get("DATA_UPLOAD_MAX_MEMORY_SIZE", 50 * 1024 * 1024))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(environ.get("FILE_UPLOAD_MAX_MEMORY_SIZE", 50 * 1024 * 1024))
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost",  # TODO: Setup some environment variables for this
     "http://localhost:5173",

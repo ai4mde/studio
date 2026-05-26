@@ -17,6 +17,11 @@ def main():
     metadata = resolve_metadata_arg(sys.argv[2])
     system_id = sys.argv[3]
     authentication_present = sys.argv[4] == "True"
+    metadata_json = json.loads(metadata or "{}")
+    has_activity_diagrams = any(
+        diagram.get("type") == "activity"
+        for diagram in metadata_json.get("diagrams", [])
+    )
 
     if not generate_models(system_id, project_name, metadata):
         raise Exception("Failed to generate models")
@@ -24,10 +29,11 @@ def main():
     try:
         cron_jobs = generate_data(system_id, project_name, metadata)
     except Exception as e:
-        # Keep prototype generation resilient even when workflow activity metadata is incomplete.
-        print(f"Warning: workflow_engine data generation failed: {e}")
+        if has_activity_diagrams:
+            raise Exception(f"Failed to generate workflow data from activity diagrams: {e}")
+        # Keep prototype generation resilient only when no workflow exists at all.
+        print(f"Warning: no activity diagrams found; writing empty workflow_engine data.")
         cron_jobs = []
-        # The 0002 migration always reads this file; write an empty payload so migrate doesn't fail.
         empty_data = {"processes": [], "action_nodes": [], "join_nodes": [], "rules": []}
         json_path = f"/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}/workflow_engine/migrations/workflow_engine_data.json"
         write_to_file(json_path, json.dumps(empty_data, indent=4))

@@ -50,8 +50,10 @@ def get_enum_literals(metadata: str, class_id: str) -> List[str]:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if node["cls_ptr"] == class_id and node["cls"]["type"] == "enum":
-                for literal in node["cls"]["literals"]:
+            cls = node.get("cls", {})
+            cls_data = cls.get("data", cls)
+            if node["cls_ptr"] == class_id and cls_data.get("type") == "enum":
+                for literal in cls_data.get("literals", []):
                     out.append(str(literal))
                 return out
     return []
@@ -63,8 +65,12 @@ def find_model_by_class_ptr(metadata: str, class_id: str) -> str | None:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if str(node["cls_ptr"]) == str(class_id):
-                return model_name_sanitization(node["cls"]["name"])
+            node_cls_ptr = node.get("cls_ptr") or node.get("id")
+            if str(node_cls_ptr) == str(class_id):
+                cls = node.get("cls", {})
+                cls_data = cls.get("data", cls)
+                name = cls_data.get("name")
+                return model_name_sanitization(name) if name else None
     # Fallback: resolve from flat classifiers list added during generation
     for classifier in metadata_json.get("classifiers", []):
         if str(classifier["id"]) == str(class_id):
@@ -85,8 +91,9 @@ def find_class_ptr_by_model_name(metadata: str, model_name: str) -> str | None:
             continue
         for node in diagram.get("nodes", []):
             cls = node.get("cls", {})
-            if cls.get("type") == "class" and model_name_sanitization(cls.get("name", "")) == target:
-                return str(node.get("cls_ptr") or "")
+            cls_data = cls.get("data", cls)
+            if cls_data.get("type") == "class" and model_name_sanitization(cls_data.get("name", "")) == target:
+                return str(node.get("cls_ptr") or node.get("id") or "")
     for classifier in metadata_json.get("classifiers", []):
         data = classifier.get("data", {})
         if data.get("type") == "class" and model_name_sanitization(data.get("name", "")) == target:
@@ -99,8 +106,10 @@ def find_model_by_id(metadata: str, class_id: str) -> str | None:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if node["id"] == class_id and node["cls"]["type"] == "class":
-                return model_name_sanitization(node["cls"]["name"])
+            cls = node.get("cls", {})
+            cls_data = cls.get("data", cls)
+            if node["id"] == class_id and cls_data.get("type") == "class":
+                return model_name_sanitization(cls_data.get("name", ""))
     return None
 
 
@@ -109,7 +118,8 @@ def find_model_id_by_class_ptr(metadata: str, class_ptr: str) -> str:
         if diagram["type"] != "classes":
             continue
         for node in diagram["nodes"]:
-            if node["cls_ptr"] == class_ptr:
+            node_cls_ptr = node.get("cls_ptr") or node.get("id")
+            if str(node_cls_ptr) == str(class_ptr):
                 return node["id"]
     return None
 
@@ -135,15 +145,21 @@ def find_parent_models_by_id(metadata: str, primary_class_class_ptr: str) -> Lis
         if "edges" not in diagram:
             return []
         for edge in diagram["edges"]:
-            if edge["rel"]["type"] != "association":
+            rel = edge.get("rel", {})
+            if not isinstance(rel, dict):
+                continue
+            rel_data = rel.get("data", rel)
+            if rel_data.get("type") != "association":
                 continue
             if edge["source_ptr"] == primary_class_id:
-                cardinality = define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=True)
+                multiplicity = rel_data.get("multiplicity", {})
+                cardinality = define_cardinality(multiplicity.get("source", ""), multiplicity.get("target", ""), node_is_source=True)
                 model_name = find_model_by_id(metadata, edge["target_ptr"])
                 if model_name and cardinality in SOURCE_ACCEPTABLE_CARDINALITIES:
                     out.append(model_name_sanitization(model_name))
             if edge["target_ptr"] == primary_class_id:
-                cardinality = define_cardinality(edge["rel"]["multiplicity"]["source"], edge["rel"]["multiplicity"]["target"], node_is_source=False)
+                multiplicity = rel_data.get("multiplicity", {})
+                cardinality = define_cardinality(multiplicity.get("source", ""), multiplicity.get("target", ""), node_is_source=False)
                 model_name = find_model_by_id(metadata, edge["source_ptr"])
                 if model_name and cardinality in TARGET_ACCEPTABLE_CARDINALITIES:
                     out.append(model_name_sanitization(model_name))
@@ -215,12 +231,16 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
         is_link = False
         render_as = "text"
         action = {"type": "none"}
+        readonly = False
+        source = "primary"
         
         if isinstance(attribute, str):
             attr_name = attribute
         else:
             attr_name = attribute["name"]
             derived = attribute.get("derived", False)
+            readonly = bool(attribute.get("readonly", False))
+            source = attribute.get("source") or ("related" if "." in attr_name else "primary")
             is_link = attribute.get("is_link", False)
             render_config = attribute.get("render") or {}
             render_as = render_config.get("as") or attribute.get("render_as") or ("link" if is_link else "text")
@@ -241,16 +261,20 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
                 enum_literals = get_enum_literals(metadata, attribute.get("enum"))
             elif attribute.get("type") == "image":
                 attribute_type  = AttributeType.IMAGE
+            elif attribute.get("type") == "video":
+                attribute_type  = AttributeType.VIDEO
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attr_name),
             type = attribute_type,
             enum_literals = enum_literals,
-            updatable = True, # TODO: frontend management of updatable attributes
+            updatable = not readonly,
             derived = derived,
             is_link = is_link,
             render_as = render_as,
-            action = action
+            action = action,
+            readonly = readonly,
+            source = source
         )
         out.append(att)
 
@@ -328,6 +352,64 @@ def make_activity_action_section(application_name: str, page_name: str, label: s
     )
 
 
+def make_activity_start_section(application_name: str, page_name: str, section: dict | None = None) -> SectionComponent:
+    section = section or {}
+    raw_style = section.get("style") or {}
+    return SectionComponent(
+        id=section.get("id", str(uuid4())),
+        name=section.get("name") or section.get("label") or "activity_start",
+        application=application_name,
+        page=page_name,
+        primary_model=None,
+        parent_models=[],
+        attributes=[],
+        text="",
+        has_create_operation=False,
+        has_delete_operation=False,
+        has_update_operation=False,
+        custom_methods=[],
+        layout="activity_start",
+        style={
+            "card_style": raw_style.get("card_style", "elevated"),
+            "columns": str(raw_style.get("columns", "3")),
+            "align": raw_style.get("align", "left"),
+            "cta_label": raw_style.get("cta_label", "Start"),
+        },
+        col_span=int(section.get("col_span", 12)),
+        position=section.get("position", "main"),
+        component_type="activity_start",
+        label=section.get("label") or section.get("name") or "Start a Process",
+    )
+
+
+def make_activity_tasks_section(application_name: str, page_name: str, section: dict | None = None) -> SectionComponent:
+    section = section or {}
+    raw_style = section.get("style") or {}
+    return SectionComponent(
+        id=section.get("id", str(uuid4())),
+        name=section.get("name") or section.get("label") or "activity_tasks",
+        application=application_name,
+        page=page_name,
+        primary_model=None,
+        parent_models=[],
+        attributes=[],
+        text="",
+        has_create_operation=False,
+        has_delete_operation=False,
+        has_update_operation=False,
+        custom_methods=[],
+        layout="activity_tasks",
+        style={
+            "card_style": raw_style.get("card_style", "elevated"),
+            "columns": str(raw_style.get("columns", "3")),
+        },
+        col_span=int(section.get("col_span", 12)),
+        position=section.get("position", "main"),
+        component_type="activity_tasks",
+        label=section.get("label") or section.get("name") or "My Tasks",
+    )
+
+
 def retrieve_section_components(application_name: str, page_name: str, metadata: str) -> List[SectionComponent]:
     '''Function that retrieves the section components corresponding to page_name from
     metadata and returns a list of SectionComponent objects.'''
@@ -388,9 +470,35 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         ))
                         continue
 
-                    section_class = section.get("class") or find_class_ptr_by_model_name(
-                        metadata,
-                        section.get("primary_model") or section.get("object") or "",
+                    if section.get("type") == "activity_start" or section.get("layout") == "activity_start":
+                        out.append(make_activity_start_section(
+                            application_name=application_name,
+                            page_name=page_name,
+                            section=section,
+                        ))
+                        continue
+
+                    if section.get("type") == "activity_tasks" or section.get("layout") == "activity_tasks":
+                        out.append(make_activity_tasks_section(
+                            application_name=application_name,
+                            page_name=page_name,
+                            section=section,
+                        ))
+                        continue
+
+                    declared_primary_model = section.get("primary_model") or section.get("object") or ""
+                    raw_section_class = section.get("class")
+                    if raw_section_class and find_model_by_class_ptr(metadata, raw_section_class):
+                        section_class = raw_section_class
+                    else:
+                        section_class = find_class_ptr_by_model_name(
+                            metadata,
+                            raw_section_class or declared_primary_model,
+                        )
+                    primary_model = (
+                        find_model_by_class_ptr(metadata, section_class)
+                        if section_class
+                        else (model_name_sanitization(declared_primary_model) if declared_primary_model else None)
                     )
                     operations = section.get("operations") or {}
                     query = dict(section.get("query") or {})
@@ -400,12 +508,15 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                     if "exclude_source" not in query and relationship.get("exclude_source") is not None:
                         query["exclude_source"] = relationship.get("exclude_source")
 
+                    behavior = section.get("behavior") if isinstance(section.get("behavior"), dict) else {}
+                    section_layout = section.get("layout", "table")
+                    section_position = section.get("position", "main")
                     sec = SectionComponent(
                         id = section["id"],
                         name = section.get("name") or section.get("id", ""),
                         application = application_name,
                         page = page_name,
-                        primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None,
+                        primary_model = primary_model,
                         parent_models = find_parent_models_by_id(metadata, section_class) if section_class else [],
                         attributes = retrieve_section_attributes(metadata, section, application_name),
                         has_create_operation = bool(operations.get("create", False)),
@@ -414,18 +525,21 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_select_operation = bool(operations.get("select", section.get("layout", "table") in ("card", "list"))),
                         custom_methods = retrieve_section_custom_methods(section),
                         text = section.get("text", ""),
-                        layout = section.get("layout", "table"),
+                        layout = section_layout,
                         style = section.get("style", None),
                         related_to_section_id = section.get("related_to", None),
                         relation_field = section.get("relation_field", None),
                         query = query,
-                        view_detail_page = page_name_sanitization(section["view_detail_page"]) if section.get("view_detail_page") else None,
                         col_span = int(section.get("col_span", 12)),
                         min_height = section.get("min_height"),
-                        position = section.get("position", "main"),
+                        position = section_position,
                         component_type = section.get("type", "data"),
                         label = section.get("label"),
                         workflow = section.get("workflow"),
+                        component = section.get("component"),
+                        role = section.get("role"),
+                        field_layout = section.get("field_layout") if isinstance(section.get("field_layout"), dict) else {},
+                        behavior = behavior,
                     )
                     out.append(sec)
             return out
@@ -498,7 +612,8 @@ def retrieve_pages(application_name: str, metadata: str) -> List[Page]:
                 if not page_gap:
                     page_gap = "normal"
 
-                page_type = page["type"]['value'] if page.get('type') else 'normal'
+                type_field = page.get("type")
+                page_type = type_field.get("value", "normal") if isinstance(type_field, dict) else (str(type_field) if type_field else "normal")
                 activity_name = page['action']['label'] if page.get('action') else None
                 section_components = retrieve_section_components(
                     application_name=application_name,

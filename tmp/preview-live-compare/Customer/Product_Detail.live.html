@@ -1,0 +1,802 @@
+{% extends "Customer_base.html" %}
+{% block content %}
+<style>
+  :root {
+    --radius: 8px;
+    --font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    --accent: #2563eb;
+    --accent-secondary: #2563eb;
+    --page-bg: #f9fafb;
+    --page-text: #111827;
+    --region-main-bg: #ffffff;
+    --region-sidebar-bg: #ffffff;
+    --region-footer-bg: #f9fafb;
+    --region-footer-text: #111827;
+    --border-color: #e5e7eb;
+    --card-bg: #ffffff;
+    --card-border: #e5e7eb;
+    --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --component-form-bg: #ffffff;
+    --component-table-bg: #ffffff;
+    --component-list-bg: #ffffff;
+    --component-detail-bg: #ffffff;
+    --component-filter-bg: #ffffff;
+    --component-workflow-bg: #ffffff;
+    --btn-radius: 8px;
+    --button-primary-bg: #2563eb;
+    --button-primary-text: #ffffff;
+    --button-primary-border: #2563eb;
+    --button-secondary-bg: #ffffff;
+    --button-secondary-text: #111827;
+    --button-secondary-border: #e5e7eb;
+    --button-danger-bg: #dc2626;
+    --button-danger-text: #ffffff;
+    --button-danger-border: #dc2626;
+    --button-link-text: #2563eb;
+    --input-bg: #ffffff;
+    --input-border: #e5e7eb;
+    --input-text: #111827;
+    --badge-bg: #f9fafb;
+    --badge-text: #111827;
+  }
+  body { font-family: var(--font-family); background-color: var(--page-bg) !important; color: var(--page-text); }
+  .si-card { background-color: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .si-btn { border-radius: var(--btn-radius); }
+  .si-btn-primary, .si-btn.bg-blue-600, .si-btn.bg-green-600, .bg-blue-600.si-btn, .bg-green-600.si-btn { background-color: var(--button-primary-bg) !important; color: var(--button-primary-text) !important; border-color: var(--button-primary-border) !important; }
+  .si-btn-secondary { background-color: var(--button-secondary-bg) !important; color: var(--button-secondary-text) !important; border: 1px solid var(--button-secondary-border) !important; }
+  .si-btn-danger, .si-btn.bg-red-600, .bg-red-600.si-btn { background-color: var(--button-danger-bg) !important; color: var(--button-danger-text) !important; border-color: var(--button-danger-border) !important; }
+  .si-btn-accent-secondary { background-color: var(--accent-secondary) !important; color: #ffffff !important; border-color: var(--accent-secondary) !important; border-radius: var(--btn-radius); }
+  .si-accent-secondary-text { color: var(--accent-secondary); }
+  .si-accent-secondary-border { border-color: var(--accent-secondary); }
+  .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
+  .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
+  .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
+  .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+  [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
+  [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
+  [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
+  [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
+  [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
+  [data-layout="detail"] .si-card { background-color: var(--component-detail-bg); }
+  [data-layout="filter"] .si-card { background-color: var(--component-filter-bg); }
+  [data-layout="activity_action"] { background-color: var(--component-workflow-bg); border-color: var(--border-color); }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="page-sections-grid" class="grid grid-cols-12 gap-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12 sm:col-span-6" data-section-id="ff75e05d-a84e-426a-8565-7ac46d2ef7d6" data-section-name="Product Gallery" data-position="main" data-layout="gallery">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Product Gallery</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    {% for ProductImage in ProductImage_list %}
+    <div class="bg-white shadow-md si-card rounded-xl overflow-hidden group relative">
+      <div class="overflow-hidden">
+        <img src="{{ ProductImage.image_url|default:'' }}" alt="image_url" class="si-img object-cover transition-transform group-hover:scale-105" />
+      </div>
+      <div class="p-3 flex flex-col gap-0.5">
+        <span class="text-sm font-medium text-gray-800" title="">{{ ProductImage.alt_text }}</span>
+      </div>
+      <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      </div>
+    </div>
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12 sm:col-span-6" data-section-id="f5b8d016196245e196ee24c9845cf656" data-section-name="Product Info" data-position="main" data-layout="detail">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Product Info</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+
+
+  <div class="flex flex-col gap-4">
+
+    {% for Product in Product_list %}
+    
+    <div class="bg-white shadow-md rounded-xl p-4 border border-gray-100">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="si-field flex flex-col gap-1" data-field-name="name">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">name</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.name }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="brand">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">brand</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.brand }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">price</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.price }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="original_price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">original_price</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.original_price }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="discount_pct">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">discount_pct</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.discount_pct }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="rating">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">rating</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.rating }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="review_count">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">review_count</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.review_count }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="description">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">description</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.description }}</span>
+        </div><div class="si-field flex flex-col gap-1" data-field-name="stock_quantity">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">stock_quantity</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Product.stock_quantity }}</span>
+        </div><div class="si-field flex flex-col gap-1 sm:col-span-2" data-field-name="image_url">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">image_url</span>
+          <img src="{{ Product.image_url|default:'' }}" alt="image_url" class="w-full max-h-64 object-contain rounded">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+      </div>
+    </div>
+    
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="bdf3dd48-98e3-4975-bc43-c9608a122543" data-section-name="Add to Cart" data-position="main" data-layout="card">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Add to Cart</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <div class="grid grid-cols-1 gap-4" data-selectable="bdf3dd48-98e3-4975-bc43-c9608a122543">
+
+    
+    {% for CartItem in CartItem_list %}
+    <div class="bg-white shadow-md si-card si-card-hover rounded-xl p-4 flex flex-col gap-3 si-sel-item" data-selectable-sid="bdf3dd48-98e3-4975-bc43-c9608a122543" data-item-idx="{{ forloop.counter0 }}"><span class="si-sel-cb"></span>
+
+      <div class="si-field flex flex-col gap-0.5" data-field-name="unit_price">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">unit_price</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ CartItem.unit_price }}</span>
+      </div>
+
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+      </div>
+    </div>
+    {% empty %}
+    {% endfor %}
+    {% if create_Add_to_Cart %}
+    <div class="bg-orange-50 rounded-xl border-2 border-dashed border-orange-200 p-4 flex flex-col gap-2">
+      <h4 class="text-sm font-semibold text-orange-700 mb-1">New Add to Cart</h4>
+      <form action="{% url 'Customer:Product_Detail_Add_to_Cart_create' %}" method="post" class="flex flex-col gap-2">
+        {% csrf_token %}
+        
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-orange-700 uppercase tracking-wide">quantity</label>
+          <input type="number" name="quantity" placeholder="quantity" class="border-orange-200 border bg-white rounded-xl px-3 py-2 text-sm focus:ring-orange-400 focus:outline-none focus:ring-2">
+        </div>
+        
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-orange-700 uppercase tracking-wide">unit_price</label>
+          <input type="text" name="unit_price" placeholder="unit_price" class="border-orange-200 border bg-white rounded-xl px-3 py-2 text-sm focus:ring-orange-400 focus:outline-none focus:ring-2">
+        </div>
+        
+        
+        <div class="flex gap-2 mt-2">
+          <input type="submit" value="Save" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-white text-sm font-medium py-2 rounded-xl cursor-pointer">
+          <a href="{% url 'Customer:render_Customer_Product_Detail' %}" class="flex-1 text-center bg-white text-gray-600 text-sm py-2 rounded-xl border border-gray-200 text-center">Cancel</a>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+  {% if not create_Add_to_Cart %}
+  <form action="{% url 'Customer:render_Customer_Product_Detail' %}" method="get" class="mt-4">
+    <input type="hidden" name="create_Add_to_Cart" value="true">
+    <button type="submit" class="flex items-center gap-2 text-sm font-medium text-orange-500 py-2 px-4 rounded-xl border border-orange-200 hover:bg-orange-50 transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      Add Add to Cart
+    </button>
+  </form>
+  {% endif %}
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="25871a09-7b35-4a25-bc5c-b340b889f509" data-section-name="Delivery Options" data-position="main" data-layout="list">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Delivery Options</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <div class="flex flex-col gap-2" data-selectable="25871a09-7b35-4a25-bc5c-b340b889f509">
+
+    {% for DeliveryOption in DeliveryOption_list %}
+    <div class="bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-between gap-4 si-sel-item" data-selectable-sid="25871a09-7b35-4a25-bc5c-b340b889f509" data-item-idx="{{ forloop.counter0 }}"><span class="si-sel-cb"></span>
+
+      <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">method</span>
+          <span class="text-xs font-medium text-gray-800" title="">{{ DeliveryOption.method }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">estimated_days</span>
+          <span class="text-xs font-medium text-gray-800" title="">{{ DeliveryOption.estimated_days }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">cost</span>
+          <span class="text-xs font-medium text-gray-800" title="">{{ DeliveryOption.cost }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">is_free</span>
+          <input type="checkbox" {% if DeliveryOption.is_free %}checked{% endif %} disabled class="h-4 w-4 rounded">
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">cutoff_time</span>
+          <span class="text-xs font-medium text-gray-800" title="">{{ DeliveryOption.cutoff_time }}</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2 shrink-0">
+      </div></div>
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="41e4c4b5-08ed-4e5d-8b35-bfe468fa6485" data-section-name="Seller Info" data-position="main" data-layout="card">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Seller Info</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <div class="grid grid-cols-1 gap-4" data-selectable="41e4c4b5-08ed-4e5d-8b35-bfe468fa6485">
+
+    
+    {% for Seller in Seller_list %}
+    <div class="bg-white border-2 border-gray-200 si-card si-card-hover rounded-xl p-4 flex flex-col gap-3 si-sel-item" data-selectable-sid="41e4c4b5-08ed-4e5d-8b35-bfe468fa6485" data-item-idx="{{ forloop.counter0 }}"><span class="si-sel-cb"></span>
+
+      <div class="si-field flex flex-col gap-0.5" data-field-name="business_name">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">business_name</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ Seller.business_name }}</span>
+      </div><div class="si-field flex flex-col gap-0.5" data-field-name="rating">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">rating</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ Seller.rating }}</span>
+      </div><div class="si-field flex flex-col gap-0.5" data-field-name="is_verified">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">is_verified</span>
+        <input type="checkbox" {% if Seller.is_verified %}checked{% endif %} disabled class="h-4 w-4 rounded">
+      </div><div class="si-field flex flex-col gap-0.5" data-field-name="ships_from">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">ships_from</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ Seller.ships_from }}</span>
+      </div><div class="si-field flex flex-col gap-0.5" data-field-name="response_time">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">response_time</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ Seller.response_time }}</span>
+      </div>
+
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+      </div>
+    </div>
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="ea3b8dd1-446e-4623-9828-77156d639e1c" data-section-name="Customer Reviews" data-position="main" data-layout="list">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Customer Reviews</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <div class="flex flex-col gap-4" data-selectable="ea3b8dd1-446e-4623-9828-77156d639e1c">
+
+    {% for Review in Review_list %}
+    <div class="bg-white shadow-md rounded-xl p-4 flex items-center justify-between gap-4 si-sel-item" data-selectable-sid="ea3b8dd1-446e-4623-9828-77156d639e1c" data-item-idx="{{ forloop.counter0 }}"><span class="si-sel-cb"></span>
+
+      <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
+        <div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">rating</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Review.rating }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">title</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Review.title }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">body</span>
+          <span class="text-sm font-medium text-gray-800" title="">{{ Review.body }}</span>
+        </div><div class="flex flex-col gap-0.5">
+          <span class="text-xs text-gray-400 uppercase tracking-wide">is_verified_purchase</span>
+          <input type="checkbox" {% if Review.is_verified_purchase %}checked{% endif %} disabled class="h-4 w-4 rounded">
+        </div>
+      </div>
+
+      <div class="flex gap-2 shrink-0">
+      </div></div>
+    {% empty %}
+    {% endfor %}
+    {% if create_Customer_Reviews %}
+    <div class="bg-orange-50 rounded-xl border border-dashed border-orange-200 p-4 flex flex-wrap gap-3">
+      <h4 class="text-sm font-semibold text-orange-700 w-full">New Customer Reviews</h4>
+      <form action="{% url 'Customer:Product_Detail_Customer_Reviews_create' %}" method="post" class="flex flex-wrap gap-3 w-full">
+        {% csrf_token %}
+        <input type="hidden" name="instance_id_Review" value="{{ request.GET.instance_id_Review }}">
+        
+        <div class="flex flex-col gap-0.5">
+          <label class="text-xs font-medium text-orange-700 uppercase">rating</label>
+          <input type="number" name="rating" placeholder="rating" class="border-orange-200 border bg-white rounded-xl px-2 py-1 text-sm focus:ring-orange-400 focus:outline-none focus:ring-2">
+        </div>
+        
+        <div class="flex flex-col gap-0.5">
+          <label class="text-xs font-medium text-orange-700 uppercase">title</label>
+          <input type="text" name="title" placeholder="title" class="border-orange-200 border bg-white rounded-xl px-2 py-1 text-sm focus:ring-orange-400 focus:outline-none focus:ring-2">
+        </div>
+        
+        <div class="flex flex-col gap-0.5">
+          <label class="text-xs font-medium text-orange-700 uppercase">body</label>
+          <input type="text" name="body" placeholder="body" class="border-orange-200 border bg-white rounded-xl px-2 py-1 text-sm focus:ring-orange-400 focus:outline-none focus:ring-2">
+        </div>
+        
+        <div class="flex flex-col gap-0.5">
+          <label class="text-xs font-medium text-orange-700 uppercase">is_verified_purchase</label>
+          <input type="checkbox" name="is_verified_purchase" class="h-4 w-4 rounded mt-1">
+        </div>
+        
+        <div class="flex gap-2 items-end">
+          <input type="submit" value="Save" class="bg-orange-500 hover:bg-orange-600 text-white text-white text-sm font-medium py-1.5 px-4 rounded-xl cursor-pointer">
+          <a href="{% url 'Customer:render_Customer_Product_Detail' %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50">Cancel</a>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+    {% if not create_Customer_Reviews %}
+    <form action="{% url 'Customer:render_Customer_Product_Detail' %}" method="get" class="mt-2">
+      <input type="hidden" name="create_Customer_Reviews" value="true">
+      <input type="hidden" name="instance_id_Review" value="{{ request.GET.instance_id_Review }}">
+      <button type="submit" class="flex items-center gap-2 text-sm font-medium text-orange-500 py-2 px-4 rounded-xl border border-orange-200 hover:bg-orange-50 transition-colors">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Add Customer Reviews
+      </button>
+    </form>
+    {% endif %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="78f1b83a-0dd5-42db-9ffc-d3325b9a1183" data-section-name="Related Products" data-position="main" data-layout="card">
+
+  
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-xl font-semibold text-gray-800">Related Products</h2>
+  </div>
+  
+
+  
+
+
+
+
+
+
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" data-selectable="78f1b83a-0dd5-42db-9ffc-d3325b9a1183">
+
+    
+    {% for RelatedProduct in RelatedProduct_list %}
+    <div class="bg-white shadow-md si-card si-card-hover rounded-xl p-4 flex flex-col gap-3 si-sel-item" data-selectable-sid="78f1b83a-0dd5-42db-9ffc-d3325b9a1183" data-item-idx="{{ forloop.counter0 }}"><span class="si-sel-cb"></span>
+
+      <div class="si-field flex flex-col gap-0.5" data-field-name="image_url">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">image_url</span>
+        {% with fimg=RelatedProduct.relatedproductimage_set.first %}<img src="{% if RelatedProduct.image_url %}{{ RelatedProduct.image_url }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}" alt="image_url" class="si-img object-cover rounded">{% endwith %}
+      </div><div class="si-field flex flex-col gap-0.5" data-field-name="name">
+        <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">name</span>
+        <span class="text-sm font-medium text-gray-800" title="">{{ RelatedProduct.name }}</span>
+      </div>
+
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
+      </div>
+    </div>
+    {% empty %}
+    {% endfor %}
+
+  </div>
+
+
+
+
+
+
+
+</div>
+</div>
+
+
+<script>
+(function() {
+  var grid = document.getElementById('page-sections-grid');
+  if (!grid) return;
+  var secs = Array.from(grid.children);
+  var byPos = {};
+  secs.forEach(function(el) {
+    var pos = el.getAttribute('data-position') || 'main';
+    if (!byPos[pos]) byPos[pos] = [];
+    byPos[pos].push(el);
+  });
+  var hasHero = byPos.hero && byPos.hero.length;
+  var hasSidebar = byPos.sidebar && byPos.sidebar.length;
+  if (!hasHero && !hasSidebar) return;
+  var parent = grid.parentNode;
+  var wrap = document.createElement('div');
+  wrap.className = 'flex flex-col gap-6';
+  if (hasHero) {
+    var heroEl = document.createElement('div');
+    heroEl.className = 'rounded-2xl overflow-hidden grid grid-cols-12 gap-4';
+    byPos.hero.forEach(function(el) { heroEl.appendChild(el); });
+    wrap.appendChild(heroEl);
+  }
+  var mainSecs = byPos.main || [];
+  var sidebarSecs = byPos.sidebar || [];
+  if (mainSecs.length || sidebarSecs.length) {
+    var hasSidebarEl = sidebarSecs.length > 0;
+    var contentRow = document.createElement('div');
+    contentRow.className = hasSidebarEl ? 'flex gap-6 items-start' : '';
+    var mainGrid = document.createElement('div');
+    mainGrid.className = (hasSidebarEl ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
+    mainSecs.forEach(function(el) { mainGrid.appendChild(el); });
+    contentRow.appendChild(mainGrid);
+    if (hasSidebarEl) {
+      var sideEl = document.createElement('aside');
+      sideEl.className = 'w-72 flex-shrink-0 flex flex-col gap-4';
+      sidebarSecs.forEach(function(el) { el.className = 'w-full'; sideEl.appendChild(el); });
+      contentRow.appendChild(sideEl);
+    }
+    wrap.appendChild(contentRow);
+  }
+  parent.replaceChild(wrap, grid);
+})();
+</script>
+
+<script>
+(function() {
+  var kw = {
+    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
+    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
+    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
+  };
+  document.querySelectorAll('.si-badge').forEach(function(el) {
+    var t = el.textContent.trim();
+    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
+    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
+    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
+    else                         { el.className = 'si-badge si-badge-neutral'; }
+  });
+})();
+</script>
+
+{% endblock %}

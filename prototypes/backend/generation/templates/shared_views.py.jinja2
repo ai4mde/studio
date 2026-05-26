@@ -75,7 +75,13 @@ class GenericListView(GenericViewMixin, ListView):
             return
         for key in update_keys:
             if model := apps.get_model('shared_models', key.split("_")[-1]):
-                context['update_instance'] = get_object_or_404(model, pk=self.request.GET[key])
+                value = self.request.GET.get(key)
+                if not value:
+                    first_instance = model.objects.order_by('pk').first()
+                    if first_instance is None:
+                        continue
+                    value = first_instance.pk
+                context['update_instance'] = get_object_or_404(model, pk=value)
                 break
     
     def _execute_custom_method(self) -> None:
@@ -83,9 +89,12 @@ class GenericListView(GenericViewMixin, ListView):
         if not custom_method_keys:
             return
         for key in custom_method_keys:
+            value = self.request.GET.get(key)
+            if not value:
+                continue
             _, model, method = key.split("_", 2)
             if model_instance := apps.get_model('shared_models', model):
-                instance = get_object_or_404(model_instance, pk=self.request.GET[key])
+                instance = get_object_or_404(model_instance, pk=value)
                 custom_method = getattr(instance, method)
                 signature = inspect.signature(custom_method)
                 kwargs = {

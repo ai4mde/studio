@@ -254,6 +254,102 @@ def seed_loan_app_models():
     print(f'Created {Applicant.objects.count()} applicants, {LoanApplication.objects.count()} loan applications, and fallback demo records.')
 
 
+GENERIC_NAMES = ['Alpha Record', 'Beta Record', 'Gamma Record']
+PERSON_NAMES = [('Amina', 'Khan'), ('Luca', 'Ferrari'), ('Maya', 'Chen')]
+DOCUMENT_NAMES = ['Proof of income', 'Bank statement', 'Identity document']
+STATUSES = ['active', 'pending', 'completed']
+DATES = ['2026-05-10', '2026-05-12', '2026-05-15']
+EMAILS = ['amina.khan@example.com', 'luca.ferrari@example.com', 'maya.chen@example.com']
+
+
+def _generic_value(field, row):
+    name = field.name.lower()
+    internal = field.get_internal_type()
+    if internal in ('AutoField', 'BigAutoField'):
+        return None
+    if internal == 'BooleanField':
+        return row % 2 == 0
+    if internal in ('IntegerField', 'PositiveIntegerField', 'SmallIntegerField', 'PositiveSmallIntegerField'):
+        if 'score' in name:
+            return [742, 689, 715][row]
+        if 'count' in name or 'quantity' in name or 'stock' in name:
+            return [12, 47, 8][row]
+        return [100, 250, 500][row]
+    if internal in ('FloatField', 'DecimalField'):
+        return [49.99, 119.00, 199.00][row]
+    if internal in ('DateField', 'DateTimeField'):
+        return DATES[row]
+    if internal == 'EmailField':
+        return EMAILS[row]
+    if internal in ('CharField', 'TextField', 'URLField', 'SlugField'):
+        if 'email' in name:
+            return EMAILS[row]
+        if 'first' in name:
+            return PERSON_NAMES[row][0]
+        if 'last' in name:
+            return PERSON_NAMES[row][1]
+        if 'full' in name or name == 'name' or 'title' in name or 'label' in name:
+            return GENERIC_NAMES[row]
+        if 'status' in name or 'state' in name or 'phase' in name:
+            return STATUSES[row]
+        if 'date' in name or 'time' in name:
+            return DATES[row]
+        if 'amount' in name or 'price' in name or 'cost' in name or 'total' in name:
+            return ['EUR 49.99', 'EUR 119.00', 'EUR 199.00'][row]
+        if 'file' in name or 'document' in name:
+            return DOCUMENT_NAMES[row]
+        if 'description' in name or 'summary' in name or 'body' in name or 'reason' in name:
+            return f'Deterministic sample description {row + 1}'
+        if name.endswith('_id') or name == 'id':
+            return f'{field.model.__name__.lower()}-{row + 1:03d}'
+        return f'{field.name}_{row + 1}'
+    return None
+
+
+def seed_generic_models():
+    seeded = set()
+    models = [m for name, m in models_by_name.items() if name != User.__name__]
+    for _pass in range(len(models) + 1):
+        progressed = False
+        for model in models:
+            if model in seeded or model.objects.exists():
+                seeded.add(model)
+                continue
+            rows = []
+            blocked = False
+            for row in range(3):
+                values = {}
+                for field in model._meta.fields:
+                    if field.primary_key and field.get_internal_type() in ('AutoField', 'BigAutoField'):
+                        continue
+                    if field.is_relation and getattr(field, 'remote_field', None):
+                        related = field.remote_field.model.objects.first()
+                        if related is None and not field.null:
+                            blocked = True
+                            break
+                        values[field.name] = related
+                        continue
+                    value = _generic_value(field, row)
+                    if value is not None:
+                        values[field.name] = value
+                if blocked:
+                    break
+                rows.append(values)
+            if blocked:
+                continue
+            for values in rows:
+                model.objects.create(**values)
+            seeded.add(model)
+            progressed = True
+            print(f'Created {len(rows)} generic {model.__name__} records.')
+        if not progressed:
+            break
+
+
+def shared_model_record_count():
+    return sum(model.objects.count() for name, model in models_by_name.items() if name != User.__name__)
+
+
 clear_shared_models()
 print('Cleared existing data.')
 
@@ -261,6 +357,10 @@ if has_ecommerce_models():
     seed_ecommerce_models()
 else:
     seed_loan_app_models()
+
+if shared_model_record_count() == 0:
+    print('No domain-specific seed data was created; using generic deterministic seed data.')
+    seed_generic_models()
 
 print()
 print('=== Seed complete ===')

@@ -51,7 +51,7 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
         if not instance.{{ attribute }}:
             instance.{{ attribute }} = None
         {% endif -%}
@@ -121,7 +121,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM] -%}
+        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
         if not instance.{{ attribute }}:
             instance.{{ attribute }} = None
         {% endif -%}
@@ -331,6 +331,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {%- set _has_wf_sections = (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
         {% if _has_wf_sections -%}
         context['available_processes'] = Process.get_available_processes(self.request.user)
+        context['all_processes'] = Process.objects.all()
         context['active_process_nodes'] = ActiveProcessNode.objects.filter(
             user=self.request.user,
             active_process__completed=False,
@@ -357,4 +358,5 @@ class HomeRenderView(GenericTemplateView):
             active_process__completed=False,
         )
         context['available_processes'] = Process.get_available_processes(self.request.user)
+        context['all_processes'] = Process.objects.all()
         return context

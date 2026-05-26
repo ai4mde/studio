@@ -1,7 +1,7 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -21,6 +21,7 @@ type ImagePositionOption = 'left' | 'top' | 'right';
 type ImageSizeOption = 'sm' | 'md' | 'lg';
 type ColSpanOption = 12 | 6 | 4 | 3;
 type PositionOption = 'header' | 'hero' | 'main' | 'sidebar' | 'footer';
+type SidebarSideOption = 'left' | 'right';
 type ShadowOption = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 type BorderOption = 'none' | 'light' | 'colored' | 'strong';
 type BgOption = 'white' | 'light' | 'gray' | 'dark';
@@ -42,6 +43,34 @@ const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     filter:  ['color', 'density', 'bg'],
     form:    ['form_style', 'color', 'density', 'login_label', 'step_icon', 'total_label', 'cta_label', 'success_page'],
     activity_action: ['activity_label', 'activity_workflow_action', 'activity_target_page', 'activity_variant', 'activity_align', 'activity_size'],
+};
+
+const COMPONENT_CONTROLS: Record<string, readonly string[]> = {
+    NavBar: ['methods', 'density', 'bg', 'shadow', 'sidebar_side'],
+    IconActions: ['methods', 'density'],
+    SearchBar: ['text', 'density', 'bg', 'shadow', 'sidebar_side'],
+    SiteFooter: ['text', 'methods', 'density', 'bg', 'shadow'],
+    FooterLinkGrid: ['methods', 'density', 'bg'],
+    ProductCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label', 'seller_label', 'availability_label', 'delivery_label'],
+    CategoryTileGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    PersonCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    CardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ObjectCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ImageCardGrid: ['display_mode', 'card_style', 'columns', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    DataTable: ['density', 'shadow', 'border', 'bg', 'header_style'],
+    ObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    LineItemList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    RelatedObjectList: ['list_style', 'density', 'shadow', 'border', 'bg', 'header_style', 'cta_label'],
+    ProductDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    MediaDetailPanel: ['image_position', 'image_size', 'density', 'shadow', 'border', 'bg', 'header_style'],
+    ObjectDetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
+    DetailPanel: ['density', 'shadow', 'border', 'bg', 'header_style'],
+    SummaryPanel: ['density', 'shadow', 'border', 'bg', 'header_style', 'sidebar_side'],
+    ObjectForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
+    AddressForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
+    PaymentMethodForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
+    ReviewForm: ['form_style', 'density', 'bg', 'cta_label', 'success_page'],
+    FilterPanel: ['density', 'bg', 'sidebar_side'],
 };
 
 const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
@@ -101,6 +130,135 @@ const LAYOUT_GROUPS: LayoutGroup[] = [
         { value: 'site-footer', label: 'Site Footer', icon: <Monitor size={13} /> },
     ]},
 ];
+
+const normalizePreviewPageName = (value: any) =>
+    String(value || '')
+        .replace(/^templates\//i, '')
+        .replace(/\.html?$/i, '')
+        .replace(/[^a-z0-9]+/gi, '')
+        .toLowerCase();
+
+const previewPathPageKey = (path: any, interfaceName?: string) => {
+    const stem = String(path || '').split('/').pop()?.replace(/\.html?$/i, '') || '';
+    const interfacePrefix = interfaceName ? `${String(interfaceName).toLowerCase()}_` : '';
+    const withoutKnownPrefix = interfacePrefix && stem.toLowerCase().startsWith(interfacePrefix)
+        ? stem.slice(interfacePrefix.length)
+        : stem.replace(/^[^_]+_/, '');
+    return normalizePreviewPageName(withoutKnownPrefix);
+};
+
+const previewFileMatchesPage = (file: any, page: any, interfaceName?: string) => {
+    const pageKey = normalizePreviewPageName(page?.name || page?.id);
+    if (!pageKey) return false;
+    if (normalizePreviewPageName(file?.page) === pageKey) return true;
+
+    return previewPathPageKey(file?.path, interfaceName) === pageKey;
+};
+
+const livePathForPage = (interfaceName: string | undefined, page: any) => {
+    const app = String(interfaceName || '').trim();
+    if (!app) return '/';
+    if (!page || String(page?.id || page?.name || '').toLowerCase() === 'task') return `/${app}/`;
+    const pageType = String(page?.type?.value || page?.type || '').toLowerCase();
+    if (pageType === 'activity') return `/${app}/`;
+    const pageName = String(page?.name || page?.id || '').trim();
+    return pageName ? `/${app}/render_${app}_${pageName}` : `/${app}/`;
+};
+
+const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
+    const tokens = { ...(raw || {}) };
+    const defaultBlues = new Set(['', '#2563eb', '#0000a4', 'var(--accent)']);
+    const stylingAccent = styling?.accentColor || styling?.accent_color;
+    const existingAccent = tokens['accent.hex'];
+    const accent = stylingAccent && (existingAccent == null || defaultBlues.has(String(existingAccent)))
+        ? stylingAccent
+        : existingAccent;
+    if (!accent) return tokens;
+    tokens['accent.hex'] = accent;
+    ['region.header.bg_hex', 'region.footer.bg_hex', 'button.primary.bg_hex', 'button.primary.border_hex', 'input.border_focus_hex'].forEach((key) => {
+        if (tokens[key] == null || defaultBlues.has(String(tokens[key]))) tokens[key] = accent;
+    });
+    if (tokens['region.header.text_hex'] == null || tokens['region.header.text_hex'] === '') {
+        tokens['region.header.text_hex'] = '#ffffff';
+    }
+    if (tokens['region.footer.text_hex'] == null || tokens['region.footer.text_hex'] === '') {
+        tokens['region.footer.text_hex'] = '#ffffff';
+    }
+    return tokens;
+};
+
+const COMPONENT_OPTIONS_BY_LAYOUT: Partial<Record<LayoutOption, string[]>> = {
+    gallery: ['ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid'],
+    card: ['ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid', 'SummaryPanel'],
+    table: ['DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList'],
+    list: ['ObjectList', 'LineItemList', 'RelatedObjectList'],
+    detail: ['ProductDetailPanel', 'DetailPanel', 'SummaryPanel'],
+    form: ['ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm'],
+    filter: ['FilterPanel', 'SearchBar'],
+    'search-bar': ['SearchBar'],
+    'site-nav': ['NavBar'],
+    'nav-links': ['NavBar'],
+    'icon-actions': ['IconActions'],
+    'site-footer': ['SiteFooter', 'FooterLinkGrid'],
+    'link-grid': ['FooterLinkGrid'],
+    activity_action: ['WorkflowActionButton', 'StartWorkflowButton'],
+};
+
+const FIELD_LAYOUT_SLOTS: Record<string, { slot: string; label: string; multiple?: boolean }[]> = {
+    ProductCardGrid: [
+        { slot: 'image', label: 'Image' },
+        { slot: 'video', label: 'Video' },
+        { slot: 'title', label: 'Title' },
+        { slot: 'subtitle', label: 'Subtitle' },
+        { slot: 'primary', label: 'Primary' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+    ],
+    CategoryTileGrid: [
+        { slot: 'image', label: 'Image' },
+        { slot: 'title', label: 'Title' },
+        { slot: 'subtitle', label: 'Subtitle' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+    ],
+    PersonCardGrid: [
+        { slot: 'image', label: 'Avatar' },
+        { slot: 'title', label: 'Name' },
+        { slot: 'subtitle', label: 'Role' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+    ],
+    CardGrid: [
+        { slot: 'media', label: 'Media' },
+        { slot: 'title', label: 'Title' },
+        { slot: 'subtitle', label: 'Subtitle' },
+        { slot: 'primary', label: 'Primary' },
+        { slot: 'secondary', label: 'Secondary', multiple: true },
+    ],
+    DataTable: [{ slot: 'columns', label: 'Columns', multiple: true }],
+    ObjectList: [{ slot: 'columns', label: 'Fields', multiple: true }],
+    LineItemList: [{ slot: 'columns', label: 'Line fields', multiple: true }],
+    RelatedObjectList: [{ slot: 'columns', label: 'Related fields', multiple: true }],
+    ProductDetailPanel: [
+        { slot: 'image', label: 'Image' },
+        { slot: 'video', label: 'Video' },
+        { slot: 'title', label: 'Title' },
+        { slot: 'hero', label: 'Hero fields', multiple: true },
+        { slot: 'fields', label: 'Detail fields', multiple: true },
+    ],
+    DetailPanel: [
+        { slot: 'title', label: 'Title' },
+        { slot: 'hero', label: 'Hero fields', multiple: true },
+        { slot: 'fields', label: 'Detail fields', multiple: true },
+    ],
+    SummaryPanel: [
+        { slot: 'title', label: 'Title' },
+        { slot: 'fields', label: 'Summary fields', multiple: true },
+    ],
+    ObjectForm: [{ slot: 'fields', label: 'Editable fields', multiple: true }],
+    AddressForm: [{ slot: 'fields', label: 'Address fields', multiple: true }],
+    PaymentMethodForm: [{ slot: 'fields', label: 'Payment fields', multiple: true }],
+    ReviewForm: [{ slot: 'fields', label: 'Review fields', multiple: true }],
+    FilterPanel: [{ slot: 'fields', label: 'Filter fields', multiple: true }],
+    SearchBar: [{ slot: 'fields', label: 'Search fields', multiple: true }],
+};
 
 const COL_SPAN_OPTIONS: { value: ColSpanOption; label: string }[] = [
     { value: 12, label: 'Full' },
@@ -166,9 +324,11 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
 };
 
 export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
-    const [sections, setSections] = useLocalStorage('sections', []);
-    const [pages, setPages] = useLocalStorage('pages', []);
-    const [styling, setStyling] = useLocalStorage('styling', {});
+    const storagePrefix = interfaceId || 'new-interface';
+    const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
+    const [pages, setPages] = useLocalStorage(`interface:${storagePrefix}:pages`, []);
+    const [styling, setStyling] = useLocalStorage(`interface:${storagePrefix}:styling`, {});
+    const [tokens, setTokens] = useLocalStorage(`interface:${storagePrefix}:tokens`, {});
 
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
     const [previewHtml, setPreviewHtml] = useState<string>('');
@@ -215,12 +375,46 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
     const [isAIExpanded, setIsAIExpanded] = useState(true);
+    const [systemClassifiers, setSystemClassifiers] = useState<any[]>([]);
+    const [currentInterface, setCurrentInterface] = useState<any>(null);
+    const [draggedField, setDraggedField] = useState<string | null>(null);
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     // Capture latest sections/pages/previewPageIndex/styling for the debounced callback
-    const latestState = useRef({ sections, pages, previewPageIndex, styling });
-    useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling }; }, [sections, pages, previewPageIndex, styling]);
+    const latestState = useRef({ sections, pages, previewPageIndex, styling, tokens });
+    useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling, tokens }; }, [sections, pages, previewPageIndex, styling, tokens]);
+
+    useEffect(() => {
+        if (!systemId) return;
+        let cancelled = false;
+        authAxios.get(`/v1/metadata/systems/${systemId}/classifiers/`)
+            .then((res) => { if (!cancelled) setSystemClassifiers(Array.isArray(res.data) ? res.data : []); })
+            .catch(() => { if (!cancelled) setSystemClassifiers([]); });
+        return () => { cancelled = true; };
+    }, [systemId]);
+
+    useEffect(() => {
+        if (!interfaceId) return;
+        let cancelled = false;
+        authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`)
+            .then((res) => {
+                if (cancelled) return;
+                const iface = res.data as any;
+                const data = iface?.data || {};
+                setCurrentInterface(iface);
+                setSections(data.sections || []);
+                setPages(data.pages || []);
+                setStyling(data.styling || {});
+                setTokens(normalizeDesignTokens(data.tokens || {}, data.styling || {}));
+                setPreviewPageIndex(0);
+                setPreviewCandidateIdx(null);
+            })
+            .catch(() => {
+                if (!cancelled) setCurrentInterface(null);
+            });
+        return () => { cancelled = true; };
+    }, [interfaceId]);
 
     useEffect(() => {
         const pageList = pages as any[];
@@ -259,7 +453,43 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         }
     }, [pages, sections, setPages, setSections]);
 
+    const resolveLiveUser = useCallback(() => {
+        const actor = systemClassifiers.find((cls: any) => String(cls?.id) === String(currentInterface?.actor));
+        const actorName = String(actor?.data?.name || currentInterface?.name || '').toLowerCase();
+        if (actorName.includes('seller')) return 'techstore';
+        if (actorName.includes('customer')) return 'jan_devries';
+        if (actorName.includes('system')) return 'system';
+        if (actorName.includes('applicant')) return 'demo-applicant';
+        if (actorName.includes('loan') && actorName.includes('officer')) return 'demo-loan-officer';
+        return actorName.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'jan_devries';
+    }, [currentInterface, systemClassifiers]);
+
+    useEffect(() => {
+        setLiveUser(resolveLiveUser());
+    }, [resolveLiveUser]);
+
     const selectedSection = (sections as any[]).find((s: any) => s.id === selectedSectionId);
+    const selectedCandidate = (
+        designMode === 'explore'
+        && previewCandidateIdx !== null
+        && candidates[previewCandidateIdx]
+    ) ? candidates[previewCandidateIdx] : null;
+    const visiblePages = (
+        designMode === 'explore'
+        && previewCandidateIdx !== null
+        && Array.isArray(candidates[previewCandidateIdx]?.pages)
+    )
+        ? candidates[previewCandidateIdx].pages
+        : pages;
+    const selectedVisiblePage = (visiblePages as any[])[previewPageIndex];
+    const selectedCandidateHtml = selectedCandidate
+        ? (
+            (selectedCandidate.preview_files || []).find((f: any) =>
+                previewFileMatchesPage(f, selectedVisiblePage, currentInterface?.name)
+            )?.content
+            || selectedCandidate.preview_html
+        )
+        : '';
 
     // postMessage -> select section from iframe click / drag-reorder
     useEffect(() => {
@@ -379,17 +609,26 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const doRefreshPreview = useCallback(async () => {
         if (!interfaceId) return;
-        const { sections: secs, pages: pgs, previewPageIndex: idx, styling: stl } = latestState.current;
+        const { sections: secs, pages: pgs, previewPageIndex: idx, styling: stl, tokens: tks } = latestState.current;
+        const effectiveTokens = normalizeDesignTokens(tks, stl);
         setIsRefreshing(true);
         setPreviewError('');
         try {
             const res = await authAxios.post(`/v1/metadata/interfaces/${interfaceId}/generate/`, {
                 prompt: '',
-                interface_data_override: { sections: secs, pages: pgs, ...(stl && Object.keys(stl).length ? { styling: stl } : {}) },
+                interface_data_override: {
+                    sections: secs,
+                    pages: pgs,
+                    ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
+                    ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
+                },
                 inject_click_handlers: true,
             });
             const htmlFiles = (res.data.files || []).filter((f: any) => f.path.endsWith('.html'));
-            const html = htmlFiles[idx]?.content ?? htmlFiles[0]?.content;
+            const targetPage = (pgs as any[])[idx];
+            const html = htmlFiles.find((f: any) => previewFileMatchesPage(f, targetPage, res.data?.interface_name))?.content
+                ?? htmlFiles[idx]?.content
+                ?? htmlFiles[0]?.content;
             if (html) {
                 setPreviewHtml(html);
             } else {
@@ -422,7 +661,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             const params = systemId ? `?system_id=${systemId}` : '';
             await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
             setSeedStatus('ok');
-            setLiveUser('jan_devries');
+            setLiveUser(resolveLiveUser());
             setLiveKey((k: number) => k + 1);
             checkAndSwitchLive();
         } catch {
@@ -431,9 +670,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setIsSeedingData(false);
             setTimeout(() => setSeedStatus('idle'), 3000);
         }
-    }, [systemId, checkAndSwitchLive]);
+    }, [systemId, checkAndSwitchLive, resolveLiveUser]);
 
-    const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any) => {
+    const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any, overrideTokens?: any) => {
         if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
 
             const [{ data: iface }, { data: diagrams }, { data: allInterfaces }] = await Promise.all([
@@ -441,10 +680,11 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 authAxios.get(`/v1/diagram/system/${systemId}/`),
                 authAxios.get(`/v1/metadata/interfaces/`, { params: { system: systemId } }),
             ]);
-            const { sections: secs, pages: pgs, styling: stl } = latestState.current;
+            const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
             const effectiveSections = overrideSections ?? secs;
             const effectivePages = overridePages ?? pgs;
             const effectiveStyling = overrideStyling ?? stl;
+            const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? ((iface as any).data || {}).tokens, effectiveStyling);
             const syncedInterface = {
                 ...iface,
                 data: {
@@ -452,6 +692,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     sections: effectiveSections,
                     pages: effectivePages,
                     ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
+                    ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
                 },
             };
             const prototypeName = `sync${Date.now()}`;
@@ -504,13 +745,15 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             let overrideSections: any[] | undefined;
             let overridePages: any[] | undefined;
             let overrideStyling: any | undefined;
+            let overrideTokens: any | undefined;
             if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
                 const cand = candidates[previewCandidateIdx];
                 overrideSections = cand.sections;
                 overridePages = cand.pages;
                 overrideStyling = cand.styling;
+                overrideTokens = normalizeDesignTokens(cand.tokens, cand.styling);
             }
-            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling);
+            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling, overrideTokens);
             setMetadataJson(JSON.stringify(payload, null, 2));
         } catch (error: any) {
             setMetadataError(error?.response?.data?.detail || error?.message || 'Failed to build generator metadata.');
@@ -529,13 +772,15 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             let overrideSections: any[] | undefined;
             let overridePages: any[] | undefined;
             let overrideStyling: any | undefined;
+            let overrideTokens: any | undefined;
             if (designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]) {
                 const cand = candidates[previewCandidateIdx];
                 overrideSections = cand.sections;
                 overridePages = cand.pages;
                 overrideStyling = cand.styling;
+                overrideTokens = normalizeDesignTokens(cand.tokens, cand.styling);
             }
-            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling);
+            const payload = await buildGeneratorPrototypePayload(overrideSections, overridePages, overrideStyling, overrideTokens);
             const databasePrototypeName = payload.query.database_prototype_name || '';
             const previousPrototypeId = payload.previous_prototype_id || '';
             const { data: prototype } = await authAxios.post(`v1/generator/prototypes/?database_prototype_name=${encodeURIComponent(databasePrototypeName)}`, payload.body);
@@ -547,12 +792,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     // The new live prototype is already running; deletion failure should not break sync.
                 }
             }
-            if (!databasePrototypeName) {
-                const params = systemId ? `?system_id=${systemId}` : '';
-                await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
-            }
+            const params = systemId ? `?system_id=${systemId}` : '';
+            await authAxios.post(`/v1/generator/prototypes/seed/${params}`);
             setPreviewMode('live');
-            setLiveUser('jan_devries');
+            setLiveUser(resolveLiveUser());
             setLiveKey((k: number) => k + 1);
             setSyncStatus('ok');
         } catch (error) {
@@ -561,23 +804,27 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setIsSyncingLive(false);
             setTimeout(() => setSyncStatus('idle'), 3000);
         }
-    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates]);
+    }, [interfaceId, systemId, isSyncingLive, buildGeneratorPrototypePayload, designMode, previewCandidateIdx, candidates, resolveLiveUser]);
 
     const doHotReload = useCallback(async () => {
         if (!interfaceId) return;
-        const { sections: secs, pages: pgs, styling: stl } = latestState.current;
+        const { sections: secs, pages: pgs, styling: stl, tokens: tks } = latestState.current;
+        const activeCandidate = designMode === 'explore' && previewCandidateIdx !== null ? candidates[previewCandidateIdx] : null;
+        const effectiveStyling = activeCandidate?.styling || stl;
+        const effectiveTokens = normalizeDesignTokens(activeCandidate?.tokens || tks, effectiveStyling);
         try {
             await authAxios.post('/v1/generator/prototypes/hot_reload/', {
                 interface_id: interfaceId,
-                sections: secs,
-                pages: pgs,
-                ...(stl && Object.keys(stl).length ? { styling: stl } : {}),
+                sections: activeCandidate?.sections || secs,
+                pages: activeCandidate?.pages || pgs,
+                ...(effectiveStyling && Object.keys(effectiveStyling).length ? { styling: effectiveStyling } : {}),
+                ...(effectiveTokens && Object.keys(effectiveTokens).length ? { tokens: effectiveTokens } : {}),
             });
             setLiveKey((k: number) => k + 1);
         } catch {
             // fail silently — live prototype may not be running
         }
-    }, [interfaceId]);
+    }, [interfaceId, designMode, previewCandidateIdx, candidates]);
 
     // Debounce: refresh 600 ms after any sections/pages/page-index/styling change
     useEffect(() => {
@@ -587,15 +834,15 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };
     }, [sections, pages, previewPageIndex, styling, interfaceId, doRefreshPreview]);
 
-    // Debounce: hot-reload live prototype 800 ms after sections/pages/styling change
+    // Debounce: hot-reload live prototype 800 ms after sections/pages/styling/tokens change
     useEffect(() => {
         if (!interfaceId || previewMode !== 'live') return;
         if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current);
         hotReloadTimer.current = setTimeout(doHotReload, 800);
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
-    }, [sections, pages, styling, interfaceId, previewMode, doHotReload]);
+    }, [sections, pages, styling, tokens, interfaceId, previewMode, doHotReload]);
 
-const updateSection = useCallback((sectionId: string, field: string, value: string | number) => {
+const updateSection = useCallback((sectionId: string, field: string, value: any) => {
         setSections((prev: any[]) => prev.map((s: any) => {
             if (s.id !== sectionId) return s;
             if (field === 'layout') {
@@ -605,11 +852,16 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                     : FOOTER_LAYOUTS.includes(nextLayout)
                         ? 'footer'
                         : s.position;
-                return { ...s, layout: value, position: nextPosition };
+                const options = COMPONENT_OPTIONS_BY_LAYOUT[nextLayout] || [];
+                const nextComponent = options.includes(s.component) ? s.component : (options[0] || s.component || '');
+                return { ...s, layout: value, position: nextPosition, component: nextComponent };
             }
             if (field === 'col_span') return { ...s, col_span: value };
             if (field === 'text') return { ...s, text: value };
             if (field === 'label') return { ...s, label: value, name: value || s.name };
+            if (field === 'component') return { ...s, component: value };
+            if (field === 'field_layout') return { ...s, field_layout: value };
+            if (field === 'behavior') return { ...s, behavior: value };
             if (field === 'workflow_action') return { ...s, workflow: { ...(s.workflow || {}), action: value } };
             if (field === 'workflow_target_page') return { ...s, workflow: { ...(s.workflow || {}), target_page: value } };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
@@ -644,6 +896,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
         const prompt = explorePrompt;
         setIsGeneratingCandidates(true);
         setCandidateStatus('Connecting to agent...');
+        setCandidates([]);
         setPreviewCandidateIdx(null);
         let lastStatus = '';
         try {
@@ -670,8 +923,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                     try {
                         const c = JSON.parse(line);
                         if (c.status) { lastStatus = c.status; setCandidateStatus(c.status); }
+                        if (c.status === 'error') {
+                            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate generation failed'}`);
+                            setIsGeneratingCandidates(false);
+                            return;
+                        }
                         if (c.status === 'done') {
-                            setCandidateStatus('Done! Loading candidates...');
+                            setCandidateStatus(`Done! Loading ${c.candidate_count ?? ''} candidate${c.candidate_count === 1 ? '' : 's'}...`);
                             await loadCandidates();
                             setIsGeneratingCandidates(false);
                             return;
@@ -689,6 +947,64 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
         }
     };
 
+    const handleRegenerateCandidates = async (idx: number) => {
+        if (!explorePrompt.trim() || isGeneratingCandidates || !interfaceId || !systemId || !candidates[idx]) return;
+        const designer_requirements = explorePrompt;
+        setIsGeneratingCandidates(true);
+        setCandidateStatus(`Regenerating 3 candidates from Candidate ${idx + 1}...`);
+        setCandidates([]);
+        setPreviewCandidateIdx(null);
+        try {
+            const bearerToken = useAuthStore.getState().bearerToken;
+            const authHeader = bearerToken ? `Bearer ${bearerToken}` : '';
+            const base = (authAxios.defaults.baseURL || '').replace(/\/+$/, '');
+            const response = await fetch(`${base}/v1/generator/prototypes/regenerate_candidates/`, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...(authHeader ? { Authorization: authHeader } : {}) },
+                body: JSON.stringify({
+                    interface_id: interfaceId,
+                    system_id: systemId,
+                    selected_candidate_index: idx,
+                    designer_requirements,
+                }),
+            });
+            if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = '';
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                const lines = buf.split('\n');
+                buf = lines.pop() || '';
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    try {
+                        const c = JSON.parse(line);
+                        if (c.status) setCandidateStatus(c.status);
+                        if (c.status === 'error') {
+                            setCandidateStatus(`Error: ${c.message || c.agent_error || 'candidate regeneration failed'}`);
+                            setIsGeneratingCandidates(false);
+                            return;
+                        }
+                        if (c.status === 'done') {
+                            setCandidateStatus(`Done! Regenerated ${c.candidate_count ?? 3} candidates from Candidate ${idx + 1}.`);
+                            await loadCandidates();
+                            setIsGeneratingCandidates(false);
+                            return;
+                        }
+                    } catch { /* ignore */ }
+                }
+            }
+        } catch (e: any) {
+            setCandidateStatus(`Error: ${e.message}`);
+        } finally {
+            setIsGeneratingCandidates(false);
+            await loadCandidates();
+        }
+    };
+
     const handleApplyCandidate = useCallback(async (idx: number) => {
         if (!interfaceId) return;
         try {
@@ -696,10 +1012,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
             const d = res.data as any;
             if (d?.pages) applyVariantDSL(d.pages, d.sections);
             if (d?.styling && Object.keys(d.styling).length) setStyling(d.styling);
+            if (d?.tokens && Object.keys(d.tokens).length) setTokens(normalizeDesignTokens(d.tokens, d.styling));
             setDesignMode('refine');
             setPreviewCandidateIdx(null);
         } catch { /* ignore */ }
-    }, [interfaceId, applyVariantDSL, setStyling]);
+    }, [interfaceId, applyVariantDSL, setStyling, setTokens]);
 
     const updatePageProperty = useCallback((pageIndex: number, field: string, value: any) => {
         setPages((prev: any[]) => {
@@ -765,7 +1082,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                         }
                         if (chunk.status === 'Done') {
                             const htmlFiles = (chunk.files || []).filter((f: any) => f.path.endsWith('.html'));
-                            if (htmlFiles[0]?.content) setPreviewHtml(htmlFiles[0].content);
+                            const targetPage = (pages as any[])[previewPageIndex];
+                            const html = htmlFiles.find((f: any) => previewFileMatchesPage(f, targetPage, chunk.interface_name))?.content
+                                ?? htmlFiles[0]?.content;
+                            if (html) setPreviewHtml(html);
                             setAgentStatus(chunk.message || 'Complete.');
                             const freshData = chunk.interface_data || {};
                             if (freshData.sections) setSections(freshData.sections);
@@ -799,13 +1119,133 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
     const secBorder: BorderOption = (secStyle.border as BorderOption) || 'none';
     const secBg: BgOption = (secStyle.bg as BgOption) || 'white';
     const secHeaderStyle: HeaderStyleOption = (secStyle.header_style as HeaderStyleOption) || 'default';
+    const secSidebarSide: SidebarSideOption = (secStyle.sidebar_side as SidebarSideOption) || 'left';
     const isActivityAction = selectedSection?.type === 'activity_action' || selectedSection?.layout === 'activity_action';
     const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
+    const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
+    const selectedPrimaryModel = selectedSection?.primary_model || selectedSection?.class || '';
+    const selectedModelClassifier = systemClassifiers.find((cls: any) =>
+        cls?.data?.name === selectedPrimaryModel || cls?.id === selectedSection?.class
+    );
+    const primaryClassFields = (selectedModelClassifier?.data?.attributes || []).map((attr: any) => attr.name).filter(Boolean);
+    const selectedAttrs = (selectedSection?.attributes || []).map((attr: any) => ({
+        raw: attr,
+        name: attrNameOf(attr),
+        readonly: typeof attr === 'object' && !!(attr?.readonly || attr?.source === 'related'),
+    })).filter((attr: any) => attr.name);
+    const selectedPrimaryAttrs = selectedAttrs.filter((attr: any) => !attr.name.includes('.'));
+    const selectedRelatedAttrs = selectedAttrs.filter((attr: any) => attr.name.includes('.') || attr.readonly);
+    const editablePrimaryAttrs = selectedPrimaryAttrs.filter((attr: any) =>
+        !attr.readonly && !!(selectedSection?.operations?.create || selectedSection?.operations?.update)
+    );
+    const readonlyPrimaryAttrs = selectedPrimaryAttrs.filter((attr: any) =>
+        attr.readonly || !(selectedSection?.operations?.create || selectedSection?.operations?.update)
+    );
+    const selectedPrimaryAttrNames = new Set(selectedPrimaryAttrs.map((attr: any) => attr.name));
+    const hiddenPrimaryFields = primaryClassFields.filter((field: string) => !selectedPrimaryAttrNames.has(field));
+    const secComponent = selectedSection?.component || (COMPONENT_OPTIONS_BY_LAYOUT[secLayout]?.[0] ?? '');
+    const componentOptions = Array.from(new Set([
+        ...(COMPONENT_OPTIONS_BY_LAYOUT[secLayout] || []),
+        ...(secComponent ? [secComponent] : []),
+    ]));
+    const fieldLayout = selectedSection?.field_layout && typeof selectedSection.field_layout === 'object'
+        ? selectedSection.field_layout
+        : {};
+    const fieldLayoutFields = fieldLayout.field_styles && typeof fieldLayout.field_styles === 'object' && !Array.isArray(fieldLayout.field_styles)
+        ? fieldLayout.field_styles
+        : {};
+    const fieldLayoutSlots = FIELD_LAYOUT_SLOTS[secComponent] || FIELD_LAYOUT_SLOTS[COMPONENT_OPTIONS_BY_LAYOUT[secLayout]?.[0] || ''] || [];
+    const availableFieldNames = selectedAttrs.map((attr: any) => attr.name);
+    const orderedFieldNames = React.useMemo(() => {
+        return availableFieldNames
+            .map((field: string, index: number) => {
+                const order = Number(fieldLayoutFields[field]?.order);
+                return {
+                    field,
+                    index,
+                    order: Number.isFinite(order) ? order : Number.POSITIVE_INFINITY,
+                };
+            })
+            .sort((a, b) => a.order === b.order ? a.index - b.index : a.order - b.order)
+            .map((item) => item.field);
+    }, [availableFieldNames, fieldLayoutFields]);
+    const fieldLayoutValue = (slot: string) => {
+        const value = fieldLayout[slot];
+        if (Array.isArray(value)) return value.join(', ');
+        return value || '';
+    };
+    const updateFieldLayoutSlot = (slot: string, rawValue: string, multiple?: boolean) => {
+        if (!selectedSection) return;
+        const nextValue = multiple
+            ? rawValue.split(',').map((item) => item.trim()).filter(Boolean)
+            : rawValue;
+        updateSection(selectedSection.id, 'field_layout', {
+            ...fieldLayout,
+            [slot]: nextValue,
+        });
+    };
+    const updateFieldLayoutField = (field: string, key: string, value: string) => {
+        if (!selectedSection) return;
+        const current = fieldLayoutFields[field] || {};
+        const next = { ...current };
+        if (value === '' || value === 'auto') delete next[key];
+        else next[key] = key === 'order' || key === 'col_span' ? Number(value) : value;
+        updateSection(selectedSection.id, 'field_layout', {
+            ...fieldLayout,
+            field_styles: {
+                ...fieldLayoutFields,
+                [field]: next,
+            },
+        });
+    };
+    const reorderFieldLayoutFields = (sourceField: string, targetField: string) => {
+        if (!selectedSection || sourceField === targetField) return;
+        const nextOrder = [...orderedFieldNames];
+        const sourceIndex = nextOrder.indexOf(sourceField);
+        const targetIndex = nextOrder.indexOf(targetField);
+        if (sourceIndex < 0 || targetIndex < 0) return;
 
-    const layoutControls: readonly string[] = CHROME_LAYOUTS.includes(secLayout)
-        ? ['text', 'methods']
+        nextOrder.splice(sourceIndex, 1);
+        nextOrder.splice(targetIndex, 0, sourceField);
+
+        const nextFieldStyles = { ...fieldLayoutFields };
+        nextOrder.forEach((field, index) => {
+            nextFieldStyles[field] = {
+                ...(nextFieldStyles[field] || {}),
+                order: index + 1,
+            };
+        });
+        updateSection(selectedSection.id, 'field_layout', {
+            ...fieldLayout,
+            field_styles: nextFieldStyles,
+        });
+    };
+
+    const hasMediaAttr = selectedAttrs.some((attr: any) => {
+        const name = String(attr.name || '').toLowerCase();
+        const rawType = typeof attr.raw === 'object' ? String(attr.raw?.type || '').toLowerCase() : '';
+        return rawType === 'image' || rawType === 'video' || /image|photo|avatar|thumbnail|media|video/.test(name);
+    });
+    const componentControls = COMPONENT_CONTROLS[secComponent];
+    const baseLayoutControls = CHROME_LAYOUTS.includes(secLayout)
+        ? ['text', 'methods', 'density', 'bg', 'shadow', 'sidebar_side']
         : (LAYOUT_CONTROLS[secLayout] ?? []);
-    const hasControl = (c: string) => layoutControls.includes(c);
+    const layoutControls = Array.from(new Set(componentControls || baseLayoutControls))
+        .filter((control) => (control !== 'image_position' && control !== 'image_size') || hasMediaAttr || secComponent.toLowerCase().includes('media') || secComponent.toLowerCase().includes('productdetail'));
+    const hasControl = (c: string) => layoutControls.includes(c) && (c !== 'sidebar_side' || selectedSection?.position === 'sidebar');
+    const hasDataShape = !!selectedPrimaryModel || selectedAttrs.length > 0;
+    const isChromeLike = CHROME_LAYOUTS.includes(secLayout) || ['NavBar', 'IconActions', 'SearchBar', 'SiteFooter', 'FooterLinkGrid'].includes(secComponent);
+    const layoutGroupsForSelected = (isChromeLike && !hasDataShape
+        ? LAYOUT_GROUPS.filter(group => group.label === 'Header' || group.label === 'Footer')
+        : hasDataShape
+            ? LAYOUT_GROUPS
+                .filter(group => group.label === 'Generic')
+                .map(group => ({
+                    ...group,
+                    options: group.options.filter(opt => opt.value !== 'activity_action'),
+                }))
+            : LAYOUT_GROUPS
+    ).filter(group => group.options.length > 0);
 
     const currentPage = (pages as any[])[previewPageIndex];
     const isActivityPage = (page: any) => getPageTypeValue(page) === 'activity';
@@ -971,6 +1411,19 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                                     {isExpanded ? 'Hide' : 'Preview'}
                                                 </button>
                                                 <button
+                                                    onClick={() => handleRegenerateCandidates(idx)}
+                                                    disabled={!explorePrompt.trim() || isGeneratingCandidates}
+                                                    title="Use this candidate as the baseline and regenerate 3 candidates from the current prompt"
+                                                    style={{
+                                                        flex: 1, padding: '4px 0', borderRadius: 5, fontSize: 11,
+                                                        cursor: (!explorePrompt.trim() || isGeneratingCandidates) ? 'not-allowed' : 'pointer',
+                                                        background: '#f3f4f6',
+                                                        color: (!explorePrompt.trim() || isGeneratingCandidates) ? '#9ca3af' : '#374151',
+                                                        border: '1px solid #d1d5db',
+                                                    }}>
+                                                    Regenerate 3
+                                                </button>
+                                                <button
                                                     onClick={() => handleApplyCandidate(idx)}
                                                     style={{
                                                         flex: 1, padding: '4px 0', borderRadius: 5, fontSize: 11, cursor: 'pointer',
@@ -1000,6 +1453,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                 onClick={() => {
                                     const section = makeChromeSection('logo', 'header');
                                     setSections((prev: any[]) => [...prev, section]);
+                                    setPages((prev: any[]) => prev.map((page: any) => {
+                                        const refs = page.sections || [];
+                                        const ids = refs.map((ref: any) => typeof ref === 'string' ? ref : ref?.value);
+                                        return ids.includes(section.id)
+                                            ? page
+                                            : { ...page, sections: [{ value: section.id }, ...refs] };
+                                    }));
                                     setSelectedSectionId(section.id);
                                 }}
                                 style={{ ...btnBase, padding: '3px 6px', fontSize: 11, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}
@@ -1011,6 +1471,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                 onClick={() => {
                                     const section = makeChromeSection('service-bar', 'footer');
                                     setSections((prev: any[]) => [...prev, section]);
+                                    setPages((prev: any[]) => prev.map((page: any) => {
+                                        const refs = page.sections || [];
+                                        const ids = refs.map((ref: any) => typeof ref === 'string' ? ref : ref?.value);
+                                        return ids.includes(section.id)
+                                            ? page
+                                            : { ...page, sections: [...refs, { value: section.id }] };
+                                    }));
                                     setSelectedSectionId(section.id);
                                 }}
                                 style={{ ...btnBase, padding: '3px 6px', fontSize: 11, background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
@@ -1266,6 +1733,238 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                 );
                             })()}
 
+                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#f9fafb' }}>
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fields</p>
+                                <div style={{ display: 'grid', gap: 6 }}>
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', marginBottom: 3 }}>Editable primary fields</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            {editablePrimaryAttrs.length ? editablePrimaryAttrs.map((attr: any) => (
+                                                <span key={attr.name} style={{ fontSize: 11, padding: '2px 6px', borderRadius: 999, background: '#dcfce7', color: '#166534', border: '1px solid #bbf7d0' }}>{attr.name}</span>
+                                            )) : <span style={{ fontSize: 11, color: '#9ca3af' }}>None</span>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 3 }}>Read-only primary fields</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            {readonlyPrimaryAttrs.length ? readonlyPrimaryAttrs.map((attr: any) => (
+                                                <span key={attr.name} style={{ fontSize: 11, padding: '2px 6px', borderRadius: 999, background: '#f3f4f6', color: '#374151', border: '1px solid #e5e7eb' }}>{attr.name}</span>
+                                            )) : <span style={{ fontSize: 11, color: '#9ca3af' }}>None</span>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#7c2d12', marginBottom: 3 }}>Related read-only fields</div>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                                            {selectedRelatedAttrs.length ? selectedRelatedAttrs.map((attr: any) => (
+                                                <span key={attr.name} style={{ fontSize: 11, padding: '2px 6px', borderRadius: 999, background: '#ffedd5', color: '#7c2d12', border: '1px solid #fed7aa' }}>{attr.name}</span>
+                                            )) : <span style={{ fontSize: 11, color: '#9ca3af' }}>None</span>}
+                                        </div>
+                                    </div>
+                                    {hiddenPrimaryFields.length > 0 && (
+                                        <details>
+                                            <summary style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', cursor: 'pointer' }}>Hidden primary class fields ({hiddenPrimaryFields.length})</summary>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+                                                {hiddenPrimaryFields.map((field: string) => (
+                                                    <span key={field} style={{ fontSize: 11, padding: '2px 6px', borderRadius: 999, background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb' }}>{field}</span>
+                                                ))}
+                                            </div>
+                                        </details>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{ border: '1px solid #bfdbfe', borderRadius: 8, padding: 8, marginBottom: 12, background: '#eff6ff' }}>
+                                <p style={{ fontSize: 11, color: '#1d4ed8', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Edit Field Position & Size</p>
+                                {availableFieldNames.length === 0 ? (
+                                    <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
+                                        No fields selected for this section. Add attributes in Section Components first.
+                                    </p>
+                                ) : (
+                                    <div style={{ display: 'grid', gap: 6 }}>
+                                        {orderedFieldNames.map((field) => {
+                                            const cfg = fieldLayoutFields[field] || {};
+                                            return (
+                                                <div
+                                                    key={field}
+                                                    onDragOver={(e) => e.preventDefault()}
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        const sourceField = draggedField || e.dataTransfer.getData('text/plain');
+                                                        reorderFieldLayoutFields(sourceField, field);
+                                                        setDraggedField(null);
+                                                    }}
+                                                    style={{
+                                                        border: `1px solid ${draggedField && draggedField !== field ? '#60a5fa' : '#bfdbfe'}`,
+                                                        borderRadius: 6,
+                                                        padding: 6,
+                                                        display: 'grid',
+                                                        gap: 5,
+                                                        background: draggedField === field ? '#dbeafe' : '#fff',
+                                                        opacity: draggedField === field ? 0.72 : 1,
+                                                    }}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                                                        <button
+                                                            type="button"
+                                                            draggable
+                                                            onDragStart={(e) => {
+                                                                setDraggedField(field);
+                                                                e.dataTransfer.effectAllowed = 'move';
+                                                                e.dataTransfer.setData('text/plain', field);
+                                                            }}
+                                                            onDragEnd={() => setDraggedField(null)}
+                                                            aria-label={`Drag ${field}`}
+                                                            title="Drag to reorder"
+                                                            style={{
+                                                                border: '1px solid #bfdbfe',
+                                                                borderRadius: 5,
+                                                                background: '#eff6ff',
+                                                                color: '#2563eb',
+                                                                width: 24,
+                                                                height: 24,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                cursor: 'grab',
+                                                                padding: 0,
+                                                                flexShrink: 0,
+                                                            }}
+                                                        >
+                                                            <GripVertical size={14} />
+                                                        </button>
+                                                        <div style={{ fontSize: 11, fontWeight: 700, color: '#1f2937', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={field}>{field}</div>
+                                                    </div>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Order</span>
+                                                            <input
+                                                                type="number"
+                                                                min={0}
+                                                                value={cfg.order ?? ''}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'order', e.target.value)}
+                                                                placeholder="Auto"
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11 }}
+                                                            />
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Width</span>
+                                                            <select
+                                                                value={cfg.col_span || 'auto'}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'col_span', e.target.value)}
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="auto">Auto</option>
+                                                                <option value="3">25%</option>
+                                                                <option value="4">33%</option>
+                                                                <option value="6">50%</option>
+                                                                <option value="8">66%</option>
+                                                                <option value="12">100%</option>
+                                                            </select>
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Text</span>
+                                                            <select
+                                                                value={cfg.text_size || 'auto'}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'text_size', e.target.value)}
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="auto">Auto</option>
+                                                                <option value="xs">XS</option>
+                                                                <option value="sm">SM</option>
+                                                                <option value="md">MD</option>
+                                                                <option value="lg">LG</option>
+                                                                <option value="xl">XL</option>
+                                                            </select>
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Height</span>
+                                                            <select
+                                                                value={cfg.height || 'auto'}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'height', e.target.value)}
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="auto">Auto</option>
+                                                                <option value="sm">SM</option>
+                                                                <option value="md">MD</option>
+                                                                <option value="lg">LG</option>
+                                                                <option value="xl">XL</option>
+                                                            </select>
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Align</span>
+                                                            <select
+                                                                value={cfg.align || 'auto'}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'align', e.target.value)}
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="auto">Auto</option>
+                                                                <option value="left">Left</option>
+                                                                <option value="center">Center</option>
+                                                                <option value="right">Right</option>
+                                                            </select>
+                                                        </label>
+                                                        <label style={{ display: 'grid', gap: 2 }}>
+                                                            <span style={{ fontSize: 10, color: '#6b7280' }}>Label</span>
+                                                            <select
+                                                                value={cfg.label || 'auto'}
+                                                                onChange={(e) => updateFieldLayoutField(field, 'label', e.target.value)}
+                                                                style={{ height: 26, borderRadius: 5, border: '1px solid #bfdbfe', padding: '0 6px', fontSize: 11, background: '#fff' }}
+                                                            >
+                                                                <option value="auto">Auto</option>
+                                                                <option value="show">Show</option>
+                                                                <option value="hidden">Hide</option>
+                                                            </select>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component</p>
+                                <select
+                                    value={secComponent}
+                                    onChange={(e) => updateSection(selectedSection.id, 'component', e.target.value)}
+                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: fieldLayoutSlots.length ? 8 : 0 }}
+                                >
+                                    {componentOptions.map((component) => (
+                                        <option key={component} value={component}>{component}</option>
+                                    ))}
+                                </select>
+                                {fieldLayoutSlots.length > 0 && (
+                                    <div style={{ display: 'grid', gap: 6 }}>
+                                        <div style={{ fontSize: 11, color: '#6b7280' }}>Field layout slots</div>
+                                        {fieldLayoutSlots.map((slot) => (
+                                            <label key={slot.slot} style={{ display: 'grid', gap: 3 }}>
+                                                <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{slot.label}</span>
+                                                {slot.multiple ? (
+                                                    <input
+                                                        value={fieldLayoutValue(slot.slot)}
+                                                        onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value, true)}
+                                                        placeholder={availableFieldNames.slice(0, 4).join(', ')}
+                                                        style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                    />
+                                                ) : (
+                                                    <select
+                                                        value={fieldLayoutValue(slot.slot)}
+                                                        onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value)}
+                                                        style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                    >
+                                                        <option value="">None</option>
+                                                        {availableFieldNames.map((field) => (
+                                                            <option key={field} value={field}>{field}</option>
+                                                        ))}
+                                                    </select>
+                                                )}
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
                             {isActivityAction ? (
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -1279,7 +1978,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                 </div>
                             ) : (
                                 <div style={{ marginBottom: 10 }}>
-                                    {LAYOUT_GROUPS.map(group => (
+                                    {layoutGroupsForSelected.map(group => (
                                         <div key={group.label} style={{ marginBottom: 4 }}>
                                             <p style={{ fontSize: 9, color: '#9ca3af', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{group.label}</p>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -1316,6 +2015,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                                     );
                                 })}
                             </div>
+
+                            {hasControl('sidebar_side') && (
+                            <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sidebar Side</p>
+                            <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                                {([{value:'left',label:'Left'},{value:'right',label:'Right'}] as {value:SidebarSideOption;label:string}[]).map(o => (
+                                    <button key={o.value} style={{ ...btnBase, ...active(secSidebarSide === o.value), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updateSection(selectedSection.id, 'sidebar_side', o.value)}>{o.label}</button>
+                                ))}
+                            </div></>)}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Width</p>
                             <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
@@ -1703,7 +2411,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                             </button>
                         ))}
                     </div>
-                    {previewMode === 'design' && (pages as any[]).map((p: any, idx: number) => (
+                    {previewMode === 'design' && (visiblePages as any[]).map((p: any, idx: number) => (
                         <button key={idx} onClick={() => setPreviewPageIndex(idx)}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 5,
@@ -1797,10 +2505,17 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
 
                 {/* iframe */}
                 <div style={{ flex: 1, overflow: 'hidden', background: '#f8fafc' }}>
-                    {designMode === 'explore' && previewCandidateIdx !== null && candidates[previewCandidateIdx]?.preview_html ? (
+                    {previewMode === 'live' ? (
                         <iframe
-                            key={`candidate-${previewCandidateIdx}`}
-                            srcDoc={candidates[previewCandidateIdx].preview_html}
+                            key={`live-${liveKey}-${previewPageIndex}`}
+                            src={`${prototypeURL}/autologin?as=${encodeURIComponent(liveUser)}&next=${encodeURIComponent(livePathForPage(currentInterface?.name, selectedVisiblePage))}`}
+                            title="Live prototype"
+                            style={{ width: '100%', height: '100%', border: 'none' }}
+                        />
+                    ) : designMode === 'explore' && selectedCandidateHtml ? (
+                        <iframe
+                            key={`candidate-${previewCandidateIdx}-${previewPageIndex}`}
+                            srcDoc={selectedCandidateHtml}
                             title={`Candidate ${previewCandidateIdx + 1} preview`}
                             style={{ width: '100%', height: '100%', border: 'none' }}
                             sandbox="allow-scripts allow-same-origin"
@@ -1812,13 +2527,6 @@ const updateSection = useCallback((sectionId: string, field: string, value: stri
                             </p>
                             {isGeneratingCandidates && <Loader2 size={20} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
                         </div>
-                    ) : previewMode === 'live' ? (
-                        <iframe
-                            key={`live-${liveKey}`}
-                            src={`${prototypeURL}/autologin?as=${liveUser}`}
-                            title="Live prototype"
-                            style={{ width: '100%', height: '100%', border: 'none' }}
-                        />
                     ) : previewHtml && !previewError ? (
                         <iframe
                             key={`${interfaceId}-${previewPageIndex}`}

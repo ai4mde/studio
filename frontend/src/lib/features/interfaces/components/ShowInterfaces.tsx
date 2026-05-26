@@ -17,7 +17,8 @@ type Props = {
 export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setCreate] = useAtom(createInterfaceAtom);
     const { systemId } = useParams();
-    const { data, isSuccess, refetch } = useInterfaces(systemId);
+    const { data, isSuccess, isLoading, isError, error, refetch } = useInterfaces(systemId);
+    const interfaces = Array.isArray(data) ? data : [];
     const [, setStyling, ] = useLocalStorage('styling', '');
     const [, setCategories, ] = useLocalStorage('categories', []);
     const [, setPages, ] = useLocalStorage('pages', []);
@@ -61,13 +62,20 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
 
     return (
         <>
+            {isLoading && (
+                <div className="text-sm text-stone-500">Loading interfaces...</div>
+            )}
+            {isError && (
+                <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    Failed to load interfaces{error instanceof Error ? `: ${error.message}` : "."}
+                </div>
+            )}
             {isSuccess && (
                 <div className="flex flex-wrap gap-4">
-                    {data.length > 0 ? (
-                        data.map((e) => (
-                            <div className="relative">
+                    {interfaces.length > 0 ? (
+                        interfaces.map((e) => (
+                            <div key={e.id} className="relative">
                                 <a
-                                    key={e.id}
                                     onClick={() => handleLoadInterface(e.data)}
                                     href={`/systems/${system}/interfaces/${e.id}`}
                                     className="flex h-fit w-48 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"

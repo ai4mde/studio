@@ -12,6 +12,7 @@ from metadata.api.views.defaulting import create_default_interface
 from metadata.models import System, Interface, Classifier
 from llm.template_renderer import render_layout
 from ninja import Router, Body
+from ninja.errors import HttpError
 
 ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
 
@@ -285,6 +286,118 @@ def list_candidates(request, id: str):
     ]
 
 
+@interfaces.post("/{uuid:id}/candidates/{candidate_index}/regenerate/")
+def regenerate_candidates_from_selected(request, id: str, candidate_index: int, payload: dict = Body(...)):
+    try:
+        interface = Interface.objects.get(id=id)
+    except Interface.DoesNotExist:
+        return 404, {"message": "Interface not found"}
+
+    candidates = (interface.data or {}).get("candidates", [])
+    if candidate_index < 0 or candidate_index >= len(candidates) or not candidates[candidate_index]:
+        raise HttpError(404, f"Candidate {candidate_index} not found")
+
+    designer_requirements = str(
+        payload.get("designer_requirements")
+        or payload.get("requirements")
+        or payload.get("prompt")
+        or ""
+    ).strip()
+    if not designer_requirements:
+        raise HttpError(400, "designer_requirements is required")
+
+    system = interface.system
+
+    def stream_generator():
+        yield json.dumps({"status": "Connecting to agent..."}) + "\n"
+
+        user_id = str(interface.id)
+        session_id = str(uuid.uuid4())
+        try:
+            resp = _req.post(
+                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
+                json={"state": {"interface_id": str(id), "system_id": str(system.id)}},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            session_id = resp.json().get("id", session_id)
+            yield json.dumps({"status": "Regenerating candidates from selected baseline...", "debug_session_id": session_id}) + "\n"
+        except Exception as e:
+            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+            return
+
+        prompt = (
+            f"system_id={system.id} interface_id={id} regenerate_candidates "
+            f"selected_candidate_index={candidate_index} "
+            f"designer_requirements={designer_requirements}"
+        )
+        seen_authors = set()
+        agent_status_map = {
+            "gemini_make_agent": "Routing regeneration request...",
+            "candidate_regeneration_agent": "Creating 3 derived candidates...",
+        }
+
+        try:
+            with _req.post(
+                f"{ADK_AGENT_URL}/run_sse",
+                json={
+                    "app_name": "app",
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
+                    "streaming": True,
+                },
+                stream=True,
+                timeout=300,
+            ) as r:
+                r.raise_for_status()
+                for line in r.iter_lines():
+                    if not line:
+                        continue
+                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                    if not line_str.startswith("data: "):
+                        continue
+                    try:
+                        event = json.loads(line_str[6:])
+                        author = event.get("author", "")
+                        if author and author not in seen_authors and author in agent_status_map:
+                            seen_authors.add(author)
+                            yield json.dumps({"status": agent_status_map[author]}) + "\n"
+                    except Exception:
+                        pass
+        except Exception as e:
+            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
+            return
+
+        # Best-effort render fallback in case the agent saved candidates but a render tool call failed.
+        for idx in range(3):
+            try:
+                render_candidate(request, id, idx)
+            except Exception:
+                pass
+
+        interface.refresh_from_db()
+        refreshed_candidates = (interface.data or {}).get("candidates", [])
+        summary = [
+            {
+                "index": i,
+                "id": c.get("id") if c else None,
+                "name": c.get("name") if c else None,
+                "description": c.get("description") if c else None,
+                "has_preview": bool(c.get("preview_html")) if c else False,
+                "derived_from": c.get("derived_from") if c else None,
+                "variation_strategy": c.get("variation_strategy") if c else None,
+            }
+            for i, c in enumerate(refreshed_candidates[:3])
+        ]
+        yield json.dumps({"status": "Done", "message": "Candidate regeneration complete.", "candidates": summary}) + "\n"
+
+    resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
+    resp["X-Accel-Buffering"] = "no"
+    resp["Cache-Control"] = "no-cache"
+    return resp
+
+
 @interfaces.post("/{uuid:id}/candidates/{candidate_index}/render/")
 def render_candidate(request, id: str, candidate_index: int):
     try:
@@ -294,7 +407,7 @@ def render_candidate(request, id: str, candidate_index: int):
 
     candidates = (interface.data or {}).get("candidates", [])
     if candidate_index < 0 or candidate_index >= len(candidates):
-        return 404, {"message": f"Candidate {candidate_index} not found"}
+        raise HttpError(404, f"Candidate {candidate_index} not found")
 
     candidate = candidates[candidate_index]
     system = interface.system

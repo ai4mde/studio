@@ -1,13 +1,17 @@
 from typing import Any, List, Optional, Dict
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
+from metadata.models import Interface
 from metadata.models import System
 from ninja import Router, Schema
 from ninja.errors import HttpError
 from django.http import StreamingHttpResponse
 import json
 import os
+import queue
 import requests
+import threading
+import time
 
 prototypes = Router()
 
@@ -58,13 +62,29 @@ def create_prototype(request, prototype: CreatePrototype, database_prototype_nam
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
     layout_config = prototype.metadata.get('layout_config') if isinstance(prototype.metadata, dict) else None
 
-    # Enrich metadata with system classifiers so the generator can resolve model
-    # names even when no class diagram is present in the metadata.
+    # Enrich metadata with system classifiers, diagrams, and relations so the
+    # generator can resolve model names and workflows even when the initial
+    # metadata payload is partial.
     enriched_metadata = dict(prototype.metadata) if isinstance(prototype.metadata, dict) else {}
-    enriched_metadata['classifiers'] = [
-        {"id": str(c.id), "data": c.data}
-        for c in system.classifiers.filter(data__type='class')
-    ]
+    
+    if 'classifiers' not in enriched_metadata:
+        enriched_metadata['classifiers'] = [
+            {"id": str(c.id), "data": c.data}
+            for c in system.classifiers.all()
+        ]
+    
+    if 'diagrams' not in enriched_metadata:
+        from diagram.api.schemas.diagram import ExportDiagram
+        enriched_metadata['diagrams'] = [
+            ExportDiagram.from_orm(d).dict()
+            for d in system.diagrams.all()
+        ]
+        
+    if 'relations' not in enriched_metadata:
+        enriched_metadata['relations'] = [
+            {"id": str(r.id), "data": r.data, "source": str(r.source_id), "target": str(r.target_id)}
+            for r in system.relations.all()
+        ]
 
     data = {
         'id': str(new_prototype.id),
@@ -164,7 +184,7 @@ def run_prototype(request, prototype_id):
         'system': str(prototype.system.id)
     }
     try:
-        response = requests.post(RUN_URL, json=data)
+        response = requests.post(RUN_URL, json=data, allow_redirects=False)
     except:
         return False
     
@@ -198,12 +218,129 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
 
 
 ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+ADK_CANDIDATE_TIMEOUT_SECONDS = int(os.environ.get("ADK_CANDIDATE_TIMEOUT_SECONDS", "90"))
+ADK_CANDIDATE_HEARTBEAT_SECONDS = int(os.environ.get("ADK_CANDIDATE_HEARTBEAT_SECONDS", "5"))
+
+
+def _clear_interface_candidates(interface_id: str, status: str, prompt: str = "", base_candidate_index: Optional[int] = None) -> None:
+    iface = Interface.objects.get(pk=interface_id)
+    data = dict(iface.data or {})
+    data.pop("regeneration_base_candidate", None)
+    if base_candidate_index is not None:
+        candidates = data.get("candidates") or []
+        if 0 <= base_candidate_index < len(candidates) and candidates[base_candidate_index]:
+            data["regeneration_base_candidate"] = {
+                "selected_candidate_index": base_candidate_index,
+                "candidate": candidates[base_candidate_index],
+            }
+    data["candidates"] = []
+    data["candidate_generation_status"] = {
+        "status": status,
+        "prompt": prompt,
+        "started_at": time.time(),
+    }
+    Interface.objects.filter(pk=interface_id).update(data=data)
+
+
+def _extract_agent_event_error(event: Any) -> str:
+    """Best-effort extraction for ADK SSE events that carry model/tool errors inside a 200 stream."""
+    interesting = []
+
+    def walk(value: Any, key: str = "") -> None:
+        if isinstance(value, dict):
+            for child_key, child_value in value.items():
+                normalized = str(child_key).lower()
+                if normalized in {
+                    "error",
+                    "errormessage",
+                    "error_message",
+                    "errorcode",
+                    "error_code",
+                    "message",
+                }:
+                    if isinstance(child_value, (str, int, float)):
+                        text = str(child_value)
+                        if any(term in text.lower() for term in ("error", "unavailable", "failed", "invalid", "timeout", "503")):
+                            interesting.append(text)
+                walk(child_value, child_key)
+        elif isinstance(value, list):
+            for item in value:
+                walk(item, key)
+        elif isinstance(value, str):
+            text = value.strip()
+            lower = text.lower()
+            if any(term in lower for term in (
+                "503 unavailable",
+                "high demand",
+                "i can't generate",
+                "i cannot generate",
+                "can't generate interface",
+                "cannot generate interface",
+                "error saving candidate",
+                "failed to",
+                "incomplete:",
+                "invalid",
+                "timeout",
+            )):
+                interesting.append(text)
+
+    walk(event)
+    if not interesting:
+        return ""
+    return " | ".join(dict.fromkeys(interesting))[:1000]
+
+
+def _fallback_candidate_variants(pages: list, sections: list, data: dict, agent_error: str = "") -> list:
+    variants = [
+        ("Compact Table", "compact", {"gallery": "table", "card": "table", "list": "table"}),
+        ("Balanced Cards", "normal", {"table": "card", "gallery": "card", "list": "card"}),
+        ("Spacious Gallery", "spacious", {"table": "gallery", "card": "gallery", "list": "gallery"}),
+    ]
+    candidates = []
+    for index, (name, density, layout_map) in enumerate(variants):
+        next_sections = []
+        for section in sections:
+            section_copy = dict(section)
+            layout = section_copy.get("layout")
+            if layout in layout_map and section_copy.get("primary_model"):
+                section_copy["layout"] = layout_map[layout]
+            style = dict(section_copy.get("style") or {})
+            style["density"] = density
+            style.setdefault("color", "accent")
+            if section_copy.get("layout") in {"card", "gallery"}:
+                style["columns"] = "2" if density == "spacious" else "3"
+            section_copy["style"] = style
+            next_sections.append(section_copy)
+
+        candidate = {
+            "id": f"c{index}",
+            "name": name,
+            "description": (
+                "Deterministic fallback variant generated from the current interface because the model did not save a candidate."
+                + (f" Agent error: {agent_error}" if agent_error else "")
+            ),
+            "pages": list(pages),
+            "sections": next_sections,
+        }
+        if data.get("styling"):
+            candidate["styling"] = data.get("styling")
+        if data.get("tokens"):
+            candidate["tokens"] = data.get("tokens")
+        candidates.append(candidate)
+    return candidates
 
 
 class GenerateCandidatesPayload(Schema):
     interface_id: str
     system_id: str
     prompt: str
+
+
+class RegenerateCandidatesPayload(Schema):
+    interface_id: str
+    system_id: str
+    selected_candidate_index: int
+    designer_requirements: str
 
 
 @prototypes.post("/generate_candidates/")
@@ -221,6 +358,12 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
     def stream():
         yield json.dumps({"status": "Connecting to agent..."}) + "\n"
 
+        try:
+            _clear_interface_candidates(payload.interface_id, "generating", payload.prompt)
+        except Exception as e:
+            yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
+            return
+
         user_id = payload.interface_id
         session_id = str(_uuid.uuid4())
         try:
@@ -232,45 +375,252 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
             resp.raise_for_status()
             session_id = resp.json().get("id", session_id)
         except Exception as e:
-            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+            yield json.dumps({"status": "error", "message": f"Failed to create session: {e}"}) + "\n"
             return
 
-        message = f"interface_id={payload.interface_id} prompt={payload.prompt}"
-        seen_authors: set = set()
+        message = (
+            f"interface_id={payload.interface_id} prompt={payload.prompt}\n"
+            "Instruction: Treat the prompt as a designer requirement. If it only names a color or style, "
+            "do not refuse; preserve the interface metadata and generate 3 functional, data-driven candidates "
+            "using that visual theme. Vary chrome structure too: header, footer, sidebar, and navigation are "
+            "design regions. At least one candidate may use left sidebar navigation when there are multiple pages; "
+            "do not make all candidates the same header/footer/sidebar layout unless the user explicitly asks for it."
+        )
+        agent_error = ""
+        started_at = time.monotonic()
+        event_queue: queue.Queue[dict] = queue.Queue()
+
+        def run_agent_stream():
+            seen_authors: set = set()
+            try:
+                with requests.post(
+                    f"{ADK_AGENT_URL}/run_sse",
+                    json={
+                        "app_name": "candidate_app",
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "new_message": {"role": "user", "parts": [{"text": message}]},
+                        "streaming": True,
+                    },
+                    stream=True,
+                    timeout=(10, 30),
+                ) as r:
+                    r.raise_for_status()
+                    for line in r.iter_lines():
+                        if not line:
+                            continue
+                        line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                        if not line_str.startswith("data: "):
+                            continue
+                        try:
+                            event = json.loads(line_str[6:])
+                            event_error = _extract_agent_event_error(event)
+                            if event_error:
+                                event_queue.put({"error": event_error})
+                                continue
+                            author = event.get("author", "")
+                            if author and author not in seen_authors and author in _STATUS_MAP:
+                                seen_authors.add(author)
+                                event_queue.put({"status": _STATUS_MAP[author]})
+                        except Exception:
+                            pass
+            except Exception as e:
+                event_queue.put({"error": str(e)})
+            finally:
+                event_queue.put({"done": True})
+
+        worker = threading.Thread(target=run_agent_stream, daemon=True)
+        worker.start()
+
+        while True:
+            elapsed = int(time.monotonic() - started_at)
+            if elapsed > ADK_CANDIDATE_TIMEOUT_SECONDS:
+                agent_error = f"candidate agent timed out after {ADK_CANDIDATE_TIMEOUT_SECONDS}s"
+                yield json.dumps({"status": "error", "message": agent_error}) + "\n"
+                return
+            try:
+                item = event_queue.get(timeout=ADK_CANDIDATE_HEARTBEAT_SECONDS)
+            except queue.Empty:
+                yield json.dumps({"status": f"Still working... {elapsed}s"}) + "\n"
+                continue
+            if item.get("done"):
+                break
+            if item.get("error"):
+                agent_error = item["error"]
+                yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
+                return
+            if item.get("status"):
+                yield json.dumps({"status": item["status"]}) + "\n"
+
+        candidate_count = 0
+        try:
+            iface = Interface.objects.get(pk=payload.interface_id)
+            data = dict(iface.data or {})
+            candidates = data.get("candidates") or []
+            if not any(candidates):
+                yield json.dumps({
+                    "status": "error",
+                    "message": "Agent did not save any new candidates for this run.",
+                    "agent_error": agent_error,
+                }) + "\n"
+                return
+            else:
+                candidate_count = len([candidate for candidate in candidates if candidate])
+        except Exception as e:
+            yield json.dumps({"status": "error", "message": f"Failed to load candidates: {e}"}) + "\n"
+            return
+
+        yield json.dumps({
+            "status": "done",
+            "candidate_count": candidate_count,
+            "fallback": False,
+        }) + "\n"
+
+    resp = StreamingHttpResponse(stream(), content_type="application/x-ndjson")
+    resp['X-Accel-Buffering'] = 'no'
+    resp['Cache-Control'] = 'no-cache'
+    return resp
+
+
+@prototypes.post("/regenerate_candidates/")
+def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayload):
+    """Stream selected-candidate regeneration via the ADK candidate_regeneration_agent."""
+    import uuid as _uuid
+
+    _STATUS_MAP = {
+        "candidate_regeneration_agent": "Regenerating from selected candidate...",
+    }
+
+    def stream():
+        yield json.dumps({"status": "Connecting to regeneration agent..."}) + "\n"
 
         try:
-            with requests.post(
-                f"{ADK_AGENT_URL}/run_sse",
-                json={
-                    "app_name": "candidate_app",
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "new_message": {"role": "user", "parts": [{"text": message}]},
-                    "streaming": True,
-                },
-                stream=True,
-                timeout=600,
-            ) as r:
-                r.raise_for_status()
-                for line in r.iter_lines():
-                    if not line:
-                        continue
-                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                    if not line_str.startswith("data: "):
-                        continue
-                    try:
-                        event = json.loads(line_str[6:])
-                        author = event.get("author", "")
-                        if author and author not in seen_authors and author in _STATUS_MAP:
-                            seen_authors.add(author)
-                            yield json.dumps({"status": _STATUS_MAP[author]}) + "\n"
-                    except Exception:
-                        pass
+            _clear_interface_candidates(
+                payload.interface_id,
+                "regenerating",
+                payload.designer_requirements,
+                payload.selected_candidate_index,
+            )
         except Exception as e:
-            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
+            yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
             return
 
-        yield json.dumps({"status": "done"}) + "\n"
+        user_id = payload.interface_id
+        session_id = str(_uuid.uuid4())
+        try:
+            resp = requests.post(
+                f"{ADK_AGENT_URL}/apps/candidate_regeneration_app/users/{user_id}/sessions",
+                json={
+                    "state": {
+                        "interface_id": payload.interface_id,
+                        "system_id": payload.system_id,
+                        "selected_candidate_index": payload.selected_candidate_index,
+                    }
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            session_id = resp.json().get("id", session_id)
+        except Exception as e:
+            yield json.dumps({"status": f"Failed to create regeneration session: {e}"}) + "\n"
+            return
+
+        message = (
+            f"interface_id={payload.interface_id} regenerate_candidates "
+            f"selected_candidate_index={payload.selected_candidate_index} "
+            f"designer_requirements={payload.designer_requirements}\n"
+            "Instruction: Preserve functionality/data/workflow from the selected candidate, but create three visibly "
+            "different structural alternatives. Header, footer, sidebar, and navigation may move or change composition; "
+            "use style.sidebar_side='left' for left navigation rails and 'right' for assistive side panels."
+        )
+        agent_error = ""
+        started_at = time.monotonic()
+        event_queue: queue.Queue[dict] = queue.Queue()
+
+        def run_agent_stream():
+            seen_authors: set = set()
+            try:
+                with requests.post(
+                    f"{ADK_AGENT_URL}/run_sse",
+                    json={
+                        "app_name": "candidate_regeneration_app",
+                        "user_id": user_id,
+                        "session_id": session_id,
+                        "new_message": {"role": "user", "parts": [{"text": message}]},
+                        "streaming": True,
+                    },
+                    stream=True,
+                    timeout=(10, 30),
+                ) as r:
+                    r.raise_for_status()
+                    for line in r.iter_lines():
+                        if not line:
+                            continue
+                        line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                        if not line_str.startswith("data: "):
+                            continue
+                        try:
+                            event = json.loads(line_str[6:])
+                            event_error = _extract_agent_event_error(event)
+                            if event_error:
+                                event_queue.put({"error": event_error})
+                                continue
+                            author = event.get("author", "")
+                            if author and author not in seen_authors and author in _STATUS_MAP:
+                                seen_authors.add(author)
+                                event_queue.put({"status": _STATUS_MAP[author]})
+                        except Exception:
+                            pass
+            except Exception as e:
+                event_queue.put({"error": str(e)})
+            finally:
+                event_queue.put({"done": True})
+
+        worker = threading.Thread(target=run_agent_stream, daemon=True)
+        worker.start()
+
+        while True:
+            elapsed = int(time.monotonic() - started_at)
+            if elapsed > ADK_CANDIDATE_TIMEOUT_SECONDS:
+                agent_error = f"candidate regeneration agent timed out after {ADK_CANDIDATE_TIMEOUT_SECONDS}s"
+                yield json.dumps({"status": "error", "message": agent_error}) + "\n"
+                return
+            try:
+                item = event_queue.get(timeout=ADK_CANDIDATE_HEARTBEAT_SECONDS)
+            except queue.Empty:
+                yield json.dumps({"status": f"Still regenerating... {elapsed}s"}) + "\n"
+                continue
+            if item.get("done"):
+                break
+            if item.get("error"):
+                agent_error = item["error"]
+                yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
+                return
+            if item.get("status"):
+                yield json.dumps({"status": item["status"]}) + "\n"
+
+        candidate_count = 0
+        try:
+            iface = Interface.objects.get(pk=payload.interface_id)
+            data = dict(iface.data or {})
+            candidates = data.get("candidates") or []
+            candidate_count = len([candidate for candidate in candidates if candidate])
+            if candidate_count < 3:
+                yield json.dumps({
+                    "status": "error",
+                    "message": f"Regeneration saved {candidate_count} candidates; expected 3.",
+                    "agent_error": agent_error,
+                }) + "\n"
+                return
+        except Exception as e:
+            yield json.dumps({"status": "error", "message": f"Failed to load regenerated candidates: {e}"}) + "\n"
+            return
+
+        yield json.dumps({
+            "status": "done",
+            "candidate_count": candidate_count,
+            "regenerated_from": payload.selected_candidate_index,
+        }) + "\n"
 
     resp = StreamingHttpResponse(stream(), content_type="application/x-ndjson")
     resp['X-Accel-Buffering'] = 'no'
@@ -348,6 +698,7 @@ class HotReloadPayload(Schema):
     sections: Optional[List[Any]] = None
     pages: Optional[List[Any]] = None
     styling: Optional[Dict[str, Any]] = None
+    tokens: Optional[Dict[str, Any]] = None
 
 
 @prototypes.post("/hot_reload/")
@@ -384,6 +735,8 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         interface_data["pages"] = payload.pages
     if payload.styling is not None:
         interface_data["styling"] = payload.styling
+    if payload.tokens is not None:
+        interface_data["tokens"] = payload.tokens
 
     classifiers = [
         {"id": str(c.id), "data": c.data}
