@@ -1,13 +1,15 @@
-"""Unit tests for the LLM-based regeneration intent parsing and execution."""
+"""Unit tests for the LLM-based generation/regeneration intent parsing and execution."""
 import json
 from unittest.mock import patch, MagicMock
 import pytest
 
 from app.tools import (
+    _parse_generation_intent,
     _parse_regeneration_intent,
     _apply_intent_colors_to_tokens,
     _prompt_requests_color_change,
     _prompt_requests_layout_change,
+    generate_candidate_set,
     regenerate_candidate_set,
 )
 
@@ -455,3 +457,200 @@ class TestRegenerateCandidateSet:
         # variant_index differs across 3
         indices = [t.get("design.variant_index") for t in all_tokens]
         assert set(indices) == {"0", "1", "2"}
+
+
+# ── _parse_generation_intent ───────────────────────────────────────────────────
+
+class TestParseGenerationIntent:
+    def _post_mock(self, payload):
+        return patch("app.tools.requests.post", return_value=_gemini_response(payload))
+
+    def test_explicit_color_extracted(self):
+        llm_payload = {
+            "colors": [{"scope": "header", "hex": "#1d4ed8", "name": "blue"}],
+            "layout": {},
+        }
+        with self._post_mock(llm_payload):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+                result = _parse_generation_intent("patient management with blue header")
+        assert result["colors"][0]["scope"] == "header"
+        assert result["colors"][0]["hex"] == "#1d4ed8"
+        assert result["layout"] == {}
+
+    def test_explicit_layout_extracted(self):
+        llm_payload = {
+            "colors": [],
+            "layout": {"nav": "sidebar-left", "data_display": "table"},
+        }
+        with self._post_mock(llm_payload):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+                result = _parse_generation_intent("inventory system left sidebar table view")
+        assert result["colors"] == []
+        assert result["layout"]["nav"] == "sidebar-left"
+        assert result["layout"]["data_display"] == "table"
+
+    def test_no_explicit_constraints_returns_empty(self):
+        llm_payload = {"colors": [], "layout": {}}
+        with self._post_mock(llm_payload):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+                result = _parse_generation_intent("order management")
+        assert result == {"colors": [], "layout": {}}
+
+    def test_empty_prompt(self):
+        result = _parse_generation_intent("")
+        assert result == {"colors": [], "layout": {}}
+
+    def test_fallback_on_api_error(self):
+        with patch("app.tools.requests.post", side_effect=Exception("timeout")):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+                result = _parse_generation_intent("blue sidebar")
+        assert result == {"colors": [], "layout": {}}
+
+    def test_multi_color_and_layout(self):
+        llm_payload = {
+            "colors": [
+                {"scope": "button", "hex": "#7c3aed", "name": "purple"},
+                {"scope": "badge", "hex": "#dc2626", "name": "red"},
+            ],
+            "layout": {"full_width": True},
+        }
+        with self._post_mock(llm_payload):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
+                result = _parse_generation_intent("purple buttons red badges full width")
+        assert len(result["colors"]) == 2
+        assert result["layout"]["full_width"] is True
+
+
+# ── generate_candidate_set integration ────────────────────────────────────────
+
+IFACE_DATA = {
+    "id": "iface-gen",
+    "name": "Shop",
+    "system": "sys-1",
+    "actor": "actor-1",
+    "data": {
+        "pages": [{"id": "p1", "name": "Main", "layout": {"value": "default"}, "sections": [{"id": "s1"}]}],
+        "sections": [
+            {"id": "s1", "name": "ProductList", "primary_model": "Product",
+             "layout": "card", "col_span": 12, "position": "main",
+             "style": {"density": "normal"}}
+        ],
+        "tokens": {"accent.hex": "#111827"},
+        "styling": {},
+    },
+}
+
+
+def _mock_gen_calls(intent_payload, *, save_result="OK: candidate 0 saved."):
+    def post_side_effect(url, **_):
+        if "generateContent" in url:
+            return _gemini_response(intent_payload)
+        m = MagicMock(); m.ok = True; m.raise_for_status = MagicMock()
+        return m
+
+    _iface_mock = MagicMock()
+    _iface_mock.raise_for_status = MagicMock()
+    _iface_mock.json.return_value = IFACE_DATA
+
+    ctx_post = patch("app.tools.requests.post", side_effect=post_side_effect)
+    ctx_get  = patch("app.tools.requests.get",  return_value=_iface_mock)
+    ctx_save = patch("app.tools.validate_and_save_candidate", return_value=save_result)
+    ctx_rend = patch("app.tools.render_candidate_preview_func", return_value="OK: rendered.")
+    return ctx_post, ctx_get, ctx_save, ctx_rend
+
+
+class TestGenerateCandidateSet:
+    def _run(self, intent_payload, prompt=""):
+        ctxs = _mock_gen_calls(intent_payload)
+        with ctxs[0], ctxs[1], ctxs[2] as mock_save, ctxs[3]:
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "key"}):
+                result = generate_candidate_set("iface-gen", prompt)
+        return result, mock_save
+
+    def test_no_constraints_saves_three_variants(self):
+        """No explicit colors/layout — current explore behavior, 3 variants saved."""
+        intent = {"colors": [], "layout": {}}
+        result, mock_save = self._run(intent, "order management")
+        assert result.startswith("OK:")
+        assert mock_save.call_count == 3
+
+    def test_explicit_color_anchored_across_all_variants(self):
+        """Designer specifies blue header — all 3 variants must carry it."""
+        intent = {
+            "colors": [{"scope": "header", "hex": "#1d4ed8", "name": "blue"}],
+            "layout": {},
+        }
+        result, mock_save = self._run(intent, "patient management with blue header")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            tokens = json.loads(c.kwargs.get("tokens") or "{}")
+            assert tokens.get("region.header.bg_hex") == "#1d4ed8"
+
+    def test_explicit_color_no_index_drift(self):
+        """With anchored color, variant_index changes but color stays constant."""
+        intent = {
+            "colors": [{"scope": "accent", "hex": "#16a34a", "name": "green"}],
+            "layout": {},
+        }
+        result, mock_save = self._run(intent, "green enterprise app")
+        assert result.startswith("OK:")
+        all_tokens = [json.loads(c.kwargs.get("tokens") or "{}") for c in mock_save.call_args_list]
+        accents = {t.get("accent.hex") for t in all_tokens}
+        assert accents == {"#16a34a"}  # same green across all 3, no index-based drift
+
+    def test_explicit_layout_applied_to_all_variants(self):
+        """Left sidebar + table applied to all 3 explore-mode variants."""
+        intent = {
+            "colors": [],
+            "layout": {"nav": "sidebar-left", "data_display": "table"},
+        }
+        result, mock_save = self._run(intent, "inventory left sidebar table")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            styling = json.loads(c.kwargs.get("styling") or "{}")
+            li = styling.get("layoutIntent") or {}
+            assert li.get("sidebar_side") == "left" or li.get("nav") in {"sidebar-left", "sidebar"}
+            assert li.get("forced_data_layout") == "table" or li.get("data_layout") == "table"
+
+    def test_multi_color_plus_layout_constraints(self):
+        """Purple buttons + red badges + compact + full-width all honored."""
+        intent = {
+            "colors": [
+                {"scope": "button", "hex": "#7c3aed", "name": "purple"},
+                {"scope": "badge",  "hex": "#dc2626", "name": "red"},
+            ],
+            "layout": {"density": "compact", "full_width": True},
+        }
+        result, mock_save = self._run(intent, "purple buttons red badges compact full width")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            tokens  = json.loads(c.kwargs.get("tokens")  or "{}")
+            styling = json.loads(c.kwargs.get("styling") or "{}")
+            li = styling.get("layoutIntent") or {}
+            assert tokens.get("button.primary.bg_hex") == "#7c3aed"
+            assert tokens.get("badge.info.bg_hex") == "#dc2626"
+            assert li.get("density") == "compact"
+            assert li.get("main_width") == "full"
+
+    def test_no_colors_produces_different_tokens_per_variant(self):
+        """Without explicit colors, 3 variants should have different accent tokens (explore diversity)."""
+        intent = {"colors": [], "layout": {}}
+        result, mock_save = self._run(intent, "order management")
+        assert result.startswith("OK:")
+        all_tokens = [json.loads(c.kwargs.get("tokens") or "{}") for c in mock_save.call_args_list]
+        indices = [t.get("design.variant_index") for t in all_tokens]
+        assert set(indices) == {"0", "1", "2"}
+
+    def test_variant_index_always_differs(self):
+        """design.variant_index must be 0/1/2 regardless of color mode."""
+        intent = {
+            "colors": [{"scope": "header", "hex": "#1e3a5f", "name": "navy"}],
+            "layout": {},
+        }
+        result, mock_save = self._run(intent, "navy dashboard")
+        assert result.startswith("OK:")
+        indices = [
+            json.loads(c.kwargs.get("tokens") or "{}").get("design.variant_index")
+            for c in mock_save.call_args_list
+        ]
+        assert indices == ["0", "1", "2"]

@@ -4058,6 +4058,60 @@ def _apply_layout_intent_to_sections(sections: list, intent: dict, prompt: str =
         next_sections.append(section)
     return next_sections
 
+def _parse_generation_intent(prompt: str) -> dict:
+    """Use Gemini to extract explicit color anchors and layout constraints from an initial design prompt.
+    Only extracts what the designer *explicitly* stated — unspecified dimensions remain free for variation."""
+    _default = {"colors": [], "layout": {}}
+    if not prompt:
+        return _default
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        _model_name = os.getenv("ADK_AGENT_MODEL", "gemini-2.0-flash-lite")
+        if "/" in _model_name:
+            _model_name = _model_name.split("/", 1)[1]
+        _prompt = (
+            f'Analyze this UI design brief and extract only the color and layout constraints the designer explicitly stated.\n'
+            f'Brief: "{prompt}"\n\n'
+            'Output JSON only (no markdown):\n'
+            '{{\n'
+            '  "colors": [\n'
+            '    {{"scope": "<button|nav|header|footer|sidebar|background|card|border|text|badge|input|table|link|accent>",\n'
+            '      "hex": "<#rrggbb or null>", "name": "<english color name>"}}\n'
+            '  ],\n'
+            '  "layout": {{\n'
+            '    "nav": "<top|sidebar-left|sidebar-right or null — only if explicitly stated>",\n'
+            '    "data_display": "<table|gallery|card|list or null — only if explicitly stated>",\n'
+            '    "density": "<compact|normal|spacious or null — only if explicitly stated>",\n'
+            '    "full_width": <true|false|null — only if explicitly stated>\n'
+            '  }}\n'
+            '}}\n\n'
+            'Leave null/empty for anything NOT explicitly mentioned in the brief.\n'
+            'Examples:\n'
+            '"patient management dashboard with blue header" → {{"colors":[{{"scope":"header","hex":"#1d4ed8","name":"blue"}}],"layout":{{}}}}\n'
+            '"inventory system, left sidebar, table view" → {{"colors":[],"layout":{{"nav":"sidebar-left","data_display":"table"}}}}\n'
+            '"green compact enterprise dashboard" → {{"colors":[{{"scope":"accent","hex":"#16a34a","name":"green"}}],"layout":{{"density":"compact"}}}}\n'
+            '"purple buttons and red badges, full width" → {{"colors":[{{"scope":"button","hex":"#7c3aed","name":"purple"}},{{"scope":"badge","hex":"#dc2626","name":"red"}}],"layout":{{"full_width":true}}}}\n'
+            '"order management" → {{"colors":[],"layout":{{}}}}'
+        )
+        try:
+            resp = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{_model_name}:generateContent?key={api_key}",
+                json={"contents": [{"parts": [{"text": _prompt}]}],
+                      "generationConfig": {"temperature": 0, "maxOutputTokens": 512}},
+                timeout=8,
+            )
+            resp.raise_for_status()
+            text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+            result = json.loads(text)
+            return {
+                "colors": result.get("colors") or [],
+                "layout": result.get("layout") or {},
+            }
+        except Exception:
+            pass
+    return _default
+
 def _parse_regeneration_intent(designer_requirements: str) -> dict:
     """Use Gemini to parse designer_requirements into structured intent with specific color targets and layout specs."""
     _default = {"change_color": False, "change_layout": False, "colors": [], "layout": {}}
@@ -4283,18 +4337,56 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
         if not pages or not sections:
             return "ERROR: Interface has no pages/sections to generate candidates from."
 
-        base_tokens = _apply_prompt_style_overrides(dict(data.get("tokens") or {}), prompt)
-        if not base_tokens:
-            _, base_tokens = _candidate_design_spec(interface_id, 0, prompt=prompt)
+        # Parse prompt for explicit color anchors and layout constraints.
+        # Unspecified dimensions remain free — explore mode still generates 3 distinct structures.
+        gen_intent = _parse_generation_intent(prompt)
+        intent_colors = gen_intent.get("colors") or []
+        intent_layout = gen_intent.get("layout") or {}
+
+        raw_base_tokens = dict(data.get("tokens") or {})
+        if intent_colors:
+            # Designer specified explicit colors — anchor all 3 variants to them
+            anchored_tokens = _apply_intent_colors_to_tokens(
+                _apply_prompt_style_overrides(raw_base_tokens, prompt), intent_colors
+            )
+            _expand_design_tokens(anchored_tokens)
+        else:
+            # No explicit colors — let _variant_tokens produce 3 distinct color themes
+            anchored_tokens = None
+            raw_base_tokens = _apply_prompt_style_overrides(raw_base_tokens, prompt)
+            if not raw_base_tokens:
+                _, raw_base_tokens = _candidate_design_spec(interface_id, 0, prompt=prompt)
+
         base_styling = {**dict(data.get("styling") or {}), **_prompt_styling_overrides(prompt)}
         results = []
         for index in range(3):
             layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
+            # Apply explicit layout constraints on top of explore variation
+            if intent_layout:
+                _nav = intent_layout.get("nav")
+                if _nav == "sidebar-left":
+                    layout_intent.update({"nav": "sidebar-left", "sidebar_side": "left"})
+                elif _nav == "sidebar-right":
+                    layout_intent.update({"nav": "sidebar-right", "sidebar_side": "right"})
+                elif _nav == "top":
+                    layout_intent["nav"] = "top"
+                if intent_layout.get("data_display"):
+                    layout_intent["data_layout"] = intent_layout["data_display"]
+                    layout_intent["forced_data_layout"] = intent_layout["data_display"]
+                if intent_layout.get("density"):
+                    layout_intent["density"] = intent_layout["density"]
+                if intent_layout.get("full_width") is True:
+                    layout_intent.update({"main_width": "full", "header_width": "full"})
             variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
             variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
             variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, prompt)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
-            tokens = _variant_tokens(base_tokens, prompt, index)
+            if anchored_tokens is not None:
+                tokens = copy.deepcopy(anchored_tokens)
+                tokens["design.variant_index"] = str(index)
+                _expand_design_tokens(tokens)
+            else:
+                tokens = _variant_tokens(raw_base_tokens, prompt, index)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index
             styling["variantName"] = layout_intent.get("name") or ("Card Gallery", "Data Table", "Showcase")[index]
