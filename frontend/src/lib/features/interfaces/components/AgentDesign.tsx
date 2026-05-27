@@ -1659,8 +1659,39 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 value={explorePrompt}
                                 onChange={e => setExplorePrompt(e.target.value)}
                                 disabled={isGeneratingCandidates}
-                                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', resize: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+                                style={{ width: '100%', padding: '6px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', resize: 'none', boxSizing: 'border-box', marginBottom: 6 }}
                             />
+                            {/* Prompt suggestion chips — generate style when empty, regenerate style when candidates exist */}
+                            {(() => {
+                                const hasCandidate = candidates.length > 0;
+                                const chips = hasCandidate
+                                    ? ['Navy header', 'Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent']
+                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header, minimal style', 'Full width card gallery', 'Compact dashboard with dark nav'];
+                                return (
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
+                                        {chips.map(chip => (
+                                            <button
+                                                key={chip}
+                                                disabled={isGeneratingCandidates}
+                                                onClick={() => setExplorePrompt(p => p.trim() ? `${p.trim()}, ${chip}` : chip)}
+                                                style={{
+                                                    background: '#f0fdf4',
+                                                    border: '1px solid #bbf7d0',
+                                                    borderRadius: 12,
+                                                    padding: '2px 8px',
+                                                    fontSize: 10,
+                                                    color: '#15803d',
+                                                    cursor: isGeneratingCandidates ? 'not-allowed' : 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    opacity: isGeneratingCandidates ? 0.5 : 1,
+                                                }}
+                                            >
+                                                {hasCandidate ? `+ ${chip}` : chip}
+                                            </button>
+                                        ))}
+                                    </div>
+                                );
+                            })()}
                             {candidateStatus && (
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4, wordBreak: 'break-word' }}>
                                     {isGeneratingCandidates && <Loader2 size={10} style={{ display: 'inline', marginRight: 4, animation: 'spin 1s linear infinite' }} />}
