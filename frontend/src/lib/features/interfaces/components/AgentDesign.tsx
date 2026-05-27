@@ -1950,8 +1950,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                             {posOpt.label}
                                         </span>
                                     )}
-                                    <span style={{ fontSize: 11, color: !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280' }}>
-                                        {!(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
+                                    <span style={{ fontSize: 11, color: !CHROME_LAYOUTS.includes(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? '#9333ea' : '#6b7280' }}>
+                                        {!CHROME_LAYOUTS.includes(s.layout as LayoutOption) && !(s.attributes?.length) && s.methods?.length ? 'action' : (s.layout || 'table')}
                                     </span>
                                 </span>
                             </button>

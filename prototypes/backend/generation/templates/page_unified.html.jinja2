@@ -3337,10 +3337,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 </main>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ footer chrome: consecutive link-grid sections are grouped into one flex row éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── footer chrome: consecutive link-grid sections are grouped into one flex row ── #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
-{%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
+{# Normalise comma-joined layout strings left by older data (e.g. "minimal-footer, newsletter-footer") #}
+{%- set _flay_raw = sc.layout | string %}
+{%- set _flay = (_flay_raw.split(',')[0].strip()) if ',' in _flay_raw else _flay_raw %}
+{%- set _is_link_grid = _flay in ('footer-links', 'link-grid') %}
 {%- if _is_link_grid and not _link_row_open %}
   {%- set _ = _link_row_open.append(1) %}
 <div class="bg-white border-t border-gray-100 px-8 py-8 flex gap-8 text-sm flex-wrap">
@@ -3388,7 +3391,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{%- elif sc.layout in ('service-strip', 'service-bar') %}
+{%- elif _flay in ('service-strip', 'service-bar') %}
 {# Screenshot match: blue bar éˆ?"Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
@@ -3401,7 +3404,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{%- elif sc.layout in ('footer-links', 'link-grid') %}
+{%- elif _flay in ('footer-links', 'link-grid') %}
 {# One column in the shared flex row opened above #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="link-grid" class="flex-1 min-w-36">
   <h4 class="font-bold text-gray-800 mb-3">{{ sc.display_name }}</h4>
@@ -3412,7 +3415,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </ul>
 </div>
 
-{%- elif sc.layout in ('footer-brand', 'brand-strip', 'social-footer') %}
+{%- elif _flay in ('footer-brand', 'brand-strip', 'social-footer') %}
 {# Footer brand strip #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="footer-brand">
 <div class="bg-white border-t border-gray-200 py-6 flex flex-col items-center gap-2">
@@ -3426,7 +3429,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{%- elif sc.layout in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
+{%- elif _flay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
 {# Legacy: full footer in one section (backward compat) #}
 <footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
   <!-- Service & contact strip -->

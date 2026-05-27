@@ -1907,7 +1907,16 @@ _FOOTER_TEMPLATE_LAYOUTS = {
 _CHROME_TEMPLATE_LAYOUTS = _HEADER_TEMPLATE_LAYOUTS | _FOOTER_TEMPLATE_LAYOUTS
 
 def _normalize_layout_alias(layout) -> str:
-    value = str(layout or "").strip()
+    if isinstance(layout, list):
+        raw_values = layout
+    else:
+        raw_values = re.split(r"[,|/]+", str(layout or ""))
+    values = [str(value or "").strip() for value in raw_values if str(value or "").strip()]
+    for value in values:
+        normalized = _LAYOUT_ALIASES.get(value, value)
+        if normalized in _CHROME_TEMPLATE_LAYOUTS or normalized in {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks"}:
+            return normalized
+    value = values[0] if values else ""
     return _LAYOUT_ALIASES.get(value, value)
 
 def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
@@ -2060,15 +2069,20 @@ def _normalize_chrome_sections(sections: list) -> list:
             or role in {"header", "footer", "navigation", "nav", "brand"}
         )
         if is_chrome:
+            # If the agent assigned a data/action layout to a chrome position, replace with
+            # the positional default so _infer_section_component returns the right component.
+            if layout not in _CHROME_TEMPLATE_LAYOUTS:
+                layout = "site-footer" if position == "footer" else "main-header"
             section["layout"] = layout
             section["primary_model"] = ""
             section["class"] = ""
             section["attributes"] = []
             section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
-            if section.get("type") == "activity_action":
-                section.pop("type", None)
+            section.pop("type", None)
             for key in ("workflow", "workflow_action", "target_page", "targetPage"):
                 section.pop(key, None)
+            # Clear any stale component so _infer_section_component runs fresh from layout.
+            section.pop("component", None)
             section["component"] = _infer_section_component(section)
         normalized.append(section)
     return normalized
@@ -2467,6 +2481,77 @@ def _fallback_model_for_page(page: dict, known_models: set[str]) -> str:
             return model
     non_process = [m for m in sorted(known_models) if m.lower() not in {"user", "group", "permission"}]
     return non_process[0] if non_process else ""
+
+def _default_category_for_model(model: str, model_id_by_name: dict[str, str] | None = None) -> dict | None:
+    model = str(model or "").strip()
+    if not model:
+        return None
+    model_id_by_name = model_id_by_name or {}
+    return {
+        "label": model,
+        "value": {
+            "id": str(model_id_by_name.get(model) or model),
+            "name": model,
+        },
+    }
+
+def _model_for_page_category(page: dict, sections_by_id: dict[str, dict], known_models: set[str]) -> str:
+    explicit = str(page.get("primary_model") or "").strip()
+    if explicit in known_models:
+        return explicit
+    for ref in page.get("sections") or []:
+        section = sections_by_id.get(_ref_id(ref) or "")
+        model = str((section or {}).get("primary_model") or "").strip()
+        if model in known_models:
+            return model
+    fallback = _fallback_model_for_page(page, known_models)
+    return fallback if fallback in known_models else ""
+
+def _assign_default_page_categories(pages: list, sections: list, model_id_by_name: dict[str, str] | None = None) -> list:
+    model_id_by_name = model_id_by_name or {}
+    known_models = set(model_id_by_name.keys())
+    sections_by_id = {str(s.get("id")): s for s in sections or [] if s.get("id")}
+    next_pages = []
+    for raw in pages or []:
+        page = dict(raw)
+        if _page_type_value(page) == "activity":
+            page["category"] = None
+            next_pages.append(page)
+            continue
+        if page.get("category"):
+            next_pages.append(page)
+            continue
+        model = _model_for_page_category(page, sections_by_id, known_models)
+        page["category"] = _default_category_for_model(model, model_id_by_name)
+        next_pages.append(page)
+    return next_pages
+
+def _merge_page_categories(categories: list, pages: list) -> list:
+    merged = []
+    seen = set()
+    for category in categories or []:
+        if not isinstance(category, dict):
+            continue
+        cid = str(category.get("id") or ((category.get("value") or {}).get("id") if isinstance(category.get("value"), dict) else "") or "")
+        name = str(category.get("name") or ((category.get("value") or {}).get("name") if isinstance(category.get("value"), dict) else "") or category.get("label") or "")
+        if not cid and not name:
+            continue
+        key = cid or name
+        seen.add(key)
+        merged.append(category)
+    for page in pages or []:
+        category = page.get("category")
+        if not isinstance(category, dict):
+            continue
+        value = category.get("value") if isinstance(category.get("value"), dict) else {}
+        cid = str(value.get("id") or category.get("id") or "")
+        name = str(value.get("name") or category.get("name") or category.get("label") or "")
+        key = cid or name
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        merged.append({"id": cid or name, "name": name or cid})
+    return merged
 
 def _default_section_for_page(page: dict, model: str, model_attrs: dict, candidate_index: int) -> dict:
     layout = _infer_section_layout(page, candidate_index)
@@ -3518,10 +3603,12 @@ def validate_and_save_candidate(
             tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
         if prompt_intent.get("colorIntent"):
             tokens = {**(tokens or {}), **prompt_intent["colorIntent"]}
-        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}
+        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); classifiers_data = cls_resp.json() if cls_resp.ok else {}; raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data; model_attrs = {}; model_id_by_name = {}
         for c in raw_classifiers:
             cdata = c.get("data", {}); cname = cdata.get("name", ""); attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
-            if cname: model_attrs[cname] = attrs
+            if cname:
+                model_attrs[cname] = attrs
+                model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
         known_models = set(model_attrs.keys())
         usecase_navigation = {}
         try:
@@ -3733,6 +3820,7 @@ def validate_and_save_candidate(
                 ref for ref in (p.get("sections") or [])
                 if (_ref_id(ref) in section_ids)
             ]
+        fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
         orphans = []
         for p in fixed_pages:
             for ref in p.get("sections", []):
@@ -3747,7 +3835,7 @@ def validate_and_save_candidate(
             "styling": styling or {},
             "prompt_intent": prompt_intent,
         }
-        data = dict(iface.get("data") or {}); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements, "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
+        data = dict(iface.get("data") or {}); data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages); candidates = list(data.get("candidates") or []); candidate = {"id": f"c{candidate_index}", "name": name, "description": description, "pages": fixed_pages, "sections": fixed_sections, "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements, "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False, **({"tokens": tokens} if tokens else {}), **({"design_spec": design_spec_name} if design_spec_name else {}), **({"styling": styling} if styling else {})}
         if derived_from != "":
             candidate["derived_from"] = derived_from
         if designer_requirements:
