@@ -448,8 +448,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
-    const [isBootstrapping, setIsBootstrapping] = useState(false);
-    const [bootstrapStatus, setBootstrapStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [isMapping, setIsMapping] = useState(false);
+    const [mapStatus, setMapStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isSyncingLive, setIsSyncingLive] = useState(false);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isVisualChecking, setIsVisualChecking] = useState(false);
@@ -498,6 +498,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hotReloadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // Timestamp set whenever sections/pages are loaded from DB — saves within 500ms of a DB load are skipped to avoid write-back loops.
+    // Initialized to Date.now() so the initial localStorage-seeded render is also skipped.
+    const dbLoadTimestamp = useRef(Date.now());
     // Capture latest sections/pages/previewPageIndex/styling for the debounced callback
     const latestState = useRef({ sections, pages, previewPageIndex, styling, tokens });
     useEffect(() => { latestState.current = { sections, pages, previewPageIndex, styling, tokens }; }, [sections, pages, previewPageIndex, styling, tokens]);
@@ -520,6 +524,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 const iface = res.data as any;
                 const data = iface?.data || {};
                 setCurrentInterface(iface);
+                dbLoadTimestamp.current = Date.now();
                 setSections(data.sections || []);
                 setPages(data.pages || []);
                 setStyling(data.styling || {});
@@ -826,6 +831,26 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setIsPromptGuideOpen(false);
     }, [promptGuideTarget]);
 
+    const handleMapUml = useCallback(async () => {
+        if (!interfaceId) return;
+        setIsMapping(true);
+        setMapStatus('idle');
+        try {
+            await authAxios.post(`/v1/generator/prototypes/map_uml_to_interface/`, { interface_id: interfaceId });
+            setMapStatus('ok');
+            const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
+            const data = (res.data as any)?.data || {};
+            dbLoadTimestamp.current = Date.now();
+            setSections(data.sections || []);
+            setPages(data.pages || []);
+        } catch {
+            setMapStatus('error');
+        } finally {
+            setIsMapping(false);
+            setTimeout(() => setMapStatus('idle'), 4000);
+        }
+    }, [interfaceId, setSections, setPages]);
+
     const handleSeedData = useCallback(async () => {
         setIsSeedingData(true);
         setSeedStatus('idle');
@@ -843,25 +868,6 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setTimeout(() => setSeedStatus('idle'), 3000);
         }
     }, [systemId, checkAndSwitchLive, resolveLiveUser]);
-
-    const handleBootstrapOoui = useCallback(async () => {
-        if (!interfaceId) return;
-        setIsBootstrapping(true);
-        setBootstrapStatus('idle');
-        try {
-            await authAxios.post(`/v1/generator/prototypes/bootstrap_ooui/`, { interface_id: interfaceId });
-            setBootstrapStatus('ok');
-            const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
-            const data = (res.data as any)?.data || {};
-            setSections(data.sections || []);
-            setPages(data.pages || []);
-        } catch {
-            setBootstrapStatus('error');
-        } finally {
-            setIsBootstrapping(false);
-            setTimeout(() => setBootstrapStatus('idle'), 3000);
-        }
-    }, [interfaceId, setSections, setPages]);
 
     const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any, overrideTokens?: any) => {
         if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
@@ -1064,6 +1070,20 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         hotReloadTimer.current = setTimeout(doHotReload, 800);
         return () => { if (hotReloadTimer.current) clearTimeout(hotReloadTimer.current); };
     }, [sections, pages, styling, tokens, interfaceId, previewMode, doHotReload]);
+
+    // Debounce: persist sections+pages to DB 800 ms after any change, skipping DB-load write-backs
+    useEffect(() => {
+        if (!interfaceId) return;
+        if (Date.now() - dbLoadTimestamp.current < 500) return;
+        if (saveTimer.current) clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(() => {
+            authAxios.patch(`/v1/metadata/interfaces/${interfaceId}/data/`, {
+                sections,
+                pages,
+            }).catch((e: any) => console.error('Failed to persist sections/pages:', e));
+        }, 800);
+        return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    }, [sections, pages, interfaceId]);
 
 const updateSection = useCallback((sectionId: string, field: string, value: any) => {
         setSections((prev: any[]) => prev.map((s: any) => {
@@ -3231,17 +3251,18 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <RefreshCw size={12} />Refresh
                             </button>
                         )}
-                        <button onClick={handleBootstrapOoui} disabled={isBootstrapping || !interfaceId}
-                            title="Populate pages and sections from UML via OOUI planner"
+                        <button onClick={handleMapUml} disabled={isMapping || !interfaceId}
+                            title="Map UML diagrams to interface pages and sections via AI"
                             style={{
-                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isBootstrapping ? 'default' : 'pointer',
-                                border: `1px solid ${bootstrapStatus === 'ok' ? '#86efac' : bootstrapStatus === 'error' ? '#fca5a5' : '#e9d5ff'}`,
-                                background: bootstrapStatus === 'ok' ? '#f0fdf4' : bootstrapStatus === 'error' ? '#fef2f2' : '#faf5ff',
-                                color: bootstrapStatus === 'ok' ? '#16a34a' : bootstrapStatus === 'error' ? '#dc2626' : '#7c3aed',
-                                opacity: isBootstrapping || !interfaceId ? 0.6 : 1,
+                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
+                                cursor: isMapping ? 'default' : 'pointer',
+                                border: `1px solid ${mapStatus === 'ok' ? '#86efac' : mapStatus === 'error' ? '#fca5a5' : '#e9d5ff'}`,
+                                background: mapStatus === 'ok' ? '#f0fdf4' : mapStatus === 'error' ? '#fef2f2' : '#faf5ff',
+                                color: mapStatus === 'ok' ? '#16a34a' : mapStatus === 'error' ? '#dc2626' : '#7c3aed',
+                                opacity: isMapping || !interfaceId ? 0.6 : 1,
                             }}>
-                            {isBootstrapping ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={12} />}
-                            {bootstrapStatus === 'ok' ? 'Done!' : bootstrapStatus === 'error' ? 'Failed' : 'OOUI Plan'}
+                            {isMapping ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={12} />}
+                            {mapStatus === 'ok' ? 'Mapped!' : mapStatus === 'error' ? 'Failed' : 'Map UML'}
                         </button>
                         <button onClick={handleSeedData} disabled={isSeedingData}
                             style={{

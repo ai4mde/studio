@@ -343,11 +343,6 @@ class RegenerateCandidatesPayload(Schema):
     selected_candidate_index: int
 
 
-class BootstrapOouiPayload(Schema):
-    interface_id: str
-    designer_requirements: str
-
-
 @prototypes.post("/generate_candidates/")
 def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
     """Stream 3-candidate interface generation via the ADK candidate_pipeline_agent."""
@@ -487,15 +482,19 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
     return resp
 
 
-@prototypes.post("/bootstrap_ooui/")
-def bootstrap_ooui_interface(request, payload: BootstrapOouiPayload):
-    """Populate an interface's pages and sections from its UML via the OOUI planner."""
+class MapUmlPayload(Schema):
+    interface_id: str
+
+
+@prototypes.post("/map_uml_to_interface/")
+def map_uml_to_interface(request, payload: MapUmlPayload):
+    """Map UML diagrams to interface pages and sections via the interface_mapper_agent."""
     ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
     try:
         resp = requests.post(
-            f"{ADK_AGENT_URL}/bootstrap_ooui",
+            f"{ADK_AGENT_URL}/map_uml_to_interface",
             json={"interface_id": payload.interface_id},
-            timeout=60,
+            timeout=180,
         )
         resp.raise_for_status()
         data = resp.json()

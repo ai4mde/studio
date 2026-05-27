@@ -14,6 +14,7 @@ from app.tools import (
     generate_candidate_set_tool, regenerate_candidate_set_tool,
     get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
     select_design_specs_for_interface_tool,
+    analyze_interface_from_uml_tool, save_interface_plan_tool,
 )
 
 AGENT_MODEL = os.environ.get("ADK_AGENT_MODEL", "openai/gpt-4o")
@@ -270,6 +271,62 @@ Rules:
     tools=[system_context_tool, run_seed_script_tool],
 )
 
+interface_mapper_agent = Agent(
+    name="interface_mapper_agent",
+    model=_model(),
+    description="Maps a system's UML (class, use-case, activity diagrams) to interface pages and sections.",
+    instruction="""You map UML diagrams to a concrete interface structure for a specific actor.
+
+WORKFLOW
+========
+1. Call analyze_interface_from_uml(interface_id) to extract full UML intelligence.
+   The result includes:
+   - actor_permissions: which models this actor can access and with what CRUD rights
+   - model_graph_summary: attributes, layout scores, relationships for each model
+   - workflows: sequences from activity diagrams with suggested components per step
+   - interface_plan.pages and interface_plan.sections: rule-based initial mapping
+   - semantic_decisions: list of layout/component choices that need your judgment
+
+2. Review the rule-based interface_plan. Then resolve each entry in semantic_decisions:
+   Apply your knowledge of UX patterns and the domain (inferred from model names/attributes):
+
+   CalendarView → use when model is appointment/booking/meeting/event AND has time-range fields
+   TimelineList → use when model is history/log/audit/feed/transaction and data is chronological
+   MapView      → use when model has geo coordinates (latitude, longitude)
+   PersonCardGrid → use for user/customer/patient/doctor/member/employee collections
+   DataTable    → default for most business entities with status and many attributes
+   CardGrid     → use for visual/product-like entities without a more specific component
+   DetailPanel  → standard detail view; ProductDetailPanel only for "Product" specifically
+   StepperWorkflow → multi-step activity workflows (3+ steps from activity diagram)
+
+3. Apply your semantic decisions to refine the interface_plan:
+   - Replace or keep components in sections where you chose differently from the rule-based default
+   - Add/remove sections if the UML intelligence justifies it (e.g., a workflow with 5 steps
+     from the activity diagram that the rule-based planner missed)
+   - Ensure every model in actor_permissions has at least one page
+   - Ensure detail pages exist for models where update/create permission is granted
+
+4. Call save_interface_plan(
+       interface_id=<id>,
+       pages_json=<JSON string of final pages array>,
+       sections_json=<JSON string of final sections array>
+   ) to persist the result.
+
+5. Reply with a short summary: how many pages and sections were created, and any notable
+   semantic decisions you made (e.g. "Used CalendarView for Appointment because it has
+   start_time/end_time fields").
+
+RULES
+=====
+- Only use models present in actor_permissions — do not invent pages for inaccessible models.
+- Do not generate candidates. Do not touch design tokens or styling.
+- Keep section IDs stable (use the ids from interface_plan — do not invent new ones unless adding a section).
+- The pages_json and sections_json you pass to save_interface_plan must be valid JSON strings.
+""",
+    tools=[analyze_interface_from_uml_tool, save_interface_plan_tool],
+)
+
+
 root_agent = Agent(
     name="gemini_make_agent",
     model=_model(),
@@ -280,6 +337,7 @@ root_agent = Agent(
 If the message contains 'project_name=' (seed data request): transfer to seed_agent.
 If the message contains 'regenerate_candidates' (selected-candidate regeneration): call candidate_regeneration_agent with the message and wait.
 If the message contains 'generate_candidates' (3-candidate generation): call candidate_direct_agent with the message and wait.
+If the message contains 'map_uml_to_interface' (UML-to-interface mapping): call interface_mapper_agent with the message and wait.
 Otherwise (interface_id= UI edit request): handle it directly using the workflow below.
 
 --- UI edit workflow ---
@@ -356,6 +414,7 @@ Editable fields:
         _image_search_mcp_toolset(),
         AgentTool(agent=candidate_regeneration_agent),
         AgentTool(agent=candidate_direct_agent),
+        AgentTool(agent=interface_mapper_agent),
     ],
     sub_agents=[seed_agent],
 )
