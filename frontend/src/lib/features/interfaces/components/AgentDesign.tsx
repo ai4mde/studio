@@ -1,7 +1,7 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2, Wand2 } from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -448,6 +448,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
     const [isSeedingData, setIsSeedingData] = useState(false);
     const [seedStatus, setSeedStatus] = useState<'idle' | 'ok' | 'error'>('idle');
+    const [isBootstrapping, setIsBootstrapping] = useState(false);
+    const [bootstrapStatus, setBootstrapStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isSyncingLive, setIsSyncingLive] = useState(false);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'ok' | 'error'>('idle');
     const [isVisualChecking, setIsVisualChecking] = useState(false);
@@ -841,6 +843,25 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setTimeout(() => setSeedStatus('idle'), 3000);
         }
     }, [systemId, checkAndSwitchLive, resolveLiveUser]);
+
+    const handleBootstrapOoui = useCallback(async () => {
+        if (!interfaceId) return;
+        setIsBootstrapping(true);
+        setBootstrapStatus('idle');
+        try {
+            await authAxios.post(`/v1/generator/prototypes/bootstrap_ooui/`, { interface_id: interfaceId });
+            setBootstrapStatus('ok');
+            const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
+            const data = (res.data as any)?.data || {};
+            setSections(data.sections || []);
+            setPages(data.pages || []);
+        } catch {
+            setBootstrapStatus('error');
+        } finally {
+            setIsBootstrapping(false);
+            setTimeout(() => setBootstrapStatus('idle'), 3000);
+        }
+    }, [interfaceId, setSections, setPages]);
 
     const buildGeneratorPrototypePayload = useCallback(async (overrideSections?: any[], overridePages?: any[], overrideStyling?: any, overrideTokens?: any) => {
         if (!interfaceId || !systemId) throw new Error('Missing interface or system id.');
@@ -3210,6 +3231,18 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <RefreshCw size={12} />Refresh
                             </button>
                         )}
+                        <button onClick={handleBootstrapOoui} disabled={isBootstrapping || !interfaceId}
+                            title="Populate pages and sections from UML via OOUI planner"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isBootstrapping ? 'default' : 'pointer',
+                                border: `1px solid ${bootstrapStatus === 'ok' ? '#86efac' : bootstrapStatus === 'error' ? '#fca5a5' : '#e9d5ff'}`,
+                                background: bootstrapStatus === 'ok' ? '#f0fdf4' : bootstrapStatus === 'error' ? '#fef2f2' : '#faf5ff',
+                                color: bootstrapStatus === 'ok' ? '#16a34a' : bootstrapStatus === 'error' ? '#dc2626' : '#7c3aed',
+                                opacity: isBootstrapping || !interfaceId ? 0.6 : 1,
+                            }}>
+                            {isBootstrapping ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={12} />}
+                            {bootstrapStatus === 'ok' ? 'Done!' : bootstrapStatus === 'error' ? 'Failed' : 'OOUI Plan'}
+                        </button>
                         <button onClick={handleSeedData} disabled={isSeedingData}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12, cursor: isSeedingData ? 'default' : 'pointer',

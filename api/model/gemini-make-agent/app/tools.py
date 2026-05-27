@@ -4639,6 +4639,63 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"
 
+def bootstrap_interface_from_ooui_plan(interface_id: str) -> str:
+    """Populate an interface's pages and sections from the OOUI plan derived from its system's UML."""
+    try:
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        system_id = iface.get("system")
+        actor_id = iface.get("actor")
+
+        system_data = _fetch_system_context_data(system_id)
+        actor_name = _actor_name_from_context(system_data, actor_id)
+        nav = _build_usecase_navigation(system_data, str(actor_id or ""), actor_name)
+
+        model_attrs = {
+            k: v for k, v in {
+                (c.get("data") or {}).get("name"): {
+                    a.get("name") for a in (c.get("data") or {}).get("attributes", []) if a.get("name")
+                }
+                for c in _as_list(system_data.get("classifiers"), "classifiers")
+                if (c.get("data") or {}).get("type") in {"class", "entity", "model"}
+            }.items() if k
+        }
+
+        ooui_plan = build_ooui_plan_from_navigation(nav, model_attrs)
+
+        pages = [
+            {
+                "id": p["id"],
+                "name": p["name"],
+                "primary_model": p.get("primary_model", ""),
+                "type": {"value": "normal", "label": "Normal"},
+                "sections": [{"value": sid} for sid in p.get("sections", [])],
+                "category": None,
+            }
+            for p in ooui_plan.get("pages", [])
+        ]
+        sections = [
+            {**s, "class": s.get("primary_model", ""),
+             "operations": {"create": False, "update": False, "delete": False, "select": False}}
+            for s in ooui_plan.get("sections", [])
+        ]
+
+        if not pages:
+            return "ERROR: No pages could be derived from UML. Check that the system has use cases linked to an actor."
+
+        patch_resp = requests.patch(
+            f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",
+            json={"pages": pages, "sections": sections},
+            headers=_AUTH_HEADERS,
+            timeout=30,
+        )
+        patch_resp.raise_for_status()
+        return f"OK: {len(pages)} pages and {len(sections)} sections bootstrapped from OOUI plan."
+    except Exception as e:
+        return f"ERROR: bootstrap_interface_from_ooui_plan failed: {e}"
+
+
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
     try:
         resp = requests.post(f"{METADATA_API_BASE}/interfaces/{interface_id}/candidates/{candidate_index}/render/", headers=_AUTH_HEADERS, timeout=60)
