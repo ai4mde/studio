@@ -285,8 +285,12 @@
 {%- set _btn_ghost  = 'font-semibold px-4 py-2 si-btn bg-transparent hover:bg-gray-100 transition-colors' %}
 {%- set _btn_gradient = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
 {%- macro nav_href_attrs(target_page) -%}
-{%- if preview_mode -%}
+{%- if target_page == '__task_home__' and preview_mode -%}
+href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;"
+{%- elif preview_mode -%}
 href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ target_page }}'},'*');return false;"
+{%- elif target_page == '__task_home__' -%}
+href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
 {%- else -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
@@ -298,7 +302,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _has_header_chrome = [] %}
 {%- set _nav_pages = [] %}
 {%- set _nav_page_keys = [] %}
+{%- set _task_nav_available = [] %}
+{%- if page.is_task_page is defined and page.is_task_page %}
+  {%- set _ = _task_nav_available.append(true) %}
+{%- endif %}
 {%- for _p in (all_pages or []) %}
+  {%- if _p.type == 'activity' or (_p.is_task_page is defined and _p.is_task_page) %}
+    {%- set _ = _task_nav_available.append(true) %}
+  {%- endif %}
   {%- if _p.type != 'activity' and not (_p.is_task_page is defined and _p.is_task_page) %}
     {%- set _p_key = (_p.name if _p.name is defined else _p)|string %}
     {%- if _p_key not in _nav_page_keys %}
@@ -307,6 +318,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   {%- endif %}
 {%- endfor %}
+{%- for _sc in page.section_components %}
+  {%- if _sc.layout in ['activity_start', 'activity_tasks'] or _sc.component_type in ['activity_start', 'activity_tasks'] %}
+    {%- set _ = _task_nav_available.append(true) %}
+  {%- endif %}
+{%- endfor %}
+{%- if _task_nav_available and '__task_home__' not in _nav_page_keys %}
+  {%- set _ = _nav_page_keys.append('__task_home__') %}
+  {%- set _ = _nav_pages.append({'name': '__task_home__', 'display_name': 'Tasks', 'type': 'normal'}) %}
+{%- endif %}
 {%- for sc in page.section_components %}
   {%- if sc.layout in _header_chrome or sc.position == 'header' %}
     {%- set _ = _has_header_chrome.append(sc) %}
@@ -450,8 +470,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ COMBINED MAIN HEADER (main-header éˆ?legacy single-section variant) éˆ¹â‚¬éˆ¹â‚¬ #}
-{%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header','hero-header','tabbed-header','glass-header','command-header') %}
+{# ── MAIN HEADER: standard enterprise – colored topbar + search + icons ── #}
+{%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
   <span style="font-weight:600;letter-spacing:.05em;">{{ _brand_name | upper }}</span>
@@ -459,17 +479,194 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
   <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
-    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
-      <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </button>
+    <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or 'Search…' }}" type="search" value="" />
+    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};"><svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
     <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    <span class="relative cursor-pointer">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-    </span>
+    <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+  </div>
+</header>
+</div>
+
+{# ── COMMERCE HEADER: 3-tier – promo strip / brand+search+cart / nav row ── #}
+{%- elif sc.layout == 'commerce-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="commerce-header">
+<div class="text-center text-xs py-1.5 font-medium text-white select-none" style="background-color:{{ _accent_hex }};">{{ sc.text or 'Free shipping on orders over $50' }}</div>
+<header class="bg-white px-6 py-3 flex items-center gap-4 border-b border-gray-100">
+  <a href="#" class="text-2xl font-black shrink-0" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+  <form action="#" method="get" class="flex-1 flex items-center bg-gray-100 rounded-lg overflow-hidden">
+    <input name="q" class="flex-1 px-4 py-2 text-sm outline-none bg-transparent si-input" placeholder="{{ sc.text or 'Search products…' }}" type="search" value="" />
+    <button type="submit" class="px-3 py-2 text-gray-500 hover:text-gray-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+  </form>
+  <div class="flex items-center gap-4 shrink-0 text-gray-600">
+    <span class="cursor-pointer hover:opacity-75 text-sm">Account</span>
+    <span class="cursor-pointer hover:opacity-75 text-sm">Wishlist</span>
+    <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg><span class="absolute -top-1.5 -right-1.5 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold" style="background-color:{{ _accent_hex }};">0</span></span>
+  </div>
+</header>
+<nav class="bg-white border-b border-gray-200 px-6 py-0 overflow-x-auto">
+  <div class="flex items-center gap-0 whitespace-nowrap text-sm">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-4 py-2.5 cursor-pointer font-medium border-b-2 transition-colors {% if p.display_name == page.display_name %}font-bold{% else %}border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+  </div>
+</nav>
+</div>
+
+{# ── DASHBOARD HEADER: dark app bar – logo left, breadcrumb, avatar right ── #}
+{%- elif sc.layout == 'dashboard-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="dashboard-header">
+<header class="flex items-center justify-between px-5 py-2.5 shadow-md" style="background-color:var(--region-header-bg,#1e293b);color:var(--region-header-text,#f1f5f9);">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="w-7 h-7 rounded-lg flex items-center justify-center font-black text-white text-sm" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+      <span class="font-bold text-sm tracking-tight" style="color:var(--region-header-text,#f1f5f9);">{{ _brand_name }}</span>
+    </div>
+    <div class="hidden md:flex items-center gap-1 text-xs" style="color:rgba(255,255,255,0.5);">
+      <span class="cursor-pointer hover:text-white">{{ sc.custom_methods[0] if sc.custom_methods else 'Home' }}</span>
+      {%- for p in _nav_pages[:4] %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<span style="color:rgba(255,255,255,0.3);">/</span><a {{ nav_href_attrs(_p_name) }} class="cursor-pointer hover:text-white {% if p.display_name == page.display_name %}font-semibold{% endif %}" style="{{ ('color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+    <button class="text-xs px-3 py-1.5 rounded-lg font-medium" style="background-color:{{ _accent_hex }};color:white;">{{ sc.custom_methods[-1] if sc.custom_methods else 'New' }}</button>
+    <span class="cursor-pointer" style="color:rgba(255,255,255,0.6);"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+    <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+  </div>
+</header>
+</div>
+
+{# ── SPLIT HEADER: dark left brand + white right nav ── #}
+{%- elif sc.layout == 'split-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="split-header">
+<header class="flex items-stretch" style="min-height:52px;">
+  <div class="flex items-center px-6 py-3 shrink-0" style="background-color:var(--region-header-bg,#1e293b);min-width:220px;">
+    <a href="#" class="font-black text-xl tracking-tight" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-0.5px;">{{ _brand_name }}.</a>
+  </div>
+  <div class="flex-1 flex items-center justify-between bg-white border-b border-gray-200 px-6 py-2">
+    <nav class="flex items-center gap-1 text-sm">
+      {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 rounded font-medium cursor-pointer transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-600 hover:bg-gray-100{% endif %}" style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+    </nav>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      <span class="cursor-pointer hover:text-gray-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <a href="#" class="cursor-pointer hover:text-gray-800 text-xs font-medium">Logout</a>
+    </div>
+  </div>
+</header>
+</div>
+
+{# ── APP HEADER: slim toolbar – icon+title left, utility icons right ── #}
+{%- elif sc.layout == 'app-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="app-header">
+<header class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-white text-sm shrink-0" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+    <span class="font-semibold text-sm text-gray-900">{{ _brand_name }}</span>
+    <span class="text-gray-300 text-sm">|</span>
+    <nav class="flex items-center gap-0 text-sm">
+      {%- for p in _nav_pages[:5] %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-2.5 py-1 rounded text-gray-600 hover:bg-gray-100 cursor-pointer font-medium transition-colors {% if p.display_name == page.display_name %}font-semibold{% endif %}" style="{{ ('color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+    </nav>
+  </div>
+  <div class="flex items-center gap-2 text-gray-500">
+    <span class="cursor-pointer hover:text-gray-800 p-1.5 rounded hover:bg-gray-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <span class="cursor-pointer hover:text-gray-800 p-1.5 rounded hover:bg-gray-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+    <span class="cursor-pointer hover:text-gray-800 p-1.5 rounded hover:bg-gray-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+    <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ml-1" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+  </div>
+</header>
+</div>
+
+{# ── COMPACT HEADER: single thin bar – logo + inline nav + user ── #}
+{%- elif sc.layout == 'compact-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="compact-header">
+<header class="bg-white border-b border-gray-200 px-5 py-1.5 flex items-center gap-4">
+  <a href="#" class="font-black text-lg shrink-0" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-0.5px;">{{ _brand_name }}.</a>
+  <nav class="flex-1 flex items-center gap-0 text-sm overflow-x-auto">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1 rounded text-gray-600 hover:bg-gray-100 cursor-pointer whitespace-nowrap font-medium transition-colors {% if p.display_name == page.display_name %}font-bold{% endif %}" style="{{ ('color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+  </nav>
+  <div class="flex items-center gap-2 shrink-0 text-gray-500 text-xs">
+    <span class="cursor-pointer hover:text-gray-800 font-medium">{{ sc.text or _brand_name[0] | upper }}</span>
+    <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+  </div>
+</header>
+</div>
+
+{# ── MEGA HEADER: logo + horizontal category pill nav ── #}
+{%- elif sc.layout == 'mega-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="mega-header">
+<header class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-6">
+  <a href="#" class="font-black text-2xl shrink-0" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+  <div class="flex-1 flex items-center gap-1.5 overflow-x-auto">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium cursor-pointer whitespace-nowrap transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}{%- if not loop.last %}<svg class="w-3 h-3 opacity-40" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>{%- endif %}</a>{%- endif %}{%- endfor %}
+  </div>
+  <div class="flex items-center gap-3 shrink-0 text-gray-500">
+    <span class="cursor-pointer hover:text-gray-800"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <a href="#" class="text-sm text-gray-600 hover:text-gray-900 font-medium cursor-pointer">Logout</a>
+  </div>
+</header>
+</div>
+
+{# ── HERO HEADER: large centered brand + horizontal nav ── #}
+{%- elif sc.layout == 'hero-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="hero-header">
+<header class="px-6 py-5 flex flex-col gap-3 border-b border-gray-200" style="background:linear-gradient(135deg,{{ _accent_hex }}18 0%,transparent 60%);">
+  <div class="flex items-center justify-between">
+    <a href="#" class="font-black text-3xl" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}.</a>
+    <div class="flex items-center gap-4 text-sm text-gray-600">
+      <span class="cursor-pointer hover:text-gray-900"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <a href="#" class="cursor-pointer hover:text-gray-900 font-medium">Logout</a>
+    </div>
+  </div>
+  <nav class="flex items-center gap-0 text-sm border-t border-gray-100 pt-2">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-4 py-1.5 font-medium cursor-pointer transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-500 hover:text-gray-900 border-b-2 border-transparent{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+  </nav>
+</header>
+</div>
+
+{# ── TABBED HEADER: logo + tab strip below the brand bar ── #}
+{%- elif sc.layout == 'tabbed-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="tabbed-header">
+<div class="bg-white border-b border-gray-200">
+  <div class="px-6 py-2 flex items-center justify-between">
+    <a href="#" class="font-black text-xl" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-0.5px;">{{ _brand_name }}.</a>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      <span class="cursor-pointer hover:text-gray-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
+    </div>
+  </div>
+  <nav class="flex items-center gap-0 px-4 overflow-x-auto" style="border-top:1px solid #f0f0f0;">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-4 py-2.5 text-sm font-medium cursor-pointer whitespace-nowrap border-b-2 transition-colors {% if p.display_name == page.display_name %}font-bold{% else %}border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+  </nav>
+</div>
+</div>
+
+{# ── GLASS HEADER: semi-transparent frosted bar ── #}
+{%- elif sc.layout == 'glass-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="glass-header">
+<header class="px-6 py-3 flex items-center gap-4 shadow-sm" style="background:rgba(255,255,255,0.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.08);">
+  <a href="#" class="font-black text-xl shrink-0" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-0.5px;">{{ _brand_name }}.</a>
+  <nav class="flex-1 flex items-center gap-0 text-sm overflow-x-auto">
+    {%- for p in _nav_pages %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 rounded-lg font-medium cursor-pointer whitespace-nowrap transition-colors {% if p.display_name == page.display_name %}text-white{% else %}text-gray-600 hover:bg-white/60{% endif %}" style="{{ ('background-color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+  </nav>
+  <div class="flex items-center gap-3 shrink-0 text-gray-500 text-sm">
+    <span class="cursor-pointer hover:text-gray-800"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+    <a href="#" class="font-medium text-gray-600 hover:text-gray-900 cursor-pointer">Logout</a>
+  </div>
+</header>
+</div>
+
+{# ── COMMAND HEADER: dark bar with central command/search palette ── #}
+{%- elif sc.layout == 'command-header' %}
+<div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="command-header">
+<header class="px-5 py-2 flex items-center gap-4" style="background-color:#0f172a;">
+  <a href="#" class="font-black text-lg shrink-0 tracking-tight" style="color:{{ _accent_hex }};font-family:'Georgia',serif;">{{ _brand_name }}.</a>
+  <div class="flex-1 flex items-center rounded-lg px-3 py-1.5 gap-2 cursor-pointer" style="background-color:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);">
+    <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span class="text-sm flex-1" style="color:rgba(255,255,255,0.4);">{{ sc.text or 'Search or run a command…' }}</span>
+    <kbd class="text-xs px-1.5 py-0.5 rounded font-mono" style="background-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);">⌘K</kbd>
+  </div>
+  <div class="flex items-center gap-2 shrink-0">
+    {%- for p in _nav_pages[:4] %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors {% if p.display_name == page.display_name %}text-white{% else %}hover:bg-white/10{% endif %}" style="color:{{ _accent_hex if p.display_name == page.display_name else 'rgba(255,255,255,0.6)' }};">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
+    <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ml-1" style="background-color:{{ _accent_hex }};">{{ _brand_name[0] | upper }}</div>
   </div>
 </header>
 </div>
@@ -505,8 +702,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </nav>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ MINIMAL HEADER (minimal-header éˆ?checkout/login) éˆ¹â‚¬éˆ¹â‚¬ #}
-{%- elif sc.layout in ('minimal-header','compact-header') %}
+{# ── MINIMAL HEADER: checkout/login – logo only + single action ── #}
+{%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
   <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -590,7 +787,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </nav>
 {% endif %}
 
-<main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}">
+<main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}" style="background-color:var(--page-bg);">
 {%- else -%}
 {% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
 {% raw %}{% block chrome_header %}{% endblock %}{% endraw %}
@@ -600,7 +797,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
 {%- set _nav_pages = [] %}
 {%- set _nav_page_keys = [] %}
+{%- set _task_nav_available = [] %}
+{%- if page.is_task_page is defined and page.is_task_page %}
+  {%- set _ = _task_nav_available.append(true) %}
+{%- endif %}
 {%- for _p in (all_pages or []) %}
+  {%- if _p.type == 'activity' or (_p.is_task_page is defined and _p.is_task_page) %}
+    {%- set _ = _task_nav_available.append(true) %}
+  {%- endif %}
   {%- if _p.type != 'activity' and not (_p.is_task_page is defined and _p.is_task_page) %}
     {%- set _p_key = (_p.name if _p.name is defined else _p)|string %}
     {%- if _p_key not in _nav_page_keys %}
@@ -609,6 +813,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   {%- endif %}
 {%- endfor %}
+{%- for _sc in page.section_components %}
+  {%- if _sc.layout in ['activity_start', 'activity_tasks'] or _sc.component_type in ['activity_start', 'activity_tasks'] %}
+    {%- set _ = _task_nav_available.append(true) %}
+  {%- endif %}
+{%- endfor %}
+{%- if _task_nav_available and '__task_home__' not in _nav_page_keys %}
+  {%- set _ = _nav_page_keys.append('__task_home__') %}
+  {%- set _ = _nav_pages.append({'name': '__task_home__', 'display_name': 'Tasks', 'type': 'normal'}) %}
+{%- endif %}
 <style>
   :root {
     --radius: {{ tokens.get('page.radius.px', '8') }}px;
@@ -724,7 +937,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 } %}
 {# éˆ¹â‚¬éˆ¹â‚¬ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) éˆ¹â‚¬éˆ¹â‚¬ #}
 {%- macro nav_href_attrs(target_page) -%}
+{%- if target_page == '__task_home__' -%}
+href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+{%- else -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
+{%- endif -%}
 {%- endmacro %}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
 {%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
@@ -1176,7 +1393,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% set has_attrs = section_component.attributes|length > 0 %}
 {% set section_methods = section_component.custom_methods | selectattr('body_is_valid') | list %}
 {% set has_methods = section_methods|length > 0 %}
-{% set eff_lay = "action_panel" if (not has_attrs and has_methods) else lay %}
+{% set _is_chrome_or_nav = _is_chrome_layout or section_component.position in ['header', 'footer', 'sidebar'] or section_component.role in ['header', 'footer', 'navigation', 'nav', 'brand'] %}
+{% set eff_lay = "action_panel" if (not _is_chrome_or_nav and not has_attrs and has_methods) else lay %}
 {% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else ((section_component.primary_model + '_list') if section_component.primary_model else '') %}
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
@@ -1821,8 +2039,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- set _action_variant = _s.get('action_variant', 'link') %}
   {%- set _show_logout = _s.get('show_logout', true) not in [false, 'false', '0', 'no', 'hidden'] %}
   {%- set _logout_label = _s.get('logout_label', 'Logout') %}
+  {%- set _icon_links = _s.get('icon_links', []) %}
   {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
   <div class="flex items-center gap-3 text-sm text-gray-700 justify-end">
+    {%- for link in _icon_links %}
+    <a {{ nav_href_attrs(link.get('page')) }} class="{{ _action_cls }} inline-flex items-center gap-1.5" title="{{ link.get('label', 'Open task') }}">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>{{ link.get('label', 'Task') }}</span>
+    </a>
+    {%- endfor %}
     {%- if section_component.custom_methods %}
     {%- for m in section_component.custom_methods %}
     <span class="{{ _action_cls }}">{{ m }}</span>
@@ -1874,7 +2099,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endfor %}
     </div>
   </nav>
-  {%- elif lay in ('nav-links', 'nav-bar') %}
+  {%- elif lay in ('nav-links', 'nav-bar', 'site-nav') %}
   <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
     <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
@@ -1910,7 +2135,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       </form>
       <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
         <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        {%- set _icon_links = _s.get('icon_links', []) %}
+        {%- if _icon_links %}
+        {%- set _task_link = _icon_links[0] %}
+        <a {{ nav_href_attrs(_task_link.get('page')) }} class="cursor-pointer hover:opacity-75" title="{{ _task_link.get('label', 'Open task') }}"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></a>
+        {%- else %}
         <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        {%- endif %}
         <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
       </div>
     </header>
@@ -2197,7 +2428,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
         {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-1">
@@ -2419,7 +2650,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
         {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-0.5 min-w-24">
@@ -2548,7 +2779,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
         <tr class="{{ c.light }}">
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
           {% for attribute in _column_attrs %}
@@ -2798,9 +3029,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {% for parent_model in section_component.parent_models %}
       <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
       {% endfor %}
-    {%- else %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
+    {%- elif section_component.has_update_operation %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id {% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
+    {%- else %}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="space-y-4">
     {%- endif %}
       {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
       <div class="si-field" data-field-name="{{ attribute }}">
@@ -2851,8 +3084,15 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- set _action_variant = _s.get('action_variant', 'link') %}
   {%- set _show_logout = _s.get('show_logout', true) not in [false, 'false', '0', 'no', 'hidden'] %}
   {%- set _logout_label = _s.get('logout_label', 'Logout') %}
+  {%- set _icon_links = _s.get('icon_links', []) %}
   {%- set _action_cls = 'si-btn si-btn-primary px-3 py-2 text-sm font-semibold' if _action_variant == 'button' else ('si-btn si-btn-ghost px-3 py-2 text-sm font-semibold' if _action_variant == 'ghost' else 'cursor-pointer hover:opacity-75 whitespace-nowrap') %}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center justify-end gap-3 text-sm text-gray-700">
+    {%- for link in _icon_links %}
+    <a {{ nav_href_attrs(link.get('page')) }} class="{{ _action_cls }} inline-flex items-center gap-1.5" title="{{ link.get('label', 'Open task') }}">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span>{{ link.get('label', 'Task') }}</span>
+    </a>
+    {%- endfor %}
     {%- if section_component.custom_methods %}
     {%- for m in section_component.custom_methods %}
     <span class="{{ _action_cls }}">{{ m }}</span>
@@ -2886,7 +3126,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endfor %}
     </div>
   </nav>
-  {%- elif lay in ('nav-links', 'nav-bar') %}
+  {%- elif lay in ('nav-links', 'nav-bar', 'site-nav') %}
   <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
     <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
@@ -2914,7 +3154,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       </form>
       <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
         <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        {%- set _icon_links = _s.get('icon_links', []) %}
+        {%- if _icon_links %}
+        {%- set _task_link = _icon_links[0] %}
+        <a {{ nav_href_attrs(_task_link.get('page')) }} class="cursor-pointer hover:opacity-75" title="{{ _task_link.get('label', 'Open task') }}"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></a>
+        {%- else %}
         <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        {%- endif %}
         <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
       </div>
     </header>
