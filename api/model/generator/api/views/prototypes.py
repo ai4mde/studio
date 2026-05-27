@@ -341,6 +341,10 @@ class RegenerateCandidatesPayload(Schema):
     interface_id: str
     system_id: str
     selected_candidate_index: int
+
+
+class BootstrapOouiPayload(Schema):
+    interface_id: str
     designer_requirements: str
 
 
@@ -484,13 +488,10 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
 
 
 @prototypes.post("/bootstrap_ooui/")
-def bootstrap_ooui_interface(request, payload: dict):
+def bootstrap_ooui_interface(request, payload: BootstrapOouiPayload):
     """Populate an interface's pages and sections from its UML via the OOUI planner."""
     from app.tools import bootstrap_interface_from_ooui_plan
-    interface_id = payload.get("interface_id")
-    if not interface_id:
-        return {"ok": False, "message": "interface_id required"}
-    result = bootstrap_interface_from_ooui_plan(str(interface_id))
+    result = bootstrap_interface_from_ooui_plan(str(payload.interface_id))
     return {"ok": result.startswith("OK"), "message": result}
 
 
