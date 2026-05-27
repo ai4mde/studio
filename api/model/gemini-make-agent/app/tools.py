@@ -3306,10 +3306,24 @@ def _materialize_ooui_plan_sections(pages: list, sections: list, ooui_plan: dict
     return pages, sections
 
 def _fetch_system_context_data(system_id: str) -> dict:
-    response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS); response.raise_for_status(); system_data = response.json(); classifiers_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS); relations_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/relations/", headers=_AUTH_HEADERS); system_data["classifiers"] = classifiers_resp.json() if classifiers_resp.ok else []; system_data["relations"] = relations_resp.json() if relations_resp.ok else []; export_resp = requests.get(f"{METADATA_API_BASE}/systems/export/", params=[("system_ids", system_id)], headers=_AUTH_HEADERS)
+    response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
+    response.raise_for_status()
+    system_data = response.json()
+    classifiers_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
+    relations_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/relations/", headers=_AUTH_HEADERS)
+    system_data["classifiers"] = classifiers_resp.json() if classifiers_resp.ok else []
+    system_data["relations"] = relations_resp.json() if relations_resp.ok else []
+    export_resp = requests.get(f"{METADATA_API_BASE}/systems/export/", params=[("system_ids", system_id)], headers=_AUTH_HEADERS)
     if export_resp.ok:
         exported = export_resp.json()
-        if exported: system_data["diagrams"] = exported[0].get("diagrams", [])
+        if exported:
+            exp = exported[0]
+            system_data["diagrams"] = exp.get("diagrams", [])
+            # Fall back to export classifiers/relations when dedicated endpoints fail
+            if not system_data["classifiers"]:
+                system_data["classifiers"] = exp.get("classifiers", [])
+            if not system_data["relations"]:
+                system_data["relations"] = exp.get("relations", [])
     system_data["activity_diagrams"] = _build_activity_diagrams(system_data)
     return system_data
 
@@ -4639,61 +4653,113 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"
 
-def bootstrap_interface_from_ooui_plan(interface_id: str) -> str:
-    """Populate an interface's pages and sections from the OOUI plan derived from its system's UML."""
+def analyze_interface_from_uml(interface_id: str) -> str:
+    """
+    Extract full UML intelligence from all 3 diagram types for an interface's system.
+    Returns a JSON string with model_graph, actor permissions, workflows, and
+    a rule-based interface plan (pages + sections) plus semantic_decisions for LLM review.
+    """
     try:
+        import json as _json
+        from .uml_extractor import extract_uml_intelligence
+        from .interface_planner import generate_interface_plan
+
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
-        actor_id = iface.get("actor")
+        actor_id = iface.get("actor") or ""
 
         system_data = _fetch_system_context_data(system_id)
-        actor_name = _actor_name_from_context(system_data, actor_id)
-        nav = _build_usecase_navigation(system_data, str(actor_id or ""), actor_name)
+        actor_name = _actor_name_from_context(system_data, str(actor_id))
 
-        model_attrs = {
-            k: v for k, v in {
-                (c.get("data") or {}).get("name"): {
-                    a.get("name") for a in (c.get("data") or {}).get("attributes", []) if a.get("name")
+        uml_intel = extract_uml_intelligence(system_data, str(actor_id), actor_name or "")
+        interface_plan = generate_interface_plan(uml_intel)
+
+        return _json.dumps({
+            "interface_id": interface_id,
+            "actor": actor_name,
+            "meta": uml_intel.get("_meta", {}),
+            "actor_permissions": uml_intel["actor_intel"].get("target_permissions", {}),
+            "workflows": [
+                {"name": w["name"], "step_count": w["step_count"], "steps": w["steps"]}
+                for w in uml_intel["workflow_intel"].get("workflows", [])
+            ],
+            "model_graph_summary": {
+                m: {
+                    "attributes": [a["name"] for a in info.get("attributes", [])],
+                    "layout_score": {k: round(v, 2) for k, v in (info.get("layout_score") or {}).items() if v > 0.3},
+                    "composition_children": [c["model"] for c in info.get("compositions_owned", [])],
+                    "composition_parent": info.get("composition_parent"),
+                    "associations": [{"model": a["model"], "cardinality": a["cardinality"]} for a in info.get("associations", [])[:5]],
                 }
-                for c in _as_list(system_data.get("classifiers"), "classifiers")
-                if (c.get("data") or {}).get("type") in {"class", "entity", "model"}
-            }.items() if k
-        }
+                for m, info in uml_intel["model_graph"].items()
+                if m in uml_intel["actor_intel"].get("target_permissions", {})
+            },
+            "interface_plan": interface_plan,
+            "semantic_decisions": uml_intel.get("semantic_decisions", []),
+        }, ensure_ascii=False)
+    except Exception as e:
+        import traceback
+        return f"ERROR: analyze_interface_from_uml failed: {e}\n{traceback.format_exc()}"
 
-        ooui_plan = build_ooui_plan_from_navigation(nav, model_attrs)
 
-        pages = [
+def save_interface_plan(interface_id: str, pages_json: str, sections_json: str) -> str:
+    """
+    Save the final interface plan (pages + sections) to the database.
+    pages_json and sections_json are JSON strings of the respective arrays.
+    Replaces the current interface data completely.
+    """
+    try:
+        import json as _json
+        pages = _json.loads(pages_json) if isinstance(pages_json, str) else pages_json
+        sections = _json.loads(sections_json) if isinstance(sections_json, str) else sections_json
+
+        # Normalize pages to DB format
+        db_pages = [
             {
                 "id": p["id"],
-                "name": p["name"],
-                "primary_model": p.get("primary_model", ""),
+                "name": p.get("name") or p["id"],
+                "primary_model": p.get("primary_model") or p.get("model") or "",
                 "type": {"value": "normal", "label": "Normal"},
-                "sections": [{"value": sid} for sid in p.get("sections", [])],
+                "sections": [{"value": sid} for sid in (p.get("sections") or [])],
                 "category": None,
             }
-            for p in ooui_plan.get("pages", [])
-        ]
-        sections = [
-            {**s, "class": s.get("primary_model", ""),
-             "operations": {"create": False, "update": False, "delete": False, "select": False}}
-            for s in ooui_plan.get("sections", [])
+            for p in pages
         ]
 
-        if not pages:
-            return "ERROR: No pages could be derived from UML. Check that the system has use cases linked to an actor."
+        # Normalize sections to DB format
+        db_sections = [
+            {
+                **s,
+                "class": s.get("primary_model") or s.get("model") or "",
+                "operations": {
+                    "create": "create" in (s.get("operations") or []),
+                    "update": "update" in (s.get("operations") or []),
+                    "delete": "delete" in (s.get("operations") or []),
+                    "select": False,
+                },
+            }
+            for s in sections
+        ]
 
-        patch_resp = requests.patch(
+        if not db_pages:
+            return "ERROR: pages list is empty — nothing to save."
+
+        resp = requests.patch(
             f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",
-            json={"pages": pages, "sections": sections},
+            json={"pages": db_pages, "sections": db_sections},
             headers=_AUTH_HEADERS,
             timeout=30,
         )
-        patch_resp.raise_for_status()
-        return f"OK: {len(pages)} pages and {len(sections)} sections bootstrapped from OOUI plan."
+        resp.raise_for_status()
+        return f"OK: saved {len(db_pages)} pages and {len(db_sections)} sections to interface {interface_id}."
     except Exception as e:
-        return f"ERROR: bootstrap_interface_from_ooui_plan failed: {e}"
+        return f"ERROR: save_interface_plan failed: {e}"
+
+
+analyze_interface_from_uml_tool = FunctionTool(func=analyze_interface_from_uml)
+save_interface_plan_tool = FunctionTool(func=save_interface_plan)
 
 
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:
