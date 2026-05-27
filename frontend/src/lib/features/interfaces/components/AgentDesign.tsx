@@ -112,6 +112,37 @@ const METHODS_HINTS: Partial<Record<LayoutOption, string>> = {
     'site-footer':    'Each line becomes a service-bar link in the footer.',
 };
 
+const PROMPT_GUIDE_EXAMPLES = [
+    {
+        title: 'Generate 3 Distinct Candidates',
+        prompt: 'Generate 3 visually distinct candidates based on the current system and existing pages. Keep the domain models, page purpose, CRUD permissions, workflow actions, and data relationships correct. Candidate 1 should be a polished dashboard with wide top navigation and compact summary sections. Candidate 2 should be a split workspace with useful left or right sidebar content. Candidate 3 should be a more editorial/product-style layout with a stronger hero or header region and richer cards. Do not drop important sections.'
+    },
+    {
+        title: 'Header, Footer, Navigation Variety',
+        prompt: 'Generate 3 candidates with very different header, footer, and navigation patterns. Use the current app pages as the navigation source. Candidate 1 should use top nav integrated into a clean app header. Candidate 2 should use a compact command header with separate horizontal nav. Candidate 3 should use a full-height sidebar nav with a simpler header. If the header does not contain page navigation, add a separate navbar. Footer should mirror page navigation with useful links, not become an action button. Use light text on dark header/footer backgrounds.'
+    },
+    {
+        title: 'Different Region Placement',
+        prompt: 'Create 3 layout variants that organize the same system pages in meaningfully different ways. Do not put every section in the main region. Use main, left sidebar, right sidebar, hero/header, and footer regions appropriately. Put overviews, filters, or summaries in sidebars when useful. Put primary records and main actions in the main region. Keep each page readable, balanced, and suitable for repeated business use.'
+    },
+    {
+        title: 'Marketplace Style',
+        prompt: 'Design this marketplace app with rich but practical ecommerce UI. Keep Customer and Seller workflows correct. Use product browsing pages with strong search, category navigation, product cards, comparison-friendly grids, and clear detail navigation. Seller pages should feel like an operational dashboard with product management, order management, and performance sections. Generate 3 candidates with different ecommerce visual styles, but keep all navigation and item detail links working.'
+    },
+    {
+        title: 'Hospital Management Style',
+        prompt: 'Design this hospital management system as a calm professional operations app. Keep Patient, Doctor, and Admin pages aligned with their real responsibilities. Use clear navigation, compact data tables, patient and appointment detail panels, status badges, and action areas. Generate 3 candidates with different layouts: clinical dashboard, sidebar workspace, and appointment-focused command center. Do not remove medically relevant sections or mix actor responsibilities.'
+    },
+    {
+        title: 'Regenerate Selected Candidate',
+        prompt: 'Regenerate based on the selected candidate. Preserve the selected candidate page structure, section purpose, data bindings, operations, and workflow behavior unless I explicitly ask to change them. Only improve the visual design: make spacing, typography, header, navigation, footer, cards, tables, and sidebar placement more polished. Keep the same page responsibilities and do not drop sections.'
+    },
+    {
+        title: 'More Expressive, Still Correct',
+        prompt: 'Make the design more visually expressive while staying system-correct. You may change layout, region placement, styling, density, card/table/gallery choices, header/footer/nav style, and visual hierarchy. Do not change the meaning of pages, models, CRUD permissions, workflow actions, target pages, or required relationships. Keep navigation usable on every page.'
+    },
+];
+
 const POSITION_OPTIONS: { value: PositionOption; label: string; bg: string; color: string; border: string }[] = [
     { value: 'header',  label: 'Header',  bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
     { value: 'hero',    label: 'Hero',    bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' },
@@ -457,6 +488,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
     const [agentStatus, setAgentStatus] = useState('');
     const [isAIExpanded, setIsAIExpanded] = useState(true);
+    const [isPromptGuideOpen, setIsPromptGuideOpen] = useState(false);
+    const [promptGuideTarget, setPromptGuideTarget] = useState<'explore' | 'refine'>('refine');
     const [systemClassifiers, setSystemClassifiers] = useState<any[]>([]);
     const [currentInterface, setCurrentInterface] = useState<any>(null);
     const [draggedField, setDraggedField] = useState<string | null>(null);
@@ -775,6 +808,21 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             setPreviewMode('design');
         }
     }, []);
+
+    const openPromptGuide = useCallback((target: 'explore' | 'refine') => {
+        setPromptGuideTarget(target);
+        setIsPromptGuideOpen(true);
+    }, []);
+
+    const applyPromptGuideExample = useCallback((prompt: string) => {
+        if (promptGuideTarget === 'explore') {
+            setExplorePrompt(prompt);
+        } else {
+            setCurrentPrompt(prompt);
+            setIsAIExpanded(true);
+        }
+        setIsPromptGuideOpen(false);
+    }, [promptGuideTarget]);
 
     const handleSeedData = useCallback(async () => {
         setIsSeedingData(true);
@@ -1651,7 +1699,26 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 {designMode === 'explore' && (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                         <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid #e5e7eb' }}>
-                            <Typography level="title-sm" sx={{ fontSize: 13, mb: 0.5 }}>Generate 3 Candidates</Typography>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
+                                <Typography level="title-sm" sx={{ fontSize: 13 }}>Generate 3 Candidates</Typography>
+                                <button
+                                    type="button"
+                                    onClick={() => openPromptGuide('explore')}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 3,
+                                        border: 'none',
+                                        background: 'transparent',
+                                        color: '#2563eb',
+                                        fontSize: 11,
+                                        cursor: 'pointer',
+                                        padding: 0,
+                                    }}
+                                >
+                                    <Info size={12} /> Guide
+                                </button>
+                            </div>
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 8px' }}>Describe the actor's goals — the agent creates 3 distinct interface designs.</p>
                             <textarea
                                 rows={3}
@@ -1665,8 +1732,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {(() => {
                                 const hasCandidate = candidates.length > 0;
                                 const chips = hasCandidate
-                                    ? ['Navy header', 'Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent']
-                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header, minimal style', 'Full width card gallery', 'Compact dashboard with dark nav'];
+                                    ? ['Glass header style', 'Compact header', 'Minimal footer', 'Newsletter footer', 'Navy header', 'Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent']
+                                    : ['Green enterprise compact dashboard', 'Glass header left sidebar table', 'Blue header minimal footer', 'Full width card gallery', 'Compact dashboard dark nav newsletter footer', 'Commerce header mega footer'];
                                 return (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
                                         {chips.map(chip => (
@@ -2990,10 +3057,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                     >
                         <Typography level="title-sm" sx={{ fontSize: 13 }}>AI Generate</Typography>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Tooltip title="Try these commands to change layout or style" variant="soft">
+                            <Tooltip title="Open richer prompt examples" variant="soft">
                                 <span
-                                    style={{ fontSize: 11, color: '#2563eb', cursor: 'help', display: 'flex', alignItems: 'center', gap: 2 }}
-                                    onClick={e => e.stopPropagation()}
+                                    style={{ fontSize: 11, color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        openPromptGuide('refine');
+                                    }}
                                 >
                                     <Info size={12} /> Prompting Guide
                                 </span>
@@ -3224,6 +3294,72 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 </div>
             </div>
         </div>
+        <Modal open={isPromptGuideOpen} onClose={() => setIsPromptGuideOpen(false)}>
+            <ModalDialog
+                variant="plain"
+                sx={{
+                    width: { xs: '94vw', sm: 640 },
+                    maxWidth: '94vw',
+                    height: { xs: '86vh', sm: '78vh' },
+                    maxHeight: '86vh',
+                    m: 0,
+                    p: 0,
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    boxShadow: 'lg',
+                }}
+            >
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#ffffff' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '14px 44px 12px 16px',
+                        borderBottom: '1px solid #e5e7eb',
+                    }}>
+                        <Info size={17} color="#2563eb" />
+                        <div style={{ minWidth: 0 }}>
+                            <Typography level="title-sm">Prompt Examples</Typography>
+                            <Typography level="body-xs" sx={{ color: '#64748b' }}>
+                                Click Use to fill the {promptGuideTarget === 'explore' ? 'candidate generator' : 'refine prompt'}.
+                            </Typography>
+                        </div>
+                        <ModalClose />
+                    </div>
+                    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 14, background: '#f8fafc' }}>
+                        {PROMPT_GUIDE_EXAMPLES.map((example) => (
+                            <div
+                                key={example.title}
+                                style={{
+                                    background: '#fff',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 8,
+                                    padding: 12,
+                                    marginBottom: 10,
+                                    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                                }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 7 }}>
+                                    <Typography level="title-sm" sx={{ fontSize: 13 }}>{example.title}</Typography>
+                                    <Button size="sm" variant="soft" onClick={() => applyPromptGuideExample(example.prompt)}>
+                                        Use
+                                    </Button>
+                                </div>
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: 12,
+                                    lineHeight: 1.55,
+                                    color: '#475569',
+                                    whiteSpace: 'pre-wrap',
+                                }}>
+                                    {example.prompt}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </ModalDialog>
+        </Modal>
         <Modal open={isMetadataOpen} onClose={() => setIsMetadataOpen(false)}>
             <ModalDialog
                 variant="plain"
