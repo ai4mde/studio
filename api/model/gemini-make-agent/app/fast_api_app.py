@@ -69,6 +69,17 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.post("/bootstrap_ooui")
+def bootstrap_ooui(payload: dict) -> dict[str, str]:
+    """Populate an interface's pages and sections from its UML via the OOUI planner."""
+    from app.tools import bootstrap_interface_from_ooui_plan
+    interface_id = payload.get("interface_id", "")
+    if not interface_id:
+        return {"status": "error", "message": "interface_id required"}
+    result = bootstrap_interface_from_ooui_plan(str(interface_id))
+    return {"status": "ok" if result.startswith("OK") else "error", "message": result}
+
+
 @app.post("/feedback")
 def collect_feedback(feedback: Feedback) -> dict[str, str]:
     """Collect and log feedback.

@@ -490,9 +490,18 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
 @prototypes.post("/bootstrap_ooui/")
 def bootstrap_ooui_interface(request, payload: BootstrapOouiPayload):
     """Populate an interface's pages and sections from its UML via the OOUI planner."""
-    from app.tools import bootstrap_interface_from_ooui_plan
-    result = bootstrap_interface_from_ooui_plan(str(payload.interface_id))
-    return {"ok": result.startswith("OK"), "message": result}
+    ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+    try:
+        resp = requests.post(
+            f"{ADK_AGENT_URL}/bootstrap_ooui",
+            json={"interface_id": payload.interface_id},
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return {"ok": data.get("status") == "ok", "message": data.get("message", "")}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
 
 
 @prototypes.post("/regenerate_candidates/")
