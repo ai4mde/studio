@@ -52,16 +52,18 @@ def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> li
 def _layout_for_page_role(page: dict) -> str:
     roles = set(page.get("roles") or [])
     page_id = str(page.get("id") or page.get("page_id") or "").lower()
-    model = str(page.get("primary_model") or "").lower()
-    if "detail_workspace" in roles:
+
+    if "detail_workspace" in roles or "workflow_entry" in roles:
         return "detail"
-    if "workflow_entry" in roles:
+    if "collection_workspace" in roles:
+        if any(t in page_id for t in ("catalog", "browse", "gallery", "photo", "image", "product")):
+            return "gallery"
+        if any(t in page_id for t in ("order", "invoice", "log", "history", "queue", "cart")):
+            return "list"
+        return "table"
+    if "object_workspace" in roles:
         return "detail"
-    if any(term in page_id for term in ("catalog", "product", "browse", "search")):
-        return "gallery"
-    if any(term in page_id or term in model for term in ("order", "cart", "list")):
-        return "list"
-    return "detail" if "object_workspace" in roles else "card"
+    return "card"
 
 
 def _operations_for_model(model: str, actor_permissions: dict) -> list[str]:
