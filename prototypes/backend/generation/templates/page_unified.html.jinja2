@@ -291,8 +291,8 @@ href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({t
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
 {%- endmacro %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- set _has_header_chrome = [] %}
@@ -315,6 +315,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- set _ = _footer_secs.append(sc) %}
   {%- endif %}
 {%- endfor %}
+{%- if _has_header_chrome %}
+  {%- set _header_secs = [] %}
+{%- endif %}
+{%- if _footer_secs %}
+  {%- set _footer_secs = [] %}
+{%- endif %}
 
 {# éˆ¹â‚¬éˆ¹â‚¬ header chrome: render all header-position section components éˆ¹â‚¬éˆ¹â‚¬
    Granular row logic: logo + search-bar + icon-actions are opened/closed in
@@ -445,7 +451,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 
 {# éˆ¹â‚¬éˆ¹â‚¬ COMBINED MAIN HEADER (main-header éˆ?legacy single-section variant) éˆ¹â‚¬éˆ¹â‚¬ #}
-{%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header') %}
+{%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header','hero-header','tabbed-header','glass-header','command-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
   <span style="font-weight:600;letter-spacing:.05em;">{{ _brand_name | upper }}</span>
@@ -590,8 +596,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% raw %}{% block chrome_header %}{% endblock %}{% endraw %}
 {% raw %}{% block chrome_footer %}{% endblock %}{% endraw %}
 {% raw %}{% block content %}{% endraw %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
 {%- set _nav_pages = [] %}
 {%- set _nav_page_keys = [] %}
 {%- for _p in (all_pages or []) %}
@@ -838,7 +844,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 <div id="page-sections-grid" class="grid grid-cols-12 {{ _dm.get(page.gap, _dm['normal']).gap }}">
 {%- for section_component in page.section_components %}
-{%- if section_component.component_type == 'activity_action' %}
+{%- set _loop_raw_lay = section_component.layout %}
+{%- set _loop_lay = "nav-links" if _loop_raw_lay in ["nav", "navigation", "navbar", "side-nav", "top-nav"] else ("link-grid" if _loop_raw_lay == "footer-links" else ("brand-strip" if _loop_raw_lay == "footer-brand" else ("service-bar" if _loop_raw_lay == "service-strip" else _loop_raw_lay))) %}
+{%- set _loop_position = section_component.position or 'main' %}
+{%- set _loop_is_chrome = _loop_position in ('header', 'footer') or _loop_lay in _header_chrome or _loop_lay in _footer_chrome %}
+{%- if false and _loop_is_chrome %}
+{# Header/footer chrome is rendered in the chrome regions above/below; never duplicate it in the main grid. #}
+{%- elif section_component.component_type == 'activity_action' %}
 {%- set _aa_variant = section_component.style.get('variant', 'button') %}
 {%- set _aa_align   = section_component.style.get('align', 'right') %}
 {%- set _aa_size    = section_component.style.get('size', 'lg') %}
@@ -1848,7 +1860,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   </a>
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'hero-header', 'tabbed-header', 'glass-header', 'command-header', 'site-nav', 'nav-links') %}
   {%- if section_component.position == 'sidebar' and lay in ('nav-links', 'nav-bar', 'site-nav') %}
   <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <div class="px-3 py-3 flex flex-col gap-1 text-sm">
@@ -1905,7 +1917,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
   {%- endif %}
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'hero-header', 'tabbed-header', 'glass-header', 'command-header', 'site-nav', 'nav-links') %}
 {# Chrome section landed in main content area éˆ?render a compact placeholder #}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
     {%- if lay == 'search-bar' %}
@@ -1916,6 +1928,33 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- else %}
     <span>{{ section_component.display_name }}</span>
     {%- endif %}
+  </div>
+
+{%- elif lay in ('footer-links', 'link-grid') %}
+  <div>
+    <h4 class="font-bold mb-3">{{ section_component.display_name }}</h4>
+    <ul class="space-y-2 text-sm">
+      {%- for m in section_component.custom_methods %}
+      <li>{{ m }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+
+{%- elif lay in ('footer-brand', 'brand-strip', 'social-footer') %}
+  <div class="flex flex-col gap-2">
+    <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
+    {%- if section_component.text %}<p class="text-sm opacity-75">{{ section_component.text }}</p>{%- endif %}
+  </div>
+
+{%- elif lay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
+  <div>
+    <h4 class="font-bold mb-3">{{ section_component.display_name }}</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+      {%- for m in section_component.custom_methods %}
+      <span>{{ m }}</span>
+      {%- endfor %}
+    </div>
+    {%- if section_component.text %}<p class="mt-3 text-sm opacity-75">{{ section_component.text }}</p>{%- endif %}
   </div>
 
 {%- else %}
@@ -2825,7 +2864,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
   </div>
 
-{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav', 'nav-links') %}
+{%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'hero-header', 'tabbed-header', 'glass-header', 'command-header', 'site-nav', 'nav-links') %}
   {%- if lay in ('minimal-header', 'compact-header') %}
   <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
     <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
@@ -2906,7 +2945,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     <p class="text-xs text-gray-400">{{ section_component.text }}</p>
   </div>
 
-{%- elif lay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer') %}
+{%- elif lay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
   <footer class="rounded-xl overflow-hidden border border-gray-100">
     <div class="px-6 py-4 flex items-center gap-6" style="background-color:{{ _accent_hex }};">
       <span class="text-white font-bold">{{ section_component.display_name }}</span>
@@ -2992,7 +3031,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       var lay = el.getAttribute('data-layout') || '';
       var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
       if (side === 'right') rightSidebarItems.push(el);
-      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+      else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'hero-header' || lay === 'tabbed-header' || lay === 'glass-header' || lay === 'command-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
       else rightSidebarItems.push(el);
     });
     function sidebarSpan(items, fallback) {
@@ -3141,7 +3180,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{%- elif sc.layout in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer') %}
+{%- elif sc.layout in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
 {# Legacy: full footer in one section (backward compat) #}
 <footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
   <!-- Service & contact strip -->
@@ -4109,7 +4148,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         var lay = el.getAttribute('data-layout') || '';
         var side = (el.getAttribute('data-sidebar-side') || '').toLowerCase();
         if (side === 'right') rightSidebarItems.push(el);
-        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
+        else if (side === 'left' || lay === 'filter-panel' || lay === 'filter' || lay === 'site-nav' || lay === 'nav-links' || lay === 'nav-bar' || lay === 'main-header' || lay === 'minimal-header' || lay === 'commerce-header' || lay === 'dashboard-header' || lay === 'split-header' || lay === 'app-header' || lay === 'compact-header' || lay === 'mega-header' || lay === 'hero-header' || lay === 'tabbed-header' || lay === 'glass-header' || lay === 'command-header' || lay === 'logo' || lay === 'search-bar' || lay === 'icon-actions') leftSidebarItems.push(el);
         else rightSidebarItems.push(el);
       });
       function sidebarSpan(items, fallback) {

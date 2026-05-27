@@ -12,6 +12,13 @@ dist
 .coverage
 html/*
 __pycache__
+.pytest_cache
+**/.pytest_cache
+.mypy_cache
+**/.mypy_cache
+.ruff_cache
+**/.ruff_cache
+**/__pycache__
 
 # Compiled Documentation
 docs/_build

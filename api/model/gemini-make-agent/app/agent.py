@@ -1,4 +1,5 @@
 import os
+import sys
 
 from google.adk.agents import Agent
 from google.adk.apps import App
@@ -17,7 +18,8 @@ from app.tools import (
 )
 
 AGENT_MODEL = os.environ.get("ADK_AGENT_MODEL", "openai/gpt-4o")
-print(f"ADK agent model: {AGENT_MODEL}", flush=True)
+if os.environ.get("ADK_DEBUG_MODEL", "").lower() in {"1", "true", "yes"}:
+    print(f"ADK agent model: {AGENT_MODEL}", file=sys.stderr, flush=True)
 
 
 def _model():
@@ -99,8 +101,8 @@ Card style (layout="card"):
   sections[].style.banner_height: "sm" | "md" | "lg" | "xl" for ImageCard/banner sections.
   sections[].style.image_ratio  : "wide" | "16:9" | "4:3" | "1:1" for image card media cropping.
   Header/footer templates: by default, create header/footer region sections using existing template layouts, not custom image/card compositions.
-    Header layouts: "promo-bar" | "logo" | "search-bar" | "icon-actions" | "nav-links" | "main-header" | "minimal-header" | "commerce-header" | "dashboard-header" | "split-header" | "app-header" | "compact-header" | "mega-header".
-    Footer layouts: "service-bar" | "link-grid" | "brand-strip" | "site-footer" | "compact-footer" | "legal-footer" | "newsletter-footer" | "social-footer" | "mega-footer".
+    Header layouts: "promo-bar" | "logo" | "search-bar" | "icon-actions" | "nav-links" | "site-nav" | "main-header" | "minimal-header" | "commerce-header" | "dashboard-header" | "split-header" | "app-header" | "compact-header" | "mega-header" | "hero-header" | "tabbed-header" | "glass-header" | "command-header".
+    Footer layouts: "service-bar" | "link-grid" | "brand-strip" | "site-footer" | "compact-footer" | "legal-footer" | "newsletter-footer" | "social-footer" | "mega-footer" | "split-footer" | "app-footer" | "cta-footer" | "minimal-footer".
     Use component="HeaderTemplate" for combined header templates and component="FooterTemplate" for combined footer templates.
   Static online image URLs from MCP/search may be used only when the user explicitly asks for online images/photos/banner imagery. Put URLs in style.image_url or style.logo_url, never in attributes.
 
@@ -360,7 +362,10 @@ OOUI BLUEPRINT:
 
 ALLOWED LAYOUTS: {", ".join(sorted(["card","list","table","detail","gallery","filter","form",
                "activity_action","activity_start","activity_tasks","promo-bar","logo","search-bar","icon-actions","nav-links",
-               "main-header","minimal-header","site-nav","site-footer","service-bar","link-grid","brand-strip"]))}
+               "main-header","minimal-header","commerce-header","dashboard-header","split-header","app-header","compact-header","mega-header",
+               "hero-header","tabbed-header","glass-header","command-header","site-nav",
+               "site-footer","service-bar","link-grid","brand-strip","compact-footer","legal-footer","newsletter-footer","social-footer",
+               "mega-footer","split-footer","app-footer","cta-footer","minimal-footer"]))}
 
 REGION COMPOSITION (header/footer/sidebar/hero are containers, not chrome-only zones):
   - Any suitable section layout may be placed in header, footer, sidebar, or hero by setting position.
@@ -371,10 +376,10 @@ REGION COMPOSITION (header/footer/sidebar/hero are containers, not chrome-only z
   - If a region section is global, include its section reference on every normal page. If it is page-specific, include it only on that page.
   - Navigation can be horizontal header nav OR a left sidebar rail.
     For sidebar navigation use role="navigation", layout="site-nav" or "nav-links", component="NavBar", position="sidebar", col_span=12, style.sidebar_side="left".
-  - Headers should use existing header template sections by default. Prefer combined templates such as main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, or minimal-header, with component="HeaderTemplate".
+  - Headers should use existing header template sections by default. Prefer combined templates such as main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, hero-header, tabbed-header, glass-header, command-header, or minimal-header, with component="HeaderTemplate".
     Do not rely on fallback headers. Explicitly create header-position sections so each candidate has an intentional, editable header selected from the supported templates.
     ONE HEADER SHELL RULE: Agent-generated candidates may include at most ONE header/nav shell section per candidate/page.
-    Header/nav shell layouts are promo-bar, main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, minimal-header, site-nav, and nav-links.
+    Header/nav shell layouts are promo-bar, main-header, commerce-header, dashboard-header, split-header, app-header, compact-header, mega-header, hero-header, tabbed-header, glass-header, command-header, minimal-header, site-nav, and nav-links.
     Do not create both promo-bar/nav-links and main-header/site-nav, and do not create two nav/header template sections on the same page.
     You may add header element sections in addition to that one shell, such as logo, search-bar, icon-actions, or compact header data/action widgets.
     Header/nav page links must list normal pages only. Do not include activity/task pages such as Task, Overview, Completeness, Decision, or workflow steps in normal header navigation.
@@ -506,6 +511,8 @@ Message format: interface_id=<uuid> prompt=<designer intent>
 
 Rules:
 - Immediately call generate_candidate_set(interface_id, prompt).
+- The tool must produce 3 structurally different previews: vary header/nav/footer, main width, and section placement across main, hero, left sidebar, and right sidebar when the user does not force one layout.
+- Every normal page must have navigation, either inside the header or as a sidebar rail.
 - Only call image_search_images first if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
 - Color/style-only prompts such as "generate pink pages" are valid designer requirements.
 - Do not refuse style-only prompts.
@@ -525,6 +532,7 @@ Message format:
 
 Rules:
 - Immediately call regenerate_candidate_set(interface_id, selected_candidate_index, designer_requirements).
+- Preserve the selected candidate's page layout and section region placement unless designer_requirements explicitly asks to change layout, header, footer, nav, sidebar, hero, or component arrangement.
 - Only call image_search_images first if the requirements explicitly ask for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
 - Do not create candidates yourself. The tool preserves page semantics, workflow/page types, data bindings, and activity flow order.
 - After the tool returns OK, output the tool result. If it returns ERROR, output the error.

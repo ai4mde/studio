@@ -23,8 +23,8 @@
 {%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else 'max-w-7xl') %}
 {%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else 'max-w-7xl mx-auto px-6' %}
 {%- set _footer_shell_class = 'w-full px-8' if _footer_width == 'full' else 'max-w-7xl mx-auto px-8' %}
-{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','site-nav'] %}
-{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer'] %}
+{%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
+{%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
 {%- set _header_secs = [] %}
 {%- set _footer_secs = [] %}
 {%- set _has_header_chrome = [] %}
@@ -35,7 +35,8 @@
 {%- for sc in footer_sections or [] %}
   {%- if sc.layout in _footer_chrome %}{% set _ = _footer_secs.append(sc) %}{%- endif %}
 {%- endfor %}
-{%- for pg in pages or [] %}
+{%- set _chrome_scan_pages = [page] if page is defined else (pages or []) %}
+{%- for pg in _chrome_scan_pages %}
   {%- for sc in pg.section_components or [] %}
     {%- if sc.layout in _header_chrome or sc.position == 'header' %}
       {%- set _ = _has_header_chrome.append(sc) %}
@@ -50,7 +51,7 @@
 
 {% raw %}{% block chrome_header %}{% endraw %}
 {%- set _main_row_open = [] %}
-{%- for sc in ([] if _has_header_chrome else _header_secs) %}
+{%- for sc in (_has_header_chrome if _has_header_chrome else _header_secs) %}
 {%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
 {%- if _inline_lay and not _main_row_open %}
   {%- set _ = _main_row_open.append(1) %}
@@ -129,7 +130,7 @@
     </div>
 </div>
 
-{%- elif sc.layout == 'main-header' %}
+{%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header','hero-header','tabbed-header','glass-header','command-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
     <header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4">
         <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
@@ -302,7 +303,7 @@
 
 {% raw %}{% block chrome_footer %}{% endraw %}
 {%- set _link_row_open = [] %}
-{%- for sc in ([] if _has_footer_chrome else _footer_secs) %}
+{%- for sc in (_has_footer_chrome if _has_footer_chrome else _footer_secs) %}
 {%- set _is_link_grid = sc.layout in ('footer-links', 'link-grid') %}
 {%- if _is_link_grid and not _link_row_open %}
   {%- set _ = _link_row_open.append(1) %}
@@ -347,7 +348,7 @@
     </div>
 </div>
 
-{%- elif sc.layout == 'site-footer' %}
+{%- elif sc.layout in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
 <footer class="mt-0" data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer">
     <div class="{{ _footer_shell_class }} py-5 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
         <span class="text-white font-bold text-lg">{{ sc.display_name }}</span>
