@@ -8,6 +8,7 @@ from app.tools import (
     _parse_regeneration_intent,
     _apply_intent_colors_to_tokens,
     _apply_chrome_style,
+    _resolve_single_chrome_value,
     _prompt_requests_color_change,
     _prompt_requests_layout_change,
     generate_candidate_set,
@@ -726,6 +727,41 @@ class TestApplyChromeStyle:
         _apply_chrome_style(orig, "tabbed-header", "cta-footer")
         assert orig[0]["layout"] == "main-header"
         assert orig[1]["layout"] == "site-footer"
+
+    # ── _resolve_single_chrome_value (tolerates LLM comma-string output) ──────
+
+    def test_single_valid_value_returned_as_is(self):
+        assert _resolve_single_chrome_value("glass-header", {"glass-header", "main-header"}) == "glass-header"
+
+    def test_comma_string_picks_first_valid(self):
+        """LLM returns 'minimal-footer, newsletter-footer' — pick the first valid one."""
+        valid = {"minimal-footer", "newsletter-footer", "site-footer"}
+        result = _resolve_single_chrome_value("minimal-footer, newsletter-footer", valid)
+        assert result == "minimal-footer"
+
+    def test_list_picks_first_valid(self):
+        valid = {"glass-header", "compact-header"}
+        result = _resolve_single_chrome_value(["glass-header", "compact-header"], valid)
+        assert result == "glass-header"
+
+    def test_invalid_value_returns_none(self):
+        assert _resolve_single_chrome_value("not-a-real-layout", {"glass-header"}) is None
+
+    def test_none_returns_none(self):
+        assert _resolve_single_chrome_value(None, {"glass-header"}) is None
+
+    def test_comma_string_skips_invalid_picks_valid(self):
+        """First token invalid, second valid — returns the valid one."""
+        valid = {"newsletter-footer", "site-footer"}
+        result = _resolve_single_chrome_value("not-real, newsletter-footer", valid)
+        assert result == "newsletter-footer"
+
+    def test_apply_chrome_style_tolerates_comma_footer(self):
+        """End-to-end: passing a comma-string footer to _apply_chrome_style applies the first valid."""
+        sections = [dict(_FOOTER_SECTION)]
+        result = _apply_chrome_style(sections, None, "minimal-footer, newsletter-footer")
+        footer = result[0]
+        assert footer["layout"] == "minimal-footer"
 
 
 # ── Chrome style via regenerate intent ────────────────────────────────────────

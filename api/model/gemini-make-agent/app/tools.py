@@ -2716,8 +2716,25 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
                     page["sections"] = refs
     return pages, sections
 
-def _apply_chrome_style(sections: list, header_layout: str | None, footer_layout: str | None) -> list:
+def _resolve_single_chrome_value(value, valid_set: set) -> str | None:
+    """Return the first valid layout name from a raw LLM output that may be a list or comma string."""
+    if not value:
+        return None
+    candidates: list[str] = []
+    if isinstance(value, list):
+        candidates = [str(v).strip() for v in value]
+    else:
+        candidates = [v.strip() for v in str(value).split(",")]
+    for candidate in candidates:
+        norm = _normalize_layout_alias(candidate)
+        if norm in valid_set:
+            return norm
+    return None
+
+def _apply_chrome_style(sections: list, header_layout, footer_layout) -> list:
     """Replace the header shell and/or footer layout with the explicitly requested style."""
+    header_layout = _resolve_single_chrome_value(header_layout, _HEADER_SHELL_LAYOUTS)
+    footer_layout = _resolve_single_chrome_value(footer_layout, _FOOTER_TEMPLATE_LAYOUTS)
     if not header_layout and not footer_layout:
         return sections
     result = []
@@ -4088,7 +4105,7 @@ def _parse_generation_intent(prompt: str) -> dict:
         if "/" in _model_name:
             _model_name = _model_name.split("/", 1)[1]
         _header_shells = "main-header|minimal-header|commerce-header|dashboard-header|split-header|app-header|compact-header|mega-header|hero-header|tabbed-header|glass-header|command-header"
-        _footer_styles = "site-footer|compact-footer|legal-footer|newsletter-footer|social-footer|mega-footer|split-footer|app-footer|cta-footer|minimal-footer|link-grid|brand-strip|minimal-footer"
+        _footer_styles = "site-footer|compact-footer|legal-footer|newsletter-footer|social-footer|mega-footer|split-footer|app-footer|cta-footer|minimal-footer|link-grid|brand-strip"
         _prompt = (
             f'Analyze this UI design brief and extract only the color and layout constraints the designer explicitly stated.\n'
             f'Brief: "{prompt}"\n\n'
@@ -4103,11 +4120,12 @@ def _parse_generation_intent(prompt: str) -> dict:
             '    "data_display": "<table|gallery|card|list or null>",\n'
             '    "density": "<compact|normal|spacious or null>",\n'
             '    "full_width": <true|false|null>,\n'
-            f'    "header_style": "<{_header_shells} or null — only if a specific header style is requested>",\n'
-            f'    "footer_style": "<{_footer_styles} or null — only if a specific footer style is requested>"\n'
+            f'    "header_style": "<ONE of: {_header_shells} — or null>",\n'
+            f'    "footer_style": "<ONE of: {_footer_styles} — or null>"\n'
             '  }}\n'
             '}}\n\n'
-            'Leave null/empty for anything NOT explicitly mentioned in the brief.\n'
+            'Rules: Leave null/empty for anything NOT explicitly mentioned. header_style and footer_style must be a single exact token from the list above, never comma-separated.\n'
+            'If multiple footer/header styles are mentioned, pick the most specific one.\n'
             'Examples:\n'
             '"patient management dashboard with blue header" → {{"colors":[{{"scope":"header","hex":"#1d4ed8","name":"blue"}}],"layout":{{}}}}\n'
             '"inventory system, left sidebar, table view" → {{"colors":[],"layout":{{"nav":"sidebar-left","data_display":"table"}}}}\n'
@@ -4163,10 +4181,11 @@ def _parse_regeneration_intent(designer_requirements: str) -> dict:
             '    "data_display": "<table|gallery|card|list or null>",\n'
             '    "density": "<compact|normal|spacious or null>",\n'
             '    "full_width": <true|false|null>,\n'
-            f'    "header_style": "<{_header_shells} or null>",\n'
-            f'    "footer_style": "<{_footer_styles} or null>"\n'
+            f'    "header_style": "<ONE of: {_header_shells} — or null>",\n'
+            f'    "footer_style": "<ONE of: {_footer_styles} — or null>"\n'
             '  }}\n'
             '}}\n\n'
+            'Rules: header_style and footer_style must be a single exact token from the list, never comma-separated. If multiple are mentioned, pick the most specific one.\n'
             'Examples:\n'
             '"change header color to navy" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"header","hex":"#1e3a5f","name":"navy"}}],"layout":{{}}}}\n'
             '"left sidebar navigation" → {{"change_color":false,"change_layout":true,"colors":[],"layout":{{"nav":"sidebar-left"}}}}\n'
