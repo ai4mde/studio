@@ -7,6 +7,7 @@ from app.tools import (
     _parse_generation_intent,
     _parse_regeneration_intent,
     _apply_intent_colors_to_tokens,
+    _apply_chrome_style,
     _prompt_requests_color_change,
     _prompt_requests_layout_change,
     generate_candidate_set,
@@ -654,3 +655,291 @@ class TestGenerateCandidateSet:
             for c in mock_save.call_args_list
         ]
         assert indices == ["0", "1", "2"]
+
+
+# ── _apply_chrome_style ────────────────────────────────────────────────────────
+
+_HEADER_SECTION = {
+    "id": "hdr-1", "position": "header", "layout": "main-header",
+    "component": "HeaderTemplate", "col_span": 12,
+}
+_FOOTER_SECTION = {
+    "id": "ftr-1", "position": "footer", "layout": "site-footer",
+    "component": "FooterTemplate", "col_span": 12,
+}
+_MAIN_SECTION = {
+    "id": "main-1", "position": "main", "layout": "card",
+    "component": "CardList", "col_span": 12,
+}
+
+
+class TestApplyChromeStyle:
+    def test_no_style_returns_sections_unchanged(self):
+        sections = [_HEADER_SECTION, _MAIN_SECTION, _FOOTER_SECTION]
+        result = _apply_chrome_style(sections, None, None)
+        assert result == sections
+
+    def test_header_style_applied(self):
+        sections = [dict(_HEADER_SECTION), dict(_MAIN_SECTION)]
+        result = _apply_chrome_style(sections, "glass-header", None)
+        header = next(s for s in result if s["position"] == "header")
+        assert header["layout"] == "glass-header"
+        assert header["component"] == "HeaderTemplate"
+
+    def test_footer_style_applied(self):
+        sections = [dict(_MAIN_SECTION), dict(_FOOTER_SECTION)]
+        result = _apply_chrome_style(sections, None, "minimal-footer")
+        footer = next(s for s in result if s["position"] == "footer")
+        assert footer["layout"] == "minimal-footer"
+        assert footer["component"] == "FooterTemplate"
+
+    def test_both_header_and_footer_applied(self):
+        sections = [dict(_HEADER_SECTION), dict(_MAIN_SECTION), dict(_FOOTER_SECTION)]
+        result = _apply_chrome_style(sections, "compact-header", "newsletter-footer")
+        header = next(s for s in result if s["position"] == "header")
+        footer = next(s for s in result if s["position"] == "footer")
+        assert header["layout"] == "compact-header"
+        assert footer["layout"] == "newsletter-footer"
+
+    def test_main_section_not_modified(self):
+        sections = [dict(_HEADER_SECTION), dict(_MAIN_SECTION), dict(_FOOTER_SECTION)]
+        result = _apply_chrome_style(sections, "mega-header", "mega-footer")
+        main = next(s for s in result if s["position"] == "main")
+        assert main["layout"] == "card"
+        assert main["component"] == "CardList"
+
+    def test_non_shell_header_not_modified(self):
+        """logo, search-bar, icon-actions are header elements — not shells, skip them."""
+        logo_section = {"id": "logo-1", "position": "header", "layout": "logo", "component": "Logo", "col_span": 3}
+        sections = [logo_section, dict(_MAIN_SECTION)]
+        result = _apply_chrome_style(sections, "glass-header", None)
+        logo = next(s for s in result if s.get("layout") == "logo")
+        assert logo["layout"] == "logo"  # untouched — not a shell layout
+
+    def test_section_count_preserved(self):
+        sections = [dict(_HEADER_SECTION), dict(_MAIN_SECTION), dict(_FOOTER_SECTION)]
+        result = _apply_chrome_style(sections, "hero-header", "compact-footer")
+        assert len(result) == 3
+
+    def test_original_sections_not_mutated(self):
+        orig = [dict(_HEADER_SECTION), dict(_FOOTER_SECTION)]
+        _apply_chrome_style(orig, "tabbed-header", "cta-footer")
+        assert orig[0]["layout"] == "main-header"
+        assert orig[1]["layout"] == "site-footer"
+
+
+# ── Chrome style via regenerate intent ────────────────────────────────────────
+
+BASE_CANDIDATE_CHROME = {
+    "id": "cand-chrome",
+    "name": "ChromeCandidate",
+    "description": "",
+    "pages": [{"id": "p1", "name": "Main", "layout": {"value": "default"}, "sections": [{"id": "hdr-1"}, {"id": "s1"}, {"id": "ftr-1"}]}],
+    "sections": [
+        {"id": "hdr-1", "name": "Header", "layout": "main-header", "component": "HeaderTemplate",
+         "col_span": 12, "position": "header", "style": {}},
+        {"id": "s1", "name": "ProductList", "primary_model": "Product",
+         "layout": "card", "col_span": 12, "position": "main", "style": {"density": "normal"}},
+        {"id": "ftr-1", "name": "Footer", "layout": "site-footer", "component": "FooterTemplate",
+         "col_span": 12, "position": "footer", "style": {}},
+    ],
+    "tokens": {"accent.hex": "#2563eb", "region.header.bg_hex": "#2563eb"},
+    "styling": {"variantIndex": 0},
+    "design_spec": None,
+    "variation_strategy": None,
+}
+
+REGEN_CONTEXT_CHROME = {
+    "interface_id": "iface-chrome",
+    "selected_candidate_index": 0,
+    "designer_requirements": "",
+    "regeneration_contract": {},
+    "current_interface": {"name": "Shop"},
+    "base_candidate": BASE_CANDIDATE_CHROME,
+}
+
+
+class TestRegenerateChromeStyle:
+    def _run(self, intent_payload, requirements=""):
+        def post_side_effect(url, **_):
+            if "generateContent" in url:
+                return _gemini_response(intent_payload)
+            m = MagicMock(); m.ok = True; m.raise_for_status = MagicMock()
+            return m
+
+        with patch("app.tools.requests.post", side_effect=post_side_effect), \
+             patch("app.tools.get_candidate_regeneration_context", return_value=json.dumps(REGEN_CONTEXT_CHROME)), \
+             patch("app.tools.validate_and_save_candidate", return_value="OK: candidate 0 saved.") as mock_save, \
+             patch("app.tools.render_candidate_preview_func", return_value="OK: rendered."), \
+             patch.dict("os.environ", {"GEMINI_API_KEY": "key"}):
+            result = regenerate_candidate_set("iface-chrome", 0, requirements)
+        return result, mock_save
+
+    def test_header_style_swapped(self):
+        """Intent header_style='glass-header' replaces the main-header section."""
+        intent = {
+            "change_color": False, "change_layout": True,
+            "colors": [],
+            "layout": {"header_style": "glass-header"},
+        }
+        result, mock_save = self._run(intent, "use glass header")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            header = next((s for s in sections if s.get("position") == "header"), None)
+            assert header is not None
+            assert header["layout"] == "glass-header"
+
+    def test_footer_style_swapped(self):
+        """Intent footer_style='minimal-footer' replaces the site-footer section."""
+        intent = {
+            "change_color": False, "change_layout": True,
+            "colors": [],
+            "layout": {"footer_style": "minimal-footer"},
+        }
+        result, mock_save = self._run(intent, "use minimal footer")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            footer = next((s for s in sections if s.get("position") == "footer"), None)
+            assert footer is not None
+            assert footer["layout"] == "minimal-footer"
+
+    def test_header_and_footer_style_both_swapped(self):
+        """Requesting both header and footer style — both must be updated."""
+        intent = {
+            "change_color": False, "change_layout": True,
+            "colors": [],
+            "layout": {"header_style": "compact-header", "footer_style": "newsletter-footer"},
+        }
+        result, mock_save = self._run(intent, "compact header newsletter footer")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            hdr = next((s for s in sections if s.get("position") == "header"), None)
+            ftr = next((s for s in sections if s.get("position") == "footer"), None)
+            assert hdr is not None and ftr is not None
+            assert hdr["layout"] == "compact-header"
+            assert ftr["layout"] == "newsletter-footer"
+
+    def test_chrome_style_plus_color_change(self):
+        """Glass header + navy color — section layout and token both updated."""
+        intent = {
+            "change_color": True, "change_layout": True,
+            "colors": [{"scope": "header", "hex": "#1e3a5f", "name": "navy"}],
+            "layout": {"header_style": "glass-header"},
+        }
+        result, mock_save = self._run(intent, "glass header navy color")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            tokens = json.loads(c.kwargs.get("tokens") or "{}")
+            hdr = next((s for s in sections if s.get("position") == "header"), None)
+            assert hdr is not None
+            assert hdr["layout"] == "glass-header"
+            assert tokens.get("region.header.bg_hex") == "#1e3a5f"
+
+    def test_main_section_unaffected_by_chrome_style(self):
+        """Changing chrome style must not alter the main content section."""
+        intent = {
+            "change_color": False, "change_layout": True,
+            "colors": [],
+            "layout": {"header_style": "hero-header"},
+        }
+        result, mock_save = self._run(intent, "hero header")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            main = next((s for s in sections if s.get("position") == "main"), None)
+            assert main is not None
+            assert main["layout"] == "card"
+
+
+# ── Chrome style via generate intent ─────────────────────────────────────────
+
+IFACE_DATA_CHROME = {
+    "id": "iface-gen-chrome",
+    "name": "Shop",
+    "system": "sys-1",
+    "actor": "actor-1",
+    "data": {
+        "pages": [{"id": "p1", "name": "Main", "layout": {"value": "default"},
+                   "sections": [{"id": "hdr-1"}, {"id": "s1"}, {"id": "ftr-1"}]}],
+        "sections": [
+            {"id": "hdr-1", "name": "Header", "layout": "main-header", "component": "HeaderTemplate",
+             "col_span": 12, "position": "header", "style": {}},
+            {"id": "s1", "name": "ProductList", "primary_model": "Product",
+             "layout": "card", "col_span": 12, "position": "main", "style": {"density": "normal"}},
+            {"id": "ftr-1", "name": "Footer", "layout": "site-footer", "component": "FooterTemplate",
+             "col_span": 12, "position": "footer", "style": {}},
+        ],
+        "tokens": {"accent.hex": "#111827"},
+        "styling": {},
+    },
+}
+
+
+class TestGenerateChromeStyle:
+    def _run(self, intent_payload, prompt=""):
+        def post_side_effect(url, **_):
+            if "generateContent" in url:
+                return _gemini_response(intent_payload)
+            m = MagicMock(); m.ok = True; m.raise_for_status = MagicMock()
+            return m
+
+        iface_mock = MagicMock()
+        iface_mock.raise_for_status = MagicMock()
+        iface_mock.json.return_value = IFACE_DATA_CHROME
+
+        with patch("app.tools.requests.post", side_effect=post_side_effect), \
+             patch("app.tools.requests.get", return_value=iface_mock), \
+             patch("app.tools.validate_and_save_candidate", return_value="OK: candidate 0 saved.") as mock_save, \
+             patch("app.tools.render_candidate_preview_func", return_value="OK: rendered."), \
+             patch.dict("os.environ", {"GEMINI_API_KEY": "key"}):
+            result = generate_candidate_set("iface-gen-chrome", prompt)
+        return result, mock_save
+
+    def test_header_style_applied_to_all_variants(self):
+        """glass-header in intent — all 3 generated candidates must use it."""
+        intent = {
+            "colors": [],
+            "layout": {"header_style": "glass-header"},
+        }
+        result, mock_save = self._run(intent, "glass header dashboard")
+        assert result.startswith("OK:")
+        assert mock_save.call_count == 3
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            hdr = next((s for s in sections if s.get("position") == "header"), None)
+            assert hdr is not None
+            assert hdr["layout"] == "glass-header"
+
+    def test_footer_style_applied_to_all_variants(self):
+        """newsletter-footer in intent — all 3 generated candidates must use it."""
+        intent = {
+            "colors": [],
+            "layout": {"footer_style": "newsletter-footer"},
+        }
+        result, mock_save = self._run(intent, "newsletter footer")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            ftr = next((s for s in sections if s.get("position") == "footer"), None)
+            assert ftr is not None
+            assert ftr["layout"] == "newsletter-footer"
+
+    def test_chrome_style_with_color_anchor(self):
+        """compact-header + blue accent — layout style and color both applied."""
+        intent = {
+            "colors": [{"scope": "accent", "hex": "#2563eb", "name": "blue"}],
+            "layout": {"header_style": "compact-header"},
+        }
+        result, mock_save = self._run(intent, "compact header blue accent")
+        assert result.startswith("OK:")
+        for c in mock_save.call_args_list:
+            sections = json.loads(c.kwargs.get("sections") or "[]")
+            tokens = json.loads(c.kwargs.get("tokens") or "{}")
+            hdr = next((s for s in sections if s.get("position") == "header"), None)
+            assert hdr is not None
+            assert hdr["layout"] == "compact-header"
+            assert tokens.get("accent.hex") == "#2563eb"

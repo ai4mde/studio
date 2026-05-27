@@ -2716,6 +2716,24 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
                     page["sections"] = refs
     return pages, sections
 
+def _apply_chrome_style(sections: list, header_layout: str | None, footer_layout: str | None) -> list:
+    """Replace the header shell and/or footer layout with the explicitly requested style."""
+    if not header_layout and not footer_layout:
+        return sections
+    result = []
+    for raw in sections:
+        section = dict(raw)
+        layout = _normalize_layout_alias(section.get("layout"))
+        pos = section.get("position")
+        if header_layout and pos == "header" and layout in _HEADER_SHELL_LAYOUTS:
+            section["layout"] = header_layout
+            section["component"] = "HeaderTemplate"
+        elif footer_layout and pos == "footer" and layout in _FOOTER_TEMPLATE_LAYOUTS:
+            section["layout"] = footer_layout
+            section["component"] = "FooterTemplate"
+        result.append(section)
+    return result
+
 def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list]:
     """Agent output may compose many header elements, but only one header/nav shell."""
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
@@ -4069,6 +4087,8 @@ def _parse_generation_intent(prompt: str) -> dict:
         _model_name = os.getenv("ADK_AGENT_MODEL", "gemini-2.0-flash-lite")
         if "/" in _model_name:
             _model_name = _model_name.split("/", 1)[1]
+        _header_shells = "main-header|minimal-header|commerce-header|dashboard-header|split-header|app-header|compact-header|mega-header|hero-header|tabbed-header|glass-header|command-header"
+        _footer_styles = "site-footer|compact-footer|legal-footer|newsletter-footer|social-footer|mega-footer|split-footer|app-footer|cta-footer|minimal-footer|link-grid|brand-strip|minimal-footer"
         _prompt = (
             f'Analyze this UI design brief and extract only the color and layout constraints the designer explicitly stated.\n'
             f'Brief: "{prompt}"\n\n'
@@ -4079,10 +4099,12 @@ def _parse_generation_intent(prompt: str) -> dict:
             '      "hex": "<#rrggbb or null>", "name": "<english color name>"}}\n'
             '  ],\n'
             '  "layout": {{\n'
-            '    "nav": "<top|sidebar-left|sidebar-right or null — only if explicitly stated>",\n'
-            '    "data_display": "<table|gallery|card|list or null — only if explicitly stated>",\n'
-            '    "density": "<compact|normal|spacious or null — only if explicitly stated>",\n'
-            '    "full_width": <true|false|null — only if explicitly stated>\n'
+            '    "nav": "<top|sidebar-left|sidebar-right or null>",\n'
+            '    "data_display": "<table|gallery|card|list or null>",\n'
+            '    "density": "<compact|normal|spacious or null>",\n'
+            '    "full_width": <true|false|null>,\n'
+            f'    "header_style": "<{_header_shells} or null — only if a specific header style is requested>",\n'
+            f'    "footer_style": "<{_footer_styles} or null — only if a specific footer style is requested>"\n'
             '  }}\n'
             '}}\n\n'
             'Leave null/empty for anything NOT explicitly mentioned in the brief.\n'
@@ -4090,7 +4112,8 @@ def _parse_generation_intent(prompt: str) -> dict:
             '"patient management dashboard with blue header" → {{"colors":[{{"scope":"header","hex":"#1d4ed8","name":"blue"}}],"layout":{{}}}}\n'
             '"inventory system, left sidebar, table view" → {{"colors":[],"layout":{{"nav":"sidebar-left","data_display":"table"}}}}\n'
             '"green compact enterprise dashboard" → {{"colors":[{{"scope":"accent","hex":"#16a34a","name":"green"}}],"layout":{{"density":"compact"}}}}\n'
-            '"purple buttons and red badges, full width" → {{"colors":[{{"scope":"button","hex":"#7c3aed","name":"purple"}},{{"scope":"badge","hex":"#dc2626","name":"red"}}],"layout":{{"full_width":true}}}}\n'
+            '"glass header with newsletter footer" → {{"colors":[],"layout":{{"header_style":"glass-header","footer_style":"newsletter-footer"}}}}\n'
+            '"commerce shop, mega header, social footer, blue accent" → {{"colors":[{{"scope":"accent","hex":"#2563eb","name":"blue"}}],"layout":{{"header_style":"commerce-header","footer_style":"social-footer"}}}}\n'
             '"order management" → {{"colors":[],"layout":{{}}}}'
         )
         try:
@@ -4122,13 +4145,15 @@ def _parse_regeneration_intent(designer_requirements: str) -> dict:
         _model_name = os.getenv("ADK_AGENT_MODEL", "gemini-2.0-flash-lite")
         if "/" in _model_name:
             _model_name = _model_name.split("/", 1)[1]
+        _header_shells = "main-header|minimal-header|commerce-header|dashboard-header|split-header|app-header|compact-header|mega-header|hero-header|tabbed-header|glass-header|command-header"
+        _footer_styles = "site-footer|compact-footer|legal-footer|newsletter-footer|social-footer|mega-footer|split-footer|app-footer|cta-footer|minimal-footer|link-grid|brand-strip"
         _prompt = (
             f'Analyze this UI design change request. Output JSON only (no markdown, no explanation).\n'
             f'Request: "{designer_requirements}"\n\n'
             'Output schema:\n'
             '{{\n'
             '  "change_color": <bool - true if any colors/themes/backgrounds change>,\n'
-            '  "change_layout": <bool - true if structure/nav position/section arrangement changes>,\n'
+            '  "change_layout": <bool - true if structure/nav position/section arrangement/header-footer style changes>,\n'
             '  "colors": [\n'
             '    {{"scope": "<button|nav|header|footer|sidebar|background|card|border|text|badge|input|table|link|accent>",\n'
             '      "hex": "<#rrggbb or null>", "name": "<english color name>"}}\n'
@@ -4137,12 +4162,16 @@ def _parse_regeneration_intent(designer_requirements: str) -> dict:
             '    "nav": "<top|sidebar-left|sidebar-right or null>",\n'
             '    "data_display": "<table|gallery|card|list or null>",\n'
             '    "density": "<compact|normal|spacious or null>",\n'
-            '    "full_width": <true|false|null>\n'
+            '    "full_width": <true|false|null>,\n'
+            f'    "header_style": "<{_header_shells} or null>",\n'
+            f'    "footer_style": "<{_footer_styles} or null>"\n'
             '  }}\n'
             '}}\n\n'
             'Examples:\n'
             '"change header color to navy" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"header","hex":"#1e3a5f","name":"navy"}}],"layout":{{}}}}\n'
             '"left sidebar navigation" → {{"change_color":false,"change_layout":true,"colors":[],"layout":{{"nav":"sidebar-left"}}}}\n'
+            '"switch to glass header" → {{"change_color":false,"change_layout":true,"colors":[],"layout":{{"header_style":"glass-header"}}}}\n'
+            '"commerce header with newsletter footer" → {{"change_color":false,"change_layout":true,"colors":[],"layout":{{"header_style":"commerce-header","footer_style":"newsletter-footer"}}}}\n'
             '"compact green table with left nav" → {{"change_color":true,"change_layout":true,"colors":[{{"scope":"accent","hex":"#16a34a","name":"green"}}],"layout":{{"data_display":"table","density":"compact","nav":"sidebar-left"}}}}\n'
             '"purple buttons and red badges" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"button","hex":"#7c3aed","name":"purple"}},{{"scope":"badge","hex":"#dc2626","name":"red"}}],"layout":{{}}}}\n'
             '"dark background blue accent" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"background","hex":"#111827","name":"dark"}},{{"scope":"accent","hex":"#2563eb","name":"blue"}}],"layout":{{}}}}'
@@ -4381,6 +4410,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
             variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, prompt)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+            variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
             if anchored_tokens is not None:
                 tokens = copy.deepcopy(anchored_tokens)
                 tokens["design.variant_index"] = str(index)
@@ -4472,6 +4502,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                 variant_pages = copy.deepcopy(pages)
                 variant_sections = copy.deepcopy(sections)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+            variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
             tokens = copy.deepcopy(shared_tokens)
             tokens["design.variant_index"] = str(index)
             _expand_design_tokens(tokens)
