@@ -1379,6 +1379,16 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         ...(COMPONENT_OPTIONS_BY_LAYOUT[secLayout] || []),
         ...(secComponent ? [secComponent] : []),
     ]));
+    const sectionKind = selectedSection?.component_type || selectedSection?.type || '';
+    const isChromeOrControlSection = isActivityAction
+        || isMethodOnly
+        || CHROME_LAYOUTS.includes(secLayout)
+        || ['chrome', 'control', 'activity_action'].includes(String(sectionKind))
+        || [
+            'HeaderTemplate', 'FooterTemplate', 'NavBar', 'SearchBar', 'IconActions',
+            'Logo', 'BrandLockup', 'ImageLogo', 'SiteFooter', 'FooterLinkGrid',
+        ].includes(String(secComponent));
+    const showFieldComposer = !!selectedSection && !isChromeOrControlSection && !!selectedPrimaryModel;
     const fieldLayout = selectedSection?.field_layout && typeof selectedSection.field_layout === 'object'
         ? selectedSection.field_layout
         : {};
@@ -1732,8 +1742,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {(() => {
                                 const hasCandidate = candidates.length > 0;
                                 const chips = hasCandidate
-                                    ? ['Glass header style', 'Compact header', 'Minimal footer', 'Newsletter footer', 'Navy header', 'Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent']
-                                    : ['Green enterprise compact dashboard', 'Glass header left sidebar table', 'Blue header minimal footer', 'Full width card gallery', 'Compact dashboard dark nav newsletter footer', 'Commerce header mega footer'];
+                                    ? ['Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent', 'Compact header']
+                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header compact layout', 'Full width card gallery', 'Compact dashboard with dark nav'];
                                 return (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
                                         {chips.map(chip => (
@@ -2315,6 +2325,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 );
                             })()}
 
+                            {showFieldComposer && (
+                            <>
                             <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#f9fafb' }}>
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fields</p>
                                 <div style={{ display: 'grid', gap: 6 }}>
@@ -2542,6 +2554,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     </div>
                                 )}
                             </div>
+                            </>
+                            )}
 
                             <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component</p>
