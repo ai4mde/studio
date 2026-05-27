@@ -57,7 +57,7 @@ def write_to_file(OUTPUT_FILE_PATH: str, content: str) -> bool:
     """
     try:
         pathlib.Path(OUTPUT_FILE_PATH).parent.mkdir(parents=True, exist_ok=True)
-        with open(OUTPUT_FILE_PATH, "w+") as fh:
+        with open(OUTPUT_FILE_PATH, "w+", encoding="utf-8") as fh:
             fh.write(content)
     except:
         raise Exception("Failed to write to " + OUTPUT_FILE_PATH)

@@ -80,7 +80,7 @@ def _make_task_home_page(application_component: ApplicationComponent) -> Page:
     return Page(
         id="task-home",
         application=application_name,
-        name="Task",
+        name="Tasks",
         category=None,
         activity_name=None,
         type="normal",

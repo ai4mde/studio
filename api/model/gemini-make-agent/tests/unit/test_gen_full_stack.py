@@ -14,6 +14,25 @@ from utils.definitions.page import Page
 from utils.definitions.model import AttributeType
 from utils.view_generation import generate_views
 
+
+def test_section_component_sanitizes_navigation_page_targets():
+    section = SectionComponent(
+        id="sec-nav",
+        name="Products",
+        application="Customer",
+        page="Browse_Products",
+        primary_model="Product",
+        parent_models=[],
+        attributes=[],
+        text="",
+        behavior={"item_click": {"type": "navigate", "target_page": "Product Detail"}},
+        workflow={"action": "navigate", "target_page": "Order Confirmation"},
+    )
+
+    assert section.item_click_target_page == "Product_Detail"
+    assert section.workflow_target_page == "Order_Confirmation"
+
+
 def test_view_generation_with_multi_class():
     # Mock Application Component
     app_comp = MagicMock(spec=ApplicationComponent)

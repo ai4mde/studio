@@ -110,13 +110,15 @@ class _SectionComponent:
         self.success_page = (style or {}).get("success_page")
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
-        self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        self.workflow_target_page = _sanitize(workflow_target_page) if workflow_target_page else None
         item_click = self.behavior.get("item_click") if isinstance(self.behavior.get("item_click"), dict) else {}
-        self.item_click_target_page = (
+        item_click_target_page = (
             item_click.get("target_page") or item_click.get("targetPage")
             if item_click.get("type") == "navigate"
             else None
         )
+        self.item_click_target_page = _sanitize(item_click_target_page) if item_click_target_page else None
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):

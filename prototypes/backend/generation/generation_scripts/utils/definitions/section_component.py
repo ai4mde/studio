@@ -1,6 +1,6 @@
 from typing import List, Optional
 from utils.definitions.model import Model, AttributeType
-from utils.sanitization import section_name_sanitization
+from utils.sanitization import page_name_sanitization, section_name_sanitization
 import ast
 import re
 from re import sub
@@ -167,13 +167,15 @@ class SectionComponent():
         self.label = label or name
         self.workflow = workflow or {}
         self.workflow_action = self.workflow.get("action", "complete")
-        self.workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        workflow_target_page = self.workflow.get("target_page") or self.workflow.get("targetPage")
+        self.workflow_target_page = page_name_sanitization(workflow_target_page) if workflow_target_page else None
         item_click = self.behavior.get("item_click") if isinstance(self.behavior.get("item_click"), dict) else {}
-        self.item_click_target_page = (
+        item_click_target_page = (
             item_click.get("target_page") or item_click.get("targetPage")
             if item_click.get("type") == "navigate"
             else None
         )
+        self.item_click_target_page = page_name_sanitization(item_click_target_page) if item_click_target_page else None
         self.min_height = int(min_height) if min_height else None
 
     def __str__(self):
