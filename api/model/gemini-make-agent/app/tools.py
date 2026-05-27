@@ -976,7 +976,7 @@ def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: d
             if layout_intent.get("hero_width"):
                 layout["hero_width"] = layout_intent["hero_width"]
             page["layout"] = layout
-        if layout_intent.get("sidebar"):
+        if layout_intent.get("sidebar") and layout_intent.get("sidebar_side"):
             side = layout_intent.get("sidebar_side") or "left"
             nav_sections = [s for s in sections if _normalize_layout_alias(s.get("layout")) in {"site-nav", "nav-links", "nav-bar"} or s.get("component") == "NavBar"]
             for nav in nav_sections[:1]:
@@ -1421,50 +1421,55 @@ def _ref_list(values) -> list[str]:
             seen.add(str(ref))
     return out
 
+def _name_tokens(value: str) -> set[str]:
+    spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", str(value or ""))
+    tokens = {
+        token
+        for token in re.split(r"[^A-Za-z0-9]+", spaced.lower())
+        if len(token) > 1
+    }
+    singulars = {token[:-1] for token in tokens if len(token) > 3 and token.endswith("s")}
+    return tokens | singulars
+
+def _rank_models_for_text(text: str, models: list[str], prefer_collections: bool = False) -> list[str]:
+    text_tokens = _name_tokens(text)
+    ranked = []
+    for index, model in enumerate(models or []):
+        model_tokens = _name_tokens(model)
+        if not model_tokens:
+            continue
+        overlap = len(text_tokens & model_tokens)
+        compact_model = re.sub(r"[^a-z0-9]+", "", str(model).lower())
+        compact_text = re.sub(r"[^a-z0-9]+", "", str(text).lower())
+        substring = 2 if compact_model and compact_model in compact_text else 0
+        collection_bonus = 1 if prefer_collections and _is_child_collection_model(model, text) else 0
+        ranked.append((overlap + substring + collection_bonus, -index, model))
+    ranked.sort(reverse=True)
+    return [model for score, _index, model in ranked if score > 0]
+
 def _infer_usecase_model(name: str, explicit_classes: list[str], classifiers: dict[str, dict], model_names: set[str]) -> str:
     for ref in explicit_classes:
         cls = classifiers.get(ref, {})
         cname = cls.get("name") or ref
         if cname in model_names:
             return cname
-    name_l = str(name or "").lower()
-    hints = [
-        (("review",), "Review"),
-        (("cart",), "Cart"),
-        (("order", "purchase", "checkout", "confirmation"), "Order"),
-        (("payment",), "Payment"),
-        (("account", "customer", "profile"), "Customer"),
-        (("product", "catalog", "listing", "search", "browse"), "Product"),
-        (("seller",), "Seller"),
-        (("inventory", "stock"), "Product"),
-    ]
-    for terms, model in hints:
-        if any(term in name_l for term in terms) and model in model_names:
-            return model
-    for model in sorted(model_names, key=len, reverse=True):
-        if model.lower() in name_l:
-            return model
-    return ""
+    ranked = _rank_models_for_text(name, sorted(model_names, key=len, reverse=True))
+    return ranked[0] if ranked else ""
 
 def _humanize_action_label(name: str, fallback: str = "Start") -> str:
     raw = re.sub(r"[_-]+", " ", str(name or "")).strip()
     if not raw:
         return fallback
     cleaned = re.sub(r"^(manage|view|track|write|browse|search|review)\s+", "", raw, flags=re.I).strip()
-    if re.search(r"\b(purchase|checkout|cart)\b", raw, re.I):
-        return "Checkout"
-    if re.search(r"\b(apply|application|request|submit|onboard|register|book|schedule|reserve|purchase|checkout|payment|approval|claim|ticket|case|workflow|process)\b", raw, re.I):
+    if re.search(r"\b(apply|application|request|submit|onboard|register|book|schedule|reserve|approval|claim|ticket|case|workflow|process)\b", raw, re.I):
         return "Start"
     return cleaned[:1].upper() + cleaned[1:] if cleaned else fallback
 
 def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
     name_l = str(model_name or "").lower()
-    terms_l = str(page_terms or "").lower()
     if not name_l:
         return False
-    if any(term in name_l for term in ("item", "line", "entry", "row", "detail", "selection")):
-        return True
-    if any(term in terms_l for term in ("cart", "basket", "checkout", "quote", "order", "request", "application")) and any(term in name_l for term in ("product", "service", "option")):
+    if any(term in _name_tokens(name_l) for term in ("item", "line", "entry", "row", "detail", "selection", "membership", "mapping", "association")):
         return True
     return False
 
@@ -1481,16 +1486,17 @@ def _ooui_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> di
     name_l = name.lower()
     primary = usecase.get("primary_model") or ""
     class_names = [m for m in usecase.get("class_names") or [] if m]
+    ranked_models = _rank_models_for_text(name, class_names)
 
-    def first_model(*terms: str) -> str:
-        return next((m for m in class_names if any(term in m.lower() for term in terms)), "")
+    def best_model(default: str = "") -> str:
+        return primary or (ranked_models[0] if ranked_models else (class_names[0] if class_names else default))
 
-    if any(term in name_l for term in ("process payment", "send confirmation", "system process", "background")):
+    if any(term in name_l for term in ("system process", "background", "automated", "notification")):
         return {"role": "background", "page_id": "", "page_name": "", "page_model": primary, "operation_kind": "background"}
 
     if workflow_entry:
-        page_model = first_model("cart") or primary
-        page_id = "cart" if page_model.lower() == "cart" else _section_id(page_model or name)
+        page_model = best_model()
+        page_id = _section_id(page_model or name)
         return {
             "role": "workflow_entry",
             "page_id": page_id,
@@ -1501,55 +1507,39 @@ def _ooui_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> di
 
     inline_terms = ("add", "remove", "delete", "update", "select", "write", "review", "rate")
     if any(term in name_l for term in inline_terms) and "manage" not in name_l:
-        if "cart" in name_l and "product" in name_l:
-            page_model = first_model("product") or primary
-            target_model = first_model("cartitem", "cart item", "item", "line") or first_model("cart") or primary
-            return {
-                "role": "inline_operation",
-                "page_id": f"{_section_id(page_model)}_catalog" if page_model else "",
-                "page_name": _page_name(f"{_section_id(page_model)}_catalog") if page_model else "",
-                "page_model": page_model,
-                "operation_kind": "create_related",
-                "target_model": target_model,
-            }
-        if "review" in name_l or "write" in name_l:
-            page_model = first_model("product") or first_model("order") or primary
-            target_model = first_model("review") or primary
-            return {
-                "role": "inline_operation",
-                "page_id": f"{_section_id(page_model)}_detail" if page_model else "",
-                "page_name": _page_name(f"{_section_id(page_model)}_detail") if page_model else "",
-                "page_model": page_model,
-                "operation_kind": "create_related" if target_model != page_model else "update",
-                "target_model": target_model,
-            }
+        page_model = best_model()
+        target_model = next((m for m in ranked_models + class_names if m and m != page_model), page_model)
+        operation_kind = "delete" if any(term in name_l for term in ("remove", "delete")) else (
+            "create_related" if target_model and target_model != page_model and any(term in name_l for term in ("add", "write", "create", "select")) else "object_operation"
+        )
         return {
             "role": "inline_operation",
-            "page_id": _section_id(primary or name),
-            "page_name": _page_name(primary or name),
-            "page_model": primary,
-            "operation_kind": "object_operation",
+            "page_id": _section_id(page_model or name),
+            "page_name": _page_name(page_model or name),
+            "page_model": page_model,
+            "operation_kind": operation_kind,
+            "target_model": target_model,
         }
 
-    if any(term in name_l for term in ("browse", "search", "catalog", "list")):
-        page_model = first_model("product") or primary
-        page_id = f"{_section_id(page_model)}_catalog" if page_model else _section_id(name)
+    if any(term in name_l for term in ("browse", "search", "catalog", "list", "overview", "directory")):
+        page_model = best_model()
+        page_id = _plural_page_id(page_model) if page_model else _section_id(name)
         return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "view_collection"}
 
     if "detail" in name_l or name_l.startswith("view "):
-        page_model = first_model("product") or primary
+        page_model = best_model()
         page_id = f"{_section_id(page_model)}_detail" if page_model else _section_id(name)
         return {"role": "detail_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "view_detail"}
 
-    if "track" in name_l or "order" in name_l:
-        page_model = first_model("order") or primary
+    if "track" in name_l or "history" in name_l:
+        page_model = best_model()
         page_id = _plural_page_id(page_model) if page_model else _section_id(name)
         return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "view_collection"}
 
     if any(term in name_l for term in ("account", "profile", "settings")):
-        page_model = first_model("customer", "user", "account") or primary
-        page_id = "account"
-        return {"role": "object_workspace", "page_id": page_id, "page_name": "Account", "page_model": page_model, "operation_kind": "manage_object"}
+        page_model = best_model()
+        page_id = _section_id(page_model or name)
+        return {"role": "object_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "manage_object"}
 
     page_id = _section_id(primary or name)
     return {"role": "object_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": primary, "operation_kind": "manage_object"}
@@ -1598,9 +1588,9 @@ def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, acti
     if any(term in name_l for term in passive_terms):
         return False
     intent_terms = {
-        "apply", "application", "request", "submit", "purchase", "checkout", "book", "schedule",
+        "apply", "application", "request", "submit", "book", "schedule",
         "reserve", "register", "onboard", "approve", "approval", "claim", "ticket", "case",
-        "payment", "process", "workflow"
+        "process", "workflow"
     }
     if any(term in name_l for term in intent_terms):
         return True
@@ -1609,12 +1599,12 @@ def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, acti
 def _infer_usecase_permissions(name: str) -> list[str]:
     name_l = str(name or "").lower()
     perms = {"view"}
-    if any(term in name_l for term in ("add", "create", "write", "purchase", "checkout", "place", "submit")):
+    if any(term in name_l for term in ("add", "create", "write", "submit")):
         perms.add("create")
     if any(term in name_l for term in ("manage", "update", "edit", "select", "enter", "process", "confirm", "track")):
         perms.add("update")
     if "manage" in name_l and not any(term in name_l for term in ("account", "profile", "settings", "password")):
-        if any(term in name_l for term in ("listing", "listings", "catalog", "inventory", "product", "products", "item", "items", "record", "records")):
+        if any(term in name_l for term in ("item", "items", "record", "records", "entry", "entries", "line", "lines")):
             perms.update({"create", "delete"})
     if any(term in name_l for term in ("delete", "remove", "cancel")):
         perms.add("delete")
@@ -1738,7 +1728,7 @@ def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_nam
         for entry in page_entries.values()
         if any(role in entry["roles"] for role in ("collection_workspace", "object_workspace", "workflow_entry"))
     ]
-    icon_actions = [pid for pid in nav_pages if any(term in pid for term in ("cart", "account", "order", "search"))]
+    icon_actions = [pid for pid in nav_pages if any(term in pid for term in ("account", "profile", "settings", "search"))]
     workflow_entry_points = []
     for uc in usecases.values():
         if _usecase_has_workflow_entry(uc, has_activity_workflow, activity_first_ids, activity_all_ids):
@@ -1833,15 +1823,8 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
     name_l = str(step.get("activity_node_name") or step.get("page_name") or "").lower()
     explicit_step_models = [m for m in step.get("classes") or [] if m in known_models]
     if explicit_step_models:
-        if "confirmation" in name_l or "confirm" in name_l or "order" in name_l:
-            return [
-                m for m in [
-                    next((model for model in explicit_step_models if any(term in model.lower() for term in ("orderline", "order line", "item", "line"))), ""),
-                    next((model for model in explicit_step_models if model.lower() == "order" or "order" in model.lower()), ""),
-                ]
-                if m
-            ] or explicit_step_models[:2]
-        return explicit_step_models[:2]
+        ranked = _rank_models_for_text(name_l, explicit_step_models, prefer_collections=True)
+        return (ranked + [m for m in explicit_step_models if m not in ranked])[:2]
     entries = [e for e in workflow_entries if not e.get("diagram_id") or e.get("diagram_id") == step.get("diagram_id")]
     related = []
     for entry in entries or workflow_entries:
@@ -1853,27 +1836,17 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
     if not related:
         return []
 
-    def first_matching(*terms: str) -> str:
-        return next((m for m in related if any(term in m.lower() for term in terms)), "")
-
-    if "cart" in name_l or "basket" in name_l:
-        return [m for m in [first_matching("cartitem", "cart item", "item", "line"), first_matching("cart")] if m]
-    if "shipping" in name_l or "address" in name_l:
-        return [m for m in [first_matching("address")] if m]
-    if "payment" in name_l or "method" in name_l:
-        return [m for m in [first_matching("payment")] if m]
-    if "confirmation" in name_l or "confirm" in name_l or "order" in name_l:
-        return [m for m in [first_matching("orderline", "order line", "item", "line"), first_matching("order")] if m]
-    explicit = [m for m in related if m.lower() in name_l]
-    return explicit[:1] or related[:1]
+    prefer_collections = any(term in _name_tokens(name_l) for term in ("add", "select", "choose", "list", "review", "manage"))
+    ranked = _rank_models_for_text(name_l, related, prefer_collections=prefer_collections)
+    return ranked[:2] or related[:1]
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
-    name_l = str(step_name or "").lower()
-    if any(term in name_l for term in ("enter", "select", "payment", "shipping", "address", "method")):
+    name_tokens = _name_tokens(step_name)
+    if any(term in name_tokens for term in ("enter", "select", "choose", "provide", "submit", "create", "update", "edit", "write", "upload")):
         return "form"
-    if any(term in name_l for term in ("cart", "basket")) or _is_child_collection_model(model, step_name):
+    if _is_child_collection_model(model, step_name) or any(term in name_tokens for term in ("list", "browse", "review", "manage", "track", "history")):
         return "list"
-    if any(term in name_l for term in ("confirmation", "confirm", "detail")):
+    if any(term in name_tokens for term in ("confirmation", "confirm", "detail", "summary")):
         return "detail"
     return "detail"
 
@@ -1915,9 +1888,9 @@ _HEADER_TEMPLATE_LAYOUTS = {
     "hero-header", "tabbed-header", "glass-header", "command-header", "site-nav",
 }
 _HEADER_SHELL_LAYOUTS = {
-    "promo-bar", "nav-links", "main-header", "minimal-header", "commerce-header", "dashboard-header",
+    "main-header", "minimal-header", "commerce-header", "dashboard-header",
     "split-header", "app-header", "compact-header", "mega-header", "hero-header", "tabbed-header",
-    "glass-header", "command-header", "site-nav",
+    "glass-header", "command-header",
 }
 _HEADER_ELEMENT_LAYOUTS = {"logo", "search-bar", "icon-actions"}
 _HEADER_NAV_LAYOUTS = {
@@ -1925,6 +1898,7 @@ _HEADER_NAV_LAYOUTS = {
     "split-header", "app-header", "compact-header", "mega-header", "hero-header", "tabbed-header",
     "glass-header", "command-header",
 }
+_PAGE_NAV_LAYOUTS = {"nav-links", "site-nav", "nav-bar", "tabbed-header", "mega-header"}
 _FOOTER_TEMPLATE_LAYOUTS = {
     "service-bar", "link-grid", "brand-strip", "compact-footer", "legal-footer",
     "newsletter-footer", "social-footer", "mega-footer", "site-footer", "split-footer", "app-footer",
@@ -1949,7 +1923,7 @@ def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
         "bg": "white",
     }
     if layout == "list":
-        style["list_style"] = "cart-item" if any(term in name_l for term in ("cart", "basket", "item", "line")) else "default"
+        style["list_style"] = "default"
     if layout == "form":
         style["form_style"] = "step"
         style["cta_label"] = "Save"
@@ -2072,6 +2046,33 @@ def _normalize_activity_action_sections(pages: list, sections: list) -> list:
         section["type"] = "activity_action"; section["layout"] = "activity_action"; section["primary_model"] = ""; section["class"] = ""; section["attributes"] = []; section["operations"] = {"create": False, "update": False, "delete": False}; section.setdefault("label", section.get("name") or "Continue"); workflow = section.get("workflow") or {}; workflow.setdefault("action", section.get("workflow_action") or "complete"); section["workflow"] = workflow
     return sections
 
+def _normalize_chrome_sections(sections: list) -> list:
+    """Keep header/footer/navigation chrome out of workflow/action rendering paths."""
+    normalized = []
+    for section in sections or []:
+        section = dict(section)
+        layout = _normalize_layout_alias(section.get("layout"))
+        role = str(section.get("role") or "").lower()
+        position = section.get("position")
+        is_chrome = (
+            layout in _CHROME_TEMPLATE_LAYOUTS
+            or position in {"header", "footer"}
+            or role in {"header", "footer", "navigation", "nav", "brand"}
+        )
+        if is_chrome:
+            section["layout"] = layout
+            section["primary_model"] = ""
+            section["class"] = ""
+            section["attributes"] = []
+            section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
+            if section.get("type") == "activity_action":
+                section.pop("type", None)
+            for key in ("workflow", "workflow_action", "target_page", "targetPage"):
+                section.pop(key, None)
+            section["component"] = _infer_section_component(section)
+        normalized.append(section)
+    return normalized
+
 def _actor_name_from_context(system_context: dict, actor_id: str | None) -> str | None:
     for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
         if str(classifier.get("id")) == str(actor_id): return (classifier.get("data") or {}).get("name")
@@ -2091,7 +2092,7 @@ def _apply_builtin_workflow_logic(interface_data: dict, system_id: str | None, a
         usecase_navigation = _build_usecase_navigation(system_context, str(actor_id or ""), actor_name)
         workflow_steps = _workflow_plan(system_context, str(actor_id or ""), actor_name)
         pages, sections = _ensure_workflow_pages(pages, sections, workflow_steps, model_attrs, usecase_navigation)
-    sections = _normalize_activity_action_sections(pages, sections); data["pages"] = pages; data["sections"] = sections
+    sections = _normalize_chrome_sections(_normalize_activity_action_sections(pages, sections)); data["pages"] = pages; data["sections"] = sections
     return data
 
 def _page_type_value(page: dict) -> str:
@@ -2124,6 +2125,21 @@ def _navigation_methods(names: list[str]) -> list[dict]:
         for name in names
         if name
     ]
+
+def _workflow_icon_links(usecase_navigation: dict, page_by_id: dict | None = None) -> list[dict]:
+    links = []
+    seen = set()
+    page_by_id = page_by_id or {}
+    for entry in (usecase_navigation or {}).get("workflow_entry_points") or []:
+        page_id = _section_id(entry.get("page_id") or entry.get("page_name"))
+        if not page_id or page_id in seen:
+            continue
+        page = page_by_id.get(page_id) or {}
+        page_name = page.get("name") or entry.get("page_name") or _page_name(page_id)
+        label = entry.get("button_label") or entry.get("label") or entry.get("usecase_name") or "Start"
+        links.append({"page": page_name, "label": label, "icon": "task"})
+        seen.add(page_id)
+    return links
 
 def _infer_section_component(section: dict) -> str:
     """
@@ -2431,14 +2447,14 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
     return fixed
 
 def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
-    name = f"{page.get('name', '')} {page.get('id', '')}".lower()
-    if any(term in name for term in ("detail", "view_", "account", "profile")):
+    tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
+    if tokens & {"detail", "view", "profile", "summary"}:
         return "detail"
-    if any(term in name for term in ("shipping", "payment", "checkout", "address", "form", "enter_")):
+    if tokens & {"form", "enter", "submit", "create", "edit", "update", "provide", "select", "choose"}:
         return "form"
-    if any(term in name for term in ("cart", "order", "tracking")):
+    if tokens & {"list", "manage", "track", "history", "item", "line", "entry", "row"}:
         return "list"
-    if any(term in name for term in ("browse", "products", "catalog", "gallery", "shop")):
+    if tokens & {"browse", "catalog", "gallery", "showcase", "discover"}:
         return "gallery" if candidate_index % 2 == 0 else "card"
     return ("card", "table", "list")[candidate_index % 3]
 
@@ -2467,9 +2483,9 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
         "header_style": "large" if layout in {"gallery", "detail"} else "default",
     }
     if layout in {"card", "gallery"}:
-        style.update({"display_mode": "grid", "card_style": "product" if model.lower() == "product" else "default", "columns": "3"})
+        style.update({"display_mode": "grid", "card_style": "default", "columns": "3"})
     elif layout == "list":
-        style.update({"list_style": "cart-item" if "cart" in page_id else "default"})
+        style.update({"list_style": "default"})
     elif layout == "form":
         style.update({"form_style": "step", "cta_label": "Continue"})
     elif layout == "detail":
@@ -2562,6 +2578,32 @@ def _footer_sections_for_candidate(candidate_index: int = 0, normal_pages: list 
         },
     }]
 
+def _top_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
+    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+    return {
+        "id": "app_page_nav",
+        "name": "Navigation",
+        "role": "navigation",
+        "layout": "site-nav",
+        "component": "NavBar",
+        "primary_model": "",
+        "class": "",
+        "attributes": [],
+        "operations": {"create": False, "update": False, "delete": False, "select": False},
+        "methods": nav_methods,
+        "col_span": 12,
+        "position": "header",
+        "style": {
+            "color": "accent",
+            "density": ("normal", "compact", "spacious")[int(candidate_index or 0) % 3],
+            "shadow": "sm",
+            "border": "light",
+            "bg": "white",
+            "variant": "page-nav",
+            "nav_height": ("compact", "normal", "tall")[int(candidate_index or 0) % 3],
+        },
+    }
+
 def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
     side = "left" if int(candidate_index or 0) % 2 == 0 else "right"
@@ -2617,7 +2659,7 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
     header_nav_ids = [
         sid for sid, section in section_map.items()
         if section.get("position") == "header"
-        and _normalize_layout_alias(section.get("layout")) in _HEADER_NAV_LAYOUTS
+        and _normalize_layout_alias(section.get("layout")) in _PAGE_NAV_LAYOUTS
     ]
     sidebar_nav_ids = [
         sid for sid in nav_ids
@@ -2637,7 +2679,11 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
             ]
 
     if not keep_nav_id:
-        nav_section = _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
+        nav_section = (
+            _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
+            if int(candidate_index or 0) % 3 == 2
+            else _top_nav_section_for_candidate(normal_pages, candidate_index)
+        )
         sid = nav_section["id"]
         suffix = 2
         while sid in section_map:
@@ -2647,6 +2693,16 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
         sections.append(nav_section)
         section_map[sid] = nav_section
         keep_nav_id = sid
+    elif int(candidate_index or 0) % 3 != 2 and keep_nav_id in sidebar_nav_ids and not header_nav_ids:
+        nav_section = section_map.get(keep_nav_id) or {}
+        nav_section["position"] = "header"
+        nav_section["layout"] = "nav-links"
+        nav_section["component"] = "NavBar"
+        style = dict(nav_section.get("style") or {})
+        style.pop("sidebar_side", None)
+        style.pop("sidebar_width", None)
+        style["variant"] = "page-nav"
+        nav_section["style"] = style
 
     if keep_nav_id:
         for page in normal_pages:
@@ -3019,7 +3075,7 @@ def _ensure_pre_workflow_content_sections(pages: list, sections: list, usecase_n
             "bg": "white",
         }
         if layout == "list":
-            style["list_style"] = "cart-item" if any(t in f"{page_id} {model}".lower() for t in ("cart", "basket", "item", "line")) else "default"
+            style["list_style"] = "default"
         section = {
             "id": sid,
             "name": f"{model} Items" if _is_child_collection_model(model, page_id) else f"{model} Overview",
@@ -3046,23 +3102,27 @@ def _ensure_pre_workflow_content_sections(pages: list, sections: list, usecase_n
 
 def _apply_ooui_navigation_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
     nav_ids = {_section_id(pid) for pid in (usecase_navigation.get("nav_bar_pages") or []) if pid}
-    if not nav_ids:
-        return sections
     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
     nav_names = [
         (page_by_id.get(pid) or {}).get("name") or _page_name(pid)
         for pid in usecase_navigation.get("nav_bar_pages") or []
         if _section_id(pid) in page_by_id
     ]
-    if not nav_names:
+    workflow_icon_links = _workflow_icon_links(usecase_navigation, page_by_id)
+    if not nav_names and not workflow_icon_links:
         return sections
     fixed = []
     for section in sections:
         section = dict(section)
         layout = _normalize_layout_alias(section.get("layout"))
-        if layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"}):
+        if nav_ids and (layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"})):
             section["layout"] = layout
             section["methods"] = _navigation_methods(nav_names)
+        if section.get("position") == "header" or layout in _HEADER_TEMPLATE_LAYOUTS or layout == "icon-actions":
+            style = dict(section.get("style") or {})
+            if workflow_icon_links and not style.get("icon_links"):
+                style["icon_links"] = workflow_icon_links[:2]
+            section["style"] = style
         fixed.append(section)
     return fixed
 
@@ -3438,6 +3498,7 @@ def validate_and_save_candidate(
             usecase_navigation = {}
         try: completed_data = _apply_builtin_workflow_logic({"pages": pages, "sections": sections}, system_id, iface.get("actor")); pages = completed_data.get("pages") or []; sections = completed_data.get("sections") or []; pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation)
         except Exception: sections = _normalize_activity_action_sections(pages, sections)
+        sections = _normalize_chrome_sections(sections)
         page_names = {p.get("name", "") for p in pages}; page_ref_to_name = {}
         for p in pages:
             pname = p.get("name", ""); pid = p.get("id", "")
@@ -3577,6 +3638,7 @@ def validate_and_save_candidate(
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
             s["field_layout"] = _normalize_field_layout(s)
+        fixed_sections = _normalize_chrome_sections(fixed_sections)
         fixed_pages, fixed_sections = _ensure_workflow_entry_sections(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0), prompt_for_style)
         fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
@@ -3770,7 +3832,7 @@ def _prompt_layout_traits(prompt: str) -> dict:
         "dashboard": any(term in text for term in ("dashboard", "admin", "analytics", "operational", "dense")),
         "sidebar": any(term in text for term in ("sidebar", "side nav", "left nav", "rail")),
         "minimal": any(term in text for term in ("minimal", "clean", "simple", "focused")),
-        "form": any(term in text for term in ("form", "wizard", "application", "checkout", "onboarding")),
+        "form": any(term in text for term in ("form", "wizard", "application", "onboarding")),
     }
 
 def _page_layout_dict(page: dict) -> dict:
@@ -3846,7 +3908,7 @@ def _layout_intent_for_candidate(mode: str, prompt: str, index: int, base_pages:
         intent["footer_width"] = "full"
         intent["data_layout"] = "table" if traits["dashboard"] and index != 2 else intent["data_layout"]
         intent["density"] = "compact" if traits["dashboard"] and index != 2 else intent["density"]
-    if traits["sidebar"]:
+    if traits["sidebar"] and index % 3 == 2:
         intent["nav"] = "sidebar-left"
         intent["main_width"] = "wide" if intent["main_width"] == "contained" else intent["main_width"]
     if traits["minimal"]:
@@ -3891,9 +3953,9 @@ def _prompt_forced_layout(prompt: str, section: dict) -> str | None:
         for key in ("id", "name", "role", "layout", "component", "primary_model", "class")
     ).lower()
     target_terms = []
-    for term in ("order", "prder", "cart", "product", "catalog", "account", "customer", "payment", "shipping", "address", "item", "line"):
+    for term in ("item", "line", "entry", "record", "detail", "summary", "account", "profile"):
         if term in text:
-            target_terms.append("order" if term == "prder" else term)
+            target_terms.append(term)
     if "all" in text or not target_terms:
         if "card" in text or "cards" in text or layout in {"table", "gallery"}:
             return layout
@@ -3996,13 +4058,119 @@ def _apply_layout_intent_to_sections(sections: list, intent: dict, prompt: str =
         next_sections.append(section)
     return next_sections
 
-def _prompt_requests_layout_change(prompt: str) -> bool:
+def _parse_regeneration_intent(designer_requirements: str) -> dict:
+    """Use Gemini to parse designer_requirements into structured intent with specific color targets and layout specs."""
+    _default = {"change_color": False, "change_layout": False, "colors": [], "layout": {}}
+    if not designer_requirements:
+        return _default
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if api_key:
+        _model_name = os.getenv("ADK_AGENT_MODEL", "gemini-2.0-flash-lite")
+        if "/" in _model_name:
+            _model_name = _model_name.split("/", 1)[1]
+        _prompt = (
+            f'Analyze this UI design change request. Output JSON only (no markdown, no explanation).\n'
+            f'Request: "{designer_requirements}"\n\n'
+            'Output schema:\n'
+            '{{\n'
+            '  "change_color": <bool - true if any colors/themes/backgrounds change>,\n'
+            '  "change_layout": <bool - true if structure/nav position/section arrangement changes>,\n'
+            '  "colors": [\n'
+            '    {{"scope": "<button|nav|header|footer|sidebar|background|card|border|text|badge|input|table|link|accent>",\n'
+            '      "hex": "<#rrggbb or null>", "name": "<english color name>"}}\n'
+            '  ],\n'
+            '  "layout": {{\n'
+            '    "nav": "<top|sidebar-left|sidebar-right or null>",\n'
+            '    "data_display": "<table|gallery|card|list or null>",\n'
+            '    "density": "<compact|normal|spacious or null>",\n'
+            '    "full_width": <true|false|null>\n'
+            '  }}\n'
+            '}}\n\n'
+            'Examples:\n'
+            '"change header color to navy" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"header","hex":"#1e3a5f","name":"navy"}}],"layout":{{}}}}\n'
+            '"left sidebar navigation" → {{"change_color":false,"change_layout":true,"colors":[],"layout":{{"nav":"sidebar-left"}}}}\n'
+            '"compact green table with left nav" → {{"change_color":true,"change_layout":true,"colors":[{{"scope":"accent","hex":"#16a34a","name":"green"}}],"layout":{{"data_display":"table","density":"compact","nav":"sidebar-left"}}}}\n'
+            '"purple buttons and red badges" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"button","hex":"#7c3aed","name":"purple"}},{{"scope":"badge","hex":"#dc2626","name":"red"}}],"layout":{{}}}}\n'
+            '"dark background blue accent" → {{"change_color":true,"change_layout":false,"colors":[{{"scope":"background","hex":"#111827","name":"dark"}},{{"scope":"accent","hex":"#2563eb","name":"blue"}}],"layout":{{}}}}'
+        )
+        try:
+            resp = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{_model_name}:generateContent?key={api_key}",
+                json={"contents": [{"parts": [{"text": _prompt}]}],
+                      "generationConfig": {"temperature": 0, "maxOutputTokens": 512}},
+                timeout=8,
+            )
+            resp.raise_for_status()
+            text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+            result = json.loads(text)
+            return {
+                "change_color": bool(result.get("change_color", False)),
+                "change_layout": bool(result.get("change_layout", False)),
+                "colors": result.get("colors") or [],
+                "layout": result.get("layout") or {},
+            }
+        except Exception:
+            pass
+    # Fallback: string matching (no specific color/layout details)
+    return {
+        "change_color": _prompt_requests_color_change(designer_requirements),
+        "change_layout": _prompt_requests_layout_change(designer_requirements),
+        "colors": [],
+        "layout": {},
+    }
+
+def _apply_intent_colors_to_tokens(tokens: dict, colors: list) -> dict:
+    """Apply LLM-extracted structured color intents using the existing scope→token mapping."""
+    overrides: dict = {}
+    for ci in colors or []:
+        scope = str(ci.get("scope") or "")
+        hex_val = ci.get("hex")
+        name = str(ci.get("name") or "")
+        if not scope:
+            continue
+        if hex_val and not re.match(r"^#[0-9a-fA-F]{6}$", str(hex_val)):
+            hex_val = _color_word_to_hex(hex_val) or _color_word_to_hex(name)
+        elif not hex_val:
+            hex_val = _color_word_to_hex(name)
+        if hex_val:
+            _apply_scoped_color(overrides, scope, name, hex_val)
+    result = dict(tokens)
+    result.update(overrides)
+    return result
+
+def _prompt_requests_color_change(prompt: str) -> bool:
     text = str(prompt or "").lower()
     return any(term in text for term in (
+        "color", "colour", "顔色", "颜色", "背景色",
+        "#", "hex", "tint", "shade",
+        "red", "blue", "green", "purple", "orange", "yellow", "pink", "cyan", "teal",
+        "white", "black", "grey", "gray", "dark mode", "light mode",
+        "红", "蓝", "绿", "紫", "橙", "黄", "粉", "白", "黑", "灰",
+    ))
+
+def _prompt_requests_layout_change(prompt: str) -> bool:
+    text = str(prompt or "").lower()
+    # Unambiguous layout terms always count
+    if any(term in text for term in (
         "layout", "排版", "布局", "region", "sidebar", "side bar", "left nav", "right nav",
+        "split", "rail", "左侧", "右侧", "侧边栏", "full width", "full-width",
+        "compact", "spacious", "table", "gallery",
+    )):
+        return True
+    # "nav", "header", "footer" etc. also appear in color requests ("change header color").
+    # Only treat them as layout requests when there is no color context in the prompt.
+    color_context = any(c in text for c in (
+        "color", "colour", "顔色", "颜色", "背景", "background", "#", "hex",
+        "red", "blue", "green", "purple", "orange", "yellow", "pink",
+        "白", "黑", "灰", "红", "蓝", "绿", "紫", "橙", "黄", "粉",
+        "white", "black", "grey", "gray",
+    ))
+    if color_context:
+        return False
+    return any(term in text for term in (
         "nav", "navigation", "navbar", "header", "footer", "hero", "main", "wide",
-        "full width", "full-width", "compact", "spacious", "table", "gallery", "card",
-        "split", "rail", "左侧", "右侧", "导航", "页头", "页脚", "侧边栏",
+        "card", "导航", "页头", "页脚",
     ))
 
 def _is_content_region_section(section: dict) -> bool:
@@ -4163,12 +4331,47 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
         sections = base.get("sections") or []
         if not pages or not sections:
             return "ERROR: selected candidate has no pages/sections."
-        base_tokens = _variant_tokens(base.get("tokens") or {}, designer_requirements, 0)
+        intent = _parse_regeneration_intent(designer_requirements)
+        layout_change_requested = intent["change_layout"]
+        color_change_requested = intent["change_color"]
+        intent_colors = intent.get("colors") or []
+        intent_layout = intent.get("layout") or {}
+        # Compute shared tokens once — same color applied to all 3 variants so
+        # layout-only and color-only requests don't bleed into each other.
+        raw_base_tokens = copy.deepcopy(base.get("tokens") or {})
+        if color_change_requested:
+            if intent_colors:
+                # LLM returned specific component targets — apply them directly
+                shared_tokens = _apply_intent_colors_to_tokens(raw_base_tokens, intent_colors)
+            else:
+                # LLM detected color change but no specifics — fall back to string matching
+                shared_tokens = _apply_prompt_style_overrides(raw_base_tokens, designer_requirements)
+                scoped = _prompt_scoped_color_overrides(designer_requirements)
+                if scoped:
+                    shared_tokens.update(scoped)
+            _expand_design_tokens(shared_tokens)
+        else:
+            shared_tokens = raw_base_tokens
         base_styling = {**dict(base.get("styling") or {}), **_prompt_styling_overrides(designer_requirements)}
         results = []
-        layout_change_requested = _prompt_requests_layout_change(designer_requirements)
         for index in range(3):
             layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
+            # Merge LLM-extracted layout spec — overrides string-matching defaults with specific values
+            if intent_layout:
+                _nav = intent_layout.get("nav")
+                if _nav == "sidebar-left":
+                    layout_intent.update({"nav": "sidebar-left", "sidebar_side": "left"})
+                elif _nav == "sidebar-right":
+                    layout_intent.update({"nav": "sidebar-right", "sidebar_side": "right"})
+                elif _nav == "top":
+                    layout_intent["nav"] = "top"
+                if intent_layout.get("data_display"):
+                    layout_intent["data_layout"] = intent_layout["data_display"]
+                    layout_intent["forced_data_layout"] = intent_layout["data_display"]
+                if intent_layout.get("density"):
+                    layout_intent["density"] = intent_layout["density"]
+                if intent_layout.get("full_width") is True:
+                    layout_intent.update({"main_width": "full", "header_width": "full"})
             if layout_change_requested:
                 variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
                 variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, designer_requirements)
@@ -4177,7 +4380,9 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                 variant_pages = copy.deepcopy(pages)
                 variant_sections = copy.deepcopy(sections)
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
-            tokens = _variant_tokens(base_tokens, designer_requirements, index)
+            tokens = copy.deepcopy(shared_tokens)
+            tokens["design.variant_index"] = str(index)
+            _expand_design_tokens(tokens)
             styling = dict(base_styling or {})
             styling["variantIndex"] = index
             styling["variantName"] = layout_intent.get("name") or ("Selected Refinement", "Selected Table", "Selected Showcase")[index]

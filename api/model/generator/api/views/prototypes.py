@@ -526,13 +526,32 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
             yield json.dumps({"status": f"Failed to create regeneration session: {e}"}) + "\n"
             return
 
+        _req = (payload.designer_requirements or "").lower()
+        _color_terms = ("color", "colour", "顔色", "颜色", "#", "red", "blue", "green", "purple", "orange", "yellow", "pink", "white", "black", "grey", "gray", "hex", "tint", "shade", "红", "蓝", "绿", "紫", "橙", "黄", "粉", "白", "黑", "灰")
+        _layout_terms = ("layout", "排版", "布局", "sidebar", "side bar", "left nav", "right nav", "split", "rail", "full width", "full-width", "compact", "spacious", "table", "gallery")
+        _color_only = any(t in _req for t in _color_terms) and not any(t in _req for t in _layout_terms)
+        _layout_only = any(t in _req for t in _layout_terms) and not any(t in _req for t in _color_terms)
+        if _color_only:
+            _constraint = (
+                "IMPORTANT: Preserve the selected candidate's page structure and region layout EXACTLY — "
+                "do not move or restructure any sections. Only apply the requested color/token changes. "
+                "All three regenerated variants must share the same layout as the selected candidate."
+            )
+        elif _layout_only:
+            _constraint = (
+                "IMPORTANT: Preserve the selected candidate's color scheme and design tokens EXACTLY — "
+                "do not alter any colors. Only apply the requested layout/structural changes."
+            )
+        else:
+            _constraint = (
+                "Preserve the selected candidate's functionality, data bindings, and workflow. "
+                "Apply the designer's requirements and create three structural alternatives."
+            )
         message = (
             f"interface_id={payload.interface_id} regenerate_candidates "
             f"selected_candidate_index={payload.selected_candidate_index} "
             f"designer_requirements={payload.designer_requirements}\n"
-            "Instruction: Preserve functionality/data/workflow from the selected candidate, but create three visibly "
-            "different structural alternatives. Header, footer, sidebar, and navigation may move or change composition; "
-            "use style.sidebar_side='left' for left navigation rails and 'right' for assistive side panels."
+            f"Instruction: {_constraint}"
         )
         agent_error = ""
         started_at = time.monotonic()
