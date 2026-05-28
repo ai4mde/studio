@@ -15,6 +15,7 @@ jobs:
           host: ${{ secrets.ORACLE_HOST }}
           username: ${{ secrets.ORACLE_USER }}
           key: ${{ secrets.ORACLE_SSH_KEY }}
+          command_timeout: 60m
           script: |
             cd ~/studio
             git pull origin develop-uilayout-revise
