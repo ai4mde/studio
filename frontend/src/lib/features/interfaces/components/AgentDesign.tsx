@@ -1831,7 +1831,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 8px' }}>Describe the actor's goals — the agent creates 3 distinct interface designs.</p>
                             <textarea
                                 rows={3}
-                                placeholder="e.g. Customer browsing products, adding to cart and checking out"
+                                placeholder="e.g. Change the theme to a dark blue accent with green highlights"
                                 value={explorePrompt}
                                 onChange={e => setExplorePrompt(e.target.value)}
                                 disabled={isGeneratingCandidates}

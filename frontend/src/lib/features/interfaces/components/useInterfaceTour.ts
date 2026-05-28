@@ -72,7 +72,7 @@ export function startInterfaceTour(callbacks: TourCallbacks = {}) {
                 popover: {
                     title: '✍️ Describe the Actor\'s Goals',
                     description:
-                        'Type what the actor needs to accomplish — e.g. <i>"Customer browsing products and checking out"</i>. ' +
+                        'Describe the look or feel you want — e.g. <i>"Change the theme to a dark blue accent with green highlights"</i>. ' +
                         'Use the quick chips below for common styles (compact table, left sidebar, gallery, etc.).',
                     side: 'right',
                     align: 'start',
