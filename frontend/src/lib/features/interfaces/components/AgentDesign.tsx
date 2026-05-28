@@ -19,12 +19,13 @@ type DisplayModeOption = 'grid' | 'carousel' | 'banner';
 type BannerHeightOption = 'sm' | 'md' | 'lg' | 'xl';
 type ImageRatioOption = 'wide' | '16:9' | '4:3' | '1:1' | 'portrait';
 type CardStyleOption = 'default' | 'product' | 'category' | 'compact';
-type ListStyleOption = 'default' | 'product' | 'cart-item';
+type ListStyleOption = 'default' | 'product' | 'cart-item' | 'related';
 type FormStyleOption = 'default' | 'auth' | 'step' | 'summary';
 type ImagePositionOption = 'left' | 'top' | 'right';
 type ImageSizeOption = 'sm' | 'md' | 'lg';
 type ColSpanOption = 12 | 6 | 4 | 3;
 type PositionOption = 'header' | 'hero' | 'main' | 'sidebar' | 'footer';
+type RegionSelection = { region: 'sidebar'; side?: 'left' | 'right' | '' } | null;
 type SidebarSideOption = 'left' | 'right';
 type ShadowOption = 'none' | 'sm' | 'md' | 'lg' | 'xl';
 type BorderOption = 'none' | 'light' | 'colored' | 'strong';
@@ -140,6 +141,18 @@ const PROMPT_GUIDE_EXAMPLES = [
     {
         title: 'More Expressive, Still Correct',
         prompt: 'Make the design more visually expressive while staying system-correct. You may change layout, region placement, styling, density, card/table/gallery choices, header/footer/nav style, and visual hierarchy. Do not change the meaning of pages, models, CRUD permissions, workflow actions, target pages, or required relationships. Keep navigation usable on every page.'
+    },
+    {
+        title: 'Color, Sidebar, Width, and Font Size',
+        prompt: 'Use teal accent, right sidebar navigation, full width main content, table layout, sidebar width 4, make body text 18px.'
+    },
+    {
+        title: 'Amber Form with Larger Type',
+        prompt: 'Change to amber accent, compact form layout, wide main content, larger font size, extra large titles.'
+    },
+    {
+        title: 'Mixed Color Targets and Typography',
+        prompt: 'Use navy header, beige cards, gold buttons, contained main layout, left sidebar navigation, smaller table text and bigger hero title.'
     },
 ];
 
@@ -441,6 +454,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [tokens, setTokens] = useLocalStorage(`interface:${storagePrefix}:tokens`, {});
 
     const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+    const [selectedRegion, setSelectedRegion] = useState<RegionSelection>(null);
     const [previewHtml, setPreviewHtml] = useState<string>('');
     const [previewError, setPreviewError] = useState('');
     const [previewPageIndex, setPreviewPageIndex] = useState(0);
@@ -492,6 +506,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [isAIExpanded, setIsAIExpanded] = useState(true);
     const [isPromptGuideOpen, setIsPromptGuideOpen] = useState(false);
     const [promptGuideTarget, setPromptGuideTarget] = useState<'explore' | 'refine'>('refine');
+    const [isFieldComposerOpen, setIsFieldComposerOpen] = useState(false);
     const [systemClassifiers, setSystemClassifiers] = useState<any[]>([]);
     const [currentInterface, setCurrentInterface] = useState<any>(null);
     const [draggedField, setDraggedField] = useState<string | null>(null);
@@ -623,9 +638,17 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                 );
                 if (pageIndex !== -1) {
                     setPreviewPageIndex(pageIndex);
+                    setSelectedSectionId(null);
+                    setSelectedRegion(null);
                 }
             } else if (e.data?.type === 'section-selected') {
                 setSelectedSectionId(e.data.id);
+                setSelectedRegion(null);
+            } else if (e.data?.type === 'region-selected') {
+                if (e.data.region === 'sidebar') {
+                    setSelectedSectionId(null);
+                    setSelectedRegion({ region: 'sidebar', side: e.data.side || '' });
+                }
             } else if (e.data?.type === 'section-reorder') {
                 const { fromId, toId } = e.data;
                 setSections((prev: any[]) => {
@@ -1429,6 +1452,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             'HeaderTemplate', 'FooterTemplate', 'NavBar', 'SearchBar', 'IconActions',
             'Logo', 'BrandLockup', 'ImageLogo', 'SiteFooter', 'FooterLinkGrid',
         ].includes(String(secComponent));
+    const showComponentSelector = componentOptions.length > 1 && !isChromeOrControlSection;
     const showFieldComposer = !!selectedSection && !isChromeOrControlSection && !!selectedPrimaryModel;
     const fieldLayout = selectedSection?.field_layout && typeof selectedSection.field_layout === 'object'
         ? selectedSection.field_layout
@@ -1596,6 +1620,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const pageHeaderWidth = currentPage?.layout?.header_width || 'contained';
     const pageHeroWidth = currentPage?.layout?.hero_width || 'contained';
     const pageFooterWidth = currentPage?.layout?.footer_width || 'full';
+    const pageSidebarBg: BgOption | 'transparent' = currentPage?.layout?.sidebar_bg || 'transparent';
+    const pageSidebarShadow: ShadowOption = currentPage?.layout?.sidebar_shadow || 'none';
     const pageGap = currentPage?.gap?.value || 'normal';
 
     const btnBase: React.CSSProperties = {
@@ -1783,8 +1809,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {(() => {
                                 const hasCandidate = candidates.length > 0;
                                 const chips = hasCandidate
-                                    ? ['Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent', 'Compact header']
-                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header compact layout', 'Full width card gallery', 'Compact dashboard with dark nav'];
+                                    ? ['Purple buttons', 'Left sidebar nav', 'Compact table layout', 'Green accent', 'Dark background blue accent', 'Compact header', 'Body text 18px', 'Right sidebar width 4']
+                                    : ['Green enterprise compact dashboard', 'Left sidebar with table layout', 'Blue header compact layout', 'Full width card gallery', 'Compact dashboard with dark nav', 'Teal accent right sidebar full width', 'Amber compact form larger font'];
                                 return (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
                                         {chips.map(chip => (
@@ -1968,7 +1994,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             return (
                             <button
                                 key={s.id}
-                                onClick={() => setSelectedSectionId(s.id === selectedSectionId ? null : s.id)}
+                                onClick={() => {
+                                    setSelectedRegion(null);
+                                    setSelectedSectionId(s.id === selectedSectionId ? null : s.id);
+                                }}
                                 style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                                     width: '100%', textAlign: 'left', padding: '5px 8px',
@@ -2003,7 +2032,60 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                 {/* Properties panel */}
                 <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
-                    {!selectedSection ? (
+                    {selectedRegion ? (
+                        <>
+                            <button
+                                onClick={() => setSelectedRegion(null)}
+                                style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 10px', marginBottom: 2 }}
+                            >
+                                ← Page settings
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+                                <div style={{ minWidth: 0 }}>
+                                    <Typography level="title-sm" sx={{ fontSize: 13 }}>
+                                        Sidebar Region
+                                    </Typography>
+                                    <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>
+                                        {selectedRegion.side ? `${selectedRegion.side} sidebar` : 'sidebar'} layout area
+                                    </div>
+                                </div>
+                                <span style={{
+                                    fontSize: 10,
+                                    padding: '2px 7px',
+                                    borderRadius: 999,
+                                    background: '#fff7ed',
+                                    color: '#c2410c',
+                                    border: '1px solid #fed7aa',
+                                    fontWeight: 700,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                    flexShrink: 0,
+                                }}>
+                                    Sidebar
+                                </span>
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Background</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+                                {(['transparent', 'white', 'light', 'gray', 'dark'] as const).map(b => (
+                                    <button key={b} style={{ ...btnBase, ...active(pageSidebarBg === b), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updatePageLayoutSetting(previewPageIndex, 'sidebar_bg', b === 'transparent' ? '' : b)}>
+                                        {b}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Shadow</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 12 }}>
+                                {(['none', 'sm', 'md', 'lg', 'xl'] as ShadowOption[]).map(s => (
+                                    <button key={s} style={{ ...btnBase, ...active(pageSidebarShadow === s), padding: '3px 7px', fontSize: 11 }}
+                                        onClick={() => updatePageLayoutSetting(previewPageIndex, 'sidebar_shadow', s)}>
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    ) : !selectedSection ? (
                         <>
                             <Typography level="title-sm" sx={{ mb: 1.5, fontSize: 13 }}>
                                 Page Settings ({currentPage?.name || 'Untitled'})
@@ -2408,7 +2490,46 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 </div>
                             </div>
 
-                            <div style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
+                            <div style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff', display: 'grid', gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                                    <div style={{ minWidth: 0 }}>
+                                        <p style={{ fontSize: 11, color: '#111827', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Field Composer</p>
+                                        <p style={{ fontSize: 10, color: '#6b7280', margin: '2px 0 0' }}>Configure field slots, visibility, order and sizing in a wider dialog.</p>
+                                    </div>
+                                    {fieldLayoutSlots.length > 0 && (
+                                        <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 999, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', whiteSpace: 'nowrap' }}>
+                                            {fieldLayoutSlots.length} slots
+                                        </span>
+                                    )}
+                                </div>
+                                <Button
+                                    size="sm"
+                                    variant="soft"
+                                    onClick={() => setIsFieldComposerOpen(true)}
+                                    disabled={availableFieldNames.length === 0}
+                                >
+                                    Open Field Composer
+                                </Button>
+                                {availableFieldNames.length === 0 && (
+                                    <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
+                                        No fields selected for this section. Add attributes in Section Components first.
+                                    </p>
+                                )}
+                            </div>
+
+                            <Modal open={isFieldComposerOpen && showFieldComposer} onClose={() => setIsFieldComposerOpen(false)}>
+                            <ModalDialog
+                                layout="center"
+                                sx={{
+                                    width: 'min(920px, 92vw)',
+                                    maxHeight: '86vh',
+                                    overflow: 'hidden',
+                                    p: 0,
+                                }}
+                            >
+                            <ModalClose />
+                            <div style={{ padding: 16, overflowY: 'auto', maxHeight: '86vh', background: '#fff' }}>
+                            <div style={{ border: '1px solid #d1d5db', borderRadius: 8, padding: 12, background: '#fff' }}>
                                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
                                     <div>
                                         <p style={{ fontSize: 11, color: '#111827', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Field Composer</p>
@@ -2594,25 +2715,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                         })}
                                     </div>
                                 )}
-                            </div>
-                            </>
-                            )}
-
-                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
-                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component</p>
-                                <select
-                                    value={secComponent}
-                                    onChange={(e) => updateSection(selectedSection.id, 'component', e.target.value)}
-                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: fieldLayoutSlots.length ? 8 : 0 }}
-                                >
-                                    {componentOptions.map((component) => (
-                                        <option key={component} value={component}>{component}</option>
-                                    ))}
-                                </select>
                                 {fieldLayoutSlots.length > 0 && (
-                                    <details style={{ marginTop: 8 }}>
+                                    <details style={{ marginTop: 12, borderTop: '1px solid #e5e7eb', paddingTop: 10 }}>
                                         <summary style={{ fontSize: 11, color: '#6b7280', cursor: 'pointer', fontWeight: 700 }}>Advanced raw slots</summary>
-                                        <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                                        <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
                                             {fieldLayoutSlots.map((slot) => (
                                                 <label key={slot.slot} style={{ display: 'grid', gap: 3 }}>
                                                     <span style={{ fontSize: 11, fontWeight: 700, color: '#374151' }}>{slot.label}</span>
@@ -2621,13 +2727,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                                             value={fieldLayoutValue(slot.slot)}
                                                             onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value, true)}
                                                             placeholder={availableFieldNames.slice(0, 4).join(', ')}
-                                                            style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                            style={{ height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
                                                         />
                                                     ) : (
                                                         <select
                                                             value={fieldLayoutValue(slot.slot)}
                                                             onChange={(e) => updateFieldLayoutSlot(slot.slot, e.target.value)}
-                                                            style={{ height: 28, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                                            style={{ height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
                                                         >
                                                             <option value="">None</option>
                                                             {availableFieldNames.map((field) => (
@@ -2641,6 +2747,26 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     </details>
                                 )}
                             </div>
+                            </div>
+                            </ModalDialog>
+                            </Modal>
+                            </>
+                            )}
+
+                            {showComponentSelector && (
+                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#fff' }}>
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Component</p>
+                                <select
+                                    value={secComponent}
+                                    onChange={(e) => updateSection(selectedSection.id, 'component', e.target.value)}
+                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                >
+                                    {componentOptions.map((component) => (
+                                        <option key={component} value={component}>{component}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            )}
 
                             <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Layout</p>
                             {isActivityAction ? (
@@ -2798,7 +2924,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {hasControl('list_style') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>List Style</p>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
-                                {([{v:'default',l:'Default'},{v:'product',l:'Product'},{v:'cart-item',l:'Cart Item'}] as {v:ListStyleOption;l:string}[]).map(o => (
+                                {([{v:'default',l:'Default'},{v:'product',l:'Product'},{v:'cart-item',l:'Line Item'},{v:'related',l:'Related'}] as {v:ListStyleOption;l:string}[]).map(o => (
                                     <button key={o.v} style={{ ...btnBase, ...active(secListStyle === o.v), padding: '3px 7px', fontSize: 11 }}
                                         onClick={() => updateSection(selectedSection.id, 'list_style', o.v)}>{o.l}</button>
                                 ))}
@@ -3137,6 +3263,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     'Modern style with large border radius',
                                     'Split layout: Details left, List right',
                                     'Compact density and flat card style',
+                                    'Body text 18px',
+                                    'Bigger hero title',
+                                    'Teal accent right sidebar width 4',
+                                    'Navy header beige cards gold buttons',
                                 ].map(suggestion => (
                                     <button
                                         key={suggestion}
@@ -3197,7 +3327,11 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                         ))}
                     </div>
                     {previewMode === 'design' && (visiblePages as any[]).map((p: any, idx: number) => (
-                        <button key={idx} onClick={() => setPreviewPageIndex(idx)}
+                        <button key={idx} onClick={() => {
+                            setPreviewPageIndex(idx);
+                            setSelectedSectionId(null);
+                            setSelectedRegion(null);
+                        }}
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 5,
                                 padding: '2px 8px', borderRadius: 10, fontSize: 12, cursor: 'pointer',

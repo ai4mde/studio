@@ -47,7 +47,36 @@ def logout_user(request):
 def autologin(request):
     username = request.GET.get('as', '')
     next_url = request.GET.get('next', '')
+    role_fields = [
+        field.name for field in User._meta.get_fields()
+        if field.name.startswith('is_')
+        and field.name not in ('is_superuser', 'is_staff', 'is_active')
+    ]
+
+    def _norm(value):
+        return str(value or '').strip().lower().replace('-', '_').replace(' ', '_')
+
+    def _role_field_from(value):
+        wanted = _norm(value)
+        if not wanted and next_url and next_url.startswith('/'):
+            wanted = _norm(next_url.strip('/').split('/', 1)[0])
+        for field in role_fields:
+            role = field[3:]
+            if wanted in {_norm(role), _norm('demo_' + role)}:
+                return field
+        return None
+
+    role_field = _role_field_from(username)
     user = User.objects.filter(username=username).first() if username else None
+    if user is None and role_field:
+        user = User.objects.create_user(
+            username=username or role_field[3:].lower(),
+            password='demo',
+            **{role_field: True},
+        )
+    elif user is not None and role_field and not getattr(user, role_field, False):
+        setattr(user, role_field, True)
+        user.save(update_fields=[role_field])
     if user is None:
         user = User.objects.filter(is_superuser=False).first()
     if user:

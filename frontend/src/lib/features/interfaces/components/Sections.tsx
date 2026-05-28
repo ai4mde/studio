@@ -3,6 +3,7 @@ import {
     FormControl,
     Input,
     Textarea,
+    Tooltip,
 } from "@mui/joy";
 import Chip from '@mui/joy/Chip';
 import { Ban, Pencil, Plus, Save, Trash, Link as LinkIcon } from "lucide-react";
@@ -908,13 +909,26 @@ export const Sections: React.FC<Props> = () => {
                                             >
                                                 Delete
                                             </Chip>
-                                            <Chip
-                                                onClick={() => toggleOperation(index, 'select')}
-                                                color={selectedOperations.select ? 'primary' : 'neutral'}
-                                            >
-                                                Select
-                                            </Chip>
                                         </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-semibold text-gray-600">Selection behavior</h3>
+                                        <div className="flex gap-2">
+                                            <Tooltip
+                                                title="Enables row/item selection for choose or pick workflows and bulk actions, such as delete selected. This is not read/view."
+                                                variant="soft"
+                                            >
+                                                <Chip
+                                                    onClick={() => toggleOperation(index, 'select')}
+                                                    color={selectedOperations.select ? 'primary' : 'neutral'}
+                                                >
+                                                    Enable selection
+                                                </Chip>
+                                            </Tooltip>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            Use only when users need to choose records or act on selected rows.
+                                        </p>
                                     </div>
                                     <div className='space-y-1'>
                                         <h3 className="text-xl font-bold">Attributes</h3>

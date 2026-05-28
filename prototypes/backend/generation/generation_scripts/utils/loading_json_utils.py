@@ -8,7 +8,37 @@ from utils.definitions.model import AttributeType, Model, Cardinality, define_ca
 from utils.definitions.styling import Styling, StyleType
 from utils.definitions.settings import Settings
 import json
+import re
 from uuid import uuid4
+
+
+def normalize_section_operations(operations) -> dict:
+    select_terms = {"select", "choose", "pick", "bulk_select", "multi_select", "batch_select"}
+    false_terms = {"", "0", "false", "no", "none", "null", "off"}
+
+    def enabled(value) -> bool:
+        if isinstance(value, str):
+            return value.strip().lower() not in false_terms
+        return bool(value)
+
+    if isinstance(operations, dict):
+        return {
+            "create": any(enabled(operations.get(term, False)) for term in ("create", "add")),
+            "update": any(enabled(operations.get(term, False)) for term in ("update", "edit")),
+            "delete": any(enabled(operations.get(term, False)) for term in ("delete", "remove")),
+            "select": any(enabled(operations.get(term, False)) for term in select_terms),
+        }
+    if isinstance(operations, str):
+        operations = re.split(r"[\s,;|]+", operations)
+    if isinstance(operations, list):
+        values = {str(value).strip().lower() for value in operations}
+        return {
+            "create": bool({"create", "add"} & values),
+            "update": bool({"update", "edit"} & values),
+            "delete": bool({"delete", "remove"} & values),
+            "select": bool(select_terms & values),
+        }
+    return {"create": False, "update": False, "delete": False, "select": False}
 
 
 def resolve_metadata_arg(metadata: str) -> str:
@@ -496,7 +526,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                             raw_section_class or declared_primary_model,
                         )
                     primary_model = find_model_by_class_ptr(metadata, section_class) if section_class else None
-                    operations = section.get("operations") or {}
+                    operations = normalize_section_operations(section.get("operations"))
                     query = dict(section.get("query") or {})
                     relationship = section.get("relationship") or {}
                     if "limit" not in query and relationship.get("limit") is not None:
@@ -518,7 +548,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_create_operation = bool(operations.get("create", False)),
                         has_delete_operation = bool(operations.get("delete", False)),
                         has_update_operation = bool(operations.get("update", False)),
-                        has_select_operation = bool(operations.get("select", section.get("layout", "table") in ("card", "list"))),
+                        has_select_operation = bool(operations.get("select", False)),
                         custom_methods = retrieve_section_custom_methods(section),
                         text = section.get("text", ""),
                         layout = section_layout,

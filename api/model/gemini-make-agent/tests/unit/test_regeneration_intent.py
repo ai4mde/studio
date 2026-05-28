@@ -13,6 +13,7 @@ from app.tools import (
     _prompt_requests_layout_change,
     generate_candidate_set,
     regenerate_candidate_set,
+    _apply_prompt_style_overrides,
 )
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -141,6 +142,46 @@ class TestApplyIntentColorsToTokens:
         )
         assert "button.primary.bg_hex" in result
 
+    def test_yellow_accent_sets_primary_surfaces(self):
+        result = _apply_intent_colors_to_tokens(
+            dict(self.BASE),
+            [{"scope": "accent", "hex": None, "name": "yellow"}],
+        )
+        assert result["accent.hex"] == "#facc15"
+        assert result["button.primary.bg_hex"] == "#facc15"
+        assert result["button.primary.text_hex"] == "#111827"
+        assert result["region.header.bg_hex"] == "#facc15"
+        assert result["region.footer.bg_hex"] == "#facc15"
+
+    def test_extended_color_names_resolve_without_hex(self):
+        result = _apply_intent_colors_to_tokens(
+            dict(self.BASE),
+            [
+                {"scope": "accent", "hex": None, "name": "teal"},
+                {"scope": "header", "hex": None, "name": "navy"},
+                {"scope": "card", "hex": None, "name": "beige"},
+            ],
+        )
+        assert result["accent.hex"] == "#0d9488"
+        assert result["region.header.bg_hex"] == "#1e3a8a"
+        assert result["component.card.bg_hex"] == "#faf7f0"
+
+    def test_prompt_font_size_large_sets_typography_tokens(self):
+        result = _apply_prompt_style_overrides(
+            dict(self.BASE),
+            "make the font size bigger",
+        )
+        assert result["typography.body.size"] == "18px"
+        assert result["typography.title-md.size"] == "24px"
+
+    def test_prompt_scoped_font_size_sets_body_only(self):
+        result = _apply_prompt_style_overrides(
+            dict(self.BASE),
+            "body text 20px",
+        )
+        assert result["typography.body.size"] == "20px"
+        assert result["typography.body-md.size"] == "20px"
+
 
 # ── _parse_regeneration_intent ─────────────────────────────────────────────────
 
@@ -206,6 +247,23 @@ class TestParseRegenerationIntent:
             result = _parse_regeneration_intent("change the layout to table")
         assert result["change_layout"] is True
         assert result["colors"] == []
+
+    def test_font_size_request_counts_as_style_change(self):
+        with patch.dict("os.environ", {}, clear=True):
+            result = _parse_regeneration_intent("make font size bigger")
+        assert result["change_color"] is True
+        assert result["change_layout"] is False
+
+    def test_fallback_extracts_extended_color_and_layout(self):
+        with patch.dict("os.environ", {}, clear=True):
+            result = _parse_regeneration_intent("teal accent right sidebar detail full width sidebar 4")
+        assert result["change_color"] is True
+        assert result["change_layout"] is True
+        assert result["colors"][0]["name"] == "teal"
+        assert result["layout"]["nav"] == "sidebar-right"
+        assert result["layout"]["data_display"] == "detail"
+        assert result["layout"]["main_width"] == "full"
+        assert result["layout"]["sidebar_width"] == 4
 
 
 # ── regenerate_candidate_set integration ───────────────────────────────────────
@@ -491,6 +549,14 @@ class TestParseGenerationIntent:
         assert result["layout"]["nav"] == "sidebar-left"
         assert result["layout"]["data_display"] == "table"
 
+    def test_no_api_generation_fallback_extracts_form_width_and_color(self):
+        with patch.dict("os.environ", {}, clear=True):
+            result = _parse_generation_intent("amber compact form wide main")
+        assert result["colors"][0]["name"] == "amber"
+        assert result["layout"]["density"] == "compact"
+        assert result["layout"]["data_display"] == "form"
+        assert result["layout"]["main_width"] == "wide"
+
     def test_no_explicit_constraints_returns_empty(self):
         llm_payload = {"colors": [], "layout": {}}
         with self._post_mock(llm_payload):
@@ -506,7 +572,9 @@ class TestParseGenerationIntent:
         with patch("app.tools.requests.post", side_effect=Exception("timeout")):
             with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}):
                 result = _parse_generation_intent("blue sidebar")
-        assert result == {"colors": [], "layout": {}}
+        assert result["colors"][0]["scope"] == "sidebar"
+        assert result["colors"][0]["name"] == "blue"
+        assert result["layout"]["nav"] == "sidebar-left"
 
     def test_multi_color_and_layout(self):
         llm_payload = {

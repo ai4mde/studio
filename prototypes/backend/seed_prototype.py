@@ -229,27 +229,58 @@ def seed_loan_app_models():
     get_or_create_user('demo-applicant', 'demo-applicant@example.com', is_Applicant=True)
     get_or_create_user('demo-loan-officer', 'demo-loan-officer@example.com', is_Loan_officer=True)
 
-    applicant1 = Applicant.objects.create(
-        first_name='Amina', last_name='Khan', date_of_birth='1992-01-14',
-        credit_score=742, address='72 Orchard Lane', email='amina.khan@example.com')
-    applicant2 = Applicant.objects.create(
-        first_name='Luca', last_name='Ferrari', date_of_birth='1988-08-02',
-        credit_score=689, address='21 River Road', email='luca.ferrari@example.com')
+    def fields_for(model):
+        return {field.name for field in model._meta.fields}
 
-    loan1 = LoanApplication.objects.create(
-        loan_amount=25000, requires_additional_documents=False, approved=False,
-        reason='Home renovation', risk='Low', Applicant=applicant1)
-    loan2 = LoanApplication.objects.create(
-        loan_amount=12000, requires_additional_documents=True, approved=False,
-        reason='Vehicle purchase', risk='Medium', Applicant=applicant2)
+    def create_supported(model, **values):
+        model_fields = fields_for(model)
+        return model.objects.create(**{key: value for key, value in values.items() if key in model_fields})
+
+    applicant1 = create_supported(
+        Applicant,
+        applicant_id='app-001', first_name='Amina', last_name='Khan', date_of_birth='1992-01-14',
+        credit_score=742, address='72 Orchard Lane', email='amina.khan@example.com',
+        phone='+31 20 555 0101', employment_status='Employed', annual_income=72000)
+    applicant2 = create_supported(
+        Applicant,
+        applicant_id='app-002', first_name='Luca', last_name='Ferrari', date_of_birth='1988-08-02',
+        credit_score=689, address='21 River Road', email='luca.ferrari@example.com',
+        phone='+31 20 555 0102', employment_status='Self-employed', annual_income=58000)
+
+    loan_fields = fields_for(LoanApplication)
+    loan1_values = dict(
+        application_id='loan-001', loan_amount=25000, amount=25000,
+        requires_additional_documents=False, approved=False,
+        reason='Home renovation', status='Submitted', risk='Low', submitted_date='2026-05-10')
+    loan2_values = dict(
+        application_id='loan-002', loan_amount=12000, amount=12000,
+        requires_additional_documents=True, approved=False,
+        reason='Vehicle purchase', status='Needs documents', risk='Medium', submitted_date='2026-05-12')
+    if 'Applicant' in loan_fields:
+        loan1_values['Applicant'] = applicant1
+        loan2_values['Applicant'] = applicant2
+    loan1 = create_supported(LoanApplication, **loan1_values)
+    loan2 = create_supported(LoanApplication, **loan2_values)
 
     if Document is not None:
-        Document.objects.create(file_conent='Proof_of_income.pdf', upload_date='2026-05-10', valid=True, document_type='PDF', LoanApplication=loan1)
-        Document.objects.create(file_conent='Bank_statement.pdf', upload_date='2026-05-12', valid=True, document_type='PDF', LoanApplication=loan2)
+        doc_fields = fields_for(Document)
+        doc1_values = dict(document_id='doc-001', file_conent='Proof_of_income.pdf', file_content='Proof_of_income.pdf', upload_date='2026-05-10', valid=True, document_type='PDF')
+        doc2_values = dict(document_id='doc-002', file_conent='Bank_statement.pdf', file_content='Bank_statement.pdf', upload_date='2026-05-12', valid=True, document_type='PDF')
+        if 'LoanApplication' in doc_fields:
+            doc1_values['LoanApplication'] = loan1
+            doc2_values['LoanApplication'] = loan2
+        create_supported(Document, **doc1_values)
+        create_supported(Document, **doc2_values)
 
     if ApplicationNote is not None:
-        ApplicationNote.objects.create(comment='Applicant qualifies for standard review.', LoanApplication=loan1)
-        ApplicationNote.objects.create(comment='Additional documents requested for verification.', LoanApplication=loan2)
+        note_fields = fields_for(ApplicationNote)
+        note1_values = dict(note_id='note-001', comment='Applicant qualifies for standard review.', created_at='2026-05-10', author_role='Loan officer')
+        note2_values = dict(note_id='note-002', comment='Additional documents requested for verification.', created_at='2026-05-12', author_role='Document analyst')
+        if 'LoanApplication' in note_fields:
+            note1_values['LoanApplication'] = loan1
+            note2_values['LoanApplication'] = loan2
+        create_supported(ApplicationNote, **note1_values)
+        create_supported(ApplicationNote, **note2_values)
 
     print(f'Created {Applicant.objects.count()} applicants, {LoanApplication.objects.count()} loan applications, and fallback demo records.')
 

@@ -12,8 +12,6 @@ from app.tools import (
     run_seed_script_tool, get_available_paths_tool,
     get_interface_full_context_tool,
     generate_candidate_set_tool, regenerate_candidate_set_tool,
-    get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
-    select_design_specs_for_interface_tool,
     analyze_interface_from_uml_tool, save_interface_plan_tool,
 )
 
@@ -93,6 +91,7 @@ Data & Query fields:
   sections[].query.order_by: list of {field: string, direction: "asc"|"desc"}
   sections[].query.filters : list of {field: string, operator: "eq"|"neq"|"lt"|"lte"|"gt"|"gte"|"contains"|"in"|"isnull", value: string}
     Do not emit query for ordinary sections unless the user asked for filtering/sorting/limits, or the page semantics require it. query is for data retrieval constraints, not display fields.
+  sections[].operations    : CRUD flags or list. create/update/delete control row/form actions. select is not read/view; use select only for choose/pick workflows or multi-select/bulk actions such as delete selected.
 
 Card style (layout="card"):
   sections[].style.display_mode : "grid" | "carousel" | "banner"
@@ -112,7 +111,7 @@ Logo image style (layout="logo"):
   sections[].style.logo_shape   : "rounded" | "circle" | "square".
 
 List style (layout="list"):
-  sections[].style.list_style   : "default" | "product" | "cart-item"
+  sections[].style.list_style   : "default" | "product" | "cart-item" | "related"
 
 Form style (layout="form"):
   sections[].style.form_style   : "default" | "auth" | "step" | "summary"
@@ -299,6 +298,12 @@ WORKFLOW
    DetailPanel  → standard detail view; ProductDetailPanel only for "Product" specifically
    StepperWorkflow → multi-step activity workflows (3+ steps from activity diagram)
 
+   Activity step components:
+   - ObjectForm only when the actor must enter, create, submit, or edit data.
+   - DetailPanel for consult, review, monitor, analyze, verify, approve/reject, discharge, or confirm existing data.
+   - SummaryPanel when the step summarizes status, outcome, risk, or decision.
+   - ObjectList when the step requires selecting or comparing records.
+
 3. Apply your semantic decisions to refine the interface_plan:
    - Replace or keep components in sections where you chose differently from the rule-based default
    - Add/remove sections if the UML intelligence justifies it (e.g., a workflow with 5 steps
@@ -321,6 +326,9 @@ RULES
 - Only use models present in actor_permissions — do not invent pages for inaccessible models.
 - Do not generate candidates. Do not touch design tokens or styling.
 - Keep section IDs stable (use the ids from interface_plan — do not invent new ones unless adding a section).
+- Every data-bound section (card/list/table/detail/gallery/filter/form/calendar/timeline/map, or any section with attributes)
+  must preserve primary_model and class. Only chrome/control sections such as header, footer, nav, activity_start,
+  activity_tasks, and activity_action may use empty primary_model/class.
 - The pages_json and sections_json you pass to save_interface_plan must be valid JSON strings.
 """,
     tools=[analyze_interface_from_uml_tool, save_interface_plan_tool],
@@ -388,11 +396,9 @@ IMAGE URL RULE: If the user wants an online/static image or asks to display pict
 1. Call get_interface_config(interface_id) to verify current section IDs and token state.
 2. Check design tokens (data.tokens):
    - If tokens are EMPTY/NULL (first-time edit) OR user requested a theme/style change:
-     a. Call select_design_specs_for_interface(interface_id, count=3, prompt=<user_request>).
-     b. Select the best spec. Call apply_design_system_to_interface_tool(interface_id, spec_name="...", prompt=<user_request>).
-        If the user names a color such as purple, violet, blue, green, orange, rose, pink, red, dark, black, or slate,
+     a. If the user names a color such as purple, violet, blue, green, orange, rose, pink, red, dark, black, or slate,
         that color request is mandatory and must be reflected in tokens/accent/nav/button colors.
-     c. If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
+     b. If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
 3. Call apply_interface_patch exactly once with the complete patch derived from <plan>.
    - Attribute names: use ONLY names from classifier_fields verified in STEP 1.
    - style.color must be "accent" for all data sections (inherits brand color from spec).
@@ -409,8 +415,6 @@ Editable fields:
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
         get_interface_full_context_tool,
-        get_design_system_tool, apply_design_system_to_interface_tool, list_design_specs_tool,
-        select_design_specs_for_interface_tool,
         _image_search_mcp_toolset(),
         AgentTool(agent=candidate_regeneration_agent),
         AgentTool(agent=candidate_direct_agent),

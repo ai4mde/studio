@@ -325,20 +325,30 @@ def _parse_query(section_raw: Dict) -> Dict:
 
 
 def _parse_operations(raw) -> Dict:
+    select_terms = {"select", "choose", "pick", "bulk_select", "multi_select", "batch_select"}
+    false_terms = {"", "0", "false", "no", "none", "null", "off"}
+
+    def enabled(value) -> bool:
+        if isinstance(value, str):
+            return value.strip().lower() not in false_terms
+        return bool(value)
+
     if isinstance(raw, dict):
         return {
-            "create": bool(raw.get("create", False)),
-            "update": bool(raw.get("update", False) or raw.get("edit", False)),
-            "delete": bool(raw.get("delete", False) or raw.get("remove", False)),
-            "select": bool(raw.get("select", False) or raw.get("view", False)),
+            "create": any(enabled(raw.get(term, False)) for term in ("create", "add")),
+            "update": any(enabled(raw.get(term, False)) for term in ("update", "edit")),
+            "delete": any(enabled(raw.get(term, False)) for term in ("delete", "remove")),
+            "select": any(enabled(raw.get(term, False)) for term in select_terms),
         }
+    if isinstance(raw, str):
+        raw = re.split(r"[\s,;|]+", raw)
     if isinstance(raw, list):
         values = {str(value).strip().lower() for value in raw}
         return {
-            "create": "create" in values,
+            "create": bool({"create", "add"} & values),
             "update": bool({"update", "edit"} & values),
             "delete": bool({"delete", "remove"} & values),
-            "select": bool({"select", "view"} & values),
+            "select": bool(select_terms & values),
         }
     return {"create": False, "update": False, "delete": False, "select": False}
 
@@ -532,7 +542,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 has_create_operation=bool(ops.get("create", False)),
                 has_update_operation=bool(ops.get("update", False)),
                 has_delete_operation=bool(ops.get("delete", False)),
-                has_select_operation=bool(ops.get("select", sec_layout in ("card", "list"))),
+                has_select_operation=bool(ops.get("select", False)),
                 text=_parse_text(s_raw.get("text", "")),
                 layout=sec_layout,
                 style=sec_style,
@@ -674,8 +684,7 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
         section.setdefault("operations", {"create": False, "update": False, "delete": False, "select": False})
         if not isinstance(section.get("style"), dict):
             section["style"] = {}
-        if not isinstance(section.get("operations"), dict):
-            section["operations"] = {"create": False, "update": False, "delete": False, "select": False}
+        section["operations"] = _parse_operations(section.get("operations"))
         if section.get("field_layout") is None:
             section["field_layout"] = {}
         sections.append(section)
@@ -767,6 +776,7 @@ def render_layout(
     interface_name: str = "interface",
     inject_click_handlers: bool = False,
     relations: Optional[List[Dict]] = None,
+    preview_mode: bool = True,
 ) -> List[Dict]:
     interface_data = normalize_interface_schema(interface_data)
     app_name, pages = _parse_pages(interface_data, classifiers, interface_name, layout_config, relations)
@@ -785,7 +795,7 @@ def render_layout(
             page=page,
             all_pages=pages,
             AttributeType=AttributeType,
-            preview_mode=True,
+            preview_mode=preview_mode,
             tokens=tokens,
             styling=styling,
         )
@@ -818,11 +828,13 @@ def render_preview(
     output_files = []
     for page in pages:
         rendered = template.render(
+            application_name=app_name,
             page=page,
             all_pages=pages,
             AttributeType=AttributeType,
             preview_mode=True,
             tokens=tokens,
+            styling=styling,
         )
         output_files.append({
             "path": f"preview/{app_name}_{page.name}.html",

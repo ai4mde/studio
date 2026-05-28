@@ -12,12 +12,78 @@ import difflib
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
 
 
+HEADER_CHROME_LAYOUTS = {
+    'promo-bar', 'promo-strip', 'logo', 'search-bar', 'icon-actions',
+    'nav', 'nav-links', 'nav-bar', 'main-header', 'minimal-header',
+    'commerce-header', 'dashboard-header', 'split-header', 'app-header',
+    'compact-header', 'mega-header', 'hero-header', 'tabbed-header',
+    'glass-header', 'command-header', 'site-nav',
+}
+
+FOOTER_CHROME_LAYOUTS = {
+    'service-bar', 'service-strip', 'link-grid', 'footer-links',
+    'brand-strip', 'footer-brand', 'site-footer', 'compact-footer',
+    'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer',
+    'split-footer', 'app-footer', 'cta-footer', 'minimal-footer',
+}
+
+MAX_WIDTH_CLASS = {
+    "sm": "max-w-3xl", "md": "max-w-4xl", "lg": "max-w-5xl",
+    "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
+}
+
+TAILWIND_HEX = {
+    "white": "#ffffff", "black": "#000000",
+    "slate-50": "#f8fafc", "slate-100": "#f1f5f9", "slate-200": "#e2e8f0",
+    "slate-700": "#334155", "slate-800": "#1e293b", "slate-900": "#0f172a",
+    "gray-50": "#f9fafb", "gray-100": "#f3f4f6", "gray-200": "#e5e7eb",
+    "gray-700": "#374151", "gray-800": "#1f2937", "gray-900": "#111827",
+    "blue-50": "#eff6ff", "blue-100": "#dbeafe", "blue-200": "#bfdbfe",
+    "blue-700": "#1d4ed8", "blue-950": "#172554",
+    "purple-50": "#faf5ff", "purple-100": "#f3e8ff", "purple-200": "#e9d5ff",
+    "violet-100": "#ede9fe", "violet-200": "#ddd6fe",
+    "yellow-400": "#facc15",
+}
+
+
+def _class_to_hex(value: str | None) -> str | None:
+    if not value:
+        return None
+    value = str(value).strip()
+    if value.startswith("#"):
+        return value
+    if value.startswith("bg-[") or value.startswith("text-[") or value.startswith("border-["):
+        return value.split("[", 1)[1].split("]", 1)[0]
+    for part in value.split():
+        for prefix in ("bg-", "text-", "border-"):
+            if part.startswith(prefix):
+                color = part[len(prefix):]
+                if color in TAILWIND_HEX:
+                    return TAILWIND_HEX[color]
+    return None
+
+
+def _expand_legacy_token_hex(tokens: dict) -> None:
+    for class_key, hex_key in (
+        ("page.body.bg", "page.body.bg_hex"),
+        ("page.body.text", "page.body.text_hex"),
+        ("region.header.bg", "region.header.bg_hex"),
+        ("region.footer.bg", "region.footer.bg_hex"),
+        ("element.text.accent", "accent.hex"),
+    ):
+        if not tokens.get(hex_key):
+            color = _class_to_hex(tokens.get(class_key))
+            if color:
+                tokens[hex_key] = color
+
+
 def _collect_position_sections(pages, position):
     seen = set()
     out = []
+    chrome_layouts = HEADER_CHROME_LAYOUTS if position == 'header' else FOOTER_CHROME_LAYOUTS if position == 'footer' else set()
     for page in pages:
         for sc in page.section_components:
-            if sc.position == position and sc.id not in seen:
+            if (sc.position == position or sc.layout in chrome_layouts) and sc.id not in seen:
                 seen.add(sc.id)
                 out.append(sc)
     return out
@@ -165,6 +231,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
 
     # Interface metadata tokens are the canonical theme source; styling fills legacy gaps.
     tokens = dict(getattr(application_component, "tokens", {}) or {})
+    _expand_legacy_token_hex(tokens)
     _FONT_CDN = {
         "inter":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
         "roboto":   "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",
@@ -176,10 +243,6 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     _FONT_CSS_NAME = {
         "inter": "Inter", "roboto": "Roboto", "poppins": "Poppins",
         "playfair": "'Playfair Display'", "mono": "'JetBrains Mono'", "geist": "Geist",
-    }
-    _MAX_WIDTH_CLASS = {
-        "sm": "max-w-3xl", "md": "max-w-4xl", "lg": "max-w-5xl",
-        "xl": "max-w-6xl", "2xl": "max-w-7xl", "full": "max-w-full",
     }
     default_blues = {"", None, "#2563eb", "#0000a4", "var(--accent)"}
     if styling:
@@ -203,7 +266,7 @@ def generate_templates(application_component: ApplicationComponent, system_id: s
     radius = getattr(styling, 'radius', 8) if styling else 8
     tokens.setdefault("page.radius.px", str(radius))
     max_w = getattr(styling, 'page_max_width', 'xl') if styling else 'xl'
-    tokens.setdefault("page.container.class", _MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
+    tokens.setdefault("page.container.class", MAX_WIDTH_CLASS.get(max_w, "max-w-6xl"))
     tokens.setdefault("theme.button.style", getattr(styling, 'button_style', 'solid') if styling else 'solid')
     tokens.setdefault("theme.card.hover", getattr(styling, 'card_hover', 'lift') if styling else 'lift')
     tokens.setdefault("theme.image.ratio", getattr(styling, 'image_ratio', '4:3') if styling else '4:3')

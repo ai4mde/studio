@@ -13,8 +13,12 @@ class RoleRequiredMixin(UserPassesTestMixin):
     required_roles = []
 
     def test_func(self):
+        def _norm(value):
+            return str(value or '').strip().lower().replace('-', '_').replace(' ', '_')
+        user_roles = {_norm(role) for role in getattr(self.request.user, 'roles', [])}
+        required_roles = {_norm(role) for role in (self.required_roles or [])}
         return (
-            any(role in self.request.user.roles for role in self.required_roles)
+            bool(user_roles & required_roles)
             if self.required_roles is not None
             else True
         )

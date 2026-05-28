@@ -34,6 +34,94 @@ except Exception:
 import logging as python_logging
 logger = python_logging.getLogger(__name__)
 
+
+def _resolve_interface_semantics_with_llm(uml_intel: dict, interface_plan: dict) -> dict:
+    """Ask the LLM to resolve layout/component choices; return safe overrides or {}."""
+    import json as _json
+    import re as _re
+    import requests as _req
+
+    decisions = uml_intel.get("semantic_decisions") or []
+    if not decisions:
+        return {}
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        return {}
+    model_name = os.getenv("SEMANTIC_RESOLVER_MODEL") or os.getenv("ADK_AGENT_MODEL", "gemini-2.0-flash-lite")
+    if "/" in model_name:
+        provider, raw_name = model_name.split("/", 1)
+        model_name = raw_name if provider == "gemini" else "gemini-2.0-flash-lite"
+    elif not model_name.startswith("gemini-"):
+        model_name = "gemini-2.0-flash-lite"
+
+    allowed = {
+        "model_layouts": ["table", "list", "gallery", "calendar", "timeline", "map"],
+        "model_components": ["DataTable", "ObjectList", "CardGrid", "PersonCardGrid", "CategoryTileGrid", "CalendarView", "TimelineList", "MapView"],
+        "activity_layouts": ["form", "detail", "list"],
+        "activity_components": ["ObjectForm", "DetailPanel", "SummaryPanel", "ObjectList"],
+        "activity_roles": ["object_form", "object_detail", "object_collection"],
+    }
+    prompt = (
+        "Resolve UI semantic decisions for a UML-derived interface. Output JSON only.\n"
+        "Do not invent models, fields, pages, or unsupported components.\n"
+        "Use forms only when the user must enter/create/update data. Use detail/summary for review, consult, monitor, confirm, approve, discharge, analyze.\n\n"
+        f"Allowed values: {_json.dumps(allowed)}\n"
+        f"Actor permissions: {_json.dumps(uml_intel.get('actor_intel', {}).get('target_permissions', {}), ensure_ascii=False)}\n"
+        f"Decisions: {_json.dumps(decisions, ensure_ascii=False)}\n"
+        f"Initial plan summary: {_json.dumps({'pages': interface_plan.get('pages', []), 'sections': interface_plan.get('sections', [])}, ensure_ascii=False)[:12000]}\n\n"
+        "Schema:\n"
+        "{\n"
+        '  "models": {"ModelName": {"layout": "table|list|gallery|calendar|timeline|map", "component": "..." }},\n'
+        '  "activity_steps": {"Exact action name": {"layout": "form|detail|list", "component": "ObjectForm|DetailPanel|SummaryPanel|ObjectList", "role": "object_form|object_detail|object_collection"}}\n'
+        "}\n"
+    )
+    try:
+        resp = _req.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}",
+            json={"contents": [{"parts": [{"text": prompt}]}],
+                  "generationConfig": {"temperature": 0, "maxOutputTokens": 2048}},
+            timeout=12,
+        )
+        resp.raise_for_status()
+        text = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+        text = _re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+        raw = _json.loads(text)
+    except Exception as e:
+        logger.warning(f"semantic resolver fallback to rules: {e}")
+        return {}
+
+    valid_models = set((uml_intel.get("actor_intel") or {}).get("target_permissions") or {})
+    clean_models = {}
+    for model, cfg in (raw.get("models") or {}).items():
+        if model not in valid_models or not isinstance(cfg, dict):
+            continue
+        layout = cfg.get("layout")
+        component = cfg.get("component")
+        if layout in allowed["model_layouts"] and component in allowed["model_components"]:
+            clean_models[model] = {"layout": layout, "component": component}
+
+    valid_actions = {
+        step.get("action")
+        for wf in (uml_intel.get("workflow_intel") or {}).get("workflows", [])
+        for step in (wf.get("steps") or [])
+        if step.get("action")
+    }
+    clean_steps = {}
+    for action, cfg in (raw.get("activity_steps") or {}).items():
+        if action not in valid_actions or not isinstance(cfg, dict):
+            continue
+        layout = cfg.get("layout")
+        component = cfg.get("component")
+        role = cfg.get("role")
+        if layout in allowed["activity_layouts"] and component in allowed["activity_components"]:
+            clean_steps[action] = {
+                "layout": layout,
+                "component": component,
+                "role": role if role in allowed["activity_roles"] else "",
+            }
+
+    return {"models": clean_models, "activity_steps": clean_steps}
+
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )
@@ -116,7 +204,14 @@ def map_uml_to_interface(payload: dict) -> dict:
     import requests as _req
     from app.uml_extractor import extract_uml_intelligence
     from app.interface_planner import generate_interface_plan
-    from app.tools import _fetch_system_context_data, _actor_name_from_context, METADATA_API_BASE, _AUTH_HEADERS
+    from app.tools import (
+        _fetch_system_context_data,
+        _actor_name_from_context,
+        _normalize_layout_alias,
+        _normalize_section_operations,
+        METADATA_API_BASE,
+        _AUTH_HEADERS,
+    )
 
     interface_id = str(payload.get("interface_id") or "")
     if not interface_id:
@@ -129,10 +224,39 @@ def map_uml_to_interface(payload: dict) -> dict:
         actor_name = _actor_name_from_context(system_data, actor_id) or ""
 
         uml_intel = extract_uml_intelligence(system_data, actor_id, actor_name)
-        plan = generate_interface_plan(uml_intel)
+        initial_plan = generate_interface_plan(uml_intel)
+        semantic_overrides = _resolve_interface_semantics_with_llm(uml_intel, initial_plan)
+        plan = generate_interface_plan(uml_intel, semantic_overrides) if semantic_overrides else initial_plan
 
         pages = plan["pages"]
         sections = plan["sections"]
+        page_model_by_id = {
+            str(p.get("id") or ""): str(p.get("primary_model") or p.get("model") or p.get("class") or "")
+            for p in pages or []
+        }
+        data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form", "calendar", "timeline", "map"}
+        data_roles = {"object_collection", "object_detail", "object_summary", "child_collection", "object_form", "filter"}
+
+        def normalize_section_model(section: dict) -> dict:
+            section = dict(section or {})
+            model = (
+                section.get("primary_model")
+                or section.get("model")
+                or section.get("class")
+                or page_model_by_id.get(str(section.get("page_id") or ""), "")
+                or ""
+            )
+            layout = _normalize_layout_alias(section.get("layout"))
+            role = str(section.get("role") or "")
+            is_data_section = layout in data_layouts or role in data_roles or bool(section.get("attributes"))
+            if is_data_section and model:
+                section["primary_model"] = str(model)
+                section["class"] = str(model)
+            else:
+                section.setdefault("primary_model", "")
+                section.setdefault("class", "")
+            section["layout"] = layout
+            return section
 
         db_pages = [
             {
@@ -148,14 +272,8 @@ def map_uml_to_interface(payload: dict) -> dict:
         ]
         db_sections = [
             {
-                **s,
-                "class": s.get("primary_model") or "",
-                "operations": {
-                    "create": "create" in (s.get("operations") or []),
-                    "update": "update" in (s.get("operations") or []),
-                    "delete": "delete" in (s.get("operations") or []),
-                    "select": False,
-                },
+                **normalize_section_model(s),
+                "operations": _normalize_section_operations(s.get("operations")),
             }
             for s in sections
         ]

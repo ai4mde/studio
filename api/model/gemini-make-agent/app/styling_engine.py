@@ -1,7 +1,4 @@
-import os
 import re
-
-DESIGN_SPECS_DIR = os.getenv("DESIGN_SPECS_DIR", "/design_specs")
 
 def _as_list(payload, key: str) -> list:
     if isinstance(payload, dict):
@@ -22,44 +19,11 @@ def _workflow_page_name(value: str) -> str:
 def _section_id(value: str) -> str:
     return _name_id(value).lower()
 
-def _design_spec_files() -> list[str]:
-    if not os.path.exists(DESIGN_SPECS_DIR):
-        return []
-    return sorted(f for f in os.listdir(DESIGN_SPECS_DIR) if f.endswith(".md"))
-
-def _read_design_spec(spec_name: str) -> str:
-    safe_name = os.path.basename(spec_name)
-    design_path = os.path.join(DESIGN_SPECS_DIR, safe_name)
-    if not os.path.exists(design_path):
-        raise FileNotFoundError(f"Design spec '{safe_name}' not found.")
-    with open(design_path, "r", encoding="utf-8") as f:
-        return f.read()
-
-def _yaml_block_values(content: str, block_name: str) -> dict:
-    match = re.search(rf"(?m)^{re.escape(block_name)}:\s*\n(.*?)(?=\n[A-Za-z0-9_-]+:\s*\n|\n---|\Z)", content, re.S)
-    if not match:
-        return {}
-    values = {}
-    # Improved regex to allow # inside values and handle quotes better
-    for key, value in re.findall(r"(?m)^  ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n]+)[\"']?", match.group(1)):
-        # Remove trailing comments if any
-        clean_value = value.split(" #")[0].strip()
-        values[key.strip()] = clean_value
-    return values
-
 def _first_token_value(mapping: dict, keys: list[str], default: str | None = None) -> str | None:
     for key in keys:
         if mapping.get(key):
             return mapping[key]
     return default
-
-def _normalize_radius(value: str | None, default: str = "8") -> str:
-    if not value:
-        return default
-    if value == "0":
-        return "0"
-    match = re.search(r"(\d+)", str(value))
-    return match.group(1) if match else default
 
 def _hex_to_rgb(value: object) -> tuple[int, int, int] | None:
     if not isinstance(value, str):
@@ -100,6 +64,9 @@ def _needs_contrast_fix(fg: object, bg: object, minimum: float) -> bool:
 def _is_dark_hex(value: object) -> bool:
     luminance = _relative_luminance(value)
     return luminance is not None and luminance < 0.28
+
+def _text_on_color(value: object) -> str:
+    return "#ffffff" if _is_dark_hex(value) else "#111827"
 
 def _set_readable_token(tokens: dict, keys: tuple[str, ...], fallback: str, bg: str, minimum: float) -> str:
     current = next((tokens.get(key) for key in keys if tokens.get(key)), fallback)
@@ -145,197 +112,6 @@ def _ensure_readable_text_tokens(tokens: dict) -> None:
     tokens.setdefault("component.card.border_hex", tokens["region.border_hex"])
     tokens["page.body.text"] = f"text-[{text}]"
 
-def _yaml_block_objects(content: str, block_name: str) -> dict:
-    """Parses a YAML-like block into a nested dictionary (2 levels)."""
-    match = re.search(rf"(?m)^{re.escape(block_name)}:\s*\n(.*?)(?=\n[A-Za-z0-9_-]+:\s*\n|\n---|\Z)", content, re.S)
-    if not match:
-        return {}
-    block_content = match.group(1)
-    result = {}
-    current_key = None
-    for line in block_content.splitlines():
-        if line.startswith("  ") and not line.startswith("    "):
-            key_match = re.match(r"  ([A-Za-z0-9_.-]+):\s*(.*)", line)
-            if key_match:
-                current_key = key_match.group(1).strip()
-                val = key_match.group(2).strip().strip("\"'")
-                if val:
-                    result[current_key] = val
-                else:
-                    result[current_key] = {}
-        elif line.startswith("    ") and current_key and isinstance(result[current_key], dict):
-            val_match = re.match(r"    ([A-Za-z0-9_.-]+):\s*[\"']?([^\"'\n]+)[\"']?", line)
-            if val_match:
-                result[current_key][val_match.group(1).strip()] = val_match.group(2).strip()
-    return result
-
-def _parse_prose_colors(content: str) -> dict:
-    """Fallback: extract colors from Markdown table rows or inline bold/backtick format."""
-    _ROLE_MAP = {
-        "primary": "primary", "accent": "primary", "brand": "primary",
-        "secondary": "secondary", "brand-secondary": "secondary",
-        "background": "canvas", "bg": "canvas", "canvas": "canvas",
-        "surface": "surface-card", "card": "surface-card",
-        "border": "border",
-        "text base": "ink", "text-base": "ink", "text color": "ink", "foreground": "ink", "base text": "ink",
-        "text muted": "muted", "muted": "muted", "secondary text": "muted",
-        "success": "success", "error": "error", "danger": "error",
-        "warning": "warning", "caution": "warning",
-    }
-    colors: dict = {}
-    # Format 1: Markdown table rows | Role | #hex |
-    for row in re.finditer(r'\|\s*([^|]+?)\s*\|\s*(#[0-9a-fA-F]{3,8})\s*\|', content):
-        role = row.group(1).strip().lower()
-        hex_val = row.group(2).strip()
-        for pattern, key in _ROLE_MAP.items():
-            if pattern in role and key not in colors:
-                colors[key] = hex_val
-                break
-    # Format 2: **Name** (`#hex`): description OR **Name** (#hex): description
-    for m in re.finditer(r'\*\*([^*]+)\*\*\s*[(`]+(#[0-9a-fA-F]{3,8})[)`]+\s*:?\s*([^\n]*)', content):
-        name = m.group(1).strip().lower(); hex_val = m.group(2); desc = m.group(3).lower()
-        combined = name + " " + desc
-        for pattern, key in _ROLE_MAP.items():
-            if pattern in combined and key not in colors:
-                colors[key] = hex_val; break
-    # Format 3: prose sentences — hex values near role keywords
-    if "primary" not in colors:
-        for kw in ("primary", "accent", "brand accent", "cta"):
-            m = re.search(rf'(?i)\b{re.escape(kw)}\b[^.#\n]{{0,60}}(#[0-9a-fA-F]{{6}})', content)
-            if m: colors["primary"] = m.group(1); break
-    if "canvas" not in colors:
-        for kw in ("background", "canvas", "page background", "body background"):
-            m = re.search(rf'(?i)\b{re.escape(kw)}\b[^.#\n]{{0,60}}(#[0-9a-fA-F]{{6}})', content)
-            if m: colors["canvas"] = m.group(1); break
-    return colors
-
-
-def _parse_prose_radius(content: str) -> dict:
-    """Fallback: extract radius values from lines like 'Radius: 8px' or 'border-radius: 12px'"""
-    rounded: dict = {}
-    for m in re.finditer(r'(?i)radius[:\s]+(\d+)px', content):
-        px = int(m.group(1))
-        if "DEFAULT" not in rounded:
-            rounded["DEFAULT"] = f"{px}px"
-            rounded["md"] = f"{px}px"
-    # Check for card/button specific radius in context
-    card_m = re.search(r'(?i)(?:card[^.]*|container[^.]*)\s*\n[^.]*radius[:\s]+(\d+)px', content)
-    if card_m and "lg" not in rounded:
-        rounded["lg"] = f"{card_m.group(1)}px"
-    return rounded
-
-
-def _parse_design_md_to_tokens(content: str) -> dict:
-    tokens = {}
-    colors = _yaml_block_values(content, "colors")
-    typography_objs = _yaml_block_objects(content, "typography")
-    rounded = _yaml_block_values(content, "rounded")
-    spacing = _yaml_block_values(content, "spacing")
-    shadows = _yaml_block_values(content, "shadows") or _yaml_block_values(content, "elevation")
-
-    # ── Fallback: prose/table format specs (e.g. ecommerce.md, minimal.md) ──
-    if not colors:
-        colors = _parse_prose_colors(content)
-    if not rounded:
-        rounded = _parse_prose_radius(content)
-
-    # ── Base Colors ──────────────────────────────────────────────────────────
-    primary = _first_token_value(colors, ["primary", "accent", "accent-blue", "text-link", "product-terraform"], "#2563eb")
-    canvas = _first_token_value(colors, ["canvas", "background", "page", "canvas-soft"], "#f9fafb")
-    surface = _first_token_value(colors, ["surface-card", "surface-1", "surface", "canvas", "surface-soft-light"], "#ffffff")
-    surface_2 = _first_token_value(colors, ["surface-2", "surface-tile-1", "surface-pearl"], surface)
-    surface_3 = _first_token_value(colors, ["surface-3", "surface-strong", "surface-tile-2"], surface_2)
-    border = _first_token_value(colors, ["hairline", "hairline-strong", "border", "surface-3", "border-subtle"], "#e5e7eb")
-    border_strong = _first_token_value(colors, ["border-strong", "hairline-strong", "border-emphasis"], border)
-    text = _first_token_value(colors, ["ink", "body-strong", "text", "body", "foreground"], "#111827")
-    text_muted = _first_token_value(colors, ["muted", "body", "text-secondary", "foreground-muted", "muted-soft"], "#6b7280")
-    text_subtle = _first_token_value(colors, ["muted-soft", "text-tertiary", "foreground-subtle", "placeholder"], "#9ca3af")
-
-    # ── Semantic Colors ───────────────────────────────────────────────────────
-    color_success = _first_token_value(colors, ["success", "positive", "green", "status-success"], "#16a34a")
-    color_error = _first_token_value(colors, ["error", "danger", "negative", "destructive", "status-error"], "#dc2626")
-    color_warning = _first_token_value(colors, ["warning", "caution", "status-warning"], "#d97706")
-    color_info = _first_token_value(colors, ["info", "informational", "status-info"], primary)
-    color_secondary = _first_token_value(colors, ["secondary", "accent-2", "brand-secondary", "plus", "luxe"], primary)
-
-    tokens["accent.hex"] = primary
-    tokens["color.secondary.hex"] = color_secondary
-    tokens["color.success.hex"] = color_success
-    tokens["color.error.hex"] = color_error
-    tokens["color.warning.hex"] = color_warning
-    tokens["color.info.hex"] = color_info
-    tokens["page.body.bg_hex"] = canvas
-    tokens["region.main.bg_hex"] = surface
-    tokens["region.main.bg_elevated_hex"] = surface_2
-    tokens["region.main.bg_sunken_hex"] = surface_3
-    tokens["region.border_hex"] = border
-    tokens["region.border_strong_hex"] = border_strong
-    tokens["page.body.text_hex"] = text
-    tokens["color.text.muted_hex"] = text_muted
-    tokens["color.text.subtle_hex"] = text_subtle
-
-    # ── Typography ────────────────────────────────────────────────────────────
-    for scale in ["hero", "display", "display-xl", "display-lg", "display-md", "lead", "title-md", "title-sm", "body", "body-md", "body-sm", "caption", "caption-sm", "label"]:
-        obj = typography_objs.get(scale) or typography_objs.get(scale.replace("-", "_"))
-        if isinstance(obj, dict):
-            prefix = f"typography.{scale}"
-            if obj.get("fontSize"): tokens[f"{prefix}.size"] = obj["fontSize"]
-            if obj.get("fontWeight"): tokens[f"{prefix}.weight"] = obj["fontWeight"]
-            if obj.get("lineHeight"): tokens[f"{prefix}.line_height"] = obj["lineHeight"]
-            if obj.get("letterSpacing"): tokens[f"{prefix}.letter_spacing"] = obj["letterSpacing"]
-            if obj.get("fontFamily"): tokens[f"{prefix}.family"] = obj["fontFamily"].split(",")[0].strip().strip("\"'")
-
-    # ── Font ──────────────────────────────────────────────────────────────────
-    font_match = (
-        re.search(r"fontFamily:\s*[\"']*([A-Za-z][^\"',\n]+)", content)
-        or re.search(r'Font Family:\s*[\"\']*([A-Za-z][^\"\'\\n,]+)', content)
-    )
-    if font_match:
-        raw_font = font_match.group(1).split(',')[0].strip().strip("'\" ")
-        if raw_font and len(raw_font) > 1:
-            tokens["page.font.family"] = raw_font
-    if "page.font.family" not in tokens:
-        for scale_key in ("typography.body.family", "typography.body-md.family", "typography.display.family"):
-            if scale_key in tokens:
-                tokens["page.font.family"] = tokens[scale_key]
-                break
-
-    # ── Radius ────────────────────────────────────────────────────────────────
-    radius_md = _normalize_radius(_first_token_value(rounded, ["md", "lg", "sm", "DEFAULT"], "8"))
-    radius_sm = _normalize_radius(_first_token_value(rounded, ["sm", "xs", "DEFAULT"], str(max(0, int(radius_md) - 4))))
-    radius_lg = _normalize_radius(_first_token_value(rounded, ["lg", "xl", "2xl"], str(int(radius_md) + 4)))
-    radius_full = _normalize_radius(_first_token_value(rounded, ["full", "pill"], "9999"))
-    tokens["page.radius.px"] = radius_md
-    tokens["radius.sm.px"] = radius_sm
-    tokens["radius.lg.px"] = radius_lg
-    tokens["radius.full.px"] = radius_full
-
-    # ── Shadows ───────────────────────────────────────────────────────────────
-    shadow_sm = _first_token_value(shadows, ["sm", "1", "level-1", "low"], "0 1px 2px 0 rgb(0 0 0 / 0.05)")
-    shadow_md = _first_token_value(shadows, ["md", "2", "level-2", "medium", "DEFAULT"], "0 4px 6px -1px rgb(0 0 0 / 0.10)")
-    shadow_lg = _first_token_value(shadows, ["lg", "3", "level-3", "high"], "0 10px 15px -3px rgb(0 0 0 / 0.10)")
-    tokens["shadow.sm"] = shadow_sm
-    tokens["shadow.md"] = shadow_md
-    tokens["shadow.lg"] = shadow_lg
-
-    # ── Spacing ───────────────────────────────────────────────────────────────
-    tokens["spacing.xs"] = _first_token_value(spacing, ["xs", "1", "4"], "4px")
-    tokens["spacing.sm"] = _first_token_value(spacing, ["sm", "2", "8"], "8px")
-    tokens["spacing.md"] = _first_token_value(spacing, ["md", "4", "16"], "16px")
-    tokens["spacing.lg"] = _first_token_value(spacing, ["lg", "6", "24"], "24px")
-    tokens["spacing.xl"] = _first_token_value(spacing, ["xl", "8", "32"], "32px")
-
-    # ── Theme Hints ───────────────────────────────────────────────────────────
-    tokens.setdefault("brand.name", "App")
-    tokens.setdefault("theme.button.style", "solid")
-    is_light_bg = tokens.get("page.body.bg_hex", "#ffffff").lower() in {"#ffffff", "#fafafa", "#f9fafb", "#f8f9fa"}
-    tokens.setdefault("theme.card.hover", "lift" if is_light_bg else "border")
-    tokens.setdefault("theme.image.ratio", "4/3")
-    tokens.setdefault("theme.divider", "line")
-
-    _expand_design_tokens(tokens)
-    return tokens
-
 def _expand_design_tokens(tokens: dict) -> dict:
     """Derive stable page/region/component/button tokens from the base palette."""
     accent = tokens.get("accent.hex", "#2563eb")
@@ -356,6 +132,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
     color_success = tokens.get("color.success.hex", "#16a34a")
     color_error = tokens.get("color.error.hex", "#dc2626")
     color_warning = tokens.get("color.warning.hex", "#d97706")
+    on_accent = _text_on_color(accent)
 
     tokens.setdefault("page.bg.hex", page_bg)
     tokens.setdefault("page.text.hex", text)
@@ -363,7 +140,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
     tokens["page.body.text"] = f"text-[{text}]"
     tokens.setdefault("region.header.bg_hex", accent)
     tokens.setdefault("region.header.bg", f"bg-[{accent}]")
-    tokens.setdefault("region.header.text_hex", "#ffffff")
+    tokens.setdefault("region.header.text_hex", on_accent)
     tokens.setdefault("page.header.text", "text-white")
     tokens.setdefault("region.main.bg_hex", surface)
     tokens.setdefault("region.sidebar.bg_hex", surface)
@@ -411,7 +188,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
 
     # Buttons
     tokens.setdefault("button.primary.bg_hex", accent)
-    tokens.setdefault("button.primary.text_hex", "#ffffff")
+    tokens.setdefault("button.primary.text_hex", on_accent)
     tokens.setdefault("button.primary.border_hex", accent)
     tokens.setdefault("button.secondary.bg_hex", surface)
     tokens.setdefault("button.secondary.text_hex", text)
@@ -440,7 +217,7 @@ def _expand_design_tokens(tokens: dict) -> dict:
 
     # Nav
     tokens.setdefault("nav.bg_hex", accent)
-    tokens.setdefault("nav.text_hex", "#ffffff")
+    tokens.setdefault("nav.text_hex", on_accent)
     tokens.setdefault("nav.border_hex", border)
 
     # Secondary accent
@@ -459,35 +236,89 @@ def _expand_design_tokens(tokens: dict) -> dict:
 _PROMPT_COLOR_THEMES = {
     "purple": {"accent": "#7c3aed", "secondary": "#c084fc", "page": "#faf5ff", "surface": "#ffffff", "border": "#ddd6fe"},
     "violet": {"accent": "#7c3aed", "secondary": "#c084fc", "page": "#faf5ff", "surface": "#ffffff", "border": "#ddd6fe"},
+    "indigo": {"accent": "#4f46e5", "secondary": "#818cf8", "page": "#eef2ff", "surface": "#ffffff", "border": "#c7d2fe"},
     "blue": {"accent": "#2563eb", "secondary": "#60a5fa", "page": "#eff6ff", "surface": "#ffffff", "border": "#bfdbfe"},
+    "sky": {"accent": "#0284c7", "secondary": "#7dd3fc", "page": "#f0f9ff", "surface": "#ffffff", "border": "#bae6fd"},
+    "cyan": {"accent": "#0891b2", "secondary": "#67e8f9", "page": "#ecfeff", "surface": "#ffffff", "border": "#a5f3fc"},
+    "aqua": {"accent": "#0891b2", "secondary": "#67e8f9", "page": "#ecfeff", "surface": "#ffffff", "border": "#a5f3fc"},
+    "teal": {"accent": "#0d9488", "secondary": "#5eead4", "page": "#f0fdfa", "surface": "#ffffff", "border": "#99f6e4"},
+    "turquoise": {"accent": "#0d9488", "secondary": "#5eead4", "page": "#f0fdfa", "surface": "#ffffff", "border": "#99f6e4"},
     "green": {"accent": "#16a34a", "secondary": "#86efac", "page": "#f0fdf4", "surface": "#ffffff", "border": "#bbf7d0"},
+    "emerald": {"accent": "#059669", "secondary": "#6ee7b7", "page": "#ecfdf5", "surface": "#ffffff", "border": "#a7f3d0"},
+    "lime": {"accent": "#84cc16", "secondary": "#bef264", "page": "#f7fee7", "surface": "#ffffff", "border": "#d9f99d", "text": "#111827", "muted": "#365314"},
+    "yellow": {"accent": "#facc15", "secondary": "#fde68a", "page": "#fefce8", "surface": "#ffffff", "border": "#fde68a", "text": "#111827", "muted": "#713f12"},
+    "amber": {"accent": "#f59e0b", "secondary": "#fcd34d", "page": "#fffbeb", "surface": "#ffffff", "border": "#fde68a", "text": "#111827", "muted": "#78350f"},
+    "gold": {"accent": "#f59e0b", "secondary": "#fcd34d", "page": "#fffbeb", "surface": "#ffffff", "border": "#fde68a", "text": "#111827", "muted": "#78350f"},
     "orange": {"accent": "#f97316", "secondary": "#fdba74", "page": "#fff7ed", "surface": "#ffffff", "border": "#fed7aa"},
     "rose": {"accent": "#e11d48", "secondary": "#fb7185", "page": "#fff1f2", "surface": "#ffffff", "border": "#fecdd3"},
     "pink": {"accent": "#db2777", "secondary": "#f9a8d4", "page": "#fdf2f8", "surface": "#ffffff", "border": "#fbcfe8"},
     "red": {"accent": "#dc2626", "secondary": "#f87171", "page": "#fef2f2", "surface": "#ffffff", "border": "#fecaca"},
+    "navy": {"accent": "#1e3a8a", "secondary": "#60a5fa", "page": "#eff6ff", "surface": "#ffffff", "border": "#bfdbfe"},
+    "brown": {"accent": "#92400e", "secondary": "#d97706", "page": "#fffbeb", "surface": "#ffffff", "border": "#fed7aa"},
+    "beige": {"accent": "#d6b68a", "secondary": "#ead7bb", "page": "#faf7f0", "surface": "#ffffff", "border": "#ead7bb", "text": "#1f2937", "muted": "#6b4f2a"},
+    "tan": {"accent": "#c08457", "secondary": "#e7c6a3", "page": "#faf7f0", "surface": "#ffffff", "border": "#e7c6a3", "text": "#1f2937", "muted": "#6b4f2a"},
+    "cream": {"accent": "#d6b68a", "secondary": "#ead7bb", "page": "#fffaf0", "surface": "#ffffff", "border": "#ead7bb", "text": "#1f2937", "muted": "#6b4f2a"},
     "dark": {"accent": "#8b5cf6", "secondary": "#22d3ee", "page": "#0f172a", "surface": "#111827", "border": "#334155", "text": "#f8fafc", "muted": "#cbd5e1"},
     "black": {"accent": "#111827", "secondary": "#6b7280", "page": "#f9fafb", "surface": "#ffffff", "border": "#d1d5db"},
     "slate": {"accent": "#475569", "secondary": "#94a3b8", "page": "#f8fafc", "surface": "#ffffff", "border": "#cbd5e1"},
+    "zinc": {"accent": "#52525b", "secondary": "#a1a1aa", "page": "#fafafa", "surface": "#ffffff", "border": "#d4d4d8"},
+    "neutral": {"accent": "#525252", "secondary": "#a3a3a3", "page": "#fafafa", "surface": "#ffffff", "border": "#d4d4d4"},
 }
 
 _COLOR_KEYWORDS = {
     "purple": "#7c3aed",
     "violet": "#7c3aed",
+    "indigo": "#4f46e5",
     "blue": "#2563eb",
+    "sky": "#0284c7",
+    "cyan": "#0891b2",
+    "aqua": "#0891b2",
+    "teal": "#0d9488",
+    "turquoise": "#0d9488",
     "green": "#16a34a",
+    "emerald": "#059669",
+    "lime": "#84cc16",
+    "yellow": "#facc15",
+    "amber": "#f59e0b",
+    "gold": "#f59e0b",
     "orange": "#f97316",
     "rose": "#e11d48",
     "pink": "#db2777",
     "red": "#dc2626",
+    "navy": "#1e3a8a",
+    "brown": "#92400e",
+    "beige": "#d6b68a",
+    "tan": "#c08457",
+    "cream": "#d6b68a",
     "dark": "#111827",
     "black": "#111827",
     "slate": "#475569",
+    "zinc": "#52525b",
+    "neutral": "#525252",
     "gray": "#6b7280",
     "grey": "#6b7280",
     "white": "#ffffff",
 }
 
 _ZH_COLOR_KEYWORDS = {
+    "\u9ec4": "yellow",
+    "\u7d2b": "purple",
+    "\u84dd": "blue",
+    "\u85cd": "blue",
+    "\u7eff": "green",
+    "\u7da0": "green",
+    "\u9752": "teal",
+    "\u975b": "indigo",
+    "\u6a59": "orange",
+    "\u7c89": "pink",
+    "\u7ea2": "red",
+    "\u7d05": "red",
+    "\u767d": "white",
+    "\u9ed1": "black",
+    "\u7070": "slate",
+    "\u68d5": "brown",
+    "\u7c73": "beige",
+    "\u91d1": "gold",
     "紫": "purple",
     "蓝": "blue",
     "绿": "green",
@@ -497,6 +328,138 @@ _ZH_COLOR_KEYWORDS = {
     "黑": "black",
     "灰": "slate",
 }
+
+_TYPOGRAPHY_SIZE_PRESETS = {
+    "xs": {
+        "typography.hero.size": "44px",
+        "typography.display.size": "32px",
+        "typography.title-md.size": "17px",
+        "typography.lead.size": "15px",
+        "typography.body.size": "13px",
+        "typography.caption.size": "10px",
+        "typography.label.size": "12px",
+    },
+    "sm": {
+        "typography.hero.size": "48px",
+        "typography.display.size": "34px",
+        "typography.title-md.size": "18px",
+        "typography.lead.size": "16px",
+        "typography.body.size": "14px",
+        "typography.caption.size": "11px",
+        "typography.label.size": "13px",
+    },
+    "md": {
+        "typography.hero.size": "56px",
+        "typography.display.size": "40px",
+        "typography.title-md.size": "20px",
+        "typography.lead.size": "18px",
+        "typography.body.size": "16px",
+        "typography.caption.size": "12px",
+        "typography.label.size": "14px",
+    },
+    "lg": {
+        "typography.hero.size": "64px",
+        "typography.display.size": "46px",
+        "typography.title-md.size": "24px",
+        "typography.lead.size": "20px",
+        "typography.body.size": "18px",
+        "typography.caption.size": "13px",
+        "typography.label.size": "15px",
+    },
+    "xl": {
+        "typography.hero.size": "72px",
+        "typography.display.size": "52px",
+        "typography.title-md.size": "28px",
+        "typography.lead.size": "22px",
+        "typography.body.size": "20px",
+        "typography.caption.size": "14px",
+        "typography.label.size": "16px",
+    },
+}
+
+_TYPOGRAPHY_SCOPE_KEYS = {
+    "hero": ("typography.hero.size",),
+    "display": ("typography.display.size", "typography.display-lg.size"),
+    "title": ("typography.title-md.size",),
+    "heading": ("typography.title-md.size", "typography.display.size"),
+    "body": ("typography.body.size", "typography.body-md.size"),
+    "text": ("typography.body.size", "typography.body-md.size"),
+    "caption": ("typography.caption.size", "typography.caption-sm.size"),
+    "label": ("typography.label.size",),
+    "button": ("typography.label.size",),
+    "table": ("typography.caption.size", "typography.body.size"),
+}
+
+def _font_size_bucket(prompt: str = "") -> str | None:
+    text = str(prompt or "").lower()
+    original = str(prompt or "")
+    if any(term in text for term in ("extra large font", "xl font", "huge text", "huge font", "very large text", "very large font")) or any(term in original for term in ("\u8d85\u5927\u5b57", "\u5b57\u4f53\u8d85\u5927")):
+        return "xl"
+    if any(term in text for term in ("larger font", "bigger font", "large font", "larger text", "bigger text", "increase font", "increase text", "font size bigger")) or any(term in original for term in ("\u5b57\u4f53\u53d8\u5927", "\u5b57\u53f7\u53d8\u5927", "\u5927\u5b57\u4f53", "\u5b57\u5927")):
+        return "lg"
+    if any(term in text for term in ("smaller font", "small font", "smaller text", "small text", "decrease font", "reduce font", "tiny text")) or any(term in original for term in ("\u5b57\u4f53\u53d8\u5c0f", "\u5b57\u53f7\u53d8\u5c0f", "\u5c0f\u5b57\u4f53", "\u5b57\u5c0f")):
+        return "sm"
+    if any(term in text for term in ("tiny font", "extra small font", "xs font")):
+        return "xs"
+    if any(term in text for term in ("normal font", "default font", "medium font", "normal text")) or any(term in original for term in ("\u9ed8\u8ba4\u5b57\u4f53", "\u6b63\u5e38\u5b57\u53f7")):
+        return "md"
+    return None
+
+def _prompt_typography_overrides(prompt: str = "") -> dict:
+    text = str(prompt or "").lower()
+    original = str(prompt or "")
+    if not text and not original:
+        return {}
+    overrides: dict[str, str] = {}
+    bucket = _font_size_bucket(prompt)
+    if bucket:
+        overrides.update(_TYPOGRAPHY_SIZE_PRESETS[bucket])
+
+    size_words = {
+        "xs": "xs", "extra small": "xs", "tiny": "xs",
+        "sm": "sm", "small": "sm", "smaller": "sm",
+        "md": "md", "medium": "md", "normal": "md", "default": "md",
+        "lg": "lg", "large": "lg", "larger": "lg", "big": "lg", "bigger": "lg",
+        "xl": "xl", "extra large": "xl", "huge": "xl",
+    }
+    scope_words = "|".join(re.escape(scope) for scope in _TYPOGRAPHY_SCOPE_KEYS)
+    size_word_pattern = "|".join(re.escape(word) for word in sorted(size_words, key=len, reverse=True))
+    scoped_patterns = (
+        rf"\b(?P<scope>{scope_words})\b(?:\W+\w+){{0,5}}\W+\b(?P<size>{size_word_pattern})\b(?:\W+\b(?:font|text|size)\b)?",
+        rf"\b(?P<size>{size_word_pattern})\b(?:\W+\w+){{0,5}}\W+\b(?P<scope>{scope_words})\b(?:\W+\b(?:font|text|size)\b)?",
+    )
+    for pattern in scoped_patterns:
+        for match in re.finditer(pattern, text):
+            preset = _TYPOGRAPHY_SIZE_PRESETS[size_words[match.group("size")]]
+            for key in _TYPOGRAPHY_SCOPE_KEYS.get(match.group("scope"), ()):
+                source = "typography.body.size" if key.endswith("body-md.size") else key
+                overrides[key] = preset.get(source, preset.get(key, "16px"))
+
+    px_patterns = (
+        rf"\b(?P<scope>{scope_words})\b(?:\W+\w+){{0,5}}\W+(?P<size>\d{{2}})px\b",
+        rf"\b(?P<size>\d{{2}})px\b(?:\W+\w+){{0,5}}\W+\b(?P<scope>{scope_words})\b",
+        r"\b(?:font|text)\s*size\b(?:\W+\w+){0,4}\W+(?P<size>\d{2})px\b",
+    )
+    for pattern in px_patterns:
+        for match in re.finditer(pattern, text):
+            px = f"{max(10, min(72, int(match.group('size'))))}px"
+            scopes = _TYPOGRAPHY_SCOPE_KEYS.get(match.groupdict().get("scope") or "text", ("typography.body.size",))
+            for key in scopes:
+                overrides[key] = px
+
+    zh_size = None
+    if any(term in original for term in ("\u5927\u5b57", "\u5b57\u5927", "\u653e\u5927\u5b57", "\u5b57\u53f7\u5927")):
+        zh_size = "lg"
+    elif any(term in original for term in ("\u5c0f\u5b57", "\u5b57\u5c0f", "\u7f29\u5c0f\u5b57", "\u5b57\u53f7\u5c0f")):
+        zh_size = "sm"
+    if zh_size:
+        preset = _TYPOGRAPHY_SIZE_PRESETS[zh_size]
+        if any(term in original for term in ("\u6807\u9898", "\u6a19\u984c", "\u9875\u5934", "\u9801\u9996")):
+            for key in _TYPOGRAPHY_SCOPE_KEYS["heading"]:
+                overrides[key] = preset.get(key, preset["typography.title-md.size"])
+        else:
+            overrides.update(preset)
+    return {key: value for key, value in overrides.items() if value}
 
 def _prompt_color_theme(prompt: str = "") -> tuple[str | None, dict]:
     text = str(prompt or "").lower()
@@ -540,11 +503,13 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
     secondary = theme.get("secondary", color_hex)
     page = theme.get("page", color_hex)
     border = theme.get("border", color_hex)
+    on_color = _text_on_color(color_hex)
+    surface_color = page if theme else color_hex
     if scope == "button":
         overrides.update({
             "button.primary.bg_hex": color_hex,
             "button.primary.border_hex": color_hex,
-            "button.primary.text_hex": "#ffffff",
+            "button.primary.text_hex": on_color,
         })
         if color_name == "red":
             overrides.update({
@@ -554,21 +519,21 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
     elif scope == "nav":
         overrides.update({
             "nav.bg_hex": color_hex,
-            "nav.text_hex": "#ffffff",
+            "nav.text_hex": on_color,
         })
     elif scope == "header":
         overrides.update({
             "region.header.bg_hex": color_hex,
-            "region.header.text_hex": "#ffffff",
+            "region.header.text_hex": on_color,
         })
     elif scope == "footer":
         overrides.update({
             "region.footer.bg_hex": color_hex,
-            "region.footer.text_hex": "#ffffff",
+            "region.footer.text_hex": on_color,
         })
     elif scope == "sidebar":
         overrides.update({
-            "region.sidebar.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "region.sidebar.bg_hex": surface_color,
             "region.sidebar.text_hex": "#ffffff" if color_name in {"black", "dark", "slate"} else overrides.get("page.body.text_hex", "#111827"),
         })
     elif scope == "background":
@@ -578,10 +543,10 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
             "region.main.bg_hex": page,
         })
     elif scope == "main":
-        overrides.update({"region.main.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex})
+        overrides.update({"region.main.bg_hex": surface_color})
     elif scope == "card":
         overrides.update({
-            "component.card.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "component.card.bg_hex": surface_color,
             "component.card.border_hex": border,
         })
     elif scope == "border":
@@ -609,7 +574,7 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
         })
     elif scope == "table":
         overrides.update({
-            "table.header.bg_hex": page if color_name in {"blue", "purple", "pink", "rose", "green", "orange"} else color_hex,
+            "table.header.bg_hex": surface_color,
             "table.border_hex": border,
             "table.row.hover_hex": page,
         })
@@ -621,16 +586,26 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
     elif scope == "badge":
         overrides.update({
             "badge.info.bg_hex": color_hex,
-            "badge.info.text_hex": "#ffffff",
+            "badge.info.text_hex": on_color,
         })
     elif scope == "accent":
         overrides.update({
             "accent.hex": color_hex,
             "color.secondary.hex": secondary,
+            "region.header.bg_hex": color_hex,
+            "region.header.text_hex": on_color,
+            "region.footer.bg_hex": color_hex,
+            "region.footer.text_hex": on_color,
+            "nav.bg_hex": color_hex,
+            "nav.text_hex": on_color,
+            "button.primary.bg_hex": color_hex,
+            "button.primary.border_hex": color_hex,
+            "button.primary.text_hex": on_color,
             "input.border_focus_hex": color_hex,
             "button.ghost.text_hex": color_hex,
             "button.link.text_hex": color_hex,
             "badge.info.bg_hex": color_hex,
+            "badge.info.text_hex": on_color,
         })
 
 def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
@@ -722,16 +697,21 @@ def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
         secondary = theme.get("secondary", other_hex)
         page = theme.get("page")
         border = theme.get("border")
+        on_color = _text_on_color(other_hex)
         overrides.update({
             "accent.hex": other_hex,
             "color.secondary.hex": secondary,
             "region.header.bg_hex": other_hex,
+            "region.header.text_hex": on_color,
             "region.footer.bg_hex": other_hex,
+            "region.footer.text_hex": on_color,
             "nav.bg_hex": other_hex,
+            "nav.text_hex": on_color,
             "button.ghost.text_hex": other_hex,
             "button.link.text_hex": other_hex,
             "input.border_focus_hex": other_hex,
             "badge.info.bg_hex": other_hex,
+            "badge.info.text_hex": on_color,
         })
         if page:
             overrides.setdefault("page.body.bg_hex", page)
@@ -807,15 +787,15 @@ def _prompt_color_scope_lock(prompt: str = "") -> str | None:
 
 
 __all__ = [
-    'DESIGN_SPECS_DIR',
     '_COLOR_KEYWORDS',
     '_PROMPT_COLOR_THEMES',
+    '_TYPOGRAPHY_SIZE_PRESETS',
+    '_TYPOGRAPHY_SCOPE_KEYS',
     '_ZH_COLOR_KEYWORDS',
     '_apply_scoped_color',
     '_as_list',
     '_color_word_to_hex',
     '_contrast_ratio',
-    '_design_spec_files',
     '_ensure_readable_text_tokens',
     '_expand_design_tokens',
     '_find_color_near',
@@ -824,20 +804,15 @@ __all__ = [
     '_is_dark_hex',
     '_name_id',
     '_needs_contrast_fix',
-    '_normalize_radius',
     '_page_name',
-    '_parse_design_md_to_tokens',
-    '_parse_prose_colors',
-    '_parse_prose_radius',
     '_prompt_color_scope_lock',
     '_prompt_color_theme',
     '_prompt_is_button_only_color',
     '_prompt_scoped_color_overrides',
-    '_read_design_spec',
+    '_prompt_typography_overrides',
     '_relative_luminance',
     '_section_id',
     '_set_readable_token',
+    '_text_on_color',
     '_workflow_page_name',
-    '_yaml_block_objects',
-    '_yaml_block_values',
 ]

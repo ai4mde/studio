@@ -47,6 +47,54 @@ def _run_generator(path: str, id: str, system: str, name: str, metadata: str, va
         if metadata_path and os.path.exists(metadata_path):
             os.unlink(metadata_path)
 
+
+def _reconcile_sqlite_schema(prototype_path: str) -> subprocess.CompletedProcess:
+    """Add missing SQLite columns when a copied db has stale migration history."""
+    code = r"""
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.environ.get('DJANGO_SETTINGS_MODULE', ''))
+import django
+django.setup()
+from django.apps import apps
+from django.db import connection
+
+if connection.vendor != 'sqlite':
+    raise SystemExit(0)
+
+with connection.cursor() as cursor:
+    existing_tables = set(connection.introspection.table_names(cursor))
+
+added = []
+for model in apps.get_models():
+    if model._meta.proxy or model._meta.managed is False:
+        continue
+    table = model._meta.db_table
+    if table not in existing_tables:
+        continue
+    with connection.cursor() as cursor:
+        existing_columns = {col.name for col in connection.introspection.get_table_description(cursor, table)}
+    for field in model._meta.local_fields:
+        if field.column in existing_columns:
+            continue
+        with connection.schema_editor() as schema_editor:
+            schema_editor.add_field(model, field)
+        existing_columns.add(field.column)
+        added.append(f"{table}.{field.column}")
+
+if added:
+    print("Added missing SQLite columns: " + ", ".join(added))
+"""
+    env = os.environ.copy()
+    env['DJANGO_SETTINGS_MODULE'] = f'{os.path.basename(prototype_path)}.settings'
+    return subprocess.run(
+        ["python", "manage.py", "shell", "-c", code],
+        cwd=prototype_path,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+
 ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 
 RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
@@ -283,6 +331,10 @@ def generate_prototype():
         )
         if result.returncode != 0:
             return f"Failed to migrate database after copy for {name}", 500
+        result = _reconcile_sqlite_schema(prototype_path)
+        if result.returncode != 0:
+            app.logger.error(f"Failed to reconcile copied database schema for {name}:\n{result.stderr or result.stdout}")
+            return f"Failed to reconcile database schema after copy for {name}", 500
     return f"Generated {name} prototype", 200
 
 
@@ -302,6 +354,11 @@ def seed_prototype_data():
     proto_path = os.path.join(ROOT_DIR, system_id, project_name)
     if not os.path.isdir(proto_path):
         return f'Prototype directory not found: {proto_path}', 404
+
+    result = _reconcile_sqlite_schema(proto_path)
+    if result.returncode != 0:
+        app.logger.error(f"Failed to reconcile database schema before seed for {project_name}:\n{result.stderr or result.stdout}")
+        return f'Failed to reconcile database schema before seed for {project_name}', 500
 
     env = os.environ.copy()
     env['PROTOTYPE_SYSTEM'] = system_id
@@ -368,7 +425,36 @@ def autologin(request):
     from django.contrib.auth import login as _login
     username = request.GET.get('as', '')
     next_url = request.GET.get('next', '')
+    role_fields = [
+        field.name for field in User._meta.get_fields()
+        if field.name.startswith('is_')
+        and field.name not in ('is_superuser', 'is_staff', 'is_active')
+    ]
+
+    def _norm(value):
+        return str(value or '').strip().lower().replace('-', '_').replace(' ', '_')
+
+    def _role_field_from(value):
+        wanted = _norm(value)
+        if not wanted and next_url and next_url.startswith('/'):
+            wanted = _norm(next_url.strip('/').split('/', 1)[0])
+        for field in role_fields:
+            role = field[3:]
+            if wanted in {_norm(role), _norm('demo_' + role)}:
+                return field
+        return None
+
+    role_field = _role_field_from(username)
     user = User.objects.filter(username=username).first() if username else None
+    if user is None and role_field:
+        user = User.objects.create_user(
+            username=username or role_field[3:].lower(),
+            password='demo',
+            **{role_field: True},
+        )
+    elif user is not None and role_field and not getattr(user, role_field, False):
+        setattr(user, role_field, True)
+        user.save(update_fields=[role_field])
     if user is None:
         user = User.objects.filter(is_superuser=False).first()
     if user:
@@ -390,7 +476,18 @@ def autologin(request):
 
     with open(views_path) as f:
         vcontent = f.read()
-    if 'def autologin' not in vcontent:
+    if 'def autologin' in vcontent:
+        import re as _re
+        vcontent = _re.sub(
+            r'\ndef autologin\(request\):\n.*?(?=\ndef\s+\w+\(request\):|\Z)',
+            '\n' + AUTOLOGIN_VIEW.strip() + '\n',
+            vcontent,
+            count=1,
+            flags=_re.S,
+        )
+        with open(views_path, 'w') as f:
+            f.write(vcontent)
+    else:
         with open(views_path, 'a') as f:
             f.write(AUTOLOGIN_VIEW)
 

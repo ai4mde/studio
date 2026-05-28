@@ -354,7 +354,9 @@ def extract_use_case_diagram(
             rel = relations.get(rel_id, {})
             rdata = rel.get("data") or {}
 
-            if rdata.get("type") != "interaction":
+            rel_type = str(rdata.get("type") or "").lower()
+            rel_label = str(rdata.get("label") or "").lower()
+            if rel_type not in {"interaction", "association"} and rel_label not in {"uses", "use"}:
                 continue
 
             source_id = str(rel.get("source") or "")
@@ -378,13 +380,28 @@ def extract_use_case_diagram(
             if not uc_name:
                 continue
 
-            # Explicit model references from use case
-            explicit_models = [
-                classifiers.get(ref, {}).get("name")
-                for ref in _ref_list(uc.get("classes"))
-                if classifiers.get(ref, {}).get("type") in {"class", "entity", "model"}
-                   and classifiers.get(ref, {}).get("name") in model_names
-            ]
+            # Explicit model references from use case. Some systems attach model
+            # references to action classifiers instead of directly to use cases;
+            # include those so use-case pages do not become empty shell pages.
+            model_refs = []
+            for key in ("classes", "application_model", "models"):
+                model_refs.extend(_ref_list(uc.get(key)))
+            for action_ref in _ref_list(uc.get("actions")):
+                action_cls = classifiers.get(str(action_ref), {}) or {}
+                for key in ("classes", "application_model", "models"):
+                    model_refs.extend(_ref_list(action_cls.get(key)))
+
+            explicit_models = []
+            seen_models = set()
+            for ref in model_refs:
+                model_name = classifiers.get(str(ref), {}).get("name")
+                if (
+                    classifiers.get(str(ref), {}).get("type") in {"class", "entity", "model"}
+                    and model_name in model_names
+                    and model_name not in seen_models
+                ):
+                    explicit_models.append(model_name)
+                    seen_models.add(model_name)
 
             primary_model = explicit_models[0] if explicit_models else _best_model_for_text(uc_name, model_names_list)
             has_workflow = uc_cls_id in uc_ids_with_workflows
@@ -428,11 +445,14 @@ def extract_use_case_diagram(
 _ACTION_COMPONENT_SIGNALS: dict[str, list[str]] = {
     "PaymentMethodForm": ["payment", "pay", "charge", "billing", "card"],
     "AddressForm":       ["address", "shipping", "delivery", "location"],
-    "ReviewForm":        ["review", "rate", "rating", "feedback"],
     "FileUpload":        ["upload", "photo", "image", "attachment", "document"],
     "SelectionList":     ["select", "choose", "pick", "browse"],
-    "DetailPanel":       ["view", "display", "show", "confirm", "summary", "review", "check"],
-    "ObjectForm":        ["enter", "fill", "input", "provide", "edit", "update", "create"],
+    "DetailPanel":       ["view", "display", "show", "confirm", "summary", "review", "check",
+                          "consult", "monitor", "analyze", "analyse", "assess", "verify",
+                          "inspect", "discharge", "approve", "reject"],
+    "ReviewForm":        ["rate", "rating", "feedback", "write review"],
+    "ObjectForm":        ["enter", "fill", "input", "provide", "edit", "update", "create",
+                          "request", "submit", "apply", "register"],
 }
 
 
@@ -779,6 +799,36 @@ def extract_uml_intelligence(
             decision = detect_semantic_decisions(model, info, "collection_workspace")
             if decision:
                 semantic_decisions.append(decision)
+    accessible_models = set(expanded_permissions.keys())
+    for wf in workflow_intel.get("workflows") or []:
+        for step in wf.get("steps") or []:
+            if step.get("is_automatic"):
+                continue
+            step_model = step.get("model") or ""
+            if step_model and step_model not in accessible_models:
+                continue
+            action = step.get("action") or ""
+            if not action:
+                continue
+            semantic_decisions.append({
+                "aspect": "activity_step_component",
+                "workflow": wf.get("name") or "",
+                "action": action,
+                "model": step_model,
+                "current_component_hint": step.get("component_hint") or "ObjectForm",
+                "question": f"How should the activity step '{action}' be rendered?",
+                "options": [
+                    {"layout": "form", "component": "ObjectForm", "role": "object_form",
+                     "evidence": ["step creates or edits data"]},
+                    {"layout": "detail", "component": "DetailPanel", "role": "object_detail",
+                     "evidence": ["step reviews, consults, monitors, or confirms existing data"]},
+                    {"layout": "detail", "component": "SummaryPanel", "role": "object_detail",
+                     "evidence": ["step summarizes status, risk, decision, or outcome"]},
+                    {"layout": "list", "component": "ObjectList", "role": "object_collection",
+                     "evidence": ["step chooses from or compares multiple records"]},
+                ],
+                "default": step.get("component_hint") or "ObjectForm",
+            })
 
     return {
         "model_graph": model_graph,

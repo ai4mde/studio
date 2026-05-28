@@ -272,11 +272,21 @@
 {%- set _brand_name = tokens.get('brand.name', 'App') %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
 {%- set _raw_page_layout = page.layout if page.layout is defined and page.layout else {} %}
-{%- set _page_layout = _raw_page_layout if _raw_page_layout is mapping else {'value': _raw_page_layout} %}
-{%- set _main_width = _page_layout.get('main_width', tokens.get('page.main_width', 'contained')) %}
-{%- set _header_width = _page_layout.get('header_width', tokens.get('page.header_width', 'contained')) %}
-{%- set _hero_width = _page_layout.get('hero_width', tokens.get('page.hero_width', 'contained')) %}
-{%- set _footer_width = _page_layout.get('footer_width', tokens.get('page.footer_width', 'full')) %}
+{%- set _main_width = _raw_page_layout.main_width if _raw_page_layout.main_width is defined and _raw_page_layout.main_width else tokens.get('page.main_width', 'contained') %}
+{%- set _header_width = _raw_page_layout.header_width if _raw_page_layout.header_width is defined and _raw_page_layout.header_width else tokens.get('page.header_width', 'contained') %}
+{%- set _hero_width = _raw_page_layout.hero_width if _raw_page_layout.hero_width is defined and _raw_page_layout.hero_width else tokens.get('page.hero_width', 'contained') %}
+{%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'full') %}
+{%- set _sidebar_bg = _raw_page_layout.sidebar_bg if _raw_page_layout.sidebar_bg is defined else '' %}
+{%- set _sidebar_shadow = _raw_page_layout.sidebar_shadow if _raw_page_layout.sidebar_shadow is defined else '' %}
+{%- set _layout_has_sidebar = [] %}
+{%- set _layout_has_header = [] %}
+{%- for _layout_sc in page.section_components %}
+  {%- if _layout_sc.position == 'sidebar' %}{% set _ = _layout_has_sidebar.append(1) %}{%- endif %}
+  {%- if _layout_sc.position == 'header' %}{% set _ = _layout_has_header.append(1) %}{%- endif %}
+{%- endfor %}
+{%- if not _main_width or _main_width not in ['contained', 'wide', 'full'] %}{% set _main_width = 'wide' if _layout_has_sidebar else 'contained' %}{%- elif _layout_has_sidebar and _main_width == 'contained' %}{% set _main_width = 'wide' %}{%- endif %}
+{%- if not _header_width or _header_width not in ['contained', 'full'] %}{% set _header_width = 'full' if _layout_has_header else 'contained' %}{%- endif %}
+{%- if not _footer_width or _footer_width not in ['contained', 'full'] %}{% set _footer_width = 'full' %}{%- endif %}
 {%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else _container_class) %}
 {%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else _container_class ~ ' mx-auto px-6' %}
 {%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
@@ -342,10 +352,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- set _footer_secs = [] %}
 {%- endif %}
 
-{# éˆ¹â‚¬éˆ¹â‚¬ header chrome: render all header-position section components éˆ¹â‚¬éˆ¹â‚¬
-   Granular row logic: logo + search-bar + icon-actions are opened/closed in
-   a shared flex row; all other header layouts are full-width blocks.
-#}
+{# ── HEADER CHROME ROWS ── #}
 {%- set _main_row_open = [] %}
 {%- for sc in _header_secs %}
 {%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
@@ -359,7 +366,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 {%- endif %}
 
-{# éˆ¹â‚¬éˆ¹â‚¬ ACTIVITY ACTION (header-position workflow button) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── ACTIVITY ACTION ── #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -399,7 +406,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ PROMO BAR (promo-bar / promo-strip) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── PROMO BAR ── #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -413,7 +420,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ LOGO (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── LOGO ── #}
 {%- elif sc.layout == 'logo' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _logo_url = _sc_style.get('logo_url') or _sc_style.get('image_url') or tokens.get('brand.logo_url', '') %}
@@ -435,7 +442,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </a>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ SEARCH BAR (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── SEARCH BAR ── #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
@@ -447,7 +454,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </form>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ ICON ACTIONS: login / wishlist / cart (inline inside main-header-row) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── ICON ACTIONS ── #}
 {%- elif sc.layout == 'icon-actions' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _action_variant = _sc_style.get('action_variant', 'link') %}
@@ -470,7 +477,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 </div>
 
-{# ── MAIN HEADER: standard enterprise – colored topbar + search + icons ── #}
+{# ── MAIN HEADER ── #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
@@ -490,7 +497,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── COMMERCE HEADER: 3-tier – promo strip / brand+search+cart / nav row ── #}
+{# ── COMMERCE HEADER ── #}
 {%- elif sc.layout == 'commerce-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="commerce-header">
 <div class="text-center text-xs py-1.5 font-medium text-white select-none" style="background-color:{{ _accent_hex }};">{{ sc.text or 'Free shipping on orders over $50' }}</div>
@@ -513,7 +520,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </nav>
 </div>
 
-{# ── DASHBOARD HEADER: dark app bar – logo left, breadcrumb, avatar right ── #}
+{# ── DASHBOARD HEADER ── #}
 {%- elif sc.layout == 'dashboard-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="dashboard-header">
 <header class="flex items-center justify-between px-5 py-2.5 shadow-md" style="background-color:var(--region-header-bg,#1e293b);color:var(--region-header-text,#f1f5f9);">
@@ -535,7 +542,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── SPLIT HEADER: dark left brand + white right nav ── #}
+{# ── SPLIT HEADER ── #}
 {%- elif sc.layout == 'split-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="split-header">
 <header class="flex items-stretch" style="min-height:52px;">
@@ -554,7 +561,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── APP HEADER: slim toolbar – icon+title left, utility icons right ── #}
+{# ── APP HEADER ── #}
 {%- elif sc.layout == 'app-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="app-header">
 <header class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-4">
@@ -575,7 +582,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── COMPACT HEADER: single thin bar – logo + inline nav + user ── #}
+{# ── COMPACT HEADER ── #}
 {%- elif sc.layout == 'compact-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="compact-header">
 <header class="bg-white border-b border-gray-200 px-5 py-1.5 flex items-center gap-4">
@@ -590,7 +597,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── MEGA HEADER: logo + horizontal category pill nav ── #}
+{# ── MEGA HEADER ── #}
 {%- elif sc.layout == 'mega-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="mega-header">
 <header class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-6">
@@ -605,7 +612,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── HERO HEADER: large centered brand + horizontal nav ── #}
+{# ── HERO HEADER ── #}
 {%- elif sc.layout == 'hero-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="hero-header">
 <header class="px-6 py-5 flex flex-col gap-3 border-b border-gray-200" style="background:linear-gradient(135deg,{{ _accent_hex }}18 0%,transparent 60%);">
@@ -622,7 +629,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── TABBED HEADER: logo + tab strip below the brand bar ── #}
+{# ── TABBED HEADER ── #}
 {%- elif sc.layout == 'tabbed-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="tabbed-header">
 <div class="bg-white border-b border-gray-200">
@@ -639,7 +646,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 </div>
 
-{# ── GLASS HEADER: semi-transparent frosted bar ── #}
+{# ── GLASS HEADER ── #}
 {%- elif sc.layout == 'glass-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="glass-header">
 <header class="px-6 py-3 flex items-center gap-4 shadow-sm" style="background:rgba(255,255,255,0.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.08);">
@@ -654,7 +661,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# ── COMMAND HEADER: dark bar with central command/search palette ── #}
+{# ── COMMAND HEADER ── #}
 {%- elif sc.layout == 'command-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="command-header">
 <header class="px-5 py-2 flex items-center gap-4" style="background-color:#0f172a;">
@@ -671,7 +678,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ NAV BAR (nav-links / nav-bar) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── NAV BAR ── #}
 {%- elif sc.layout in ('nav', 'nav-links', 'nav-bar') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -702,7 +709,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </nav>
 </div>
 
-{# ── MINIMAL HEADER: checkout/login – logo only + single action ── #}
+{# ── MINIMAL HEADER ── #}
 {%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
@@ -714,7 +721,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </header>
 </div>
 
-{# éˆ¹â‚¬éˆ¹â‚¬ SITE-NAV (legacy: full header in one section) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── SITE NAV ── #}
 {%- elif sc.layout == 'site-nav' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -789,12 +796,26 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 <main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}" style="background-color:var(--page-bg);">
 {%- else -%}
-{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
-{% raw %}{% block chrome_header %}{% endblock %}{% endraw %}
-{% raw %}{% block chrome_footer %}{% endblock %}{% endraw %}
-{% raw %}{% block content %}{% endraw %}
 {%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
+{%- set _page_header_chrome = [] %}
+{%- set _page_footer_chrome = [] %}
+{%- for _sc in page.section_components %}
+  {%- if _sc.layout in _header_chrome or _sc.position == 'header' %}
+    {%- set _ = _page_header_chrome.append(_sc) %}
+  {%- elif _sc.layout in _footer_chrome or _sc.position == 'footer' %}
+    {%- set _ = _page_footer_chrome.append(_sc) %}
+  {%- endif %}
+{%- endfor %}
+{% raw %}{%{% endraw %} extends "{{ application_name }}_base.html" {% raw %}%}{% endraw %}
+{% raw %}{% block main_shell_class %}{% endraw %}{% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}{% raw %}{% endblock %}{% endraw %}
+{%- if _page_header_chrome %}
+{% raw %}{% block chrome_header %}{% endblock %}{% endraw %}
+{%- endif %}
+{%- if _page_footer_chrome %}
+{% raw %}{% block chrome_footer %}{% endblock %}{% endraw %}
+{%- endif %}
+{% raw %}{% block content %}{% endraw %}
 {%- set _nav_pages = [] %}
 {%- set _nav_page_keys = [] %}
 {%- set _task_nav_available = [] %}
@@ -883,6 +904,32 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
     .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
     .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
+    .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
+    .border-gray-300, .border-gray-400 { border-color: var(--card-border) !important; }
+    .bg-gray-50, .bg-gray-100 { background-color: var(--page-bg) !important; }
+    .bg-gray-200 { background-color: var(--border-color) !important; }
+    .bg-white { background-color: var(--region-main-bg) !important; }
+    [data-layout="table"] .overflow-x-auto,
+    [data-layout="table"] table,
+    [data-layout="table"] tbody,
+    [data-layout="table"] tr { background-color: var(--component-table-bg); }
+    [data-layout="table"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--border-color) !important; }
+    [data-layout="list"] > .flex.flex-col > div,
+    [data-layout="detail"] > .space-y-3 > div,
+    [data-layout="detail"] > .space-y-4 > div {
+      background-color: var(--component-list-bg) !important;
+      color: var(--card-text);
+      border-color: var(--card-border) !important;
+    }
+    [data-position="sidebar"][data-layout="site-nav"] nav {
+      background-color: var(--region-sidebar-bg) !important;
+      border-color: var(--border-color) !important;
+    }
+    [data-position="header"] > .bg-white,
+    [data-position="header"] header.bg-white {
+      background-color: var(--region-main-bg) !important;
+      border-color: var(--border-color) !important;
+    }
     [data-nav-height="compact"] { --si-nav-row-y: .25rem; --si-nav-link-y: .25rem; --si-nav-min-height: 32px; }
     [data-nav-height="normal"] { --si-nav-row-y: .5rem; --si-nav-link-y: .375rem; --si-nav-min-height: 40px; }
     [data-nav-height="tall"] { --si-nav-row-y: .875rem; --si-nav-link-y: .625rem; --si-nav-min-height: 56px; }
@@ -892,7 +939,6 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     [data-nav-height] nav > div > div > span,
     [data-nav-height] nav a.si-nav-link { padding-top: var(--si-nav-link-y) !important; padding-bottom: var(--si-nav-link-y) !important; }
     [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
-  [data-position="sidebar"] { background-color: var(--region-sidebar-bg); }
   [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
   [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
   [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
@@ -902,7 +948,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </style>
 {%- endif %}
 
-{# éˆ¹â‚¬éˆ¹â‚¬ Global lookup maps (defined once, used per section) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── COMPONENT STYLE MAPS ── #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -935,7 +981,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# éˆ¹â‚¬éˆ¹â‚¬ Safe fallbacks for generation mode (preview_mode sets these earlier via tokens) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── NAVIGATION MACROS ── #}
 {%- macro nav_href_attrs(target_page) -%}
 {%- if target_page == '__task_home__' -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
@@ -956,7 +1002,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&fit=crop'
 ] %}
 
-{# éˆ¹â‚¬éˆ¹â‚¬ Shared item-template macros (used by preview and generation mode) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── CARD MACROS ── #}
 {%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
@@ -974,7 +1020,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="p-2.5">
     <p class="text-xs text-gray-800 font-medium leading-tight" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ name }}</p>
     <div class="flex items-center gap-0.5 mt-1">
-      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
+      <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
       {%- if rating_count %}<span class="text-xs text-gray-400">({{ rating_count }})</span>{%- endif %}
     </div>
     <div class="mt-1 flex items-center gap-1">
@@ -996,7 +1042,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="flex-1 min-w-0">
     <a href="{{ view_url }}" class="text-sm font-medium text-gray-900 hover:underline">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
+      <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
     </div>
     <div class="flex items-center gap-2 mt-2">
       {%- if discount %}<span class="text-xs text-white font-bold px-1.5 py-0.5 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
@@ -1020,7 +1066,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="flex-1">
     <a href="#" class="text-sm font-medium hover:underline" style="color:{{ accent }};">{{ name }}</a>
     <div class="flex items-center gap-1 mt-1">
-      <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
+      <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
     </div>
     <div class="flex items-baseline gap-2 mt-1">
       <span class="text-xl font-bold" style="color:#e53935;">{{ price }}</span>
@@ -1235,7 +1281,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 </div>
 {%- else %}
-{# éˆ¹â‚¬éˆ¹â‚¬ Resolve per-section style éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── FIELD VALUE MACROS ── #}
 {%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
@@ -1399,7 +1445,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% set query_limit = section_component.query.get("limit") %}
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
-{# éˆ¹â‚¬éˆ¹â‚¬ Attribute slot extraction éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── IMAGE ATTRIBUTES ── #}
 {%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
 {%- set _vattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
 {%- set _mattrs   = _iattrs + _vattrs %}
@@ -1459,7 +1505,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- if _attr and _attr not in _card_ns.attrs %}{%- set _ = _card_ns.attrs.append(_attr) %}{%- endif %}
 {%- endfor %}
 {%- set _card_attrs = _card_ns.attrs if _card_ns.attrs else section_component.attributes %}
-{# éˆ¹â‚¬éˆ¹â‚¬ Generic layout normalisation (legacy aliases éˆ?canonical names) éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── CARD DISPLAY SETUP ── #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
@@ -1475,9 +1521,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _component in ('ProductCardGrid', 'CategoryTileGrid', 'PersonCardGrid', 'CardGrid') and eff_lay == 'gallery' %}{%- set _glay = 'card' %}{%- endif %}
 {%- if _component == 'ProductCardGrid' %}{%- set _cstyle = 'product' %}{%- endif %}
 {%- if _component == 'CategoryTileGrid' %}{%- set _cstyle = 'category' %}{%- endif %}
-{%- if _component in ('DataTable', 'ObjectList', 'LineItemList', 'RelatedObjectList') and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
+{%- if _component == 'PersonCardGrid' %}{%- set _cstyle = 'person' %}{%- endif %}
+{%- if _component in ('ObjectList', 'LineItemList', 'RelatedObjectList') %}{%- set _glay = 'list' %}{%- endif %}
+{%- if _component == 'LineItemList' %}{%- set _lstyle = 'cart-item' %}{%- endif %}
+{%- if _component == 'RelatedObjectList' %}{%- set _lstyle = 'related' %}{%- endif %}
+{%- if _component == 'DataTable' and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
-{# éˆ¹â‚¬éˆ¹â‚¬ Shared mock data éˆ¹â‚¬éˆ¹â‚¬ #}
+{# ── MOCK DATA ── #}
 {%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
 {%- set _mock_cats      = [] %}
 
@@ -1537,10 +1587,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW MODE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW MODE ── #}
 {% if preview_mode %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: ACTION PANEL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: ACTION PANEL ── #}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1576,7 +1626,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {% endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: DETAIL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: DETAIL ── #}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -1641,7 +1691,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endfor %}
   </div>
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: CARD (carousel / banner / grid è„™éˆ¥?product / category / compact / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: CARD ── #}
 {%- elif _glay == "card" %}
 {%- if _disp == "carousel" %}
   {# Scrollable card strip #}
@@ -1695,6 +1745,48 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
   </div>
+{%- elif _cstyle == "person" %}
+  {# Person card grid: avatar-led profile cards, visually distinct from generic cards #}
+  <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
+    {%- for _mock_row in range(section_mock_rows) %}
+    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }};">
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
+      <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, {{ _accent_hex }}, transparent);"></div>
+      <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
+        {%- if _image_attr %}
+        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover" alt="{{ section_component.display_name }}" />
+        {%- else %}
+        <span class="text-xl font-black" style="color: {{ _accent_hex }};">{{ ((_title_attr|string)[0] if _title_attr else section_component.display_name[0])|upper }}</span>
+        {%- endif %}
+      </div>
+      <div class="relative min-w-0 w-full">
+        <div class="si-field" data-field-name="{{ _title_attr }}">
+          <div class="si-field-value font-bold text-gray-900 truncate">
+            {%- if _title_attr %}{{ _title_attr }} {{ _mock_row + 1 }}{%- else %}{{ section_component.display_name }} {{ _mock_row + 1 }}{%- endif %}
+          </div>
+        </div>
+        {%- if _slot.subtitle or _primary_attr %}
+        {%- set _person_role = _slot.subtitle or _primary_attr %}
+        <div class="si-field mt-1" data-field-name="{{ _person_role }}">
+          <span class="si-field-value text-sm text-gray-500">{{ _person_role }}</span>
+        </div>
+        {%- endif %}
+      </div>
+      {%- if _secondary_attrs %}
+      <div class="flex flex-wrap justify-center gap-1.5 pt-1">
+        {%- for attribute in _secondary_attrs[:3] %}
+        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="{{ attribute }}">{{ attribute }}</span>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
+        {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>{%- endif %}
+        {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>{%- endif %}
+        {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>{%- endif %}
+      </div>
+    </div>
+    {%- endfor %}
+  </div>
 {%- elif _cstyle == "compact" %}
   {# Compact card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -1742,7 +1834,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: LIST (product / cart-item / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: LIST ── #}
 {%- elif _glay == "list" %}
 {%- if _lstyle == "cart-item" %}
   {# Cart item list #}
@@ -1768,6 +1860,41 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
       <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">éˆ?/button>
+    </div>
+  </div>
+{%- elif _lstyle == "related" %}
+  {# Related object list: compact relationship rows with connector accent #}
+  <div class="{{ cs }} {{ r }} border border-gray-100 overflow-hidden"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">{{ section_component.display_name }}</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: {{ _accent_hex }}1a; color: {{ _accent_hex }};">{{ section_mock_rows }} linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {%- for _mock_row in range(section_mock_rows) %}
+      <div class="px-4 py-3 flex items-start gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.55' }};">
+        {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: {{ _accent_hex }};"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {%- for attribute in _column_attrs[:3] %}
+            <div class="si-field min-w-0" data-field-name="{{ attribute }}">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+              <div class="si-field-value {{ d.text }} font-medium text-gray-700 truncate">
+                {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+              </div>
+            </div>
+            {%- endfor %}
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>{%- endif %}
+          {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
+        </div>
+      </div>
+      {%- endfor %}
     </div>
   </div>
 {%- else %}
@@ -1801,7 +1928,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: TABLE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: TABLE ── #}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
@@ -1852,7 +1979,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     </table>
   </div>
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: GALLERY èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: GALLERY ── #}
 {%- elif eff_lay == "gallery" %}
 {%- set img_attrs = [_image_attr] if _image_attr else [] %}
 {%- set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -1891,8 +2018,63 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: FILTER (filter-panel) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: FILTER ── #}
+{# PREVIEW: TIMELINE #}
+{%- elif eff_lay == "timeline" or _glay == "timeline" %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
+    <div class="relative pl-6">
+      <div class="absolute left-2 top-1 bottom-1 w-px" style="background-color:{{ _accent_hex }}33;"></div>
+      <div class="space-y-4"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
+        {%- for _mock_row in range(section_mock_rows) %}
+        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.45' }};">
+          <span class="absolute -left-[1.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white" style="background-color:{{ _accent_hex }};"></span>
+          {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
+          <div class="{{ r }} border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div class="font-semibold text-gray-900">{{ section_component.display_name }} {{ _mock_row + 1 }}</div>
+              {%- if _column_attrs %}<div class="text-xs font-medium text-gray-500">{{ _field_value(_column_attrs[0], _mock_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endif %}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1 mt-2">
+              {%- for attribute in _column_attrs[1:6] %}
+              <div class="si-field min-w-0" data-field-name="{{ attribute }}">
+                <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+                <div class="si-field-value {{ d.text }} text-gray-700 truncate">
+                  {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+                  {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}{%- endif %}
+                </div>
+              </div>
+              {%- endfor %}
+            </div>
+            <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
+              {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>{%- endif %}
+              {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
+            </div>
+          </div>
+        </div>
+        {%- endfor %}
+      </div>
+    </div>
+  </div>
+
 {%- elif _glay == "filter" %}
+{%- if _component == 'SearchBar' %}
+  {# SearchBar: inline search input + optional secondary filter selects #}
+  <form action="#" method="get" class="flex flex-wrap items-center gap-2 {{ d.p }}">
+    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4 ml-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input name="q" type="search" placeholder="{{ section_component.text or _column_attrs[0] or 'Search…' }}" class="flex-1 px-3 py-2 text-sm outline-none si-input" style="border:none;" />
+    </div>
+    {%- for attribute in _column_attrs[1:3] %}
+    <select name="{{ attribute }}" class="si-input border border-gray-200 rounded-full px-3 py-2 text-sm min-w-28">
+      <option value="">{{ attribute }}</option>
+      <option>Option A</option>
+      <option>Option B</option>
+    </select>
+    {%- endfor %}
+    <button type="submit" class="shrink-0 px-5 py-2 rounded-full text-sm font-semibold text-white" style="background-color:{{ _accent_hex }};">Search</button>
+  </form>
+{%- else %}
+  {# FilterPanel: sidebar-style panel with per-field checkbox/range inputs #}
   <div class="bg-white rounded-lg border border-gray-200 p-4 space-y-4 text-sm">
     <h3 class="font-bold text-gray-800">{{ section_component.display_name }}</h3>
     {%- if section_component.attributes %}
@@ -1902,7 +2084,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>éˆ?/span>
+        <span>–</span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1928,8 +2110,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- endif %}
     {%- if section_component.attributes %}<button class="w-full border border-gray-300 rounded-lg py-2 text-xs text-gray-600 hover:bg-gray-50 mt-2">Clear filters</button>{%- endif %}
   </div>
+{%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?PREVIEW: FORM (auth / step / summary / default) èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── PREVIEW: FORM ── #}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
   {# Auth form éˆ?login / register #}
@@ -2002,6 +2185,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- else %}
   {# Default form éˆ?generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
+    {%- if section_component.has_update_operation and not section_component.has_create_operation %}
+    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+      Select a record to edit.
+    </div>
+    {%- else %}
     <div class="space-y-4">
       {%- if section_component.attributes %}
       {%- for attribute in _form_attrs %}
@@ -2032,6 +2220,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {{ _s.get('cta_label', 'Submit') }}
       </button>
     </div>
+    {%- endif %}
   </div>
 {%- endif %}
 
@@ -2188,6 +2377,32 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {%- if section_component.text %}<p class="mt-3 text-sm opacity-75">{{ section_component.text }}</p>{%- endif %}
   </div>
 
+{%- elif eff_lay == "filter" or _glay == "filter" %}
+{%- if _component == 'SearchBar' %}
+  <form action="#" method="get" class="flex flex-wrap items-center gap-2 {{ d.p }}">
+    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden {{ cs }}" style="border-color:{{ _accent_hex }};">
+      <svg class="w-4 h-4 ml-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input name="q" type="search" placeholder="{{ section_component.text or _column_attrs[0] or 'Search…' }}" class="flex-1 px-3 py-2 {{ d.text }} outline-none si-input" style="border:none;" />
+    </div>
+    {%- for attribute in _column_attrs[1:3] %}
+    <select name="{{ attribute }}" class="si-input border border-gray-200 rounded-full px-3 py-2 {{ d.text }} min-w-28">
+      <option value="">{{ attribute }}</option>
+    </select>
+    {%- endfor %}
+    <button type="submit" class="si-btn si-btn-primary shrink-0 rounded-full {{ d.text }} font-semibold px-5 py-2">Search</button>
+  </form>
+{%- else %}
+  <form action="#" method="get" class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex flex-wrap items-end gap-3">
+    {%- for attribute in _column_attrs[:4] %}
+    <label class="si-field flex flex-col gap-1 min-w-36 flex-1" data-field-name="{{ attribute }}">
+      <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+      <input type="search" name="{{ attribute }}" value="" placeholder="{{ attribute }}" class="si-input px-3 py-2 {{ d.text }}" />
+    </label>
+    {%- endfor %}
+    <button type="submit" class="si-btn si-btn-primary {{ d.text }} font-semibold px-4 py-2">Filter</button>
+  </form>
+{%- endif %}
+
 {%- else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     Unsupported section layout: {{ lay }}
@@ -2201,10 +2416,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </button>
   {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?GENERATION MODE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── GENERATION MODE ── #}
 {% else %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?ACTION PANEL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── ACTION PANEL ── #}
 {% if eff_lay != "action_panel" and _glay in ["card", "table", "list", "detail", "gallery", "form", "filter"] and (not section_component.primary_model or not list_var_name) and not (_glay == "card" and _static_image_url) %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
@@ -2255,14 +2470,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 {% endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?DETAIL èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── DETAIL ── #}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
 
   <div class="flex flex-col {{ d.gap }}">
 
-    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+    {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }}|slice:":1" {% raw %}%}{% endraw %}
     {% if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
       {%- set img_attrs = [_image_attr] if _image_attr else [] %}
@@ -2341,7 +2556,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
   </div>
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?CARD èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── CARD ── #}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if (not _m or not list_var_name) and _static_image_url %}
@@ -2396,6 +2611,57 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="grid {{ col }} {{ d.gap }}">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
     {{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}
+    {{ '{% empty %}{% endfor %}' }}
+  </div>
+{%- elif _cstyle == "person" %}
+  <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
+    {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+      {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
+      <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, {{ _accent_hex }}, transparent);"></div>
+      <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
+        {%- if _image_attr %}
+        {% raw %}{% with fimg={% endraw %}{{ section_component.primary_model }}.{{ section_component.primary_model | lower }}image_set.first{% raw %} %}<img src="{% if {% endraw %}{{ section_component.primary_model }}.{{ _image_attr }}{% raw %} %}{{ {% endraw %}{{ section_component.primary_model }}.{{ _image_attr }}{% raw %} }}{% elif fimg %}{{ fimg.thumb_url }}{% else %}{% endif %}"{% endraw %} alt="{{ _image_attr }}" class="w-full h-full object-cover">{% raw %}{% endwith %}{% endraw %}
+        {%- else %}
+        <span class="text-xl font-black" style="color: {{ _accent_hex }};">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _title_attr if _title_attr else 'id' }}{% raw %}|default:'?'|slice:':1'|upper {% endraw %}}}</span>
+        {%- endif %}
+      </div>
+      <div class="relative min-w-0 w-full">
+        <div class="si-field" data-field-name="{{ _title_attr }}">
+          <div class="si-field-value font-bold text-gray-900 truncate">{% if _title_attr %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _title_attr }} {% raw %}}}{% endraw %}{% else %}{% raw %}{{{% endraw %} {{ section_component.primary_model }} {% raw %}}}{% endraw %}{% endif %}</div>
+        </div>
+        {%- if _slot.subtitle or _primary_attr %}
+        {%- set _person_role = _slot.subtitle or _primary_attr %}
+        <div class="si-field mt-1" data-field-name="{{ _person_role }}">
+          <span class="si-field-value text-sm text-gray-500">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _person_role }} {% raw %}}}{% endraw %}</span>
+        </div>
+        {%- endif %}
+      </div>
+      {%- if _secondary_attrs %}
+      <div class="flex flex-wrap justify-center gap-1.5 pt-1">
+        {%- for attribute in _secondary_attrs[:3] %}
+        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="{{ attribute }}">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ attribute }} {% raw %}}}{% endraw %}</span>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
+        {%- if section_component.item_click_target_page %}
+        <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
+        {%- endif %}
+        {%- if section_component.has_update_operation %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+          <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+          <button type="submit" class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>
+        </form>
+        {%- endif %}
+        {%- if section_component.has_delete_operation %}
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          {% raw %}{% csrf_token %}{% endraw %}
+          <button type="submit" class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>
+        </form>
+        {%- endif %}
+      </div>
+    </div>
     {{ '{% empty %}{% endfor %}' }}
   </div>
 {%- elif _disp == "banner" %}
@@ -2539,7 +2805,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}{# end card sub-dispatch #}
 {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?LIST èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── LIST ── #}
 {% elif _glay == "list" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -2567,7 +2833,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div class="flex-1">
         <a href="{{ _gen_vurl }}" class="text-sm font-medium hover:underline" style="color:{{ _accent_hex }};">{{ _gen_name }}</a>
         <div class="flex items-center gap-1 mt-1">
-          <span class="text-yellow-400 text-xs">éˆ½å‘ªæ§„éˆ½å‘ªæ§„</span><span class="text-gray-200 text-xs">éˆ?/span>
+          <span class="text-yellow-400 text-xs">&#9733;&#9733;&#9733;&#9733;</span><span class="text-gray-200 text-xs">&#9734;</span>
         </div>
         <div class="flex items-baseline gap-2 mt-1">
           <span class="text-xl font-bold" style="color:#e53935;">{{ _gen_price }}</span>
@@ -2640,6 +2906,48 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
+{%- elif _lstyle == "related" %}
+  <div class="{{ cs }} {{ r }} border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">{{ section_component.display_name }}</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: {{ _accent_hex }}1a; color: {{ _accent_hex }};">Linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
+      <div class="px-4 py-3 flex items-start gap-3">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: {{ _accent_hex }};"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            {% for attribute in _column_attrs[:3] -%}
+            <div class="si-field min-w-0" data-field-name="{{ attribute }}">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+              <div class="{{ d.text }} font-medium text-gray-700 truncate">
+                {% if attribute.type == AttributeType.BOOLEAN -%}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+                {%- else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}
+                {%- endif %}
+              </div>
+            </div>
+            {%- endfor %}
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+          {%- if section_component.item_click_target_page %}
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>
+          {%- endif %}
+          {%- if section_component.has_update_operation %}
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+            <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+            <button type="submit" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>
+          </form>
+          {%- endif %}
+        </div>
+      </div>
+      {{ '{% empty %}{% endfor %}' }}
+    </div>
+  </div>
 {%- else %}
 
   <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
@@ -2752,7 +3060,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?TABLE èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── TABLE ── #}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
@@ -2902,7 +3210,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?GALLERY èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── GALLERY ── #}
 {% elif eff_lay == "gallery" %}
 {% set img_attrs = [_image_attr] if _image_attr else [] %}
 {% set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -2962,7 +3270,51 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?FORM èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── FORM ── #}
+{% elif eff_lay == "timeline" or _glay == "timeline" %}
+  <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
+    <div class="relative pl-6">
+      <div class="absolute left-2 top-1 bottom-1 w-px" style="background-color:{{ _accent_hex }}33;"></div>
+      <div class="space-y-4"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
+        {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
+        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+          <span class="absolute -left-[1.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white" style="background-color:{{ _accent_hex }};"></span>
+          {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
+          <div class="{{ r }} border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
+            <div class="flex items-start justify-between gap-3">
+              <div class="font-semibold text-gray-900">{% raw %}{{{% endraw %} {{ section_component.primary_model }} {% raw %}}}{% endraw %}</div>
+              {% if _column_attrs %}<div class="text-xs font-medium text-gray-500">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _column_attrs[0] }} {% raw %}}}{% endraw %}</div>{% endif %}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1 mt-2">
+              {% for attribute in _column_attrs[1:6] %}
+              <div class="si-field min-w-0" data-field-name="{{ attribute }}">
+                <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+                <div class="si-field-value {{ d.text }} text-gray-700 truncate">
+                  {% if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% raw %}{%{% endraw %} if {{ section_component.primary_model }}.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} disabled class="h-4 w-4 rounded">
+                  {% else %}{{ _field_value_bound(attribute, section_component.primary_model, c, d, r, application_name, page, section_component, section_component.item_click_target_page) }}{% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
+              {%- if section_component.item_click_target_page %}
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>
+              {%- endif %}
+              {%- if section_component.has_update_operation %}
+              <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+                <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+                <button type="submit" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>
+              </form>
+              {%- endif %}
+            </div>
+          </div>
+        </div>
+        {% raw %}{% empty %}{% endraw %}
+        {% raw %}{% endfor %}{% endraw %}
+      </div>
+    </div>
+  </div>
+
 {% elif _glay == "form" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if _fstyle == "summary" %}
@@ -3030,6 +3382,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
       {% endfor %}
     {%- elif section_component.has_update_operation %}
+    {% raw %}{% if update_instance %}{% endraw %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id {% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
     {%- else %}
@@ -3049,6 +3402,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {{ _s.get('cta_label') or _s.get('login_label', 'Submit') }}
       </button>
     </form>
+    {%- if section_component.has_update_operation and not section_component.has_create_operation %}
+    {% raw %}{% else %}{% endraw %}
+    <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+      Select a record to edit.
+    </div>
+    {% raw %}{% endif %}{% endraw %}
+    {%- endif %}
   </div>
 {%- endif %}
 
@@ -3205,12 +3565,26 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     </div>
   </footer>
 
+{% elif eff_lay == "filter" or _glay == "filter" %}
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex flex-wrap items-end gap-3">
+    {% if section_component.primary_model -%}
+    <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+    {%- endif %}
+    {% for attribute in _column_attrs[:4] %}
+    <label class="si-field flex flex-col gap-1 min-w-36 flex-1" data-field-name="{{ attribute }}">
+      <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
+      <input type="search" name="{{ attribute }}" value="{% raw %}{{{% endraw %} request.GET.{{ attribute }} {% raw %}}}{% endraw %}" placeholder="{{ attribute }}" class="si-input px-3 py-2 {{ d.text }}" />
+    </label>
+    {% endfor %}
+    <button type="submit" class="si-btn si-btn-primary {{ d.text }} font-semibold px-4 py-2">Filter</button>
+  </form>
+
 {% else %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?END GENERATION LAYOUTS èŠ’éˆ¥â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’™æƒ·â‘©â‚¬â’?#}
+{# ── END GENERATION LAYOUTS ── #}
 
 {% endif %}{# end preview_mode branch #}
 
@@ -3233,6 +3607,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   });
   var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
   if (!hasNonMain) return;
+  var hasSidebarRegion = byPos.sidebar.length > 0;
+  var _mainWidthMode = '{{ _main_width }}';
 
   var gap = 'gap-4';
   var wrap = document.createElement('div');
@@ -3241,7 +3617,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   if (byPos.header.length) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full') {
+    if ('{{ _header_width }}' === 'full' || hasSidebarRegion) {
       headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
     }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });
@@ -3259,12 +3635,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     wrap.appendChild(heroEl);
   }
 
-  var hasSidebar = byPos.sidebar.length > 0;
+  var hasSidebar = hasSidebarRegion;
   var hasMain = byPos.main.length > 0;
   if (hasSidebar || hasMain) {
     var contentRow = document.createElement('div');
     contentRow.className = hasSidebar ? 'flex gap-6 items-start' : '';
     contentRow.dataset.regionRow = 'body';
+    if (hasSidebar && _mainWidthMode === 'full') {
+      contentRow.style.paddingLeft = '1.5rem';
+      contentRow.style.paddingRight = '1.5rem';
+    }
     var mainGrid = document.createElement('div');
     mainGrid.className = (hasSidebar ? 'flex-1 min-w-0 ' : '') + 'grid grid-cols-12 gap-4';
     byPos.main.forEach(function(el) { mainGrid.appendChild(el); });
@@ -3287,6 +3667,24 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     function sidebarBasis(span) {
       return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
     }
+    function applySidebarChrome(aside) {
+      var bg = '{{ _sidebar_bg }}';
+      var shadow = '{{ _sidebar_shadow }}';
+      if (bg || (shadow && shadow !== 'none')) {
+        aside.style.border = '1px solid var(--border-color)';
+        aside.style.borderRadius = 'var(--radius-lg)';
+        aside.style.padding = '1rem';
+      }
+      if (bg) {
+        aside.style.background = bg === 'dark' ? '#111827' : bg === 'gray' ? '#f3f4f6' : bg === 'light' ? 'var(--region-main-bg-sunken)' : '#ffffff';
+        if (bg === 'dark') {
+          aside.style.color = '#ffffff';
+        }
+      }
+      if (shadow && shadow !== 'none') {
+        aside.style.boxShadow = shadow === 'xl' ? '0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.10)' : 'var(--shadow-' + shadow + ')';
+      }
+    }
 
     if (leftSidebarItems.length) {
       var leftEl = document.createElement('aside');
@@ -3296,6 +3694,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       leftEl.dataset.sidebarSpan = String(leftSpan);
       leftEl.style.flexBasis = sidebarBasis(leftSpan);
       leftEl.style.maxWidth = sidebarBasis(leftSpan);
+      applySidebarChrome(leftEl);
       leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
       contentRow.appendChild(leftEl);
     }
@@ -3308,6 +3707,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       rightEl.dataset.sidebarSpan = String(rightSpan);
       rightEl.style.flexBasis = sidebarBasis(rightSpan);
       rightEl.style.maxWidth = sidebarBasis(rightSpan);
+      applySidebarChrome(rightEl);
       rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
       contentRow.appendChild(rightEl);
     }
@@ -3337,7 +3737,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </script>
 </main>
 
-{# ── footer chrome: consecutive link-grid sections are grouped into one flex row ── #}
+{# ── FOOTER CHROME ROWS ── #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {# Normalise comma-joined layout strings left by older data (e.g. "minimal-footer, newsletter-footer") #}
@@ -3460,15 +3860,25 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 <script>
 (function() {
   var style = document.createElement('style');
-  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}';
+  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}aside[data-region-side]{transition:outline 0.15s}aside[data-region-side]:hover{outline:2px dashed #f59e0b;outline-offset:6px}aside[data-region-side].si-region-selected{outline:2px solid #f59e0b;outline-offset:6px}';
   document.head.appendChild(style);
   document.addEventListener('click', function(e) {
     var link = e.target.closest && e.target.closest('a[href]');
     if (link) { e.preventDefault(); }
     var el = e.target.closest && e.target.closest('[data-section-id]');
-    if (!el) return;
+    if (!el) {
+      var region = e.target.closest && e.target.closest('aside[data-region-side]');
+      if (!region) return;
+      e.stopPropagation();
+      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+      document.querySelectorAll('aside[data-region-side]').forEach(function(x){x.classList.remove('si-region-selected')});
+      region.classList.add('si-region-selected');
+      window.parent.postMessage({type:'region-selected',region:'sidebar',side:region.dataset.regionSide || ''},'*');
+      return;
+    }
     e.stopPropagation();
     document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
+    document.querySelectorAll('aside[data-region-side]').forEach(function(x){x.classList.remove('si-region-selected')});
     el.classList.add('si-selected');
     window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
   }, true);
@@ -4366,7 +4776,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   if (hasHeader) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full') {
+    if ('{{ _header_width }}' === 'full' || hasSidebar) {
       headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
     }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });
@@ -4407,6 +4817,24 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       function sidebarBasis(span) {
         return 'calc((100% - 1.5rem) * ' + span + ' / 12)';
       }
+      function applySidebarChrome(aside) {
+        var bg = '{{ _sidebar_bg }}';
+        var shadow = '{{ _sidebar_shadow }}';
+        if (bg || (shadow && shadow !== 'none')) {
+          aside.style.border = '1px solid var(--border-color)';
+          aside.style.borderRadius = 'var(--radius-lg)';
+          aside.style.padding = '1rem';
+        }
+        if (bg) {
+          aside.style.background = bg === 'dark' ? '#111827' : bg === 'gray' ? '#f3f4f6' : bg === 'light' ? 'var(--region-main-bg-sunken)' : '#ffffff';
+          if (bg === 'dark') {
+            aside.style.color = '#ffffff';
+          }
+        }
+        if (shadow && shadow !== 'none') {
+          aside.style.boxShadow = shadow === 'xl' ? '0 20px 25px -5px rgb(0 0 0 / 0.12), 0 8px 10px -6px rgb(0 0 0 / 0.10)' : 'var(--shadow-' + shadow + ')';
+        }
+      }
       if (leftSidebarItems.length) {
         var leftEl = document.createElement('aside');
         var leftSpan = sidebarSpan(leftSidebarItems, 3);
@@ -4415,6 +4843,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         leftEl.dataset.sidebarSpan = String(leftSpan);
         leftEl.style.flexBasis = sidebarBasis(leftSpan);
         leftEl.style.maxWidth = sidebarBasis(leftSpan);
+        applySidebarChrome(leftEl);
         leftSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; leftEl.appendChild(el); });
         contentRow.appendChild(leftEl);
       }
@@ -4427,6 +4856,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         rightEl.dataset.sidebarSpan = String(rightSpan);
         rightEl.style.flexBasis = sidebarBasis(rightSpan);
         rightEl.style.maxWidth = sidebarBasis(rightSpan);
+        applySidebarChrome(rightEl);
         rightSidebarItems.forEach(function(el) { el.classList.add('w-full'); el.style.width = '100%'; rightEl.appendChild(el); });
         contentRow.appendChild(rightEl);
       }

@@ -1,6 +1,12 @@
 import re
 from collections import defaultdict
 
+from .interface_planner import (
+    _MODEL_PERSON, _MODEL_DOCUMENT, _MODEL_CATEGORY,
+    _FORM_ADDRESS, _FORM_PAYMENT, _FORM_REVIEW,
+    _field_category, _ROLE_CATEGORY_ORDER, _EXCLUDED_FORM,
+)
+
 
 DATA_SECTION_ROLES = {
     "object_collection",
@@ -9,6 +15,15 @@ DATA_SECTION_ROLES = {
     "child_collection",
     "object_form",
 }
+
+_ACTIVITY_FORM_TERMS = re.compile(
+    r"\b(enter|fill|provide|submit|create|update|edit|write|upload|add|register|confirm|book|pay|record|input|select|choose)\b",
+    re.I,
+)
+_ACTIVITY_LIST_TERMS = re.compile(
+    r"\b(list|browse|manage|track|monitor|search|review|approve|check|verify|pick|items)\b",
+    re.I,
+)
 
 
 def _section_id(name: str) -> str:
@@ -35,18 +50,42 @@ def _is_strict_child_collection_model(model_name: str) -> bool:
     return any(term in name_l for term in ("item", "line", "entry", "row", "detail", "selection", "option"))
 
 
+_ROLE_CATEGORY_ORDER_OOUI = {
+    **_ROLE_CATEGORY_ORDER,
+    "object_summary": ["status", "metric", "temporal"],
+}
+
+
 def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> list[str]:
-    attrs = list(model_attrs.get(model) or [])
-    preferred_by_role = {
-        "object_collection": ["image_url", "video_url", "name", "title", "price", "status", "rating", "created_at"],
-        "object_detail": ["image_url", "video_url", "name", "title", "description", "price", "status", "rating"],
-        "object_summary": ["status", "total", "total_price", "item_count", "created_at"],
-        "child_collection": ["name", "title", "quantity", "unit_price", "price", "subtotal", "status"],
-        "object_form": ["name", "title", "address", "street", "city", "postcode", "method", "status"],
-    }
-    selected = [field for field in preferred_by_role.get(role, []) if field in attrs]
-    selected.extend([field for field in attrs if field and field not in selected and field.lower() != "id"])
-    return selected[:limit] or attrs[:limit]
+    attrs = [f for f in (model_attrs.get(model) or []) if f]
+
+    excluded = _EXCLUDED_FORM if role == "object_form" else frozenset({"id"})
+    attrs = [f for f in attrs if f.lower() not in excluded]
+
+    order = _ROLE_CATEGORY_ORDER_OOUI.get(role, [])
+    buckets: dict[str, list[str]] = {cat: [] for cat in order}
+    tail: list[str] = []
+
+    for field in attrs:
+        cat = _field_category(field)
+        if cat and cat in buckets:
+            buckets[cat].append(field)
+        else:
+            tail.append(field)
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for cat in order:
+        for f in buckets[cat]:
+            if f not in seen:
+                result.append(f)
+                seen.add(f)
+    for f in tail:
+        if f not in seen:
+            result.append(f)
+            seen.add(f)
+
+    return result[:limit] or attrs[:limit]
 
 
 def _layout_for_page_role(page: dict) -> str:
@@ -82,31 +121,35 @@ def _editable_fields_for_model(model_attrs: dict, model: str, role: str, operati
     return [field for field in _pick_fields(model_attrs, model, "object_form", 10) if field.lower() not in excluded]
 
 
+_CHILD_LINE_ITEM = re.compile(r"item|line|cart|basket|order|invoice|receipt", re.I)
+
+
 def _component_for_section(role: str, layout: str, model: str = "", page_id: str = "") -> str:
     model_l = str(model or "").lower()
-    page_l = str(page_id or "").lower()
+    ctx = f"{model_l} {page_id or ''}".lower()
+
     if role == "child_collection":
-        return "LineItemList" if any(term in f"{model_l} {page_l}" for term in ("item", "line", "cart", "order")) else "RelatedObjectList"
+        return "LineItemList" if _CHILD_LINE_ITEM.search(ctx) else "RelatedObjectList"
     if role == "object_summary":
         return "SummaryPanel"
     if role == "object_detail":
-        if model_l == "product":
-            return "ProductDetailPanel"
+        if _MODEL_DOCUMENT.search(model_l):
+            return "DocumentPanel"
+        if _MODEL_PERSON.search(model_l):
+            return "ProfilePanel"
         return "DetailPanel"
     if role == "object_form":
-        if "payment" in model_l or "payment" in page_l:
-            return "PaymentMethodForm"
-        if "address" in model_l or "address" in page_l:
+        if _FORM_ADDRESS.search(ctx):
             return "AddressForm"
-        if "review" in model_l or "review" in page_l:
+        if _FORM_PAYMENT.search(ctx):
+            return "PaymentMethodForm"
+        if _FORM_REVIEW.search(ctx):
             return "ReviewForm"
         return "ObjectForm"
     if layout == "gallery":
-        if model_l == "product":
-            return "ProductCardGrid"
-        if "category" in model_l:
+        if _MODEL_CATEGORY.search(model_l):
             return "CategoryTileGrid"
-        if any(term in model_l for term in ("user", "customer", "seller", "employee", "doctor", "agent", "member")):
+        if _MODEL_PERSON.search(model_l):
             return "PersonCardGrid"
         return "CardGrid"
     if layout == "table":
@@ -242,7 +285,65 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
     }
 
 
-def build_ooui_plan_from_navigation(usecase_navigation: dict, model_attrs: dict | None = None) -> dict:
+def _activity_layout(step_name: str) -> str:
+    if _ACTIVITY_FORM_TERMS.search(step_name):
+        return "form"
+    if _ACTIVITY_LIST_TERMS.search(step_name):
+        return "list"
+    return "detail"
+
+
+def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries: list | None = None) -> list[dict]:
+    known = set(model_attrs.keys())
+    page_id = step.get("page_id") or _section_id(step.get("page_name") or "workflow")
+
+    models = [m for m in (step.get("classes") or []) if m in known]
+    if not models and workflow_entries:
+        related: list[str] = []
+        for entry in workflow_entries:
+            related.extend(entry.get("pre_workflow_collections") or [])
+            related.extend(entry.get("related_models") or [])
+            if entry.get("primary_model"):
+                related.append(entry["primary_model"])
+        models = [m for m in dict.fromkeys(related) if m in known][:1]
+
+    result = []
+    for model in models[:2]:
+        layout = _activity_layout(step.get("activity_node_name", ""))
+        role = "object_form" if layout == "form" else ("object_collection" if layout in {"list", "table"} else "object_detail")
+        visible = _pick_fields(model_attrs, model, role)
+        component = _component_for_section(role, layout, model, page_id)
+        style: dict = {
+            "color": "accent",
+            "density": "compact" if layout in {"list", "table"} else "normal",
+            "shadow": "sm", "border": "light", "bg": "white",
+        }
+        if layout == "form":
+            style["form_style"] = "step"
+        result.append({
+            "id": f"{page_id}_{_section_id(model)}_activity_action",
+            "page_id": page_id,
+            "role": role,
+            "name": f"{step.get('activity_node_name') or 'Task'} — {model}",
+            "layout": layout,
+            "component": component,
+            "primary_model": model,
+            "visible_fields": visible,
+            "editable_fields": visible if layout == "form" else [],
+            "related_visible_fields": [],
+            "field_layout": _field_layout_for_component(component, visible),
+            "operations": {
+                "create": layout == "form",
+                "update": layout in {"form", "list", "table", "detail"},
+                "delete": layout in {"list", "table"},
+            },
+            "style": style,
+            "col_span": 12,
+        })
+    return result
+
+
+def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = None, workflow_steps: list | None = None) -> dict:
     model_attrs = model_attrs or {}
     actor_permissions = usecase_navigation.get("actor_permissions") or {}
     pages = []
@@ -278,7 +379,9 @@ def build_ooui_plan_from_navigation(usecase_navigation: dict, model_attrs: dict 
                 continue
             if not _is_strict_child_collection_model(model):
                 continue
-            if page_id == "cart" and model.lower() not in {"cartitem", "cart item"}:
+            page_stem = re.sub(r"[^a-z0-9]", "", page_id.lower())
+            model_stem = re.sub(r"[^a-z0-9]", "", model.lower())
+            if page_stem and not model_stem.startswith(page_stem):
                 continue
             section = _child_section(page_id, model, model_attrs, related_models=related_models)
             if section["id"] not in {s["id"] for s in sections}:
@@ -322,6 +425,32 @@ def build_ooui_plan_from_navigation(usecase_navigation: dict, model_attrs: dict 
                 "target_model": mapping.get("target_model", ""),
             })
 
+    # Activity pages — one page + content sections per workflow step
+    workflow_entries = usecase_navigation.get("workflow_entry_points") or []
+    existing_section_ids = {s["id"] for s in sections}
+    existing_page_ids = {p["id"] for p in pages}
+    for step in (workflow_steps or []):
+        page_id = step.get("page_id")
+        if not page_id:
+            continue
+        if page_id not in existing_page_ids:
+            pages.append({
+                "id": page_id,
+                "name": step.get("page_name") or _page_name(page_id),
+                "role": "activity_action",
+                "roles": ["activity_action"],
+                "primary_model": next((m for m in (step.get("classes") or []) if m in model_attrs), ""),
+                "usecases": [],
+                "nav": False,
+                "sections": [],
+            })
+            existing_page_ids.add(page_id)
+        for sec in _sections_for_activity_step(step, model_attrs, workflow_entries):
+            if sec["id"] not in existing_section_ids:
+                sections.append(sec)
+                page_sections[page_id].append(sec["id"])
+                existing_section_ids.add(sec["id"])
+
     for page in pages:
         page["sections"] = page_sections.get(page["id"], [])
 
@@ -330,5 +459,5 @@ def build_ooui_plan_from_navigation(usecase_navigation: dict, model_attrs: dict 
         "sections": sections,
         "operations": operations,
         "workflows": workflows,
-        "_note": "OOUI plan: pages are object workspaces; sections have one primary_model; related fields are read-only; inline operations attach to object sections.",
+        "_note": "OOUI plan: pages are object workspaces; sections have one primary_model; activity pages have form/list/detail sections per workflow step.",
     }

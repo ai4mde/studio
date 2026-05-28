@@ -33,86 +33,126 @@ def _title(page_id: str) -> str:
 
 # ─── field selection ─────────────────────────────────────────────────────────
 
-_ROLE_PREFERRED: dict[str, list[str]] = {
-    "object_collection": [
-        "image_url", "photo_url", "avatar_url", "name", "title", "full_name",
-        "price", "amount", "status", "rating", "created_at", "category", "type",
-    ],
-    "object_detail": [
-        "image_url", "photo_url", "video_url", "name", "title", "full_name",
-        "description", "bio", "price", "amount", "status", "rating", "email", "phone",
-    ],
-    "object_form": [
-        "name", "title", "description", "price", "amount", "status", "category",
-        "email", "phone", "address", "street", "city", "postcode", "country",
-        "start_date", "end_date", "start_time", "end_time", "notes",
-    ],
-    "child_collection": [
-        "name", "title", "quantity", "qty", "unit_price", "price", "subtotal",
-        "total", "status", "sku", "code",
-    ],
-    "filter": [
-        "name", "status", "category", "type", "price", "rating",
-        "created_at", "start_date", "end_date", "is_active",
-    ],
+# Semantic categories derived from field name patterns; first match wins.
+_FIELD_PATTERNS: list[tuple[str, re.Pattern]] = [
+    ("image",    re.compile(r"(image|photo|avatar|picture|thumbnail|banner|cover|logo|icon)(_url|_src|_path)?$", re.I)),
+    ("video",    re.compile(r"(video|clip|recording)(_url|_src)?$", re.I)),
+    ("name",     re.compile(r"^(name|title|full_name|display_name|label|heading|caption|subject)$", re.I)),
+    ("status",   re.compile(r"^(status|state|phase|stage)$", re.I)),
+    ("flag",     re.compile(r"^(is|has|can|allow|enable)_|^(active|enabled|visible|featured|verified|published|archived)$", re.I)),
+    ("code",     re.compile(r"^(sku|code|ref|barcode|serial|number|identifier)$", re.I)),
+    ("category", re.compile(r"^(category|type|kind|genre|group|class|tier|level|tag|section)$", re.I)),
+    ("metric",   re.compile(r"^(price|amount|total|subtotal|cost|fee|tax|discount|quantity|qty|count|rating|score|stock|balance|weight|size|duration)$", re.I)),
+    ("describe", re.compile(r"^(description|bio|summary|overview|notes|content|body|details|info|about|message|text|comment|remarks)$", re.I)),
+    ("contact",  re.compile(r"^(email|phone|mobile|tel|fax|website)$", re.I)),
+    ("address",  re.compile(r"^(address|street|city|state|province|postcode|postal_code|zip|country|region|district|location)$", re.I)),
+    ("temporal", re.compile(r"(_at|_date|_time|_on)$", re.I)),
+]
+
+# Category priority order per section role.
+_ROLE_CATEGORY_ORDER: dict[str, list[str]] = {
+    "object_collection": ["image", "video", "name", "status", "code", "category", "metric", "temporal", "flag"],
+    "object_detail":     ["image", "video", "name", "describe", "status", "metric", "contact", "category", "temporal"],
+    "object_form":       ["name", "describe", "category", "status", "metric", "contact", "address", "temporal"],
+    "child_collection":  ["name", "code", "metric", "status"],
+    "filter":            ["name", "status", "category", "metric", "temporal", "flag"],
 }
 
-_EXCLUDED_FORM = frozenset({"id", "created_at", "updated_at", "created_on", "updated_on",
-                              "deleted_at", "uuid", "slug"})
+# System/audit fields excluded from editable forms.
+_EXCLUDED_FORM = frozenset({
+    "id", "uuid", "slug",
+    "created_at", "updated_at", "created_on", "updated_on", "deleted_at",
+})
+
+
+def _field_category(field_name: str) -> str | None:
+    for category, pattern in _FIELD_PATTERNS:
+        if pattern.search(field_name):
+            return category
+    return None
 
 
 def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
     attrs = model_info.get("attributes") or []
     attr_names = [a["name"] for a in attrs if a.get("name")]
-    preferred = _ROLE_PREFERRED.get(role, [])
-    result = [f for f in preferred if f in attr_names]
-    result += [f for f in attr_names if f not in result and f.lower() not in {"id"}]
+
     if role == "object_form":
-        result = [f for f in result if f.lower() not in _EXCLUDED_FORM]
+        attr_names = [f for f in attr_names if f.lower() not in _EXCLUDED_FORM]
+    else:
+        attr_names = [f for f in attr_names if f.lower() != "id"]
+
+    order = _ROLE_CATEGORY_ORDER.get(role, [])
+    buckets: dict[str, list[str]] = {cat: [] for cat in order}
+    tail: list[str] = []
+
+    for field in attr_names:
+        cat = _field_category(field)
+        if cat and cat in buckets:
+            buckets[cat].append(field)
+        else:
+            tail.append(field)
+
+    result: list[str] = []
+    seen: set[str] = set()
+    for cat in order:
+        for f in buckets[cat]:
+            if f not in seen:
+                result.append(f)
+                seen.add(f)
+    for f in tail:
+        if f not in seen:
+            result.append(f)
+            seen.add(f)
+
     return result[:limit]
 
 
 # ─── component selection ─────────────────────────────────────────────────────
 
+_MODEL_PERSON   = re.compile(r"user|person|people|customer|client|patient|doctor|member|staff|employee|contact|vendor|seller|supplier|student|teacher|author|owner|passenger|operator|admin|applicant|borrower|officer|analyst|reviewer", re.I)
+_MODEL_DOCUMENT = re.compile(r"report|document|record|contract|invoice|receipt|statement|transcript|certificate|permit|license|policy|agreement", re.I)
+_MODEL_CATEGORY = re.compile(r"categor|genre|collection|group|class|tag|label", re.I)
+
+_FORM_ADDRESS   = re.compile(r"address|shipping|delivery|mailing", re.I)
+_FORM_PAYMENT   = re.compile(r"payment|checkout|billing|charge|subscription", re.I)
+_FORM_REVIEW    = re.compile(r"review|rating|feedback|assessment|evaluation|testimonial", re.I)
+
+
 def _collection_component(model: str, layout: str) -> str:
-    m = model.lower()
     if layout == "calendar":
         return "CalendarView"
     if layout == "timeline":
         return "TimelineList"
     if layout == "map":
         return "MapView"
-    if layout == "gallery":
-        if m == "product":
-            return "ProductCardGrid"
-        if "category" in m:
-            return "CategoryTileGrid"
-        if any(t in m for t in ("user", "customer", "patient", "doctor", "member", "seller", "employee", "staff")):
-            return "PersonCardGrid"
-        return "CardGrid"
     if layout == "table":
         return "DataTable"
+    if layout == "gallery":
+        m = model.lower()
+        if _MODEL_CATEGORY.search(m):
+            return "CategoryTileGrid"
+        if _MODEL_PERSON.search(m):
+            return "PersonCardGrid"
+        return "CardGrid"
     return "ObjectList"
 
 
 def _detail_component(model: str) -> str:
     m = model.lower()
-    if m == "product":
-        return "ProductDetailPanel"
-    if any(t in m for t in ("report", "document", "record", "file")):
+    if _MODEL_DOCUMENT.search(m):
         return "DocumentPanel"
-    if any(t in m for t in ("user", "customer", "patient", "doctor", "member")):
+    if _MODEL_PERSON.search(m):
         return "ProfilePanel"
     return "DetailPanel"
 
 
 def _form_component(model: str, page_id: str) -> str:
     m = (model + " " + page_id).lower()
-    if "payment" in m:
-        return "PaymentMethodForm"
-    if "address" in m or "shipping" in m:
+    if _FORM_ADDRESS.search(m):
         return "AddressForm"
-    if "review" in m or "rating" in m:
+    if _FORM_PAYMENT.search(m):
+        return "PaymentMethodForm"
+    if _FORM_REVIEW.search(m):
         return "ReviewForm"
     return "ObjectForm"
 
@@ -130,7 +170,7 @@ def _summary_component(model: str) -> str:
 
 # ─── layout selection ────────────────────────────────────────────────────────
 
-def _pick_layout(model_info: dict, page_role: str, semantic_override: str | None = None) -> str:
+def _pick_layout(model_info: dict, page_role: str, semantic_override: str | None = None, model: str = "") -> str:
     """Select layout for a collection page based on scoring and semantic decision."""
     if page_role in {"detail_workspace", "object_workspace"}:
         return "detail"
@@ -140,6 +180,24 @@ def _pick_layout(model_info: dict, page_role: str, semantic_override: str | None
         return semantic_override
 
     score = model_info.get("layout_score") or {}
+    model_l = str(model or model_info.get("name") or "").lower()
+    attr_names = {str(a.get("name") or "").lower() for a in model_info.get("attributes", []) if isinstance(a, dict)}
+    attr_count = len(attr_names)
+
+    # Prefer semantically distinct layouts before falling back to generic table scoring.
+    if _MODEL_PERSON.search(model_l):
+        return "gallery"
+    if re.search(r"appointment|booking|reservation|schedule|event|meeting|slot", model_l):
+        if score.get("calendar", 0) > 0 or any("date" in a or "time" in a for a in attr_names):
+            return "calendar"
+        return "list"
+    if re.search(r"admission|application|loan|case|incident|ticket|request", model_l):
+        if score.get("timeline", 0) > 0 or any(a in attr_names for a in {"status", "state", "created_at", "updated_at", "start_date", "end_date"}):
+            return "timeline"
+        return "list"
+    if _MODEL_DOCUMENT.search(model_l) or re.search(r"bill|payment|prescription|medication|lab|test|room|department", model_l):
+        return "list" if attr_count <= 10 else "table"
+
     candidates = [
         ("gallery",  score.get("gallery",  0)),
         ("table",    score.get("table",    0)),
@@ -152,8 +210,33 @@ def _pick_layout(model_info: dict, page_role: str, semantic_override: str | None
     special = [(l, s) for l, s in candidates if l not in {"table", "list", "gallery"} and s > 0.6]
     if special:
         return max(special, key=lambda x: x[1])[0]
+    if attr_count <= 8 and score.get("table", 0) <= 0.7:
+        return "list"
     standard = [(l, s) for l, s in candidates if l in {"gallery", "table", "list"}]
     return max(standard, key=lambda x: x[1])[0]
+
+
+def _activity_layout_from_action(action: str, hint: str) -> tuple[str, str, str] | None:
+    """Rule fallback for activity steps when no LLM semantic override is available."""
+    text = str(action or "").lower()
+    if any(w in text for w in ("review", "consult", "monitor", "analyze", "analyse", "assess", "verify", "inspect")):
+        return "detail", "object_detail", "DetailPanel"
+    if any(w in text for w in ("confirm", "summary", "check", "approve", "reject", "discharge")):
+        return "detail", "object_detail", "SummaryPanel"
+    if any(w in text for w in ("select", "choose", "pick", "browse", "compare")):
+        return "list", "object_collection", "ObjectList"
+    if hint == "DetailPanel":
+        return "detail", "object_detail", "DetailPanel"
+    if hint == "SelectionList":
+        return "list", "object_collection", "ObjectList"
+    return None
+
+
+def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
+    if layout not in {"table", "list"} or page_role != "collection_workspace":
+        return False
+    attr_names = {str(a.get("name") or "").lower() for a in model_info.get("attributes", []) if isinstance(a, dict)}
+    return len(attr_names) > 8 or bool(attr_names & {"status", "state", "category", "type", "specialization"})
 
 
 # ─── Plan builder ─────────────────────────────────────────────────────────────
@@ -387,11 +470,20 @@ def generate_interface_plan(
     # ── Step 1: derive page entries from use cases ────────────────────────────
 
     page_map: dict[str, dict] = {}
+    workflow_collection_models: dict[str, set] = defaultdict(set)
 
     for uc in target_use_cases:
         role = uc.get("page_role") or "object_workspace"
+        original_role = role
         model = uc.get("primary_model") or ""
         perms = set(uc.get("permissions") or [])
+        if model and (original_role == "workflow_entry" or uc.get("has_workflow")):
+            workflow_collection_models[model].update(perms or {"read"})
+        if uc.get("has_workflow") and model and role == "workflow_entry":
+            # Activity diagrams produce the step-by-step task pages below. Keep a
+            # separate object workspace for the model so actors still get normal
+            # browse/detail UI instead of only task forms.
+            role = "object_workspace"
 
         if role == "workflow_entry":
             page_id = f"{_sid(model or uc['name'])}_workflow" if model else _sid(uc["name"])
@@ -409,7 +501,7 @@ def generate_interface_plan(
         page_map[page_id]["use_cases"].append(uc["name"])
         if uc.get("has_workflow"):
             page_map[page_id]["has_workflow"] = True
-        role_priority = {"collection_workspace": 3, "object_workspace": 2, "detail_workspace": 1, "workflow_entry": 4}
+        role_priority = {"collection_workspace": 3, "object_workspace": 2, "detail_workspace": 1, "workflow_entry": 0}
         existing_role = page_map[page_id]["role"]
         if role_priority.get(role, 0) > role_priority.get(existing_role, 0):
             page_map[page_id]["role"] = role
@@ -432,6 +524,26 @@ def generate_interface_plan(
                 if v["model"] == model:
                     v["permissions"].update(perms)
 
+    # Workflow-start use cases such as "Fill in application" or "Book appointment"
+    # need both a task entry and a way to see existing/started instances. If the
+    # workflow model only produced a detail/workflow page, add a collection page
+    # for tracking without forcing unrelated subordinate models into navigation.
+    for model, perms in workflow_collection_models.items():
+        if model in subordinate_models:
+            continue
+        page_id = _plural(model)
+        if page_id in page_map:
+            page_map[page_id]["permissions"].update(perms)
+            continue
+        page_map[page_id] = {
+            "id": page_id,
+            "role": "collection_workspace",
+            "model": model,
+            "permissions": set(perms or target_permissions.get(model) or ["read"]),
+            "use_cases": ["Track existing workflow items"],
+            "has_workflow": True,
+        }
+
     # ── Step 3: build pages and sections ─────────────────────────────────────
 
     for page_id, pm in page_map.items():
@@ -440,8 +552,8 @@ def generate_interface_plan(
         permissions = list(pm["permissions"])
         model_info = model_graph.get(model) or {}
 
-        override = semantic_overrides.get(model) or {}
-        layout = _pick_layout(model_info, page_role, override.get("layout"))
+        override = (semantic_overrides.get("models") or {}).get(model) or semantic_overrides.get(model) or {}
+        layout = _pick_layout(model_info, page_role, override.get("layout"), model)
         is_collection = layout in {"gallery", "table", "list", "calendar", "timeline", "map"}
         is_detail = layout == "detail"
 
@@ -473,7 +585,7 @@ def generate_interface_plan(
                 attributes=model_info.get("attributes", []),
             ))
             filter_fields = _pick_fields(model_info, "filter", 5)
-            if filter_fields:
+            if filter_fields and _should_add_filter(layout, model_info, page_role):
                 add_section(_section(
                     page_id=page_id,
                     section_id=f"{page_id}_{_sid(model)}_filter",
@@ -530,7 +642,7 @@ def generate_interface_plan(
             continue
 
         model_info = model_graph.get(model) or {}
-        override = semantic_overrides.get(model) or {}
+        override = (semantic_overrides.get("models") or {}).get(model) or semantic_overrides.get(model) or {}
 
         add_page({"id": detail_id, "name": f"{model} Detail", "primary_model": model,
                   "role": "detail_workspace", "nav": False, "sections": []})
@@ -578,6 +690,11 @@ def generate_interface_plan(
             step_model = step.get("model") or ""
             hint = step.get("component_hint") or "ObjectForm"
             step_page_id = f"{wf_id}_step{i + 1}_{_sid(action)}"
+            step_override = (
+                (semantic_overrides.get("activity_steps") or {}).get(action)
+                or (semantic_overrides.get("activity_steps") or {}).get(step_page_id)
+                or {}
+            )
 
             # Skip automatic (backend/system) actions — no UI page needed for any actor
             if step.get("is_automatic"):
@@ -589,15 +706,11 @@ def generate_interface_plan(
             if step_actor and current_actor_name and step_actor != current_actor_name:
                 continue
 
-            # Per-step model filter: only generate this page if the step's model
-            # is accessible to the current actor. Skip steps with no model.
-            # Exception: if the swim lane explicitly assigns this step to the current
-            # actor, trust that assignment even if the use-case diagram didn't list
-            # the model in actor permissions (e.g. Seller → Send Order Confirmation → Order).
+            # Per-step model filter: if the step model is known and inaccessible to
+            # the current actor (and the step isn't explicitly swim-lane-assigned here),
+            # skip it. Steps with no model still get a confirmation/info page.
             actor_lane_assigned = bool(step_actor and current_actor_name and step_actor == current_actor_name)
-            if not step_model:
-                continue
-            if not actor_lane_assigned and step_model not in accessible:
+            if step_model and not actor_lane_assigned and step_model not in accessible:
                 continue
 
             if step_page_id in existing_page_ids:
@@ -606,8 +719,42 @@ def generate_interface_plan(
             step_model_info = model_graph.get(step_model) or {}
             step_attrs = step_model_info.get("attributes", [])
 
-            # Pick layout and component from component_hint
-            if hint in _FORM_HINTS:
+            # Pick layout and component from LLM semantic override first; fall back
+            # to rule-based component_hint when no valid override is provided.
+            override_layout = step_override.get("layout")
+            override_component = step_override.get("component")
+            override_role = step_override.get("role")
+            rule_layout = _activity_layout_from_action(action, hint)
+            if override_layout in {"form", "list", "detail"} and override_component:
+                layout = override_layout
+                component = override_component
+                if override_role in {"object_form", "object_collection", "object_detail"}:
+                    role = override_role
+                else:
+                    role = "object_form" if layout == "form" else ("object_collection" if layout == "list" else "object_detail")
+                if layout == "form":
+                    visible = _pick_fields(step_model_info, "object_form", 8)
+                    editable = visible
+                    ops = ["create", "update"]
+                elif layout == "list":
+                    visible = _pick_fields(step_model_info, "object_collection", 6)
+                    editable = []
+                    ops = ["read", "select"]
+                else:
+                    visible = _pick_fields(step_model_info, "object_detail", 8)
+                    editable = []
+                    ops = ["read"]
+            elif rule_layout:
+                layout, role, component = rule_layout
+                if layout == "list":
+                    visible = _pick_fields(step_model_info, "object_collection", 6)
+                    editable = []
+                    ops = ["read", "select"]
+                else:
+                    visible = _pick_fields(step_model_info, "object_detail", 8)
+                    editable = []
+                    ops = ["read"]
+            elif hint in _FORM_HINTS:
                 layout, role = "form", "object_form"
                 component = hint if hint != "FileUpload" else "ObjectForm"
                 visible = _pick_fields(step_model_info, "object_form", 8)
@@ -618,7 +765,7 @@ def generate_interface_plan(
                 component = _collection_component(step_model, "list") if step_model else "ObjectList"
                 visible = _pick_fields(step_model_info, "object_collection", 6)
                 editable = []
-                ops = ["read"]
+                ops = ["read", "select"]
             else:  # DetailPanel, confirm, summary
                 layout, role = "detail", "object_detail"
                 component = "SummaryPanel" if any(w in action.lower() for w in ("confirm", "summary", "review", "check")) else "DetailPanel"
@@ -636,7 +783,9 @@ def generate_interface_plan(
                 "sections": [],
             })
 
-            # Content section (may be empty if no model/fields)
+            # Content section — always emit; confirmation/summary steps get a
+            # SummaryPanel even with no model so the page has something to render.
+            _is_confirm = any(w in action.lower() for w in ("confirm", "summary", "check", "complete", "finish", "approve", "submit", "review"))
             if visible or step_model:
                 add_section(_section(
                     page_id=step_page_id,
@@ -650,6 +799,19 @@ def generate_interface_plan(
                     editable=editable,
                     operations=ops,
                     attributes=step_attrs,
+                ))
+            elif _is_confirm:
+                add_section(_section(
+                    page_id=step_page_id,
+                    section_id=f"{step_page_id}_content",
+                    role="object_detail",
+                    name=action,
+                    layout="detail",
+                    component="SummaryPanel",
+                    model="",
+                    visible=[], editable=[],
+                    operations=["read"],
+                    attributes=[],
                 ))
 
             # Explicit activity_action section (the "Next Step" button)

@@ -17,10 +17,18 @@
 {%- set _brand_name = _brand_name if _brand_name is defined else application_name %}
 {%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') if tokens is defined else 'max-w-6xl' %}
 {%- set _raw_page_layout = page.layout if page is defined and page.layout is defined and page.layout else {} %}
-{%- set _page_layout = _raw_page_layout if _raw_page_layout is mapping else {'value': _raw_page_layout} %}
-{%- set _main_width = _page_layout.get('main_width', 'contained') %}
-{%- set _header_width = _page_layout.get('header_width', 'contained') %}
-{%- set _footer_width = _page_layout.get('footer_width', 'full') %}
+{%- set _main_width = _raw_page_layout.main_width if _raw_page_layout.main_width is defined and _raw_page_layout.main_width else 'contained' %}
+{%- set _header_width = _raw_page_layout.header_width if _raw_page_layout.header_width is defined and _raw_page_layout.header_width else 'contained' %}
+{%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else 'full' %}
+{%- set _layout_has_sidebar = [] %}
+{%- set _layout_has_header = [] %}
+{%- for sc in (page.section_components if page is defined and page.section_components is defined else []) %}
+  {%- if sc.position == 'sidebar' %}{% set _ = _layout_has_sidebar.append(1) %}{%- endif %}
+  {%- if sc.position == 'header' %}{% set _ = _layout_has_header.append(1) %}{%- endif %}
+{%- endfor %}
+{%- if not _main_width or _main_width not in ['contained', 'wide', 'full'] %}{% set _main_width = 'wide' if _layout_has_sidebar else 'contained' %}{%- endif %}
+{%- if not _header_width or _header_width not in ['contained', 'full'] %}{% set _header_width = 'full' if _layout_has_header else 'contained' %}{%- endif %}
+{%- if not _footer_width or _footer_width not in ['contained', 'full'] %}{% set _footer_width = 'full' %}{%- endif %}
 {%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else _container_class) %}
 {%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else _container_class ~ ' mx-auto px-6' %}
 {%- set _footer_shell_class = 'w-full px-8' if _footer_width == 'full' else _container_class ~ ' mx-auto px-8' %}
@@ -30,6 +38,8 @@
 {%- set _footer_secs = [] %}
 {%- set _has_header_chrome = [] %}
 {%- set _has_footer_chrome = [] %}
+{%- set _has_header_chrome_keys = [] %}
+{%- set _has_footer_chrome_keys = [] %}
 {%- for sc in header_sections or [] %}
   {%- if sc.layout in _header_chrome %}{% set _ = _header_secs.append(sc) %}{%- endif %}
 {%- endfor %}
@@ -40,10 +50,18 @@
 {%- for pg in _chrome_scan_pages %}
   {%- for sc in pg.section_components or [] %}
     {%- if sc.layout in _header_chrome or sc.position == 'header' %}
-      {%- set _ = _has_header_chrome.append(sc) %}
+      {%- set _chrome_key = sc.id if sc.id is defined and sc.id else sc %}
+      {%- if _chrome_key not in _has_header_chrome_keys %}
+        {%- set _ = _has_header_chrome_keys.append(_chrome_key) %}
+        {%- set _ = _has_header_chrome.append(sc) %}
+      {%- endif %}
     {%- endif %}
     {%- if sc.layout in _footer_chrome or sc.position == 'footer' %}
-      {%- set _ = _has_footer_chrome.append(sc) %}
+      {%- set _chrome_key = sc.id if sc.id is defined and sc.id else sc %}
+      {%- if _chrome_key not in _has_footer_chrome_keys %}
+        {%- set _ = _has_footer_chrome_keys.append(_chrome_key) %}
+        {%- set _ = _has_footer_chrome.append(sc) %}
+      {%- endif %}
     {%- endif %}
   {%- endfor %}
 {%- endfor %}
@@ -298,7 +316,7 @@
 {% endif %}
 {% raw %}{% endblock %}{% endraw %}
 
-<main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}" style="background-color:var(--page-bg);">
+<main class="py-6 {% raw %}{% block main_shell_class %}{% endraw %}{% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}{% raw %}{% endblock %}{% endraw %}" style="background-color:var(--page-bg);">
     {% raw %}{% block content %}{% endblock %}{% endraw %}
 </main>
 

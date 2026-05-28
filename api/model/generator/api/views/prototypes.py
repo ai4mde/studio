@@ -892,7 +892,7 @@ def hot_reload_templates(request, payload: HotReloadPayload):
         {"id": str(r.id), "source": str(r.source_id), "target": str(r.target_id), "data": r.data}
         for r in iface.system.relations.all()
     ]
-    files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations)
+    files = render_layout(interface_data, classifiers, None, interface_name=iface.name, relations=relations, preview_mode=False)
 
     updated = 0
     for f in files:
