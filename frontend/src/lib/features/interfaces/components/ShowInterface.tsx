@@ -36,6 +36,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [, setSections] = useLocalStorage('sections', []);
     const [, setSettings] = useLocalStorage('settings', {});
     const [isSaving, setIsSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState<number | string>(0);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
         if (typeof window === 'undefined') return false;
         return window.localStorage.getItem('interfaceAutoSave') === 'true';
@@ -200,7 +201,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             </button>
                         </div>
                     </div>
-                    <Tabs>
+                    <Tabs value={activeTab} onChange={(_, value) => setActiveTab(value ?? 0)}>
                         <TabList id="tour-tablist">
                             <Tab id="tour-tab-agent-design">Agent Design</Tab>
                             <Tab>Fragment</Tab>
@@ -212,28 +213,28 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Settings</Tab>
                         </TabList>
                         <TabPanel value={0}>
-                            <AgentDesign interfaceId={app_comp} systemId={systemId} />
+                            {activeTab === 0 && <AgentDesign interfaceId={app_comp} systemId={systemId} />}
                         </TabPanel>
                         <TabPanel value={1}>
                             <p>Fragment</p>
                         </TabPanel>
                         <TabPanel value={2}>
-                            <Categories />
+                            {activeTab === 2 && <Categories />}
                         </TabPanel>
                         <TabPanel value={3}>
-                            <Pages actorName = {data?.name}/>
+                            {activeTab === 3 && <Pages actorName = {data?.name}/>}
                         </TabPanel>
                         <TabPanel value={4}>
-                            <PageRegions />
+                            {activeTab === 4 && <PageRegions />}
                         </TabPanel>
                         <TabPanel value={5}>
-                            <Sections />
+                            {activeTab === 5 && <Sections />}
                         </TabPanel>
                         <TabPanel value={6}>
-                            <Styling />
+                            {activeTab === 6 && <Styling />}
                         </TabPanel>
                         <TabPanel value={7}>
-                            <Settings />
+                            {activeTab === 7 && <Settings />}
                         </TabPanel>
                     </Tabs>
         </>

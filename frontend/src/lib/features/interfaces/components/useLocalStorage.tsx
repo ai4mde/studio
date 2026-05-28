@@ -53,16 +53,18 @@ const useLocalStorage = (key, initialValue) => {
     }, [initialValue, key]);
 
     const setValue = value => {
+        const valueToStore = value instanceof Function ? value(storedValue) : value;
+        setStoredValue(valueToStore);
+
         try {
-            const valueToStore = value instanceof Function ? value(storedValue) : value;
-            setStoredValue(valueToStore);
             window.localStorage.setItem(key, JSON.stringify(valueToStore));
-            window.dispatchEvent(new CustomEvent('interface-local-storage-updated', {
-                detail: { key, value: valueToStore },
-            }));
         } catch (error) {
             console.error(error);
         }
+
+        window.dispatchEvent(new CustomEvent('interface-local-storage-updated', {
+            detail: { key, value: valueToStore },
+        }));
     };
 
     return [storedValue, setValue, isSuccess];

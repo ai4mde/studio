@@ -44,6 +44,7 @@ const CHROME_LAYOUTS: LayoutOption[] = [
 ];
 const HEADER_LAYOUTS: LayoutOption[] = ['promo-bar', 'logo', 'search-bar', 'icon-actions', 'nav-links', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'site-nav'];
 const FOOTER_LAYOUTS: LayoutOption[] = ['service-bar', 'link-grid', 'brand-strip', 'compact-footer', 'legal-footer', 'newsletter-footer', 'social-footer', 'mega-footer', 'site-footer'];
+const MAX_AUTO_PREVIEW_BYTES = 2_000_000;
 
 const LAYOUT_CONTROLS: Partial<Record<LayoutOption, readonly string[]>> = {
     table:   ['color', 'density', 'shadow', 'border', 'bg', 'header_style'],
@@ -1107,6 +1108,11 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     // Debounce: refresh 600 ms after any sections/pages/page-index/styling change
     useEffect(() => {
         if (!interfaceId) return;
+        const previewPayloadSize = JSON.stringify({ sections, pages, styling }).length;
+        if (previewPayloadSize > MAX_AUTO_PREVIEW_BYTES) {
+            setPreviewError('Preview is paused for this large interface. Use Refresh to generate it manually.');
+            return;
+        }
         if (refreshTimer.current) clearTimeout(refreshTimer.current);
         refreshTimer.current = setTimeout(doRefreshPreview, 600);
         return () => { if (refreshTimer.current) clearTimeout(refreshTimer.current); };

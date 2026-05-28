@@ -95,3 +95,24 @@ useAuthStore.subscribe((state) => {
         delete authAxios.defaults.headers.common.Authorization;
     }
 });
+
+authAxios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (
+            error.response?.status === 401 &&
+            useAuthStore.getState().isAuthenticated
+        ) {
+            delete authAxios.defaults.headers.common.Authorization;
+            useAuthStore.setState({
+                isAuthenticated: false,
+                bearerToken: undefined,
+                expires: undefined,
+                user: undefined,
+                tokenData: undefined,
+            });
+        }
+
+        return Promise.reject(error);
+    },
+);
