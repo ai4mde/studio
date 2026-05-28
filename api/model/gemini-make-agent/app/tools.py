@@ -1070,9 +1070,17 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
         return ""
 
     page_by_action = {page_action_id(p): p for p in pages if page_action_id(p)}
+    # Fallback index: Step-5 pages from interface_planner have no action.value (no node UUID),
+    # but their name matches the activity action name — use this to avoid creating duplicates.
+    page_by_name = {
+        _section_id(p.get("name") or ""): p
+        for p in pages
+        if _page_type_value(p) == "activity" and not page_action_id(p)
+    }
     for step in workflow_steps:
         node_id = step["activity_node_id"]
-        page = page_by_action.get(node_id)
+        name_key = _section_id(step.get("activity_node_name") or "")
+        page = page_by_action.get(node_id) or page_by_name.get(name_key)
         if not page:
             page = {
                 "id": step["page_id"],

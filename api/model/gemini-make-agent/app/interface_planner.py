@@ -700,16 +700,14 @@ def generate_interface_plan(
             if step.get("is_automatic"):
                 continue
 
-            # Swim lane filter: if this action is assigned to a specific actor,
-            # only generate a page when that actor matches the current interface actor.
+            # Swim lane filter: only generate pages for steps in this actor's lane.
             step_actor = (step.get("actor_node_name") or "").strip().lower()
+            actor_lane_assigned = bool(step_actor and current_actor_name and step_actor == current_actor_name)
+            other_actor_step = False
             if step_actor and current_actor_name and step_actor != current_actor_name:
                 continue
 
-            # Per-step model filter: if the step model is known and inaccessible to
-            # the current actor (and the step isn't explicitly swim-lane-assigned here),
-            # skip it. Steps with no model still get a confirmation/info page.
-            actor_lane_assigned = bool(step_actor and current_actor_name and step_actor == current_actor_name)
+            # Per-step model filter: skip steps whose model is inaccessible to this actor.
             if step_model and not actor_lane_assigned and step_model not in accessible:
                 continue
 
@@ -785,19 +783,22 @@ def generate_interface_plan(
 
             # Content section — always emit; confirmation/summary steps get a
             # SummaryPanel even with no model so the page has something to render.
+            # Steps owned by another actor are rendered read-only (context/status view).
             _is_confirm = any(w in action.lower() for w in ("confirm", "summary", "check", "complete", "finish", "approve", "submit", "review"))
+            effective_ops = ["read"] if other_actor_step else ops
+            effective_editable = [] if other_actor_step else editable
             if visible or step_model:
                 add_section(_section(
                     page_id=step_page_id,
                     section_id=f"{step_page_id}_content",
-                    role=role,
+                    role="object_detail" if other_actor_step else role,
                     name=action,
-                    layout=layout,
-                    component=component,
+                    layout="detail" if other_actor_step else layout,
+                    component="DetailPanel" if other_actor_step else component,
                     model=step_model,
                     visible=visible,
-                    editable=editable,
-                    operations=ops,
+                    editable=effective_editable,
+                    operations=effective_ops,
                     attributes=step_attrs,
                 ))
             elif _is_confirm:
@@ -814,21 +815,22 @@ def generate_interface_plan(
                     attributes=[],
                 ))
 
-            # Explicit activity_action section (the "Next Step" button)
-            add_section(_section(
-                page_id=step_page_id,
-                section_id=f"{step_page_id}_action",
-                role="activity_action",
-                name=action,
-                layout="activity_action",
-                component="WorkflowActionButton",
-                model=step_model,
-                visible=[],
-                editable=[],
-                operations=[],
-                style={"variant": "button", "align": "right", "size": "lg"},
-                workflow={"action": "complete"},
-            ))
+            # Action button: omit for other-actor steps (they cannot trigger the next step)
+            if not other_actor_step:
+                add_section(_section(
+                    page_id=step_page_id,
+                    section_id=f"{step_page_id}_action",
+                    role="activity_action",
+                    name=action,
+                    layout="activity_action",
+                    component="WorkflowActionButton",
+                    model=step_model,
+                    visible=[],
+                    editable=[],
+                    operations=[],
+                    style={"variant": "button", "align": "right", "size": "lg"},
+                    workflow={"action": "complete"},
+                ))
 
     # ── Finalize page.sections lists ─────────────────────────────────────────
 

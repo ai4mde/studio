@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { Plus, PaintRoller, X } from "lucide-react";
+import { Plus, PaintRoller, X, Wand2, Loader2 } from "lucide-react";
 import React, { useState} from "react";
 import { createInterfaceAtom } from "../../browser/atoms";
 import { useInterfaces } from "$browser/queries";
@@ -25,6 +25,8 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
     const [, setSections, ] = useLocalStorage('sections', []);
     const [showDeleteInterfaceModal, setShowDeleteInterfaceModal] = useState(false);
     const [interfaceToDelete, setInterfaceToDelete] = useState("");
+    const [isMappingAll, setIsMappingAll] = useState(false);
+    const [mapAllStatus, setMapAllStatus] = useState<'idle' | 'ok' | 'error'>('idle');
 
     const handleLoadInterface = (app_comp) => {
 
@@ -33,6 +35,21 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
         setPages(app_comp.pages || []);
         setSections(app_comp.sections || []);
     }
+
+    const handleMapAllInterfaces = async () => {
+        if (!systemId) return;
+        setIsMappingAll(true);
+        setMapAllStatus('idle');
+        try {
+            await authAxios.post(`/v1/generator/prototypes/map_uml_to_all_interfaces/`, { system_id: systemId });
+            setMapAllStatus('ok');
+        } catch {
+            setMapAllStatus('error');
+        } finally {
+            setIsMappingAll(false);
+            setTimeout(() => setMapAllStatus('idle'), 4000);
+        }
+    };
 
     const generateDefaultInterfaces = async () => {
         try {
@@ -105,6 +122,22 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
                             </div>
                         </button>
                 )}
+                    <button
+                        onClick={handleMapAllInterfaces}
+                        disabled={isMappingAll || !systemId}
+                        title="Map UML diagrams to interfaces for all actors in this system"
+                        className="flex h-fit w-30 flex-col gap-2 overflow-hidden text-ellipsis rounded-md p-4 hover:bg-stone-300"
+                        style={{
+                            background: mapAllStatus === 'ok' ? '#f0fdf4' : mapAllStatus === 'error' ? '#fef2f2' : '#ede9fe',
+                            opacity: isMappingAll || !systemId ? 0.6 : 1,
+                            cursor: isMappingAll ? 'default' : 'pointer',
+                        }}
+                    >
+                        <div className="flex flex-row gap-1 items-center">
+                            {isMappingAll ? <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} /> : <Wand2 size={20} />}
+                            <p>{mapAllStatus === 'ok' ? 'Mapped!' : mapAllStatus === 'error' ? 'Failed' : 'Map All'}</p>
+                        </div>
+                    </button>
                     <button
                         onClick={() => setCreate(true)}
                         className="flex h-fit w-14 flex-col gap-2 overflow-hidden text-ellipsis rounded-md bg-stone-200 p-4 hover:bg-stone-300"

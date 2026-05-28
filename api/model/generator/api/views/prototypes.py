@@ -504,6 +504,27 @@ def map_uml_to_interface(request, payload: MapUmlPayload):
         return {"ok": False, "message": str(e)}
 
 
+class MapUmlAllPayload(Schema):
+    system_id: str
+
+
+@prototypes.post("/map_uml_to_all_interfaces/")
+def map_uml_to_all_interfaces(request, payload: MapUmlAllPayload):
+    """Map UML diagrams to interfaces for all actors in a system."""
+    ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+    try:
+        resp = requests.post(
+            f"{ADK_AGENT_URL}/map_uml_to_all_interfaces",
+            json={"system_id": payload.system_id},
+            timeout=600,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return {"ok": data.get("status") == "ok", "message": data.get("message", ""), "results": data.get("results", [])}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
+
+
 @prototypes.post("/regenerate_candidates/")
 def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayload):
     """Stream selected-candidate regeneration via the ADK candidate_regeneration_agent."""

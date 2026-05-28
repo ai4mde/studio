@@ -298,6 +298,49 @@ def map_uml_to_interface(payload: dict) -> dict:
         return {"status": "error", "message": str(e), "detail": traceback.format_exc()}
 
 
+@app.post("/map_uml_to_all_interfaces")
+def map_uml_to_all_interfaces(payload: dict) -> dict:
+    """Run UML→interface mapping for every interface in a system (one per actor)."""
+    import requests as _req
+    from app.tools import METADATA_API_BASE, _AUTH_HEADERS
+
+    system_id = str(payload.get("system_id") or "")
+    if not system_id:
+        return {"status": "error", "message": "system_id required"}
+
+    try:
+        ifaces_resp = _req.get(
+            f"{METADATA_API_BASE}/interfaces/",
+            params={"system": system_id},
+            headers=_AUTH_HEADERS,
+            timeout=30,
+        )
+        ifaces_resp.raise_for_status()
+        interfaces = [i for i in (ifaces_resp.json() or []) if str(i.get("system") or "") == system_id]
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to list interfaces: {e}"}
+
+    if not interfaces:
+        return {"status": "error", "message": "No interfaces found for this system."}
+
+    results = []
+    for iface in interfaces:
+        iface_id = str(iface.get("id") or "")
+        actor = str(iface.get("actor") or "")
+        try:
+            result = map_uml_to_interface({"interface_id": iface_id})
+            results.append({"interface_id": iface_id, "actor": actor, **result})
+        except Exception as e:
+            results.append({"interface_id": iface_id, "actor": actor, "status": "error", "message": str(e)})
+
+    succeeded = sum(1 for r in results if r.get("status") == "ok")
+    return {
+        "status": "ok",
+        "message": f"Mapped {succeeded}/{len(results)} interfaces.",
+        "results": results,
+    }
+
+
 @app.post("/feedback")
 def collect_feedback(feedback: Feedback) -> dict[str, str]:
     """Collect and log feedback.
