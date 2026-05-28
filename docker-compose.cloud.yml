@@ -51,7 +51,8 @@ services:
       - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
 
   studio:
-    mem_limit: 256m
+    mem_limit: 512m
+    command: sh -c "npm run build && npx vite preview --host --port 5173"
     environment:
       - HOSTNAME=ai4mde.${ORACLE_IP}.nip.io
       - AI4MDE_HOST=api.ai4mde.${ORACLE_IP}.nip.io
