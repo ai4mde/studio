@@ -1,0 +1,310 @@
+{
+  "preview": {
+    "url": "about:blank",
+    "body": {
+      "w": 1706,
+      "h": 821
+    },
+    "main": {
+      "tag": "MAIN",
+      "id": "",
+      "cls": "py-6 px-6 max-w-7xl mx-auto",
+      "pos": "",
+      "layout": "",
+      "x": 213,
+      "y": 0,
+      "w": 1280,
+      "h": 821,
+      "text": "applicant.\nLogout\nNavigation\nApplicant\nDocument\nLoanapplications\nLoanapplication"
+    },
+    "grid": null,
+    "headers": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "header",
+        "layout": "main-header",
+        "x": 24,
+        "y": 24,
+        "w": 1658,
+        "h": 70,
+        "text": "applicant. Logout"
+      },
+      {
+        "tag": "HEADER",
+        "id": "",
+        "cls": "px-5 py-3 flex items-center gap-4",
+        "pos": "",
+        "layout": "",
+        "x": 25,
+        "y": 25,
+        "w": 1656,
+        "h": 68,
+        "text": "applicant. Logout"
+      }
+    ],
+    "footers": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "footer",
+        "layout": "site-footer",
+        "x": 32,
+        "y": 717,
+        "w": 1642,
+        "h": 56,
+        "text": "Footer Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisions "
+      }
+    ],
+    "sidebars": [
+      {
+        "tag": "ASIDE",
+        "id": "",
+        "cls": "flex-shrink-0 flex flex-col gap-4",
+        "pos": "",
+        "layout": "",
+        "x": 237,
+        "y": 135,
+        "w": 302,
+        "h": 382,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12 w-full",
+        "pos": "sidebar",
+        "layout": "site-nav",
+        "x": 237,
+        "y": 135,
+        "w": 302,
+        "h": 382,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      }
+    ],
+    "sections": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "header",
+        "layout": "main-header",
+        "x": 24,
+        "y": 24,
+        "w": 1658,
+        "h": 70,
+        "text": "applicant. Logout"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12 w-full",
+        "pos": "sidebar",
+        "layout": "site-nav",
+        "x": 237,
+        "y": 135,
+        "w": 302,
+        "h": 382,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "main",
+        "layout": "table",
+        "x": 563,
+        "y": 135,
+        "w": 906,
+        "h": 216,
+        "text": "Document Detail FILE_CONENT FILE_CONTENT DOCUMENT_TYPE UPLOAD_DATE VALID file_conent 1 fil"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "main",
+        "layout": "table",
+        "x": 563,
+        "y": 367,
+        "w": 906,
+        "h": 266,
+        "text": "Edit Document FILE_CONENT FILE_CONTENT DOCUMENT_TYPE UPLOAD_DATE VALID file_conent 1 file_"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "footer",
+        "layout": "site-footer",
+        "x": 32,
+        "y": 717,
+        "w": 1642,
+        "h": 56,
+        "text": "Footer Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisions "
+      }
+    ]
+  },
+  "live": {
+    "url": "http://prototype.ai4mde.localhost/Applicant/render_Applicant_Document",
+    "body": {
+      "w": 1706,
+      "h": 858
+    },
+    "main": {
+      "tag": "MAIN",
+      "id": "",
+      "cls": "py-6 px-6 max-w-6xl mx-auto",
+      "pos": "",
+      "layout": "",
+      "x": 277,
+      "y": 24,
+      "w": 1152,
+      "h": 834,
+      "text": "Applicant.\nLogout\nNavigation\nApplicant\nDocument\nLoanapplications\nLoanapplication"
+    },
+    "grid": null,
+    "headers": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "header",
+        "layout": "main-header",
+        "x": 301,
+        "y": 48,
+        "w": 1104,
+        "h": 86,
+        "text": "Applicant. Logout"
+      },
+      {
+        "tag": "HEADER",
+        "id": "",
+        "cls": "px-5 py-3 flex items-center gap-4",
+        "pos": "",
+        "layout": "",
+        "x": 302,
+        "y": 49,
+        "w": 1102,
+        "h": 84,
+        "text": "Applicant. Logout"
+      }
+    ],
+    "footers": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "footer",
+        "layout": "site-footer",
+        "x": 32,
+        "y": 667,
+        "w": 1642,
+        "h": 143,
+        "text": "Footer Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisions "
+      },
+      {
+        "tag": "FOOTER",
+        "id": "",
+        "cls": "rounded-xl overflow-hidden border border-gray-100",
+        "pos": "",
+        "layout": "",
+        "x": 32,
+        "y": 667,
+        "w": 1642,
+        "h": 143,
+        "text": "Footer Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisions "
+      }
+    ],
+    "sidebars": [
+      {
+        "tag": "ASIDE",
+        "id": "",
+        "cls": "flex-shrink-0 flex flex-col gap-4",
+        "pos": "",
+        "layout": "",
+        "x": 301,
+        "y": 175,
+        "w": 270,
+        "h": 366,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12 w-full",
+        "pos": "sidebar",
+        "layout": "site-nav",
+        "x": 301,
+        "y": 175,
+        "w": 270,
+        "h": 366,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      }
+    ],
+    "sections": [
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "header",
+        "layout": "main-header",
+        "x": 301,
+        "y": 48,
+        "w": 1104,
+        "h": 86,
+        "text": "Applicant. Logout"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12 w-full",
+        "pos": "sidebar",
+        "layout": "site-nav",
+        "x": 301,
+        "y": 175,
+        "w": 270,
+        "h": 366,
+        "text": "Navigation Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisi"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "main",
+        "layout": "table",
+        "x": 595,
+        "y": 175,
+        "w": 810,
+        "h": 163,
+        "text": "Document Detail FILE_CONENT FILE_CONTENT DOCUMENT_TYPE UPLOAD_DATE VALID Proof_of_income.p"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "main",
+        "layout": "table",
+        "x": 595,
+        "y": 354,
+        "w": 810,
+        "h": 229,
+        "text": "Edit Document FILE_CONENT FILE_CONTENT DOCUMENT_TYPE UPLOAD_DATE VALID Proof_of_income.pdf"
+      },
+      {
+        "tag": "DIV",
+        "id": "",
+        "cls": "col-span-12",
+        "pos": "footer",
+        "layout": "site-footer",
+        "x": 32,
+        "y": 667,
+        "w": 1642,
+        "h": 143,
+        "text": "Footer Applicant Document Loanapplications Loanapplication Applicationnotes Loandecisions "
+      }
+    ]
+  }
+}

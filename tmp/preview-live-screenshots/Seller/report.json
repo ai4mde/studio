@@ -1,0 +1,179 @@
+{
+  "metadata": "E:\\projects\\studio\\fixtures\\Bol.com Shopping Platform-export.json",
+  "interface": "Seller",
+  "out_dir": "tmp\\preview-live-screenshots\\Seller",
+  "pages": [
+    {
+      "page": "Tasks",
+      "preview_html": "tmp\\preview-live-screenshots\\Seller\\Tasks.preview.html",
+      "live_html": "tmp\\preview-live-screenshots\\Seller\\Tasks.live.html",
+      "section_order_match": true,
+      "preview_sections": [
+        {
+          "id": "task-home-activity-start",
+          "name": "Processes you can start",
+          "position": "main",
+          "layout": "activity_start"
+        },
+        {
+          "id": "task-home-activity-tasks",
+          "name": "Tasks to complete",
+          "position": "main",
+          "layout": "activity_tasks"
+        }
+      ],
+      "live_sections": [
+        {
+          "id": "task-home-activity-start",
+          "name": "Processes you can start",
+          "position": "main",
+          "layout": "activity_start"
+        },
+        {
+          "id": "task-home-activity-tasks",
+          "name": "Tasks to complete",
+          "position": "main",
+          "layout": "activity_tasks"
+        }
+      ],
+      "preview_unsupported": [],
+      "live_unsupported": [],
+      "screenshot": {
+        "skipped": true,
+        "reason": "playwright unavailable: No module named 'playwright'"
+      }
+    },
+    {
+      "page": "Seller_Dashboard",
+      "preview_html": "tmp\\preview-live-screenshots\\Seller\\Seller_Dashboard.preview.html",
+      "live_html": "tmp\\preview-live-screenshots\\Seller\\Seller_Dashboard.live.html",
+      "section_order_match": true,
+      "preview_sections": [
+        {
+          "id": "47153a44-9e76-4a7f-b40f-f50855be98dc",
+          "name": "Sales Overview",
+          "position": "main",
+          "layout": "card"
+        },
+        {
+          "id": "20ca805c-a97d-4050-a475-998b6a676901",
+          "name": "My Products",
+          "position": "main",
+          "layout": "table"
+        },
+        {
+          "id": "48740b6c-0a37-44e2-9c7d-f730286ffb67",
+          "name": "Incoming Orders",
+          "position": "main",
+          "layout": "table"
+        }
+      ],
+      "live_sections": [
+        {
+          "id": "47153a44-9e76-4a7f-b40f-f50855be98dc",
+          "name": "Sales Overview",
+          "position": "main",
+          "layout": "card"
+        },
+        {
+          "id": "20ca805c-a97d-4050-a475-998b6a676901",
+          "name": "My Products",
+          "position": "main",
+          "layout": "table"
+        },
+        {
+          "id": "48740b6c-0a37-44e2-9c7d-f730286ffb67",
+          "name": "Incoming Orders",
+          "position": "main",
+          "layout": "table"
+        }
+      ],
+      "preview_unsupported": [],
+      "live_unsupported": [],
+      "screenshot": {
+        "skipped": true,
+        "reason": "playwright unavailable: No module named 'playwright'"
+      }
+    },
+    {
+      "page": "Product_Management",
+      "preview_html": "tmp\\preview-live-screenshots\\Seller\\Product_Management.preview.html",
+      "live_html": "tmp\\preview-live-screenshots\\Seller\\Product_Management.live.html",
+      "section_order_match": true,
+      "preview_sections": [
+        {
+          "id": "d64bb41d-55d0-4657-aaff-b101c9270eef",
+          "name": "Edit Product",
+          "position": "main",
+          "layout": "detail"
+        }
+      ],
+      "live_sections": [
+        {
+          "id": "d64bb41d-55d0-4657-aaff-b101c9270eef",
+          "name": "Edit Product",
+          "position": "main",
+          "layout": "detail"
+        }
+      ],
+      "preview_unsupported": [],
+      "live_unsupported": [],
+      "screenshot": {
+        "skipped": true,
+        "reason": "playwright unavailable: No module named 'playwright'"
+      }
+    },
+    {
+      "page": "Order_Management",
+      "preview_html": "tmp\\preview-live-screenshots\\Seller\\Order_Management.preview.html",
+      "live_html": "tmp\\preview-live-screenshots\\Seller\\Order_Management.live.html",
+      "section_order_match": true,
+      "preview_sections": [
+        {
+          "id": "acc8c41d-9aa7-4855-81d0-13d659c4f221",
+          "name": "Order Detail",
+          "position": "main",
+          "layout": "detail"
+        },
+        {
+          "id": "22410386-2209-4c48-90bf-a5c78016328d",
+          "name": "Order Items",
+          "position": "main",
+          "layout": "list"
+        },
+        {
+          "id": "f2ee2e16-bf58-4779-adf0-9e2929f53ae6",
+          "name": "activity_action",
+          "position": "main",
+          "layout": "activity_action"
+        }
+      ],
+      "live_sections": [
+        {
+          "id": "acc8c41d-9aa7-4855-81d0-13d659c4f221",
+          "name": "Order Detail",
+          "position": "main",
+          "layout": "detail"
+        },
+        {
+          "id": "22410386-2209-4c48-90bf-a5c78016328d",
+          "name": "Order Items",
+          "position": "main",
+          "layout": "list"
+        },
+        {
+          "id": "f2ee2e16-bf58-4779-adf0-9e2929f53ae6",
+          "name": "activity_action",
+          "position": "main",
+          "layout": "activity_action"
+        }
+      ],
+      "preview_unsupported": [],
+      "live_unsupported": [],
+      "screenshot": {
+        "skipped": true,
+        "reason": "playwright unavailable: No module named 'playwright'"
+      }
+    }
+  ]
+}

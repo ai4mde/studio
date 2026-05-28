@@ -5,7 +5,8 @@
       "Bash(curl -s \"http://api.ai4mde.localhost/\")",
       "Bash(curl -s -X POST \"http://api.ai4mde.localhost/api/v1/auth/token\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin\"}')",
       "Bash(docker exec *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(awk 'NR>=3471 && NR<=4661' e:/projects/studio/api/model/gemini-make-agent/app/tools.py)"
     ]
   }
 }
