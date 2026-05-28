@@ -21,6 +21,7 @@ services:
   postgres:
     image: postgres:17
     env_file: config/postgres.env
+    command: postgres -c shared_buffers=64MB -c work_mem=4MB -c maintenance_work_mem=32MB -c max_connections=20
     volumes:
       - pgsql-data:/var/lib/postgresql/data
     ports:

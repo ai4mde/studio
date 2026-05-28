@@ -12,10 +12,12 @@ services:
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
+    mem_limit: 100m
 
   studio-api:
     environment:
       - HOSTNAME=api.ai4mde.${ORACLE_IP}.nip.io
+    mem_limit: 256m
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.studio-api.rule=Host(`api.ai4mde.${ORACLE_IP}.nip.io`)"
@@ -23,6 +25,7 @@ services:
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
 
   studio-prototypes:
+    mem_limit: 128m
     environment:
       - HOSTNAME=prototypes-api.ai4mde.${ORACLE_IP}.nip.io
       - RUNNING_PROTOTYPE_HOST=prototype.ai4mde.${ORACLE_IP}.nip.io
@@ -38,6 +41,7 @@ services:
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
 
   gemini-make-agent:
+    mem_limit: 256m
     environment:
       - ALLOW_ORIGINS=http://ai4mde.${ORACLE_IP}.nip.io
     labels:
@@ -47,6 +51,7 @@ services:
       - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
 
   studio:
+    mem_limit: 256m
     environment:
       - HOSTNAME=ai4mde.${ORACLE_IP}.nip.io
       - AI4MDE_HOST=api.ai4mde.${ORACLE_IP}.nip.io
