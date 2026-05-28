@@ -1940,7 +1940,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                                             <div style={{ display: 'flex', gap: 6 }}>
                                                 <button
-                                                    onClick={() => setPreviewCandidateIdx(isExpanded ? null : idx)}
+                                                    onClick={() => {
+                                                        if (!isExpanded) trackEvent('candidate_previewed', { candidate_index: idx, interface_id: interfaceId });
+                                                        setPreviewCandidateIdx(isExpanded ? null : idx);
+                                                    }}
                                                     style={{
                                                         flex: 1, padding: '4px 0', borderRadius: 5, fontSize: 11, cursor: 'pointer',
                                                         background: isExpanded ? '#2563eb' : '#f3f4f6',
