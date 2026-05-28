@@ -346,19 +346,36 @@ def seed_generic_models():
             if model in seeded or model.objects.exists():
                 seeded.add(model)
                 continue
+            max_rows = 3
+            for field in model._meta.fields:
+                if field.is_relation and getattr(field, 'remote_field', None) and field.unique:
+                    related_count = field.remote_field.model.objects.count()
+                    if related_count == 0 and not field.null:
+                        max_rows = 0
+                        break
+                    if related_count:
+                        max_rows = min(max_rows, related_count)
+            if max_rows == 0:
+                continue
             rows = []
             blocked = False
-            for row in range(3):
+            for row in range(max_rows):
                 values = {}
                 for field in model._meta.fields:
                     if field.primary_key and field.get_internal_type() in ('AutoField', 'BigAutoField'):
                         continue
                     if field.is_relation and getattr(field, 'remote_field', None):
-                        related = field.remote_field.model.objects.first()
-                        if related is None and not field.null:
+                        related_qs = list(field.remote_field.model.objects.all()[:3])
+                        if not related_qs and not field.null:
                             blocked = True
                             break
-                        values[field.name] = related
+                        if not related_qs:
+                            values[field.name] = None
+                            continue
+                        if field.unique:
+                            values[field.name] = related_qs[row]
+                        else:
+                            values[field.name] = related_qs[row % len(related_qs)]
                         continue
                     value = _generic_value(field, row)
                     if value is not None:
