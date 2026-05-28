@@ -341,6 +341,7 @@ class RegenerateCandidatesPayload(Schema):
     interface_id: str
     system_id: str
     selected_candidate_index: int
+    designer_requirements: str = ""
 
 
 @prototypes.post("/generate_candidates/")
