@@ -1256,6 +1256,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         const designer_requirements = explorePrompt;
         setIsGeneratingCandidates(true);
         setCandidateStatus(`Regenerating 3 candidates from Candidate ${idx + 1}...`);
+        trackEvent('candidates_regenerated', { from_candidate_index: idx, prompt: designer_requirements, interface_id: interfaceId, system_id: systemId });
         setCandidates([]);
         setPreviewCandidateIdx(null);
         try {
