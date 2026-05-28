@@ -119,7 +119,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://" + environ.get("HOSTNAME", "api.ai4mde.localhost"),
     "http://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
     "https://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
-
+    "https://*.trycloudflare.com",
 ]
 CSRF_COOKIE_DOMAIN = '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
 CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
