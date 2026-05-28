@@ -5,6 +5,4 @@ RUN npm install --frozen-lockfile
 ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN apk add --no-cache nginx && mkdir -p /usr/share/nginx/html
 COPY nginx.cloud.conf /etc/nginx/http.d/default.conf
-COPY entrypoint.cloud.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["sh", "-c", "npm run build && cp -r /usr/src/app/dist/* /usr/share/nginx/html/ && exec nginx -g 'daemon off;'"]
