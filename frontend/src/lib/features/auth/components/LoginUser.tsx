@@ -22,6 +22,12 @@ export const LoginUser = () => {
         setLoading(false);
     };
 
+    const onDemoLogin = () => {
+        setLoading(true);
+        login('demo', 'demo');
+        setLoading(false);
+    };
+
     return (
         <form
             onSubmit={onSubmit}
@@ -58,13 +64,25 @@ export const LoginUser = () => {
                             type="button"
                             color="neutral"
                             className="w-full"
-                            onClick={() => {
-                                setPage("register");
-                            }}
+                            onClick={() => setPage("register")}
                         >
                             Register
                         </Button>
                     </div>
+                    <div className="relative flex items-center gap-2 py-1">
+                        <div className="flex-1 border-t border-slate-200" />
+                        <span className="text-xs text-slate-400">or</span>
+                        <div className="flex-1 border-t border-slate-200" />
+                    </div>
+                    <Button
+                        type="button"
+                        variant="outlined"
+                        color="neutral"
+                        className="w-full"
+                        onClick={onDemoLogin}
+                    >
+                        Try Demo — no account needed
+                    </Button>
                 </>
             )}
         </form>

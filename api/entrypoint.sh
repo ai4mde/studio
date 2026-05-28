@@ -23,6 +23,11 @@ else
       --email $DJANGO_SUPERUSER_EMAIL \
       --password $DJANGO_SUPERUSER_PASSWORD
   fi
+  echo "👤 Ensuring demo user"
+  python /usr/src/model/manage.py create_demo_user \
+    --username "${DEMO_USER_USERNAME:-demo}" \
+    --password "${DEMO_USER_PASSWORD:-demo}" \
+    --email "${DEMO_USER_EMAIL:-demo@localhost}"
 fi
 
 exec "$@"
