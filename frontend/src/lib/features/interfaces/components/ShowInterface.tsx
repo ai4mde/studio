@@ -201,13 +201,13 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                         </div>
                     </div>
                     <Tabs>
-                        <TabList>
-                            <Tab>Agent Design</Tab>
+                        <TabList id="tour-tablist">
+                            <Tab id="tour-tab-agent-design">Agent Design</Tab>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
-                            <Tab>Pages</Tab>
+                            <Tab id="tour-tab-pages">Pages</Tab>
                             <Tab>Page Layout</Tab>
-                            <Tab>Section Components</Tab>
+                            <Tab id="tour-tab-sections">Section Components</Tab>
                             <Tab>Styling</Tab>
                             <Tab>Settings</Tab>
                         </TabList>

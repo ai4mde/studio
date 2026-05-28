@@ -1,7 +1,8 @@
 import { authAxios, useAuthStore } from '$auth/state/auth';
 import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2, Wand2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2, Wand2 } from 'lucide-react';
+import { startInterfaceTour } from './useInterfaceTour';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -476,6 +477,31 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
     const [metadataJson, setMetadataJson] = useState('');
     const [metadataError, setMetadataError] = useState('');
+
+    // First-time tour banner
+    const TOUR_SEEN_KEY = 'studio_interface_tour_seen';
+    const [showTourBanner, setShowTourBanner] = useState(false);
+
+    useEffect(() => {
+        if (!localStorage.getItem(TOUR_SEEN_KEY)) {
+            const t = setTimeout(() => setShowTourBanner(true), 800);
+            return () => clearTimeout(t);
+        }
+    }, []);
+
+    const dismissTourBanner = () => {
+        localStorage.setItem(TOUR_SEEN_KEY, '1');
+        setShowTourBanner(false);
+    };
+
+    const startTour = () => {
+        localStorage.setItem(TOUR_SEEN_KEY, '1');
+        setShowTourBanner(false);
+        startInterfaceTour({
+            switchToExplore: () => setDesignMode('explore'),
+            switchToRefine: () => setDesignMode('refine'),
+        });
+    };
 
     // Explore / Refine mode
     const [designMode, setDesignMode] = useState<'explore' | 'refine'>('refine');
@@ -1743,7 +1769,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         }}>
 
             {/* -- LEFT PANEL -- */}
-            <div style={{
+            <div id="tour-left-panel" style={{
                 width: isFullScreen ? 0 : 272,
                 flexShrink: 0,
                 borderRight: isFullScreen ? 'none' : '1px solid #e5e7eb',
@@ -1756,7 +1782,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             }}>
 
                 {/* Explore / Refine mode toggle */}
-                <div style={{ padding: '8px 10px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0, background: '#fff' }}>
+                <div id="tour-mode-toggle" style={{ padding: '8px 10px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 0, background: '#fff' }}>
                     <div style={{ display: 'flex', width: '100%', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db' }}>
                         {(['explore', 'refine'] as const).map(m => (
                             <button key={m} onClick={() => setDesignMode(m)}
@@ -1775,7 +1801,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 {/* EXPLORE PANEL */}
                 {designMode === 'explore' && (
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                        <div style={{ padding: '10px 10px 8px', borderBottom: '1px solid #e5e7eb' }}>
+                        <div id="tour-explore-prompt" style={{ padding: '10px 10px 8px', borderBottom: '1px solid #e5e7eb' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
                                 <Typography level="title-sm" sx={{ fontSize: 13 }}>Generate 3 Candidates</Typography>
                                 <button
@@ -1843,6 +1869,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 </p>
                             )}
                             <Button
+                                id="tour-generate-btn"
                                 size="sm" fullWidth
                                 onClick={handleGenerateCandidates}
                                 loading={isGeneratingCandidates}
@@ -1853,7 +1880,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                         </div>
 
                         {/* Candidate cards */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                        <div id="tour-candidate-area" style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
                             {candidates.length === 0 && !isGeneratingCandidates && (
                                 <p style={{ fontSize: 12, color: '#9ca3af', textAlign: 'center', marginTop: 24 }}>
                                     No candidates yet. Enter a prompt and generate.
@@ -1941,7 +1968,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 {designMode === 'refine' && <>
 
                 {/* Section list */}
-                <div style={{ padding: '10px 10px 6px', borderBottom: '1px solid #e5e7eb' }}>
+                <div id="tour-sections-panel" style={{ padding: '10px 10px 6px', borderBottom: '1px solid #e5e7eb' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 8 }}>
                         <Typography level="title-sm" sx={{ fontSize: 13 }}>Sections</Typography>
                         <div style={{ display: 'flex', gap: 4 }}>
@@ -2031,7 +2058,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 </div>
 
                 {/* Properties panel */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
+                <div id="tour-section-inspector" style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
                     {selectedRegion ? (
                         <>
                             <button
@@ -3237,57 +3264,40 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                         onClick={() => setIsAIExpanded(v => !v)}
                     >
                         <Typography level="title-sm" sx={{ fontSize: 13 }}>AI Generate</Typography>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Tooltip title="Open richer prompt examples" variant="soft">
-                                <span
-                                    style={{ fontSize: 11, color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2 }}
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        openPromptGuide('refine');
-                                    }}
-                                >
-                                    <Info size={12} /> Prompting Guide
-                                </span>
-                            </Tooltip>
-                            <span style={{ fontSize: 10, color: '#9ca3af' }}>{isAIExpanded ? '▲' : '▼'}</span>
-                        </div>
+                        <span style={{ fontSize: 10, color: '#9ca3af' }}>{isAIExpanded ? '▲' : '▼'}</span>
                     </div>
 
                     {isAIExpanded && (
                         <div style={{ padding: '0 12px 12px' }}>
-                            {/* Example Prompt Chips */}
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 10 }}>
-                                {[
-                                    'Dark mode with emerald accents',
-                                    'Convert to multi-step Wizard',
-                                    'Modern style with large border radius',
-                                    'Split layout: Details left, List right',
-                                    'Compact density and flat card style',
-                                    'Body text 18px',
-                                    'Bigger hero title',
-                                    'Teal accent right sidebar width 4',
-                                    'Navy header beige cards gold buttons',
-                                ].map(suggestion => (
-                                    <button
-                                        key={suggestion}
-                                        onClick={() => setCurrentPrompt(suggestion)}
-                                        style={{
-                                            fontSize: 10, padding: '2px 8px', borderRadius: 12,
-                                            background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe',
-                                            cursor: 'pointer', whiteSpace: 'nowrap'
-                                        }}
-                                    >
-                                        {suggestion}
-                                    </button>
-                                ))}
-                            </div>
+                            {/* Width chip for the first available main section */}
+                            {(() => {
+                                const mainSection = selectedSection
+                                    || (sections as any[]).find((s: any) => !s.position || s.position === 'main');
+                                const compName = mainSection?.component || mainSection?.layout || null;
+                                if (!compName) return null;
+                                const suggestion = `Change width of ${compName} to 1/3`;
+                                return (
+                                    <div style={{ marginBottom: 10 }}>
+                                        <button
+                                            onClick={() => setCurrentPrompt(suggestion)}
+                                            style={{
+                                                fontSize: 10, padding: '2px 8px', borderRadius: 12,
+                                                background: '#eff6ff', color: '#1d4ed8', border: '1px solid #dbeafe',
+                                                cursor: 'pointer', whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {suggestion}
+                                        </button>
+                                    </div>
+                                );
+                            })()}
 
                             {agentStatus && (
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 6px', background: '#f9fafb', padding: '4px 8px', borderRadius: 4 }}>
                                     {agentStatus}
                                 </p>
                             )}
-                            <div style={{ display: 'flex', gap: 6 }}>
+                            <div id="tour-prompt-panel" style={{ display: 'flex', gap: 6 }}>
                                 <input
                                     type="text"
                                     placeholder="Describe a design change..."
@@ -3309,12 +3319,12 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             </div>
 
             {/* -- RIGHT PANEL (preview) -- */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div id="tour-preview-area" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
                 {/* Toolbar */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderBottom: '1px solid #e5e7eb', background: '#fff', flexWrap: 'wrap' }}>
                     {/* Design / Live toggle */}
-                    <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', marginRight: 4 }}>
+                    <div id="tour-design-live-toggle" style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid #d1d5db', marginRight: 4 }}>
                         {(['design', 'live'] as const).map(mode => (
                             <button key={mode} onClick={() => mode === 'live' ? checkAndSwitchLive() : setPreviewMode(mode)}
                                 style={{
@@ -3326,6 +3336,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             </button>
                         ))}
                     </div>
+                    <span id="tour-page-tabs" style={{ display: 'contents' }}>
                     {previewMode === 'design' && (visiblePages as any[]).map((p: any, idx: number) => (
                         <button key={idx} onClick={() => {
                             setPreviewPageIndex(idx);
@@ -3358,6 +3369,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             )}
                         </button>
                     ))}
+                    </span>
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {previewMode === 'design' && isRefreshing && <Loader2 size={14} style={{ color: '#9ca3af', animation: 'spin 1s linear infinite' }} />}
 
@@ -3385,7 +3397,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <RefreshCw size={12} />Refresh
                             </button>
                         )}
-                        <button onClick={handleMapUml} disabled={isMapping || !interfaceId}
+                        <button id="tour-map-uml-btn" onClick={handleMapUml} disabled={isMapping || !interfaceId}
                             title="Map UML diagrams to interface pages and sections via AI"
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
@@ -3444,6 +3456,17 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
                             }}>
                             {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
+                        </button>
+                        <button
+                            onClick={() => startInterfaceTour({ switchToExplore: () => setDesignMode('explore'), switchToRefine: () => setDesignMode('refine') })}
+                            title="Start guided tour"
+                            style={{
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                width: 28, height: 28, borderRadius: 6,
+                                border: '1px solid #d1d5db', background: '#fff',
+                                color: '#6b7280', cursor: 'pointer',
+                            }}>
+                            <HelpCircle size={14} />
                         </button>
                     </div>
                 </div>
@@ -3639,6 +3662,46 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                 </div>
             </ModalDialog>
         </Modal>
+        {/* First-time tour banner */}
+        {showTourBanner && (
+            <div style={{
+                position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)',
+                zIndex: 9999,
+                display: 'flex', alignItems: 'center', gap: 12,
+                background: '#1e293b', color: '#f1f5f9',
+                padding: '12px 20px', borderRadius: 12,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.22)',
+                fontSize: 13, fontWeight: 500,
+                animation: 'slideUp 0.35s cubic-bezier(0.16,1,0.3,1)',
+            }}>
+                <HelpCircle size={16} style={{ color: '#7dd3fc', flexShrink: 0 }} />
+                <span>First time here? Take a 30-second tour of the interface editor.</span>
+                <button
+                    onClick={startTour}
+                    style={{
+                        padding: '5px 14px', borderRadius: 8, border: 'none',
+                        background: '#2563eb', color: '#fff', fontSize: 12,
+                        fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}>
+                    Start Tour
+                </button>
+                <button
+                    onClick={dismissTourBanner}
+                    style={{
+                        padding: '5px 12px', borderRadius: 8,
+                        border: '1px solid #475569', background: 'transparent',
+                        color: '#94a3b8', fontSize: 12, cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}>
+                    Skip
+                </button>
+            </div>
+        )}
+        <style>{`
+            @keyframes slideUp {
+                from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+                to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+        `}</style>
         </>
     );
 };
