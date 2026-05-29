@@ -4245,7 +4245,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
                 "max_output_tokens": 8192,
             },
         )
-        print(f"[llm_generate_3_candidates] raw response:\n{response.text[:4000]}", flush=True)
+        print(f"[llm_generate_3_candidates] raw response:\n{response.text}", flush=True)
         result = json.loads(response.text)
         # LLM sometimes returns the array directly instead of {"candidates": [...]}
         if isinstance(result, list):
