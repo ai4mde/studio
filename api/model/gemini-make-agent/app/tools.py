@@ -1213,6 +1213,22 @@ def _normalize_activity_action_sections(pages: list, sections: list) -> list:
             if style.get("variant") in {"button", "link", "fab", "wizard_next", "auto"}: style.pop("variant", None)
             section["style"] = style; continue
         section["type"] = "activity_action"; section["layout"] = "activity_action"; section["primary_model"] = ""; section["class"] = ""; section["attributes"] = []; section["operations"] = {"create": False, "update": False, "delete": False}; section.setdefault("label", section.get("name") or "Continue"); workflow = section.get("workflow") or {}; workflow.setdefault("action", section.get("workflow_action") or "complete"); section["workflow"] = workflow
+    # Deduplicate: per activity page, keep only one activity_action (prefer complete/complete_then_page)
+    section_map = {str(s.get("id", "")): s for s in sections}
+    to_remove: set = set()
+    for page in pages:
+        page_type = page.get("type", {}); page_type_value = page_type.get("value") if isinstance(page_type, dict) else page_type
+        if page_type_value != "activity": continue
+        ref_ids = [str(r.get("value") if isinstance(r, dict) else r) for r in (page.get("sections") or [])]
+        action_ids = [sid for sid in ref_ids if (section_map.get(sid) or {}).get("layout") == "activity_action"]
+        if len(action_ids) <= 1: continue
+        # Sort: complete/complete_then_page first
+        action_ids.sort(key=lambda sid: 0 if (section_map.get(sid) or {}).get("workflow", {}).get("action") in {"complete", "complete_then_page"} else 1)
+        extras = set(action_ids[1:])
+        to_remove |= extras
+        page["sections"] = [r for r in (page.get("sections") or []) if str(r.get("value") if isinstance(r, dict) else r) not in extras]
+    if to_remove:
+        sections = [s for s in sections if str(s.get("id", "")) not in to_remove]
     return sections
 
 def _normalize_chrome_sections(sections: list) -> list:
