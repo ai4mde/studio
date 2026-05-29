@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuthStore } from "$auth/state/auth";
+import { authAxios, useAuthStore } from "$auth/state/auth";
 import {
     Button,
     CircularProgress,
@@ -8,6 +8,7 @@ import {
     FormLabel,
     Input,
 } from "@mui/joy";
+import { decodeJwt } from "jose";
 import { useLoginStore } from "$auth/state/login";
 
 export const LoginUser = () => {
@@ -22,9 +23,21 @@ export const LoginUser = () => {
         setLoading(false);
     };
 
-    const onDemoLogin = () => {
+    const onDemoLogin = async () => {
         setLoading(true);
-        login('demo', 'demo');
+        try {
+            const { data } = await authAxios.post("v1/auth/demo");
+            authAxios.defaults.headers.common = { Authorization: `Bearer ${data.token}` };
+            useAuthStore.setState({
+                isAuthenticated: true,
+                bearerToken: data.token,
+                expires: Date.now() + 1000 * 3600,
+                user: { id: data.id, email: data.email, username: data.username },
+                tokenData: decodeJwt(data.token),
+            });
+        } catch (e) {
+            console.error(e);
+        }
         setLoading(false);
     };
 

@@ -35,6 +35,7 @@ create_new_django_project() {
 update_django_project_settings() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
     echo "ALLOWED_HOSTS += ['*']" >> settings.py
+    echo "CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://ai4mde.localhost', 'https://*.trycloudflare.com', 'https://*.aivorab.xyz']" >> settings.py
     echo "MIDDLEWARE = [m for m in MIDDLEWARE if 'XFrameOptionsMiddleware' not in m]" >> settings.py
     echo "from django.urls import include" >> urls.py
     

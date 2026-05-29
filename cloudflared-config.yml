@@ -1,0 +1,20 @@
+tunnel: 82854398-0397-4f91-b643-0e50e965eb1c
+credentials-file: C:\Users\yuanr\.cloudflared\82854398-0397-4f91-b643-0e50e965eb1c.json
+
+ingress:
+  - hostname: api.aivorab.xyz
+    service: http://localhost:8000
+    originRequest:
+      httpHostHeader: api.ai4mde.localhost
+
+  - hostname: prototype.aivorab.xyz
+    service: http://localhost:80
+    originRequest:
+      httpHostHeader: prototype.ai4mde.localhost
+
+  - hostname: ai4mde.aivorab.xyz
+    service: http://localhost:80
+    originRequest:
+      httpHostHeader: ai4mde.localhost
+
+  - service: http_status:404

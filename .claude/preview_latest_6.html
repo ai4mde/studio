@@ -76,22 +76,22 @@ table{border-collapse:collapse;border-spacing:0}
       --text-label-weight:  500;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Page & Region Colors éˆ¹â‚¬éˆ¹â‚¬ */
-      --accent:               #7c3aed;
-      --accent-secondary:     #60a5fa;
+      --accent:               #2563eb;
+      --accent-secondary:     #2563eb;
       --page-bg:              #f9fafb;
       --page-text:            #111827;
       --text-muted:           #6b7280;
       --text-subtle:          #9ca3af;
-      --region-header-bg:     #7c3aed;
+      --region-header-bg:     #2563eb;
       --region-header-text:   #ffffff;
       --region-main-bg:       #ffffff;
       --region-main-bg-elevated: #ffffff;
       --region-main-bg-sunken: #f9fafb;
       --region-sidebar-bg:    #ffffff;
-      --region-footer-bg:     #7c3aed;
-      --region-footer-text:   #111827;
+      --region-footer-bg:     #2563eb;
+      --region-footer-text:   #ffffff;
       --border-color:         #e5e7eb;
-      --border-strong:        #e5e7eb;
+      --border-strong:        #d1d5db;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Shadows éˆ¹â‚¬éˆ¹â‚¬ */
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -99,35 +99,35 @@ table{border-collapse:collapse;border-spacing:0}
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.10);
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Card éˆ¹â‚¬éˆ¹â‚¬ */
-      --card-bg:     #ffffff;
-      --card-border: #e5e7eb;
-      --card-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --card-bg:     var(--region-main-bg);
+      --card-border: var(--border-color);
+      --card-shadow: var(--shadow-sm);
       --card-text:   #111827;
       --card-muted:  #6b7280;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
-      --button-primary-bg:      #7c3aed;
+      --button-primary-bg:      #2563eb;
       --button-primary-text:    #ffffff;
-      --button-primary-border:  #7c3aed;
-      --button-secondary-bg:    #ffffff;
-      --button-secondary-text:  #111827;
-      --button-secondary-border:#e5e7eb;
-      --button-ghost-text:      #2563eb;
+      --button-primary-border:  #2563eb;
+      --button-secondary-bg:    var(--region-main-bg);
+      --button-secondary-text:  var(--page-text);
+      --button-secondary-border:var(--border-strong);
+      --button-ghost-text:      var(--accent);
       --button-danger-bg:       #dc2626;
       --button-danger-text:     #ffffff;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
-      --input-bg:           #ffffff;
-      --input-border:       #e5e7eb;
-      --input-border-focus: #7c3aed;
-      --input-text:         #111827;
-      --input-placeholder:  #9ca3af;
+      --input-bg:           var(--region-main-bg);
+      --input-border:       var(--border-color);
+      --input-border-focus: #2563eb;
+      --input-text:         var(--page-text);
+      --input-placeholder:  var(--text-subtle);
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Table éˆ¹â‚¬éˆ¹â‚¬ */
-      --table-header-bg:   #f9fafb;
-      --table-header-text: #6b7280;
-      --table-row-hover:   #f9fafb;
-      --table-border:      #e5e7eb;
+      --table-header-bg:   var(--region-main-bg-sunken);
+      --table-header-text: var(--text-muted);
+      --table-row-hover:   var(--region-main-bg-sunken);
+      --table-border:      var(--border-color);
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Semantic Badge Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --badge-success-bg:  #16a34a;
@@ -136,8 +136,8 @@ table{border-collapse:collapse;border-spacing:0}
       --badge-error-text:  #ffffff;
       --badge-warning-bg:  #d97706;
       --badge-warning-text:#ffffff;
-      --badge-neutral-bg:  #f9fafb;
-      --badge-neutral-text:#6b7280;
+      --badge-neutral-bg:  var(--region-main-bg-sunken);
+      --badge-neutral-text:var(--text-muted);
     }
 
     body {
@@ -298,37 +298,6 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<header class="bg-white border-b border-gray-200 shadow-sm">
-  <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-4">
-    <a href="#" class="inline-flex items-center gap-3 shrink-0 min-w-0">
-      <span class="text-2xl font-black truncate" style="color:#7c3aed;font-family:'Georgia',serif;">Customer.</span>
-    </a>
-    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:#7c3aed;">
-      <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
-      <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
-        <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </button>
-    </form>
-    <a href="#" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
-  </div>
-</header>
-<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
-  <div class="max-w-6xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
-    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
-    <a href="#" data-nav-page="products" onclick="window.parent.postMessage({type:'navigate-page',page:'products'},'*');return false;" class="hover:text-gray-900 transition-colors">Products</a>
-    <a href="#" data-nav-page="product_detail" onclick="window.parent.postMessage({type:'navigate-page',page:'product_detail'},'*');return false;" class="hover:text-gray-900 transition-colors">Product Detail</a>
-    <a href="#" data-nav-page="product" onclick="window.parent.postMessage({type:'navigate-page',page:'product'},'*');return false;" class="hover:text-gray-900 transition-colors">Product</a>
-    <a href="#" data-nav-page="orders" onclick="window.parent.postMessage({type:'navigate-page',page:'orders'},'*');return false;" class="hover:text-gray-900 transition-colors">Orders</a>
-    <a href="#" data-nav-page="manage_account" onclick="window.parent.postMessage({type:'navigate-page',page:'manage_account'},'*');return false;" class="hover:text-gray-900 transition-colors">Manage Account</a>
-    <a href="#" data-nav-page="categories" onclick="window.parent.postMessage({type:'navigate-page',page:'categories'},'*');return false;" class="hover:text-gray-900 transition-colors">Categories</a>
-    <a href="#" data-nav-page="sellers" onclick="window.parent.postMessage({type:'navigate-page',page:'sellers'},'*');return false;" class="hover:text-gray-900 transition-colors">Sellers</a>
-    <a href="#" data-nav-page="orderlines" onclick="window.parent.postMessage({type:'navigate-page',page:'orderlines'},'*');return false;" class="hover:text-gray-900 transition-colors">Orderlines</a>
-    <a href="#" data-nav-page="payments" onclick="window.parent.postMessage({type:'navigate-page',page:'payments'},'*');return false;" class="hover:text-gray-900 transition-colors">Payments</a>
-    <a href="#" data-nav-page="address" onclick="window.parent.postMessage({type:'navigate-page',page:'address'},'*');return false;" class="hover:text-gray-900 transition-colors">Address</a>
-    <a href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;" class="hover:text-gray-900 transition-colors">Tasks</a>
-  </div>
-</nav>
-
 
 <main class="py-6 px-6 max-w-6xl mx-auto" style="background-color:var(--page-bg);">
 
@@ -354,6 +323,150 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 <div id="page-sections-grid" class="grid grid-cols-12 gap-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_page_nav" data-section-name="Navigation" data-position="header" data-layout="site-nav" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
+
+  
+
+  
+
+
+
+
+
+
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
+    <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Products
+      </span>
+      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Products</a>
+      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Product Detail</a>
+      <a href="{% url 'customer:render_customer_product' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Product</a>
+      <a href="{% url 'customer:render_customer_orders' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Orders</a>
+      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Manage Account</a>
+      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors border-b-2 font-bold"
+        style="border-color:#2563eb;color:#2563eb">Categories</a>
+      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Sellers</a>
+      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Orderlines</a>
+      <a href="{% url 'customer:render_customer_payments' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Payments</a>
+      <a href="{% url 'customer:render_customer_address' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Address</a>
+      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+        style="">Tasks</a>
+    </div>
+  </nav>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <header class="px-5 py-3 flex items-center gap-4">
+      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#2563eb;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</a>
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:#2563eb;">
+        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
+        <button type="submit" class="px-4 py-3" style="background-color:#2563eb;">
+          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </form>
+      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
+        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
+        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+      </div>
+    </header>
+  </div>
+
+
+
+
+</div>
 
 
 
@@ -475,12 +588,76 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">Footer</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+      <span>Products</span>
+      <span>Product Detail</span>
+      <span>Product</span>
+      <span>Orders</span>
+      <span>Manage Account</span>
+      <span>Categories</span>
+      <span>Sellers</span>
+      <span>Orderlines</span>
+      <span>Payments</span>
+      <span>Address</span>
+    </div>
+  </div>
+
+
+
+
+</div>
 </div>
 
 
 <script>
 (function() {
-  var accentHex = '#7c3aed';
+  var accentHex = '#2563eb';
   var grid = document.querySelector('main > .grid');
   if (!grid) return;
   var secs = Array.from(grid.children);

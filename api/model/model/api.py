@@ -1,10 +1,17 @@
+import secrets
+import uuid
+from datetime import datetime, timedelta, timezone
+
 from diagram.api import diagram_router
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from metadata.api import metadata_router
-from prose.api import prose_router
 from generator.api import generator_router
 from analytics.api import analytics_router
+from jwt import encode
+from metadata.api import metadata_router
 from ninja import NinjaAPI, Schema
+from prose.api import prose_router
 
 from model.auth import auth, create_token
 
@@ -59,6 +66,42 @@ def get_token(request, body: GetTokenSchema, response: HttpResponse):
             "username": user.username,
         }
     return 403, {"message": "User not found."}
+
+
+@api.post(
+    "/auth/demo",
+    auth=None,
+    tags=["authentication"],
+    response={200: TokenResponseSchema},
+)
+def create_demo_session(request, response: HttpResponse):
+    User = get_user_model()
+    username = f"demo_{uuid.uuid4().hex[:8]}"
+    password = secrets.token_urlsafe(16)
+    user = User.objects.create_user(
+        username=username,
+        email=f"{username}@demo.localhost",
+        password=password,
+        is_staff=False,
+        is_superuser=False,
+    )
+    token = encode(
+        {
+            "exp": datetime.now(tz=timezone.utc) + timedelta(days=1),
+            "nbf": datetime.now(tz=timezone.utc),
+            "iss": "urn:ai4mdestudio",
+            "iat": datetime.now(tz=timezone.utc),
+            "uid": user.id,
+        },
+        settings.SECRET_KEY,
+    )
+    response.set_cookie("key", token, httponly=True)
+    return {
+        "token": token,
+        "id": str(user.id),
+        "email": user.email,
+        "username": user.username,
+    }
 
 
 @api.post("/auth/logout", tags=["authentication"])
