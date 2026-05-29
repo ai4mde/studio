@@ -1155,6 +1155,12 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             if (section_map.get(sid) or {}).get("type") == "activity_action"
             or (section_map.get(sid) or {}).get("layout") == "activity_action"
         ]
+        # Prefer the action that advances the workflow (complete/complete_then_page) over navigate
+        def _action_priority(sid):
+            wf_action = ((section_map.get(sid) or {}).get("workflow") or {}).get("action", "")
+            return 0 if wf_action in {"complete", "complete_then_page"} else 1
+        if existing_action_ids:
+            existing_action_ids = sorted(existing_action_ids, key=_action_priority)
         button_id = existing_action_ids[0] if existing_action_ids else f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
         if not existing_action_ids:
             if button_id not in section_ids:
@@ -1181,8 +1187,12 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
                 refs.append({"value": button_id})
             page["sections"] = refs
         else:
-            for extra_action_id in existing_action_ids[1:]:
+            extra_ids = set(existing_action_ids[1:])
+            for extra_action_id in extra_ids:
                 refs = [ref for ref in refs if str(ref.get("value") if isinstance(ref, dict) else ref) != extra_action_id]
+            sections = [s for s in sections if str(s.get("id", "")) not in extra_ids]
+            section_map = {k: v for k, v in section_map.items() if k not in extra_ids}
+            section_ids -= extra_ids
             page["sections"] = refs
     return pages, sections
 
