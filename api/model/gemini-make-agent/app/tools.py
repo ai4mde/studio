@@ -4369,6 +4369,89 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         return None
 
 
+def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requirements: str, base_styling: dict) -> list | None:
+    """Like _llm_generate_3_candidates but anchored to the selected candidate's existing layout and styling."""
+    try:
+        import google.genai as _genai
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
+        client = _genai.Client(api_key=api_key)
+
+        # Include current layout as context so LLM knows what to preserve vs. what to vary
+        section_skeleton = [
+            {
+                "id": s.get("id", ""),
+                "name": s.get("name", ""),
+                "primary_model": s.get("primary_model", ""),
+                "role": s.get("role", ""),
+                "current_layout": s.get("layout", ""),
+                "current_component": s.get("component", ""),
+                "current_position": s.get("position", ""),
+            }
+            for s in sections if s.get("id")
+        ]
+        page_skeleton = [
+            {
+                "id": p.get("id", ""),
+                "name": p.get("name", ""),
+                "current_main_width": (p.get("layout") or {}).get("main_width", "contained"),
+                "current_header_width": (p.get("layout") or {}).get("header_width", "contained"),
+            }
+            for p in pages if p.get("id")
+        ]
+
+        base_ctx = ", ".join(
+            f"{k}={v}" for k, v in {
+                "fontFamily": base_styling.get("fontFamily", "inter"),
+                "textSize": base_styling.get("textSize", "md"),
+                "accentColor": base_styling.get("accentColor", "#2563eb"),
+                "backgroundColor": base_styling.get("backgroundColor", "#f9fafb"),
+                "textColor": base_styling.get("textColor", "#111827"),
+                "radius": base_styling.get("radius", 8),
+                "buttonStyle": base_styling.get("buttonStyle", "solid"),
+                "cardHover": base_styling.get("cardHover", "none"),
+            }.items()
+        )
+
+        directions_block = "\n\n".join(
+            _build_candidate_direction_prompt(rules, designer_requirements, i)
+            for i, rules in enumerate(_CANDIDATE_HARD_RULES)
+        )
+
+        user_prompt_text = (
+            f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
+            f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
+            f"BASE CANDIDATE STYLING (inherit these unless designer requirements override): {base_ctx}\n"
+            f"DESIGNER REQUIREMENTS: {designer_requirements or '(refine and diversify the base candidate)'}\n\n"
+            f"{directions_block}\n\n"
+            "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
+            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
+            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=user_prompt_text,
+            config={
+                "system_instruction": f"You are a UI designer refining interface layout candidates from a selected base design. Follow the MANDATORY rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "response_mime_type": "application/json",
+                "max_output_tokens": 8192,
+            },
+        )
+        result = json.loads(response.text)
+        if isinstance(result, list):
+            candidates = result
+        else:
+            candidates = result.get("candidates") or []
+        if len(candidates) < 3:
+            return None
+        return candidates[:3]
+    except Exception as e:
+        import traceback
+        print(f"[llm_regenerate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
+        return None
+
+
 _COLLECTION_LAYOUTS = {"card", "table", "gallery", "list"}
 
 def _allowed_layout(role: str, base_layout: str, proposed: str) -> str:
@@ -4613,48 +4696,78 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             _expand_design_tokens(shared_tokens)
         else:
             shared_tokens = raw_base_tokens
-        base_styling = {**dict(base.get("styling") or {}), **_prompt_styling_overrides(designer_requirements)}
+        base_styling_raw = dict(base.get("styling") or {})
+        base_styling = {**base_styling_raw, **_prompt_styling_overrides(designer_requirements)}
+
+        # LLM-first: feed selected candidate's styling as context, apply designer requirements on top
+        llm_candidates = _llm_regenerate_3_candidates(pages, sections, designer_requirements, base_styling_raw)
+
         results = []
         for index in range(3):
-            layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
-            # Merge LLM-extracted layout spec — overrides string-matching defaults with specific values
-            if intent_layout:
-                _nav = intent_layout.get("nav")
-                if _nav == "sidebar-left":
-                    layout_intent.update({"nav": "sidebar-left", "sidebar_side": "left"})
-                elif _nav == "sidebar-right":
-                    layout_intent.update({"nav": "sidebar-right", "sidebar_side": "right"})
-                elif _nav == "top":
-                    layout_intent["nav"] = "top"
-                if intent_layout.get("data_display"):
-                    layout_intent["data_layout"] = intent_layout["data_display"]
-                    layout_intent["forced_data_layout"] = intent_layout["data_display"]
-                if intent_layout.get("density"):
-                    layout_intent["density"] = intent_layout["density"]
-                if intent_layout.get("full_width") is True:
-                    layout_intent.update({"main_width": "full", "header_width": "full"})
-            layout_intent = _merge_layout_intent(layout_intent, intent_layout)
-            if layout_change_requested:
-                variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
-                variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, designer_requirements)
-                variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, designer_requirements)
+            if llm_candidates and index < len(llm_candidates):
+                llm_cand = llm_candidates[index]
+                variant_pages, variant_sections = _merge_llm_candidate(pages, sections, llm_cand)
+                variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+
+                llm_styling = llm_cand.get("styling") or {}
+                if color_change_requested and intent_colors:
+                    tokens = _apply_intent_colors_to_tokens(copy.deepcopy(raw_base_tokens), intent_colors)
+                    _expand_design_tokens(tokens)
+                    tokens["design.variant_index"] = str(index)
+                else:
+                    tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, designer_requirements, index)
+
+                styling = dict(base_styling or {})
+                for key in ("fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider", "pageMaxWidth", "accentColor", "backgroundColor", "textColor"):
+                    if llm_styling.get(key) is not None:
+                        styling[key] = llm_styling[key]
+                styling["variantIndex"] = index
+                styling["variantName"] = llm_cand.get("name") or _CANDIDATE_HARD_RULES[index]["name"]
+                variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"
+                variation_strategy = llm_cand.get("name") or _CANDIDATE_HARD_RULES[index]["name"]
             else:
-                variant_pages = copy.deepcopy(pages)
-                variant_sections = copy.deepcopy(sections)
-            variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
-            variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
-            tokens = copy.deepcopy(shared_tokens)
-            tokens["design.variant_index"] = str(index)
-            _expand_design_tokens(tokens)
-            styling = dict(base_styling or {})
-            styling["variantIndex"] = index
-            styling["variantName"] = layout_intent.get("name") or ("Selected Refinement", "Selected Table", "Selected Showcase")[index]
-            styling["layoutIntent"] = layout_intent
+                # Rule-based fallback
+                layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
+                if intent_layout:
+                    _nav = intent_layout.get("nav")
+                    if _nav == "sidebar-left":
+                        layout_intent.update({"nav": "sidebar-left", "sidebar_side": "left"})
+                    elif _nav == "sidebar-right":
+                        layout_intent.update({"nav": "sidebar-right", "sidebar_side": "right"})
+                    elif _nav == "top":
+                        layout_intent["nav"] = "top"
+                    if intent_layout.get("data_display"):
+                        layout_intent["data_layout"] = intent_layout["data_display"]
+                        layout_intent["forced_data_layout"] = intent_layout["data_display"]
+                    if intent_layout.get("density"):
+                        layout_intent["density"] = intent_layout["density"]
+                    if intent_layout.get("full_width") is True:
+                        layout_intent.update({"main_width": "full", "header_width": "full"})
+                layout_intent = _merge_layout_intent(layout_intent, intent_layout)
+                if layout_change_requested:
+                    variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
+                    variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, designer_requirements)
+                    variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, designer_requirements)
+                else:
+                    variant_pages = copy.deepcopy(pages)
+                    variant_sections = copy.deepcopy(sections)
+                variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+                variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
+                tokens = copy.deepcopy(shared_tokens)
+                tokens["design.variant_index"] = str(index)
+                _expand_design_tokens(tokens)
+                styling = dict(base_styling or {})
+                styling["variantIndex"] = index
+                styling["variantName"] = layout_intent.get("name") or ("Selected Refinement", "Selected Table", "Selected Showcase")[index]
+                styling["layoutIntent"] = layout_intent
+                variant_name = f"{_candidate_variant_name(designer_requirements, index)} Regen"
+                variation_strategy = layout_intent.get("name", styling["variantName"])
+
             result = validate_and_save_candidate(
                 interface_id=interface_id,
                 candidate_index=index,
-                name=f"{_candidate_variant_name(designer_requirements, index)} Regen",
-                description=f"Regenerated from candidate {selected_candidate_index + 1} with {styling['variantName']} structure.",
+                name=variant_name,
+                description=f"Regenerated from candidate {selected_candidate_index + 1} with {styling.get('variantName', '')} structure.",
                 pages=json.dumps(variant_pages),
                 sections=json.dumps(variant_sections),
                 tokens=json.dumps(tokens) if tokens else "",
@@ -4662,7 +4775,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                 prompt=designer_requirements,
                 derived_from=str(selected_candidate_index),
                 designer_requirements=designer_requirements,
-                variation_strategy=layout_intent.get("name", styling["variantName"]),
+                variation_strategy=variation_strategy,
             )
             results.append(result)
             if not str(result).startswith("OK:"):
