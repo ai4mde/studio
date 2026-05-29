@@ -4145,6 +4145,17 @@ imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
 divider: "none"|"line"|"shadow"|"wave"
 pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
 
+=== ROLE → LAYOUT (non-negotiable, must match exactly) ===
+role='object_collection'       → layout: table|card|gallery|list  (per candidate direction)
+role='child_collection'        → same as object_collection
+role='object_detail'           → layout: detail,  component: DetailPanel or ProductDetailPanel
+role='object_summary'          → layout: detail,  component: DetailPanel
+role='object_form'             → layout: form,    component: ObjectForm
+role='navigation'              → layout: site-nav, component: NavBar
+role='header'                  → layout: any header template (app-header, glass-header, minimal-header, compact-header, dashboard-header, split-header, hero-header, tabbed-header, command-header)
+role='footer'                  → layout: any footer template (site-footer, compact-footer, app-footer, minimal-footer, mega-footer, cta-footer)
+role starts with 'activity_'   → keep existing layout unchanged, only adjust style
+
 === RULES ===
 - nav/header chrome sections → position="header" (or "sidebar" for sidebar nav)
 - footer chrome sections → position="footer"
@@ -4220,15 +4231,60 @@ _CANDIDATE_HARD_RULES = [
 
 def _build_candidate_direction_prompt(rules: dict, user_prompt: str, index: int) -> str:
     lines = [f"=== CANDIDATE {index} — {rules['name'].upper()} ==="]
-    lines.append(f"MANDATORY: ALL data/collection sections (primary_model is non-empty, role contains 'collection' or 'object') → layout='{rules['data_layout']}', component='{rules['data_component']}', col_span={rules['data_col_span']}")
+
+    # Collection sections only — detail/form/activity have immutable layouts (see below)
+    lines.append(
+        f"MANDATORY: Sections with role='object_collection' or role='child_collection' "
+        f"→ layout='{rules['data_layout']}', component='{rules['data_component']}', col_span={rules['data_col_span']}"
+    )
     if rules.get("first_data_position"):
-        lines.append(f"MANDATORY: The FIRST data section → position='{rules['first_data_position']}', col_span=12")
-    lines.append(f"MANDATORY: Navigation section → position='{rules['nav_position']}'")
+        lines.append(f"MANDATORY: The FIRST collection section → position='{rules['first_data_position']}', col_span=12")
+
+    # Role-locked layouts — NEVER change these to a collection layout
+    lines.append(
+        "MANDATORY: Sections with role='object_detail' or role='object_summary' "
+        "→ layout='detail', component='DetailPanel' (use 'ProductDetailPanel' for product/e-commerce), col_span=12, position='main'"
+    )
+    lines.append(
+        "MANDATORY: Sections with role='object_form' "
+        "→ layout='form', component='ObjectForm', col_span=12, position='main'"
+    )
+    lines.append(
+        "MANDATORY: Sections whose role starts with 'activity_' "
+        "→ keep existing layout unchanged, only adjust style fields"
+    )
+
+    # Chrome — navigation
+    lines.append(
+        f"MANDATORY: Sections with role='navigation' "
+        f"→ layout='site-nav', component='NavBar', position='{rules['nav_position']}'"
+    )
     if rules.get("nav_sidebar_side"):
-        lines.append(f"MANDATORY: Navigation style → sidebar_side='{rules['nav_sidebar_side']}', sidebar_width={rules['nav_sidebar_width']}")
-    lines.append(f"MANDATORY: All pages → main_width='{rules['page_main_width']}', header_width='{rules['page_header_width']}', footer_width='{rules['page_footer_width']}'")
+        lines.append(
+            f"MANDATORY: Navigation sidebar style "
+            f"→ style.sidebar_side='{rules['nav_sidebar_side']}', style.sidebar_width={rules['nav_sidebar_width']}"
+        )
+
+    # Chrome — header / footer may pick any template in their family
+    lines.append(
+        "MANDATORY: Sections with role='header' → position='header'; "
+        "choose any header template layout (e.g. 'app-header', 'glass-header', 'minimal-header', 'dashboard-header', 'compact-header')"
+    )
+    lines.append(
+        "MANDATORY: Sections with role='footer' → position='footer'; "
+        "choose any footer template layout (e.g. 'site-footer', 'compact-footer', 'app-footer', 'minimal-footer')"
+    )
+
+    # Page dimensions
+    lines.append(
+        f"MANDATORY: All pages → main_width='{rules['page_main_width']}', "
+        f"header_width='{rules['page_header_width']}', footer_width='{rules['page_footer_width']}'"
+    )
     lines.append(f"MANDATORY: density='{rules['density']}' for all data sections")
-    lines.append(f"MANDATORY styling: fontFamily='{rules['fontFamily']}', textSize='{rules['textSize']}', radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'")
+    lines.append(
+        f"MANDATORY styling: fontFamily='{rules['fontFamily']}', textSize='{rules['textSize']}', "
+        f"radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'"
+    )
     lines.append(f"Choose accentColor: {rules['accent_hint']}")
     if user_prompt:
         lines.append(f"Also respect designer prompt: {user_prompt}")
@@ -4292,6 +4348,21 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         return None
 
 
+_COLLECTION_LAYOUTS = {"card", "table", "gallery", "list"}
+
+def _allowed_layout(role: str, base_layout: str, proposed: str) -> str:
+    """Return the layout to actually apply after LLM merge, protecting role-locked sections."""
+    if role == "object_form" and proposed != "form":
+        return base_layout
+    if role in {"object_detail", "object_summary"} and proposed in _COLLECTION_LAYOUTS:
+        return base_layout
+    if role == "navigation" and proposed not in {"site-nav", "nav-links"}:
+        return base_layout
+    if role and role.startswith("activity_"):
+        return base_layout
+    return proposed
+
+
 def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: dict) -> tuple[list, list]:
     """Merge LLM layout/style decisions onto base pages/sections, preserving all data fields."""
     pages = copy.deepcopy(base_pages)
@@ -4305,7 +4376,15 @@ def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: d
         llm = llm_sec_map.get(sid)
         if not llm:
             continue
-        for field in ("layout", "component", "position", "col_span"):
+        role = str(sec.get("role") or "")
+        # Layout: enforce role-based constraints to prevent LLM from breaking form/detail/activity sections
+        if llm.get("layout") is not None:
+            safe = _allowed_layout(role, str(sec.get("layout") or ""), llm["layout"])
+            sec["layout"] = safe
+            # Only apply component if layout was accepted
+            if safe == llm["layout"] and llm.get("component") is not None:
+                sec["component"] = llm["component"]
+        for field in ("position", "col_span"):
             if llm.get(field) is not None:
                 sec[field] = llm[field]
         if llm.get("style"):
