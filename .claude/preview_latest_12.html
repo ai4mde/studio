@@ -298,8 +298,39 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
+<header class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-4">
+    <a href="#" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+      <span class="text-2xl font-black truncate" style="color:#7c3aed;font-family:'Georgia',serif;">Customer.</span>
+    </a>
+    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:#7c3aed;">
+      <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
+      <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
+        <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+    <a href="#" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
+  </div>
+</header>
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
+    <a href="#" data-nav-page="products" onclick="window.parent.postMessage({type:'navigate-page',page:'products'},'*');return false;" class="hover:text-gray-900 transition-colors">Products</a>
+    <a href="#" data-nav-page="product_detail" onclick="window.parent.postMessage({type:'navigate-page',page:'product_detail'},'*');return false;" class="hover:text-gray-900 transition-colors">Product Detail</a>
+    <a href="#" data-nav-page="product" onclick="window.parent.postMessage({type:'navigate-page',page:'product'},'*');return false;" class="hover:text-gray-900 transition-colors">Product</a>
+    <a href="#" data-nav-page="orders" onclick="window.parent.postMessage({type:'navigate-page',page:'orders'},'*');return false;" class="hover:text-gray-900 transition-colors">Orders</a>
+    <a href="#" data-nav-page="manage_account" onclick="window.parent.postMessage({type:'navigate-page',page:'manage_account'},'*');return false;" class="hover:text-gray-900 transition-colors">Manage Account</a>
+    <a href="#" data-nav-page="categories" onclick="window.parent.postMessage({type:'navigate-page',page:'categories'},'*');return false;" class="hover:text-gray-900 transition-colors">Categories</a>
+    <a href="#" data-nav-page="sellers" onclick="window.parent.postMessage({type:'navigate-page',page:'sellers'},'*');return false;" class="hover:text-gray-900 transition-colors">Sellers</a>
+    <a href="#" data-nav-page="orderlines" onclick="window.parent.postMessage({type:'navigate-page',page:'orderlines'},'*');return false;" class="hover:text-gray-900 transition-colors">Orderlines</a>
+    <a href="#" data-nav-page="payments" onclick="window.parent.postMessage({type:'navigate-page',page:'payments'},'*');return false;" class="hover:text-gray-900 transition-colors">Payments</a>
+    <a href="#" data-nav-page="address" onclick="window.parent.postMessage({type:'navigate-page',page:'address'},'*');return false;" class="hover:text-gray-900 transition-colors">Address</a>
+    <a href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;" class="hover:text-gray-900 transition-colors">Tasks</a>
+  </div>
+</nav>
 
-<main class="py-6 px-6 max-w-7xl mx-auto" style="background-color:var(--page-bg);">
+
+<main class="py-6 px-6 max-w-6xl mx-auto" style="background-color:var(--page-bg);">
 
 
 
@@ -356,7 +387,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step2_enter_shipping_address_content" data-section-name="Enter Shipping Address" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step2_enter_shipping_address_content" data-section-name="Enter Shipping Address" data-position="main" data-layout="form" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
 
@@ -367,95 +398,46 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">street</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">house_number</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">city</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">postal_code</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">country</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">is_default</th>
-          
-          
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3"></th>
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">12</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_default" style="color:var(--page-text)"><input type="checkbox" checked disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">47</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_default" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">8</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_default" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+  
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <div class="space-y-4">
+      <div class="si-field" data-field-name="address_id">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">address_id</label>
+        <input type="text" placeholder="address_id" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="customer_id">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">customer_id</label>
+        <input type="text" placeholder="customer_id" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="street">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">street</label>
+        <input type="text" placeholder="street" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="house_number">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">house_number</label>
+        <input type="text" placeholder="house_number" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="city">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">city</label>
+        <input type="text" placeholder="city" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="postal_code">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">postal_code</label>
+        <input type="text" placeholder="postal_code" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="country">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">country</label>
+        <input type="text" placeholder="country" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="is_default">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">is_default</label>
+        <input type="checkbox" class="h-4 w-4 rounded" />
+      </div>
+      <button class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:#7c3aed;">
+        Submit
+      </button>
+    </div>
   </div>
-
-
   <button class="mt-4 flex items-center gap-2 text-sm font-medium si-accent-text py-2 px-4 rounded-xl border si-accent-border bg-white hover:si-accent-bg-light transition-colors">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
     Add Enter Shipping Address
@@ -465,425 +447,10 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step2_enter_shipping_address_action" data-section-name="Enter Shipping Address" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">street</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">house_number</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">country</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">postal_code</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">city</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">12</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 1</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">47</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 2</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="street" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">street 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="house_number" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">house_number 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="country" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">8</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="postal_code" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">postal_code 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="city" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">city 3</span>
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-
-
-
-
-</div>
-<div class="col-span-12" data-section-id="activity-action-full_shopping_flow_activity_diagram_step2_enter_shipping_address" data-section-name="Enter Shipping Address" data-position="main" data-layout="activity_action" data-col-span="12">
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step2_enter_shipping_address_action" data-section-name="Enter Shipping Address" data-position="main" data-layout="activity_action" data-col-span="12">
   <div class="flex justify-end mt-6">
     <button type="button" class="si-btn si-btn-primary bg-green-600 text-white font-semibold py-4 px-8 text-base rounded-xl shadow opacity-75 cursor-default">Enter Shipping Address</button>
   </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="payments_payment_filter" data-section-name="Search Payment" data-position="sidebar" data-layout="table" data-col-span="12" data-sidebar-side="left" data-sidebar-width="3" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">amount</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">payment_method</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">status</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Active</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Pending</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Completed</span>
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#7c3aed;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:#7c3aed;">
-        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
-          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-      </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
-      </div>
-    </header>
-  </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div>
-    <h4 class="font-bold mb-3">Footer</h4>
-    <div class="flex flex-wrap gap-4 text-sm">
-      <span>Products</span>
-      <span>Product Detail</span>
-      <span>Product</span>
-      <span>Orders</span>
-      <span>Manage Account</span>
-      <span>Categories</span>
-      <span>Sellers</span>
-      <span>Orderlines</span>
-      <span>Payments</span>
-      <span>Address</span>
-    </div>
-  </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_page_nav" data-section-name="Navigation" data-position="sidebar" data-layout="site-nav" data-col-span="12" data-sidebar-side="left" data-sidebar-width="3" data-nav-height="compact">
-
-  
-
-  
-
-
-
-
-
-
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <div class="px-3 py-3 flex flex-col gap-1 text-sm">
-      <div class="font-bold text-gray-900 px-2 py-2">Navigation</div>
-      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Products</a>
-      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Product Detail</a>
-      <a href="{% url 'customer:render_customer_product' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Product</a>
-      <a href="{% url 'customer:render_customer_orders' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Orders</a>
-      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Manage Account</a>
-      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Categories</a>
-      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Sellers</a>
-      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Orderlines</a>
-      <a href="{% url 'customer:render_customer_payments' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Payments</a>
-      <a href="{% url 'customer:render_customer_address' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Address</a>
-      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Tasks</a>
-    </div>
-  </nav>
-
-
-
-
 </div>
 </div>
 
@@ -902,7 +469,7 @@ table{border-collapse:collapse;border-spacing:0}
   var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
   if (!hasNonMain) return;
   var hasSidebarRegion = byPos.sidebar.length > 0;
-  var _mainWidthMode = 'wide';
+  var _mainWidthMode = 'contained';
 
   var gap = 'gap-4';
   var wrap = document.createElement('div');

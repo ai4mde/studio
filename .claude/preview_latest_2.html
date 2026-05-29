@@ -298,8 +298,39 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
+<header class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-4">
+    <a href="#" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+      <span class="text-2xl font-black truncate" style="color:#7c3aed;font-family:'Georgia',serif;">Customer.</span>
+    </a>
+    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:#7c3aed;">
+      <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
+      <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
+        <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+    <a href="#" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
+  </div>
+</header>
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
+    <a href="#" data-nav-page="products" onclick="window.parent.postMessage({type:'navigate-page',page:'products'},'*');return false;" class="hover:text-gray-900 transition-colors">Products</a>
+    <a href="#" data-nav-page="product_detail" onclick="window.parent.postMessage({type:'navigate-page',page:'product_detail'},'*');return false;" class="hover:text-gray-900 transition-colors">Product Detail</a>
+    <a href="#" data-nav-page="product" onclick="window.parent.postMessage({type:'navigate-page',page:'product'},'*');return false;" class="hover:text-gray-900 transition-colors">Product</a>
+    <a href="#" data-nav-page="orders" onclick="window.parent.postMessage({type:'navigate-page',page:'orders'},'*');return false;" class="hover:text-gray-900 transition-colors">Orders</a>
+    <a href="#" data-nav-page="manage_account" onclick="window.parent.postMessage({type:'navigate-page',page:'manage_account'},'*');return false;" class="hover:text-gray-900 transition-colors">Manage Account</a>
+    <a href="#" data-nav-page="categories" onclick="window.parent.postMessage({type:'navigate-page',page:'categories'},'*');return false;" class="hover:text-gray-900 transition-colors">Categories</a>
+    <a href="#" data-nav-page="sellers" onclick="window.parent.postMessage({type:'navigate-page',page:'sellers'},'*');return false;" class="hover:text-gray-900 transition-colors">Sellers</a>
+    <a href="#" data-nav-page="orderlines" onclick="window.parent.postMessage({type:'navigate-page',page:'orderlines'},'*');return false;" class="hover:text-gray-900 transition-colors">Orderlines</a>
+    <a href="#" data-nav-page="payments" onclick="window.parent.postMessage({type:'navigate-page',page:'payments'},'*');return false;" class="hover:text-gray-900 transition-colors">Payments</a>
+    <a href="#" data-nav-page="address" onclick="window.parent.postMessage({type:'navigate-page',page:'address'},'*');return false;" class="hover:text-gray-900 transition-colors">Address</a>
+    <a href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;" class="hover:text-gray-900 transition-colors">Tasks</a>
+  </div>
+</nav>
 
-<main class="py-6 px-6 max-w-7xl mx-auto" style="background-color:var(--page-bg);">
+
+<main class="py-6 px-6 max-w-6xl mx-auto" style="background-color:var(--page-bg);">
 
 
 
@@ -356,148 +387,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="app_page_nav" data-section-name="Navigation" data-position="sidebar" data-layout="site-nav" data-col-span="12" data-sidebar-side="left" data-sidebar-width="3" data-nav-height="compact">
-
-  
-
-  
-
-
-
-
-
-
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <div class="px-3 py-3 flex flex-col gap-1 text-sm">
-      <div class="font-bold text-gray-900 px-2 py-2">Navigation</div>
-      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Products</a>
-      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-white"
-        style="background-color:#7c3aed">Product Detail</a>
-      <a href="{% url 'customer:render_customer_product' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Product</a>
-      <a href="{% url 'customer:render_customer_orders' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Orders</a>
-      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Manage Account</a>
-      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Categories</a>
-      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Sellers</a>
-      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Orderlines</a>
-      <a href="{% url 'customer:render_customer_payments' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Payments</a>
-      <a href="{% url 'customer:render_customer_address' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Address</a>
-      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
-        style="">Tasks</a>
-    </div>
-  </nav>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#7c3aed;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:#7c3aed;">
-        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
-          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-      </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
-      </div>
-    </header>
-  </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="product_detail_product_object_detail" data-section-name="Product Detail" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_product_object_detail" data-section-name="Product Detail" data-position="main" data-layout="detail" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -512,131 +402,55 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">name</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">brand</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">ean</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">description</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">price</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">original_price</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">discount_pct</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">stock_quantity</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">rating</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">review_count</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">image_url</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">weight_kg</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">is_active</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">MacBook Air M3 15-inch</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Apple</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.9</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">1.51</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox" checked disabled class="h-4 w-4 rounded">
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Dell XPS 15 OLED</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Dell</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">15.6-inch OLED laptop, Intel Core i7, 16GB RAM, 512GB SSD. InfinityEdge display.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.6</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">1.86</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google Pixel 8 Pro</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google AI phone with Tensor G3, 50MP camera, Magic Eraser and 7 years of OS updates.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.5</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">0.21</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+  <div class="flex flex-col gap-4">
+    <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl p-4 border border-gray-100">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="si-field flex flex-col gap-1" data-field-name="product_id">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">product_id</span><span class="text-sm font-medium text-gray-700" title="">prod-003</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="name">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">name</span><span class="text-sm font-medium text-gray-700" title="">MacBook Air M3 15-inch</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="brand">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">brand</span><span class="text-sm font-medium text-gray-700" title="">Apple</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="ean">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">ean</span><span class="text-sm font-medium text-gray-700" title="">ean 1</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="description">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">description</span><span class="text-sm font-medium text-gray-700" title="">M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">price</span><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="original_price">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">original_price</span><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="discount_pct">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">discount_pct</span><span class="text-sm font-medium text-gray-700">12</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="stock_quantity">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">stock_quantity</span><span class="text-sm font-medium text-gray-700">12</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="rating">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">rating</span><span class="text-sm font-medium text-gray-700" title="">4.9</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="review_count">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">review_count</span><span class="text-sm font-medium text-gray-700">12</span>
+        </div>
+        <div class="si-field flex flex-col gap-1 sm:col-span-2" data-field-name="image_url">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">image_url</span><img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa?w=800&fit=crop" class="si-field-media si-img rounded mt-1" />
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="weight_kg">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">weight_kg</span><span class="text-sm font-medium text-gray-700" title="">1.51</span>
+        </div>
+        <div class="si-field flex flex-col gap-1" data-field-name="is_active">
+          <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">is_active</span><input type="checkbox" checked disabled class="h-4 w-4 rounded">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+      </div>
+    </div>
   </div>
 
 
@@ -678,166 +492,81 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="product_detail_product_object_form" data-section-name="Edit Product" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_product_object_form" data-section-name="Edit Product" data-position="main" data-layout="form" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-xl font-semibold text-gray-800">Edit Product</h2>
+
+  
+
+
+
+
+
+
+  
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <div class="space-y-4">
+      <div class="si-field" data-field-name="product_id">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">product_id</label>
+        <input type="text" placeholder="product_id" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="name">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">name</label>
+        <input type="text" placeholder="name" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="brand">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">brand</label>
+        <input type="text" placeholder="brand" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="ean">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">ean</label>
+        <input type="text" placeholder="ean" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="description">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">description</label>
+        <input type="text" placeholder="description" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="price">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">price</label>
+        <input type="text" placeholder="price" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="original_price">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">original_price</label>
+        <input type="text" placeholder="original_price" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="discount_pct">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">discount_pct</label>
+        <input type="number" placeholder="discount_pct" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="stock_quantity">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">stock_quantity</label>
+        <input type="number" placeholder="stock_quantity" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="rating">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">rating</label>
+        <input type="text" placeholder="rating" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="review_count">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">review_count</label>
+        <input type="number" placeholder="review_count" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="image_url">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">image_url</label>
+        <input type="file" accept="image/*" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm" />
+      </div>
+      <div class="si-field" data-field-name="weight_kg">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">weight_kg</label>
+        <input type="text" placeholder="weight_kg" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="is_active">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">is_active</label>
+        <input type="checkbox" class="h-4 w-4 rounded" />
+      </div>
+      <button class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:#7c3aed;">
+        Submit
+      </button>
+    </div>
   </div>
-  
-
-  
-
-
-
-
-
-
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">name</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">brand</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">ean</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">description</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">price</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">original_price</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">discount_pct</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">stock_quantity</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">rating</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">review_count</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">image_url</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">weight_kg</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">is_active</th>
-          
-          
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3"></th>
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">MacBook Air M3 15-inch</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Apple</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.9</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">1.51</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox" checked disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Dell XPS 15 OLED</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Dell</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">15.6-inch OLED laptop, Intel Core i7, 16GB RAM, 512GB SSD. InfinityEdge display.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.6</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">1.86</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google Pixel 8 Pro</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="brand" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="ean" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">ean 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="description" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Google AI phone with Tensor G3, 50MP camera, Magic Eraser and 7 years of OS updates.</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="original_price" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="discount_pct" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="stock_quantity" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="rating" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">4.5</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="review_count" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="weight_kg" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">0.21</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_active" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          
-          <td class="px-4 py-3">
-            <div class="flex gap-2"><button class="text-sm si-accent-text py-1 px-3 rounded hover:si-accent-bg-light border si-accent-border transition-colors">Edit</button>
-            </div>
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
   <button class="mt-4 flex items-center gap-2 text-sm font-medium si-accent-text py-2 px-4 rounded-xl border si-accent-border bg-white hover:si-accent-bg-light transition-colors">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
     Add Edit Product
@@ -880,7 +609,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="product_detail_deliveryoption_child_collection" data-section-name="DeliveryOption" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_deliveryoption_child_collection" data-section-name="DeliveryOption" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -895,75 +624,98 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">method</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">estimated_days</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">cost</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">is_free</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">cutoff_time</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">return_policy_days</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">method 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="estimated_days" style="color:var(--page-text)">12
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cost" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_free" style="color:var(--page-text)"><input type="checkbox" checked disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cutoff_time" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Jan 12, 2024</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="return_policy_days" style="color:var(--page-text)">12
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">method 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="estimated_days" style="color:var(--page-text)">19
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cost" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_free" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cutoff_time" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Mar 5, 2024</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="return_policy_days" style="color:var(--page-text)">19
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">method 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="estimated_days" style="color:var(--page-text)">26
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cost" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_free" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="cutoff_time" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Nov 28, 2023</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="return_policy_days" style="color:var(--page-text)">26
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+  
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">DeliveryOption</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #7c3aed1a; color: #7c3aed;">3 linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="0" style="opacity: 1;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="option_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">option_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">option_id 1</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-003</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="method">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">method</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">method 1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="1" style="opacity: 0.8;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="option_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">option_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">option_id 2</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-004</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="method">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">method</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">method 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="2" style="opacity: 0.6;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="option_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">option_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">option_id 3</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-005</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="method">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">method</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">method 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -1005,7 +757,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="product_detail_productimage_child_collection" data-section-name="ProductImage" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_productimage_child_collection" data-section-name="ProductImage" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -1020,75 +772,98 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">image_id</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">image_url</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">thumb_url</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">alt_text</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">is_primary</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">sort_order</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_id" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">image_id 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="thumb_url" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">thumb_url 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="alt_text" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">alt_text 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_primary" style="color:var(--page-text)"><input type="checkbox" checked disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="sort_order" style="color:var(--page-text)">12
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_id" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">image_id 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="thumb_url" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">thumb_url 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="alt_text" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">alt_text 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_primary" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="sort_order" style="color:var(--page-text)">19
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_id" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">image_id 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="image_url" style="color:var(--page-text)"><div class="w-8 h-8 bg-gray-50 rounded"></div>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="thumb_url" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">thumb_url 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="alt_text" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">alt_text 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="is_primary" style="color:var(--page-text)"><input type="checkbox"  disabled class="h-4 w-4 rounded">
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="sort_order" style="color:var(--page-text)">26
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+  
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">ProductImage</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #7c3aed1a; color: #7c3aed;">3 linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="0" style="opacity: 1;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="image_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_id 1</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-003</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="image_url">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_url</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_url 1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="1" style="opacity: 0.8;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="image_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_id 2</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-004</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="image_url">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_url</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_url 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="2" style="opacity: 0.6;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="image_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_id 3</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="product_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">product_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">prod-005</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="image_url">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">image_url</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">image_url 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -1130,7 +905,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="product_detail_category_related" data-section-name="Category" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_category_related" data-section-name="Category" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -1145,51 +920,98 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">name</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">slug</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">depth</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Alpha Record</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="slug" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">slug 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="depth" style="color:var(--page-text)">12
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Beta Record</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="slug" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">slug 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="depth" style="color:var(--page-text)">19
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="name" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Gamma Record</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="slug" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">slug 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="depth" style="color:var(--page-text)">26
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+  
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">Category</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #7c3aed1a; color: #7c3aed;">3 linked</span>
+    </div>
+    <div class="divide-y divide-gray-100">
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="0" style="opacity: 1;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="category_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">category_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">category_id 1</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Alpha Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="slug">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">slug</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">slug 1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="1" style="opacity: 0.8;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="category_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">category_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">category_id 2</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Beta Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="slug">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">slug</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">slug 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="2" style="opacity: 0.6;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="category_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">category_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">category_id 3</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Gamma Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="slug">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">slug</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">slug 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -1231,7 +1053,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="product_detail_seller_related" data-section-name="Seller" data-position="main" data-layout="table" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="product_detail_seller_related" data-section-name="Seller" data-position="main" data-layout="list" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -1246,192 +1068,98 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
   
-
-  
-
-
-
-
-
-
-  <div>
-    <h4 class="font-bold mb-3">Footer</h4>
-    <div class="flex flex-wrap gap-4 text-sm">
-      <span>Products</span>
-      <span>Product Detail</span>
-      <span>Product</span>
-      <span>Orders</span>
-      <span>Manage Account</span>
-      <span>Categories</span>
-      <span>Sellers</span>
-      <span>Orderlines</span>
-      <span>Payments</span>
-      <span>Address</span>
+  <div class="bg-white shadow-md shadow-sm border border-gray-200 rounded-xl border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-gray-100">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">Seller</h3>
+        <p class="text-xs text-gray-400">Related records and dependencies</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: #7c3aed1a; color: #7c3aed;">3 linked</span>
     </div>
-  </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="payments_payment_filter" data-section-name="Search Payment" data-position="sidebar" data-layout="table" data-col-span="12" data-sidebar-side="left" data-sidebar-width="3" data-nav-height="normal">
-
-  
-  <div class="flex items-center justify-between mb-3">
-    <h2 class="text-xl font-semibold text-gray-800">Search Payment</h2>
-  </div>
-  
-
-  
-
-
-
-
-
-
-  <div class="overflow-x-auto rounded-xl border border-gray-200">
-    <table class="min-w-full text-left">
-      <thead>
-        <tr>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">amount</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">payment_method</th>
-          
-          <th class="si-table-header text-sm font-semibold px-4 py-3 uppercase tracking-wider">status</th>
-          
-          
-          
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        <tr class="si-table-row transition-colors" data-item-idx="0" style="opacity: 1">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1499</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 1</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Active</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="1" style="opacity: 0.8">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 1349</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 2</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Pending</span>
-          </td>
-          
-        </tr>
-        <tr class="si-table-row transition-colors" data-item-idx="2" style="opacity: 0.6">
-          <td class="si-field px-4 py-3 text-sm" data-field-name="amount" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">EUR 799</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="payment_method" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">payment_method 3</span>
-          </td>
-          <td class="si-field px-4 py-3 text-sm" data-field-name="status" style="color:var(--page-text)"><span class="text-sm font-medium text-gray-700" title="">Completed</span>
-          </td>
-          
-        </tr>
-      </tbody>
-    </table>
+    <div class="divide-y divide-gray-100">
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="0" style="opacity: 1;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="seller_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">seller_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">seller_id 1</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="business_name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">business_name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Alpha Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="rating">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">rating</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">4.9</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="1" style="opacity: 0.8;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="seller_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">seller_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">seller_id 2</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="business_name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">business_name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Beta Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="rating">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">rating</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">4.6</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-start gap-3" data-item-idx="2" style="opacity: 0.6;">
+        <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: #7c3aed;"></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div class="si-field min-w-0" data-field-name="seller_id">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">seller_id</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">seller_id 3</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="business_name">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">business_name</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">Gamma Record</span>
+              </div>
+            </div>
+            <div class="si-field min-w-0" data-field-name="rating">
+              <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">rating</span>
+              <div class="si-field-value text-xs font-medium text-gray-700 truncate">
+                <span class="text-xs font-medium text-gray-700" title="">4.5</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex gap-2 shrink-0">
+        </div>
+      </div>
+    </div>
   </div>
 
 
@@ -1457,7 +1185,7 @@ table{border-collapse:collapse;border-spacing:0}
   var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
   if (!hasNonMain) return;
   var hasSidebarRegion = byPos.sidebar.length > 0;
-  var _mainWidthMode = 'wide';
+  var _mainWidthMode = 'contained';
 
   var gap = 'gap-4';
   var wrap = document.createElement('div');

@@ -298,6 +298,37 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
+<header class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-4">
+    <a href="#" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+      <span class="text-2xl font-black truncate" style="color:#7c3aed;font-family:'Georgia',serif;">Customer.</span>
+    </a>
+    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:#7c3aed;">
+      <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
+      <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
+        <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+    <a href="#" class="text-sm text-gray-700 hover:opacity-75 whitespace-nowrap">Logout</a>
+  </div>
+</header>
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-6 flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
+    <a href="#" class="hover:text-gray-900 transition-colors">Home</a>
+    <a href="#" data-nav-page="products" onclick="window.parent.postMessage({type:'navigate-page',page:'products'},'*');return false;" class="hover:text-gray-900 transition-colors">Products</a>
+    <a href="#" data-nav-page="product_detail" onclick="window.parent.postMessage({type:'navigate-page',page:'product_detail'},'*');return false;" class="hover:text-gray-900 transition-colors">Product Detail</a>
+    <a href="#" data-nav-page="product" onclick="window.parent.postMessage({type:'navigate-page',page:'product'},'*');return false;" class="hover:text-gray-900 transition-colors">Product</a>
+    <a href="#" data-nav-page="orders" onclick="window.parent.postMessage({type:'navigate-page',page:'orders'},'*');return false;" class="hover:text-gray-900 transition-colors">Orders</a>
+    <a href="#" data-nav-page="manage_account" onclick="window.parent.postMessage({type:'navigate-page',page:'manage_account'},'*');return false;" class="hover:text-gray-900 transition-colors">Manage Account</a>
+    <a href="#" data-nav-page="categories" onclick="window.parent.postMessage({type:'navigate-page',page:'categories'},'*');return false;" class="hover:text-gray-900 transition-colors">Categories</a>
+    <a href="#" data-nav-page="sellers" onclick="window.parent.postMessage({type:'navigate-page',page:'sellers'},'*');return false;" class="hover:text-gray-900 transition-colors">Sellers</a>
+    <a href="#" data-nav-page="orderlines" onclick="window.parent.postMessage({type:'navigate-page',page:'orderlines'},'*');return false;" class="hover:text-gray-900 transition-colors">Orderlines</a>
+    <a href="#" data-nav-page="payments" onclick="window.parent.postMessage({type:'navigate-page',page:'payments'},'*');return false;" class="hover:text-gray-900 transition-colors">Payments</a>
+    <a href="#" data-nav-page="address" onclick="window.parent.postMessage({type:'navigate-page',page:'address'},'*');return false;" class="hover:text-gray-900 transition-colors">Address</a>
+    <a href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;" class="hover:text-gray-900 transition-colors">Tasks</a>
+  </div>
+</nav>
+
 
 <main class="py-6 px-6 max-w-6xl mx-auto" style="background-color:var(--page-bg);">
 
@@ -348,135 +379,6 @@ table{border-collapse:collapse;border-spacing:0}
       <button type="button" onclick="window.parent.postMessage({type:'navigate-page',page:'view_cart'},'*')" class="si-btn si-btn-primary inline-flex items-center justify-center bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition-colors">Go to Task</button>
     </div>
   </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#7c3aed;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:#7c3aed;">
-        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:#7c3aed;">
-          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-      </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
-      </div>
-    </header>
-  </div>
-
-
-
-
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
-
-  
-
-  
-
-
-
-
-
-
-  <div>
-    <h4 class="font-bold mb-3">Footer</h4>
-    <div class="flex flex-wrap gap-4 text-sm">
-      <span>Products</span>
-      <span>Product Detail</span>
-      <span>Product</span>
-      <span>Orders</span>
-      <span>Manage Account</span>
-      <span>Categories</span>
-      <span>Sellers</span>
-      <span>Orderlines</span>
-      <span>Payments</span>
-      <span>Address</span>
-    </div>
-  </div>
-
-
-
-
 </div>
 </div>
 
