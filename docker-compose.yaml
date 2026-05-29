@@ -33,6 +33,7 @@ services:
 
   studio-api:
     restart: unless-stopped
+    stop_grace_period: 300s
     depends_on: ["postgres"]
     build:
       context: api
