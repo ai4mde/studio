@@ -1,4 +1,4 @@
-import os
+﻿import os
 import requests
 import json
 import re
@@ -32,16 +32,16 @@ def compile_prompt_intent(prompt: str = "") -> dict:
     component_intent: dict[str, str] = {}
     data_intent = {
         "hide_id_fields": any(term in text for term in (
-            "hide id", "hide ids", "hide internal", "no id fields", "without ids", "不要id", "隐藏id", "隱藏id",
+            "hide id", "hide ids", "hide internal", "no id fields", "without ids", "ä¸è¦id", "éšè—id", "éš±è—id",
         )),
         "table_targets": [],
         "single_card_media": header_media or any(term in text for term in (
             "single card", "one card", "single image card", "image only", "only image", "media only",
             "limit 1 card", "limit one card",
         )) or (
-            ("card" in text or "卡片" in str(prompt or ""))
-            and ("image" in text or "media" in text or "图片" in str(prompt or "") or "照片" in str(prompt or ""))
-            and ("single" in text or "one" in text or "only" in text or "单个" in str(prompt or "") or "一张" in str(prompt or "") or "只" in str(prompt or ""))
+            ("card" in text or "å¡ç‰‡" in str(prompt or ""))
+            and ("image" in text or "media" in text or "å›¾ç‰‡" in str(prompt or "") or "ç…§ç‰‡" in str(prompt or ""))
+            and ("single" in text or "one" in text or "only" in text or "å•ä¸ª" in str(prompt or "") or "ä¸€å¼ " in str(prompt or "") or "åª" in str(prompt or ""))
         ),
         "media_position": "header" if header_media else "",
     }
@@ -49,7 +49,7 @@ def compile_prompt_intent(prompt: str = "") -> dict:
     interaction_intent = {
         "delete": "default",
         "multi_delete": False,
-        "navigation_required": any(term in text for term in ("navigate", "navigation", "link to", "go to", "跳转", "导航")),
+        "navigation_required": any(term in text for term in ("navigate", "navigation", "link to", "go to", "è·³è½¬", "å¯¼èˆª")),
     }
 
     data_layouts = ("table", "card", "cards", "gallery", "list", "form", "detail")
@@ -68,31 +68,31 @@ def compile_prompt_intent(prompt: str = "") -> dict:
                 if layout == "table":
                     data_intent["table_targets"].append(target)
 
-    if any(term in text for term in ("all sections table", "everything table", "all data as table", "所有表格")):
+    if any(term in text for term in ("all sections table", "everything table", "all data as table", "æ‰€æœ‰è¡¨æ ¼")):
         component_intent["*"] = "table"
-    elif any(term in text for term in ("all cards", "everything card", "all data as cards", "所有卡片")):
+    elif any(term in text for term in ("all cards", "everything card", "all data as cards", "æ‰€æœ‰å¡ç‰‡")):
         component_intent["*"] = "card"
 
-    if any(term in text for term in ("no delete", "disable delete", "hide delete", "without delete", "不要删除", "禁用删除")):
+    if any(term in text for term in ("no delete", "disable delete", "hide delete", "without delete", "ä¸è¦åˆ é™¤", "ç¦ç”¨åˆ é™¤")):
         interaction_intent["delete"] = "disabled"
-    elif any(term in text for term in ("enable delete", "allow delete", "show delete", "可以删除")):
+    elif any(term in text for term in ("enable delete", "allow delete", "show delete", "å¯ä»¥åˆ é™¤")):
         interaction_intent["delete"] = "enabled"
-    if any(term in text for term in ("multi delete", "bulk delete", "delete selected", "batch delete", "多选删除", "批量删除")):
+    if any(term in text for term in ("multi delete", "bulk delete", "delete selected", "batch delete", "å¤šé€‰åˆ é™¤", "æ‰¹é‡åˆ é™¤")):
         interaction_intent["multi_delete"] = True
         interaction_intent["delete"] = "enabled"
 
-    if any(term in text for term in ("sidebar left", "left sidebar", "left nav", "左侧栏", "左侧导航")):
+    if any(term in text for term in ("sidebar left", "left sidebar", "left nav", "å·¦ä¾§æ ", "å·¦ä¾§å¯¼èˆª")):
         layout_intent["sidebar"] = True
         layout_intent["sidebar_side"] = "left"
-    elif any(term in text for term in ("sidebar right", "right sidebar", "right nav", "右侧栏", "右侧导航")):
+    elif any(term in text for term in ("sidebar right", "right sidebar", "right nav", "å³ä¾§æ ", "å³ä¾§å¯¼èˆª")):
         layout_intent["sidebar"] = True
         layout_intent["sidebar_side"] = "right"
-    if any(term in text for term in ("main full", "full main", "main full width", "full-width main", "主区域全宽")):
+    if any(term in text for term in ("main full", "full main", "main full width", "full-width main", "ä¸»åŒºåŸŸå…¨å®½")):
         layout_intent["full"] = True
         layout_intent["main_width"] = "full"
-    if any(term in text for term in ("header full", "full header", "页首全宽")):
+    if any(term in text for term in ("header full", "full header", "é¡µé¦–å…¨å®½")):
         layout_intent["header_width"] = "full"
-    if any(term in text for term in ("footer full", "full footer", "页脚全宽")):
+    if any(term in text for term in ("footer full", "full footer", "é¡µè„šå…¨å®½")):
         layout_intent["footer_width"] = "full"
 
     query_hints = data_intent["query_hints"]
@@ -904,10 +904,13 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
     name_tokens = _name_tokens(step_name)
+    # "select/choose" = pick from options → card with select operation, not a form
+    if any(term in name_tokens for term in ("select", "choose", "pick")):
+        return "card"
     if any(term in name_tokens for term in (
-        "enter", "fill", "input", "select", "choose", "provide", "submit",
+        "enter", "fill", "input", "provide", "submit",
         "create", "add", "update", "edit", "write", "upload", "register",
-        "confirm", "book", "pay", "record",
+        "book", "pay", "record",
     )):
         return "form"
     if _is_child_collection_model(model, step_name) or any(term in name_tokens for term in ("list", "browse", "review", "manage", "track", "history")):
@@ -1074,7 +1077,7 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
 
     page_by_action = {page_action_id(p): p for p in pages if page_action_id(p)}
     # Fallback index: Step-5 pages from interface_planner have no action.value (no node UUID),
-    # but their name matches the activity action name — use this to avoid creating duplicates.
+    # but their name matches the activity action name â€” use this to avoid creating duplicates.
     page_by_name = {
         _section_id(p.get("name") or ""): p
         for p in pages
@@ -1155,12 +1158,6 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             if (section_map.get(sid) or {}).get("type") == "activity_action"
             or (section_map.get(sid) or {}).get("layout") == "activity_action"
         ]
-        # Prefer the action that advances the workflow (complete/complete_then_page) over navigate
-        def _action_priority(sid):
-            wf_action = ((section_map.get(sid) or {}).get("workflow") or {}).get("action", "")
-            return 0 if wf_action in {"complete", "complete_then_page"} else 1
-        if existing_action_ids:
-            existing_action_ids = sorted(existing_action_ids, key=_action_priority)
         button_id = existing_action_ids[0] if existing_action_ids else f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
         if not existing_action_ids:
             if button_id not in section_ids:
@@ -1185,14 +1182,6 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
                 section_ids.add(button_id)
             if button_id not in ref_ids:
                 refs.append({"value": button_id})
-            page["sections"] = refs
-        else:
-            extra_ids = set(existing_action_ids[1:])
-            for extra_action_id in extra_ids:
-                refs = [ref for ref in refs if str(ref.get("value") if isinstance(ref, dict) else ref) != extra_action_id]
-            sections = [s for s in sections if str(s.get("id", "")) not in extra_ids]
-            section_map = {k: v for k, v in section_map.items() if k not in extra_ids}
-            section_ids -= extra_ids
             page["sections"] = refs
     return pages, sections
 
@@ -1222,7 +1211,6 @@ def _normalize_activity_action_sections(pages: list, sections: list) -> list:
         ref_ids = [str(r.get("value") if isinstance(r, dict) else r) for r in (page.get("sections") or [])]
         action_ids = [sid for sid in ref_ids if (section_map.get(sid) or {}).get("layout") == "activity_action"]
         if len(action_ids) <= 1: continue
-        # Sort: complete/complete_then_page first
         action_ids.sort(key=lambda sid: 0 if (section_map.get(sid) or {}).get("workflow", {}).get("action") in {"complete", "complete_then_page"} else 1)
         extras = set(action_ids[1:])
         to_remove |= extras
@@ -2858,9 +2846,9 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                 if valid:
                     bad = [a for a in attr_names if a and a not in valid and "." not in a]
                     if bad:
-                        warnings.append(f"section '{sec.get('id')}': unknown attributes {bad} for model '{model}' — valid: {sorted(valid)}")
+                        warnings.append(f"section '{sec.get('id')}': unknown attributes {bad} for model '{model}' â€” valid: {sorted(valid)}")
             if warnings:
-                return "WARNING — patch rejected due to invented attribute names. Fix these and retry:\n" + "\n".join(warnings)
+                return "WARNING â€” patch rejected due to invented attribute names. Fix these and retry:\n" + "\n".join(warnings)
         try:
             data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
         except Exception:
@@ -2908,7 +2896,7 @@ def get_interface_full_context(interface_id: str) -> str:
         for classifier in _as_list(system_ctx.get("classifiers"), "classifiers"):
             if str(classifier.get("id")) == str(actor_id): actor_name = (classifier.get("data") or {}).get("name"); break
         system_ctx["workflow_plan"] = _workflow_plan(system_ctx, str(actor_id or ""), actor_name); system_ctx["usecase_navigation"] = _build_usecase_navigation(system_ctx, str(actor_id or ""), actor_name); iface_clean = {k: v for k, v in iface.items() if k != "data"}; iface_clean["actor_name"] = actor_name or iface.get("actor_name") or iface.get("actor")
-        # Build an explicit model→attributes quick reference to prevent LLM from inventing field names
+        # Build an explicit modelâ†’attributes quick reference to prevent LLM from inventing field names
         attr_ref = {}
         for c in _as_list(system_ctx.get("classifiers"), "classifiers"):
             cdata = c.get("data") or {}
@@ -3022,7 +3010,7 @@ def validate_and_save_candidate(
         description: One sentence describing this candidate's visual approach.
         pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
                type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
-               Pages do NOT contain section data — they only reference section IDs.
+               Pages do NOT contain section data â€” they only reference section IDs.
         sections: JSON string containing a list of ALL section definition objects. Each section must have:
                   id, name, layout, position, col_span, primary_model, attributes, operations, style.
                   This is SEPARATE from pages. Both pages[] and sections[] are required.
@@ -3364,8 +3352,8 @@ def _prompt_requests_layout_change(prompt: str) -> bool:
     text = str(prompt or "").lower()
     # Unambiguous layout terms always count
     if any(term in text for term in (
-        "layout", "排版", "布局", "region", "sidebar", "side bar", "left nav", "right nav",
-        "split", "rail", "左侧", "右侧", "侧边栏", "full width", "full-width",
+        "layout", "æŽ’ç‰ˆ", "å¸ƒå±€", "region", "sidebar", "side bar", "left nav", "right nav",
+        "split", "rail", "å·¦ä¾§", "å³ä¾§", "ä¾§è¾¹æ ", "full width", "full-width",
         "wide", "contained", "compact", "dense", "spacious", "table", "gallery", "list",
         "detail", "details", "form", "filter",
     )):
@@ -3373,11 +3361,11 @@ def _prompt_requests_layout_change(prompt: str) -> bool:
     # "nav", "header", "footer" etc. also appear in color requests ("change header color").
     # Only treat them as layout requests when there is no color context in the prompt.
     color_context = any(c in text for c in (
-        "color", "colour", "顔色", "颜色", "背景", "background", "#", "hex",
+        "color", "colour", "é¡”è‰²", "é¢œè‰²", "èƒŒæ™¯", "background", "#", "hex",
         "red", "blue", "sky", "cyan", "aqua", "teal", "turquoise", "green", "emerald", "lime",
         "purple", "violet", "indigo", "orange", "yellow", "amber", "gold", "pink", "rose",
         "navy", "brown", "beige", "tan", "cream",
-        "白", "黑", "灰", "红", "蓝", "绿", "紫", "橙", "黄", "粉",
+        "ç™½", "é»‘", "ç°", "çº¢", "è“", "ç»¿", "ç´«", "æ©™", "é»„", "ç²‰",
         "white", "black", "grey", "gray", "slate", "zinc", "neutral",
     ))
     if color_context:
@@ -3385,7 +3373,7 @@ def _prompt_requests_layout_change(prompt: str) -> bool:
     return any(term in text for term in (
         "nav", "navigation", "navbar", "header", "footer", "hero", "main", "wide",
         "list", "detail", "form", "filter", "contained",
-        "card", "导航", "页头", "页脚",
+        "card", "å¯¼èˆª", "é¡µå¤´", "é¡µè„š",
     ))
 
 def _is_content_region_section(section: dict) -> bool:
@@ -3486,11 +3474,9 @@ def _apply_candidate_region_composition(pages: list, sections: list, candidate_i
             content[-1]["col_span"] = 12
     return pages, sections
 
-# ── LLM-first candidate generation ───────────────────────────────────────────
+# â”€â”€ LLM-first candidate generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-_CANDIDATE_FULL_SCHEMA = """
-You output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
-
+_LAYOUT_SCHEMA = """
 === SECTION FIELDS ===
 layout: "card"|"list"|"table"|"detail"|"gallery"|"filter"|"form"
         |"activity_action"|"activity_start"|"activity_tasks"
@@ -3504,21 +3490,21 @@ layout: "card"|"list"|"table"|"detail"|"gallery"|"filter"|"form"
         |"mega-footer"|"split-footer"|"app-footer"|"cta-footer"|"minimal-footer"
 
 component: match to layout:
-  table → DataTable
-  card → CardGrid | ProductCardGrid | PersonCardGrid | ObjectCardGrid | ImageCard | ImageCardGrid | CategoryTileGrid
-  list → ObjectList | LineItemList | RelatedObjectList
-  detail → DetailPanel | ProductDetailPanel
-  gallery → ImageCardGrid | ObjectCardGrid
-  form → ObjectForm
-  filter → (keep existing or use ObjectForm)
-  site-nav → NavBar
-  site-footer → SiteFooter
-  logo → Logo | BrandLockup | ImageLogo
-  search-bar → SearchBar
-  icon-actions → IconActions
-  nav-links → NavBar
-  header templates → HeaderTemplate
-  footer templates → FooterTemplate
+  table â†’ DataTable
+  card â†’ CardGrid | ProductCardGrid | PersonCardGrid | ObjectCardGrid | ImageCard | ImageCardGrid | CategoryTileGrid
+  list â†’ ObjectList | LineItemList | RelatedObjectList
+  detail â†’ DetailPanel | ProductDetailPanel
+  gallery â†’ ImageCardGrid | ObjectCardGrid
+  form â†’ ObjectForm
+  filter â†’ (keep existing or use ObjectForm)
+  site-nav â†’ NavBar
+  site-footer â†’ SiteFooter
+  logo â†’ Logo | BrandLockup | ImageLogo
+  search-bar â†’ SearchBar
+  icon-actions â†’ IconActions
+  nav-links â†’ NavBar
+  header templates â†’ HeaderTemplate
+  footer templates â†’ FooterTemplate
 
 position: "main"|"sidebar"|"header"|"hero"|"footer"
 col_span: 12|6|4|3
@@ -3550,11 +3536,11 @@ style (include only relevant keys):
   image_url: image URL string (only for ImageCard/banner)
   cta_label: button text string e.g. "Save" | "Submit" | "Continue"  (form sections)
   login_label: auth submit button label (form_style="auth") e.g. "Sign in" | "Log in"
-  step_icon: emoji or "" for step header icon (form_style="step") e.g. "📋" | "💳"
+  step_icon: emoji or "" for step header icon (form_style="step") e.g. "ðŸ“‹" | "ðŸ’³"
   total_label: label for total row (form_style="summary") e.g. "Total" | "Order total"
-  seller_label: e.g. "Sold by" (card/list sections — empty string to hide)
-  availability_label: e.g. "In stock" | "Out of stock" (card/list/detail — empty string to hide)
-  delivery_label: e.g. "Free delivery" | "Ships in 2-3 days" (card/list/detail — empty string to hide)
+  seller_label: e.g. "Sold by" (card/list sections â€” empty string to hide)
+  availability_label: e.g. "In stock" | "Out of stock" (card/list/detail â€” empty string to hide)
+  delivery_label: e.g. "Free delivery" | "Ships in 2-3 days" (card/list/detail â€” empty string to hide)
   action_variant: "link"|"ghost"|"button"  (icon-actions sections: how action items are styled)
   show_logout: true|false                  (icon-actions sections: show/hide logout link)
   logout_label: string e.g. "Sign out"    (icon-actions sections: label for logout link)
@@ -3589,36 +3575,41 @@ imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
 divider: "none"|"line"|"shadow"|"wave"
 pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
 
-Fine-grained color overrides (hex — applied on top of accentColor/backgroundColor; only set when you need to override a specific region independently):
-  region.header.bg_hex: hex — header bar background (default = accentColor)
-  region.header.text_hex: hex — header text/icon color (default = white on dark accent)
-  region.footer.bg_hex: hex — footer background (default = backgroundColor)
-  region.footer.text_hex: hex — footer text color
-  region.main.bg_hex: hex — main content area / card surface background
-  component.card.bg_hex: hex — card tile background specifically
-  component.card.border_hex: hex — card border color
-  button.primary.bg_hex: hex — primary button fill (default = accentColor)
-  region.border_hex: hex — default divider / border color
+Fine-grained color overrides (hex â€” applied on top of accentColor/backgroundColor; only set when you need to override a specific region independently):
+  region.header.bg_hex: hex â€” header bar background (default = accentColor)
+  region.header.text_hex: hex â€” header text/icon color (default = white on dark accent)
+  region.footer.bg_hex: hex â€” footer background (default = backgroundColor)
+  region.footer.text_hex: hex â€” footer text color
+  region.main.bg_hex: hex â€” main content area / card surface background
+  component.card.bg_hex: hex â€” card tile background specifically
+  component.card.border_hex: hex â€” card border color
+  button.primary.bg_hex: hex â€” primary button fill (default = accentColor)
+  region.border_hex: hex â€” default divider / border color
 
-=== ROLE → LAYOUT (non-negotiable, must match exactly) ===
-role='object_collection'       → layout: table|card|gallery|list  (per candidate direction)
-role='child_collection'        → same as object_collection
-role='object_detail'           → layout: detail,  component: DetailPanel or ProductDetailPanel
-role='object_summary'          → layout: detail,  component: DetailPanel
-role='object_form'             → layout: form,    component: ObjectForm
-role='navigation'              → layout: site-nav, component: NavBar
-role='header'                  → layout: any header template (app-header, glass-header, minimal-header, compact-header, dashboard-header, split-header, hero-header, tabbed-header, command-header)
-role='footer'                  → layout: any footer template (site-footer, compact-footer, app-footer, minimal-footer, mega-footer, cta-footer)
-role starts with 'activity_'   → keep existing layout unchanged, only adjust style
+=== ROLE â†’ LAYOUT (non-negotiable, must match exactly) ===
+role='object_collection'       â†’ layout: table|card|gallery|list  (per candidate direction)
+role='child_collection'        â†’ same as object_collection
+role='object_detail'           â†’ layout: detail,  component: DetailPanel or ProductDetailPanel
+role='object_summary'          â†’ layout: detail,  component: DetailPanel
+role='object_form'             â†’ layout: form,    component: ObjectForm
+role='navigation'              â†’ layout: site-nav, component: NavBar
+role='header'                  â†’ layout: any header template (app-header, glass-header, minimal-header, compact-header, dashboard-header, split-header, hero-header, tabbed-header, command-header)
+role='footer'                  â†’ layout: any footer template (site-footer, compact-footer, app-footer, minimal-footer, mega-footer, cta-footer)
+activity_action/activity_start/activity_tasks â†’ keep layout unchanged (chrome); other sections on activity pages â†’ infer: select/chooseâ†’ card, enter/fillâ†’ form, review/confirmâ†’ detail
 
 === RULES ===
-- nav/header chrome sections → position="header" (or "sidebar" for sidebar nav)
-- footer chrome sections → position="footer"
-- hero sections → position="hero", col_span=12
-- sidebar sections → must include style.sidebar_side and style.sidebar_width
+- nav/header chrome sections â†’ position="header" (or "sidebar" for sidebar nav)
+- footer chrome sections â†’ position="footer"
+- hero sections â†’ position="hero", col_span=12
+- sidebar sections â†’ must include style.sidebar_side and style.sidebar_width
 - Every page MUST have navigation (header nav OR sidebar NavBar)
 - Data sections: color="accent" unless the design direction specifies otherwise
-- Activity sections (activity_action/activity_start/activity_tasks): keep layout as-is, only adjust style
+- Activity chrome (activity_action/activity_start/activity_tasks): keep layout as-is; content sections: infer layout from step name
+"""
+
+_CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
+
+{_LAYOUT_SCHEMA}
 - 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
 """
 
@@ -3647,32 +3638,33 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
 
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
-            "MANDATORY color assignment — each candidate MUST use a different color family unless user requires otherwise:\n"
-            # "  Candidate 0: DARK/NEUTRAL palette — accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
-            # "  Candidate 1: VIBRANT/COLORFUL palette — accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
-            # "  Candidate 2: WARM/EDITORIAL palette — accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
+            "MANDATORY color assignment â€” each candidate MUST use a different color family unless user requires otherwise:\n"
+            # "  Candidate 0: DARK/NEUTRAL palette â€” accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
+            # "  Candidate 1: VIBRANT/COLORFUL palette â€” accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
+            # "  Candidate 2: WARM/EDITORIAL palette â€” accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
             "Each candidate MUST also differ all of these axes unless user requires otherwise:\n"
             "  - data section layout (table vs card vs gallery vs list)\n"
             "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
             "  - page width (contained vs wide vs full)\n"
             "  - density (compact vs normal vs spacious)\n"
-            "  - typography (fontFamily + textSize — inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
+            "  - typography (fontFamily + textSize â€” inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
             "  - border radius (0 vs 8 vs 16 vs 24)\n"
             "  - button style (solid vs outline vs ghost vs gradient)\n"
-            "Every page must have navigation unless user requires otherwise. "
-            "Respect the designer prompt — if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary. "
-            "Keep object_form → form, object_detail → detail, activity_* layouts unchanged."
+            "Every page must have navigation unless user requires otherwise.\n"
+            "Respect the designer prompt - if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary.\n"
+            "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
+            "COLOR SCOPING: Match color changes to their scope - use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region."
         )
 
         user_prompt_text = (
             f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
             f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"DESIGNER PROMPT: {prompt or '(no specific requirements — explore freely)'}\n\n"
+            f"DESIGNER PROMPT: {prompt or '(no specific requirements â€” explore freely)'}\n\n"
             f"{diversity_rules}\n\n"
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "...", "region.header.bg_hex": "#hex or omit", "region.footer.bg_hex": "#hex or omit", "region.main.bg_hex": "#hex or omit", "button.primary.bg_hex": "#hex or omit"}}]}'
         )
 
         response = client.models.generate_content(
@@ -3681,7 +3673,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             config={
                 "system_instruction": f"You are a UI designer creating 3 structurally and visually distinct interface layout candidates. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
                 "response_mime_type": "application/json",
-                "max_output_tokens": 8192,
+                "max_output_tokens": 65536,
             },
         )
         print(f"[llm_generate_3_candidates] raw response:\n{response.text}", flush=True)
@@ -3758,19 +3750,20 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "Apply the DESIGNER REQUIREMENTS to all 3 variants. "
             "Preserve the base candidate's section roles and data bindings. "
             "You may change layout/component/position for collection sections (object_collection, child_collection) "
-            "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged."
+            "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
+            "COLOR SCOPING: Match color changes to their scope — use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region."
         )
 
         user_prompt_text = (
             f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
             f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"BASE CANDIDATE STYLING (starting point — inherit unless requirements override): {base_ctx}\n"
+            f"BASE CANDIDATE STYLING (starting point â€” inherit unless requirements override): {base_ctx}\n"
             f"DESIGNER REQUIREMENTS: {designer_requirements or '(explore visual variations of the base candidate)'}\n\n"
             f"{diversity_rules}\n\n"
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "...", "region.header.bg_hex": "#hex or omit", "region.footer.bg_hex": "#hex or omit", "region.main.bg_hex": "#hex or omit", "button.primary.bg_hex": "#hex or omit"}}]}'
         )
 
         response = client.models.generate_content(
@@ -3779,7 +3772,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             config={
                 "system_instruction": f"You are a UI designer creating visual refinements of a selected interface design. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
                 "response_mime_type": "application/json",
-                "max_output_tokens": 8192,
+                "max_output_tokens": 65536,
             },
         )
         result = json.loads(response.text)
@@ -3890,7 +3883,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     if text_color:
         tokens["page.body.text_hex"] = text_color
         tokens["text.primary.hex"] = text_color
-    # Fine-grained hex overrides — must be set before _expand_design_tokens (which uses setdefault)
+    # Fine-grained hex overrides â€” must be set before _expand_design_tokens (which uses setdefault)
     _FINE_GRAINED_HEX = (
         "region.header.bg_hex", "region.header.text_hex",
         "region.footer.bg_hex", "region.footer.text_hex",
@@ -4138,7 +4131,7 @@ def save_interface_plan(interface_id: str, pages_json: str, sections_json: str) 
         ]
 
         if not db_pages:
-            return "ERROR: pages list is empty — nothing to save."
+            return "ERROR: pages list is empty â€” nothing to save."
 
         try:
             iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
@@ -4205,3 +4198,4 @@ get_available_paths_tool = FunctionTool(func=get_available_paths)
 get_interface_full_context_tool = FunctionTool(func=get_interface_full_context)
 generate_candidate_set_tool = FunctionTool(func=generate_candidate_set)
 regenerate_candidate_set_tool = FunctionTool(func=regenerate_candidate_set)
+

@@ -13,6 +13,7 @@ from app.tools import (
     get_interface_full_context_tool,
     generate_candidate_set_tool, regenerate_candidate_set_tool,
     analyze_interface_from_uml_tool, save_interface_plan_tool,
+    _LAYOUT_SCHEMA,
 )
 
 AGENT_MODEL = os.environ.get("ADK_AGENT_MODEL", "openai/gpt-4o")
@@ -39,15 +40,7 @@ def _image_search_mcp_toolset() -> McpToolset:
         tool_name_prefix="image_",
     )
 
-_EDITABLE_FIELDS = """
-Layout fields (sections/pages):
-  sections[].layout        : "card" | "list" | "table" | "detail" | "gallery" | "filter" | "form" | "activity_action" | "activity_start" | "activity_tasks" | supported header/footer template layouts
-  sections[].component     : UI Kit component name, e.g. ProductCardGrid, DataTable, DetailPanel, ObjectForm, HeaderTemplate, FooterTemplate, SearchBar, IconActions, NavBar, FooterLinkGrid
-  sections[].role          : semantic role, e.g. object_collection, object_detail, object_summary, child_collection, object_form, search_control, navigation, chrome_action, workflow_entry
-  sections[].col_span      : 12 | 6 | 4 | 3
-  sections[].position      : "main" | "sidebar" | "header" | "footer"
-  sections[].style.sidebar_side : "left" | "right" when position="sidebar"; use left for navigation/filter rails and right for summaries/actions.
-
+_DATA_FIELDS = """
 Data & Query fields:
   sections[].attributes    : list of attribute names OR objects. Supports dot-notation for cross-class data (e.g. ["name", "seller.name"])
     Attribute objects may mark read-only values: {name: "Seller.name", readonly: true, source: "related"}.
@@ -128,6 +121,7 @@ Workflow controls (layout/type="activity_action"):
     navigate           = go to workflow.target_page without completing the workflow step
     complete_then_page = complete the workflow step and then redirect to workflow.target_page
   sections[].workflow.target_page : target page NAME (Title_Case) for navigate/complete_then_page
+  RULE: Each activity page should have at most ONE activity_action. Do NOT add a navigate-type activity_action to a page that already has a complete or complete_then_page action. Use complete or complete_then_page to advance the workflow; navigate is only for standalone back/cancel buttons when no complete action exists on the page.
   sections[].style.variant    : "button" | "link" | "fab" | "wizard_next" | "auto"
   sections[].style.align      : "left" | "center" | "right"
   sections[].style.size       : "sm" | "md" | "lg"
@@ -179,13 +173,15 @@ Style/token fields (global theme):
   styling.imageRatio      : "1:1" | "4:3" | "16:9" | "portrait" | "wide"
   styling.divider         : "none" | "line" | "shadow" | "wave"
   styling.selectedStyle   : "modern" (leave unchanged)
-  tokens (Tailwind CSS classes for fine-grained override):
-    page.body.bg, page.body.text, page.header.text,
-    region.header.bg, region.footer.bg,
-    element.button.primary, element.button.secondary,
-    component.card.bg, component.card.border, component.card.shadow,
-    page.font.family, page.font.cdn, page.radius.px, page.container.class,
-    theme.button.style, theme.card.hover, theme.image.ratio, theme.divider
+
+Tailwind token overrides (fine-grained CSS class, applied on top of hex overrides):
+  page.body.bg, page.body.text, page.header.text,
+  region.header.bg, region.footer.bg,
+  element.button.primary, element.button.secondary,
+  component.card.bg, component.card.border, component.card.shadow,
+  page.font.family, page.font.cdn, page.radius.px, page.container.class,
+  theme.button.style, theme.card.hover, theme.image.ratio, theme.divider
+  styling.selectedStyle   : "modern" (leave unchanged)
 """
 
 # ── Candidate Generation Pipeline ────────────────────────────────────────────
@@ -417,7 +413,9 @@ IMAGE URL RULE: If the user wants an online/static image or asks to display pict
    - NEVER modify existing sections[].class, sections[].operations, sections[].name.
 
 Editable fields:
-{_EDITABLE_FIELDS}
+{_LAYOUT_SCHEMA}
+
+{_DATA_FIELDS}
 """,
     tools=[
         interface_config_tool, update_interface_patch_tool, system_context_tool, get_available_paths_tool,
