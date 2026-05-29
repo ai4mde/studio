@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script src="https://cdn.tailwindcss.com"></script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
   <style>
     /* Shared preview/live base reset and minimal utility fallback. */
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:currentColor}
@@ -54,7 +54,7 @@ table{border-collapse:collapse;border-spacing:0}
       --input-radius: 8px;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Typography éˆ¹â‚¬éˆ¹â‚¬ */
-      --font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      --font-family: Roboto, ui-sans-serif, system-ui, sans-serif;
       --text-hero-size:     56px;
       --text-hero-weight:   600;
       --text-hero-lh:       1.1;
@@ -77,21 +77,21 @@ table{border-collapse:collapse;border-spacing:0}
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Page & Region Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --accent:               #2563eb;
-      --accent-secondary:     #2563eb;
-      --page-bg:              #f9fafb;
-      --page-text:            #111827;
+      --accent-secondary:     #60a5fa;
+      --page-bg:              #eff6ff;
+      --page-text:            #1f2937;
       --text-muted:           #6b7280;
       --text-subtle:          #9ca3af;
       --region-header-bg:     #2563eb;
       --region-header-text:   #ffffff;
       --region-main-bg:       #ffffff;
       --region-main-bg-elevated: #ffffff;
-      --region-main-bg-sunken: #f9fafb;
+      --region-main-bg-sunken: #ede9fe;
       --region-sidebar-bg:    #ffffff;
       --region-footer-bg:     #2563eb;
       --region-footer-text:   #ffffff;
-      --border-color:         #e5e7eb;
-      --border-strong:        #d1d5db;
+      --border-color:         #bfdbfe;
+      --border-strong:        #e5e7eb;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Shadows éˆ¹â‚¬éˆ¹â‚¬ */
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -99,35 +99,35 @@ table{border-collapse:collapse;border-spacing:0}
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.10);
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Card éˆ¹â‚¬éˆ¹â‚¬ */
-      --card-bg:     var(--region-main-bg);
-      --card-border: var(--border-color);
-      --card-shadow: var(--shadow-sm);
-      --card-text:   #111827;
+      --card-bg:     #ffffff;
+      --card-border: #e5e7eb;
+      --card-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --card-text:   #1f2937;
       --card-muted:  #6b7280;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Buttons éˆ¹â‚¬éˆ¹â‚¬ */
       --button-primary-bg:      #2563eb;
       --button-primary-text:    #ffffff;
       --button-primary-border:  #2563eb;
-      --button-secondary-bg:    var(--region-main-bg);
-      --button-secondary-text:  var(--page-text);
-      --button-secondary-border:var(--border-strong);
-      --button-ghost-text:      var(--accent);
+      --button-secondary-bg:    #ffffff;
+      --button-secondary-text:  #1f2937;
+      --button-secondary-border:#e5e7eb;
+      --button-ghost-text:      #2563eb;
       --button-danger-bg:       #dc2626;
       --button-danger-text:     #ffffff;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Inputs éˆ¹â‚¬éˆ¹â‚¬ */
-      --input-bg:           var(--region-main-bg);
-      --input-border:       var(--border-color);
+      --input-bg:           #ffffff;
+      --input-border:       #e5e7eb;
       --input-border-focus: #2563eb;
-      --input-text:         var(--page-text);
-      --input-placeholder:  var(--text-subtle);
+      --input-text:         #1f2937;
+      --input-placeholder:  #9ca3af;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Table éˆ¹â‚¬éˆ¹â‚¬ */
-      --table-header-bg:   var(--region-main-bg-sunken);
-      --table-header-text: var(--text-muted);
-      --table-row-hover:   var(--region-main-bg-sunken);
-      --table-border:      var(--border-color);
+      --table-header-bg:   #ede9fe;
+      --table-header-text: #6b7280;
+      --table-row-hover:   #ede9fe;
+      --table-border:      #e5e7eb;
 
       /* éˆ¹â‚¬éˆ¹â‚¬ Semantic Badge Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --badge-success-bg:  #16a34a;
@@ -136,8 +136,8 @@ table{border-collapse:collapse;border-spacing:0}
       --badge-error-text:  #ffffff;
       --badge-warning-bg:  #d97706;
       --badge-warning-text:#ffffff;
-      --badge-neutral-bg:  var(--region-main-bg-sunken);
-      --badge-neutral-text:var(--text-muted);
+      --badge-neutral-bg:  #ede9fe;
+      --badge-neutral-text:#6b7280;
     }
 
     body {
@@ -251,10 +251,10 @@ table{border-collapse:collapse;border-spacing:0}
     .shadow-lg { box-shadow: var(--shadow-lg) !important; }
 
     /* éˆ¹â‚¬éˆ¹â‚¬ Card Hover Effects éˆ¹â‚¬éˆ¹â‚¬ */
-    .si-card-hover { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
-    .si-card-hover:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .si-card-hover { transition: box-shadow 0.2s; }
+    .si-card-hover:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
 
-    .si-img { aspect-ratio: 4:3; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
+    .si-img { aspect-ratio: 1:1; width: 100%; object-fit: cover; background-color: var(--region-main-bg-sunken); }
     .si-video { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; background-color: #000; }
 
     /* éˆ¹â‚¬éˆ¹â‚¬ Multi-select (operations.select) éˆ¹â‚¬éˆ¹â‚¬ */
@@ -299,7 +299,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<main class="py-6 px-6 max-w-6xl mx-auto" style="background-color:var(--page-bg);">
+<main class="py-6 px-6 max-w-7xl mx-auto" style="background-color:var(--page-bg);">
 
 
 
@@ -322,7 +322,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div id="page-sections-grid" class="grid grid-cols-12 gap-4">
+<div id="page-sections-grid" class="grid grid-cols-12 gap-6">
 
 
 
@@ -356,44 +356,41 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="app_page_nav" data-section-name="Navigation" data-position="header" data-layout="site-nav" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="compact">
-
-  
+<div class="col-span-12 sm:col-span-6 lg:col-span-3" data-section-id="app_page_nav" data-section-name="Navigation" data-position="sidebar" data-layout="nav-links" data-col-span="3" data-sidebar-side="left" data-sidebar-width="3" data-nav-height="tall">
 
   
 
+  
 
 
 
 
 
-  <nav class="bg-white border border-gray-200 rounded-xl overflow-x-auto">
-    <div class="px-4 flex items-center gap-1 text-sm whitespace-nowrap py-2">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        Products
-      </span>
-      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+
+  <nav class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div class="px-3 py-3 flex flex-col gap-1 text-sm">
+      <div class="font-bold text-gray-900 px-2 py-2">Navigation</div>
+      <a href="{% url 'customer:render_customer_products' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Products</a>
-      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_product_detail' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Product Detail</a>
-      <a href="{% url 'customer:render_customer_product' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_product' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Product</a>
-      <a href="{% url 'customer:render_customer_orders' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_orders' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Orders</a>
-      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_manage_account' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Manage Account</a>
-      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_categories' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Categories</a>
-      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors border-b-2 font-bold"
-        style="border-color:#2563eb;color:#2563eb">Sellers</a>
-      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_sellers' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-white"
+        style="background-color:#2563eb">Sellers</a>
+      <a href="{% url 'customer:render_customer_orderlines' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Orderlines</a>
-      <a href="{% url 'customer:render_customer_payments' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_payments' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Payments</a>
-      <a href="{% url 'customer:render_customer_address' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:render_customer_address' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Address</a>
-      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors text-gray-700 hover:bg-gray-100"
+      <a href="{% url 'customer:customer-homerender' %}" class="px-3 py-2 cursor-pointer rounded-lg font-medium transition-colors text-gray-700 hover:bg-gray-100"
         style="">Tasks</a>
     </div>
   </nav>
@@ -435,7 +432,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="main-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="app_header_template" data-section-name="Header" data-position="header" data-layout="minimal-header" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
 
@@ -446,21 +443,12 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-    <header class="px-5 py-3 flex items-center gap-4">
-      <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:#2563eb;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:#2563eb;">
-        <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Search" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:#2563eb;">
-          <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        </button>
-      </form>
-      <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
-        <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-        <span class="cursor-pointer hover:opacity-75"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-        <span class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
-      </div>
-    </header>
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
+    <div class="text-2xl font-black" style="color:#2563eb;font-family:'Georgia',serif;letter-spacing:-1px;">customer.</div>
+    <button class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:#2563eb;color:#2563eb;">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Search
+    </button>
   </div>
 
 
@@ -500,7 +488,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="sellers_seller_object_collection" data-section-name="Seller Gallery" data-position="main" data-layout="gallery" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12 sm:col-span-6" data-section-id="sellers_seller_object_collection" data-section-name="Seller Gallery" data-position="main" data-layout="card" data-col-span="6" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
   <div class="flex items-center justify-between mb-3">
@@ -516,69 +504,45 @@ table{border-collapse:collapse;border-spacing:0}
 
 
   
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div class="bg-white shadow-md shadow-sm border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="0" style="opacity: 1;">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-white shadow-md shadow-md border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="0" style="opacity: 1;">
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, #2563eb, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
         <span class="text-xl font-black" style="color: #2563eb;">S</span>
       </div>
       <div class="relative min-w-0 w-full">
-        <div class="si-field" data-field-name="seller_id">
-          <div class="si-field-value font-bold text-gray-900 truncate">seller_id 1
+        <div class="si-field" data-field-name="None">
+          <div class="si-field-value font-bold text-gray-900 truncate">Seller Gallery 1
           </div>
         </div>
-        <div class="si-field mt-1" data-field-name="business_name">
-          <span class="si-field-value text-sm text-gray-500">business_name</span>
-        </div>
-      </div>
-      <div class="flex flex-wrap justify-center gap-1.5 pt-1">
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="rating">rating</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="is_verified">is_verified</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="ships_from">ships_from</span>
       </div>
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
       </div>
     </div>
-    <div class="bg-white shadow-md shadow-sm border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="1" style="opacity: 0.8;">
+    <div class="bg-white shadow-md shadow-md border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="1" style="opacity: 0.8;">
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, #2563eb, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
         <span class="text-xl font-black" style="color: #2563eb;">S</span>
       </div>
       <div class="relative min-w-0 w-full">
-        <div class="si-field" data-field-name="seller_id">
-          <div class="si-field-value font-bold text-gray-900 truncate">seller_id 2
+        <div class="si-field" data-field-name="None">
+          <div class="si-field-value font-bold text-gray-900 truncate">Seller Gallery 2
           </div>
         </div>
-        <div class="si-field mt-1" data-field-name="business_name">
-          <span class="si-field-value text-sm text-gray-500">business_name</span>
-        </div>
-      </div>
-      <div class="flex flex-wrap justify-center gap-1.5 pt-1">
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="rating">rating</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="is_verified">is_verified</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="ships_from">ships_from</span>
       </div>
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
       </div>
     </div>
-    <div class="bg-white shadow-md shadow-sm border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="2" style="opacity: 0.6;">
+    <div class="bg-white shadow-md shadow-md border border-gray-200 si-card si-card-hover rounded-xl p-5 relative overflow-hidden flex flex-col items-center text-center gap-3" data-item-idx="2" style="opacity: 0.6;">
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, #2563eb, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
         <span class="text-xl font-black" style="color: #2563eb;">S</span>
       </div>
       <div class="relative min-w-0 w-full">
-        <div class="si-field" data-field-name="seller_id">
-          <div class="si-field-value font-bold text-gray-900 truncate">seller_id 3
+        <div class="si-field" data-field-name="None">
+          <div class="si-field-value font-bold text-gray-900 truncate">Seller Gallery 3
           </div>
         </div>
-        <div class="si-field mt-1" data-field-name="business_name">
-          <span class="si-field-value text-sm text-gray-500">business_name</span>
-        </div>
-      </div>
-      <div class="flex flex-wrap justify-center gap-1.5 pt-1">
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="rating">rating</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="is_verified">is_verified</span>
-        <span class="si-field text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-600 border border-gray-100" data-field-name="ships_from">ships_from</span>
       </div>
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
       </div>
@@ -624,7 +588,7 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 
-<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+<div class="col-span-12" data-section-id="app_footer_template" data-section-name="Footer" data-position="footer" data-layout="compact-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
 
   
 
@@ -655,6 +619,291 @@ table{border-collapse:collapse;border-spacing:0}
 
 
 </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12 sm:col-span-6 lg:col-span-4" data-section-id="payments_payment_filter" data-section-name="Search Payment" data-position="sidebar" data-layout="filter" data-col-span="4" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  
+  <div class="bg-white rounded-xl border border-gray-200 p-6">
+    <div class="space-y-4">
+      <div class="si-field" data-field-name="amount">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">amount</label>
+        <input type="text" placeholder="amount" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="payment_method">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">payment_method</label>
+        <input type="text" placeholder="payment_method" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <div class="si-field" data-field-name="status">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">status</label>
+        <input type="text" placeholder="status" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm  focus:outline-none focus:ring-2" />
+      </div>
+      <button type="submit" class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:#2563eb;">
+        Submit
+      </button>
+    </div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step1_view_cart_action" data-section-name="View Cart" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">View Cart</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+    </div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step2_enter_shipping_address_action" data-section-name="Enter Shipping Address" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">Enter Shipping Address</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+    </div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step3_select_payment_method_action" data-section-name="Select Payment Method" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">Select Payment Method</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+    </div>
+  </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="col-span-12" data-section-id="full_shopping_flow_activity_diagram_step8_view_order_confirmation_action" data-section-name="View Order Confirmation" data-position="footer" data-layout="site-footer" data-col-span="12" data-sidebar-side="" data-sidebar-width="" data-nav-height="normal">
+
+  
+
+  
+
+
+
+
+
+
+  <div>
+    <h4 class="font-bold mb-3">View Order Confirmation</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
+    </div>
+  </div>
+
+
+
+
+</div>
 </div>
 
 
@@ -672,7 +921,7 @@ table{border-collapse:collapse;border-spacing:0}
   var hasNonMain = byPos.header.length || byPos.hero.length || byPos.sidebar.length || byPos.footer.length;
   if (!hasNonMain) return;
   var hasSidebarRegion = byPos.sidebar.length > 0;
-  var _mainWidthMode = 'contained';
+  var _mainWidthMode = 'wide';
 
   var gap = 'gap-4';
   var wrap = document.createElement('div');
@@ -681,7 +930,7 @@ table{border-collapse:collapse;border-spacing:0}
   if (byPos.header.length) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('contained' === 'full' || hasSidebarRegion) {
+    if ('full' === 'full' || hasSidebarRegion) {
       headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
     }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });
@@ -789,7 +1038,7 @@ table{border-collapse:collapse;border-spacing:0}
       footerEl.style.cssText += 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);';
     }
     var footerInner = document.createElement('div');
-    footerInner.className = ('full' === 'contained' ? 'max-w-6xl mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
+    footerInner.className = ('full' === 'contained' ? 'max-w-5xl mx-auto ' : 'w-full ') + 'grid grid-cols-12 gap-4 px-8 py-6 border-t-4';
     footerInner.style.borderColor = accentHex;
     byPos.footer.forEach(function(el) { footerInner.appendChild(el); });
     footerEl.appendChild(footerInner);
