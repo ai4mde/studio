@@ -4107,8 +4107,16 @@ style (include only relevant keys):
   sidebar_width: 2..6                          (sidebar sections only)
   logo_size: "sm"|"md"|"lg"|"xl"
   logo_shape: "rounded"|"circle"|"square"
+  logo_variant: "lockup"|"image-only"|"text-only"   (logo sections: lockup=icon+text, image-only=icon only, text-only=text only)
   logo_url: image URL string (only if user asked for logo image)
   image_url: image URL string (only for ImageCard/banner)
+  cta_label: button text string e.g. "Save" | "Submit" | "Continue"  (form sections)
+  seller_label: e.g. "Sold by" (card/list sections — empty string to hide)
+  availability_label: e.g. "In stock" | "Out of stock" (card/list/detail — empty string to hide)
+  delivery_label: e.g. "Free delivery" | "Ships in 2-3 days" (card/list/detail — empty string to hide)
+  action_variant: "link"|"ghost"|"button"  (icon-actions sections: how action items are styled)
+  show_logout: true|false                  (icon-actions sections: show/hide logout link)
+  logout_label: string e.g. "Sign out"    (icon-actions sections: label for logout link)
 
 === PAGE FIELDS ===
 layout.value: "vertical"|"horizontal"|"vertical-reverse"|"horizontal-reverse"
@@ -4347,6 +4355,14 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
         })
     if secondary:
         tokens["color.secondary.hex"] = secondary
+    bg = llm_styling.get("backgroundColor") or ""
+    if bg:
+        tokens["page.body.bg_hex"] = bg
+        tokens["page.bg.hex"] = bg
+    text_color = llm_styling.get("textColor") or ""
+    if text_color:
+        tokens["page.body.text_hex"] = text_color
+        tokens["text.primary.hex"] = text_color
     text_size = llm_styling.get("textSize") or ""
     if text_size in _TEXT_SIZE_TOKENS:
         tokens.update(_TEXT_SIZE_TOKENS[text_size])
