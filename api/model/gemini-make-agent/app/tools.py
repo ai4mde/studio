@@ -4120,6 +4120,11 @@ gap.value: "compact"|"normal"|"spacious"
 
 === GLOBAL STYLING (one set per candidate) ===
 fontFamily: "inter"|"roboto"|"poppins"|"playfair"|"mono"|"geist"
+textSize: "sm"|"md"|"lg"|"xl"
+  sm = body 14px, compact/data-dense interfaces
+  md = body 16px, default balanced
+  lg = body 18px, readable/spacious
+  xl = body 20px, large/accessibility-friendly
 accentColor: hex e.g. "#2563eb"
 accentSecondary: hex e.g. "#60a5fa"
 backgroundColor: hex e.g. "#ffffff"
@@ -4156,6 +4161,7 @@ _CANDIDATE_HARD_RULES = [
         "page_footer_width": "full",
         "density": "compact",
         "fontFamily": "inter",
+        "textSize": "sm",
         "radius": 4,
         "buttonStyle": "solid",
         "cardHover": "border",
@@ -4175,6 +4181,7 @@ _CANDIDATE_HARD_RULES = [
         "page_footer_width": "full",
         "density": "normal",
         "fontFamily": "poppins",
+        "textSize": "md",
         "radius": 16,
         "buttonStyle": "solid",
         "cardHover": "lift",
@@ -4193,6 +4200,7 @@ _CANDIDATE_HARD_RULES = [
         "page_footer_width": "full",
         "density": "spacious",
         "fontFamily": "poppins",
+        "textSize": "lg",
         "radius": 24,
         "buttonStyle": "gradient",
         "cardHover": "glow",
@@ -4211,7 +4219,7 @@ def _build_candidate_direction_prompt(rules: dict, user_prompt: str, index: int)
         lines.append(f"MANDATORY: Navigation style → sidebar_side='{rules['nav_sidebar_side']}', sidebar_width={rules['nav_sidebar_width']}")
     lines.append(f"MANDATORY: All pages → main_width='{rules['page_main_width']}', header_width='{rules['page_header_width']}', footer_width='{rules['page_footer_width']}'")
     lines.append(f"MANDATORY: density='{rules['density']}' for all data sections")
-    lines.append(f"MANDATORY styling: fontFamily='{rules['fontFamily']}', radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'")
+    lines.append(f"MANDATORY styling: fontFamily='{rules['fontFamily']}', textSize='{rules['textSize']}', radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'")
     lines.append(f"Choose accentColor: {rules['accent_hint']}")
     if user_prompt:
         lines.append(f"Also respect designer prompt: {user_prompt}")
@@ -4252,7 +4260,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
         )
 
         response = client.models.generate_content(
@@ -4311,8 +4319,16 @@ def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: d
     return pages, sections
 
 
+_TEXT_SIZE_TOKENS = {
+    "sm": {"typography.hero.size": "48px", "typography.display.size": "34px", "typography.title-md.size": "18px", "typography.lead.size": "16px", "typography.body.size": "14px", "typography.caption.size": "11px", "typography.label.size": "13px"},
+    "md": {"typography.hero.size": "56px", "typography.display.size": "40px", "typography.title-md.size": "20px", "typography.lead.size": "18px", "typography.body.size": "16px", "typography.caption.size": "12px", "typography.label.size": "14px"},
+    "lg": {"typography.hero.size": "64px", "typography.display.size": "46px", "typography.title-md.size": "24px", "typography.lead.size": "20px", "typography.body.size": "18px", "typography.caption.size": "13px", "typography.label.size": "15px"},
+    "xl": {"typography.hero.size": "72px", "typography.display.size": "52px", "typography.title-md.size": "28px", "typography.lead.size": "22px", "typography.body.size": "20px", "typography.caption.size": "14px", "typography.label.size": "16px"},
+}
+
+
 def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, index: int) -> dict:
-    """Build color tokens seeded from LLM accent color, then expand."""
+    """Build color + typography tokens seeded from LLM styling output, then expand."""
     tokens = dict(base_tokens or {})
     accent = llm_styling.get("accentColor") or ""
     secondary = llm_styling.get("accentSecondary") or ""
@@ -4329,6 +4345,9 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
         })
     if secondary:
         tokens["color.secondary.hex"] = secondary
+    text_size = llm_styling.get("textSize") or ""
+    if text_size in _TEXT_SIZE_TOKENS:
+        tokens.update(_TEXT_SIZE_TOKENS[text_size])
     tokens["design.variant_index"] = str(index)
     _expand_design_tokens(tokens)
     return tokens
