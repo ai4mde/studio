@@ -4142,25 +4142,80 @@ pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
 - 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
 """
 
-_CANDIDATE_DIRECTIONS = [
-    (
-        "compact-dashboard",
-        "Professional dashboard: table layout for data lists, top navigation, contained pages, compact density, "
-        "Inter font, dark neutral accent (#1e293b or #0f172a). Shadow: sm. Clean minimal aesthetic."
-    ),
-    (
-        "card-explorer",
-        "Visual explorer: card grids for collections, left sidebar navigation, wide pages, normal density, "
-        "Poppins font, vibrant accent (choose from #7c3aed, #0891b2, #059669, or #dc2626). "
-        "Card style: product or default. Lift hover effect. Radius 12-16."
-    ),
-    (
-        "showcase-spacious",
-        "Spacious showcase: hero section at top, full-width header, gallery or large cards, spacious density, "
-        "Playfair or Poppins font, bold warm accent (#ea580c, #d97706, or #7c3aed). "
-        "Gradient buttons. Glow hover. Radius 16-24. Full-width footer."
-    ),
+# Hard-wired structural rules per candidate index — enforced in the prompt so LLM cannot drift.
+_CANDIDATE_HARD_RULES = [
+    # 0: compact dashboard
+    {
+        "name": "compact-dashboard",
+        "data_layout": "table",       # all collection sections
+        "data_component": "DataTable",
+        "data_col_span": 12,
+        "nav_position": "header",
+        "page_main_width": "contained",
+        "page_header_width": "full",
+        "page_footer_width": "full",
+        "density": "compact",
+        "fontFamily": "inter",
+        "radius": 4,
+        "buttonStyle": "solid",
+        "cardHover": "border",
+        "accent_hint": "dark neutral e.g. #1e293b, #0f172a, or #1d4ed8",
+    },
+    # 1: card explorer with sidebar
+    {
+        "name": "card-explorer",
+        "data_layout": "card",
+        "data_component": "CardGrid",
+        "data_col_span": 6,
+        "nav_position": "sidebar",
+        "nav_sidebar_side": "left",
+        "nav_sidebar_width": 3,
+        "page_main_width": "wide",
+        "page_header_width": "full",
+        "page_footer_width": "full",
+        "density": "normal",
+        "fontFamily": "poppins",
+        "radius": 16,
+        "buttonStyle": "solid",
+        "cardHover": "lift",
+        "accent_hint": "vibrant e.g. #7c3aed, #0891b2, #059669, or #dc2626",
+    },
+    # 2: spacious showcase with hero
+    {
+        "name": "showcase-spacious",
+        "data_layout": "gallery",
+        "data_component": "ImageCardGrid",
+        "data_col_span": 12,
+        "first_data_position": "hero",
+        "nav_position": "header",
+        "page_main_width": "full",
+        "page_header_width": "full",
+        "page_footer_width": "full",
+        "density": "spacious",
+        "fontFamily": "poppins",
+        "radius": 24,
+        "buttonStyle": "gradient",
+        "cardHover": "glow",
+        "accent_hint": "bold warm e.g. #ea580c, #d97706, #7c3aed, or #be185d",
+    },
 ]
+
+
+def _build_candidate_direction_prompt(rules: dict, user_prompt: str, index: int) -> str:
+    lines = [f"=== CANDIDATE {index} — {rules['name'].upper()} ==="]
+    lines.append(f"MANDATORY: ALL data/collection sections (primary_model is non-empty, role contains 'collection' or 'object') → layout='{rules['data_layout']}', component='{rules['data_component']}', col_span={rules['data_col_span']}")
+    if rules.get("first_data_position"):
+        lines.append(f"MANDATORY: The FIRST data section → position='{rules['first_data_position']}', col_span=12")
+    lines.append(f"MANDATORY: Navigation section → position='{rules['nav_position']}'")
+    if rules.get("nav_sidebar_side"):
+        lines.append(f"MANDATORY: Navigation style → sidebar_side='{rules['nav_sidebar_side']}', sidebar_width={rules['nav_sidebar_width']}")
+    lines.append(f"MANDATORY: All pages → main_width='{rules['page_main_width']}', header_width='{rules['page_header_width']}', footer_width='{rules['page_footer_width']}'")
+    lines.append(f"MANDATORY: density='{rules['density']}' for all data sections")
+    lines.append(f"MANDATORY styling: fontFamily='{rules['fontFamily']}', radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'")
+    lines.append(f"Choose accentColor: {rules['accent_hint']}")
+    if user_prompt:
+        lines.append(f"Also respect designer prompt: {user_prompt}")
+    return "\n".join(lines)
 
 
 def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
@@ -4170,15 +4225,13 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
         client = _genai.Client(api_key=api_key)
 
+        # Skeleton: semantic context only, no current layout values (avoids LLM anchoring to old state)
         section_skeleton = [
             {
                 "id": s.get("id", ""),
                 "name": s.get("name", ""),
                 "primary_model": s.get("primary_model", ""),
                 "role": s.get("role", ""),
-                "current_layout": s.get("layout", ""),
-                "current_position": s.get("position", "main"),
-                "current_col_span": s.get("col_span", 12),
             }
             for s in sections if s.get("id")
         ]
@@ -4187,30 +4240,26 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             for p in pages if p.get("id")
         ]
 
-        directions_text = "\n".join(
-            f"Candidate {i} ({name}): {desc}"
-            for i, (name, desc) in enumerate(_CANDIDATE_DIRECTIONS)
+        directions_block = "\n\n".join(
+            _build_candidate_direction_prompt(rules, prompt, i)
+            for i, rules in enumerate(_CANDIDATE_HARD_RULES)
         )
-        if prompt:
-            directions_text += f"\n\nDesigner prompt (respect in all 3 candidates where it does not conflict with structural diversity): {prompt}"
 
-        user_prompt = (
+        user_prompt_text = (
             f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
             f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"Design directions:\n{directions_text}\n\n"
-            "Output 3 candidates as JSON:\n"
-            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {...}, "gap": {...}}], '
-            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {...}}], '
-            '"styling": {"fontFamily": "...", "accentColor": "...", "accentSecondary": "...", '
-            '"backgroundColor": "...", "textColor": "...", "radius": 8, "buttonStyle": "...", "cardHover": "...", '
-            '"imageRatio": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+            f"{directions_block}\n\n"
+            "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
+            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
+            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
+            '"styling": {"fontFamily": "...", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
         )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
-            contents=user_prompt,
+            contents=user_prompt_text,
             config={
-                "system_instruction": f"You are a UI designer generating 3 structurally distinct interface layout candidates.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "system_instruction": f"You are a UI designer generating structurally distinct interface layout candidates. Follow the MANDATORY rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
                 "response_mime_type": "application/json",
                 "max_output_tokens": 8192,
             },
