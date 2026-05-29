@@ -4208,18 +4208,20 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
 
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
-            "Each candidate MUST differ from the others on at least 3 of these axes:\n"
+            "MANDATORY color assignment — each candidate MUST use a different color family:\n"
+            "  Candidate 0: DARK/NEUTRAL palette — accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
+            "  Candidate 1: VIBRANT/COLORFUL palette — accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
+            "  Candidate 2: WARM/EDITORIAL palette — accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
+            "Each candidate MUST also differ on at least 2 of these axes:\n"
             "  - data section layout (table vs card vs gallery vs list)\n"
             "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
             "  - page width (contained vs wide vs full)\n"
             "  - density (compact vs normal vs spacious)\n"
-            "  - color palette (accentColor, backgroundColor — choose different moods: neutral/vibrant/warm/dark)\n"
             "  - typography (fontFamily + textSize — inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
             "  - border radius (0 vs 8 vs 16 vs 24)\n"
             "  - button style (solid vs outline vs ghost vs gradient)\n"
-            "  - card hover (lift vs glow vs border vs none)\n"
             "Every page must have navigation. "
-            "Respect the designer prompt. "
+            "Respect the designer prompt — if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary. "
             "Keep object_form → form, object_detail → detail, activity_* layouts unchanged."
         )
 
@@ -4507,14 +4509,8 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                 variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
 
                 llm_styling = llm_cand.get("styling") or {}
-                if anchored_tokens is not None:
-                    tokens = copy.deepcopy(anchored_tokens)
-                    tokens["design.variant_index"] = str(index)
-                    _expand_design_tokens(tokens)
-                elif intent_colors:
-                    tokens = _variant_tokens(raw_base_tokens, prompt, index)
-                else:
-                    tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, prompt, index)
+                # LLM path always uses LLM colors — anchored_tokens only applies to rule-based fallback
+                tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, prompt, index)
 
                 styling = dict(base_styling or {})
                 for key in ("fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider", "pageMaxWidth", "accentColor", "backgroundColor", "textColor"):
