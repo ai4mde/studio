@@ -2973,271 +2973,271 @@ def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict) -
     return tokens, spec_name
 
 
-# def validate_and_save_candidate(
-#     interface_id: str,
-#     candidate_index: int,
-#     name: str,
-#     description: str,
-#     pages: str,
-#     sections: str,
-#     tokens: str = "",
-#     styling: str = "",
-#     prompt: str = "",
-#     derived_from: str = "",
-#     designer_requirements: str = "",
-#     variation_strategy: str = "",
-# ) -> str:
-#     """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
+def validate_and_save_candidate(
+    interface_id: str,
+    candidate_index: int,
+    name: str,
+    description: str,
+    pages: str,
+    sections: str,
+    tokens: str = "",
+    styling: str = "",
+    prompt: str = "",
+    derived_from: str = "",
+    designer_requirements: str = "",
+    variation_strategy: str = "",
+) -> str:
+    """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
 
-#     Args:
-#         interface_id: The interface UUID (from the message).
-#         candidate_index: 0, 1, or 2.
-#         name: Short display name for this design direction (e.g. "Card-forward Commerce").
-#         description: One sentence describing this candidate's visual approach.
-#         pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
-#                type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
-#                Pages do NOT contain section data — they only reference section IDs.
-#         sections: JSON string containing a list of ALL section definition objects. Each section must have:
-#                   id, name, layout, position, col_span, primary_model, attributes, operations, style.
-#                   This is SEPARATE from pages. Both pages[] and sections[] are required.
-#         tokens: Optional JSON string with design tokens.
-#         styling: Optional JSON string with global styling overrides.
-#         prompt: Original user design prompt (optional, for logging).
-#         derived_from: Optional source candidate index/id when regenerating from a selected candidate.
-#         designer_requirements: Optional human-in-the-loop requirements used for regeneration.
-#         variation_strategy: Optional short label for how this candidate differs from the source.
-#     """
-#     try:
-#         if isinstance(pages, str): pages = json.loads(pages)
-#         if isinstance(sections, str): sections = json.loads(sections)
-#         input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
-#         prompt_for_style = designer_requirements or prompt
-#         prompt_intent = compile_prompt_intent(prompt_for_style)
-#         styling = _norm_candidate_styling(styling, prompt_for_style)
+    Args:
+        interface_id: The interface UUID (from the message).
+        candidate_index: 0, 1, or 2.
+        name: Short display name for this design direction (e.g. "Card-forward Commerce").
+        description: One sentence describing this candidate's visual approach.
+        pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
+               type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
+               Pages do NOT contain section data — they only reference section IDs.
+        sections: JSON string containing a list of ALL section definition objects. Each section must have:
+                  id, name, layout, position, col_span, primary_model, attributes, operations, style.
+                  This is SEPARATE from pages. Both pages[] and sections[] are required.
+        tokens: Optional JSON string with design tokens.
+        styling: Optional JSON string with global styling overrides.
+        prompt: Original user design prompt (optional, for logging).
+        derived_from: Optional source candidate index/id when regenerating from a selected candidate.
+        designer_requirements: Optional human-in-the-loop requirements used for regeneration.
+        variation_strategy: Optional short label for how this candidate differs from the source.
+    """
+    try:
+        if isinstance(pages, str): pages = json.loads(pages)
+        if isinstance(sections, str): sections = json.loads(sections)
+        input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
+        prompt_for_style = designer_requirements or prompt
+        prompt_intent = compile_prompt_intent(prompt_for_style)
+        styling = _norm_candidate_styling(styling, prompt_for_style)
 
-#         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
-#         iface_resp.raise_for_status()
-#         iface = iface_resp.json()
-#         system_id = iface.get("system")
-#         tokens, design_spec_name = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
+        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+        iface_resp.raise_for_status()
+        iface = iface_resp.json()
+        system_id = iface.get("system")
+        tokens, design_spec_name = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
 
-#         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
-#         classifiers_data = cls_resp.json() if cls_resp.ok else {}
-#         raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
-#         model_attrs: dict = {}; model_id_by_name: dict = {}
-#         for c in raw_classifiers:
-#             cdata = c.get("data", {}); cname = cdata.get("name", "")
-#             attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
-#             if cname:
-#                 model_attrs[cname] = attrs
-#                 model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
-#         known_models = set(model_attrs.keys())
+        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
+        classifiers_data = cls_resp.json() if cls_resp.ok else {}
+        raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
+        model_attrs: dict = {}; model_id_by_name: dict = {}
+        for c in raw_classifiers:
+            cdata = c.get("data", {}); cname = cdata.get("name", "")
+            attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
+            if cname:
+                model_attrs[cname] = attrs
+                model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
+        known_models = set(model_attrs.keys())
 
-#         usecase_navigation: dict = {}
-#         try:
-#             system_context = _fetch_system_context_data(system_id)
-#             actor_name = _actor_name_from_context(system_context, iface.get("actor"))
-#             usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
-#             pages = _ensure_usecase_pages(pages, usecase_navigation)
-#         except Exception:
-#             usecase_navigation = {}
-#         sections = _normalize_activity_action_sections(pages, sections)
-#         sections = _normalize_chrome_sections(sections)
+        usecase_navigation: dict = {}
+        try:
+            system_context = _fetch_system_context_data(system_id)
+            actor_name = _actor_name_from_context(system_context, iface.get("actor"))
+            usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
+            pages = _ensure_usecase_pages(pages, usecase_navigation)
+        except Exception:
+            usecase_navigation = {}
+        sections = _normalize_activity_action_sections(pages, sections)
+        sections = _normalize_chrome_sections(sections)
 
-#         def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
-#         model_names_fuzzy = {_norm_model(m): m for m in known_models}
-#         def _canonical_model_name(name): return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
+        def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
+        model_names_fuzzy = {_norm_model(m): m for m in known_models}
+        def _canonical_model_name(name): return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
 
-#         page_names = {p.get("name", "") for p in pages}
-#         page_ref_to_name: dict = {}
-#         for p in pages:
-#             pname, pid = p.get("name", ""), p.get("id", "")
-#             if pname: page_ref_to_name[pname] = pname; page_ref_to_name[pname.lower()] = pname
-#             if pid: page_ref_to_name[pid] = pname; page_ref_to_name[pid.lower()] = pname
+        page_names = {p.get("name", "") for p in pages}
+        page_ref_to_name: dict = {}
+        for p in pages:
+            pname, pid = p.get("name", ""), p.get("id", "")
+            if pname: page_ref_to_name[pname] = pname; page_ref_to_name[pname.lower()] = pname
+            if pid: page_ref_to_name[pid] = pname; page_ref_to_name[pid.lower()] = pname
 
-#         # Validate sections
-#         errors: list = []
-#         for s in sections:
-#             s["layout"] = _normalize_layout_alias(s.get("layout"))
-#             s["operations"] = _normalize_section_operations(s.get("operations"))
-#             s["component"] = _infer_section_component(s)
-#             sname, layout = s.get("name", "?"), s.get("layout", "")
-#             if layout and layout not in _VALID_SECTION_LAYOUTS:
-#                 errors.append(f"section '{sname}': invalid layout '{layout}'")
-#             pm = s.get("primary_model", "")
-#             if pm and pm not in known_models:
-#                 errors.append(f"section '{sname}': unknown primary_model '{pm}'")
-#             for attr in s.get("attributes", []):
-#                 attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-#                 if "." in attr_name:
-#                     first, rest = attr_name.split(".", 1)
-#                     canon = _canonical_model_name(first)
-#                     if not canon: errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
-#                     elif rest not in model_attrs.get(canon, set()): errors.append(f"section '{sname}': related attribute '{rest}' not found on {canon}")
-#                 elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]:
-#                     errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
-#             avail_attrs = {(attr.get("name", attr) if isinstance(attr, dict) else attr) for attr in s.get("attributes", [])}
-#             s["field_layout"] = _normalize_field_layout(s)
-#             for field_ref in _field_layout_field_refs(s.get("field_layout")):
-#                 if field_ref not in avail_attrs:
-#                     errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
-#             sp = (s.get("style") or {}).get("success_page", "")
-#             if sp and sp not in page_names:
-#                 errors.append(f"section '{sname}': success_page '{sp}' not in pages")
-#             workflow = s.get("workflow") or {}
-#             workflow_action = workflow.get("action") or s.get("workflow_action", "")
-#             if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
-#                 errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
-#             workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
-#             if workflow_target and workflow_target in page_ref_to_name:
-#                 workflow["target_page"] = page_ref_to_name[workflow_target]; s["workflow"] = workflow
-#             if workflow_target and workflow_target not in page_names:
-#                 norm_wt = page_ref_to_name.get(str(workflow_target).lower())
-#                 if norm_wt: workflow["target_page"] = norm_wt; s["workflow"] = workflow
-#                 else: errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
-#             for field, valid_vals in _VALID_SECTION_STYLE.items():
-#                 val = (s.get("style") or {}).get(field, "")
-#                 if val and val not in valid_vals:
-#                     errors.append(f"section '{sname}': invalid style.{field} '{val}'")
+        # Validate sections
+        errors: list = []
+        for s in sections:
+            s["layout"] = _normalize_layout_alias(s.get("layout"))
+            s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
+            sname, layout = s.get("name", "?"), s.get("layout", "")
+            if layout and layout not in _VALID_SECTION_LAYOUTS:
+                errors.append(f"section '{sname}': invalid layout '{layout}'")
+            pm = s.get("primary_model", "")
+            if pm and pm not in known_models:
+                errors.append(f"section '{sname}': unknown primary_model '{pm}'")
+            for attr in s.get("attributes", []):
+                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                if "." in attr_name:
+                    first, rest = attr_name.split(".", 1)
+                    canon = _canonical_model_name(first)
+                    if not canon: errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
+                    elif rest not in model_attrs.get(canon, set()): errors.append(f"section '{sname}': related attribute '{rest}' not found on {canon}")
+                elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]:
+                    errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
+            avail_attrs = {(attr.get("name", attr) if isinstance(attr, dict) else attr) for attr in s.get("attributes", [])}
+            s["field_layout"] = _normalize_field_layout(s)
+            for field_ref in _field_layout_field_refs(s.get("field_layout")):
+                if field_ref not in avail_attrs:
+                    errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
+            sp = (s.get("style") or {}).get("success_page", "")
+            if sp and sp not in page_names:
+                errors.append(f"section '{sname}': success_page '{sp}' not in pages")
+            workflow = s.get("workflow") or {}
+            workflow_action = workflow.get("action") or s.get("workflow_action", "")
+            if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
+                errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
+            workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
+            if workflow_target and workflow_target in page_ref_to_name:
+                workflow["target_page"] = page_ref_to_name[workflow_target]; s["workflow"] = workflow
+            if workflow_target and workflow_target not in page_names:
+                norm_wt = page_ref_to_name.get(str(workflow_target).lower())
+                if norm_wt: workflow["target_page"] = norm_wt; s["workflow"] = workflow
+                else: errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
+            for field, valid_vals in _VALID_SECTION_STYLE.items():
+                val = (s.get("style") or {}).get(field, "")
+                if val and val not in valid_vals:
+                    errors.append(f"section '{sname}': invalid style.{field} '{val}'")
 
-#         # Auto-correct sections
-#         fixed_sections = []
-#         for s in sections:
-#             s = dict(s)
-#             s["layout"] = _normalize_layout_alias(s.get("layout"))
-#             s["operations"] = _normalize_section_operations(s.get("operations"))
-#             s["component"] = _infer_section_component(s)
-#             pm = s.get("primary_model", "")
-#             if pm and pm not in model_attrs:
-#                 canon = model_names_fuzzy.get(_norm_model(pm))
-#                 if canon: s["primary_model"] = s["class"] = pm = canon
-#             if pm and pm in model_attrs:
-#                 new_attrs: list = []; attr_renames: dict = {}
-#                 for attr in s.get("attributes", []):
-#                     attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-#                     if "." in attr_name:
-#                         first, rest = attr_name.split(".", 1)
-#                         canon = _canonical_model_name(first)
-#                         if canon and rest in model_attrs.get(canon, set()):
-#                             norm = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
-#                             canon_attr = f"{canon}.{rest}"
-#                             norm["name"] = canon_attr
-#                             norm.setdefault("source", "related"); norm.setdefault("readonly", True)
-#                             if canon_attr != attr_name: attr_renames[attr_name] = canon_attr
-#                             new_attrs.append(norm)
-#                     elif not pm or attr_name in model_attrs.get(pm, set()):
-#                         new_attrs.append(attr)
-#                 if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
-#                     new_attrs = list(_model_field_names(model_attrs, pm, 6))
-#                 s["attributes"] = new_attrs
-#                 if attr_renames and isinstance(s.get("field_layout"), dict):
-#                     def _rename_fl(v):
-#                         if isinstance(v, str): return attr_renames.get(v, v)
-#                         if isinstance(v, list): return [_rename_fl(i) for i in v]
-#                         if isinstance(v, dict): return {k: _rename_fl(i) for k, i in v.items()}
-#                         return v
-#                     s["field_layout"] = {k: _rename_fl(v) for k, v in (s.get("field_layout") or {}).items()}
-#             s["field_layout"] = _normalize_field_layout(s)
-#             fixed_sections.append(s)
-#         for s in fixed_sections:
-#             if s.get("layout") in _DATA_SECTION_LAYOUTS:
-#                 style = dict(s.get("style") or {})
-#                 if not style.get("color") or style["color"] in {"blue", "green", "purple"}:
-#                     style["color"] = "accent"; s["style"] = style
+        # Auto-correct sections
+        fixed_sections = []
+        for s in sections:
+            s = dict(s)
+            s["layout"] = _normalize_layout_alias(s.get("layout"))
+            s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
+            pm = s.get("primary_model", "")
+            if pm and pm not in model_attrs:
+                canon = model_names_fuzzy.get(_norm_model(pm))
+                if canon: s["primary_model"] = s["class"] = pm = canon
+            if pm and pm in model_attrs:
+                new_attrs: list = []; attr_renames: dict = {}
+                for attr in s.get("attributes", []):
+                    attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+                    if "." in attr_name:
+                        first, rest = attr_name.split(".", 1)
+                        canon = _canonical_model_name(first)
+                        if canon and rest in model_attrs.get(canon, set()):
+                            norm = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
+                            canon_attr = f"{canon}.{rest}"
+                            norm["name"] = canon_attr
+                            norm.setdefault("source", "related"); norm.setdefault("readonly", True)
+                            if canon_attr != attr_name: attr_renames[attr_name] = canon_attr
+                            new_attrs.append(norm)
+                    elif not pm or attr_name in model_attrs.get(pm, set()):
+                        new_attrs.append(attr)
+                if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
+                    new_attrs = list(_model_field_names(model_attrs, pm, 6))
+                s["attributes"] = new_attrs
+                if attr_renames and isinstance(s.get("field_layout"), dict):
+                    def _rename_fl(v):
+                        if isinstance(v, str): return attr_renames.get(v, v)
+                        if isinstance(v, list): return [_rename_fl(i) for i in v]
+                        if isinstance(v, dict): return {k: _rename_fl(i) for k, i in v.items()}
+                        return v
+                    s["field_layout"] = {k: _rename_fl(v) for k, v in (s.get("field_layout") or {}).items()}
+            s["field_layout"] = _normalize_field_layout(s)
+            fixed_sections.append(s)
+        for s in fixed_sections:
+            if s.get("layout") in _DATA_SECTION_LAYOUTS:
+                style = dict(s.get("style") or {})
+                if not style.get("color") or style["color"] in {"blue", "green", "purple"}:
+                    style["color"] = "accent"; s["style"] = style
 
-#         # Auto-correct pages
-#         fixed_pages = []
-#         for i, p in enumerate(pages):
-#             p = dict(p)
-#             p["type"] = _canonical_page_type(_infer_page_type_value(p))
-#             if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
-#             p.setdefault("category", None)
-#             fixed_pages.append(p)
-#         for i, s in enumerate(fixed_sections):
-#             if not s.get("id"):
-#                 model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
-#                 fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
-#             if not fixed_sections[i].get("name"):
-#                 fixed_sections[i]["name"] = fixed_sections[i]["id"]
+        # Auto-correct pages
+        fixed_pages = []
+        for i, p in enumerate(pages):
+            p = dict(p)
+            p["type"] = _canonical_page_type(_infer_page_type_value(p))
+            if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
+            p.setdefault("category", None)
+            fixed_pages.append(p)
+        for i, s in enumerate(fixed_sections):
+            if not s.get("id"):
+                model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
+                fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
+            if not fixed_sections[i].get("name"):
+                fixed_sections[i]["name"] = fixed_sections[i]["id"]
 
-#         fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
-#         for s in fixed_sections:
-#             s["operations"] = _normalize_section_operations(s.get("operations"))
-#             s["component"] = _infer_section_component(s)
-#             s["field_layout"] = _normalize_field_layout(s)
-#         fixed_sections = _normalize_chrome_sections(fixed_sections)
-#         fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
-#         fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
-#         fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
-#         fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
-#         for s in fixed_sections:
-#             s["component"] = _infer_section_component(s)
-#         auto_allowed_layouts = (
-#             _HEADER_TEMPLATE_LAYOUTS
-#             | _FOOTER_TEMPLATE_LAYOUTS
-#             | _HEADER_NAV_LAYOUTS
-#             | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
-#         )
-#         fixed_sections = [
-#             s for s in fixed_sections
-#             if str(s.get("id") or "") in input_section_ids
-#             or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
-#             or s.get("position") in {"header", "footer"}
-#         ]
+        fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
+        for s in fixed_sections:
+            s["operations"] = _normalize_section_operations(s.get("operations"))
+            s["component"] = _infer_section_component(s)
+            s["field_layout"] = _normalize_field_layout(s)
+        fixed_sections = _normalize_chrome_sections(fixed_sections)
+        fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
+        fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
+        fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
+        fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
+        for s in fixed_sections:
+            s["component"] = _infer_section_component(s)
+        auto_allowed_layouts = (
+            _HEADER_TEMPLATE_LAYOUTS
+            | _FOOTER_TEMPLATE_LAYOUTS
+            | _HEADER_NAV_LAYOUTS
+            | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
+        )
+        fixed_sections = [
+            s for s in fixed_sections
+            if str(s.get("id") or "") in input_section_ids
+            or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
+            or s.get("position") in {"header", "footer"}
+        ]
 
-#         # Normalize section refs and assign sections to pages that have none
-#         for i, p in enumerate(fixed_pages):
-#             if p.get("sections") is not None:
-#                 fixed_pages[i] = {**p, "sections": [r if isinstance(r, dict) else {"value": r} for r in p["sections"]]}
-#         assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
-#         if any(not p.get("sections") for p in fixed_pages) and assignable:
-#             model_to_secs: dict = defaultdict(list)
-#             for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
-#             rebuilt: list = []; model_assigned: dict = defaultdict(int)
-#             for p in fixed_pages:
-#                 if p.get("sections"): rebuilt.append(p); continue
-#                 if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
-#                     rebuilt.append(p); continue
-#                 pm = p.get("primary_model", "")
-#                 cands = model_to_secs.get(pm, []); start = model_assigned[pm]
-#                 assigned = [{"value": cands[start]}] if start < len(cands) else []
-#                 if assigned: model_assigned[pm] += 1
-#                 if not assigned and model_to_secs.get("", []):
-#                     fb = model_to_secs[""]
-#                     if model_assigned[""] < len(fb):
-#                         assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
-#                 rebuilt.append({**p, "sections": assigned})
-#             fixed_pages = rebuilt
+        # Normalize section refs and assign sections to pages that have none
+        for i, p in enumerate(fixed_pages):
+            if p.get("sections") is not None:
+                fixed_pages[i] = {**p, "sections": [r if isinstance(r, dict) else {"value": r} for r in p["sections"]]}
+        assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
+        if any(not p.get("sections") for p in fixed_pages) and assignable:
+            model_to_secs: dict = defaultdict(list)
+            for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
+            rebuilt: list = []; model_assigned: dict = defaultdict(int)
+            for p in fixed_pages:
+                if p.get("sections"): rebuilt.append(p); continue
+                if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
+                    rebuilt.append(p); continue
+                pm = p.get("primary_model", "")
+                cands = model_to_secs.get(pm, []); start = model_assigned[pm]
+                assigned = [{"value": cands[start]}] if start < len(cands) else []
+                if assigned: model_assigned[pm] += 1
+                if not assigned and model_to_secs.get("", []):
+                    fb = model_to_secs[""]
+                    if model_assigned[""] < len(fb):
+                        assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
+                rebuilt.append({**p, "sections": assigned})
+            fixed_pages = rebuilt
 
-#         section_ids = {s["id"] for s in fixed_sections}
-#         for p in fixed_pages:
-#             p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
-#         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
+        section_ids = {s["id"] for s in fixed_sections}
+        for p in fixed_pages:
+            p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
+        fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
-#         canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens or {}, "styling": styling or {}, "prompt_intent": prompt_intent}
-#         data = dict(iface.get("data") or {})
-#         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
-#         candidates = list(data.get("candidates") or [])
-#         candidate = {
-#             "id": f"c{candidate_index}", "name": name, "description": description,
-#             "pages": fixed_pages, "sections": fixed_sections,
-#             "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
-#             "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
-#             **({"tokens": tokens} if tokens else {}),
-#             **({"design_spec": design_spec_name} if design_spec_name else {}),
-#             **({"styling": styling} if styling else {}),
-#         }
-#         if derived_from != "": candidate["derived_from"] = derived_from
-#         if designer_requirements: candidate["designer_requirements"] = designer_requirements
-#         if variation_strategy: candidate["variation_strategy"] = variation_strategy
-#         while len(candidates) <= candidate_index: candidates.append(None)
-#         candidates[candidate_index] = candidate
-#         data["candidates"] = candidates
-#         payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}
-#         requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS).raise_for_status()
-#         return f"OK: candidate {candidate_index} '{name}' saved successfully."
-#     except Exception as e:
-#         return f"Error saving candidate: {e}"
+        canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens or {}, "styling": styling or {}, "prompt_intent": prompt_intent}
+        data = dict(iface.get("data") or {})
+        data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
+        candidates = list(data.get("candidates") or [])
+        candidate = {
+            "id": f"c{candidate_index}", "name": name, "description": description,
+            "pages": fixed_pages, "sections": fixed_sections,
+            "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
+            "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
+            **({"tokens": tokens} if tokens else {}),
+            **({"design_spec": design_spec_name} if design_spec_name else {}),
+            **({"styling": styling} if styling else {}),
+        }
+        if derived_from != "": candidate["derived_from"] = derived_from
+        if designer_requirements: candidate["designer_requirements"] = designer_requirements
+        if variation_strategy: candidate["variation_strategy"] = variation_strategy
+        while len(candidates) <= candidate_index: candidates.append(None)
+        candidates[candidate_index] = candidate
+        data["candidates"] = candidates
+        payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}
+        requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS).raise_for_status()
+        return f"OK: candidate {candidate_index} '{name}' saved successfully."
+    except Exception as e:
+        return f"Error saving candidate: {e}"
 
 def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
     """Return the selected candidate as the baseline for human-guided regeneration."""
@@ -3696,6 +3696,8 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     tokens["design.variant_index"] = str(index)
     _expand_design_tokens(tokens)
     return tokens
+
+
 
 
 def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
