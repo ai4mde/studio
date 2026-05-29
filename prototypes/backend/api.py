@@ -8,6 +8,7 @@ import time
 import socket
 import signal
 import sys
+import threading
 import jinja2
 import shutil
 
@@ -608,6 +609,29 @@ def preview_template():
         return str(exc), 500, {'Content-Type': 'text/plain'}
 
     return rendered, 200, {'Content-Type': 'text/html; charset=utf-8'}
+
+
+def _watchdog():
+    while True:
+        time.sleep(30)
+        try:
+            with lock:
+                if "id" not in running_prototype:
+                    continue
+                if _running_prototype_is_healthy():
+                    continue
+                prototype_id = running_prototype.get("id")
+                prototype_name = running_prototype.get("name")
+                prototype_system = running_prototype.get("system")
+            app.logger.warning(f"Watchdog: prototype {prototype_name} is unhealthy, restarting...")
+            start_prototype(prototype_id, prototype_name, prototype_system)
+            app.logger.info(f"Watchdog: restarted {prototype_name}")
+        except Exception as e:
+            app.logger.error(f"Watchdog error: {e}")
+
+
+_watchdog_thread = threading.Thread(target=_watchdog, daemon=True)
+_watchdog_thread.start()
 
 
 if __name__ == '__main__':
