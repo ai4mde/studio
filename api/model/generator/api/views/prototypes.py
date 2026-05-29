@@ -219,7 +219,7 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
 
 
 ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
-ADK_CANDIDATE_TIMEOUT_SECONDS = int(os.environ.get("ADK_CANDIDATE_TIMEOUT_SECONDS", "90"))
+ADK_CANDIDATE_TIMEOUT_SECONDS = int(os.environ.get("ADK_CANDIDATE_TIMEOUT_SECONDS", "180"))
 ADK_CANDIDATE_HEARTBEAT_SECONDS = int(os.environ.get("ADK_CANDIDATE_HEARTBEAT_SECONDS", "5"))
 
 
@@ -404,7 +404,7 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
                         "streaming": True,
                     },
                     stream=True,
-                    timeout=(10, 30),
+                    timeout=(10, ADK_CANDIDATE_TIMEOUT_SECONDS),
                 ) as r:
                     r.raise_for_status()
                     for line in r.iter_lines():
@@ -612,7 +612,7 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
                         "streaming": True,
                     },
                     stream=True,
-                    timeout=(10, 30),
+                    timeout=(10, ADK_CANDIDATE_TIMEOUT_SECONDS),
                 ) as r:
                     r.raise_for_status()
                     for line in r.iter_lines():
