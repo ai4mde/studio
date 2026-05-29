@@ -3758,6 +3758,8 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             render_candidate_preview_func(interface_id, index)
         return "OK: generated and saved 3 candidates. " + " | ".join(results)
     except Exception as e:
+        import traceback
+        print(f"[generate_candidate_set] EXCEPTION: {e}\n{traceback.format_exc()}", flush=True)
         return f"ERROR: generate_candidate_set failed: {e}"
 
 def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, designer_requirements: str = "") -> str:
