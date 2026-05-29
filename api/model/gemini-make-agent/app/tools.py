@@ -4048,6 +4048,243 @@ def _apply_candidate_region_composition(pages: list, sections: list, candidate_i
             content[-1]["col_span"] = 12
     return pages, sections
 
+# ── LLM-first candidate generation ───────────────────────────────────────────
+
+_CANDIDATE_FULL_SCHEMA = """
+You output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
+
+=== SECTION FIELDS ===
+layout: "card"|"list"|"table"|"detail"|"gallery"|"filter"|"form"
+        |"activity_action"|"activity_start"|"activity_tasks"
+        |"promo-bar"|"logo"|"search-bar"|"icon-actions"|"nav-links"
+        |"site-nav"|"main-header"|"minimal-header"|"commerce-header"
+        |"dashboard-header"|"split-header"|"app-header"|"compact-header"
+        |"mega-header"|"hero-header"|"tabbed-header"|"glass-header"
+        |"command-header"
+        |"service-bar"|"link-grid"|"brand-strip"|"site-footer"
+        |"compact-footer"|"legal-footer"|"newsletter-footer"|"social-footer"
+        |"mega-footer"|"split-footer"|"app-footer"|"cta-footer"|"minimal-footer"
+
+component: match to layout:
+  table → DataTable
+  card → CardGrid | ProductCardGrid | PersonCardGrid | ObjectCardGrid | ImageCard | ImageCardGrid | CategoryTileGrid
+  list → ObjectList | LineItemList | RelatedObjectList
+  detail → DetailPanel | ProductDetailPanel
+  gallery → ImageCardGrid | ObjectCardGrid
+  form → ObjectForm
+  filter → (keep existing or use ObjectForm)
+  site-nav → NavBar
+  site-footer → SiteFooter
+  logo → Logo | BrandLockup | ImageLogo
+  search-bar → SearchBar
+  icon-actions → IconActions
+  nav-links → NavBar
+  header templates → HeaderTemplate
+  footer templates → FooterTemplate
+
+position: "main"|"sidebar"|"header"|"hero"|"footer"
+col_span: 12|6|4|3
+
+style (include only relevant keys):
+  color: "accent"|"accent-secondary"|"blue"|"green"|"purple"|"orange"|"rose"|"slate"
+         (use "accent" for all data sections; use specific colors for chrome/decorative)
+  density: "compact"|"normal"|"spacious"
+  columns: "1"|"2"|"3"|"4"          (card/gallery only)
+  display_mode: "grid"|"carousel"|"banner"  (card only)
+  card_style: "default"|"product"|"category"|"compact"
+  list_style: "default"|"product"|"cart-item"|"related"
+  form_style: "default"|"auth"|"step"|"summary"
+  image_position: "left"|"top"|"right"    (detail only)
+  image_size: "sm"|"md"|"lg"             (detail only)
+  image_ratio: "wide"|"16:9"|"4:3"|"1:1"
+  banner_height: "sm"|"md"|"lg"|"xl"
+  shadow: "none"|"sm"|"md"|"lg"
+  border: "none"|"light"|"colored"
+  bg: "white"|"light"|"dark"|"transparent"
+  header_style: "default"|"large"|"hidden"
+  nav_height: "compact"|"normal"|"tall"|"xl"   (nav/header sections)
+  sidebar_side: "left"|"right"                 (sidebar sections only)
+  sidebar_width: 2..6                          (sidebar sections only)
+  logo_size: "sm"|"md"|"lg"|"xl"
+  logo_shape: "rounded"|"circle"|"square"
+  logo_url: image URL string (only if user asked for logo image)
+  image_url: image URL string (only for ImageCard/banner)
+
+=== PAGE FIELDS ===
+layout.value: "vertical"|"horizontal"|"vertical-reverse"|"horizontal-reverse"
+layout.main_width: "contained"|"wide"|"full"
+layout.header_width: "contained"|"full"
+layout.hero_width: "contained"|"full"
+layout.footer_width: "contained"|"full"
+gap.value: "compact"|"normal"|"spacious"
+
+=== GLOBAL STYLING (one set per candidate) ===
+fontFamily: "inter"|"roboto"|"poppins"|"playfair"|"mono"|"geist"
+accentColor: hex e.g. "#2563eb"
+accentSecondary: hex e.g. "#60a5fa"
+backgroundColor: hex e.g. "#ffffff"
+textColor: hex e.g. "#111827"
+radius: 0|4|8|16|24
+buttonStyle: "solid"|"outline"|"ghost"|"gradient"
+cardHover: "lift"|"glow"|"border"|"none"
+imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
+divider: "none"|"line"|"shadow"|"wave"
+pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
+
+=== RULES ===
+- nav/header chrome sections → position="header" (or "sidebar" for sidebar nav)
+- footer chrome sections → position="footer"
+- hero sections → position="hero", col_span=12
+- sidebar sections → must include style.sidebar_side and style.sidebar_width
+- Every page MUST have navigation (header nav OR sidebar NavBar)
+- Data sections: color="accent" unless the design direction specifies otherwise
+- Activity sections (activity_action/activity_start/activity_tasks): keep layout as-is, only adjust style
+- 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
+"""
+
+_CANDIDATE_DIRECTIONS = [
+    (
+        "compact-dashboard",
+        "Professional dashboard: table layout for data lists, top navigation, contained pages, compact density, "
+        "Inter font, dark neutral accent (#1e293b or #0f172a). Shadow: sm. Clean minimal aesthetic."
+    ),
+    (
+        "card-explorer",
+        "Visual explorer: card grids for collections, left sidebar navigation, wide pages, normal density, "
+        "Poppins font, vibrant accent (choose from #7c3aed, #0891b2, #059669, or #dc2626). "
+        "Card style: product or default. Lift hover effect. Radius 12-16."
+    ),
+    (
+        "showcase-spacious",
+        "Spacious showcase: hero section at top, full-width header, gallery or large cards, spacious density, "
+        "Playfair or Poppins font, bold warm accent (#ea580c, #d97706, or #7c3aed). "
+        "Gradient buttons. Glow hover. Radius 16-24. Full-width footer."
+    ),
+]
+
+
+def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
+    """Call Gemini to generate 3 layout/style variants. Returns list of 3 candidate dicts or None on failure."""
+    try:
+        import google.genai as _genai
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
+        client = _genai.Client(api_key=api_key)
+
+        section_skeleton = [
+            {
+                "id": s.get("id", ""),
+                "name": s.get("name", ""),
+                "primary_model": s.get("primary_model", ""),
+                "role": s.get("role", ""),
+                "current_layout": s.get("layout", ""),
+                "current_position": s.get("position", "main"),
+                "current_col_span": s.get("col_span", 12),
+            }
+            for s in sections if s.get("id")
+        ]
+        page_skeleton = [
+            {"id": p.get("id", ""), "name": p.get("name", ""), "type": p.get("type", "")}
+            for p in pages if p.get("id")
+        ]
+
+        directions_text = "\n".join(
+            f"Candidate {i} ({name}): {desc}"
+            for i, (name, desc) in enumerate(_CANDIDATE_DIRECTIONS)
+        )
+        if prompt:
+            directions_text += f"\n\nDesigner prompt (respect in all 3 candidates where it does not conflict with structural diversity): {prompt}"
+
+        user_prompt = (
+            f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
+            f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
+            f"Design directions:\n{directions_text}\n\n"
+            "Output 3 candidates as JSON:\n"
+            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {...}, "gap": {...}}], '
+            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {...}}], '
+            '"styling": {"fontFamily": "...", "accentColor": "...", "accentSecondary": "...", '
+            '"backgroundColor": "...", "textColor": "...", "radius": 8, "buttonStyle": "...", "cardHover": "...", '
+            '"imageRatio": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=user_prompt,
+            config={
+                "system_instruction": f"You are a UI designer generating 3 structurally distinct interface layout candidates.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "response_mime_type": "application/json",
+                "max_output_tokens": 8192,
+            },
+        )
+        result = json.loads(response.text)
+        candidates = result.get("candidates") or []
+        if len(candidates) < 3:
+            return None
+        return candidates[:3]
+    except Exception as e:
+        import traceback
+        print(f"[llm_generate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
+        return None
+
+
+def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: dict) -> tuple[list, list]:
+    """Merge LLM layout/style decisions onto base pages/sections, preserving all data fields."""
+    pages = copy.deepcopy(base_pages)
+    sections = copy.deepcopy(base_sections)
+
+    llm_sec_map = {str(s.get("id", "")): s for s in (llm_candidate.get("sections") or []) if s.get("id")}
+    llm_page_map = {str(p.get("id", "")): p for p in (llm_candidate.get("pages") or []) if p.get("id")}
+
+    for sec in sections:
+        sid = str(sec.get("id", ""))
+        llm = llm_sec_map.get(sid)
+        if not llm:
+            continue
+        for field in ("layout", "component", "position", "col_span"):
+            if llm.get(field) is not None:
+                sec[field] = llm[field]
+        if llm.get("style"):
+            merged = dict(sec.get("style") or {})
+            merged.update(llm["style"])
+            sec["style"] = merged
+
+    for page in pages:
+        pid = str(page.get("id", ""))
+        llm = llm_page_map.get(pid)
+        if not llm:
+            continue
+        if llm.get("layout"):
+            merged = dict(page.get("layout") or {})
+            merged.update(llm["layout"])
+            page["layout"] = merged
+        if llm.get("gap"):
+            page["gap"] = llm["gap"]
+
+    return pages, sections
+
+
+def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, index: int) -> dict:
+    """Build color tokens seeded from LLM accent color, then expand."""
+    tokens = dict(base_tokens or {})
+    accent = llm_styling.get("accentColor") or ""
+    secondary = llm_styling.get("accentSecondary") or ""
+    if accent:
+        tokens.update({
+            "accent.hex": accent,
+            "region.header.bg_hex": accent,
+            "region.footer.bg_hex": accent,
+            "nav.bg_hex": accent,
+            "button.primary.bg_hex": accent,
+            "button.primary.border_hex": accent,
+            "button.ghost.text_hex": accent,
+            "input.border_focus_hex": accent,
+        })
+    if secondary:
+        tokens["color.secondary.hex"] = secondary
+    tokens["design.variant_index"] = str(index)
+    _expand_design_tokens(tokens)
+    return tokens
+
+
 def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
     """Generate and save exactly 3 candidates from the current interface DSL and designer prompt."""
     try:
@@ -4060,57 +4297,83 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
         if not pages or not sections:
             return "ERROR: Interface has no pages/sections to generate candidates from."
 
-        # Parse prompt for explicit color anchors and layout constraints.
-        # Unspecified dimensions remain free — explore mode still generates 3 distinct structures.
         gen_intent = _parse_generation_intent(prompt)
         intent_colors = gen_intent.get("colors") or []
         intent_layout = gen_intent.get("layout") or {}
-
         raw_base_tokens = dict(data.get("tokens") or {})
+
         if intent_colors:
-            # Designer specified explicit colors — anchor all 3 variants to them
             anchored_tokens = _apply_intent_colors_to_tokens(
                 _apply_prompt_style_overrides(raw_base_tokens, prompt), intent_colors
             )
             _expand_design_tokens(anchored_tokens)
         else:
-            # No explicit colors — let _variant_tokens produce 3 distinct color themes
             anchored_tokens = None
-            raw_base_tokens = _apply_prompt_style_overrides(raw_base_tokens, prompt)
-            if not raw_base_tokens:
-                raw_base_tokens = {}
+            raw_base_tokens = _apply_prompt_style_overrides(raw_base_tokens, prompt) or {}
 
         base_styling = {**dict(data.get("styling") or {}), **_prompt_styling_overrides(prompt)}
+
+        # Try LLM-first layout generation; fall back to rule-based on failure.
+        llm_candidates = _llm_generate_3_candidates(pages, sections, prompt)
+
         results = []
         for index in range(3):
-            layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
-            layout_intent = _merge_layout_intent(layout_intent, intent_layout)
-            variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
-            variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
-            variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, prompt)
-            variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
-            variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
-            if anchored_tokens is not None:
-                tokens = copy.deepcopy(anchored_tokens)
-                tokens["design.variant_index"] = str(index)
-                _expand_design_tokens(tokens)
+            if llm_candidates and index < len(llm_candidates):
+                llm_cand = llm_candidates[index]
+                variant_pages, variant_sections = _merge_llm_candidate(pages, sections, llm_cand)
+                variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+
+                llm_styling = llm_cand.get("styling") or {}
+                if anchored_tokens is not None:
+                    tokens = copy.deepcopy(anchored_tokens)
+                    tokens["design.variant_index"] = str(index)
+                    _expand_design_tokens(tokens)
+                elif intent_colors:
+                    tokens = _variant_tokens(raw_base_tokens, prompt, index)
+                else:
+                    tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, prompt, index)
+
+                styling = dict(base_styling or {})
+                for key in ("fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider", "pageMaxWidth", "accentColor", "backgroundColor", "textColor"):
+                    if llm_styling.get(key) is not None:
+                        styling[key] = llm_styling[key]
+                styling["variantIndex"] = index
+                styling["variantName"] = llm_cand.get("name") or _CANDIDATE_DIRECTIONS[index][0]
+                variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
+                variation_strategy = llm_cand.get("name") or _CANDIDATE_DIRECTIONS[index][0]
             else:
-                tokens = _variant_tokens(raw_base_tokens, prompt, index)
-            styling = dict(base_styling or {})
-            styling["variantIndex"] = index
-            styling["variantName"] = layout_intent.get("name") or ("Card Gallery", "Data Table", "Showcase")[index]
-            styling["layoutIntent"] = layout_intent
+                # Rule-based fallback
+                layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
+                layout_intent = _merge_layout_intent(layout_intent, intent_layout)
+                variant_pages = _apply_layout_intent_to_pages(pages, layout_intent)
+                variant_sections = _apply_layout_intent_to_sections(sections, layout_intent, prompt)
+                variant_pages, variant_sections = _apply_candidate_region_composition(variant_pages, variant_sections, index, prompt)
+                variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
+                variant_sections = _apply_chrome_style(variant_sections, intent_layout.get("header_style"), intent_layout.get("footer_style"))
+                if anchored_tokens is not None:
+                    tokens = copy.deepcopy(anchored_tokens)
+                    tokens["design.variant_index"] = str(index)
+                    _expand_design_tokens(tokens)
+                else:
+                    tokens = _variant_tokens(raw_base_tokens, prompt, index)
+                styling = dict(base_styling or {})
+                styling["variantIndex"] = index
+                styling["variantName"] = layout_intent.get("name") or ("Card Gallery", "Data Table", "Showcase")[index]
+                styling["layoutIntent"] = layout_intent
+                variant_name = _candidate_variant_name(prompt, index)
+                variation_strategy = layout_intent.get("name", ("balanced", "dense table-oriented", "expressive gallery-oriented")[index])
+
             result = validate_and_save_candidate(
                 interface_id=interface_id,
                 candidate_index=index,
-                name=_candidate_variant_name(prompt, index),
+                name=variant_name,
                 description=f"Agent-generated candidate {index + 1} using '{prompt or 'current'}' as the designer requirement.",
                 pages=json.dumps(variant_pages),
                 sections=json.dumps(variant_sections),
                 tokens=json.dumps(tokens) if tokens else "",
                 styling=json.dumps(styling) if styling else "",
                 prompt=prompt,
-                variation_strategy=layout_intent.get("name", ("balanced", "dense table-oriented", "expressive gallery-oriented")[index]),
+                variation_strategy=variation_strategy,
             )
             results.append(result)
             if not str(result).startswith("OK:"):
