@@ -280,7 +280,6 @@ BASE_CANDIDATE = {
     ],
     "tokens": {"accent.hex": "#2563eb", "region.header.bg_hex": "#2563eb"},
     "styling": {"variantIndex": 0},
-    "design_spec": None,
     "variation_strategy": None,
 }
 
@@ -849,7 +848,6 @@ BASE_CANDIDATE_CHROME = {
     ],
     "tokens": {"accent.hex": "#2563eb", "region.header.bg_hex": "#2563eb"},
     "styling": {"variantIndex": 0},
-    "design_spec": None,
     "variation_strategy": None,
 }
 

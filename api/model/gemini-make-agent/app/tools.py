@@ -11,7 +11,6 @@ METADATA_API_BASE = os.getenv("METADATA_API_BASE", "http://studio-api:8000/api/v
 PROTOTYPE_API_BASE = os.getenv("PROTOTYPE_API_BASE", "http://studio-prototypes:8010")
 _METADATA_API_KEY = os.getenv("METADATA_API_KEY")
 _AUTH_HEADERS = {"Authorization": f"Bearer {_METADATA_API_KEY}"} if _METADATA_API_KEY else {}
-DESIGN_SPECS_DIR = os.getenv("DESIGN_SPECS_DIR", "/design_specs")
 
 from .styling_engine import *
 
@@ -2971,20 +2970,17 @@ def _norm_candidate_styling(styling, prompt_for_style: str) -> dict:
     return {**styling, **overrides} if overrides else styling
 
 
-def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict) -> tuple[dict, str | None]:
+def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict) -> dict:
     if not tokens:
-        return {}, None
+        return {}
     if isinstance(tokens, str):
         try: tokens = json.loads(tokens)
-        except Exception: return {}, None
+        except Exception: return {}
     tokens = dict(tokens)
-    spec_name = tokens.get("design.spec_name") or tokens.get("spec_name")
-    if spec_name:
-        tokens["design.spec_name"] = spec_name
     tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
     if prompt_intent.get("colorIntent"):
         tokens = {**tokens, **prompt_intent["colorIntent"]}
-    return tokens, spec_name
+    return tokens
 
 
 def validate_and_save_candidate(
@@ -3033,7 +3029,7 @@ def validate_and_save_candidate(
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
-        tokens, design_spec_name = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
+        tokens = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
 
         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
         classifiers_data = cls_resp.json() if cls_resp.ok else {}
@@ -3250,7 +3246,6 @@ def validate_and_save_candidate(
             "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
             "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
             **({"tokens": tokens} if tokens else {}),
-            **({"design_spec": design_spec_name} if design_spec_name else {}),
             **({"styling": styling} if styling else {}),
         }
         if derived_from != "": candidate["derived_from"] = derived_from
@@ -3311,7 +3306,6 @@ def get_candidate_regeneration_context(interface_id: str, candidate_index: int, 
                 "sections": base.get("sections", []),
                 "tokens": base.get("tokens", data.get("tokens", {})),
                 "styling": base.get("styling", data.get("styling", {})),
-                "design_spec": base.get("design_spec"),
                 "variation_strategy": base.get("variation_strategy"),
             },
         }
