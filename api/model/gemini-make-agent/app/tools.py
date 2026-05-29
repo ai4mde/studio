@@ -1785,919 +1785,919 @@ def _ensure_section_data_relationships(
 
     return pages, list(section_map.values())
 
-def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
-    tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
-    if tokens & {"detail", "view", "profile", "summary"}:
-        return "detail"
-    if tokens & {"form", "enter", "submit", "create", "edit", "update", "provide", "select", "choose"}:
-        return "form"
-    if tokens & {"list", "manage", "track", "history", "item", "line", "entry", "row"}:
-        return "list"
-    if tokens & {"browse", "catalog", "gallery", "showcase", "discover"}:
-        return "gallery" if candidate_index % 2 == 0 else "card"
-    return ("card", "table", "list")[candidate_index % 3]
+# def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
+#     tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
+#     if tokens & {"detail", "view", "profile", "summary"}:
+#         return "detail"
+#     if tokens & {"form", "enter", "submit", "create", "edit", "update", "provide", "select", "choose"}:
+#         return "form"
+#     if tokens & {"list", "manage", "track", "history", "item", "line", "entry", "row"}:
+#         return "list"
+#     if tokens & {"browse", "catalog", "gallery", "showcase", "discover"}:
+#         return "gallery" if candidate_index % 2 == 0 else "card"
+#     return ("card", "table", "list")[candidate_index % 3]
 
-def _fallback_model_for_page(page: dict, known_models: set[str]) -> str:
-    if page.get("primary_model"):
-        return str(page.get("primary_model"))
-    page_name = f"{page.get('name', '')} {page.get('id', '')}".lower()
-    for model in sorted(known_models):
-        if model.lower() in page_name:
-            return model
-    non_process = [m for m in sorted(known_models) if m.lower() not in {"user", "group", "permission"}]
-    return non_process[0] if non_process else ""
+# def _fallback_model_for_page(page: dict, known_models: set[str]) -> str:
+#     if page.get("primary_model"):
+#         return str(page.get("primary_model"))
+#     page_name = f"{page.get('name', '')} {page.get('id', '')}".lower()
+#     for model in sorted(known_models):
+#         if model.lower() in page_name:
+#             return model
+#     non_process = [m for m in sorted(known_models) if m.lower() not in {"user", "group", "permission"}]
+#     return non_process[0] if non_process else ""
 
-def _default_category_for_model(model: str, model_id_by_name: dict[str, str] | None = None) -> dict | None:
-    model = str(model or "").strip()
-    if not model:
-        return None
-    model_id_by_name = model_id_by_name or {}
-    return {
-        "label": model,
-        "value": {
-            "id": str(model_id_by_name.get(model) or model),
-            "name": model,
-        },
-    }
+# def _default_category_for_model(model: str, model_id_by_name: dict[str, str] | None = None) -> dict | None:
+#     model = str(model or "").strip()
+#     if not model:
+#         return None
+#     model_id_by_name = model_id_by_name or {}
+#     return {
+#         "label": model,
+#         "value": {
+#             "id": str(model_id_by_name.get(model) or model),
+#             "name": model,
+#         },
+#     }
 
-def _model_for_page_category(page: dict, sections_by_id: dict[str, dict], known_models: set[str]) -> str:
-    explicit = str(page.get("primary_model") or "").strip()
-    if explicit in known_models:
-        return explicit
-    for ref in page.get("sections") or []:
-        section = sections_by_id.get(_ref_id(ref) or "")
-        model = str((section or {}).get("primary_model") or "").strip()
-        if model in known_models:
-            return model
-    fallback = _fallback_model_for_page(page, known_models)
-    return fallback if fallback in known_models else ""
+# def _model_for_page_category(page: dict, sections_by_id: dict[str, dict], known_models: set[str]) -> str:
+#     explicit = str(page.get("primary_model") or "").strip()
+#     if explicit in known_models:
+#         return explicit
+#     for ref in page.get("sections") or []:
+#         section = sections_by_id.get(_ref_id(ref) or "")
+#         model = str((section or {}).get("primary_model") or "").strip()
+#         if model in known_models:
+#             return model
+#     fallback = _fallback_model_for_page(page, known_models)
+#     return fallback if fallback in known_models else ""
 
-def _assign_default_page_categories(pages: list, sections: list, model_id_by_name: dict[str, str] | None = None) -> list:
-    model_id_by_name = model_id_by_name or {}
-    known_models = set(model_id_by_name.keys())
-    sections_by_id = {str(s.get("id")): s for s in sections or [] if s.get("id")}
-    next_pages = []
-    for raw in pages or []:
-        page = dict(raw)
-        if _page_type_value(page) == "activity":
-            page["category"] = None
-            next_pages.append(page)
-            continue
-        if page.get("category"):
-            next_pages.append(page)
-            continue
-        model = _model_for_page_category(page, sections_by_id, known_models)
-        page["category"] = _default_category_for_model(model, model_id_by_name)
-        next_pages.append(page)
-    return next_pages
+# def _assign_default_page_categories(pages: list, sections: list, model_id_by_name: dict[str, str] | None = None) -> list:
+#     model_id_by_name = model_id_by_name or {}
+#     known_models = set(model_id_by_name.keys())
+#     sections_by_id = {str(s.get("id")): s for s in sections or [] if s.get("id")}
+#     next_pages = []
+#     for raw in pages or []:
+#         page = dict(raw)
+#         if _page_type_value(page) == "activity":
+#             page["category"] = None
+#             next_pages.append(page)
+#             continue
+#         if page.get("category"):
+#             next_pages.append(page)
+#             continue
+#         model = _model_for_page_category(page, sections_by_id, known_models)
+#         page["category"] = _default_category_for_model(model, model_id_by_name)
+#         next_pages.append(page)
+#     return next_pages
 
-def _merge_page_categories(categories: list, pages: list) -> list:
-    merged = []
-    seen = set()
-    for category in categories or []:
-        if not isinstance(category, dict):
-            continue
-        cid = str(category.get("id") or ((category.get("value") or {}).get("id") if isinstance(category.get("value"), dict) else "") or "")
-        name = str(category.get("name") or ((category.get("value") or {}).get("name") if isinstance(category.get("value"), dict) else "") or category.get("label") or "")
-        if not cid and not name:
-            continue
-        key = cid or name
-        seen.add(key)
-        merged.append(category)
-    for page in pages or []:
-        category = page.get("category")
-        if not isinstance(category, dict):
-            continue
-        value = category.get("value") if isinstance(category.get("value"), dict) else {}
-        cid = str(value.get("id") or category.get("id") or "")
-        name = str(value.get("name") or category.get("name") or category.get("label") or "")
-        key = cid or name
-        if not key or key in seen:
-            continue
-        seen.add(key)
-        merged.append({"id": cid or name, "name": name or cid})
-    return merged
+# def _merge_page_categories(categories: list, pages: list) -> list:
+#     merged = []
+#     seen = set()
+#     for category in categories or []:
+#         if not isinstance(category, dict):
+#             continue
+#         cid = str(category.get("id") or ((category.get("value") or {}).get("id") if isinstance(category.get("value"), dict) else "") or "")
+#         name = str(category.get("name") or ((category.get("value") or {}).get("name") if isinstance(category.get("value"), dict) else "") or category.get("label") or "")
+#         if not cid and not name:
+#             continue
+#         key = cid or name
+#         seen.add(key)
+#         merged.append(category)
+#     for page in pages or []:
+#         category = page.get("category")
+#         if not isinstance(category, dict):
+#             continue
+#         value = category.get("value") if isinstance(category.get("value"), dict) else {}
+#         cid = str(value.get("id") or category.get("id") or "")
+#         name = str(value.get("name") or category.get("name") or category.get("label") or "")
+#         key = cid or name
+#         if not key or key in seen:
+#             continue
+#         seen.add(key)
+#         merged.append({"id": cid or name, "name": name or cid})
+#     return merged
 
-def _default_section_for_page(page: dict, model: str, model_attrs: dict, candidate_index: int) -> dict:
-    layout = _infer_section_layout(page, candidate_index)
-    page_id = _section_id(page.get("id") or page.get("name") or "page")
-    sid = f"{page_id}_{_section_id(model or 'content')}_{layout}"
-    attrs = _model_field_names(model_attrs, model, 8 if layout in {"table", "detail"} else 5)
-    operations = {"create": layout == "form", "update": layout in {"detail", "form"}, "delete": False}
-    style = {
-        "color": "accent",
-        "density": ("normal", "compact", "spacious")[candidate_index % 3],
-        "shadow": "md" if layout in {"card", "gallery", "detail"} else "sm",
-        "border": "light",
-        "bg": "white",
-        "header_style": "large" if layout in {"gallery", "detail"} else "default",
-    }
-    if layout in {"card", "gallery"}:
-        style.update({"display_mode": "grid", "card_style": "default", "columns": "3"})
-    elif layout == "list":
-        style.update({"list_style": "default"})
-    elif layout == "form":
-        style.update({"form_style": "step", "cta_label": "Continue"})
-    elif layout == "detail":
-        style.update({"image_position": "left", "image_size": "md"})
-    return {
-        "id": sid,
-        "name": page.get("name", sid).replace("_", " "),
-        "layout": layout,
-        "primary_model": model,
-        "class": model,
-        "attributes": attrs,
-        "operations": operations,
-        "query": {},
-        "col_span": 12,
-        "position": "main",
-        "style": style,
-    }
+# def _default_section_for_page(page: dict, model: str, model_attrs: dict, candidate_index: int) -> dict:
+#     layout = _infer_section_layout(page, candidate_index)
+#     page_id = _section_id(page.get("id") or page.get("name") or "page")
+#     sid = f"{page_id}_{_section_id(model or 'content')}_{layout}"
+#     attrs = _model_field_names(model_attrs, model, 8 if layout in {"table", "detail"} else 5)
+#     operations = {"create": layout == "form", "update": layout in {"detail", "form"}, "delete": False}
+#     style = {
+#         "color": "accent",
+#         "density": ("normal", "compact", "spacious")[candidate_index % 3],
+#         "shadow": "md" if layout in {"card", "gallery", "detail"} else "sm",
+#         "border": "light",
+#         "bg": "white",
+#         "header_style": "large" if layout in {"gallery", "detail"} else "default",
+#     }
+#     if layout in {"card", "gallery"}:
+#         style.update({"display_mode": "grid", "card_style": "default", "columns": "3"})
+#     elif layout == "list":
+#         style.update({"list_style": "default"})
+#     elif layout == "form":
+#         style.update({"form_style": "step", "cta_label": "Continue"})
+#     elif layout == "detail":
+#         style.update({"image_position": "left", "image_size": "md"})
+#     return {
+#         "id": sid,
+#         "name": page.get("name", sid).replace("_", " "),
+#         "layout": layout,
+#         "primary_model": model,
+#         "class": model,
+#         "attributes": attrs,
+#         "operations": operations,
+#         "query": {},
+#         "col_span": 12,
+#         "position": "main",
+#         "style": style,
+#     }
 
-def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0, model_attrs: dict | None = None) -> list[dict]:
-    """Create a single editable header template section with deterministic variation."""
-    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    variant = candidate_index % 3
-    ops = {"create": False, "update": False, "delete": False}
-    templates = ("main-header", "split-header", "dashboard-header", "commerce-header", "app-header", "compact-header", "mega-header", "minimal-header", "hero-header", "tabbed-header", "glass-header", "command-header")
-    layout = templates[candidate_index % len(templates)]
-    style = {
-        "color": "accent",
-        "density": ("normal", "compact", "spacious")[variant],
-        "shadow": ("sm", "md", "lg")[variant],
-        "border": "light",
-        "bg": "white",
-        "header_variant": {
-            "main-header": "commerce",
-            "commerce-header": "commerce",
-            "split-header": "split-dark",
-            "dashboard-header": "dashboard",
-            "app-header": "app",
-            "compact-header": "compact",
-            "mega-header": "mega",
-            "minimal-header": "minimal",
-            "hero-header": "hero",
-            "tabbed-header": "tabs",
-            "glass-header": "glass",
-            "command-header": "command",
-        }.get(layout, "commerce"),
-        "nav_height": ("normal", "compact", "tall")[variant],
-    }
-    return [{
-        "id": "app_header_template",
-        "name": "Header",
-        "role": "header",
-        "layout": layout,
-        "component": "HeaderTemplate",
-        "primary_model": "",
-        "class": "",
-        "attributes": [],
-        "operations": ops,
-        "methods": nav_methods,
-        "text": "Search",
-        "col_span": 12,
-        "position": "header",
-        "style": style,
-    }]
+# def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0, model_attrs: dict | None = None) -> list[dict]:
+#     """Create a single editable header template section with deterministic variation."""
+#     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+#     variant = candidate_index % 3
+#     ops = {"create": False, "update": False, "delete": False}
+#     templates = ("main-header", "split-header", "dashboard-header", "commerce-header", "app-header", "compact-header", "mega-header", "minimal-header", "hero-header", "tabbed-header", "glass-header", "command-header")
+#     layout = templates[candidate_index % len(templates)]
+#     style = {
+#         "color": "accent",
+#         "density": ("normal", "compact", "spacious")[variant],
+#         "shadow": ("sm", "md", "lg")[variant],
+#         "border": "light",
+#         "bg": "white",
+#         "header_variant": {
+#             "main-header": "commerce",
+#             "commerce-header": "commerce",
+#             "split-header": "split-dark",
+#             "dashboard-header": "dashboard",
+#             "app-header": "app",
+#             "compact-header": "compact",
+#             "mega-header": "mega",
+#             "minimal-header": "minimal",
+#             "hero-header": "hero",
+#             "tabbed-header": "tabs",
+#             "glass-header": "glass",
+#             "command-header": "command",
+#         }.get(layout, "commerce"),
+#         "nav_height": ("normal", "compact", "tall")[variant],
+#     }
+#     return [{
+#         "id": "app_header_template",
+#         "name": "Header",
+#         "role": "header",
+#         "layout": layout,
+#         "component": "HeaderTemplate",
+#         "primary_model": "",
+#         "class": "",
+#         "attributes": [],
+#         "operations": ops,
+#         "methods": nav_methods,
+#         "text": "Search",
+#         "col_span": 12,
+#         "position": "header",
+#         "style": style,
+#     }]
 
-def _footer_sections_for_candidate(candidate_index: int = 0, normal_pages: list | None = None) -> list[dict]:
-    ops = {"create": False, "update": False, "delete": False}
-    templates = ("site-footer", "mega-footer", "legal-footer", "newsletter-footer", "compact-footer", "social-footer", "split-footer", "app-footer", "cta-footer", "minimal-footer")
-    layout = templates[candidate_index % len(templates)]
-    nav_methods = _navigation_methods([p.get("name") for p in (normal_pages or []) if p.get("name")])
-    return [{
-        "id": "app_footer_template",
-        "name": "Footer",
-        "role": "footer",
-        "layout": layout,
-        "component": "FooterTemplate",
-        "primary_model": "",
-        "class": "",
-        "attributes": [],
-        "operations": ops,
-        "methods": nav_methods or ["Help", "Privacy", "Terms", "Contact"],
-        "col_span": 12,
-        "position": "footer",
-        "style": {
-            "color": "accent",
-            "density": ("normal", "compact", "spacious")[candidate_index % 3],
-            "shadow": "sm",
-            "border": "light",
-            "bg": "white",
-            "footer_variant": layout,
-        },
-    }]
+# def _footer_sections_for_candidate(candidate_index: int = 0, normal_pages: list | None = None) -> list[dict]:
+#     ops = {"create": False, "update": False, "delete": False}
+#     templates = ("site-footer", "mega-footer", "legal-footer", "newsletter-footer", "compact-footer", "social-footer", "split-footer", "app-footer", "cta-footer", "minimal-footer")
+#     layout = templates[candidate_index % len(templates)]
+#     nav_methods = _navigation_methods([p.get("name") for p in (normal_pages or []) if p.get("name")])
+#     return [{
+#         "id": "app_footer_template",
+#         "name": "Footer",
+#         "role": "footer",
+#         "layout": layout,
+#         "component": "FooterTemplate",
+#         "primary_model": "",
+#         "class": "",
+#         "attributes": [],
+#         "operations": ops,
+#         "methods": nav_methods or ["Help", "Privacy", "Terms", "Contact"],
+#         "col_span": 12,
+#         "position": "footer",
+#         "style": {
+#             "color": "accent",
+#             "density": ("normal", "compact", "spacious")[candidate_index % 3],
+#             "shadow": "sm",
+#             "border": "light",
+#             "bg": "white",
+#             "footer_variant": layout,
+#         },
+#     }]
 
-def _top_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
-    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    return {
-        "id": "app_page_nav",
-        "name": "Navigation",
-        "role": "navigation",
-        "layout": "site-nav",
-        "component": "NavBar",
-        "primary_model": "",
-        "class": "",
-        "attributes": [],
-        "operations": {"create": False, "update": False, "delete": False, "select": False},
-        "methods": nav_methods,
-        "col_span": 12,
-        "position": "header",
-        "style": {
-            "color": "accent",
-            "density": ("normal", "compact", "spacious")[int(candidate_index or 0) % 3],
-            "shadow": "sm",
-            "border": "light",
-            "bg": "white",
-            "variant": "page-nav",
-            "nav_height": ("compact", "normal", "tall")[int(candidate_index or 0) % 3],
-        },
-    }
+# def _top_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
+#     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+#     return {
+#         "id": "app_page_nav",
+#         "name": "Navigation",
+#         "role": "navigation",
+#         "layout": "site-nav",
+#         "component": "NavBar",
+#         "primary_model": "",
+#         "class": "",
+#         "attributes": [],
+#         "operations": {"create": False, "update": False, "delete": False, "select": False},
+#         "methods": nav_methods,
+#         "col_span": 12,
+#         "position": "header",
+#         "style": {
+#             "color": "accent",
+#             "density": ("normal", "compact", "spacious")[int(candidate_index or 0) % 3],
+#             "shadow": "sm",
+#             "border": "light",
+#             "bg": "white",
+#             "variant": "page-nav",
+#             "nav_height": ("compact", "normal", "tall")[int(candidate_index or 0) % 3],
+#         },
+#     }
 
-def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
-    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    side = "left" if int(candidate_index or 0) % 2 == 0 else "right"
-    return {
-        "id": "app_sidebar_nav",
-        "name": "Navigation",
-        "role": "navigation",
-        "layout": "site-nav",
-        "component": "NavBar",
-        "primary_model": "",
-        "class": "",
-        "attributes": [],
-        "operations": {"create": False, "update": False, "delete": False, "select": False},
-        "methods": nav_methods,
-        "col_span": 12,
-        "position": "sidebar",
-        "style": {
-            "color": "accent",
-            "density": ("normal", "compact", "spacious")[int(candidate_index or 0) % 3],
-            "shadow": "sm",
-            "border": "light",
-            "bg": "white",
-            "variant": "rail",
-            "sidebar_side": side,
-            "sidebar_width": 3,
-            "nav_height": "tall",
-            "full_height": True,
-        },
-    }
+# def _sidebar_nav_section_for_candidate(normal_pages: list, candidate_index: int = 0) -> dict:
+#     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+#     side = "left" if int(candidate_index or 0) % 2 == 0 else "right"
+#     return {
+#         "id": "app_sidebar_nav",
+#         "name": "Navigation",
+#         "role": "navigation",
+#         "layout": "site-nav",
+#         "component": "NavBar",
+#         "primary_model": "",
+#         "class": "",
+#         "attributes": [],
+#         "operations": {"create": False, "update": False, "delete": False, "select": False},
+#         "methods": nav_methods,
+#         "col_span": 12,
+#         "position": "sidebar",
+#         "style": {
+#             "color": "accent",
+#             "density": ("normal", "compact", "spacious")[int(candidate_index or 0) % 3],
+#             "shadow": "sm",
+#             "border": "light",
+#             "bg": "white",
+#             "variant": "rail",
+#             "sidebar_side": side,
+#             "sidebar_width": 3,
+#             "nav_height": "tall",
+#             "full_height": True,
+#         },
+#     }
 
-def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
-    if not normal_pages:
-        return pages, sections
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
-    for section in sections:
-        if section.get("position") == "footer" or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS:
-            existing = section.get("methods") or []
-            existing_names = {
-                str(m.get("name") if isinstance(m, dict) else m).strip().lower()
-                for m in existing
-            }
-            if nav_methods and (not existing_names or existing_names.issubset({"help", "privacy", "terms", "contact"})):
-                section["methods"] = nav_methods
-    nav_ids = [
-        sid for sid, section in section_map.items()
-        if (
-            _normalize_layout_alias(section.get("layout")) in {"site-nav", "nav-links", "nav-bar"}
-            or str(section.get("component") or "") == "NavBar"
-            or str(section.get("role") or "").lower() == "navigation"
-        )
-    ]
-    header_nav_ids = [
-        sid for sid, section in section_map.items()
-        if section.get("position") == "header"
-        and _normalize_layout_alias(section.get("layout")) in _PAGE_NAV_LAYOUTS
-    ]
-    sidebar_nav_ids = [
-        sid for sid in nav_ids
-        if (section_map.get(sid) or {}).get("position") == "sidebar"
-    ]
-    keep_nav_id = header_nav_ids[0] if header_nav_ids else (sidebar_nav_ids[0] if sidebar_nav_ids else "")
-    duplicate_nav_ids = set(nav_ids)
-    if keep_nav_id:
-        duplicate_nav_ids.discard(keep_nav_id)
-    if duplicate_nav_ids:
-        sections = [s for s in sections if str(s.get("id") or "") not in duplicate_nav_ids]
-        section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-        for page in pages:
-            page["sections"] = [
-                ref for ref in (page.get("sections") or [])
-                if _ref_id(ref) not in duplicate_nav_ids
-            ]
+# def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: list, candidate_index: int = 0) -> tuple[list, list]:
+#     if not normal_pages:
+#         return pages, sections
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
+#     for section in sections:
+#         if section.get("position") == "footer" or _normalize_layout_alias(section.get("layout")) in _FOOTER_TEMPLATE_LAYOUTS:
+#             existing = section.get("methods") or []
+#             existing_names = {
+#                 str(m.get("name") if isinstance(m, dict) else m).strip().lower()
+#                 for m in existing
+#             }
+#             if nav_methods and (not existing_names or existing_names.issubset({"help", "privacy", "terms", "contact"})):
+#                 section["methods"] = nav_methods
+#     nav_ids = [
+#         sid for sid, section in section_map.items()
+#         if (
+#             _normalize_layout_alias(section.get("layout")) in {"site-nav", "nav-links", "nav-bar"}
+#             or str(section.get("component") or "") == "NavBar"
+#             or str(section.get("role") or "").lower() == "navigation"
+#         )
+#     ]
+#     header_nav_ids = [
+#         sid for sid, section in section_map.items()
+#         if section.get("position") == "header"
+#         and _normalize_layout_alias(section.get("layout")) in _PAGE_NAV_LAYOUTS
+#     ]
+#     sidebar_nav_ids = [
+#         sid for sid in nav_ids
+#         if (section_map.get(sid) or {}).get("position") == "sidebar"
+#     ]
+#     keep_nav_id = header_nav_ids[0] if header_nav_ids else (sidebar_nav_ids[0] if sidebar_nav_ids else "")
+#     duplicate_nav_ids = set(nav_ids)
+#     if keep_nav_id:
+#         duplicate_nav_ids.discard(keep_nav_id)
+#     if duplicate_nav_ids:
+#         sections = [s for s in sections if str(s.get("id") or "") not in duplicate_nav_ids]
+#         section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#         for page in pages:
+#             page["sections"] = [
+#                 ref for ref in (page.get("sections") or [])
+#                 if _ref_id(ref) not in duplicate_nav_ids
+#             ]
 
-    if not keep_nav_id:
-        nav_section = (
-            _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
-            if int(candidate_index or 0) % 3 == 2
-            else _top_nav_section_for_candidate(normal_pages, candidate_index)
-        )
-        sid = nav_section["id"]
-        suffix = 2
-        while sid in section_map:
-            sid = f"{nav_section['id']}_{suffix}"
-            suffix += 1
-        nav_section["id"] = sid
-        sections.append(nav_section)
-        section_map[sid] = nav_section
-        keep_nav_id = sid
-    elif int(candidate_index or 0) % 3 != 2 and keep_nav_id in sidebar_nav_ids and not header_nav_ids:
-        nav_section = section_map.get(keep_nav_id) or {}
-        nav_section["position"] = "header"
-        nav_section["layout"] = "nav-links"
-        nav_section["component"] = "NavBar"
-        style = dict(nav_section.get("style") or {})
-        style.pop("sidebar_side", None)
-        style.pop("sidebar_width", None)
-        style["variant"] = "page-nav"
-        nav_section["style"] = style
+#     if not keep_nav_id:
+#         nav_section = (
+#             _sidebar_nav_section_for_candidate(normal_pages, candidate_index)
+#             if int(candidate_index or 0) % 3 == 2
+#             else _top_nav_section_for_candidate(normal_pages, candidate_index)
+#         )
+#         sid = nav_section["id"]
+#         suffix = 2
+#         while sid in section_map:
+#             sid = f"{nav_section['id']}_{suffix}"
+#             suffix += 1
+#         nav_section["id"] = sid
+#         sections.append(nav_section)
+#         section_map[sid] = nav_section
+#         keep_nav_id = sid
+#     elif int(candidate_index or 0) % 3 != 2 and keep_nav_id in sidebar_nav_ids and not header_nav_ids:
+#         nav_section = section_map.get(keep_nav_id) or {}
+#         nav_section["position"] = "header"
+#         nav_section["layout"] = "nav-links"
+#         nav_section["component"] = "NavBar"
+#         style = dict(nav_section.get("style") or {})
+#         style.pop("sidebar_side", None)
+#         style.pop("sidebar_width", None)
+#         style["variant"] = "page-nav"
+#         nav_section["style"] = style
 
-    if keep_nav_id:
-        for page in normal_pages:
-            refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-            ref_ids = {_ref_id(ref) for ref in refs}
-            if keep_nav_id not in ref_ids:
-                keep_nav_section = section_map.get(keep_nav_id) or {}
-                if keep_nav_section.get("position") == "sidebar":
-                    page["sections"] = [{"value": keep_nav_id}] + refs
-                else:
-                    page["sections"] = refs
-    return pages, sections
+#     if keep_nav_id:
+#         for page in normal_pages:
+#             refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#             ref_ids = {_ref_id(ref) for ref in refs}
+#             if keep_nav_id not in ref_ids:
+#                 keep_nav_section = section_map.get(keep_nav_id) or {}
+#                 if keep_nav_section.get("position") == "sidebar":
+#                     page["sections"] = [{"value": keep_nav_id}] + refs
+#                 else:
+#                     page["sections"] = refs
+#     return pages, sections
 
-def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, list]:
-    """Add stable app chrome during UML mapping so candidates can focus on visual variants."""
-    pages = [dict(p) for p in pages or []]
-    sections = [dict(s) for s in sections or []]
-    normal_pages = [p for p in pages if _page_type_value(p) != "activity"]
-    if not normal_pages:
-        return pages, sections
+# def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, list]:
+#     """Add stable app chrome during UML mapping so candidates can focus on visual variants."""
+#     pages = [dict(p) for p in pages or []]
+#     sections = [dict(s) for s in sections or []]
+#     normal_pages = [p for p in pages if _page_type_value(p) != "activity"]
+#     if not normal_pages:
+#         return pages, sections
 
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    if not any(s.get("position") == "header" for s in sections):
-        _inject_chrome_sections(
-            _header_sections_for_candidate(normal_pages, 0),
-            sections,
-            section_map,
-            normal_pages,
-            prepend=True,
-        )
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     if not any(s.get("position") == "header" for s in sections):
+#         _inject_chrome_sections(
+#             _header_sections_for_candidate(normal_pages, 0),
+#             sections,
+#             section_map,
+#             normal_pages,
+#             prepend=True,
+#         )
 
-    if not any(s.get("position") == "footer" for s in sections):
-        _inject_chrome_sections(
-            _footer_sections_for_candidate(0, normal_pages),
-            sections,
-            section_map,
-            normal_pages,
-            prepend=False,
-        )
+#     if not any(s.get("position") == "footer" for s in sections):
+#         _inject_chrome_sections(
+#             _footer_sections_for_candidate(0, normal_pages),
+#             sections,
+#             section_map,
+#             normal_pages,
+#             prepend=False,
+#         )
 
-    pages, sections = _ensure_normal_page_navigation(pages, sections, normal_pages, 0)
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    global_region_ids = [
-        str(s.get("id"))
-        for s in sections
-        if s.get("id") and s.get("position") in {"header", "sidebar", "footer"}
-    ]
+#     pages, sections = _ensure_normal_page_navigation(pages, sections, normal_pages, 0)
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     global_region_ids = [
+#         str(s.get("id"))
+#         for s in sections
+#         if s.get("id") and s.get("position") in {"header", "sidebar", "footer"}
+#     ]
 
-    for page in normal_pages:
-        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-        ref_ids = {_ref_id(ref) for ref in refs}
-        before = [
-            {"value": sid}
-            for sid in global_region_ids
-            if sid not in ref_ids and (section_map.get(sid) or {}).get("position") in {"header", "sidebar"}
-        ]
-        after = [
-            {"value": sid}
-            for sid in global_region_ids
-            if sid not in ref_ids and (section_map.get(sid) or {}).get("position") == "footer"
-        ]
-        if before or after:
-            page["sections"] = before + refs + after
+#     for page in normal_pages:
+#         refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#         ref_ids = {_ref_id(ref) for ref in refs}
+#         before = [
+#             {"value": sid}
+#             for sid in global_region_ids
+#             if sid not in ref_ids and (section_map.get(sid) or {}).get("position") in {"header", "sidebar"}
+#         ]
+#         after = [
+#             {"value": sid}
+#             for sid in global_region_ids
+#             if sid not in ref_ids and (section_map.get(sid) or {}).get("position") == "footer"
+#         ]
+#         if before or after:
+#             page["sections"] = before + refs + after
 
-    return pages, sections
+#     return pages, sections
 
-def _ensure_mapping_content_sections(
-    pages: list,
-    sections: list,
-    usecase_navigation: dict,
-    model_attrs: dict,
-) -> tuple[list, list]:
-    """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
-    pages, sections = _materialize_nav_plan_sections(
-        pages,
-        sections,
-        (usecase_navigation or {}).get("nav_plan") or {},
-        model_attrs,
-    )
-    pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation or {})
-    pages, sections = _ensure_candidate_content_structure(
-        pages,
-        sections,
-        model_attrs,
-        0,
-        "",
-        add_missing_content=True,
-    )
-    pages, sections = _ensure_pre_workflow_content_sections(
-        pages,
-        sections,
-        usecase_navigation or {},
-        model_attrs,
-        0,
-        add_missing_content=True,
-    )
-    sections = _apply_nav_methods(pages, sections, usecase_navigation or {})
-    pages, sections = _ensure_section_data_relationships(pages, sections, model_attrs)
-    return pages, sections
+# def _ensure_mapping_content_sections(
+#     pages: list,
+#     sections: list,
+#     usecase_navigation: dict,
+#     model_attrs: dict,
+# ) -> tuple[list, list]:
+#     """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
+#     pages, sections = _materialize_nav_plan_sections(
+#         pages,
+#         sections,
+#         (usecase_navigation or {}).get("nav_plan") or {},
+#         model_attrs,
+#     )
+#     pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation or {})
+#     pages, sections = _ensure_candidate_content_structure(
+#         pages,
+#         sections,
+#         model_attrs,
+#         0,
+#         "",
+#         add_missing_content=True,
+#     )
+#     pages, sections = _ensure_pre_workflow_content_sections(
+#         pages,
+#         sections,
+#         usecase_navigation or {},
+#         model_attrs,
+#         0,
+#         add_missing_content=True,
+#     )
+#     sections = _apply_nav_methods(pages, sections, usecase_navigation or {})
+#     pages, sections = _ensure_section_data_relationships(pages, sections, model_attrs)
+#     return pages, sections
 
-def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
-    referenced = {
-        _ref_id(ref)
-        for page in pages or []
-        for ref in (page.get("sections") or [])
-        if _ref_id(ref)
-    }
-    result = []
-    for section in sections or []:
-        sid = str(section.get("id") or "")
-        if not sid or sid in referenced:
-            result.append(section)
-            continue
-        if section.get("position") in {"header", "footer", "sidebar"}:
-            result.append(section)
-            continue
-        layout = _normalize_layout_alias(section.get("layout"))
-        if layout in _CHROME_TEMPLATE_LAYOUTS:
-            result.append(section)
-    return result
+# def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
+#     referenced = {
+#         _ref_id(ref)
+#         for page in pages or []
+#         for ref in (page.get("sections") or [])
+#         if _ref_id(ref)
+#     }
+#     result = []
+#     for section in sections or []:
+#         sid = str(section.get("id") or "")
+#         if not sid or sid in referenced:
+#             result.append(section)
+#             continue
+#         if section.get("position") in {"header", "footer", "sidebar"}:
+#             result.append(section)
+#             continue
+#         layout = _normalize_layout_alias(section.get("layout"))
+#         if layout in _CHROME_TEMPLATE_LAYOUTS:
+#             result.append(section)
+#     return result
 
-def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list]:
-    """Agent output may compose many header elements, but only one header/nav shell."""
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    header_shell_ids = [
-        sid for sid, section in section_map.items()
-        if section.get("position") == "header"
-        and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
-    ]
-    if len(header_shell_ids) <= 1:
-        return pages, sections
-    duplicate_ids = set(header_shell_ids[1:])
-    next_sections = [section for section in sections if str(section.get("id")) not in duplicate_ids]
-    next_pages = []
-    for page in pages:
-        page = dict(page)
-        page["sections"] = [
-            ref for ref in (page.get("sections") or [])
-            if _ref_id(ref) and _ref_id(ref) not in duplicate_ids
-        ]
-        next_pages.append(page)
-    return next_pages, next_sections
+# def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list]:
+#     """Agent output may compose many header elements, but only one header/nav shell."""
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     header_shell_ids = [
+#         sid for sid, section in section_map.items()
+#         if section.get("position") == "header"
+#         and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+#     ]
+#     if len(header_shell_ids) <= 1:
+#         return pages, sections
+#     duplicate_ids = set(header_shell_ids[1:])
+#     next_sections = [section for section in sections if str(section.get("id")) not in duplicate_ids]
+#     next_pages = []
+#     for page in pages:
+#         page = dict(page)
+#         page["sections"] = [
+#             ref for ref in (page.get("sections") or [])
+#             if _ref_id(ref) and _ref_id(ref) not in duplicate_ids
+#         ]
+#         next_pages.append(page)
+#     return next_pages, next_sections
 
-def _inject_chrome_sections(new_sections: list, sections: list, section_map: dict, pages: list, prepend: bool) -> None:
-    for s in new_sections:
-        sid = s["id"]; suffix = 2
-        while sid in section_map:
-            sid = f"{s['id']}_{suffix}"; suffix += 1
-        s["id"] = sid
-        sections.append(s); section_map[sid] = s
-    for page in pages:
-        refs = page.get("sections") or []
-        ref_ids = {_ref_id(ref) for ref in refs}
-        new_refs = [{"value": s["id"]} for s in new_sections if s["id"] not in ref_ids]
-        if new_refs:
-            page["sections"] = new_refs + refs if prepend else refs + new_refs
+# def _inject_chrome_sections(new_sections: list, sections: list, section_map: dict, pages: list, prepend: bool) -> None:
+#     for s in new_sections:
+#         sid = s["id"]; suffix = 2
+#         while sid in section_map:
+#             sid = f"{s['id']}_{suffix}"; suffix += 1
+#         s["id"] = sid
+#         sections.append(s); section_map[sid] = s
+#     for page in pages:
+#         refs = page.get("sections") or []
+#         ref_ids = {_ref_id(ref) for ref in refs}
+#         new_refs = [{"value": s["id"]} for s in new_sections if s["id"] not in ref_ids]
+#         if new_refs:
+#             page["sections"] = new_refs + refs if prepend else refs + new_refs
 
 
-def _ensure_candidate_content_structure(
-    pages: list,
-    sections: list,
-    model_attrs: dict,
-    candidate_index: int = 0,
-    prompt: str = "",
-    add_missing_content: bool = True,
-) -> tuple[list, list]:
-    known_models = set(model_attrs.keys())
-    sections = [dict(s) for s in sections]
-    for section in sections:
-        section["layout"] = _normalize_layout_alias(section.get("layout"))
-        if section.get("component") == "NavBar" and not section.get("layout"):
-            section["layout"] = "nav-links"
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    activity_section_ids = {sid for sid, s in section_map.items() if s.get("type") == "activity_action" or s.get("layout") == "activity_action"}
-    chrome_layouts = _CHROME_TEMPLATE_LAYOUTS | {"activity_start", "activity_tasks"}
+# def _ensure_candidate_content_structure(
+#     pages: list,
+#     sections: list,
+#     model_attrs: dict,
+#     candidate_index: int = 0,
+#     prompt: str = "",
+#     add_missing_content: bool = True,
+# ) -> tuple[list, list]:
+#     known_models = set(model_attrs.keys())
+#     sections = [dict(s) for s in sections]
+#     for section in sections:
+#         section["layout"] = _normalize_layout_alias(section.get("layout"))
+#         if section.get("component") == "NavBar" and not section.get("layout"):
+#             section["layout"] = "nav-links"
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     activity_section_ids = {sid for sid, s in section_map.items() if s.get("type") == "activity_action" or s.get("layout") == "activity_action"}
+#     chrome_layouts = _CHROME_TEMPLATE_LAYOUTS | {"activity_start", "activity_tasks"}
 
-    _, sections = _dedupe_agent_header_shells([], sections)
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    keep_header_shell_id = next(
-        (
-            sid for sid, section in section_map.items()
-            if section.get("position") == "header"
-            and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
-        ),
-        "",
-    )
+#     _, sections = _dedupe_agent_header_shells([], sections)
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     keep_header_shell_id = next(
+#         (
+#             sid for sid, section in section_map.items()
+#             if section.get("position") == "header"
+#             and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+#         ),
+#         "",
+#     )
 
-    fixed_pages = []
-    normal_pages = []
-    activity_pages = []
-    normal_pages_by_key = {}
-    for page in pages:
-        page = dict(page)
-        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-        if keep_header_shell_id:
-            seen_header_shell = False
-            deduped_refs = []
-            for ref in refs:
-                section = section_map.get(ref["value"]) or {}
-                is_header_shell_ref = (
-                    section.get("position") == "header"
-                    and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
-                )
-                if is_header_shell_ref:
-                    if seen_header_shell:
-                        continue
-                    seen_header_shell = True
-                deduped_refs.append(ref)
-            refs = deduped_refs
-        if _page_type_value(page) != "activity":
-            refs = [ref for ref in refs if ref["value"] not in activity_section_ids]
-            page["sections"] = refs
-            page_key = _section_id(page.get("name") or page.get("id") or page.get("display_name"))
-            if page_key and page_key in normal_pages_by_key:
-                existing = normal_pages_by_key[page_key]
-                existing_refs = [{"value": _ref_id(ref)} for ref in existing.get("sections") or [] if _ref_id(ref)]
-                existing_ids = {_ref_id(ref) for ref in existing_refs}
-                existing["sections"] = existing_refs + [ref for ref in refs if ref["value"] not in existing_ids]
-                continue
-            normal_pages_by_key[page_key] = page
-            normal_pages.append(page)
-        else:
-            page["sections"] = refs
-            activity_pages.append(page)
+#     fixed_pages = []
+#     normal_pages = []
+#     activity_pages = []
+#     normal_pages_by_key = {}
+#     for page in pages:
+#         page = dict(page)
+#         refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#         if keep_header_shell_id:
+#             seen_header_shell = False
+#             deduped_refs = []
+#             for ref in refs:
+#                 section = section_map.get(ref["value"]) or {}
+#                 is_header_shell_ref = (
+#                     section.get("position") == "header"
+#                     and _normalize_layout_alias(section.get("layout")) in _HEADER_SHELL_LAYOUTS
+#                 )
+#                 if is_header_shell_ref:
+#                     if seen_header_shell:
+#                         continue
+#                     seen_header_shell = True
+#                 deduped_refs.append(ref)
+#             refs = deduped_refs
+#         if _page_type_value(page) != "activity":
+#             refs = [ref for ref in refs if ref["value"] not in activity_section_ids]
+#             page["sections"] = refs
+#             page_key = _section_id(page.get("name") or page.get("id") or page.get("display_name"))
+#             if page_key and page_key in normal_pages_by_key:
+#                 existing = normal_pages_by_key[page_key]
+#                 existing_refs = [{"value": _ref_id(ref)} for ref in existing.get("sections") or [] if _ref_id(ref)]
+#                 existing_ids = {_ref_id(ref) for ref in existing_refs}
+#                 existing["sections"] = existing_refs + [ref for ref in refs if ref["value"] not in existing_ids]
+#                 continue
+#             normal_pages_by_key[page_key] = page
+#             normal_pages.append(page)
+#         else:
+#             page["sections"] = refs
+#             activity_pages.append(page)
 
-    normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
-    has_header_region = any(s.get("id") and s.get("position") == "header" for s in sections)
-    if normal_pages and not has_header_region:
-        _inject_chrome_sections(_header_sections_for_candidate(normal_pages, candidate_index, model_attrs), sections, section_map, normal_pages, prepend=True)
+#     normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
+#     has_header_region = any(s.get("id") and s.get("position") == "header" for s in sections)
+#     if normal_pages and not has_header_region:
+#         _inject_chrome_sections(_header_sections_for_candidate(normal_pages, candidate_index, model_attrs), sections, section_map, normal_pages, prepend=True)
 
-    has_footer_region = any(s.get("id") and s.get("position") == "footer" for s in sections)
-    if normal_pages and not has_footer_region:
-        _inject_chrome_sections(_footer_sections_for_candidate(candidate_index, normal_pages), sections, section_map, normal_pages, prepend=False)
+#     has_footer_region = any(s.get("id") and s.get("position") == "footer" for s in sections)
+#     if normal_pages and not has_footer_region:
+#         _inject_chrome_sections(_footer_sections_for_candidate(candidate_index, normal_pages), sections, section_map, normal_pages, prepend=False)
 
-    _all_pages_for_nav = normal_pages + activity_pages
-    _all_pages_for_nav, sections = _ensure_normal_page_navigation(_all_pages_for_nav, sections, normal_pages, candidate_index)
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     _all_pages_for_nav = normal_pages + activity_pages
+#     _all_pages_for_nav, sections = _ensure_normal_page_navigation(_all_pages_for_nav, sections, normal_pages, candidate_index)
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
 
-    def _is_global_region_section(section: dict) -> bool:
-        position = section.get("position")
-        if position not in {"header", "sidebar", "footer"} or not section.get("id"):
-            return False
-        layout = section.get("layout")
-        style = section.get("style") or {}
-        role = str(section.get("role") or "").lower()
-        scope = str(section.get("scope") or style.get("scope") or "").lower()
-        if scope == "global":
-            return True
-        if layout in chrome_layouts:
-            return True
-        if not section.get("primary_model"):
-            return True
-        return role in {
-            "brand", "navigation", "search", "actions", "action", "promo", "utility",
-            "status", "summary", "kpi", "stats", "legal", "contact", "help", "footer",
-        }
+#     def _is_global_region_section(section: dict) -> bool:
+#         position = section.get("position")
+#         if position not in {"header", "sidebar", "footer"} or not section.get("id"):
+#             return False
+#         layout = section.get("layout")
+#         style = section.get("style") or {}
+#         role = str(section.get("role") or "").lower()
+#         scope = str(section.get("scope") or style.get("scope") or "").lower()
+#         if scope == "global":
+#             return True
+#         if layout in chrome_layouts:
+#             return True
+#         if not section.get("primary_model"):
+#             return True
+#         return role in {
+#             "brand", "navigation", "search", "actions", "action", "promo", "utility",
+#             "status", "summary", "kpi", "stats", "legal", "contact", "help", "footer",
+#         }
 
-    header_region_ids = [
-        str(s.get("id")) for s in sections
-        if _is_global_region_section(s) and s.get("position") == "header"
-    ]
-    sidebar_region_ids = [
-        str(s.get("id")) for s in sections
-        if _is_global_region_section(s) and s.get("position") == "sidebar"
-    ]
-    footer_region_ids = [
-        str(s.get("id")) for s in sections
-        if _is_global_region_section(s) and s.get("position") == "footer"
-    ]
-    if header_region_ids or sidebar_region_ids or footer_region_ids:
-        for page in normal_pages:
-            refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-            ref_ids = {_ref_id(ref) for ref in refs}
-            header_refs = [{"value": sid} for sid in header_region_ids if sid not in ref_ids]
-            sidebar_refs = [{"value": sid} for sid in sidebar_region_ids if sid not in ref_ids]
-            footer_refs = [{"value": sid} for sid in footer_region_ids if sid not in ref_ids]
-            if header_refs or sidebar_refs or footer_refs:
-                page["sections"] = header_refs + sidebar_refs + refs + footer_refs
+#     header_region_ids = [
+#         str(s.get("id")) for s in sections
+#         if _is_global_region_section(s) and s.get("position") == "header"
+#     ]
+#     sidebar_region_ids = [
+#         str(s.get("id")) for s in sections
+#         if _is_global_region_section(s) and s.get("position") == "sidebar"
+#     ]
+#     footer_region_ids = [
+#         str(s.get("id")) for s in sections
+#         if _is_global_region_section(s) and s.get("position") == "footer"
+#     ]
+#     if header_region_ids or sidebar_region_ids or footer_region_ids:
+#         for page in normal_pages:
+#             refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#             ref_ids = {_ref_id(ref) for ref in refs}
+#             header_refs = [{"value": sid} for sid in header_region_ids if sid not in ref_ids]
+#             sidebar_refs = [{"value": sid} for sid in sidebar_region_ids if sid not in ref_ids]
+#             footer_refs = [{"value": sid} for sid in footer_region_ids if sid not in ref_ids]
+#             if header_refs or sidebar_refs or footer_refs:
+#                 page["sections"] = header_refs + sidebar_refs + refs + footer_refs
 
-    referenced_region_ids = {
-        _ref_id(ref)
-        for page in normal_pages
-        for ref in (page.get("sections") or [])
-        if _ref_id(ref)
-    }
+#     referenced_region_ids = {
+#         _ref_id(ref)
+#         for page in normal_pages
+#         for ref in (page.get("sections") or [])
+#         if _ref_id(ref)
+#     }
 
-    def _best_page_for_region_section(section: dict) -> dict | None:
-        if not normal_pages:
-            return None
-        pm = str(section.get("primary_model") or "")
-        if pm:
-            pm_key = _section_id(pm)
-            for page in normal_pages:
-                page_pm = str(page.get("primary_model") or "")
-                page_text = f"{page.get('id', '')} {page.get('name', '')}"
-                if page_pm == pm or pm_key in _section_id(page_text):
-                    return page
-        return normal_pages[0]
+#     def _best_page_for_region_section(section: dict) -> dict | None:
+#         if not normal_pages:
+#             return None
+#         pm = str(section.get("primary_model") or "")
+#         if pm:
+#             pm_key = _section_id(pm)
+#             for page in normal_pages:
+#                 page_pm = str(page.get("primary_model") or "")
+#                 page_text = f"{page.get('id', '')} {page.get('name', '')}"
+#                 if page_pm == pm or pm_key in _section_id(page_text):
+#                     return page
+#         return normal_pages[0]
 
-    for section in sections:
-        sid = str(section.get("id") or "")
-        position = section.get("position")
-        if not sid or sid in referenced_region_ids or position not in {"header", "sidebar", "footer"}:
-            continue
-        page = _best_page_for_region_section(section)
-        if not page:
-            continue
-        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-        if position == "footer":
-            page["sections"] = refs + [{"value": sid}]
-        else:
-            page["sections"] = [{"value": sid}] + refs
-        referenced_region_ids.add(sid)
+#     for section in sections:
+#         sid = str(section.get("id") or "")
+#         position = section.get("position")
+#         if not sid or sid in referenced_region_ids or position not in {"header", "sidebar", "footer"}:
+#             continue
+#         page = _best_page_for_region_section(section)
+#         if not page:
+#             continue
+#         refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#         if position == "footer":
+#             page["sections"] = refs + [{"value": sid}]
+#         else:
+#             page["sections"] = [{"value": sid}] + refs
+#         referenced_region_ids.add(sid)
 
-    for page in normal_pages:
-        model = _fallback_model_for_page(page, known_models)
-        if model and not page.get("primary_model"):
-            page["primary_model"] = model
-        ref_ids = {_ref_id(ref) for ref in page.get("sections") or []}
-        has_content = False
-        for sid in ref_ids:
-            section = section_map.get(sid) or {}
-            if section.get("position", "main") == "main" and section.get("layout") not in chrome_layouts and section.get("layout") != "activity_action":
-                has_content = True
-                if model and not section.get("primary_model"):
-                    section["primary_model"] = model
-                    section["class"] = model
-                if section.get("primary_model") in model_attrs and not section.get("attributes"):
-                    section["attributes"] = _model_field_names(model_attrs, section["primary_model"])
-                section.setdefault("operations", {"create": False, "update": False, "delete": False})
-        if add_missing_content and not has_content and model:
-            section = _default_section_for_page(page, model, model_attrs, candidate_index)
-            dedupe_id = section["id"]
-            suffix = 2
-            while dedupe_id in section_map:
-                dedupe_id = f"{section['id']}_{suffix}"
-                suffix += 1
-            section["id"] = dedupe_id
-            sections.append(section)
-            section_map[dedupe_id] = section
-            page.setdefault("sections", [])
-            page["sections"].append({"value": dedupe_id})
-    fixed_pages = normal_pages + activity_pages
-    return fixed_pages, sections
+#     for page in normal_pages:
+#         model = _fallback_model_for_page(page, known_models)
+#         if model and not page.get("primary_model"):
+#             page["primary_model"] = model
+#         ref_ids = {_ref_id(ref) for ref in page.get("sections") or []}
+#         has_content = False
+#         for sid in ref_ids:
+#             section = section_map.get(sid) or {}
+#             if section.get("position", "main") == "main" and section.get("layout") not in chrome_layouts and section.get("layout") != "activity_action":
+#                 has_content = True
+#                 if model and not section.get("primary_model"):
+#                     section["primary_model"] = model
+#                     section["class"] = model
+#                 if section.get("primary_model") in model_attrs and not section.get("attributes"):
+#                     section["attributes"] = _model_field_names(model_attrs, section["primary_model"])
+#                 section.setdefault("operations", {"create": False, "update": False, "delete": False})
+#         if add_missing_content and not has_content and model:
+#             section = _default_section_for_page(page, model, model_attrs, candidate_index)
+#             dedupe_id = section["id"]
+#             suffix = 2
+#             while dedupe_id in section_map:
+#                 dedupe_id = f"{section['id']}_{suffix}"
+#                 suffix += 1
+#             section["id"] = dedupe_id
+#             sections.append(section)
+#             section_map[dedupe_id] = section
+#             page.setdefault("sections", [])
+#             page["sections"].append({"value": dedupe_id})
+#     fixed_pages = normal_pages + activity_pages
+#     return fixed_pages, sections
 
-def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
-    if not usecase_navigation:
-        return pages
-    pages = [dict(p) for p in pages]
-    existing = {_section_id(p.get("id") or p.get("name")) for p in pages}
-    page_entries = usecase_navigation.get("pages") or []
-    if not page_entries:
-        page_entries = [
-            {
-                "page_id": usecase.get("page_id"),
-                "page_name": usecase.get("page_name"),
-                "primary_model": usecase.get("page_model") or usecase.get("primary_model", ""),
-                "usecases": [usecase.get("name")],
-            }
-            for usecase in usecase_navigation.get("usecases") or []
-            if (usecase.get("ui_mapping") or {}).get("role") != "background"
-        ]
-    for page_entry in page_entries:
-        page_id = _section_id(page_entry.get("page_id") or page_entry.get("page_name"))
-        if not page_id or page_id in existing:
-            continue
-        pages.append({
-            "id": page_id,
-            "name": page_entry.get("page_name") or _page_name(page_id),
-            "primary_model": page_entry.get("primary_model", ""),
-            "type": {"value": "normal", "label": "Normal"},
-            "sections": [],
-            "category": None,
-            "source_usecases": page_entry.get("usecases") or [],
-        })
-        existing.add(page_id)
-    return pages
+# def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
+#     if not usecase_navigation:
+#         return pages
+#     pages = [dict(p) for p in pages]
+#     existing = {_section_id(p.get("id") or p.get("name")) for p in pages}
+#     page_entries = usecase_navigation.get("pages") or []
+#     if not page_entries:
+#         page_entries = [
+#             {
+#                 "page_id": usecase.get("page_id"),
+#                 "page_name": usecase.get("page_name"),
+#                 "primary_model": usecase.get("page_model") or usecase.get("primary_model", ""),
+#                 "usecases": [usecase.get("name")],
+#             }
+#             for usecase in usecase_navigation.get("usecases") or []
+#             if (usecase.get("ui_mapping") or {}).get("role") != "background"
+#         ]
+#     for page_entry in page_entries:
+#         page_id = _section_id(page_entry.get("page_id") or page_entry.get("page_name"))
+#         if not page_id or page_id in existing:
+#             continue
+#         pages.append({
+#             "id": page_id,
+#             "name": page_entry.get("page_name") or _page_name(page_id),
+#             "primary_model": page_entry.get("primary_model", ""),
+#             "type": {"value": "normal", "label": "Normal"},
+#             "sections": [],
+#             "category": None,
+#             "source_usecases": page_entry.get("usecases") or [],
+#         })
+#         existing.add(page_id)
+#     return pages
 
-def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigation: dict) -> tuple[list, list]:
-    entries = usecase_navigation.get("workflow_entry_points") or []
-    if not entries:
-        return pages, sections
-    pages = [dict(p) for p in pages]
-    sections = [dict(s) for s in sections]
-    section_ids = {str(s.get("id")) for s in sections if s.get("id")}
-    page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
-    for entry in entries:
-        page = page_by_id.get(_section_id(entry.get("page_id") or entry.get("page_name")))
-        if not page:
-            continue
-        sid = f"{_section_id(page.get('id') or page.get('name'))}_workflow_start"
-        if sid not in section_ids:
-            sections.append({
-                "id": sid,
-                "name": entry.get("label") or "Start Workflow",
-                "label": entry.get("label") or "Start Workflow",
-                "type": "activity_start",
-                "layout": "activity_start",
-                "primary_model": "",
-                "class": "",
-                "operations": {"create": False, "update": False, "delete": False},
-                "attributes": [],
-                "methods": [],
-                "col_span": 12,
-                "position": "main",
-                "style": {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white", "columns": "1", "cta_label": entry.get("button_label") or "Start"},
-            })
-            section_ids.add(sid)
-        refs = page.get("sections") or []
-        if sid not in {_ref_id(ref) for ref in refs}:
-            page["sections"] = refs + [{"value": sid}]
-    return pages, sections
+# def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigation: dict) -> tuple[list, list]:
+#     entries = usecase_navigation.get("workflow_entry_points") or []
+#     if not entries:
+#         return pages, sections
+#     pages = [dict(p) for p in pages]
+#     sections = [dict(s) for s in sections]
+#     section_ids = {str(s.get("id")) for s in sections if s.get("id")}
+#     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
+#     for entry in entries:
+#         page = page_by_id.get(_section_id(entry.get("page_id") or entry.get("page_name")))
+#         if not page:
+#             continue
+#         sid = f"{_section_id(page.get('id') or page.get('name'))}_workflow_start"
+#         if sid not in section_ids:
+#             sections.append({
+#                 "id": sid,
+#                 "name": entry.get("label") or "Start Workflow",
+#                 "label": entry.get("label") or "Start Workflow",
+#                 "type": "activity_start",
+#                 "layout": "activity_start",
+#                 "primary_model": "",
+#                 "class": "",
+#                 "operations": {"create": False, "update": False, "delete": False},
+#                 "attributes": [],
+#                 "methods": [],
+#                 "col_span": 12,
+#                 "position": "main",
+#                 "style": {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white", "columns": "1", "cta_label": entry.get("button_label") or "Start"},
+#             })
+#             section_ids.add(sid)
+#         refs = page.get("sections") or []
+#         if sid not in {_ref_id(ref) for ref in refs}:
+#             page["sections"] = refs + [{"value": sid}]
+#     return pages, sections
 
-def _ensure_pre_workflow_content_sections(
-    pages: list,
-    sections: list,
-    usecase_navigation: dict,
-    model_attrs: dict,
-    candidate_index: int = 0,
-    add_missing_content: bool = True,
-) -> tuple[list, list]:
-    if not add_missing_content:
-        return pages, sections
-    entries = usecase_navigation.get("workflow_entry_points") or []
-    if not entries:
-        return pages, sections
-    pages = [dict(p) for p in pages]
-    sections = [dict(s) for s in sections]
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
-    known_models = set(model_attrs.keys())
+# def _ensure_pre_workflow_content_sections(
+#     pages: list,
+#     sections: list,
+#     usecase_navigation: dict,
+#     model_attrs: dict,
+#     candidate_index: int = 0,
+#     add_missing_content: bool = True,
+# ) -> tuple[list, list]:
+#     if not add_missing_content:
+#         return pages, sections
+#     entries = usecase_navigation.get("workflow_entry_points") or []
+#     if not entries:
+#         return pages, sections
+#     pages = [dict(p) for p in pages]
+#     sections = [dict(s) for s in sections]
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
+#     known_models = set(model_attrs.keys())
 
-    for entry in entries:
-        page_id = _section_id(entry.get("page_id") or entry.get("page_name"))
-        page = page_by_id.get(page_id)
-        if not page:
-            continue
-        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
-        ref_ids = {_ref_id(ref) for ref in refs}
-        main_data_sections = [
-            section_map.get(sid) or {}
-            for sid in ref_ids
-            if (section_map.get(sid) or {}).get("position", "main") == "main"
-            and (section_map.get(sid) or {}).get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
-        ]
-        preferred_models = [
-            m for m in (entry.get("pre_workflow_collections") or [])
-            if m in known_models
-        ]
-        if not preferred_models:
-            preferred_models = [
-                m for m in (entry.get("related_models") or [])
-                if m in known_models and _is_child_collection_model(m, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}")
-            ]
-        if not preferred_models:
-            preferred_models = [m for m in [entry.get("primary_model")] if m in known_models]
-        model = preferred_models[0] if preferred_models else ""
-        if not model:
-            continue
-        has_model_section = any(s.get("primary_model") == model for s in main_data_sections)
-        if has_model_section:
-            continue
-        sid = f"{page_id}_{_section_id(model)}_pre_workflow"
-        suffix = 2
-        base_sid = sid
-        while sid in section_map:
-            sid = f"{base_sid}_{suffix}"
-            suffix += 1
-        layout = "list" if _is_child_collection_model(model, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}") else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
-        style = {
-            "color": "accent",
-            "density": "compact" if layout in {"list", "table"} else "normal",
-            "shadow": "sm",
-            "border": "light",
-            "bg": "white",
-        }
-        if layout == "list":
-            style["list_style"] = "default"
-        section = {
-            "id": sid,
-            "name": f"{model} Items" if _is_child_collection_model(model, page_id) else f"{model} Overview",
-            "layout": layout,
-            "primary_model": model,
-            "class": model,
-            "attributes": _model_field_names(model_attrs, model, 8),
-            "operations": {
-                "create": False,
-                "update": layout in {"list", "table", "detail", "form"},
-                "delete": layout in {"list", "table", "card", "gallery"},
-            },
-            "query": {},
-            "col_span": 12,
-            "position": "main",
-            "style": style,
-        }
-        sections.append(section)
-        section_map[sid] = section
-        activity_start_refs = [ref for ref in refs if (section_map.get(_ref_id(ref)) or {}).get("layout") == "activity_start"]
-        other_refs = [ref for ref in refs if ref not in activity_start_refs]
-        page["sections"] = other_refs + [{"value": sid}] + activity_start_refs
-    return pages, sections
+#     for entry in entries:
+#         page_id = _section_id(entry.get("page_id") or entry.get("page_name"))
+#         page = page_by_id.get(page_id)
+#         if not page:
+#             continue
+#         refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+#         ref_ids = {_ref_id(ref) for ref in refs}
+#         main_data_sections = [
+#             section_map.get(sid) or {}
+#             for sid in ref_ids
+#             if (section_map.get(sid) or {}).get("position", "main") == "main"
+#             and (section_map.get(sid) or {}).get("layout") in {"card", "list", "table", "detail", "gallery", "form"}
+#         ]
+#         preferred_models = [
+#             m for m in (entry.get("pre_workflow_collections") or [])
+#             if m in known_models
+#         ]
+#         if not preferred_models:
+#             preferred_models = [
+#                 m for m in (entry.get("related_models") or [])
+#                 if m in known_models and _is_child_collection_model(m, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}")
+#             ]
+#         if not preferred_models:
+#             preferred_models = [m for m in [entry.get("primary_model")] if m in known_models]
+#         model = preferred_models[0] if preferred_models else ""
+#         if not model:
+#             continue
+#         has_model_section = any(s.get("primary_model") == model for s in main_data_sections)
+#         if has_model_section:
+#             continue
+#         sid = f"{page_id}_{_section_id(model)}_pre_workflow"
+#         suffix = 2
+#         base_sid = sid
+#         while sid in section_map:
+#             sid = f"{base_sid}_{suffix}"
+#             suffix += 1
+#         layout = "list" if _is_child_collection_model(model, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}") else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
+#         style = {
+#             "color": "accent",
+#             "density": "compact" if layout in {"list", "table"} else "normal",
+#             "shadow": "sm",
+#             "border": "light",
+#             "bg": "white",
+#         }
+#         if layout == "list":
+#             style["list_style"] = "default"
+#         section = {
+#             "id": sid,
+#             "name": f"{model} Items" if _is_child_collection_model(model, page_id) else f"{model} Overview",
+#             "layout": layout,
+#             "primary_model": model,
+#             "class": model,
+#             "attributes": _model_field_names(model_attrs, model, 8),
+#             "operations": {
+#                 "create": False,
+#                 "update": layout in {"list", "table", "detail", "form"},
+#                 "delete": layout in {"list", "table", "card", "gallery"},
+#             },
+#             "query": {},
+#             "col_span": 12,
+#             "position": "main",
+#             "style": style,
+#         }
+#         sections.append(section)
+#         section_map[sid] = section
+#         activity_start_refs = [ref for ref in refs if (section_map.get(_ref_id(ref)) or {}).get("layout") == "activity_start"]
+#         other_refs = [ref for ref in refs if ref not in activity_start_refs]
+#         page["sections"] = other_refs + [{"value": sid}] + activity_start_refs
+#     return pages, sections
 
-def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
-    nav_ids = {_section_id(pid) for pid in (usecase_navigation.get("nav_bar_pages") or []) if pid}
-    page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
-    nav_names = [
-        (page_by_id.get(pid) or {}).get("name") or _page_name(pid)
-        for pid in usecase_navigation.get("nav_bar_pages") or []
-        if _section_id(pid) in page_by_id
-    ]
-    workflow_icon_links = _workflow_icon_links(usecase_navigation, page_by_id)
-    if not nav_names and not workflow_icon_links:
-        return sections
-    fixed = []
-    for section in sections:
-        section = dict(section)
-        layout = _normalize_layout_alias(section.get("layout"))
-        if nav_ids and (layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"})):
-            section["layout"] = layout
-            section["methods"] = _navigation_methods(nav_names)
-        if section.get("position") == "header" or layout in _HEADER_TEMPLATE_LAYOUTS or layout == "icon-actions":
-            style = dict(section.get("style") or {})
-            if workflow_icon_links and not style.get("icon_links"):
-                style["icon_links"] = workflow_icon_links[:2]
-            section["style"] = style
-        fixed.append(section)
-    return fixed
+# def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
+#     nav_ids = {_section_id(pid) for pid in (usecase_navigation.get("nav_bar_pages") or []) if pid}
+#     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
+#     nav_names = [
+#         (page_by_id.get(pid) or {}).get("name") or _page_name(pid)
+#         for pid in usecase_navigation.get("nav_bar_pages") or []
+#         if _section_id(pid) in page_by_id
+#     ]
+#     workflow_icon_links = _workflow_icon_links(usecase_navigation, page_by_id)
+#     if not nav_names and not workflow_icon_links:
+#         return sections
+#     fixed = []
+#     for section in sections:
+#         section = dict(section)
+#         layout = _normalize_layout_alias(section.get("layout"))
+#         if nav_ids and (layout in (_HEADER_NAV_LAYOUTS | {"nav-bar"}) or (section.get("position") in {"header", "sidebar"} and layout in {"site-nav", "nav-links", "nav-bar"})):
+#             section["layout"] = layout
+#             section["methods"] = _navigation_methods(nav_names)
+#         if section.get("position") == "header" or layout in _HEADER_TEMPLATE_LAYOUTS or layout == "icon-actions":
+#             style = dict(section.get("style") or {})
+#             if workflow_icon_links and not style.get("icon_links"):
+#                 style["icon_links"] = workflow_icon_links[:2]
+#             section["style"] = style
+#         fixed.append(section)
+#     return fixed
 
-def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, model_attrs: dict) -> tuple[list, list]:
-    if not nav_plan:
-        return pages, sections
-    pages = [dict(p) for p in pages]
-    sections = [dict(s) for s in sections]
-    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
-    page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
+# def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, model_attrs: dict) -> tuple[list, list]:
+#     if not nav_plan:
+#         return pages, sections
+#     pages = [dict(p) for p in pages]
+#     sections = [dict(s) for s in sections]
+#     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+#     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
 
-    for section_plan in nav_plan.get("sections") or []:
-        if section_plan.get("role") not in DATA_SECTION_ROLES:
-            continue
-        sid = section_plan.get("id")
-        page_id = _section_id(section_plan.get("page_id"))
-        model = section_plan.get("primary_model") or ""
-        if not sid or not page_id or not model or sid in section_map:
-            continue
-        if model not in model_attrs:
-            continue
-        editable = set(section_plan.get("editable_fields") or [])
-        operations = _normalize_section_operations(section_plan.get("operations"))
-        operations["update"] = bool(operations.get("update") or editable)
-        attrs = list(section_plan.get("visible_fields") or [])
-        attrs.extend([
-            {"name": name, "source": "related", "readonly": True}
-            for name in section_plan.get("related_visible_fields") or []
-        ])
-        if not attrs:
-            attrs = _model_field_names(model_attrs, model, 8)
-        section = {
-            "id": sid,
-            "name": section_plan.get("name") or sid,
-            "role": section_plan.get("role"),
-            "layout": section_plan.get("layout") or "detail",
-            "component": section_plan.get("component") or _infer_section_component(section_plan),
-            "primary_model": model,
-            "class": model,
-            "attributes": attrs,
-            "field_layout": section_plan.get("field_layout") or {},
-            "behavior": section_plan.get("behavior") or {},
-            "related_to": section_plan.get("related_to"),
-            "relationship": section_plan.get("relationship") or {},
-            "relation_field": section_plan.get("relation_field"),
-            "operations": operations,
-            "data_source": section_plan.get("data_source") or {},
-            "query": section_plan.get("query") or {},
-            "col_span": section_plan.get("col_span", 12),
-            "position": "main",
-            "style": section_plan.get("style") or {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white"},
-        }
-        sections.append(section)
-        section_map[sid] = section
-        page = page_by_id.get(page_id)
-        if page:
-            refs = page.get("sections") or []
-            if sid not in {_ref_id(ref) for ref in refs}:
-                page["sections"] = refs + [{"value": sid}]
-    return pages, sections
+#     for section_plan in nav_plan.get("sections") or []:
+#         if section_plan.get("role") not in DATA_SECTION_ROLES:
+#             continue
+#         sid = section_plan.get("id")
+#         page_id = _section_id(section_plan.get("page_id"))
+#         model = section_plan.get("primary_model") or ""
+#         if not sid or not page_id or not model or sid in section_map:
+#             continue
+#         if model not in model_attrs:
+#             continue
+#         editable = set(section_plan.get("editable_fields") or [])
+#         operations = _normalize_section_operations(section_plan.get("operations"))
+#         operations["update"] = bool(operations.get("update") or editable)
+#         attrs = list(section_plan.get("visible_fields") or [])
+#         attrs.extend([
+#             {"name": name, "source": "related", "readonly": True}
+#             for name in section_plan.get("related_visible_fields") or []
+#         ])
+#         if not attrs:
+#             attrs = _model_field_names(model_attrs, model, 8)
+#         section = {
+#             "id": sid,
+#             "name": section_plan.get("name") or sid,
+#             "role": section_plan.get("role"),
+#             "layout": section_plan.get("layout") or "detail",
+#             "component": section_plan.get("component") or _infer_section_component(section_plan),
+#             "primary_model": model,
+#             "class": model,
+#             "attributes": attrs,
+#             "field_layout": section_plan.get("field_layout") or {},
+#             "behavior": section_plan.get("behavior") or {},
+#             "related_to": section_plan.get("related_to"),
+#             "relationship": section_plan.get("relationship") or {},
+#             "relation_field": section_plan.get("relation_field"),
+#             "operations": operations,
+#             "data_source": section_plan.get("data_source") or {},
+#             "query": section_plan.get("query") or {},
+#             "col_span": section_plan.get("col_span", 12),
+#             "position": "main",
+#             "style": section_plan.get("style") or {"color": "accent", "density": "normal", "shadow": "sm", "bg": "white"},
+#         }
+#         sections.append(section)
+#         section_map[sid] = section
+#         page = page_by_id.get(page_id)
+#         if page:
+#             refs = page.get("sections") or []
+#             if sid not in {_ref_id(ref) for ref in refs}:
+#                 page["sections"] = refs + [{"value": sid}]
+#     return pages, sections
 
 def _fetch_system_context_data(system_id: str) -> dict:
     response = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/", headers=_AUTH_HEADERS)
@@ -2747,110 +2747,110 @@ def _build_known_attrs(system_id: str) -> dict[str, set[str]]:
     except Exception:
         return {}
 
-def apply_interface_patch(interface_id: str, patch: dict) -> str:
-    try:
-        resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
-        resp.raise_for_status()
-        current = resp.json()
-        data = dict(current.get("data") or {})
-        def _norm_refs(refs: list) -> list:
-            out = []
-            for ref in refs or []:
-                sid = ref.get("value") if isinstance(ref, dict) else ref
-                if sid:
-                    out.append({"value": str(sid)})
-            return out
+# def apply_interface_patch(interface_id: str, patch: dict) -> str:
+#     try:
+#         resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+#         resp.raise_for_status()
+#         current = resp.json()
+#         data = dict(current.get("data") or {})
+#         def _norm_refs(refs: list) -> list:
+#             out = []
+#             for ref in refs or []:
+#                 sid = ref.get("value") if isinstance(ref, dict) else ref
+#                 if sid:
+#                     out.append({"value": str(sid)})
+#             return out
 
-        if "sections" in patch:
-            section_map = {str(s["id"]): s for s in data.get("sections", [])}
-            for ps in patch["sections"]:
-                sid = str(ps.get("id", ""))
-                if not sid:
-                    continue
-                is_new = sid not in section_map
-                if is_new:
-                    section_map[sid] = {
-                        "id": sid,
-                        "name": ps.get("name") or sid,
-                        "role": ps.get("role", ""),
-                        "layout": ps.get("layout", "card"),
-                        "component": ps.get("component") or _infer_section_component(ps),
-                        "position": ps.get("position", "main"),
-                        "col_span": ps.get("col_span", 12),
-                        "primary_model": ps.get("primary_model", ""),
-                        "class": ps.get("class") or ps.get("primary_model", ""),
-                        "attributes": ps.get("attributes", []),
-                        "field_layout": ps.get("field_layout", {}),
-                        "behavior": ps.get("behavior", {}),
-                        "related_to": ps.get("related_to"),
-                        "relationship": ps.get("relationship", {}),
-                        "relation_field": ps.get("relation_field"),
-                        "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
-                        "data_source": ps.get("data_source", {}),
-                        "query": ps.get("query", {}),
-                        "style": ps.get("style", {}),
-                    }
-                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
-                    if field in ps:
-                        section_map[sid][field] = ps[field]
-                if "style" in ps:
-                    section_map[sid]["style"] = {**(section_map[sid].get("style") or {}), **ps["style"]}
-            data["sections"] = list(section_map.values())
-        if "pages" in patch:
-            page_map = {str(p["id"]): p for p in data.get("pages", [])}
-            for pp in patch["pages"]:
-                pid = str(pp.get("id", ""))
-                if not pid:
-                    continue
-                if pid not in page_map:
-                    page_map[pid] = {
-                        "id": pid,
-                        "name": pp.get("name") or pid,
-                        "sections": _norm_refs(pp.get("sections") or []),
-                        "primary_model": pp.get("primary_model", ""),
-                        "category": pp.get("category", None),
-                    }
-                for field in ("layout", "gap", "name", "primary_model", "category", "type"):
-                    if field in pp:
-                        page_map[pid][field] = pp[field]
-                if "sections" in pp:
-                    page_map[pid]["sections"] = _norm_refs(pp["sections"])
-            data["pages"] = list(page_map.values())
-        if "styling" in patch:
-            data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
-        if "tokens" in patch:
-            data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
-        # Validate attribute names against real classifier fields; warn agent so it can self-correct
-        if "sections" in patch:
-            known_attrs = _build_known_attrs(current.get("system", ""))
-            warnings = []
-            for sec in patch["sections"]:
-                model = sec.get("primary_model") or sec.get("class", "")
-                raw_attrs = sec.get("attributes") or []
-                attr_names = [a if isinstance(a, str) else (a.get("name") if isinstance(a, dict) else "") for a in raw_attrs]
-                valid = known_attrs.get(model, set())
-                if valid:
-                    bad = [a for a in attr_names if a and a not in valid and "." not in a]
-                    if bad:
-                        warnings.append(f"section '{sec.get('id')}': unknown attributes {bad} for model '{model}' — valid: {sorted(valid)}")
-            if warnings:
-                return "WARNING — patch rejected due to invented attribute names. Fix these and retry:\n" + "\n".join(warnings)
-        try:
-            data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
-        except Exception:
-            data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
-        payload = {
-            "id": interface_id,
-            "name": current["name"],
-            "description": current["description"],
-            "system_id": current["system"],
-            "actor_id": current["actor"],
-            "data": data,
-        }
-        put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
-        put_resp.raise_for_status()
-        return f"Patched interface {interface_id} successfully."
-    except Exception as e: return f"Error patching interface: {e}"
+#         if "sections" in patch:
+#             section_map = {str(s["id"]): s for s in data.get("sections", [])}
+#             for ps in patch["sections"]:
+#                 sid = str(ps.get("id", ""))
+#                 if not sid:
+#                     continue
+#                 is_new = sid not in section_map
+#                 if is_new:
+#                     section_map[sid] = {
+#                         "id": sid,
+#                         "name": ps.get("name") or sid,
+#                         "role": ps.get("role", ""),
+#                         "layout": ps.get("layout", "card"),
+#                         "component": ps.get("component") or _infer_section_component(ps),
+#                         "position": ps.get("position", "main"),
+#                         "col_span": ps.get("col_span", 12),
+#                         "primary_model": ps.get("primary_model", ""),
+#                         "class": ps.get("class") or ps.get("primary_model", ""),
+#                         "attributes": ps.get("attributes", []),
+#                         "field_layout": ps.get("field_layout", {}),
+#                         "behavior": ps.get("behavior", {}),
+#                         "related_to": ps.get("related_to"),
+#                         "relationship": ps.get("relationship", {}),
+#                         "relation_field": ps.get("relation_field"),
+#                         "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
+#                         "data_source": ps.get("data_source", {}),
+#                         "query": ps.get("query", {}),
+#                         "style": ps.get("style", {}),
+#                     }
+#                 for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
+#                     if field in ps:
+#                         section_map[sid][field] = ps[field]
+#                 if "style" in ps:
+#                     section_map[sid]["style"] = {**(section_map[sid].get("style") or {}), **ps["style"]}
+#             data["sections"] = list(section_map.values())
+#         if "pages" in patch:
+#             page_map = {str(p["id"]): p for p in data.get("pages", [])}
+#             for pp in patch["pages"]:
+#                 pid = str(pp.get("id", ""))
+#                 if not pid:
+#                     continue
+#                 if pid not in page_map:
+#                     page_map[pid] = {
+#                         "id": pid,
+#                         "name": pp.get("name") or pid,
+#                         "sections": _norm_refs(pp.get("sections") or []),
+#                         "primary_model": pp.get("primary_model", ""),
+#                         "category": pp.get("category", None),
+#                     }
+#                 for field in ("layout", "gap", "name", "primary_model", "category", "type"):
+#                     if field in pp:
+#                         page_map[pid][field] = pp[field]
+#                 if "sections" in pp:
+#                     page_map[pid]["sections"] = _norm_refs(pp["sections"])
+#             data["pages"] = list(page_map.values())
+#         if "styling" in patch:
+#             data["styling"] = {**(data.get("styling") or {}), **patch["styling"]}
+#         if "tokens" in patch:
+#             data["tokens"] = {**(data.get("tokens") or {}), **patch["tokens"]}
+#         # Validate attribute names against real classifier fields; warn agent so it can self-correct
+#         if "sections" in patch:
+#             known_attrs = _build_known_attrs(current.get("system", ""))
+#             warnings = []
+#             for sec in patch["sections"]:
+#                 model = sec.get("primary_model") or sec.get("class", "")
+#                 raw_attrs = sec.get("attributes") or []
+#                 attr_names = [a if isinstance(a, str) else (a.get("name") if isinstance(a, dict) else "") for a in raw_attrs]
+#                 valid = known_attrs.get(model, set())
+#                 if valid:
+#                     bad = [a for a in attr_names if a and a not in valid and "." not in a]
+#                     if bad:
+#                         warnings.append(f"section '{sec.get('id')}': unknown attributes {bad} for model '{model}' — valid: {sorted(valid)}")
+#             if warnings:
+#                 return "WARNING — patch rejected due to invented attribute names. Fix these and retry:\n" + "\n".join(warnings)
+#         try:
+#             data = _apply_builtin_workflow_logic(data, current.get("system"), current.get("actor"))
+#         except Exception:
+#             data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
+#         payload = {
+#             "id": interface_id,
+#             "name": current["name"],
+#             "description": current["description"],
+#             "system_id": current["system"],
+#             "actor_id": current["actor"],
+#             "data": data,
+#         }
+#         put_resp = requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS)
+#         put_resp.raise_for_status()
+#         return f"Patched interface {interface_id} successfully."
+#     except Exception as e: return f"Error patching interface: {e}"
 
 def run_seed_script(python_code: str) -> str:
     try:
@@ -2973,271 +2973,271 @@ def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict) -
     return tokens, spec_name
 
 
-def validate_and_save_candidate(
-    interface_id: str,
-    candidate_index: int,
-    name: str,
-    description: str,
-    pages: str,
-    sections: str,
-    tokens: str = "",
-    styling: str = "",
-    prompt: str = "",
-    derived_from: str = "",
-    designer_requirements: str = "",
-    variation_strategy: str = "",
-) -> str:
-    """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
+# def validate_and_save_candidate(
+#     interface_id: str,
+#     candidate_index: int,
+#     name: str,
+#     description: str,
+#     pages: str,
+#     sections: str,
+#     tokens: str = "",
+#     styling: str = "",
+#     prompt: str = "",
+#     derived_from: str = "",
+#     designer_requirements: str = "",
+#     variation_strategy: str = "",
+# ) -> str:
+#     """Validate and save one interface candidate (call once per candidate index 0, 1, 2).
 
-    Args:
-        interface_id: The interface UUID (from the message).
-        candidate_index: 0, 1, or 2.
-        name: Short display name for this design direction (e.g. "Card-forward Commerce").
-        description: One sentence describing this candidate's visual approach.
-        pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
-               type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
-               Pages do NOT contain section data — they only reference section IDs.
-        sections: JSON string containing a list of ALL section definition objects. Each section must have:
-                  id, name, layout, position, col_span, primary_model, attributes, operations, style.
-                  This is SEPARATE from pages. Both pages[] and sections[] are required.
-        tokens: Optional JSON string with design tokens.
-        styling: Optional JSON string with global styling overrides.
-        prompt: Original user design prompt (optional, for logging).
-        derived_from: Optional source candidate index/id when regenerating from a selected candidate.
-        designer_requirements: Optional human-in-the-loop requirements used for regeneration.
-        variation_strategy: Optional short label for how this candidate differs from the source.
-    """
-    try:
-        if isinstance(pages, str): pages = json.loads(pages)
-        if isinstance(sections, str): sections = json.loads(sections)
-        input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
-        prompt_for_style = designer_requirements or prompt
-        prompt_intent = compile_prompt_intent(prompt_for_style)
-        styling = _norm_candidate_styling(styling, prompt_for_style)
+#     Args:
+#         interface_id: The interface UUID (from the message).
+#         candidate_index: 0, 1, or 2.
+#         name: Short display name for this design direction (e.g. "Card-forward Commerce").
+#         description: One sentence describing this candidate's visual approach.
+#         pages: JSON string containing a list of page objects. Each page: {id, name, type, sections: [{value: section_id}, ...]}.
+#                type is required and must be {"value":"normal","label":"Normal"} or {"value":"activity","label":"Activity"}.
+#                Pages do NOT contain section data — they only reference section IDs.
+#         sections: JSON string containing a list of ALL section definition objects. Each section must have:
+#                   id, name, layout, position, col_span, primary_model, attributes, operations, style.
+#                   This is SEPARATE from pages. Both pages[] and sections[] are required.
+#         tokens: Optional JSON string with design tokens.
+#         styling: Optional JSON string with global styling overrides.
+#         prompt: Original user design prompt (optional, for logging).
+#         derived_from: Optional source candidate index/id when regenerating from a selected candidate.
+#         designer_requirements: Optional human-in-the-loop requirements used for regeneration.
+#         variation_strategy: Optional short label for how this candidate differs from the source.
+#     """
+#     try:
+#         if isinstance(pages, str): pages = json.loads(pages)
+#         if isinstance(sections, str): sections = json.loads(sections)
+#         input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
+#         prompt_for_style = designer_requirements or prompt
+#         prompt_intent = compile_prompt_intent(prompt_for_style)
+#         styling = _norm_candidate_styling(styling, prompt_for_style)
 
-        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
-        iface_resp.raise_for_status()
-        iface = iface_resp.json()
-        system_id = iface.get("system")
-        tokens, design_spec_name = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
+#         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
+#         iface_resp.raise_for_status()
+#         iface = iface_resp.json()
+#         system_id = iface.get("system")
+#         tokens, design_spec_name = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
 
-        cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
-        classifiers_data = cls_resp.json() if cls_resp.ok else {}
-        raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
-        model_attrs: dict = {}; model_id_by_name: dict = {}
-        for c in raw_classifiers:
-            cdata = c.get("data", {}); cname = cdata.get("name", "")
-            attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
-            if cname:
-                model_attrs[cname] = attrs
-                model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
-        known_models = set(model_attrs.keys())
+#         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
+#         classifiers_data = cls_resp.json() if cls_resp.ok else {}
+#         raw_classifiers = classifiers_data.get("classifiers", []) if isinstance(classifiers_data, dict) else classifiers_data
+#         model_attrs: dict = {}; model_id_by_name: dict = {}
+#         for c in raw_classifiers:
+#             cdata = c.get("data", {}); cname = cdata.get("name", "")
+#             attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
+#             if cname:
+#                 model_attrs[cname] = attrs
+#                 model_id_by_name[cname] = str(c.get("id") or cdata.get("id") or cname)
+#         known_models = set(model_attrs.keys())
 
-        usecase_navigation: dict = {}
-        try:
-            system_context = _fetch_system_context_data(system_id)
-            actor_name = _actor_name_from_context(system_context, iface.get("actor"))
-            usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
-            pages = _ensure_usecase_pages(pages, usecase_navigation)
-        except Exception:
-            usecase_navigation = {}
-        sections = _normalize_activity_action_sections(pages, sections)
-        sections = _normalize_chrome_sections(sections)
+#         usecase_navigation: dict = {}
+#         try:
+#             system_context = _fetch_system_context_data(system_id)
+#             actor_name = _actor_name_from_context(system_context, iface.get("actor"))
+#             usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
+#             pages = _ensure_usecase_pages(pages, usecase_navigation)
+#         except Exception:
+#             usecase_navigation = {}
+#         sections = _normalize_activity_action_sections(pages, sections)
+#         sections = _normalize_chrome_sections(sections)
 
-        def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
-        model_names_fuzzy = {_norm_model(m): m for m in known_models}
-        def _canonical_model_name(name): return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
+#         def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
+#         model_names_fuzzy = {_norm_model(m): m for m in known_models}
+#         def _canonical_model_name(name): return name if name in known_models else model_names_fuzzy.get(_norm_model(name), "")
 
-        page_names = {p.get("name", "") for p in pages}
-        page_ref_to_name: dict = {}
-        for p in pages:
-            pname, pid = p.get("name", ""), p.get("id", "")
-            if pname: page_ref_to_name[pname] = pname; page_ref_to_name[pname.lower()] = pname
-            if pid: page_ref_to_name[pid] = pname; page_ref_to_name[pid.lower()] = pname
+#         page_names = {p.get("name", "") for p in pages}
+#         page_ref_to_name: dict = {}
+#         for p in pages:
+#             pname, pid = p.get("name", ""), p.get("id", "")
+#             if pname: page_ref_to_name[pname] = pname; page_ref_to_name[pname.lower()] = pname
+#             if pid: page_ref_to_name[pid] = pname; page_ref_to_name[pid.lower()] = pname
 
-        # Validate sections
-        errors: list = []
-        for s in sections:
-            s["layout"] = _normalize_layout_alias(s.get("layout"))
-            s["operations"] = _normalize_section_operations(s.get("operations"))
-            s["component"] = _infer_section_component(s)
-            sname, layout = s.get("name", "?"), s.get("layout", "")
-            if layout and layout not in _VALID_SECTION_LAYOUTS:
-                errors.append(f"section '{sname}': invalid layout '{layout}'")
-            pm = s.get("primary_model", "")
-            if pm and pm not in known_models:
-                errors.append(f"section '{sname}': unknown primary_model '{pm}'")
-            for attr in s.get("attributes", []):
-                attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                if "." in attr_name:
-                    first, rest = attr_name.split(".", 1)
-                    canon = _canonical_model_name(first)
-                    if not canon: errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
-                    elif rest not in model_attrs.get(canon, set()): errors.append(f"section '{sname}': related attribute '{rest}' not found on {canon}")
-                elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]:
-                    errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
-            avail_attrs = {(attr.get("name", attr) if isinstance(attr, dict) else attr) for attr in s.get("attributes", [])}
-            s["field_layout"] = _normalize_field_layout(s)
-            for field_ref in _field_layout_field_refs(s.get("field_layout")):
-                if field_ref not in avail_attrs:
-                    errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
-            sp = (s.get("style") or {}).get("success_page", "")
-            if sp and sp not in page_names:
-                errors.append(f"section '{sname}': success_page '{sp}' not in pages")
-            workflow = s.get("workflow") or {}
-            workflow_action = workflow.get("action") or s.get("workflow_action", "")
-            if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
-                errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
-            workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
-            if workflow_target and workflow_target in page_ref_to_name:
-                workflow["target_page"] = page_ref_to_name[workflow_target]; s["workflow"] = workflow
-            if workflow_target and workflow_target not in page_names:
-                norm_wt = page_ref_to_name.get(str(workflow_target).lower())
-                if norm_wt: workflow["target_page"] = norm_wt; s["workflow"] = workflow
-                else: errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
-            for field, valid_vals in _VALID_SECTION_STYLE.items():
-                val = (s.get("style") or {}).get(field, "")
-                if val and val not in valid_vals:
-                    errors.append(f"section '{sname}': invalid style.{field} '{val}'")
+#         # Validate sections
+#         errors: list = []
+#         for s in sections:
+#             s["layout"] = _normalize_layout_alias(s.get("layout"))
+#             s["operations"] = _normalize_section_operations(s.get("operations"))
+#             s["component"] = _infer_section_component(s)
+#             sname, layout = s.get("name", "?"), s.get("layout", "")
+#             if layout and layout not in _VALID_SECTION_LAYOUTS:
+#                 errors.append(f"section '{sname}': invalid layout '{layout}'")
+#             pm = s.get("primary_model", "")
+#             if pm and pm not in known_models:
+#                 errors.append(f"section '{sname}': unknown primary_model '{pm}'")
+#             for attr in s.get("attributes", []):
+#                 attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+#                 if "." in attr_name:
+#                     first, rest = attr_name.split(".", 1)
+#                     canon = _canonical_model_name(first)
+#                     if not canon: errors.append(f"section '{sname}': dot-notation prefix '{first}' not a known model")
+#                     elif rest not in model_attrs.get(canon, set()): errors.append(f"section '{sname}': related attribute '{rest}' not found on {canon}")
+#                 elif pm and pm in model_attrs and attr_name and attr_name not in model_attrs[pm]:
+#                     errors.append(f"section '{sname}': attribute '{attr_name}' not found on {pm}")
+#             avail_attrs = {(attr.get("name", attr) if isinstance(attr, dict) else attr) for attr in s.get("attributes", [])}
+#             s["field_layout"] = _normalize_field_layout(s)
+#             for field_ref in _field_layout_field_refs(s.get("field_layout")):
+#                 if field_ref not in avail_attrs:
+#                     errors.append(f"section '{sname}': field_layout references '{field_ref}' which is not in attributes")
+#             sp = (s.get("style") or {}).get("success_page", "")
+#             if sp and sp not in page_names:
+#                 errors.append(f"section '{sname}': success_page '{sp}' not in pages")
+#             workflow = s.get("workflow") or {}
+#             workflow_action = workflow.get("action") or s.get("workflow_action", "")
+#             if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
+#                 errors.append(f"section '{sname}': invalid workflow.action '{workflow_action}'")
+#             workflow_target = workflow.get("target_page") or workflow.get("targetPage") or s.get("target_page") or s.get("targetPage") or ""
+#             if workflow_target and workflow_target in page_ref_to_name:
+#                 workflow["target_page"] = page_ref_to_name[workflow_target]; s["workflow"] = workflow
+#             if workflow_target and workflow_target not in page_names:
+#                 norm_wt = page_ref_to_name.get(str(workflow_target).lower())
+#                 if norm_wt: workflow["target_page"] = norm_wt; s["workflow"] = workflow
+#                 else: errors.append(f"section '{sname}': workflow target_page '{workflow_target}' not in pages")
+#             for field, valid_vals in _VALID_SECTION_STYLE.items():
+#                 val = (s.get("style") or {}).get(field, "")
+#                 if val and val not in valid_vals:
+#                     errors.append(f"section '{sname}': invalid style.{field} '{val}'")
 
-        # Auto-correct sections
-        fixed_sections = []
-        for s in sections:
-            s = dict(s)
-            s["layout"] = _normalize_layout_alias(s.get("layout"))
-            s["operations"] = _normalize_section_operations(s.get("operations"))
-            s["component"] = _infer_section_component(s)
-            pm = s.get("primary_model", "")
-            if pm and pm not in model_attrs:
-                canon = model_names_fuzzy.get(_norm_model(pm))
-                if canon: s["primary_model"] = s["class"] = pm = canon
-            if pm and pm in model_attrs:
-                new_attrs: list = []; attr_renames: dict = {}
-                for attr in s.get("attributes", []):
-                    attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                    if "." in attr_name:
-                        first, rest = attr_name.split(".", 1)
-                        canon = _canonical_model_name(first)
-                        if canon and rest in model_attrs.get(canon, set()):
-                            norm = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
-                            canon_attr = f"{canon}.{rest}"
-                            norm["name"] = canon_attr
-                            norm.setdefault("source", "related"); norm.setdefault("readonly", True)
-                            if canon_attr != attr_name: attr_renames[attr_name] = canon_attr
-                            new_attrs.append(norm)
-                    elif not pm or attr_name in model_attrs.get(pm, set()):
-                        new_attrs.append(attr)
-                if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
-                    new_attrs = list(_model_field_names(model_attrs, pm, 6))
-                s["attributes"] = new_attrs
-                if attr_renames and isinstance(s.get("field_layout"), dict):
-                    def _rename_fl(v):
-                        if isinstance(v, str): return attr_renames.get(v, v)
-                        if isinstance(v, list): return [_rename_fl(i) for i in v]
-                        if isinstance(v, dict): return {k: _rename_fl(i) for k, i in v.items()}
-                        return v
-                    s["field_layout"] = {k: _rename_fl(v) for k, v in (s.get("field_layout") or {}).items()}
-            s["field_layout"] = _normalize_field_layout(s)
-            fixed_sections.append(s)
-        for s in fixed_sections:
-            if s.get("layout") in _DATA_SECTION_LAYOUTS:
-                style = dict(s.get("style") or {})
-                if not style.get("color") or style["color"] in {"blue", "green", "purple"}:
-                    style["color"] = "accent"; s["style"] = style
+#         # Auto-correct sections
+#         fixed_sections = []
+#         for s in sections:
+#             s = dict(s)
+#             s["layout"] = _normalize_layout_alias(s.get("layout"))
+#             s["operations"] = _normalize_section_operations(s.get("operations"))
+#             s["component"] = _infer_section_component(s)
+#             pm = s.get("primary_model", "")
+#             if pm and pm not in model_attrs:
+#                 canon = model_names_fuzzy.get(_norm_model(pm))
+#                 if canon: s["primary_model"] = s["class"] = pm = canon
+#             if pm and pm in model_attrs:
+#                 new_attrs: list = []; attr_renames: dict = {}
+#                 for attr in s.get("attributes", []):
+#                     attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
+#                     if "." in attr_name:
+#                         first, rest = attr_name.split(".", 1)
+#                         canon = _canonical_model_name(first)
+#                         if canon and rest in model_attrs.get(canon, set()):
+#                             norm = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
+#                             canon_attr = f"{canon}.{rest}"
+#                             norm["name"] = canon_attr
+#                             norm.setdefault("source", "related"); norm.setdefault("readonly", True)
+#                             if canon_attr != attr_name: attr_renames[attr_name] = canon_attr
+#                             new_attrs.append(norm)
+#                     elif not pm or attr_name in model_attrs.get(pm, set()):
+#                         new_attrs.append(attr)
+#                 if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
+#                     new_attrs = list(_model_field_names(model_attrs, pm, 6))
+#                 s["attributes"] = new_attrs
+#                 if attr_renames and isinstance(s.get("field_layout"), dict):
+#                     def _rename_fl(v):
+#                         if isinstance(v, str): return attr_renames.get(v, v)
+#                         if isinstance(v, list): return [_rename_fl(i) for i in v]
+#                         if isinstance(v, dict): return {k: _rename_fl(i) for k, i in v.items()}
+#                         return v
+#                     s["field_layout"] = {k: _rename_fl(v) for k, v in (s.get("field_layout") or {}).items()}
+#             s["field_layout"] = _normalize_field_layout(s)
+#             fixed_sections.append(s)
+#         for s in fixed_sections:
+#             if s.get("layout") in _DATA_SECTION_LAYOUTS:
+#                 style = dict(s.get("style") or {})
+#                 if not style.get("color") or style["color"] in {"blue", "green", "purple"}:
+#                     style["color"] = "accent"; s["style"] = style
 
-        # Auto-correct pages
-        fixed_pages = []
-        for i, p in enumerate(pages):
-            p = dict(p)
-            p["type"] = _canonical_page_type(_infer_page_type_value(p))
-            if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
-            p.setdefault("category", None)
-            fixed_pages.append(p)
-        for i, s in enumerate(fixed_sections):
-            if not s.get("id"):
-                model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
-                fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
-            if not fixed_sections[i].get("name"):
-                fixed_sections[i]["name"] = fixed_sections[i]["id"]
+#         # Auto-correct pages
+#         fixed_pages = []
+#         for i, p in enumerate(pages):
+#             p = dict(p)
+#             p["type"] = _canonical_page_type(_infer_page_type_value(p))
+#             if not p.get("id"): p["id"] = f"page_{candidate_index}_{i}"
+#             p.setdefault("category", None)
+#             fixed_pages.append(p)
+#         for i, s in enumerate(fixed_sections):
+#             if not s.get("id"):
+#                 model = (s.get("primary_model") or "chrome").lower().replace(" ", "_")
+#                 fixed_sections[i] = {**s, "id": f"{model}_{s.get('layout', 'section')}_{candidate_index}_{i}"}
+#             if not fixed_sections[i].get("name"):
+#                 fixed_sections[i]["name"] = fixed_sections[i]["id"]
 
-        fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
-        for s in fixed_sections:
-            s["operations"] = _normalize_section_operations(s.get("operations"))
-            s["component"] = _infer_section_component(s)
-            s["field_layout"] = _normalize_field_layout(s)
-        fixed_sections = _normalize_chrome_sections(fixed_sections)
-        fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
-        fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
-        fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
-        fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
-        for s in fixed_sections:
-            s["component"] = _infer_section_component(s)
-        auto_allowed_layouts = (
-            _HEADER_TEMPLATE_LAYOUTS
-            | _FOOTER_TEMPLATE_LAYOUTS
-            | _HEADER_NAV_LAYOUTS
-            | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
-        )
-        fixed_sections = [
-            s for s in fixed_sections
-            if str(s.get("id") or "") in input_section_ids
-            or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
-            or s.get("position") in {"header", "footer"}
-        ]
+#         fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
+#         for s in fixed_sections:
+#             s["operations"] = _normalize_section_operations(s.get("operations"))
+#             s["component"] = _infer_section_component(s)
+#             s["field_layout"] = _normalize_field_layout(s)
+#         fixed_sections = _normalize_chrome_sections(fixed_sections)
+#         fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
+#         fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
+#         fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
+#         fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
+#         for s in fixed_sections:
+#             s["component"] = _infer_section_component(s)
+#         auto_allowed_layouts = (
+#             _HEADER_TEMPLATE_LAYOUTS
+#             | _FOOTER_TEMPLATE_LAYOUTS
+#             | _HEADER_NAV_LAYOUTS
+#             | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
+#         )
+#         fixed_sections = [
+#             s for s in fixed_sections
+#             if str(s.get("id") or "") in input_section_ids
+#             or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
+#             or s.get("position") in {"header", "footer"}
+#         ]
 
-        # Normalize section refs and assign sections to pages that have none
-        for i, p in enumerate(fixed_pages):
-            if p.get("sections") is not None:
-                fixed_pages[i] = {**p, "sections": [r if isinstance(r, dict) else {"value": r} for r in p["sections"]]}
-        assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
-        if any(not p.get("sections") for p in fixed_pages) and assignable:
-            model_to_secs: dict = defaultdict(list)
-            for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
-            rebuilt: list = []; model_assigned: dict = defaultdict(int)
-            for p in fixed_pages:
-                if p.get("sections"): rebuilt.append(p); continue
-                if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
-                    rebuilt.append(p); continue
-                pm = p.get("primary_model", "")
-                cands = model_to_secs.get(pm, []); start = model_assigned[pm]
-                assigned = [{"value": cands[start]}] if start < len(cands) else []
-                if assigned: model_assigned[pm] += 1
-                if not assigned and model_to_secs.get("", []):
-                    fb = model_to_secs[""]
-                    if model_assigned[""] < len(fb):
-                        assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
-                rebuilt.append({**p, "sections": assigned})
-            fixed_pages = rebuilt
+#         # Normalize section refs and assign sections to pages that have none
+#         for i, p in enumerate(fixed_pages):
+#             if p.get("sections") is not None:
+#                 fixed_pages[i] = {**p, "sections": [r if isinstance(r, dict) else {"value": r} for r in p["sections"]]}
+#         assignable = [s for s in fixed_sections if s.get("position", "main") not in {"header", "hero", "footer", "sidebar"} and s.get("layout") in {"card", "list", "table", "detail", "gallery", "form"}]
+#         if any(not p.get("sections") for p in fixed_pages) and assignable:
+#             model_to_secs: dict = defaultdict(list)
+#             for s in assignable: model_to_secs[s.get("primary_model", "")].append(s["id"])
+#             rebuilt: list = []; model_assigned: dict = defaultdict(int)
+#             for p in fixed_pages:
+#                 if p.get("sections"): rebuilt.append(p); continue
+#                 if _page_type_value(p) == "activity" or "workflow" in f"{p.get('id', '')} {p.get('name', '')}".lower():
+#                     rebuilt.append(p); continue
+#                 pm = p.get("primary_model", "")
+#                 cands = model_to_secs.get(pm, []); start = model_assigned[pm]
+#                 assigned = [{"value": cands[start]}] if start < len(cands) else []
+#                 if assigned: model_assigned[pm] += 1
+#                 if not assigned and model_to_secs.get("", []):
+#                     fb = model_to_secs[""]
+#                     if model_assigned[""] < len(fb):
+#                         assigned = [{"value": fb[model_assigned[""]]}]; model_assigned[""] += 1
+#                 rebuilt.append({**p, "sections": assigned})
+#             fixed_pages = rebuilt
 
-        section_ids = {s["id"] for s in fixed_sections}
-        for p in fixed_pages:
-            p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
-        fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
+#         section_ids = {s["id"] for s in fixed_sections}
+#         for p in fixed_pages:
+#             p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
+#         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
-        canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens or {}, "styling": styling or {}, "prompt_intent": prompt_intent}
-        data = dict(iface.get("data") or {})
-        data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
-        candidates = list(data.get("candidates") or [])
-        candidate = {
-            "id": f"c{candidate_index}", "name": name, "description": description,
-            "pages": fixed_pages, "sections": fixed_sections,
-            "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
-            "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
-            **({"tokens": tokens} if tokens else {}),
-            **({"design_spec": design_spec_name} if design_spec_name else {}),
-            **({"styling": styling} if styling else {}),
-        }
-        if derived_from != "": candidate["derived_from"] = derived_from
-        if designer_requirements: candidate["designer_requirements"] = designer_requirements
-        if variation_strategy: candidate["variation_strategy"] = variation_strategy
-        while len(candidates) <= candidate_index: candidates.append(None)
-        candidates[candidate_index] = candidate
-        data["candidates"] = candidates
-        payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}
-        requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS).raise_for_status()
-        return f"OK: candidate {candidate_index} '{name}' saved successfully."
-    except Exception as e:
-        return f"Error saving candidate: {e}"
+#         canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens or {}, "styling": styling or {}, "prompt_intent": prompt_intent}
+#         data = dict(iface.get("data") or {})
+#         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
+#         candidates = list(data.get("candidates") or [])
+#         candidate = {
+#             "id": f"c{candidate_index}", "name": name, "description": description,
+#             "pages": fixed_pages, "sections": fixed_sections,
+#             "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
+#             "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
+#             **({"tokens": tokens} if tokens else {}),
+#             **({"design_spec": design_spec_name} if design_spec_name else {}),
+#             **({"styling": styling} if styling else {}),
+#         }
+#         if derived_from != "": candidate["derived_from"] = derived_from
+#         if designer_requirements: candidate["designer_requirements"] = designer_requirements
+#         if variation_strategy: candidate["variation_strategy"] = variation_strategy
+#         while len(candidates) <= candidate_index: candidates.append(None)
+#         candidates[candidate_index] = candidate
+#         data["candidates"] = candidates
+#         payload = {"id": interface_id, "name": iface["name"], "description": iface.get("description", ""), "system_id": system_id, "actor_id": iface.get("actor"), "data": data}
+#         requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS).raise_for_status()
+#         return f"OK: candidate {candidate_index} '{name}' saved successfully."
+#     except Exception as e:
+#         return f"Error saving candidate: {e}"
 
 def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
     """Return the selected candidate as the baseline for human-guided regeneration."""
@@ -3293,34 +3293,8 @@ def get_candidate_regeneration_context(interface_id: str, candidate_index: int, 
     except Exception as e:
         return f"Error fetching candidate regeneration context: {e}"
 
-def _candidate_variant_name(prompt: str, index: int) -> str:
-    color_name, _ = _prompt_color_theme(prompt)
-    prefix = (color_name or "Agent").replace("_", " ").title()
-    suffixes = ("Card Gallery", "Data Table", "Showcase")
-    return f"{prefix} {suffixes[index % len(suffixes)]}"
 
-def _prompt_layout_traits(prompt: str) -> dict:
-    text = str(prompt or "").lower()
-    return {
-        "full": any(term in text for term in ("full width", "full-width", "edge to edge", "edge-to-edge", "full bleed", "full-bleed")),
-        "wide": any(term in text for term in ("wide", "wider", "wide main", "wide content")),
-        "contained": any(term in text for term in ("contained", "narrow", "centered", "center aligned")),
-        "dashboard": any(term in text for term in ("dashboard", "admin", "analytics", "operational", "dense")),
-        "sidebar": any(term in text for term in ("sidebar", "side nav", "left nav", "right nav", "rail")),
-        "right_sidebar": any(term in text for term in ("right sidebar", "sidebar right", "right nav", "right rail")),
-        "minimal": any(term in text for term in ("minimal", "clean", "simple", "focused")),
-        "form": any(term in text for term in ("form", "wizard", "application", "onboarding")),
-    }
 
-def _page_layout_dict(page: dict) -> dict:
-    raw = page.get("layout") or {}
-    if isinstance(raw, dict):
-        out = dict(raw)
-    elif raw:
-        out = {"value": raw}
-    else:
-        out = {"value": "default"}
-    return out
 
 _CANDIDATE_FULL_SCHEMA = """
 You output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
