@@ -4,6 +4,7 @@ services:
   traefik:
     image: "traefik:v3.6.7"
     container_name: "traefik"
+    restart: unless-stopped
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -20,6 +21,7 @@ services:
 
   postgres:
     image: postgres:17
+    restart: unless-stopped
     env_file: config/postgres.env
     command: postgres -c shared_buffers=64MB -c work_mem=4MB -c maintenance_work_mem=32MB -c max_connections=20
     volumes:
@@ -30,6 +32,7 @@ services:
       - ai4mde_traefik
 
   studio-api:
+    restart: unless-stopped
     depends_on: ["postgres"]
     build:
       context: api
@@ -54,6 +57,7 @@ services:
       - "traefik.http.services.studio-api.loadbalancer.server.port=8000"
 
   studio-prototypes:
+    restart: unless-stopped
     depends_on: ["postgres"]
     build:
       context: prototypes
@@ -72,6 +76,7 @@ services:
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
 
   gemini-make-agent:
+    restart: unless-stopped
     build:
       context: api/model/gemini-make-agent
     ports:
@@ -99,6 +104,7 @@ services:
       - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.interval=60s"
 
   studio:
+    restart: unless-stopped
     build:
       context: frontend
     env_file: config/frontend.env
