@@ -4184,129 +4184,6 @@ role starts with 'activity_'   → keep existing layout unchanged, only adjust s
 - 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
 """
 
-# Hard-wired structural rules per candidate index — enforced in the prompt so LLM cannot drift.
-_CANDIDATE_HARD_RULES = [
-    # 0: compact dashboard
-    {
-        "name": "compact-dashboard",
-        "data_layout": "table",       # all collection sections
-        "data_component": "DataTable",
-        "data_col_span": 12,
-        "nav_position": "header",
-        "page_main_width": "contained",
-        "page_header_width": "full",
-        "page_footer_width": "full",
-        "density": "compact",
-        "fontFamily": "inter",
-        "textSize": "xs",
-        "radius": 4,
-        "buttonStyle": "solid",
-        "cardHover": "border",
-        "accent_hint": "dark neutral e.g. #1e293b, #0f172a, or #1d4ed8",
-    },
-    # 1: card explorer with sidebar
-    {
-        "name": "card-explorer",
-        "data_layout": "card",
-        "data_component": "CardGrid",
-        "data_col_span": 6,
-        "nav_position": "sidebar",
-        "nav_sidebar_side": "left",
-        "nav_sidebar_width": 3,
-        "page_main_width": "wide",
-        "page_header_width": "full",
-        "page_footer_width": "full",
-        "density": "normal",
-        "fontFamily": "poppins",
-        "textSize": "lg",
-        "radius": 16,
-        "buttonStyle": "solid",
-        "cardHover": "lift",
-        "accent_hint": "vibrant e.g. #7c3aed, #0891b2, #059669, or #dc2626",
-    },
-    # 2: spacious showcase with hero
-    {
-        "name": "showcase-spacious",
-        "data_layout": "gallery",
-        "data_component": "ImageCardGrid",
-        "data_col_span": 12,
-        "first_data_position": "hero",
-        "nav_position": "header",
-        "page_main_width": "full",
-        "page_header_width": "full",
-        "page_footer_width": "full",
-        "density": "spacious",
-        "fontFamily": "playfair",
-        "textSize": "xl",
-        "radius": 24,
-        "buttonStyle": "gradient",
-        "cardHover": "glow",
-        "accent_hint": "bold warm e.g. #ea580c, #d97706, #7c3aed, or #be185d",
-    },
-]
-
-
-def _build_candidate_direction_prompt(rules: dict, user_prompt: str, index: int) -> str:
-    lines = [f"=== CANDIDATE {index} — {rules['name'].upper()} ==="]
-
-    # Collection sections only — detail/form/activity have immutable layouts (see below)
-    lines.append(
-        f"MANDATORY: Sections with role='object_collection' or role='child_collection' "
-        f"→ layout='{rules['data_layout']}', component='{rules['data_component']}', col_span={rules['data_col_span']}"
-    )
-    if rules.get("first_data_position"):
-        lines.append(f"MANDATORY: The FIRST collection section → position='{rules['first_data_position']}', col_span=12")
-
-    # Role-locked layouts — NEVER change these to a collection layout
-    lines.append(
-        "MANDATORY: Sections with role='object_detail' or role='object_summary' "
-        "→ layout='detail', component='DetailPanel' (use 'ProductDetailPanel' for product/e-commerce), col_span=12, position='main'"
-    )
-    lines.append(
-        "MANDATORY: Sections with role='object_form' "
-        "→ layout='form', component='ObjectForm', col_span=12, position='main'"
-    )
-    lines.append(
-        "MANDATORY: Sections whose role starts with 'activity_' "
-        "→ keep existing layout unchanged, only adjust style fields"
-    )
-
-    # Chrome — navigation
-    lines.append(
-        f"MANDATORY: Sections with role='navigation' "
-        f"→ layout='site-nav', component='NavBar', position='{rules['nav_position']}'"
-    )
-    if rules.get("nav_sidebar_side"):
-        lines.append(
-            f"MANDATORY: Navigation sidebar style "
-            f"→ style.sidebar_side='{rules['nav_sidebar_side']}', style.sidebar_width={rules['nav_sidebar_width']}"
-        )
-
-    # Chrome — header / footer may pick any template in their family
-    lines.append(
-        "MANDATORY: Sections with role='header' → position='header'; "
-        "choose any header template layout (e.g. 'app-header', 'glass-header', 'minimal-header', 'dashboard-header', 'compact-header')"
-    )
-    lines.append(
-        "MANDATORY: Sections with role='footer' → position='footer'; "
-        "choose any footer template layout (e.g. 'site-footer', 'compact-footer', 'app-footer', 'minimal-footer')"
-    )
-
-    # Page dimensions
-    lines.append(
-        f"MANDATORY: All pages → main_width='{rules['page_main_width']}', "
-        f"header_width='{rules['page_header_width']}', footer_width='{rules['page_footer_width']}'"
-    )
-    lines.append(f"MANDATORY: density='{rules['density']}' for all data sections")
-    lines.append(
-        f"MANDATORY styling: fontFamily='{rules['fontFamily']}', textSize='{rules['textSize']}', "
-        f"radius={rules['radius']}, buttonStyle='{rules['buttonStyle']}', cardHover='{rules['cardHover']}'"
-    )
-    lines.append(f"Choose accentColor: {rules['accent_hint']}")
-    if user_prompt:
-        lines.append(f"Also respect designer prompt: {user_prompt}")
-    return "\n".join(lines)
-
 
 def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
     """Call Gemini to generate 3 layout/style variants. Returns list of 3 candidate dicts or None on failure."""
@@ -4330,26 +4207,39 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             for p in pages if p.get("id")
         ]
 
-        directions_block = "\n\n".join(
-            _build_candidate_direction_prompt(rules, prompt, i)
-            for i, rules in enumerate(_CANDIDATE_HARD_RULES)
+        diversity_rules = (
+            "Generate exactly 3 structurally and visually distinct candidates.\n"
+            "Each candidate MUST differ from the others on at least 3 of these axes:\n"
+            "  - data section layout (table vs card vs gallery vs list)\n"
+            "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
+            "  - page width (contained vs wide vs full)\n"
+            "  - density (compact vs normal vs spacious)\n"
+            "  - color palette (accentColor, backgroundColor — choose different moods: neutral/vibrant/warm/dark)\n"
+            "  - typography (fontFamily + textSize — inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
+            "  - border radius (0 vs 8 vs 16 vs 24)\n"
+            "  - button style (solid vs outline vs ghost vs gradient)\n"
+            "  - card hover (lift vs glow vs border vs none)\n"
+            "Every page must have navigation. "
+            "Respect the designer prompt. "
+            "Keep object_form → form, object_detail → detail, activity_* layouts unchanged."
         )
 
         user_prompt_text = (
             f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
             f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"{directions_block}\n\n"
+            f"DESIGNER PROMPT: {prompt or '(no specific requirements — explore freely)'}\n\n"
+            f"{diversity_rules}\n\n"
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
         )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
             contents=user_prompt_text,
             config={
-                "system_instruction": f"You are a UI designer generating structurally distinct interface layout candidates. Follow the MANDATORY rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "system_instruction": f"You are a UI designer creating 3 structurally and visually distinct interface layout candidates. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
                 "response_mime_type": "application/json",
                 "max_output_tokens": 8192,
             },
@@ -4734,9 +4624,9 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                     if llm_styling.get(key) is not None:
                         styling[key] = llm_styling[key]
                 styling["variantIndex"] = index
-                styling["variantName"] = llm_cand.get("name") or _CANDIDATE_HARD_RULES[index]["name"]
+                styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
                 variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"
-                variation_strategy = llm_cand.get("name") or _CANDIDATE_HARD_RULES[index]["name"]
+                variation_strategy = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
             else:
                 # Rule-based fallback
                 layout_intent = _layout_intent_for_candidate("refine", designer_requirements, index, pages, sections)
