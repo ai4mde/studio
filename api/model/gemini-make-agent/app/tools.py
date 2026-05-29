@@ -3237,6 +3237,8 @@ def validate_and_save_candidate(
         requests.put(f"{METADATA_API_BASE}/interfaces/{interface_id}/", json=payload, headers=_AUTH_HEADERS).raise_for_status()
         return f"OK: candidate {candidate_index} '{name}' saved successfully."
     except Exception as e:
+        import traceback
+        print(f"[validate_and_save_candidate] ERROR: {e}\n{traceback.format_exc()}", flush=True)
         return f"Error saving candidate: {e}"
 
 def get_candidate_regeneration_context(interface_id: str, candidate_index: int, designer_requirements: str = "") -> str:
@@ -3749,6 +3751,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                 prompt=prompt,
                 variation_strategy=variation_strategy,
             )
+            print(f"[generate_candidate_set] candidate {index} result: {result}", flush=True)
             results.append(result)
             if not str(result).startswith("OK:"):
                 return f"ERROR: candidate {index} failed: {result}"
