@@ -4243,6 +4243,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
                 "max_output_tokens": 8192,
             },
         )
+        print(f"[llm_generate_3_candidates] raw response:\n{response.text[:4000]}", flush=True)
         result = json.loads(response.text)
         # LLM sometimes returns the array directly instead of {"candidates": [...]}
         if isinstance(result, list):
@@ -4250,6 +4251,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         else:
             candidates = result.get("candidates") or []
         if len(candidates) < 3:
+            print(f"[llm_generate_3_candidates] only got {len(candidates)} candidates, falling back", flush=True)
             return None
         return candidates[:3]
     except Exception as e:
