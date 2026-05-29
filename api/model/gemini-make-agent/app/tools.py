@@ -4111,12 +4111,18 @@ style (include only relevant keys):
   logo_url: image URL string (only if user asked for logo image)
   image_url: image URL string (only for ImageCard/banner)
   cta_label: button text string e.g. "Save" | "Submit" | "Continue"  (form sections)
+  login_label: auth submit button label (form_style="auth") e.g. "Sign in" | "Log in"
+  step_icon: emoji or "" for step header icon (form_style="step") e.g. "📋" | "💳"
+  total_label: label for total row (form_style="summary") e.g. "Total" | "Order total"
   seller_label: e.g. "Sold by" (card/list sections — empty string to hide)
   availability_label: e.g. "In stock" | "Out of stock" (card/list/detail — empty string to hide)
   delivery_label: e.g. "Free delivery" | "Ships in 2-3 days" (card/list/detail — empty string to hide)
   action_variant: "link"|"ghost"|"button"  (icon-actions sections: how action items are styled)
   show_logout: true|false                  (icon-actions sections: show/hide logout link)
   logout_label: string e.g. "Sign out"    (icon-actions sections: label for logout link)
+  variant: "button"|"link"|"fab"|"wizard_next"|"auto"  (activity_action sections only: visual style of the action)
+  align: "left"|"center"|"right"                       (activity_action sections only)
+  size: "sm"|"md"|"lg"                                 (activity_action sections only)
 
 === PAGE FIELDS ===
 layout.value: "vertical"|"horizontal"|"vertical-reverse"|"horizontal-reverse"
@@ -4144,6 +4150,17 @@ cardHover: "lift"|"glow"|"border"|"none"
 imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
 divider: "none"|"line"|"shadow"|"wave"
 pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
+
+Fine-grained color overrides (hex — applied on top of accentColor/backgroundColor; only set when you need to override a specific region independently):
+  region.header.bg_hex: hex — header bar background (default = accentColor)
+  region.header.text_hex: hex — header text/icon color (default = white on dark accent)
+  region.footer.bg_hex: hex — footer background (default = backgroundColor)
+  region.footer.text_hex: hex — footer text color
+  region.main.bg_hex: hex — main content area / card surface background
+  component.card.bg_hex: hex — card tile background specifically
+  component.card.border_hex: hex — card border color
+  button.primary.bg_hex: hex — primary button fill (default = accentColor)
+  region.border_hex: hex — default divider / border color
 
 === ROLE → LAYOUT (non-negotiable, must match exactly) ===
 role='object_collection'       → layout: table|card|gallery|list  (per candidate direction)
@@ -4442,6 +4459,17 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     if text_color:
         tokens["page.body.text_hex"] = text_color
         tokens["text.primary.hex"] = text_color
+    # Fine-grained hex overrides — must be set before _expand_design_tokens (which uses setdefault)
+    _FINE_GRAINED_HEX = (
+        "region.header.bg_hex", "region.header.text_hex",
+        "region.footer.bg_hex", "region.footer.text_hex",
+        "region.main.bg_hex", "component.card.bg_hex", "component.card.border_hex",
+        "button.primary.bg_hex", "region.border_hex",
+    )
+    for key in _FINE_GRAINED_HEX:
+        val = llm_styling.get(key) or ""
+        if val:
+            tokens[key] = val
     text_size = llm_styling.get("textSize") or ""
     if text_size in _TEXT_SIZE_TOKENS:
         tokens.update(_TEXT_SIZE_TOKENS[text_size])
