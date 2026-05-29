@@ -1,12 +1,17 @@
+import re
+
 from django.apps import apps
-from django.shortcuts import get_object_or_404
+from django.contrib.contenttypes.models import ContentType
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
 from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
 from django.views import View
 import inspect
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 
-from workflow_engine.models import ActiveProcessNode
+from workflow_engine.models import ActionLog, ActiveProcessNode
 
 
 class RoleRequiredMixin(UserPassesTestMixin):
@@ -40,13 +45,98 @@ class GenericView({% if authentication_present -%}LoginRequiredMixin, RoleRequir
 
 
 class GenericListView(GenericViewMixin, ListView):
+    def _current_activity_url(self) -> str:
+        return re.sub(r"/\d+/?$", "", self.request.path).rstrip("/")
+
+    def _active_node_candidates(self):
+        return ActiveProcessNode.objects.filter(
+            active_process__completed=False,
+            action_node__url__isnull=False,
+        ).select_related("action_node", "user", "active_process")
+
+    def _find_replacement_active_process_node(self) -> ActiveProcessNode | None:
+        current_url = self._current_activity_url()
+        candidates = self._active_node_candidates()
+        if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+            for candidate in candidates.filter(user=self.request.user):
+                if (candidate.action_node.url or "").rstrip("/") == current_url:
+                    return candidate
+        for candidate in candidates:
+            if (candidate.action_node.url or "").rstrip("/") == current_url:
+                return candidate
+
+        if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+            logged_process_ids = ActionLog.objects.filter(
+                user=self.request.user,
+                active_process__completed=False,
+                action_node__url__isnull=False,
+            ).select_related("action_node").order_by("-created_at").values_list("active_process_id", "action_node__url")
+            for process_id, logged_url in logged_process_ids:
+                if (logged_url or "").rstrip("/") != current_url:
+                    continue
+                node = candidates.filter(active_process_id=process_id, user=self.request.user).first()
+                if node is None:
+                    node = candidates.filter(active_process_id=process_id).first()
+                if node is not None:
+                    return node
+
+        for key, value in self.request.GET.items():
+            if not key.startswith("instance_id_") or not value:
+                continue
+            model_name = key.split("instance_id_", 1)[1]
+            try:
+                model = apps.get_model("shared_models", model_name)
+                content_type = ContentType.objects.get_for_model(model)
+            except Exception:
+                continue
+            related = candidates.filter(
+                active_process__associated_model_instances__content_type=content_type,
+                active_process__associated_model_instances__instance_id=value,
+            )
+            if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+                related = related.filter(user=self.request.user) | related.filter(user__isnull=True)
+            node = related.distinct().first()
+            if node is not None:
+                return node
+
+        if getattr(self.request, "user", None) and self.request.user.is_authenticated:
+            node = candidates.filter(user=self.request.user).first()
+            if node is not None:
+                return node
+        return candidates.first()
+
+    def dispatch(self, request, *args, **kwargs):
+        if 'active_process_node_id' in kwargs:
+            node = ActiveProcessNode.objects.filter(pk=kwargs.get('active_process_node_id')).select_related("action_node").first()
+            if node is None:
+                replacement = self._find_replacement_active_process_node()
+                if replacement is not None:
+                    self._active_process_node_cache = replacement
+                    target_url = (replacement.action_node.url or self._current_activity_url()).rstrip("/")
+                    query = request.META.get("QUERY_STRING", "")
+                    redirect_url = f"{target_url}/{replacement.id}/"
+                    if query:
+                        redirect_url += f"?{query}"
+                    return redirect(redirect_url)
+        return super().dispatch(request, *args, **kwargs)
+
     
     @property
     def active_process_node(self) -> ActiveProcessNode | None:
-        return get_object_or_404(
-            ActiveProcessNode,
-            pk=self.kwargs.get('active_process_node_id'),
-        ) if 'active_process_node_id' in self.kwargs else None
+        if 'active_process_node_id' not in self.kwargs:
+            return None
+        if hasattr(self, '_active_process_node_cache'):
+            return self._active_process_node_cache
+
+        active_process_node_id = self.kwargs.get('active_process_node_id')
+        node = ActiveProcessNode.objects.filter(pk=active_process_node_id).first()
+        if node is None:
+            node = self._find_replacement_active_process_node()
+        if node is None:
+            raise Http404("No ActiveProcessNode matches the given query.")
+
+        self._active_process_node_cache = node
+        return node
 
     def get_context_data(self, **kwargs):
         self._handle_favorite_toggle()
@@ -139,10 +229,90 @@ class GenericCreateView(GenericViewMixin, CreateView):
     fields = None
     success_url = None
 
+    def _fallback_value_for_required_field(self, field):
+        if field.has_default():
+            return field.get_default()
+        internal_type = field.get_internal_type()
+        if internal_type in {"BooleanField", "NullBooleanField"}:
+            return False
+        if internal_type in {"CharField", "TextField", "SlugField", "EmailField", "URLField"}:
+            return ""
+        if internal_type in {"IntegerField", "PositiveIntegerField", "PositiveSmallIntegerField", "SmallIntegerField", "BigIntegerField"}:
+            return 0
+        if internal_type in {"FloatField", "DecimalField"}:
+            return 0
+        if internal_type in {"DateField", "DateTimeField", "TimeField"}:
+            return timezone.now()
+        return None
+
+    def _sanitize_required_fields(self, instance):
+        for field in instance._meta.fields:
+            if getattr(field, "primary_key", False) or getattr(field, "null", False):
+                continue
+            value = getattr(instance, field.name, None)
+            if value is None:
+                fallback = self._fallback_value_for_required_field(field)
+                if fallback is not None:
+                    setattr(instance, field.name, fallback)
+
+    def get_form_class(self):
+        if self.fields is not None and self.model is not None:
+            valid_fields = {
+                field.name
+                for field in self.model._meta.fields
+                if getattr(field, "editable", False) and not getattr(field, "primary_key", False)
+            }
+            self.fields = [field for field in self.fields if field in valid_fields]
+        return super().get_form_class()
+
+    def form_valid(self, form):
+        self._sanitize_required_fields(form.instance)
+        return super().form_valid(form)
+
 
 class GenericUpdateView(GenericViewMixin, UpdateView):
     fields = None
     success_url = None
+
+    def _fallback_value_for_required_field(self, field):
+        if field.has_default():
+            return field.get_default()
+        internal_type = field.get_internal_type()
+        if internal_type in {"BooleanField", "NullBooleanField"}:
+            return False
+        if internal_type in {"CharField", "TextField", "SlugField", "EmailField", "URLField"}:
+            return ""
+        if internal_type in {"IntegerField", "PositiveIntegerField", "PositiveSmallIntegerField", "SmallIntegerField", "BigIntegerField"}:
+            return 0
+        if internal_type in {"FloatField", "DecimalField"}:
+            return 0
+        if internal_type in {"DateField", "DateTimeField", "TimeField"}:
+            return timezone.now()
+        return None
+
+    def _sanitize_required_fields(self, instance):
+        for field in instance._meta.fields:
+            if getattr(field, "primary_key", False) or getattr(field, "null", False):
+                continue
+            value = getattr(instance, field.name, None)
+            if value is None:
+                fallback = self._fallback_value_for_required_field(field)
+                if fallback is not None:
+                    setattr(instance, field.name, fallback)
+
+    def get_form_class(self):
+        if self.fields is not None and self.model is not None:
+            valid_fields = {
+                field.name
+                for field in self.model._meta.fields
+                if getattr(field, "editable", False) and not getattr(field, "primary_key", False)
+            }
+            self.fields = [field for field in self.fields if field in valid_fields]
+        return super().get_form_class()
+
+    def form_valid(self, form):
+        self._sanitize_required_fields(form.instance)
+        return super().form_valid(form)
 
 
 class GenericDeleteView(GenericViewMixin, DeleteView):

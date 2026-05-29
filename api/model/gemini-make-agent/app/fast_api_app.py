@@ -207,6 +207,13 @@ def map_uml_to_interface(payload: dict) -> dict:
     from app.tools import (
         _fetch_system_context_data,
         _actor_name_from_context,
+        _as_list,
+        _ref_id,
+        _build_usecase_navigation,
+        _apply_builtin_workflow_logic,
+        _ensure_mapping_content_sections,
+        _ensure_mapping_chrome_sections,
+        _drop_unreferenced_non_global_sections,
         _normalize_layout_alias,
         _normalize_section_operations,
         METADATA_API_BASE,
@@ -265,7 +272,7 @@ def map_uml_to_interface(payload: dict) -> dict:
                 "primary_model": p.get("primary_model") or "",
                 "type": p.get("type") or {"value": "normal", "label": "Normal"},
                 "nav": p.get("nav", True),
-                "sections": [{"value": sid} for sid in (p.get("sections") or [])],
+                "sections": [{"value": _ref_id(sid)} for sid in (p.get("sections") or []) if _ref_id(sid)],
                 "category": None,
             }
             for p in pages
@@ -277,6 +284,30 @@ def map_uml_to_interface(payload: dict) -> dict:
             }
             for s in sections
         ]
+
+        model_attrs = {}
+        for classifier in _as_list(system_data.get("classifiers"), "classifiers"):
+            cdata = classifier.get("data", {}) if isinstance(classifier, dict) else {}
+            cname = cdata.get("name", "")
+            attrs = {a.get("name", "") for a in cdata.get("attributes", []) if isinstance(a, dict) and a.get("name")}
+            if cname:
+                model_attrs[cname] = attrs
+        usecase_navigation = _build_usecase_navigation(system_data, actor_id, actor_name)
+        completed = _apply_builtin_workflow_logic(
+            {"pages": db_pages, "sections": db_sections},
+            iface.get("system"),
+            iface.get("actor"),
+        )
+        db_pages = completed.get("pages") or db_pages
+        db_sections = completed.get("sections") or db_sections
+        db_pages, db_sections = _ensure_mapping_content_sections(
+            db_pages,
+            db_sections,
+            usecase_navigation,
+            model_attrs,
+        )
+        db_pages, db_sections = _ensure_mapping_chrome_sections(db_pages, db_sections)
+        db_sections = _drop_unreferenced_non_global_sections(db_pages, db_sections)
 
         resp = _req.patch(
             f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",

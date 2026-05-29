@@ -18,6 +18,17 @@ type AuthStore = {
     logout: () => void;
 };
 
+const clearAuthState = () => {
+    delete authAxios.defaults.headers.common.Authorization;
+    useAuthStore.setState({
+        isAuthenticated: false,
+        bearerToken: undefined,
+        expires: undefined,
+        user: undefined,
+        tokenData: undefined,
+    });
+};
+
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
@@ -96,21 +107,26 @@ useAuthStore.subscribe((state) => {
     }
 });
 
+// Always inject the current token per-request to avoid race conditions on page load
+authAxios.interceptors.request.use((config) => {
+    const { bearerToken: token, expires } = useAuthStore.getState();
+    if (expires && expires < Date.now()) {
+        clearAuthState();
+        return config;
+    }
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 authAxios.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (
-            error.response?.status === 401 &&
-            useAuthStore.getState().isAuthenticated
-        ) {
-            delete authAxios.defaults.headers.common.Authorization;
-            useAuthStore.setState({
-                isAuthenticated: false,
-                bearerToken: undefined,
-                expires: undefined,
-                user: undefined,
-                tokenData: undefined,
-            });
+        const url = String(error.config?.url || "");
+        const isAuthStatusRequest = url.includes("/auth/status");
+        if (error.response?.status === 401 && isAuthStatusRequest) {
+            clearAuthState();
         }
 
         return Promise.reject(error);

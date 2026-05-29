@@ -1,3 +1,6 @@
+import re
+from urllib.parse import urlparse
+
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseForbidden
@@ -23,6 +26,38 @@ def _find_active_node_for_url(active_process, target_url, user=None):
     return None
 
 
+def _redirect_to_active_node(active_process_node):
+    return redirect(f"{active_process_node.action_node.url.rstrip('/')}/{active_process_node.id}")
+
+
+def _find_current_active_node(request):
+    candidates = ActiveProcessNode.objects.filter(
+        active_process__completed=False,
+        action_node__url__isnull=False,
+    ).select_related("action_node", "user")
+    referer_path = urlparse(request.META.get("HTTP_REFERER", "")).path
+    current_url = re.sub(r"/\d+/?$", "", referer_path).rstrip("/") if referer_path else ""
+    if current_url and getattr(request, "user", None) and request.user.is_authenticated:
+        logged_process_ids = ActionLog.objects.filter(
+            user=request.user,
+            active_process__completed=False,
+            action_node__url__isnull=False,
+        ).order_by("-created_at").values_list("active_process_id", "action_node__url")
+        for process_id, logged_url in logged_process_ids:
+            if (logged_url or "").rstrip("/") != current_url:
+                continue
+            node = candidates.filter(active_process_id=process_id, user=request.user).first()
+            if node is None:
+                node = candidates.filter(active_process_id=process_id).first()
+            if node:
+                return node
+    if getattr(request, "user", None) and request.user.is_authenticated:
+        node = candidates.filter(user=request.user).first()
+        if node:
+            return node
+    return candidates.first()
+
+
 class StartProcessView(GenericView):
     {% if authentication_present -%}
     required_roles = None
@@ -35,7 +70,7 @@ class StartProcessView(GenericView):
         ).select_related("action_node").first()
         if not active_process_node:
             return redirect(f"/{request.user.roles[0]}")
-        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        return _redirect_to_active_node(active_process_node)
 
 
 class RedirectToProcessView(GenericView):
@@ -43,8 +78,13 @@ class RedirectToProcessView(GenericView):
     required_roles = None
     {% endif %}
     def post(self, request, active_process_node_id, *args, **kwargs):
-        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
-        return redirect(f"{active_process_node.action_node.url}/{active_process_node.id}")
+        active_process_node = ActiveProcessNode.objects.filter(id=active_process_node_id).select_related("action_node").first()
+        if not active_process_node:
+            replacement = _find_current_active_node(request)
+            if replacement:
+                return _redirect_to_active_node(replacement)
+            return redirect(f"/{request.user.roles[0]}")
+        return _redirect_to_active_node(active_process_node)
 
 
 class RedirectToProcessPageView(GenericView):
@@ -68,7 +108,12 @@ class CompleteProcessStepView(GenericView):
     required_roles = None
     {% endif %}
     def post(self, request, active_process_node_id, *args, **kwargs):
-        active_process_node = get_object_or_404(ActiveProcessNode, id=active_process_node_id)
+        active_process_node = ActiveProcessNode.objects.filter(id=active_process_node_id).select_related("action_node").first()
+        if not active_process_node:
+            replacement = _find_current_active_node(request)
+            if replacement:
+                return _redirect_to_active_node(replacement)
+            return redirect(f'/{request.user.roles[0]}')
         active_process = active_process_node.active_process
         active_process_node.complete_node(request.user)
         explicit_next_url = request.POST.get("next_url")
@@ -89,7 +134,7 @@ class CompleteProcessStepView(GenericView):
                 action_node__url__isnull=False,
             ).select_related("action_node").first()
         if next_active_process_node:
-            return redirect(f"{next_active_process_node.action_node.url}/{next_active_process_node.id}")
+            return _redirect_to_active_node(next_active_process_node)
         return redirect(f'/{request.user.roles[0]}')
 
 

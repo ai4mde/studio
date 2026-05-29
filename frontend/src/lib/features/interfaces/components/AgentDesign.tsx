@@ -1165,6 +1165,52 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             if (field === 'component') return { ...s, component: value };
             if (field === 'field_layout') return { ...s, field_layout: value };
             if (field === 'behavior') return { ...s, behavior: value };
+            if (field === 'related_to') {
+                return {
+                    ...s,
+                    related_to: value || null,
+                    relationship: value ? (s.relationship || { mode: 'direct' }) : undefined,
+                    relation_field: value ? s.relation_field : undefined,
+                };
+            }
+            if (field === 'relationship_mode') {
+                return { ...s, relationship: { ...(s.relationship || {}), mode: value } };
+            }
+            if (field === 'relation_field') return { ...s, relation_field: value || null };
+            if (field === 'data_source_from') {
+                return {
+                    ...s,
+                    data_source: {
+                        ...(s.data_source || {}),
+                        mode: 'query',
+                        from: { model: value || '' },
+                        joins: (s.data_source || {}).joins || [],
+                    },
+                };
+            }
+            if (field === 'query_limit') {
+                const parsed = Number.parseInt(String(value || ''), 10);
+                return { ...s, query: { ...(s.query || {}), limit: Number.isNaN(parsed) ? null : parsed } };
+            }
+            if (field === 'item_click_type') {
+                const behavior = { ...(s.behavior || {}) };
+                if (!value || value === 'none') {
+                    delete behavior.item_click;
+                } else {
+                    behavior.item_click = { ...(behavior.item_click || {}), type: value };
+                }
+                return { ...s, behavior };
+            }
+            if (field === 'item_click_target_page') {
+                const behavior = { ...(s.behavior || {}) };
+                behavior.item_click = {
+                    ...(behavior.item_click || {}),
+                    type: value ? 'navigate' : (behavior.item_click?.type || 'none'),
+                    target_page: value || '',
+                };
+                if (!value) delete behavior.item_click.target_page;
+                return { ...s, behavior };
+            }
             if (field === 'workflow_action') return { ...s, workflow: { ...(s.workflow || {}), action: value } };
             if (field === 'workflow_target_page') return { ...s, workflow: { ...(s.workflow || {}), target_page: value } };
             return { ...s, style: { ...(s.style || {}), [field]: value } };
@@ -2891,6 +2937,90 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     </button>
                                 ))}
                             </div>
+
+                            {!isChromeOrControlSection && (
+                            <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, marginBottom: 12, background: '#f9fafb' }}>
+                                <p style={{ fontSize: 11, color: '#374151', margin: '0 0 6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Data Binding</p>
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Related To</p>
+                                <select
+                                    value={selectedSection.related_to || ''}
+                                    onChange={e => updateSection(selectedSection.id, 'related_to', e.target.value)}
+                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
+                                >
+                                    <option value="">None</option>
+                                    {(sections as any[]).filter((s: any) => s.id !== selectedSection.id).map((s: any) => (
+                                        <option key={s.id} value={s.id}>{s.name || s.id}</option>
+                                    ))}
+                                </select>
+                                {selectedSection.related_to && (
+                                    <>
+                                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Relationship</p>
+                                        <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                                            {(['direct', 'same_parent'] as const).map(v => (
+                                                <button key={v} style={{ ...btnBase, ...active((selectedSection.relationship || {}).mode === v), padding: '3px 7px', fontSize: 11 }}
+                                                    onClick={() => updateSection(selectedSection.id, 'relationship_mode', v)}>{v}</button>
+                                            ))}
+                                        </div>
+                                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Relation Field</p>
+                                        <input
+                                            type="text"
+                                            value={selectedSection.relation_field || ''}
+                                            onChange={e => updateSection(selectedSection.id, 'relation_field', e.target.value)}
+                                            placeholder="e.g. Product"
+                                            style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 8, boxSizing: 'border-box' }}
+                                        />
+                                    </>
+                                )}
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Data Source From</p>
+                                <select
+                                    value={(selectedSection.data_source || {}).from?.model || selectedPrimaryModel || ''}
+                                    onChange={e => updateSection(selectedSection.id, 'data_source_from', e.target.value)}
+                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
+                                >
+                                    <option value="">Auto</option>
+                                    {systemClassifiers
+                                        .filter((cls: any) => cls?.data?.type === 'class' || !cls?.data?.type)
+                                        .map((cls: any) => cls?.data?.name)
+                                        .filter(Boolean)
+                                        .map((name: string) => <option key={name} value={name}>{name}</option>)}
+                                </select>
+                                <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Limit</p>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={(selectedSection.query || {}).limit || ''}
+                                    onChange={e => updateSection(selectedSection.id, 'query_limit', e.target.value)}
+                                    placeholder="e.g. 4"
+                                    style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 8, boxSizing: 'border-box' }}
+                                />
+                                {(['card', 'list', 'table', 'gallery', 'calendar', 'timeline', 'map'].includes(secLayout) || ['object_collection', 'child_collection', 'related_collection'].includes(String(selectedSection.role || ''))) && (
+                                    <>
+                                        <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Item Click Action</p>
+                                        <select
+                                            value={(selectedSection.behavior || {}).item_click?.type || 'none'}
+                                            onChange={e => updateSection(selectedSection.id, 'item_click_type', e.target.value)}
+                                            style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
+                                        >
+                                            <option value="none">None</option>
+                                            <option value="navigate">Navigate</option>
+                                            <option value="select">Select</option>
+                                        </select>
+                                        {(selectedSection.behavior || {}).item_click?.type === 'navigate' && (
+                                            <select
+                                                value={(selectedSection.behavior || {}).item_click?.target_page || ''}
+                                                onChange={e => updateSection(selectedSection.id, 'item_click_target_page', e.target.value)}
+                                                style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12 }}
+                                            >
+                                                <option value="">Target page</option>
+                                                {(pages as any[]).filter((p: any) => !p.type || p.type?.value !== 'activity').map((p: any) => (
+                                                    <option key={p.id || p.name} value={p.name}>{p.name}</option>
+                                                ))}
+                                            </select>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            )}
 
                             {hasControl('logo_url') && (
                             <><p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Logo Image URL</p>

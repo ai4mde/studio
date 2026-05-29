@@ -2216,9 +2216,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div><input type="text" placeholder="Name" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" /></div>
       <div><input type="email" placeholder="Email" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm" /></div>
       {%- endif %}
-      <button class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label', 'Submit') }}
+      <button type="submit" class="w-full py-2.5 rounded-lg text-white font-semibold text-sm" style="background-color:{{ _accent_hex }};">
+        {{ _s.get('cta_label') or ('Add ' + section_component.display_name if section_component.has_create_operation else ('Save ' + section_component.display_name if section_component.has_update_operation else 'Submit')) }}
       </button>
+      {%- if section_component.has_update_operation and not section_component.has_create_operation %}
+      <button type="button" class="w-full border border-gray-300 rounded-lg py-2 text-sm text-gray-700 hover:bg-gray-50">
+        Edit {{ section_component.display_name }}
+      </button>
+      {%- endif %}
     </div>
     {%- endif %}
   </div>
@@ -3376,7 +3381,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {# Default / auth form: render attribute inputs #}
   <div class="{{ cs }} {{ r }} {{ d.p }}">
     {%- if section_component.has_create_operation %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% raw %}%}{% endraw %}" method="post" class="space-y-4">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
       {% for parent_model in section_component.parent_models %}
       <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
@@ -3395,11 +3400,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
         {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
         {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
+        {%- else %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
         {%- endif %}
       </div>
       {% endif %}{% endfor %}
       <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 {{ r }}">
-        {{ _s.get('cta_label') or _s.get('login_label', 'Submit') }}
+        {{ _s.get('cta_label') or ('Add ' + section_component.display_name if section_component.has_create_operation else ('Save ' + section_component.display_name if section_component.has_update_operation else 'Submit')) }}
       </button>
     </form>
     {%- if section_component.has_update_operation and not section_component.has_create_operation %}

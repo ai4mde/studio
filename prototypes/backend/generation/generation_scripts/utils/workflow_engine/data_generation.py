@@ -116,25 +116,32 @@ class ActivityDiagramParser:
     
     @cached_property
     def interface_map(self) -> dict[str, str]:
-        """Map from the action node UUID to a possible interface url"""
+        """Map from the action node UUID or actor/page fallback key to an interface url."""
         interface_map = {}
 
         for interface in self.metadata.get('interfaces', []):
             interface_name = interface['value']['name']
+            app_name = app_name_sanitization(interface_name)
 
             for page in interface['value']['data'].get('pages', []):
                 page_type = page.get('type') or {}
                 if page_type.get('value') != 'activity':
                     continue
-
-                if page.get('action') is None:
-                    continue
                 
-                interface_map[page['action']['value']] = (
-                    f"/{app_name_sanitization(interface_name)}"
-                    f"/render_{app_name_sanitization(interface_name)}_"
-                    f"{page_name_sanitization(page['name'])}"
+                page_name = page.get('name') or page.get('id') or ''
+                url = (
+                    f"/{app_name}"
+                    f"/render_{app_name}_"
+                    f"{page_name_sanitization(page_name)}"
                 )
+                action = page.get('action') or {}
+                if isinstance(action, dict) and action.get('value'):
+                    interface_map[str(action['value'])] = url
+                page_key = page_name_sanitization(page_name).lower()
+                interface_map[f"{app_name}:{page_key}"] = url
+                if isinstance(action, dict) and action.get('label'):
+                    action_key = page_name_sanitization(action.get('label')).lower()
+                    interface_map[f"{app_name}:{action_key}"] = url
 
         return interface_map
 
@@ -188,7 +195,12 @@ class ActivityDiagramParser:
             next_nodes=[edge.target_node for edge in outgoing_edges],
             conditions=[edge.condition for edge in outgoing_edges],
             incoming_edges_count=incoming_edges_count,
-            url=self.interface_map.get(current_node['id']),
+            url=(
+                self.interface_map.get(current_node['id'])
+                or self.interface_map.get(
+                    f"{self._actor_name(current_cls)}:{page_name_sanitization(current_cls.get('name') or '').lower()}"
+                )
+            ),
             custom_code=current_cls.get('customCode'),
         )
         self.nodes[node_id] = node

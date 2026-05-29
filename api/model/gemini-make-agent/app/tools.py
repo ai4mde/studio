@@ -904,7 +904,11 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
     name_tokens = _name_tokens(step_name)
-    if any(term in name_tokens for term in ("enter", "select", "choose", "provide", "submit", "create", "update", "edit", "write", "upload")):
+    if any(term in name_tokens for term in (
+        "enter", "fill", "input", "select", "choose", "provide", "submit",
+        "create", "add", "update", "edit", "write", "upload", "register",
+        "confirm", "book", "pay", "record",
+    )):
         return "form"
     if _is_child_collection_model(model, step_name) or any(term in name_tokens for term in ("list", "browse", "review", "manage", "track", "history")):
         return "list"
@@ -1100,7 +1104,38 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             page.setdefault("sections", [])
         refs = page.get("sections") or []
         ref_ids = {str(ref.get("value") if isinstance(ref, dict) else ref) for ref in refs}
-        for model in _activity_models_for_step(step, workflow_entries, known_models):
+        has_existing_content = any(
+            (section_map.get(sid) or {}).get("layout") not in {"filter", "activity_action", "activity_start", "activity_tasks"}
+            and (section_map.get(sid) or {}).get("position", "main") == "main"
+            for sid in ref_ids
+        )
+        for sid in list(ref_ids):
+            existing = section_map.get(sid) or {}
+            model = existing.get("primary_model") or existing.get("class")
+            if (
+                model
+                and existing.get("position", "main") == "main"
+                and existing.get("layout") not in {"filter", "activity_action", "activity_start", "activity_tasks"}
+            ):
+                desired_layout = _activity_layout_for_step(step.get("activity_node_name", ""), model)
+                existing["layout"] = desired_layout
+                if desired_layout == "form":
+                    existing["role"] = "object_form"
+                    existing["component"] = existing.get("component") or "ObjectForm"
+                    style = existing.get("style") if isinstance(existing.get("style"), dict) else {}
+                    style["form_style"] = style.get("form_style") or "step"
+                    style["cta_label"] = style.get("cta_label") or "Save"
+                    existing["style"] = style
+                elif desired_layout == "list":
+                    existing["role"] = existing.get("role") or "object_collection"
+                else:
+                    existing["role"] = existing.get("role") or "object_detail"
+                existing["operations"] = {
+                    "create": desired_layout == "form",
+                    "update": desired_layout in {"form", "list", "table", "detail"},
+                    "delete": desired_layout in {"list", "table"},
+                }
+        for model in ([] if has_existing_content else _activity_models_for_step(step, workflow_entries, known_models)[:1]):
             content = _workflow_task_section(step, model, model_attrs)
             if any((section_map.get(sid) or {}).get("primary_model") == model and (section_map.get(sid) or {}).get("layout") != "filter" for sid in ref_ids):
                 continue
@@ -1116,29 +1151,39 @@ def _ensure_workflow_pages(pages: list, sections: list, workflow_steps: list, mo
             section_map[sid] = content
             refs.append({"value": sid})
             ref_ids.add(sid)
-        button_id = f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
-        if button_id not in section_ids:
-            sections.append({
-                "id": button_id,
-                "name": f"{page.get('name', step['page_name']).replace('_', ' ')} Continue",
-                "label": "Continue",
-                "type": "activity_action",
-                "layout": "activity_action",
-                "primary_model": "",
-                "class": "",
-                "operations": {"create": False, "update": False, "delete": False},
-                "attributes": [],
-                "methods": [],
-                "col_span": 12,
-                "position": "main",
-                "style": {"variant": "wizard_next", "align": "right", "size": "lg"},
-                "workflow": {"action": "complete"},
-            })
-            section_ids.add(button_id)
-        if button_id not in ref_ids:
-            refs.append({"value": button_id})
+        existing_action_ids = [
+            sid for sid in ref_ids
+            if (section_map.get(sid) or {}).get("type") == "activity_action"
+            or (section_map.get(sid) or {}).get("layout") == "activity_action"
+        ]
+        button_id = existing_action_ids[0] if existing_action_ids else f"{_section_id(page.get('id') or page.get('name'))}_workflow_action"
+        if not existing_action_ids:
+            if button_id not in section_ids:
+                button = {
+                    "id": button_id,
+                    "name": f"{page.get('name', step['page_name']).replace('_', ' ')} Continue",
+                    "label": "Continue",
+                    "type": "activity_action",
+                    "layout": "activity_action",
+                    "primary_model": "",
+                    "class": "",
+                    "operations": {"create": False, "update": False, "delete": False},
+                    "attributes": [],
+                    "methods": [],
+                    "col_span": 12,
+                    "position": "main",
+                    "style": {"variant": "wizard_next", "align": "right", "size": "lg"},
+                    "workflow": {"action": "complete"},
+                }
+                sections.append(button)
+                section_map[button_id] = button
+                section_ids.add(button_id)
+            if button_id not in ref_ids:
+                refs.append({"value": button_id})
             page["sections"] = refs
         else:
+            for extra_action_id in existing_action_ids[1:]:
+                refs = [ref for ref in refs if str(ref.get("value") if isinstance(ref, dict) else ref) != extra_action_id]
             page["sections"] = refs
     return pages, sections
 
@@ -1567,6 +1612,168 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
         fixed.append(section)
     return fixed
 
+def _snake_name(value: str) -> str:
+    value = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value or ""))
+    return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
+
+def _guess_relation_field(child_model: str, parent_model: str, model_attrs: dict) -> str:
+    attrs = set(model_attrs.get(child_model) or [])
+    parent_snake = _snake_name(parent_model)
+    candidates = [
+        f"{parent_snake}_id",
+        f"{parent_snake}id",
+        f"{parent_model}_id",
+        f"{parent_model}Id",
+        f"{parent_model.lower()}_id",
+        f"{parent_model.lower()}id",
+    ]
+    for candidate in candidates:
+        if candidate in attrs:
+            return candidate
+    return ""
+
+def _related_models_from_attrs(section: dict, model_attrs: dict) -> list[str]:
+    related: list[str] = []
+    known = set(model_attrs.keys())
+    known_fuzzy = {re.sub(r"[\s_-]", "", name).lower(): name for name in known}
+    for attr in section.get("attributes") or []:
+        name = attr.get("name", attr) if isinstance(attr, dict) else attr
+        if "." not in str(name):
+            continue
+        prefix = str(name).split(".", 1)[0]
+        model = prefix if prefix in known else known_fuzzy.get(re.sub(r"[\s_-]", "", prefix).lower(), "")
+        if model and model not in related and model != section.get("primary_model"):
+            related.append(model)
+    return related
+
+def _default_join_for_models(source_model: str, related_model: str) -> dict:
+    related_snake = _snake_name(related_model)
+    source_snake = _snake_name(source_model)
+    return {
+        "type": "left",
+        "model": related_model,
+        "on": f"{source_model}.{related_snake}_id = {related_model}.id"
+        if related_snake
+        else f"{source_model}.{source_snake}_id = {related_model}.id",
+    }
+
+def _section_is_data(section: dict) -> bool:
+    layout = _normalize_layout_alias(section.get("layout"))
+    role = str(section.get("role") or "")
+    return bool(
+        section.get("primary_model")
+        and (
+            layout in {"card", "list", "table", "detail", "gallery", "filter", "form", "calendar", "timeline", "map"}
+            or role in DATA_SECTION_ROLES
+            or section.get("attributes")
+        )
+    )
+
+def _section_is_collection(section: dict) -> bool:
+    layout = _normalize_layout_alias(section.get("layout"))
+    role = str(section.get("role") or "")
+    return layout in {"card", "list", "table", "gallery", "calendar", "timeline", "map"} or role in {"object_collection", "child_collection", "related_collection"}
+
+def _ensure_section_data_relationships(
+    pages: list,
+    sections: list,
+    model_attrs: dict,
+) -> tuple[list, list]:
+    """Populate SP data-source, related-object, and item-click metadata from OOUI page structure."""
+    pages = [dict(p) for p in pages or []]
+    sections = [dict(s) for s in sections or []]
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+
+    detail_page_by_model: dict[str, str] = {}
+    detail_section_by_page: dict[str, dict] = {}
+    for page in pages:
+        page_id = str(page.get("id") or "")
+        page_model = str(page.get("primary_model") or "")
+        refs = [_ref_id(ref) for ref in page.get("sections") or [] if _ref_id(ref)]
+        data_sections = [section_map.get(ref) for ref in refs if section_map.get(ref)]
+        candidates = [
+            s for s in data_sections
+            if s
+            and str(s.get("primary_model") or "") == page_model
+            and (
+                str(s.get("role") or "") == "object_detail"
+                or _normalize_layout_alias(s.get("layout")) in {"detail", "form"}
+            )
+        ]
+        if not candidates:
+            candidates = [
+                s for s in data_sections
+                if s
+                and str(s.get("role") or "") == "object_detail"
+                and str(s.get("primary_model") or "")
+            ]
+        if candidates:
+            detail_section_by_page[page_id] = candidates[0]
+            model = str(candidates[0].get("primary_model") or "")
+            if model and model not in detail_page_by_model:
+                detail_page_by_model[model] = page.get("name") or page_id
+
+    for page in pages:
+        page_id = str(page.get("id") or "")
+        source_section = detail_section_by_page.get(page_id)
+        source_id = str((source_section or {}).get("id") or "")
+        source_model = str((source_section or {}).get("primary_model") or "")
+        for ref in page.get("sections") or []:
+            section = section_map.get(_ref_id(ref) or "")
+            if not section or not _section_is_data(section):
+                continue
+            model = str(section.get("primary_model") or "")
+            section.setdefault("class", model)
+
+            data_source = dict(section.get("data_source") or {})
+            data_source["mode"] = "query"
+            data_source.setdefault("from", {"model": model})
+            if not isinstance(data_source.get("from"), dict) or not data_source["from"].get("model"):
+                data_source["from"] = {"model": model}
+            joins = list(data_source.get("joins") or [])
+            joined_models = {str(join.get("model") or "") for join in joins if isinstance(join, dict)}
+            for related_model in _related_models_from_attrs(section, model_attrs):
+                if related_model not in joined_models:
+                    joins.append(_default_join_for_models(model, related_model))
+                    joined_models.add(related_model)
+            data_source["joins"] = joins
+            section["data_source"] = data_source
+
+            query = dict(section.get("query") or {})
+            role = str(section.get("role") or "")
+            if source_id and source_id != str(section.get("id") or "") and _section_is_collection(section):
+                if not section.get("related_to"):
+                    section["related_to"] = source_id
+                relationship = dict(section.get("relationship") or {})
+                if source_model and source_model == model:
+                    relationship.setdefault("mode", "same_parent")
+                    query.setdefault("exclude_source", True)
+                else:
+                    relationship.setdefault("mode", "direct")
+                    relation_field = section.get("relation_field") or _guess_relation_field(model, source_model, model_attrs)
+                    if relation_field:
+                        section["relation_field"] = relation_field
+                relationship.setdefault("source_model", source_model)
+                relationship.setdefault("target_model", model)
+                section["relationship"] = relationship
+                if role in {"child_collection", "related_collection"}:
+                    query.setdefault("limit", 4)
+            section["query"] = query
+
+            if _section_is_collection(section):
+                target_page = detail_page_by_model.get(model)
+                if target_page and target_page != page.get("name"):
+                    behavior = dict(section.get("behavior") or {})
+                    item_click = dict(behavior.get("item_click") or {})
+                    if not item_click.get("type") or item_click.get("type") == "none":
+                        item_click.update({"type": "navigate", "target_page": target_page})
+                    elif item_click.get("type") == "navigate" and not item_click.get("target_page"):
+                        item_click["target_page"] = target_page
+                    behavior["item_click"] = item_click
+                    section["behavior"] = behavior
+
+    return pages, list(section_map.values())
+
 def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
     tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
     if tokens & {"detail", "view", "profile", "summary"}:
@@ -1908,6 +2115,114 @@ def _ensure_normal_page_navigation(pages: list, sections: list, normal_pages: li
                     page["sections"] = refs
     return pages, sections
 
+def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, list]:
+    """Add stable app chrome during UML mapping so candidates can focus on visual variants."""
+    pages = [dict(p) for p in pages or []]
+    sections = [dict(s) for s in sections or []]
+    normal_pages = [p for p in pages if _page_type_value(p) != "activity"]
+    if not normal_pages:
+        return pages, sections
+
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    if not any(s.get("position") == "header" for s in sections):
+        _inject_chrome_sections(
+            _header_sections_for_candidate(normal_pages, 0),
+            sections,
+            section_map,
+            normal_pages,
+            prepend=True,
+        )
+
+    if not any(s.get("position") == "footer" for s in sections):
+        _inject_chrome_sections(
+            _footer_sections_for_candidate(0, normal_pages),
+            sections,
+            section_map,
+            normal_pages,
+            prepend=False,
+        )
+
+    pages, sections = _ensure_normal_page_navigation(pages, sections, normal_pages, 0)
+    section_map = {str(s.get("id")): s for s in sections if s.get("id")}
+    global_region_ids = [
+        str(s.get("id"))
+        for s in sections
+        if s.get("id") and s.get("position") in {"header", "sidebar", "footer"}
+    ]
+
+    for page in normal_pages:
+        refs = [{"value": _ref_id(ref)} for ref in page.get("sections") or [] if _ref_id(ref)]
+        ref_ids = {_ref_id(ref) for ref in refs}
+        before = [
+            {"value": sid}
+            for sid in global_region_ids
+            if sid not in ref_ids and (section_map.get(sid) or {}).get("position") in {"header", "sidebar"}
+        ]
+        after = [
+            {"value": sid}
+            for sid in global_region_ids
+            if sid not in ref_ids and (section_map.get(sid) or {}).get("position") == "footer"
+        ]
+        if before or after:
+            page["sections"] = before + refs + after
+
+    return pages, sections
+
+def _ensure_mapping_content_sections(
+    pages: list,
+    sections: list,
+    usecase_navigation: dict,
+    model_attrs: dict,
+) -> tuple[list, list]:
+    """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
+    pages, sections = _materialize_nav_plan_sections(
+        pages,
+        sections,
+        (usecase_navigation or {}).get("nav_plan") or {},
+        model_attrs,
+    )
+    pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation or {})
+    pages, sections = _ensure_candidate_content_structure(
+        pages,
+        sections,
+        model_attrs,
+        0,
+        "",
+        add_missing_content=True,
+    )
+    pages, sections = _ensure_pre_workflow_content_sections(
+        pages,
+        sections,
+        usecase_navigation or {},
+        model_attrs,
+        0,
+        add_missing_content=True,
+    )
+    sections = _apply_nav_methods(pages, sections, usecase_navigation or {})
+    pages, sections = _ensure_section_data_relationships(pages, sections, model_attrs)
+    return pages, sections
+
+def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
+    referenced = {
+        _ref_id(ref)
+        for page in pages or []
+        for ref in (page.get("sections") or [])
+        if _ref_id(ref)
+    }
+    result = []
+    for section in sections or []:
+        sid = str(section.get("id") or "")
+        if not sid or sid in referenced:
+            result.append(section)
+            continue
+        if section.get("position") in {"header", "footer", "sidebar"}:
+            result.append(section)
+            continue
+        layout = _normalize_layout_alias(section.get("layout"))
+        if layout in _CHROME_TEMPLATE_LAYOUTS:
+            result.append(section)
+    return result
+
 def _resolve_single_chrome_value(value, valid_set: set) -> str | None:
     """Return the first valid layout name from a raw LLM output that may be a list or comma string."""
     if not value:
@@ -1980,7 +2295,14 @@ def _inject_chrome_sections(new_sections: list, sections: list, section_map: dic
             page["sections"] = new_refs + refs if prepend else refs + new_refs
 
 
-def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs: dict, candidate_index: int = 0, prompt: str = "") -> tuple[list, list]:
+def _ensure_candidate_content_structure(
+    pages: list,
+    sections: list,
+    model_attrs: dict,
+    candidate_index: int = 0,
+    prompt: str = "",
+    add_missing_content: bool = True,
+) -> tuple[list, list]:
     known_models = set(model_attrs.keys())
     sections = [dict(s) for s in sections]
     for section in sections:
@@ -2145,7 +2467,7 @@ def _ensure_candidate_content_structure(pages: list, sections: list, model_attrs
                 if section.get("primary_model") in model_attrs and not section.get("attributes"):
                     section["attributes"] = _model_field_names(model_attrs, section["primary_model"])
                 section.setdefault("operations", {"create": False, "update": False, "delete": False})
-        if not has_content and model:
+        if add_missing_content and not has_content and model:
             section = _default_section_for_page(page, model, model_attrs, candidate_index)
             dedupe_id = section["id"]
             suffix = 2
@@ -2228,7 +2550,16 @@ def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigat
             page["sections"] = refs + [{"value": sid}]
     return pages, sections
 
-def _ensure_pre_workflow_content_sections(pages: list, sections: list, usecase_navigation: dict, model_attrs: dict, candidate_index: int = 0) -> tuple[list, list]:
+def _ensure_pre_workflow_content_sections(
+    pages: list,
+    sections: list,
+    usecase_navigation: dict,
+    model_attrs: dict,
+    candidate_index: int = 0,
+    add_missing_content: bool = True,
+) -> tuple[list, list]:
+    if not add_missing_content:
+        return pages, sections
     entries = usecase_navigation.get("workflow_entry_points") or []
     if not entries:
         return pages, sections
@@ -2373,6 +2704,9 @@ def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, 
             "attributes": attrs,
             "field_layout": section_plan.get("field_layout") or {},
             "behavior": section_plan.get("behavior") or {},
+            "related_to": section_plan.get("related_to"),
+            "relationship": section_plan.get("relationship") or {},
+            "relation_field": section_plan.get("relation_field"),
             "operations": operations,
             "data_source": section_plan.get("data_source") or {},
             "query": section_plan.get("query") or {},
@@ -2472,12 +2806,15 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                         "attributes": ps.get("attributes", []),
                         "field_layout": ps.get("field_layout", {}),
                         "behavior": ps.get("behavior", {}),
+                        "related_to": ps.get("related_to"),
+                        "relationship": ps.get("relationship", {}),
+                        "relation_field": ps.get("relation_field"),
                         "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
                         "data_source": ps.get("data_source", {}),
                         "query": ps.get("query", {}),
                         "style": ps.get("style", {}),
                     }
-                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
+                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:
@@ -2697,6 +3034,7 @@ def validate_and_save_candidate(
     try:
         if isinstance(pages, str): pages = json.loads(pages)
         if isinstance(sections, str): sections = json.loads(sections)
+        input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
         prompt_for_style = designer_requirements or prompt
         prompt_intent = compile_prompt_intent(prompt_for_style)
         styling = _norm_candidate_styling(styling, prompt_for_style)
@@ -2727,13 +3065,7 @@ def validate_and_save_candidate(
             pages = _ensure_usecase_pages(pages, usecase_navigation)
         except Exception:
             usecase_navigation = {}
-        try:
-            completed = _apply_builtin_workflow_logic({"pages": pages, "sections": sections}, system_id, iface.get("actor"))
-            pages = completed.get("pages") or []
-            sections = completed.get("sections") or []
-            pages, sections = _ensure_workflow_entry_sections(pages, sections, usecase_navigation)
-        except Exception:
-            sections = _normalize_activity_action_sections(pages, sections)
+        sections = _normalize_activity_action_sections(pages, sections)
         sections = _normalize_chrome_sections(sections)
 
         def _norm_model(n): return re.sub(r'[\s_-]', '', str(n or '')).lower()
@@ -2853,15 +3185,19 @@ def validate_and_save_candidate(
                 fixed_sections[i]["name"] = fixed_sections[i]["id"]
 
         fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
-        fixed_pages, fixed_sections = _materialize_nav_plan_sections(fixed_pages, fixed_sections, usecase_navigation.get("nav_plan") or {}, model_attrs)
         for s in fixed_sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
             s["field_layout"] = _normalize_field_layout(s)
         fixed_sections = _normalize_chrome_sections(fixed_sections)
-        fixed_pages, fixed_sections = _ensure_workflow_entry_sections(fixed_pages, fixed_sections, usecase_navigation)
-        fixed_pages, fixed_sections = _ensure_candidate_content_structure(fixed_pages, fixed_sections, model_attrs, int(candidate_index or 0), prompt_for_style)
-        fixed_pages, fixed_sections = _ensure_pre_workflow_content_sections(fixed_pages, fixed_sections, usecase_navigation, model_attrs, int(candidate_index or 0))
+        fixed_pages, fixed_sections = _ensure_candidate_content_structure(
+            fixed_pages,
+            fixed_sections,
+            model_attrs,
+            int(candidate_index or 0),
+            prompt_for_style,
+            add_missing_content=False,
+        )
         fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
         fixed_pages, fixed_sections = _apply_candidate_region_composition(
@@ -2872,6 +3208,18 @@ def validate_and_save_candidate(
         fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
         for s in fixed_sections:
             s["component"] = _infer_section_component(s)
+        auto_allowed_layouts = (
+            _HEADER_TEMPLATE_LAYOUTS
+            | _FOOTER_TEMPLATE_LAYOUTS
+            | _HEADER_NAV_LAYOUTS
+            | {"site-nav", "nav-links", "nav-bar", "activity_action", "activity_start", "activity_tasks"}
+        )
+        fixed_sections = [
+            s for s in fixed_sections
+            if str(s.get("id") or "") in input_section_ids
+            or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
+            or s.get("position") in {"header", "footer"}
+        ]
 
         # Normalize section refs and assign sections to pages that have none
         for i, p in enumerate(fixed_pages):
@@ -3960,7 +4308,7 @@ def save_interface_plan(interface_id: str, pages_json: str, sections_json: str) 
                 "name": p.get("name") or p["id"],
                 "primary_model": p.get("primary_model") or p.get("model") or "",
                 "type": {"value": "normal", "label": "Normal"},
-                "sections": [{"value": sid} for sid in (p.get("sections") or [])],
+                "sections": [{"value": _ref_id(sid)} for sid in (p.get("sections") or []) if _ref_id(sid)],
                 "category": None,
             }
             for p in pages
@@ -3977,6 +4325,40 @@ def save_interface_plan(interface_id: str, pages_json: str, sections_json: str) 
 
         if not db_pages:
             return "ERROR: pages list is empty — nothing to save."
+
+        try:
+            iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
+            iface_resp.raise_for_status()
+            iface = iface_resp.json()
+            system_id = iface.get("system")
+            system_context = _fetch_system_context_data(system_id) if system_id else {}
+            actor_name = _actor_name_from_context(system_context, iface.get("actor"))
+            usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
+            model_attrs = {}
+            for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
+                cdata = classifier.get("data", {}) if isinstance(classifier, dict) else {}
+                cname = cdata.get("name", "")
+                attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
+                if cname:
+                    model_attrs[cname] = attrs
+            completed = _apply_builtin_workflow_logic(
+                {"pages": db_pages, "sections": db_sections},
+                system_id,
+                iface.get("actor"),
+            )
+            db_pages = completed.get("pages") or db_pages
+            db_sections = completed.get("sections") or db_sections
+            db_pages, db_sections = _ensure_mapping_content_sections(
+                db_pages,
+                db_sections,
+                usecase_navigation,
+                model_attrs,
+            )
+        except Exception:
+            pass
+
+        db_pages, db_sections = _ensure_mapping_chrome_sections(db_pages, db_sections)
+        db_sections = _drop_unreferenced_non_global_sections(db_pages, db_sections)
 
         resp = requests.patch(
             f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",

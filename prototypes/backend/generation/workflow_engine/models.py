@@ -113,6 +113,17 @@ class ActionNode(models.Model):
         # For now, just return the first user that matches the actor
         next_user = users.first() if users.exists() else None
         if not next_user:
+            role_field = f"is_{self.actor}"
+            if hasattr(User, role_field):
+                username = f"demo-{self.actor.lower().replace('_', '-')}"
+                next_user, _ = User.objects.get_or_create(
+                    username=username,
+                    defaults={role_field: True},
+                )
+                if not getattr(next_user, role_field, False):
+                    setattr(next_user, role_field, True)
+                    next_user.save(update_fields=[role_field])
+        if not next_user:
             logger.warning(f"No user found for actor {self.actor}. The user assignment for this node will have to be done manually.")
         return next_user
 

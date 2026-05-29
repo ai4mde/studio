@@ -341,7 +341,7 @@ def _add_association_sections(
     subordinate_models: set[str],
     existing_section_ids: set[str],
     add_section_fn,
-    max_sections: int = 4,
+    max_sections: int = 3,
 ) -> None:
     """
     Add child_collection sections for 1:many and many:many associations on a detail page.

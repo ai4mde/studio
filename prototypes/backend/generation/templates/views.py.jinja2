@@ -50,10 +50,11 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
+        if hasattr(instance, '{{ attribute }}'):
+            setattr(instance, '{{ attribute }}', self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
-        if not instance.{{ attribute }}:
-            instance.{{ attribute }} = None
+        if hasattr(instance, '{{ attribute }}') and not getattr(instance, '{{ attribute }}'):
+            setattr(instance, '{{ attribute }}', None)
         {% endif -%}
         {% endif -%}
         {% endfor -%}
@@ -108,7 +109,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         data = request.POST.copy()
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN and '.' not in attribute.name -%}
-        if '{{ attribute }}' not in data:
+        if '{{ attribute }}' not in data and hasattr(self.object, '{{ attribute }}'):
             data['{{ attribute }}'] = getattr(self.object, '{{ attribute }}', '') or ''
         {% endif -%}
         {% endfor -%}
@@ -120,10 +121,11 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
-        instance.{{ attribute }} = (self.request.POST.get('{{ attribute }}') == 'on')
+        if hasattr(instance, '{{ attribute }}'):
+            setattr(instance, '{{ attribute }}', self.request.POST.get('{{ attribute }}') == 'on')
         {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
-        if not instance.{{ attribute }}:
-            instance.{{ attribute }} = None
+        if hasattr(instance, '{{ attribute }}') and not getattr(instance, '{{ attribute }}'):
+            setattr(instance, '{{ attribute }}', None)
         {% endif -%}
         {% endif -%}
         {% endfor -%}
@@ -257,7 +259,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         )
         {% endfor -%}
         {% endif -%}
-        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
+        context['active_process_node_id'] = self.active_process_node.id if self.active_process_node else self.kwargs.get('active_process_node_id')
         {% endif -%}
         {% if page.type != 'activity' and models_on_pages[page]['primary_models'] | length > 1 -%}
         {% set _ns_p = namespace(model=models_on_pages[page]['primary_models'][0], section=page.section_components[0] if page.section_components else None) -%}
@@ -313,10 +315,27 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endif -%}
         {% if _ns.fk_field -%}
         _src_{{ _src.primary_model }} = {{ _src.primary_model }}.objects.filter(id=self.request.GET.get('instance_id_{{ _src.primary_model }}')).first()
+        _related_lookup_{{ section.name }} = '{{ _ns.fk_field }}'
         {% if _ns.same_model -%}
-        _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}.{{ _ns.fk_field }}).exclude(id=_src_{{ _src.primary_model }}.id) if _src_{{ _src.primary_model }} and getattr(_src_{{ _src.primary_model }}, '{{ _ns.fk_field }}_id', None) else {{ section.primary_model }}.objects.none()
+        _related_value_{{ section.name }} = getattr(_src_{{ _src.primary_model }}, _related_lookup_{{ section.name }}, None) if _src_{{ _src.primary_model }} else None
+        try:
+            _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter(**{_related_lookup_{{ section.name }}: _related_value_{{ section.name }}}).exclude(id=_src_{{ _src.primary_model }}.id) if _src_{{ _src.primary_model }} and _related_value_{{ section.name }} is not None else {{ section.primary_model }}.objects.none()
+        except Exception:
+            _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.none()
         {% else -%}
-        _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter({{ _ns.fk_field }}=_src_{{ _src.primary_model }}) if _src_{{ _src.primary_model }} else {{ section.primary_model }}.objects.none()
+        _related_value_{{ section.name }} = None
+        if _src_{{ _src.primary_model }}:
+            _related_value_{{ section.name }} = getattr(_src_{{ _src.primary_model }}, _related_lookup_{{ section.name }}, None)
+            if _related_value_{{ section.name }} is None and _related_lookup_{{ section.name }}.endswith('_id'):
+                _related_value_{{ section.name }} = getattr(_src_{{ _src.primary_model }}, _related_lookup_{{ section.name }}[:-3] + '_id', None)
+                if _related_value_{{ section.name }} is None:
+                    _related_value_{{ section.name }} = getattr(_src_{{ _src.primary_model }}, 'id', None)
+            if _related_value_{{ section.name }} is None and not _related_lookup_{{ section.name }}.endswith('_id'):
+                _related_value_{{ section.name }} = _src_{{ _src.primary_model }}
+        try:
+            _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.filter(**{_related_lookup_{{ section.name }}: _related_value_{{ section.name }}}) if _src_{{ _src.primary_model }} and _related_value_{{ section.name }} is not None else {{ section.primary_model }}.objects.none()
+        except Exception:
+            _qs_related_{{ section.name }} = {{ section.primary_model }}.objects.none()
         {% endif -%}
         context['related_{{ section.name }}_list'] = _apply_section_query(_qs_related_{{ section.name }}, {{ section.query_literal }}, _src_{{ _src.primary_model }})
         {% for attr in section.attributes -%}{% if attr.type == AttributeType.IMAGE %}
