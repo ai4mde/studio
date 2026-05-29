@@ -4355,7 +4355,11 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             },
         )
         result = json.loads(response.text)
-        candidates = result.get("candidates") or []
+        # LLM sometimes returns the array directly instead of {"candidates": [...]}
+        if isinstance(result, list):
+            candidates = result
+        else:
+            candidates = result.get("candidates") or []
         if len(candidates) < 3:
             return None
         return candidates[:3]
