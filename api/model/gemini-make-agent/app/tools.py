@@ -3166,20 +3166,20 @@ def validate_and_save_candidate(
             s["component"] = _infer_section_component(s)
             s["field_layout"] = _normalize_field_layout(s)
         fixed_sections = _normalize_chrome_sections(fixed_sections)
-        fixed_pages, fixed_sections = _ensure_candidate_content_structure(
-            fixed_pages,
-            fixed_sections,
-            model_attrs,
-            int(candidate_index or 0),
-            prompt_for_style,
-            add_missing_content=False,
-        )
+        # fixed_pages, fixed_sections = _ensure_candidate_content_structure(
+        #     fixed_pages,
+        #     fixed_sections,
+        #     model_attrs,
+        #     int(candidate_index or 0),
+        #     prompt_for_style,
+        #     add_missing_content=False,
+        # )
         fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
         fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
-        fixed_pages, fixed_sections = _apply_candidate_region_composition(
-            fixed_pages, fixed_sections, int(candidate_index or 0), prompt_for_style,
-            preserve_layout=(derived_from != "" and not _prompt_requests_layout_change(prompt_for_style)),
-        )
+        # fixed_pages, fixed_sections = _apply_candidate_region_composition(
+        #     fixed_pages, fixed_sections, int(candidate_index or 0), prompt_for_style,
+        #     preserve_layout=(derived_from != "" and not _prompt_requests_layout_change(prompt_for_style)),
+        # )
         fixed_pages, fixed_sections = _dedupe_agent_header_shells(fixed_pages, fixed_sections)
         fixed_sections = _finalize_data_section_bindings(fixed_sections, model_attrs)
         for s in fixed_sections:
