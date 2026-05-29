@@ -968,7 +968,6 @@ _HEADER_SHELL_LAYOUTS = {
     "split-header", "app-header", "compact-header", "mega-header", "hero-header", "tabbed-header",
     "glass-header", "command-header",
 }
-_HEADER_ELEMENT_LAYOUTS = {"logo", "search-bar", "icon-actions"}
 _HEADER_NAV_LAYOUTS = {
     "nav-links", "site-nav", "nav-bar", "main-header", "commerce-header", "dashboard-header",
     "split-header", "app-header", "compact-header", "mega-header", "hero-header", "tabbed-header",
@@ -4520,9 +4519,9 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                     if llm_styling.get(key) is not None:
                         styling[key] = llm_styling[key]
                 styling["variantIndex"] = index
-                styling["variantName"] = llm_cand.get("name") or _CANDIDATE_DIRECTIONS[index][0]
+                styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(prompt, index)
                 variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
-                variation_strategy = llm_cand.get("name") or _CANDIDATE_DIRECTIONS[index][0]
+                variation_strategy = llm_cand.get("name") or _candidate_variant_name(prompt, index)
             else:
                 # Rule-based fallback
                 layout_intent = _layout_intent_for_candidate("explore", prompt, index, pages, sections)
