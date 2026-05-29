@@ -193,19 +193,22 @@ Style/token fields (global theme):
 candidate_direct_agent = Agent(
     name="candidate_direct_agent",
     model=_model(),
-    description="Reliably generates and saves 3 interface candidates through one deterministic tool call.",
-    instruction="""You generate interface candidates by calling exactly one tool.
+    description="Reliably generates and saves 3 interface candidates through the required saving tool.",
+    instruction="""You generate interface candidates by calling the required saving tool.
 
 Message format: interface_id=<uuid> prompt=<designer intent>
 
 Rules:
-- Immediately call generate_candidate_set(interface_id, prompt).
+- Required: call generate_candidate_set(interface_id, prompt) exactly once in every run.
+- Do not answer in natural language before calling generate_candidate_set.
+- Never finish with only ListTools, image_search_images, or a text response.
 - The tool must produce 3 structurally different previews: vary header/nav/footer, main width, and section placement across main, hero, left sidebar, and right sidebar when the user does not force one layout.
 - Every normal page must have navigation, either inside the header or as a sidebar rail.
-- Only call image_search_images first if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
+- You may call image_search_images before generate_candidate_set only if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
+- If you call image_search_images, you still must call generate_candidate_set after it.
 - Color/style-only prompts such as "generate pink pages" are valid designer requirements.
 - Do not refuse style-only prompts.
-- After the tool returns OK, output the tool result. If it returns ERROR, output the error.
+- After generate_candidate_set returns OK, output the tool result. If it returns ERROR, output the error.
 """,
     tools=[generate_candidate_set_tool, _image_search_mcp_toolset()],
 )
@@ -213,18 +216,21 @@ Rules:
 candidate_regeneration_agent = Agent(
     name="candidate_regeneration_agent",
     model=_model(),
-    description="Reliably regenerates 3 candidates from a selected candidate through one deterministic tool call.",
-    instruction="""You regenerate interface candidates by calling exactly one tool.
+    description="Reliably regenerates 3 candidates from a selected candidate through the required saving tool.",
+    instruction="""You regenerate interface candidates by calling the required saving tool.
 
 Message format:
   interface_id=<uuid> regenerate_candidates selected_candidate_index=<0|1|2> designer_requirements=<human requirements>
 
 Rules:
-- Immediately call regenerate_candidate_set(interface_id, selected_candidate_index, designer_requirements).
+- Required: call regenerate_candidate_set(interface_id, selected_candidate_index, designer_requirements) exactly once in every run.
+- Do not answer in natural language before calling regenerate_candidate_set.
+- Never finish with only ListTools, image_search_images, or a text response.
 - Preserve the selected candidate's page layout and section region placement unless designer_requirements explicitly asks to change layout, header, footer, nav, sidebar, hero, or component arrangement.
-- Only call image_search_images first if the requirements explicitly ask for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
+- You may call image_search_images before regenerate_candidate_set only if the requirements explicitly ask for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
+- If you call image_search_images, you still must call regenerate_candidate_set after it.
 - Do not create candidates yourself. The tool preserves page semantics, workflow/page types, data bindings, and activity flow order.
-- After the tool returns OK, output the tool result. If it returns ERROR, output the error.
+- After regenerate_candidate_set returns OK, output the tool result. If it returns ERROR, output the error.
 """,
     tools=[
         regenerate_candidate_set_tool,

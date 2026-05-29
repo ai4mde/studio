@@ -411,12 +411,18 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
         message = (
             f"interface_id={payload.interface_id} prompt={payload.prompt}\n"
             "Instruction: Treat the prompt as a designer requirement. If it only names a color or style, "
+            "You must call generate_candidate_set exactly once and wait for it to save candidates. "
             "do not refuse; preserve the interface metadata and generate 3 functional, data-driven candidates "
             "using that visual theme. Vary chrome structure too: header, footer, sidebar, and navigation are "
             "design regions. At least one candidate may use left sidebar navigation when there are multiple pages; "
             "do not make all candidates the same header/footer/sidebar layout unless the user explicitly asks for it."
         )
         agent_error = ""
+        tool_call_seen = False
+        tool_response_seen = False
+        required_tool_call_seen = False
+        required_tool_response_seen = False
+        last_tool_trace = ""
         started_at = time.monotonic()
         event_queue: queue.Queue[dict] = queue.Queue()
 
@@ -448,6 +454,8 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
                             if event_error:
                                 event_queue.put({"error": event_error})
                                 continue
+                            for trace in _extract_agent_tool_events(event):
+                                event_queue.put({"tool": trace})
                             author = event.get("author", "")
                             if author and author not in seen_authors and author in _STATUS_MAP:
                                 seen_authors.add(author)
@@ -479,6 +487,21 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
                 agent_error = item["error"]
                 yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
                 return
+            if item.get("tool"):
+                trace = item["tool"]
+                name = trace.get("name") or "tool"
+                if trace.get("kind") == "call":
+                    tool_call_seen = True
+                    if name == "generate_candidate_set":
+                        required_tool_call_seen = True
+                    last_tool_trace = f"called {name}"
+                    yield json.dumps({"status": f"Calling {name}..."}) + "\n"
+                elif trace.get("kind") == "response":
+                    tool_response_seen = True
+                    if name == "generate_candidate_set":
+                        required_tool_response_seen = True
+                    last_tool_trace = f"{name} response: {trace.get('text', '')}"
+                    yield json.dumps({"status": f"{name} returned."}) + "\n"
             if item.get("status"):
                 yield json.dumps({"status": item["status"]}) + "\n"
 
@@ -488,10 +511,21 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
             data = dict(iface.data or {})
             candidates = data.get("candidates") or []
             if not any(candidates):
+                if not required_tool_call_seen:
+                    message = "ADK finished without calling generate_candidate_set."
+                elif not required_tool_response_seen:
+                    message = "ADK called generate_candidate_set but no tool response was observed."
+                else:
+                    message = "generate_candidate_set returned but did not save candidates."
                 yield json.dumps({
                     "status": "error",
-                    "message": "Agent did not save any new candidates for this run.",
+                    "message": message,
                     "agent_error": agent_error,
+                    "tool_call_seen": tool_call_seen,
+                    "tool_response_seen": tool_response_seen,
+                    "required_tool_call_seen": required_tool_call_seen,
+                    "required_tool_response_seen": required_tool_response_seen,
+                    "last_tool_trace": last_tool_trace,
                 }) + "\n"
                 return
             else:
@@ -622,9 +656,14 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
             f"interface_id={payload.interface_id} regenerate_candidates "
             f"selected_candidate_index={payload.selected_candidate_index} "
             f"designer_requirements={payload.designer_requirements}\n"
-            f"Instruction: {_constraint}"
+            f"Instruction: You must call regenerate_candidate_set exactly once and wait for it to save candidates. {_constraint}"
         )
         agent_error = ""
+        tool_call_seen = False
+        tool_response_seen = False
+        required_tool_call_seen = False
+        required_tool_response_seen = False
+        last_tool_trace = ""
         started_at = time.monotonic()
         event_queue: queue.Queue[dict] = queue.Queue()
 
@@ -656,6 +695,8 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
                             if event_error:
                                 event_queue.put({"error": event_error})
                                 continue
+                            for trace in _extract_agent_tool_events(event):
+                                event_queue.put({"tool": trace})
                             author = event.get("author", "")
                             if author and author not in seen_authors and author in _STATUS_MAP:
                                 seen_authors.add(author)
@@ -687,6 +728,21 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
                 agent_error = item["error"]
                 yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
                 return
+            if item.get("tool"):
+                trace = item["tool"]
+                name = trace.get("name") or "tool"
+                if trace.get("kind") == "call":
+                    tool_call_seen = True
+                    if name == "regenerate_candidate_set":
+                        required_tool_call_seen = True
+                    last_tool_trace = f"called {name}"
+                    yield json.dumps({"status": f"Calling {name}..."}) + "\n"
+                elif trace.get("kind") == "response":
+                    tool_response_seen = True
+                    if name == "regenerate_candidate_set":
+                        required_tool_response_seen = True
+                    last_tool_trace = f"{name} response: {trace.get('text', '')}"
+                    yield json.dumps({"status": f"{name} returned."}) + "\n"
             if item.get("status"):
                 yield json.dumps({"status": item["status"]}) + "\n"
 
@@ -697,10 +753,21 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
             candidates = data.get("candidates") or []
             candidate_count = len([candidate for candidate in candidates if candidate])
             if candidate_count < 3:
+                if not required_tool_call_seen:
+                    message = "ADK finished without calling regenerate_candidate_set."
+                elif not required_tool_response_seen:
+                    message = "ADK called regenerate_candidate_set but no tool response was observed."
+                else:
+                    message = f"regenerate_candidate_set saved {candidate_count} candidates; expected 3."
                 yield json.dumps({
                     "status": "error",
-                    "message": f"Regeneration saved {candidate_count} candidates; expected 3.",
+                    "message": message,
                     "agent_error": agent_error,
+                    "tool_call_seen": tool_call_seen,
+                    "tool_response_seen": tool_response_seen,
+                    "required_tool_call_seen": required_tool_call_seen,
+                    "required_tool_response_seen": required_tool_response_seen,
+                    "last_tool_trace": last_tool_trace,
                 }) + "\n"
                 return
         except Exception as e:

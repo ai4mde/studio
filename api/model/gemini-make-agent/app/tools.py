@@ -3322,6 +3322,200 @@ def _page_layout_dict(page: dict) -> dict:
         out = {"value": "default"}
     return out
 
+_CANDIDATE_FULL_SCHEMA = """
+You output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
+
+=== SECTION FIELDS ===
+layout: "card"|"list"|"table"|"detail"|"gallery"|"filter"|"form"
+        |"activity_action"|"activity_start"|"activity_tasks"
+        |"promo-bar"|"logo"|"search-bar"|"icon-actions"|"nav-links"
+        |"site-nav"|"main-header"|"minimal-header"|"commerce-header"
+        |"dashboard-header"|"split-header"|"app-header"|"compact-header"
+        |"mega-header"|"hero-header"|"tabbed-header"|"glass-header"
+        |"command-header"
+        |"service-bar"|"link-grid"|"brand-strip"|"site-footer"
+        |"compact-footer"|"legal-footer"|"newsletter-footer"|"social-footer"
+        |"mega-footer"|"split-footer"|"app-footer"|"cta-footer"|"minimal-footer"
+
+component: match to layout:
+  table → DataTable
+  card → CardGrid | ProductCardGrid | PersonCardGrid | ObjectCardGrid | ImageCard | ImageCardGrid | CategoryTileGrid
+  list → ObjectList | LineItemList | RelatedObjectList
+  detail → DetailPanel | ProductDetailPanel
+  gallery → ImageCardGrid | ObjectCardGrid
+  form → ObjectForm
+  filter → (keep existing or use ObjectForm)
+  site-nav → NavBar
+  site-footer → SiteFooter
+  logo → Logo | BrandLockup | ImageLogo
+  search-bar → SearchBar
+  icon-actions → IconActions
+  nav-links → NavBar
+  header templates → HeaderTemplate
+  footer templates → FooterTemplate
+
+position: "main"|"sidebar"|"header"|"hero"|"footer"
+col_span: 12|6|4|3
+
+style (include only relevant keys):
+  color: "accent"|"accent-secondary"|"blue"|"green"|"purple"|"orange"|"rose"|"slate"
+         (use "accent" for all data sections; use specific colors for chrome/decorative)
+  density: "compact"|"normal"|"spacious"
+  columns: "1"|"2"|"3"|"4"          (card/gallery only)
+  display_mode: "grid"|"carousel"|"banner"  (card only)
+  card_style: "default"|"product"|"category"|"compact"
+  list_style: "default"|"product"|"cart-item"|"related"
+  form_style: "default"|"auth"|"step"|"summary"
+  image_position: "left"|"top"|"right"    (detail only)
+  image_size: "sm"|"md"|"lg"             (detail only)
+  image_ratio: "wide"|"16:9"|"4:3"|"1:1"
+  banner_height: "sm"|"md"|"lg"|"xl"
+  shadow: "none"|"sm"|"md"|"lg"
+  border: "none"|"light"|"colored"
+  bg: "white"|"light"|"dark"|"transparent"
+  header_style: "default"|"large"|"hidden"
+  nav_height: "compact"|"normal"|"tall"|"xl"   (nav/header sections)
+  sidebar_side: "left"|"right"                 (sidebar sections only)
+  sidebar_width: 2..6                          (sidebar sections only)
+  logo_size: "sm"|"md"|"lg"|"xl"
+  logo_shape: "rounded"|"circle"|"square"
+  logo_variant: "lockup"|"image-only"|"text-only"   (logo sections)
+  logo_url: image URL string (only if user asked for logo image)
+  image_url: image URL string (only for ImageCard/banner)
+  cta_label: button text string e.g. "Save" | "Submit" | "Continue"  (form sections)
+  login_label: auth submit button label (form_style="auth") e.g. "Sign in" | "Log in"
+  step_icon: emoji or "" for step header icon (form_style="step") e.g. "📋" | "💳"
+  total_label: label for total row (form_style="summary") e.g. "Total" | "Order total"
+  seller_label: e.g. "Sold by" (card/list sections — empty string to hide)
+  availability_label: e.g. "In stock" | "Out of stock" (card/list/detail — empty string to hide)
+  delivery_label: e.g. "Free delivery" | "Ships in 2-3 days" (card/list/detail — empty string to hide)
+  action_variant: "link"|"ghost"|"button"  (icon-actions sections)
+  show_logout: true|false                  (icon-actions sections)
+  logout_label: string e.g. "Sign out"    (icon-actions sections)
+  variant: "button"|"link"|"fab"|"wizard_next"|"auto"  (activity_action sections only)
+  align: "left"|"center"|"right"                       (activity_action sections only)
+  size: "sm"|"md"|"lg"                                 (activity_action sections only)
+
+=== PAGE FIELDS ===
+layout.value: "vertical"|"horizontal"|"vertical-reverse"|"horizontal-reverse"
+layout.main_width: "contained"|"wide"|"full"
+layout.header_width: "contained"|"full"
+layout.hero_width: "contained"|"full"
+layout.footer_width: "contained"|"full"
+gap.value: "compact"|"normal"|"spacious"
+
+=== GLOBAL STYLING (one set per candidate) ===
+fontFamily: "inter"|"roboto"|"poppins"|"playfair"|"mono"|"geist"
+textSize: "xs"|"sm"|"md"|"lg"|"xl"
+accentColor: hex e.g. "#2563eb"
+accentSecondary: hex e.g. "#60a5fa"
+backgroundColor: hex e.g. "#ffffff"
+textColor: hex e.g. "#111827"
+radius: 0|4|8|16|24
+buttonStyle: "solid"|"outline"|"ghost"|"gradient"
+cardHover: "lift"|"glow"|"border"|"none"
+imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
+divider: "none"|"line"|"shadow"|"wave"
+pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
+
+Fine-grained color overrides (hex — only set when overriding a specific region independently):
+  region.header.bg_hex, region.header.text_hex, region.footer.bg_hex, region.footer.text_hex
+  region.main.bg_hex, component.card.bg_hex, component.card.border_hex
+  button.primary.bg_hex, region.border_hex
+
+=== ROLE → LAYOUT (non-negotiable) ===
+role='object_collection'       → layout: table|card|gallery|list
+role='child_collection'        → same as object_collection
+role='object_detail'           → layout: detail,  component: DetailPanel or ProductDetailPanel
+role='object_summary'          → layout: detail,  component: DetailPanel
+role='object_form'             → layout: form,    component: ObjectForm
+role='navigation'              → layout: site-nav, component: NavBar
+role='header'                  → layout: any header template
+role='footer'                  → layout: any footer template
+role starts with 'activity_'   → keep existing layout unchanged, only adjust style
+
+=== RULES ===
+- nav/header chrome sections → position="header" (or "sidebar" for sidebar nav)
+- footer chrome sections → position="footer"
+- hero sections → position="hero", col_span=12
+- sidebar sections → must include style.sidebar_side and style.sidebar_width
+- Every page MUST have navigation (header nav OR sidebar NavBar)
+- Data sections: color="accent" unless the design direction specifies otherwise
+- 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
+"""
+
+def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
+    """Call Gemini to generate 3 layout/style variants. Returns list of 3 candidate dicts or None on failure."""
+    try:
+        import google.genai as _genai
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
+        client = _genai.Client(api_key=api_key)
+
+        section_skeleton = [
+            {
+                "id": s.get("id", ""),
+                "name": s.get("name", ""),
+                "primary_model": s.get("primary_model", ""),
+                "role": s.get("role", ""),
+            }
+            for s in sections if s.get("id")
+        ]
+        page_skeleton = [
+            {"id": p.get("id", ""), "name": p.get("name", ""), "type": p.get("type", "")}
+            for p in pages if p.get("id")
+        ]
+
+        diversity_rules = (
+            "Generate exactly 3 structurally and visually distinct candidates.\n"
+            "Each candidate MUST also differ on all of these axes unless user requires otherwise:\n"
+            "  - data section layout (table vs card vs gallery vs list)\n"
+            "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
+            "  - page width (contained vs wide vs full)\n"
+            "  - density (compact vs normal vs spacious)\n"
+            "  - typography (fontFamily + textSize — inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
+            "  - border radius (0 vs 8 vs 16 vs 24)\n"
+            "  - button style (solid vs outline vs ghost vs gradient)\n"
+            "Every page must have navigation unless user requires otherwise. "
+            "Respect the designer prompt — if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary. "
+            "Keep object_form → form, object_detail → detail, activity_* layouts unchanged."
+        )
+
+        user_prompt_text = (
+            f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
+            f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
+            f"DESIGNER PROMPT: {prompt or '(no specific requirements — explore freely)'}\n\n"
+            f"{diversity_rules}\n\n"
+            "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
+            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
+            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}}]}'
+        )
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-lite",
+            contents=user_prompt_text,
+            config={
+                "system_instruction": f"You are a UI designer creating 3 structurally and visually distinct interface layout candidates. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "response_mime_type": "application/json",
+                "max_output_tokens": 8192,
+            },
+        )
+        print(f"[llm_generate_3_candidates] raw response:\n{response.text}", flush=True)
+        result = json.loads(response.text)
+        if isinstance(result, list):
+            candidates = result
+        else:
+            candidates = result.get("candidates") or []
+        if len(candidates) < 3:
+            print(f"[llm_generate_3_candidates] only got {len(candidates)} candidates, falling back", flush=True)
+            return None
+        return candidates[:3]
+    except Exception as e:
+        import traceback
+        print(f"[llm_generate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
+        return None
+
+
 def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requirements: str, base_styling: dict) -> list | None:
     """Like _llm_generate_3_candidates but anchored to the selected candidate's existing layout and styling."""
     try:
