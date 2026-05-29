@@ -121,7 +121,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://" + environ.get("STUDIO_HOSTNAME", "ai4mde.localhost"),
     "https://*.trycloudflare.com",
 ]
-CSRF_COOKIE_DOMAIN = '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])  # TODO: Test & investigate how to fix this stuff, so we can run from localhost:5173
+CSRF_COOKIE_DOMAIN = None if DEBUG else '.'.join(environ.get("HOSTNAME", "ai4mde.localhost").split('.')[1:])
 CORS_ALLOW_ALL_ORIGINS = True  # TODO: Not in PROD!
 CORS_ALLOW_CREDENTIALS = True  # TODO: Investigate if necessary?
 CSRF_COOKIE_HTTPONLY = False  # TODO: Is this even used?
