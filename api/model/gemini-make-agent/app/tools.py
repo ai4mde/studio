@@ -4412,17 +4412,29 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             }.items()
         )
 
-        directions_block = "\n\n".join(
-            _build_candidate_direction_prompt(rules, designer_requirements, i)
-            for i, rules in enumerate(_CANDIDATE_HARD_RULES)
+        diversity_rules = (
+            "Generate exactly 3 meaningfully different refinements of the base candidate.\n"
+            "Each variant MUST differ from the others on at least 2 of these axes:\n"
+            "  - color palette (accentColor, backgroundColor, textColor)\n"
+            "  - typography (fontFamily, textSize)\n"
+            "  - density (compact vs normal vs spacious)\n"
+            "  - border radius (0 vs 8 vs 16 vs 24)\n"
+            "  - button style (solid vs outline vs ghost vs gradient)\n"
+            "  - card hover effect (lift vs glow vs border vs none)\n"
+            "  - page width (contained vs wide vs full)\n"
+            "  - nav placement (header vs sidebar)\n"
+            "Apply the DESIGNER REQUIREMENTS to all 3 variants. "
+            "Preserve the base candidate's section roles and data bindings. "
+            "You may change layout/component/position for collection sections (object_collection, child_collection) "
+            "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged."
         )
 
         user_prompt_text = (
             f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
             f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"BASE CANDIDATE STYLING (inherit these unless designer requirements override): {base_ctx}\n"
-            f"DESIGNER REQUIREMENTS: {designer_requirements or '(refine and diversify the base candidate)'}\n\n"
-            f"{directions_block}\n\n"
+            f"BASE CANDIDATE STYLING (starting point — inherit unless requirements override): {base_ctx}\n"
+            f"DESIGNER REQUIREMENTS: {designer_requirements or '(explore visual variations of the base candidate)'}\n\n"
+            f"{diversity_rules}\n\n"
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
@@ -4433,7 +4445,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             model="gemini-2.5-flash-lite",
             contents=user_prompt_text,
             config={
-                "system_instruction": f"You are a UI designer refining interface layout candidates from a selected base design. Follow the MANDATORY rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "system_instruction": f"You are a UI designer creating visual refinements of a selected interface design. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
                 "response_mime_type": "application/json",
                 "max_output_tokens": 8192,
             },
