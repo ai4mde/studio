@@ -291,6 +291,35 @@ def _extract_agent_event_error(event: Any) -> str:
     return " | ".join(dict.fromkeys(interesting))[:1000]
 
 
+def _extract_agent_tool_events(event: Any) -> list[dict]:
+    """Return ADK function-call/function-response traces from an SSE event."""
+    traces: list[dict] = []
+
+    def walk(value: Any) -> None:
+        if isinstance(value, dict):
+            for key in ("functionCall", "function_call"):
+                call = value.get(key)
+                if isinstance(call, dict):
+                    name = call.get("name") or call.get("functionName") or call.get("function_name") or ""
+                    args = call.get("args") or call.get("arguments") or {}
+                    traces.append({"kind": "call", "name": str(name), "args": args})
+            for key in ("functionResponse", "function_response"):
+                response = value.get(key)
+                if isinstance(response, dict):
+                    name = response.get("name") or response.get("functionName") or response.get("function_name") or ""
+                    result = response.get("response") or response.get("result") or response.get("content") or response
+                    text = json.dumps(result, ensure_ascii=False, default=str)
+                    traces.append({"kind": "response", "name": str(name), "text": text[:1000]})
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+
+    walk(event)
+    return traces
+
+
 def _fallback_candidate_variants(pages: list, sections: list, data: dict, agent_error: str = "") -> list:
     variants = [
         ("Compact Table", "compact", {"gallery": "table", "card": "table", "list": "table"}),
