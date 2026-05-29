@@ -392,6 +392,7 @@ IMAGE URL RULE: If the user wants an online/static image or asks to display pict
                 For five picture cards, create five separate layout="card", component="ImageCard", position="main" sections, each with its own style.image_url/image_alt.
                 Do not add static image URLs to attributes, read-only attributes, field_layout, or any classifier.
 
+                
 ━━━ STEP 3 — EXECUTE ━━━
 1. Call get_interface_config(interface_id) to verify current section IDs and token state.
 2. Check design tokens (data.tokens):
