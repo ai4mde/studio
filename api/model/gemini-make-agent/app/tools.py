@@ -4120,11 +4120,12 @@ gap.value: "compact"|"normal"|"spacious"
 
 === GLOBAL STYLING (one set per candidate) ===
 fontFamily: "inter"|"roboto"|"poppins"|"playfair"|"mono"|"geist"
-textSize: "sm"|"md"|"lg"|"xl"
-  sm = body 14px, compact/data-dense interfaces
+textSize: "xs"|"sm"|"md"|"lg"|"xl"
+  xs = body 13px, ultra-compact data-dense
+  sm = body 14px, compact dashboard
   md = body 16px, default balanced
   lg = body 18px, readable/spacious
-  xl = body 20px, large/accessibility-friendly
+  xl = body 20px, large/editorial/accessibility
 accentColor: hex e.g. "#2563eb"
 accentSecondary: hex e.g. "#60a5fa"
 backgroundColor: hex e.g. "#ffffff"
@@ -4161,7 +4162,7 @@ _CANDIDATE_HARD_RULES = [
         "page_footer_width": "full",
         "density": "compact",
         "fontFamily": "inter",
-        "textSize": "sm",
+        "textSize": "xs",
         "radius": 4,
         "buttonStyle": "solid",
         "cardHover": "border",
@@ -4181,7 +4182,7 @@ _CANDIDATE_HARD_RULES = [
         "page_footer_width": "full",
         "density": "normal",
         "fontFamily": "poppins",
-        "textSize": "md",
+        "textSize": "lg",
         "radius": 16,
         "buttonStyle": "solid",
         "cardHover": "lift",
@@ -4199,8 +4200,8 @@ _CANDIDATE_HARD_RULES = [
         "page_header_width": "full",
         "page_footer_width": "full",
         "density": "spacious",
-        "fontFamily": "poppins",
-        "textSize": "lg",
+        "fontFamily": "playfair",
+        "textSize": "xl",
         "radius": 24,
         "buttonStyle": "gradient",
         "cardHover": "glow",
@@ -4320,6 +4321,7 @@ def _merge_llm_candidate(base_pages: list, base_sections: list, llm_candidate: d
 
 
 _TEXT_SIZE_TOKENS = {
+    "xs": {"typography.hero.size": "44px", "typography.display.size": "32px", "typography.title-md.size": "17px", "typography.lead.size": "15px", "typography.body.size": "13px", "typography.caption.size": "10px", "typography.label.size": "12px"},
     "sm": {"typography.hero.size": "48px", "typography.display.size": "34px", "typography.title-md.size": "18px", "typography.lead.size": "16px", "typography.body.size": "14px", "typography.caption.size": "11px", "typography.label.size": "13px"},
     "md": {"typography.hero.size": "56px", "typography.display.size": "40px", "typography.title-md.size": "20px", "typography.lead.size": "18px", "typography.body.size": "16px", "typography.caption.size": "12px", "typography.label.size": "14px"},
     "lg": {"typography.hero.size": "64px", "typography.display.size": "46px", "typography.title-md.size": "24px", "typography.lead.size": "20px", "typography.body.size": "18px", "typography.caption.size": "13px", "typography.label.size": "15px"},
