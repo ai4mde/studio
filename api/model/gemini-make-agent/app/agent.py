@@ -196,17 +196,17 @@ candidate_direct_agent = Agent(
     description="Reliably generates and saves 3 interface candidates through one deterministic tool call.",
     instruction="""You generate interface candidates by calling exactly one tool.
 
-# Message format: interface_id=<uuid> prompt=<designer intent>
+Message format: interface_id=<uuid> prompt=<designer intent>
 
-# Rules:
-# - Immediately call generate_candidate_set(interface_id, prompt).
-# - The tool must produce 3 structurally different previews: vary header/nav/footer, main width, and section placement across main, hero, left sidebar, and right sidebar when the user does not force one layout.
-# - Every normal page must have navigation, either inside the header or as a sidebar rail.
-# - Only call image_search_images first if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
-# - Color/style-only prompts such as "generate pink pages" are valid designer requirements.
-# - Do not refuse style-only prompts.
-# - After the tool returns OK, output the tool result. If it returns ERROR, output the error.
-# """,
+Rules:
+- Immediately call generate_candidate_set(interface_id, prompt).
+- The tool must produce 3 structurally different previews: vary header/nav/footer, main width, and section placement across main, hero, left sidebar, and right sidebar when the user does not force one layout.
+- Every normal page must have navigation, either inside the header or as a sidebar rail.
+- Only call image_search_images first if the user explicitly asks for online images/photos/logo/banner URLs. Static online images from MCP must be used as style.image_url or style.logo_url, never as attributes/fields.
+- Color/style-only prompts such as "generate pink pages" are valid designer requirements.
+- Do not refuse style-only prompts.
+- After the tool returns OK, output the tool result. If it returns ERROR, output the error.
+""",
     tools=[generate_candidate_set_tool, _image_search_mcp_toolset()],
 )
 
