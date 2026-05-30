@@ -2978,9 +2978,12 @@ def _norm_candidate_styling(styling, prompt_for_style: str) -> dict:
 _STYLING_TOKEN_KEYS = frozenset({
     "region.header.bg_hex", "region.header.text_hex",
     "region.footer.bg_hex", "region.footer.text_hex",
-    "region.main.bg_hex", "region.border_hex",
+    "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
     "component.card.bg_hex", "component.card.border_hex",
-    "button.primary.bg_hex",
+    "button.primary.bg_hex", "button.primary.text_hex",
+    "button.secondary.bg_hex", "button.secondary.text_hex",
+    "nav.bg_hex", "nav.text_hex",
+    "table.header.bg_hex", "table.header.text_hex",
 })
 
 def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict, styling: dict | None = None) -> dict:
@@ -3587,16 +3590,24 @@ imageRatio: "1:1"|"4:3"|"16:9"|"portrait"|"wide"
 divider: "none"|"line"|"shadow"|"wave"
 pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
 
-Fine-grained color overrides (hex â€” applied on top of accentColor/backgroundColor; only set when you need to override a specific region independently):
-  region.header.bg_hex: hex â€” header bar background (default = accentColor)
-  region.header.text_hex: hex â€” header text/icon color (default = white on dark accent)
+Fine-grained color overrides (hex â€” set independently from accentColor/backgroundColor to establish visual hierarchy):
+  region.header.bg_hex: hex â€” header bar background (default = accentColor; MUST differ from accentColor per COLOR HIERARCHY rule)
+  region.header.text_hex: hex â€” header text/icon color (default = auto contrast on header bg)
   region.footer.bg_hex: hex â€” footer background (default = backgroundColor)
   region.footer.text_hex: hex â€” footer text color
-  region.main.bg_hex: hex â€” main content area / card surface background
-  component.card.bg_hex: hex â€” card tile background specifically
+  region.main.bg_hex: hex â€” main content area background
+  region.sidebar.bg_hex: hex â€” sidebar background (when nav is in sidebar position)
+  region.border_hex: hex â€” default divider / border color
+  component.card.bg_hex: hex â€” card tile background
   component.card.border_hex: hex â€” card border color
   button.primary.bg_hex: hex â€” primary button fill (default = accentColor)
-  region.border_hex: hex â€” default divider / border color
+  button.primary.text_hex: hex â€” primary button label color (default = auto contrast)
+  button.secondary.bg_hex: hex â€” secondary button fill (default = surface)
+  button.secondary.text_hex: hex â€” secondary button label color
+  nav.bg_hex: hex â€” nav bar/sidebar background (default = region.header.bg_hex)
+  nav.text_hex: hex â€” nav links/icon color (default = auto contrast on nav bg)
+  table.header.bg_hex: hex â€” table column header background
+  table.header.text_hex: hex â€” table column header text color
 
 === ROLE â†’ LAYOUT (non-negotiable, must match exactly) ===
 role='object_collection'       â†’ layout: table|card|gallery|list  (per candidate direction)
@@ -3901,8 +3912,12 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     _FINE_GRAINED_HEX = (
         "region.header.bg_hex", "region.header.text_hex",
         "region.footer.bg_hex", "region.footer.text_hex",
-        "region.main.bg_hex", "component.card.bg_hex", "component.card.border_hex",
-        "button.primary.bg_hex", "region.border_hex",
+        "region.main.bg_hex", "region.sidebar.bg_hex", "region.border_hex",
+        "component.card.bg_hex", "component.card.border_hex",
+        "button.primary.bg_hex", "button.primary.text_hex",
+        "button.secondary.bg_hex", "button.secondary.text_hex",
+        "nav.bg_hex", "nav.text_hex",
+        "table.header.bg_hex", "table.header.text_hex",
     )
     for key in _FINE_GRAINED_HEX:
         val = llm_styling.get(key) or ""
