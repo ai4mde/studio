@@ -891,14 +891,18 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         setIsMapping(true);
         setMapStatus('idle');
         try {
-            await authAxios.post(`/v1/generator/prototypes/map_uml_to_interface/`, { interface_id: interfaceId });
+            const { data: mapResult } = await authAxios.post(`/v1/generator/prototypes/map_uml_to_interface/`, { interface_id: interfaceId });
+            if (!mapResult?.ok) {
+                throw new Error(mapResult?.message || 'UML mapping failed');
+            }
             setMapStatus('ok');
             const res = await authAxios.get(`/v1/metadata/interfaces/${interfaceId}/`);
             const data = (res.data as any)?.data || {};
             dbLoadTimestamp.current = Date.now();
             setSections(data.sections || []);
             setPages(data.pages || []);
-        } catch {
+        } catch (error) {
+            console.error('UML mapping failed:', error);
             setMapStatus('error');
         } finally {
             setIsMapping(false);

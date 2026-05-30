@@ -41,9 +41,13 @@ export const ListInterface: React.FC<Props> = ({ system }) => {
         setIsMappingAll(true);
         setMapAllStatus('idle');
         try {
-            await authAxios.post(`/v1/generator/prototypes/map_uml_to_all_interfaces/`, { system_id: systemId });
+            const { data: mapResult } = await authAxios.post(`/v1/generator/prototypes/map_uml_to_all_interfaces/`, { system_id: systemId });
+            if (!mapResult?.ok) {
+                throw new Error(mapResult?.message || 'UML mapping failed');
+            }
             setMapAllStatus('ok');
-        } catch {
+        } catch (error) {
+            console.error('UML mapping failed:', error);
             setMapAllStatus('error');
         } finally {
             setIsMappingAll(false);

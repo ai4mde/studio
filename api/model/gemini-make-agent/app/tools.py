@@ -3668,10 +3668,10 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
 
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
-            “MANDATORY color assignment â€” each candidate MUST use a different color family unless user requires otherwise:\n”
-            # “  Candidate 0: DARK/NEUTRAL palette â€” accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n”
-            # “  Candidate 1: VIBRANT/COLORFUL palette â€” accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n”
-            # “  Candidate 2: WARM/EDITORIAL palette â€” accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n”
+            "MANDATORY color assignment - each candidate MUST use a different color family unless user requires otherwise:\n"
+            "  Candidate 0: DARK/NEUTRAL palette - accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
+            "  Candidate 1: VIBRANT/COLORFUL palette - accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
+            "  Candidate 2: WARM/EDITORIAL palette - accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
             "Each candidate MUST also differ all of these axes unless user requires otherwise:\n"
             "  - data section layout (table vs card vs gallery vs list)\n"
             "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
