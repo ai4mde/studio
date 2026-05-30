@@ -1387,11 +1387,11 @@ def _field_layout_field_refs(field_layout) -> set[str]:
     return refs
 
 _FIELD_SLOT_MAP = {
-    "card": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "hidden"},
-    "gallery": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "hidden"},
-    "list": {"columns", "hidden"},
+    "card": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "badges", "hidden"},
+    "gallery": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "badges", "hidden"},
+    "list": {"columns", "badges", "hidden"},
     "table": {"columns", "hidden"},
-    "detail": {"image", "video", "media", "title", "hero", "fields", "hidden"},
+    "detail": {"image", "video", "media", "title", "hero", "fields", "badges", "hidden"},
     "form": {"fields", "hidden"},
     "filter": {"fields", "hidden"},
 }
@@ -1435,7 +1435,9 @@ def _field_kind(name: str, type_name: str = "") -> str:
         return "hidden"
     if any(term in low for term in ("name", "title", "code", "number", "label", "subject")):
         return "title"
-    if any(term in low for term in ("price", "amount", "total", "status", "state", "date", "created", "updated", "count", "quantity")):
+    if any(term in low for term in ("status", "state", "phase", "stage", "type", "category", "kind", "tier", "level")):
+        return "badge"
+    if any(term in low for term in ("price", "amount", "total", "date", "created", "updated", "count", "quantity")):
         return "primary"
     if any(term in low for term in ("description", "summary", "body", "content", "note", "comment", "message")):
         return "body"
@@ -1526,6 +1528,7 @@ def _normalize_field_layout(section: dict) -> dict:
     title = first_existing(["title"])
     subtitle = first_existing(["subtitle"])
     primary = first_existing(["primary", "price", "count"])
+    badges = [f for f in _field_list(raw.get("badges") or []) if f in visible_names]
     secondary = [f for f in (_field_list(raw.get("secondary")) + _field_list(raw.get("meta")) + _field_list(raw.get("facts"))) if f in visible_names]
     fields = [f for f in (_field_list(raw.get("fields")) + _field_list(raw.get("columns"))) if f in visible_names]
     hero = [f for f in _field_list(raw.get("hero")) if f in visible_names]
@@ -1537,8 +1540,10 @@ def _normalize_field_layout(section: dict) -> dict:
         title = next((n for n in visible_names if by_kind.get(n) == "title"), "")
     if not primary:
         primary = next((n for n in visible_names if by_kind.get(n) == "primary" and n != title), "")
+    if not badges:
+        badges = [n for n in visible_names if by_kind.get(n) == "badge" and n not in {media, title, primary}][:2]
     if not secondary:
-        secondary = [n for n in visible_names if n not in {media, title, primary} and by_kind.get(n) in {"secondary", "body", "primary"}][:4]
+        secondary = [n for n in visible_names if n not in {media, title, primary} and n not in badges and by_kind.get(n) in {"secondary", "body", "primary"}][:4]
     if not fields:
         fields = visible_names
     if not hero:
@@ -1562,8 +1567,10 @@ def _normalize_field_layout(section: dict) -> dict:
         out["subtitle"] = subtitle
     if "primary" in supported and primary:
         out["primary"] = primary
+    if "badges" in supported and badges:
+        out["badges"] = badges
     if "secondary" in supported:
-        out["secondary"] = [f for f in secondary if f not in {media, title, primary}]
+        out["secondary"] = [f for f in secondary if f not in {media, title, primary} and f not in badges]
     if "columns" in supported:
         out["columns"] = fields
     if "fields" in supported:
