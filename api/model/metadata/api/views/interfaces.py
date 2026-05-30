@@ -6,7 +6,6 @@ from typing import List, Optional
 
 import requests as _req
 from django.http import StreamingHttpResponse, HttpResponse
-from django.shortcuts import get_object_or_404
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface, ExportSingleSystem
 from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePrototypeResponse
 from metadata.api.views.defaulting import create_default_interface
@@ -246,7 +245,7 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
 
 @interfaces.get("/{uuid:id}/", response=ReadInterface)
 def read_interface(request, id):
-    return get_object_or_404(Interface, id=id)
+    return Interface.objects.get(id=id)
 
 
 @interfaces.post("/", response=ReadInterface)
