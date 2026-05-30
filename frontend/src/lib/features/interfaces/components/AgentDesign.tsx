@@ -252,6 +252,22 @@ const livePathForPage = (interfaceName: string | undefined, page: any) => {
 
 const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
     const tokens = { ...(raw || {}) };
+    [
+        'region.header.bg_hex', 'region.header.text_hex',
+        'region.footer.bg_hex', 'region.footer.text_hex',
+        'region.main.bg_hex', 'region.sidebar.bg_hex', 'region.border_hex',
+        'component.card.bg_hex', 'component.card.border_hex',
+        'button.primary.bg_hex', 'button.primary.text_hex',
+        'button.secondary.bg_hex', 'button.secondary.text_hex',
+        'button.ghost.text_hex', 'button.danger.bg_hex', 'button.link.text_hex',
+        'nav.bg_hex', 'nav.text_hex',
+        'table.header.bg_hex', 'table.header.text_hex',
+        'badge.info.bg_hex', 'text.muted.hex',
+    ].forEach((key) => {
+        if ((tokens[key] == null || tokens[key] === '') && styling?.[key]) {
+            tokens[key] = styling[key];
+        }
+    });
     const defaultBlues = new Set(['', '#2563eb', '#0000a4', 'var(--accent)']);
     const stylingAccent = styling?.accentColor || styling?.accent_color;
     const existingAccent = tokens['accent.hex'];
