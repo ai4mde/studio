@@ -1,4 +1,4 @@
-﻿import os
+import os
 import requests
 import json
 import re
@@ -911,7 +911,7 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
     name_tokens = _name_tokens(step_name)
-    # "select/choose" = pick from options → card with select operation, not a form
+    # "select/choose" = pick from options ? card with select operation, not a form
     if any(term in name_tokens for term in ("select", "choose", "pick")):
         return "card"
     if any(term in name_tokens for term in (
@@ -1585,9 +1585,13 @@ def _normalize_field_layout(section: dict) -> dict:
     return out
 
 def _model_field_names(model_attrs: dict, model: str, limit: int = 6) -> list[str]:
-    preferred = ["name", "title", "status", "price", "total", "quantity", "description", "created_at"]
+    preferred = ["image_url", "photo_url", "avatar_url", "thumbnail_url", "poster_url", "cover_url", "logo_url", "name", "title", "status", "price", "total", "quantity", "description", "created_at"]
     attrs = list(model_attrs.get(model) or [])
+    media = [name for name in attrs if name and _field_kind(name) == "media"]
     selected = [name for name in preferred if name in attrs]
+    for name in media:
+        if name not in selected:
+            selected.insert(0, name)
     selected.extend([name for name in attrs if name and name not in selected and name.lower() != "id"])
     return selected[:limit] or attrs[:limit]
 
@@ -3650,6 +3654,61 @@ activity_action/activity_start/activity_tasks â†’ keep layout unchanged (ch
 - Activity chrome (activity_action/activity_start/activity_tasks): keep layout as-is; content sections: infer layout from step name
 """
 
+_DATA_SCHEMA = """
+=== DATA, FIELD, AND BEHAVIOR FIELDS ===
+sections[].attributes:
+  List of real display fields, either field names or attribute objects.
+  Supports related fields with dot notation, e.g. "seller.name".
+  Attribute objects may use:
+    {name, type?, readonly?, source?, render?, action?}
+  Attributes are display fields only; do not treat them as query/SQL select lists.
+  Static image URLs from search/MCP are never attributes.
+  If a primary or related model has a real image-like field, include it for visual layouts
+  such as card, gallery, detail, list item, profile, product, catalog, media, and hero.
+  Image-like fields include type "image" or names such as image_url, photo_url,
+  avatar_url, thumbnail_url, poster_url, cover_url, and logo_url.
+
+sections[].field_layout:
+  Use only slots consumed by the component.
+  Card/Gallery slots: image, video, media, title, subtitle, primary, secondary, hidden.
+  Table/List slots: columns, hidden.
+  Detail slots: image, video, media, title, hero, fields, hidden.
+  Form/Filter slots: fields, hidden.
+  If a section has an image-like field in attributes, set field_layout.image to that
+  field unless video/media is more specific. Do not hide other media fields unless asked.
+  Per-field overrides live in field_layout.field_styles:
+    {"field_name": {"order": 0, "col_span": 12, "height": "sm|md|lg|xl", "text_size": "xs|sm|md|lg|xl", "align": "left|center|right", "label": "show|hidden"}}
+
+sections[].behavior:
+  Use for workflow/search/navigation behavior, e.g. SearchBar/NavBar/IconActions.
+  Collection components use behavior.item_click for whole-item interactions:
+    {item_click: {type: "navigate", target_page: "Product_Detail", params: {"product_id": "$Product.product_id"}}}
+  Render modes: text, link, button, badge.
+  Action types: none, navigate, operation, copy, filter, expand, tooltip.
+
+sections[].data_source:
+  data_source.mode = "query"
+  data_source.from.model = primary source model name
+  data_source.joins = optional list of joins:
+    {type: "left|inner|right", model: "ModelName", on: "ModelA.field_id = ModelB.id"}
+  Do not emit data_source for ordinary sections unless joins or a non-default source
+  are needed. It defines where rows come from, not what fields are displayed.
+
+sections[].query:
+  Optional retrieval constraints only. It is separate from attributes.
+  select: exact primary fields or valid related dot notation.
+  limit, offset, order_by, filters are allowed when the user asks for
+  filtering/sorting/limits or the page semantics require them.
+
+sections[].operations:
+  CRUD flags or list. create/update/delete control row/form actions.
+  select means choose/pick/multi-select, not read/view.
+
+Static online image URLs:
+  Use MCP/search URLs only when the user explicitly asks for online images/photos/logo/banner imagery.
+  Put URLs in style.image_url or style.logo_url, never in attributes.
+"""
+
 _CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
 
 {_LAYOUT_SCHEMA}
@@ -4136,169 +4195,6 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
         return "OK: regenerated and saved 3 candidates. " + " | ".join(results)
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"
-
-def analyze_interface_from_uml(interface_id: str) -> str:
-    """
-    Extract full UML intelligence from all 3 diagram types for an interface's system.
-    Returns a JSON string with model_graph, actor permissions, workflows, and
-    a rule-based interface plan (pages + sections) plus semantic_decisions for LLM review.
-    """
-    try:
-        import json as _json
-        from .uml_extractor import extract_uml_intelligence
-        from .interface_planner import generate_interface_plan
-
-        iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
-        iface_resp.raise_for_status()
-        iface = iface_resp.json()
-        system_id = iface.get("system")
-        actor_id = iface.get("actor") or ""
-
-        system_data = _fetch_system_context_data(system_id)
-        actor_name = _actor_name_from_context(system_data, str(actor_id))
-
-        uml_intel = extract_uml_intelligence(system_data, str(actor_id), actor_name or "")
-        interface_plan = generate_interface_plan(uml_intel)
-
-        return _json.dumps({
-            "interface_id": interface_id,
-            "actor": actor_name,
-            "meta": uml_intel.get("_meta", {}),
-            "actor_permissions": uml_intel["actor_intel"].get("target_permissions", {}),
-            "workflows": [
-                {"name": w["name"], "step_count": w["step_count"], "steps": w["steps"]}
-                for w in uml_intel["workflow_intel"].get("workflows", [])
-            ],
-            "model_graph_summary": {
-                m: {
-                    "attributes": [a["name"] for a in info.get("attributes", [])],
-                    "layout_score": {k: round(v, 2) for k, v in (info.get("layout_score") or {}).items() if v > 0.3},
-                    "composition_children": [c["model"] for c in info.get("compositions_owned", [])],
-                    "composition_parent": info.get("composition_parent"),
-                    "associations": [{"model": a["model"], "cardinality": a["cardinality"]} for a in info.get("associations", [])[:5]],
-                }
-                for m, info in uml_intel["model_graph"].items()
-                if m in uml_intel["actor_intel"].get("target_permissions", {})
-            },
-            "interface_plan": interface_plan,
-            "semantic_decisions": uml_intel.get("semantic_decisions", []),
-        }, ensure_ascii=False)
-    except Exception as e:
-        import traceback
-        return f"ERROR: analyze_interface_from_uml failed: {e}\n{traceback.format_exc()}"
-
-
-def save_interface_plan(interface_id: str, pages_json: str, sections_json: str) -> str:
-    """
-    Save the final interface plan (pages + sections) to the database.
-    pages_json and sections_json are JSON strings of the respective arrays.
-    Replaces the current interface data completely.
-    """
-    try:
-        import json as _json
-        pages = _json.loads(pages_json) if isinstance(pages_json, str) else pages_json
-        sections = _json.loads(sections_json) if isinstance(sections_json, str) else sections_json
-
-        page_model_by_id = {
-            str(p.get("id") or ""): str(p.get("primary_model") or p.get("model") or p.get("class") or "")
-            for p in pages or []
-        }
-        data_layouts = {"card", "list", "table", "detail", "gallery", "filter", "form", "calendar", "timeline", "map"}
-
-        def normalize_section_model(section: dict) -> dict:
-            section = dict(section or {})
-            model = (
-                section.get("primary_model")
-                or section.get("model")
-                or section.get("class")
-                or page_model_by_id.get(str(section.get("page_id") or ""), "")
-                or ""
-            )
-            layout = _normalize_layout_alias(section.get("layout"))
-            role = str(section.get("role") or "")
-            is_data_section = layout in data_layouts or role in DATA_SECTION_ROLES or bool(section.get("attributes"))
-            if is_data_section and model:
-                section["primary_model"] = str(model)
-                section["class"] = str(model)
-            else:
-                section.setdefault("primary_model", "")
-                section.setdefault("class", "")
-            section["layout"] = layout
-            return section
-
-        # Normalize pages to DB format
-        db_pages = [
-            {
-                "id": p["id"],
-                "name": p.get("name") or p["id"],
-                "primary_model": p.get("primary_model") or p.get("model") or "",
-                "type": {"value": "normal", "label": "Normal"},
-                "sections": [{"value": _ref_id(sid)} for sid in (p.get("sections") or []) if _ref_id(sid)],
-                "category": None,
-            }
-            for p in pages
-        ]
-
-        # Normalize sections to DB format
-        db_sections = [
-            {
-                **normalize_section_model(s),
-                "operations": _normalize_section_operations(s.get("operations")),
-            }
-            for s in sections
-        ]
-
-        if not db_pages:
-            return "ERROR: pages list is empty â€” nothing to save."
-
-        try:
-            iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS, timeout=30)
-            iface_resp.raise_for_status()
-            iface = iface_resp.json()
-            system_id = iface.get("system")
-            system_context = _fetch_system_context_data(system_id) if system_id else {}
-            actor_name = _actor_name_from_context(system_context, iface.get("actor"))
-            usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
-            model_attrs = {}
-            for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
-                cdata = classifier.get("data", {}) if isinstance(classifier, dict) else {}
-                cname = cdata.get("name", "")
-                attrs = {a.get("name", "") for a in cdata.get("attributes", []) if a.get("name")}
-                if cname:
-                    model_attrs[cname] = attrs
-            completed = _apply_builtin_workflow_logic(
-                {"pages": db_pages, "sections": db_sections},
-                system_id,
-                iface.get("actor"),
-            )
-            db_pages = completed.get("pages") or db_pages
-            db_sections = completed.get("sections") or db_sections
-            db_pages, db_sections = _ensure_mapping_content_sections(
-                db_pages,
-                db_sections,
-                usecase_navigation,
-                model_attrs,
-            )
-        except Exception:
-            pass
-
-        db_pages, db_sections = _ensure_mapping_chrome_sections(db_pages, db_sections)
-        db_sections = _drop_unreferenced_non_global_sections(db_pages, db_sections)
-
-        resp = requests.patch(
-            f"{METADATA_API_BASE}/interfaces/{interface_id}/data/",
-            json={"pages": db_pages, "sections": db_sections},
-            headers=_AUTH_HEADERS,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        return f"OK: saved {len(db_pages)} pages and {len(db_sections)} sections to interface {interface_id}."
-    except Exception as e:
-        return f"ERROR: save_interface_plan failed: {e}"
-
-
-analyze_interface_from_uml_tool = FunctionTool(func=analyze_interface_from_uml)
-save_interface_plan_tool = FunctionTool(func=save_interface_plan)
 
 
 def render_candidate_preview_func(interface_id: str, candidate_index: int) -> str:

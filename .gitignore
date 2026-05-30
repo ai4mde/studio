@@ -1,5 +1,28 @@
 # Docker Compose variable substitution file — contains VM public IP
 .env
 
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Generated caches and temporary outputs
+__pycache__/
+*.py[cod]
+tmp/
+debug.log
+*.log
+*.pdf
+
+# Local preview artifacts
+.claude/preview_*.html
+.claude/preview_*.png
+.claude/settings.local.json
+.playwright-mcp/
+studio-interface-playwright-mcp.png
+
 # Local secrets (never commit)
 config/secrets.env
+
+# Local Cloudflare tunnel config
+cloudflared-config.yml
+config/cloudflared-config.local.yml

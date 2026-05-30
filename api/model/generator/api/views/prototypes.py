@@ -552,7 +552,7 @@ class MapUmlPayload(Schema):
 
 @prototypes.post("/map_uml_to_interface/")
 def map_uml_to_interface(request, payload: MapUmlPayload):
-    """Map UML diagrams to interface pages and sections via the interface_mapper_agent."""
+    """Map UML diagrams to interface pages and sections through the agent service endpoint."""
     ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
     try:
         resp = requests.post(

@@ -247,6 +247,15 @@ def normalize_field_action(metadata: str, application_name: str, action: dict) -
     return action
 
 
+def infer_attribute_type_from_name(attr_name: str) -> AttributeType | None:
+    low = str(attr_name or "").lower()
+    if any(token in low for token in ("image", "img", "photo", "avatar", "thumbnail", "thumb", "poster", "cover", "logo")):
+        return AttributeType.IMAGE
+    if any(token in low for token in ("video", "trailer", "media_url")):
+        return AttributeType.VIDEO
+    return None
+
+
 def retrieve_section_attributes(metadata: str, section: str, application_name: str = "") -> List[SectionAttribute]:
     if not section:
         return []
@@ -266,6 +275,9 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
         
         if isinstance(attribute, str):
             attr_name = attribute
+            inferred_attribute_type = infer_attribute_type_from_name(attr_name)
+            if inferred_attribute_type:
+                attribute_type = inferred_attribute_type
         else:
             attr_name = attribute["name"]
             derived = attribute.get("derived", False)
@@ -293,6 +305,10 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
                 attribute_type  = AttributeType.IMAGE
             elif attribute.get("type") == "video":
                 attribute_type  = AttributeType.VIDEO
+            else:
+                inferred_attribute_type = infer_attribute_type_from_name(attr_name)
+                if inferred_attribute_type:
+                    attribute_type = inferred_attribute_type
 
         att = SectionAttribute(
             name = attribute_name_sanitization(attr_name),

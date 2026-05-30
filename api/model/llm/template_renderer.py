@@ -484,7 +484,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
 
                 attr_name = _sanitize(attr_data.get("name", ""))
                 inferred_type = classifier_attr_types.get(attr_name)
-                if not inferred_type and any(token in attr_name.lower() for token in ("image", "photo", "thumbnail", "thumb", "avatar")):
+                if not inferred_type and any(token in attr_name.lower() for token in ("image", "img", "photo", "thumbnail", "thumb", "avatar", "poster", "cover", "logo")):
                     inferred_type = "image"
                 if not inferred_type and any(token in attr_name.lower() for token in ("video", "trailer", "media_url")):
                     inferred_type = "video"

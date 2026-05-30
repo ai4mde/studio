@@ -412,7 +412,7 @@ def screenshot_api_preview_pair(
 
 def main():
     parser = argparse.ArgumentParser(description="Compare generated preview and live HTML/screenshots for every page.")
-    parser.add_argument("--metadata", default=str(ROOT / "fixtures" / "Bol.com Shopping Platform-export.json"))
+    parser.add_argument("--metadata", default=str(ROOT / "scripts" / "fixtures" / "Bol.com Shopping Platform-export.json"))
     parser.add_argument("--interface", default="", help="Interface name, e.g. Customer. Defaults to first interface.")
     parser.add_argument("--project-name", default="preview-live-compare")
     parser.add_argument("--out", default=str(ROOT / "tmp" / "preview-live-compare"))

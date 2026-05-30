@@ -1,0 +1,20 @@
+tunnel: <cloudflare-tunnel-id>
+credentials-file: <path-to-cloudflared-credentials-json>
+
+ingress:
+  - hostname: api.example.com
+    service: http://localhost:8000
+    originRequest:
+      httpHostHeader: api.ai4mde.localhost
+
+  - hostname: prototype.example.com
+    service: http://localhost:80
+    originRequest:
+      httpHostHeader: prototype.ai4mde.localhost
+
+  - hostname: app.example.com
+    service: http://localhost:80
+    originRequest:
+      httpHostHeader: ai4mde.localhost
+
+  - service: http_status:404

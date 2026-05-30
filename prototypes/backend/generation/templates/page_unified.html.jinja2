@@ -1503,11 +1503,25 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% set _base_mock = 3 %}
 {% set section_mock_rows = query_limit if query_limit else _base_mock %}
 {# ── IMAGE ATTRIBUTES ── #}
-{%- set _iattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.IMAGE) | list %}
-{%- set _vattrs   = section_component.attributes | selectattr('type', 'equalto', AttributeType.VIDEO) | list %}
+{%- set _iattrs = [] %}
+{%- set _vattrs = [] %}
+{%- set _tattrs = [] %}
+{%- set _intattrs = [] %}
+{%- for _attr in section_component.attributes %}
+  {%- set _al = (_attr|string)|lower %}
+  {%- set _image_like = ('image' in _al or 'img' in _al or 'photo' in _al or 'avatar' in _al or 'thumbnail' in _al or 'thumb' in _al or 'poster' in _al or 'cover' in _al or 'logo' in _al) %}
+  {%- set _video_like = ('video' in _al or 'trailer' in _al or 'media_url' in _al) %}
+  {%- if _attr.type == AttributeType.IMAGE or _image_like %}
+    {%- set _ = _iattrs.append(_attr) %}
+  {%- elif _attr.type == AttributeType.VIDEO or _video_like %}
+    {%- set _ = _vattrs.append(_attr) %}
+  {%- elif _attr.type == AttributeType.INTEGER %}
+    {%- set _ = _intattrs.append(_attr) %}
+  {%- else %}
+    {%- set _ = _tattrs.append(_attr) %}
+  {%- endif %}
+{%- endfor %}
 {%- set _mattrs   = _iattrs + _vattrs %}
-{%- set _tattrs   = section_component.attributes | rejectattr('type', 'equalto', AttributeType.IMAGE) | rejectattr('type', 'equalto', AttributeType.VIDEO) | rejectattr('type', 'equalto', AttributeType.INTEGER) | list %}
-{%- set _intattrs = section_component.attributes | selectattr('type', 'equalto', AttributeType.INTEGER) | list %}
 {%- set _fl = section_component.field_layout or {} %}
 {%- set _fl_secondary_raw = _fl.get('secondary') or [] %}
 {%- set _fl_columns_raw = _fl.get('columns') or _fl.get('fields') or [] %}
@@ -2012,7 +2026,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
             {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
             {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
-            {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-8 h-8 bg-gray-50 rounded"></div>
+            {%- elif attribute.type == AttributeType.IMAGE or 'image' in (attribute|string)|lower or 'img' in (attribute|string)|lower or 'photo' in (attribute|string)|lower or 'avatar' in (attribute|string)|lower or 'thumbnail' in (attribute|string)|lower or 'thumb' in (attribute|string)|lower or 'poster' in (attribute|string)|lower or 'cover' in (attribute|string)|lower or 'logo' in (attribute|string)|lower %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-10 h-10 rounded object-cover bg-gray-50" alt="{{ attribute }}" />
             {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-10 h-8 bg-black rounded flex items-center justify-center text-white/70 text-xs">&#9658;</div>
             {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
             {%- endif %}
