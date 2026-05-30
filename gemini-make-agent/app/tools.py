@@ -140,9 +140,12 @@ def apply_hard_constraints(pages: list, sections: list, tokens: dict, styling: d
     styling = dict(styling or {})
     intent = prompt_intent or {}
 
-    color_intent = intent.get("colorIntent") or {}
-    if color_intent:
-        tokens.update(color_intent)
+    # LLM-generated schema is the source of truth for color tokens.
+    # The old regex prompt parser is intentionally not applied here because it
+    # misreads multi-target requests such as "header blue searchbar green button pink".
+    # color_intent = intent.get("colorIntent") or {}
+    # if color_intent:
+    #     tokens.update(color_intent)
 
     layout_intent = intent.get("layoutIntent") or {}
     if layout_intent:
@@ -2971,8 +2974,11 @@ def _norm_candidate_styling(styling, prompt_for_style: str) -> dict:
             styling["radius"] = {"none": 0, "sm": 4, "md": 8, "lg": 12, "xl": 16, "2xl": 24}.get(styling["radius"], 8)
     else:
         styling = {}
-    overrides = _prompt_styling_overrides(prompt_for_style)
-    return {**styling, **overrides} if overrides else styling
+    # LLM-generated styling is the source of truth. Keep the regex parser
+    # disabled so it cannot overwrite the schema returned by the model.
+    # overrides = _prompt_styling_overrides(prompt_for_style)
+    # return {**styling, **overrides} if overrides else styling
+    return styling
 
 
 _STYLING_TOKEN_KEYS = frozenset({
@@ -2983,6 +2989,7 @@ _STYLING_TOKEN_KEYS = frozenset({
     "button.primary.bg_hex", "button.primary.text_hex",
     "button.secondary.bg_hex", "button.secondary.text_hex",
     "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
+    "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",
     "nav.bg_hex", "nav.text_hex",
     "table.header.bg_hex", "table.header.text_hex",
     "badge.info.bg_hex", "text.muted.hex",
@@ -3000,9 +3007,11 @@ def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict, s
     for key in _STYLING_TOKEN_KEYS:
         if key not in tokens and isinstance(styling, dict) and styling.get(key):
             tokens[key] = styling[key]
-    tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
-    if prompt_intent.get("colorIntent"):
-        tokens = {**tokens, **prompt_intent["colorIntent"]}
+    # LLM-generated tokens/styling are the source of truth. The regex parser is
+    # left as code for possible fallback later, but is not applied in this path.
+    # tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
+    # if prompt_intent.get("colorIntent"):
+    #     tokens = {**tokens, **prompt_intent["colorIntent"]}
     return tokens
 
 
@@ -3609,6 +3618,10 @@ Fine-grained color overrides (hex â€” set independently from accentColor/ba
   button.ghost.text_hex: hex â€” ghost/text button color (default = accentColor)
   button.danger.bg_hex: hex â€” danger/destructive button fill (default = #dc2626; use orange or deep red for softer themes)
   button.link.text_hex: hex â€” inline link color (default = accentColor)
+  input.bg_hex: hex â€” input/searchbar field background
+  input.border_hex: hex â€” input/searchbar border
+  input.border_focus_hex: hex â€” input/searchbar active border and search submit button fill
+  input.text_hex: hex â€” input/searchbar text color
   nav.bg_hex: hex â€” nav bar/sidebar background (default = region.header.bg_hex)
   nav.text_hex: hex â€” nav links/icon color (default = auto contrast on nav bg)
   table.header.bg_hex: hex â€” table column header background
@@ -3641,7 +3654,26 @@ _CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interf
 
 {_LAYOUT_SCHEMA}
 - 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
+- Every candidate MUST include a top-level tokens object. tokens is the source of truth for exact colors/typography used by rendering.
+- styling is a compact human-readable style summary; tokens must contain the complete concrete values for fine-grained rendering.
 """
+
+_CANDIDATE_TOKENS_EXAMPLE = (
+    '"tokens": {"accent.hex": "#hex", "color.secondary.hex": "#hex", '
+    '"page.body.bg_hex": "#hex", "page.body.text_hex": "#hex", '
+    '"region.header.bg_hex": "#hex", "region.header.text_hex": "#hex", '
+    '"region.footer.bg_hex": "#hex", "region.footer.text_hex": "#hex", '
+    '"region.main.bg_hex": "#hex", "region.sidebar.bg_hex": "#hex", "region.border_hex": "#hex", '
+    '"component.card.bg_hex": "#hex", "component.card.border_hex": "#hex", '
+    '"button.primary.bg_hex": "#hex", "button.primary.text_hex": "#hex", '
+    '"button.secondary.bg_hex": "#hex", "button.secondary.text_hex": "#hex", '
+    '"button.ghost.text_hex": "#hex", "button.danger.bg_hex": "#hex", "button.link.text_hex": "#hex", '
+    '"input.bg_hex": "#hex", "input.border_hex": "#hex", "input.border_focus_hex": "#hex", "input.text_hex": "#hex", '
+    '"nav.bg_hex": "#hex", "nav.text_hex": "#hex", '
+    '"table.header.bg_hex": "#hex", "table.header.text_hex": "#hex", '
+    '"badge.info.bg_hex": "#hex", "text.muted.hex": "#hex", '
+    '"typography.body.size": "16px", "typography.label.size": "14px", "typography.caption.size": "12px"}'
+)
 
 
 def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
@@ -3668,23 +3700,23 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
 
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
-            "MANDATORY color assignment - each candidate MUST use a different color family unless user requires otherwise:\n"
-            "  Candidate 0: DARK/NEUTRAL palette - accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
-            "  Candidate 1: VIBRANT/COLORFUL palette - accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
-            "  Candidate 2: WARM/EDITORIAL palette - accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
-            "Each candidate MUST also differ all of these axes unless user requires otherwise:\n"
-            "  - data section layout (table vs card vs gallery vs list)\n"
-            "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
-            "  - page width (contained vs wide vs full)\n"
-            "  - density (compact vs normal vs spacious)\n"
-            "  - typography (fontFamily + textSize â€” inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
-            "  - border radius (0 vs 8 vs 16 vs 24)\n"
-            "  - button style (solid vs outline vs ghost vs gradient)\n"
+            "Each candidate MUST follow user requirement:\n"
+            # "  Candidate 0: DARK/NEUTRAL palette - accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
+            # "  Candidate 1: VIBRANT/COLORFUL palette - accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
+            # "  Candidate 2: WARM/EDITORIAL palette - accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
+            "Each candidate MUST also differ in axes that user did not specify:\n"
+            # "  - data section layout (table vs card vs gallery vs list)\n"
+            # "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
+            # "  - page width (contained vs wide vs full)\n"
+            # "  - density (compact vs normal vs spacious)\n"
+            # "  - typography (fontFamily + textSize â€” inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
+            # "  - border radius (0 vs 8 vs 16 vs 24)\n"
+            # "  - button style (solid vs outline vs ghost vs gradient)\n"
             "Every page must have navigation unless user requires otherwise.\n"
-            "Respect the designer prompt - if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary.\n"
+            "Respect the designer prompt. \n"
             "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
             "COLOR SCOPING: Match color changes to their scope - use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region.\n"
-            "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct — do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
+            # "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct — do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
         user_prompt_text = (
@@ -3695,7 +3727,8 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "...", "region.header.bg_hex": "#hex or omit", "region.header.text_hex": "#hex or omit", "region.footer.bg_hex": "#hex or omit", "region.footer.text_hex": "#hex or omit", "region.main.bg_hex": "#hex or omit", "region.sidebar.bg_hex": "#hex or omit", "region.border_hex": "#hex or omit", "component.card.bg_hex": "#hex or omit", "component.card.border_hex": "#hex or omit", "button.primary.bg_hex": "#hex or omit", "button.primary.text_hex": "#hex or omit", "button.secondary.bg_hex": "#hex or omit", "button.secondary.text_hex": "#hex or omit", "button.ghost.text_hex": "#hex or omit", "button.danger.bg_hex": "#hex or omit", "button.link.text_hex": "#hex or omit", "nav.bg_hex": "#hex or omit", "nav.text_hex": "#hex or omit", "table.header.bg_hex": "#hex or omit", "table.header.text_hex": "#hex or omit", "badge.info.bg_hex": "#hex or omit", "text.muted.hex": "#hex or omit"}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}, '
+            f'{_CANDIDATE_TOKENS_EXAMPLE}' + '}]}'
         )
 
         response = client.models.generate_content(
@@ -3769,7 +3802,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
 
         diversity_rules = (
             "Generate exactly 3 meaningfully different refinements of the base candidate.\n"
-            "Each variant MUST differ from the others on at least 2 of these axes:\n"
+            "Each variant MUST differ from the others on axes that user:\n"
             "  - color palette (accentColor, backgroundColor, textColor)\n"
             "  - typography (fontFamily, textSize)\n"
             "  - density (compact vs normal vs spacious)\n"
@@ -3795,7 +3828,8 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
             '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
             '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "...", "region.header.bg_hex": "#hex or omit", "region.header.text_hex": "#hex or omit", "region.footer.bg_hex": "#hex or omit", "region.footer.text_hex": "#hex or omit", "region.main.bg_hex": "#hex or omit", "region.sidebar.bg_hex": "#hex or omit", "region.border_hex": "#hex or omit", "component.card.bg_hex": "#hex or omit", "component.card.border_hex": "#hex or omit", "button.primary.bg_hex": "#hex or omit", "button.primary.text_hex": "#hex or omit", "button.secondary.bg_hex": "#hex or omit", "button.secondary.text_hex": "#hex or omit", "button.ghost.text_hex": "#hex or omit", "button.danger.bg_hex": "#hex or omit", "button.link.text_hex": "#hex or omit", "nav.bg_hex": "#hex or omit", "nav.text_hex": "#hex or omit", "table.header.bg_hex": "#hex or omit", "table.header.text_hex": "#hex or omit", "badge.info.bg_hex": "#hex or omit", "text.muted.hex": "#hex or omit"}}]}'
+            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}, '
+            f'{_CANDIDATE_TOKENS_EXAMPLE}' + '}]}'
         )
 
         response = client.models.generate_content(
@@ -3924,6 +3958,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
         "button.primary.bg_hex", "button.primary.text_hex",
         "button.secondary.bg_hex", "button.secondary.text_hex",
         "button.ghost.text_hex", "button.danger.bg_hex", "button.link.text_hex",
+        "input.bg_hex", "input.border_hex", "input.border_focus_hex", "input.text_hex",
         "nav.bg_hex", "nav.text_hex",
         "table.header.bg_hex", "table.header.text_hex",
         "badge.info.bg_hex", "text.muted.hex",
@@ -3935,6 +3970,33 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     text_size = llm_styling.get("textSize") or ""
     if text_size in _TEXT_SIZE_TOKENS:
         tokens.update(_TEXT_SIZE_TOKENS[text_size])
+    tokens["design.variant_index"] = str(index)
+    _expand_design_tokens(tokens)
+    return tokens
+
+
+def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str, index: int) -> dict:
+    """Prefer the LLM's complete top-level tokens; use styling only as a fallback seed."""
+    llm_styling = llm_candidate.get("styling") or {}
+    if isinstance(llm_styling, str):
+        try:
+            llm_styling = json.loads(llm_styling)
+        except Exception:
+            llm_styling = {}
+
+    tokens = _tokens_from_llm_styling(llm_styling, base_tokens, prompt, index)
+    llm_tokens = llm_candidate.get("tokens") or {}
+    if isinstance(llm_tokens, str):
+        try:
+            llm_tokens = json.loads(llm_tokens)
+        except Exception:
+            llm_tokens = {}
+
+    if isinstance(llm_tokens, dict):
+        for key, value in llm_tokens.items():
+            if value is not None and value != "":
+                tokens[str(key)] = value
+
     tokens["design.variant_index"] = str(index)
     _expand_design_tokens(tokens)
     return tokens
@@ -3953,7 +4015,9 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             return "ERROR: Interface has no pages/sections to generate candidates from."
 
         raw_base_tokens = dict(data.get("tokens") or {})
-        base_styling = {**dict(data.get("styling") or {}), **_prompt_styling_overrides(prompt)}
+        # Do not merge regex parser styling overrides here. The LLM candidate
+        # schema should decide fine-grained styling/token values.
+        base_styling = dict(data.get("styling") or {})
 
         llm_candidates = _llm_generate_3_candidates(pages, sections, prompt)
 
@@ -3966,12 +4030,19 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
 
             llm_styling = llm_cand.get("styling") or {}
-            tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, prompt, index)
+            llm_tokens = llm_cand.get("tokens") or {}
+            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, prompt, index)
 
             styling = dict(base_styling or {})
-            for key in ("fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider", "pageMaxWidth", "accentColor", "backgroundColor", "textColor"):
+            for key in (
+                "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
+                "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
+                *_STYLING_TOKEN_KEYS,
+            ):
                 if llm_styling.get(key) is not None:
                     styling[key] = llm_styling[key]
+                elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
+                    styling[key] = llm_tokens[key]
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(prompt, index)
             variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
@@ -4011,7 +4082,9 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             return "ERROR: selected candidate has no pages/sections."
         raw_base_tokens = copy.deepcopy(base.get("tokens") or {})
         base_styling_raw = dict(base.get("styling") or {})
-        base_styling = {**base_styling_raw, **_prompt_styling_overrides(designer_requirements)}
+        # Do not merge regex parser styling overrides here. The LLM candidate
+        # schema should decide fine-grained styling/token values.
+        base_styling = dict(base_styling_raw or {})
 
         llm_candidates = _llm_regenerate_3_candidates(pages, sections, designer_requirements, base_styling_raw)
         if not llm_candidates:
@@ -4024,12 +4097,19 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
             variant_pages, variant_sections = _dedupe_agent_header_shells(variant_pages, variant_sections)
 
             llm_styling = llm_cand.get("styling") or {}
-            tokens = _tokens_from_llm_styling(llm_styling, raw_base_tokens, designer_requirements, index)
+            llm_tokens = llm_cand.get("tokens") or {}
+            tokens = _tokens_from_llm_schema(llm_cand, raw_base_tokens, designer_requirements, index)
 
             styling = dict(base_styling or {})
-            for key in ("fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider", "pageMaxWidth", "accentColor", "backgroundColor", "textColor"):
+            for key in (
+                "fontFamily", "radius", "buttonStyle", "cardHover", "imageRatio", "divider",
+                "pageMaxWidth", "accentColor", "accentSecondary", "backgroundColor", "textColor",
+                *_STYLING_TOKEN_KEYS,
+            ):
                 if llm_styling.get(key) is not None:
                     styling[key] = llm_styling[key]
+                elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
+                    styling[key] = llm_tokens[key]
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
             variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"

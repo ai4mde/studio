@@ -302,6 +302,11 @@
 {%- set _btn_outline = 'font-semibold px-4 py-2 si-btn border-2 bg-transparent transition-colors hover:bg-opacity-10' %}
 {%- set _btn_ghost  = 'font-semibold px-4 py-2 si-btn bg-transparent hover:bg-gray-100 transition-colors' %}
 {%- set _btn_gradient = 'text-white font-semibold px-4 py-2 si-btn shadow-sm transition-opacity hover:opacity-90' %}
+{%- set _all_page_names = [] %}
+{%- for _known_page in (all_pages or []) %}
+  {%- set _known_name = (_known_page.name if _known_page.name is defined else _known_page)|string %}
+  {%- if _known_name and _known_name not in _all_page_names %}{% set _ = _all_page_names.append(_known_name) %}{%- endif %}
+{%- endfor %}
 {%- macro nav_href_attrs(target_page) -%}
 {%- if target_page == '__task_home__' and preview_mode -%}
 href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate-page',page:'Task'},'*');return false;"
@@ -309,6 +314,8 @@ href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate
 href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ target_page }}'},'*');return false;"
 {%- elif target_page == '__task_home__' -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+{%- elif not target_page or target_page|string not in _all_page_names -%}
+href="#"
 {%- else -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
@@ -454,9 +461,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
-  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+    <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
   </form>
@@ -493,9 +500,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or 'Search…' }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};"><svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);"><svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
   </form>
   <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
     <a href="#" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
@@ -741,9 +748,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 </div>
 <header class="bg-white px-6 py-3 flex items-center gap-4">
   <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ sc.text or sc.display_name }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+    <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
   </form>
@@ -780,9 +787,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endif %}
       <span class="text-2xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;">{{ _brand_name | capitalize }}.</span>
     </a>
-    <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
       <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="Site Navigation" type="search" value="" />
-      <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+      <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
         <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
     </form>
@@ -894,6 +901,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     --button-link-text: {{ tokens.get('button.link.text_hex', tokens.get('accent.hex', '#2563eb')) }};
     --input-bg: {{ tokens.get('input.bg_hex', tokens.get('region.main.bg_hex', '#ffffff')) }};
     --input-border: {{ tokens.get('input.border_hex', tokens.get('region.border_hex', '#e5e7eb')) }};
+    --input-border-focus: {{ tokens.get('input.border_focus_hex', tokens.get('accent.hex', '#2563eb')) }};
     --input-text: {{ tokens.get('input.text_hex', tokens.get('page.body.text_hex', '#111827')) }};
     --table-header-bg: {{ tokens.get('table.header.bg_hex', tokens.get('region.main.bg_sunken_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
     --table-header-text: {{ tokens.get('table.header.text_hex', tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280'))) }};
@@ -921,6 +929,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
   .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
     .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
+    .si-input:focus { outline: none; border-color: var(--input-border-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--input-border-focus) 20%, transparent); }
     .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
     .border-gray-100, .border-gray-200 { border-color: var(--border-color) !important; }
     .border-gray-300, .border-gray-400 { border-color: var(--card-border) !important; }
@@ -1022,9 +1031,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
 {# ── NAVIGATION MACROS ── #}
+{%- set _all_page_names = [] %}
+{%- for _known_page in (all_pages or []) %}
+  {%- set _known_name = (_known_page.name if _known_page.name is defined else _known_page)|string %}
+  {%- if _known_name and _known_name not in _all_page_names %}{% set _ = _all_page_names.append(_known_name) %}{%- endif %}
+{%- endfor %}
 {%- macro nav_href_attrs(target_page) -%}
 {%- if target_page == '__task_home__' -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+{%- elif not target_page or target_page|string not in _all_page_names -%}
+href="#"
 {%- else -%}
 href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
@@ -1411,7 +1427,8 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
   {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
-  {%- set target_page = action.get('targetPage') or section_component.item_click_target_page -%}
+  {%- set raw_target_page = action.get('targetPage') or section_component.item_click_target_page -%}
+  {%- set target_page = raw_target_page if raw_target_page and raw_target_page|string in _all_page_names else None -%}
   {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
   {%- set operation_class = action.get('class') or section_component.primary_model -%}
   {%- set field_name = action.get('field') or attribute -%}
@@ -2100,7 +2117,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _component == 'SearchBar' %}
   {# SearchBar: inline search input + optional secondary filter selects #}
   <form action="#" method="get" class="flex flex-wrap items-center gap-2 {{ d.p }}">
-    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
       <svg class="w-4 h-4 ml-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input name="q" type="search" placeholder="{{ section_component.text or _column_attrs[0] or 'Search…' }}" class="flex-1 px-3 py-2 text-sm outline-none si-input" style="border:none;" />
     </div>
@@ -2111,7 +2128,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <option>Option B</option>
     </select>
     {%- endfor %}
-    <button type="submit" class="shrink-0 px-5 py-2 rounded-full text-sm font-semibold text-white" style="background-color:{{ _accent_hex }};">Search</button>
+    <button type="submit" class="shrink-0 px-5 py-2 rounded-full text-sm font-semibold text-white" style="background-color:var(--input-border-focus);">Search</button>
   </form>
 {%- else %}
   {# FilterPanel: sidebar-style panel with per-field checkbox/range inputs #}
@@ -2294,9 +2311,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 
 {%- elif lay == 'search-bar' %}
-  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+    <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
   </form>
@@ -2361,9 +2378,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <header class="px-5 py-3 flex items-center gap-4">
       <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+        <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
           <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
       </form>
@@ -2425,7 +2442,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- elif eff_lay == "filter" or _glay == "filter" %}
 {%- if _component == 'SearchBar' %}
   <form action="#" method="get" class="flex flex-wrap items-center gap-2 {{ d.p }}">
-    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden {{ cs }}" style="border-color:{{ _accent_hex }};">
+    <div class="flex flex-1 min-w-48 items-center rounded-full border-2 overflow-hidden {{ cs }}" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
       <svg class="w-4 h-4 ml-3 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input name="q" type="search" placeholder="{{ section_component.text or _column_attrs[0] or 'Search…' }}" class="flex-1 px-3 py-2 {{ d.text }} outline-none si-input" style="border:none;" />
     </div>
@@ -3479,9 +3496,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 
 {%- elif lay == 'search-bar' %}
-  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+  <form action="#" method="get" class="flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
     <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
-    <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+    <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
       <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
   </form>
@@ -3552,9 +3569,9 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
     <header class="px-5 py-3 flex items-center gap-4">
       <a href="#" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+      <form action="#" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:var(--input-border-focus);background-color:var(--input-bg);">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none si-input" style="border:none;border-radius:0;" placeholder="{{ section_component.text or section_component.display_name }}" type="search" value="" />
-        <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
+        <button type="submit" class="px-4 py-3" style="background-color:var(--input-border-focus);">
           <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
       </form>

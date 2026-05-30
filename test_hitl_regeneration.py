@@ -4,7 +4,7 @@ import os
 import json
 
 # 设置路径以导入项目内的模块
-sys.path.insert(0, os.path.abspath('api/model/gemini-make-agent'))
+sys.path.insert(0, os.path.abspath('gemini-make-agent'))
 
 from app.agent import candidate_regeneration_agent
 

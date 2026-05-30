@@ -79,7 +79,7 @@ services:
   gemini-make-agent:
     restart: unless-stopped
     build:
-      context: api/model/gemini-make-agent
+      context: gemini-make-agent
     ports:
       - "8081:8080"
     env_file:
@@ -90,9 +90,9 @@ services:
       - ALLOW_ORIGINS=http://ai4mde.localhost
       - SESSION_SERVICE_URI=memory://
     volumes:
-      - ./api/model/gemini-make-agent/app:/code/app:ro
-      - ./api/model/gemini-make-agent/candidate_app:/code/candidate_app:ro
-      - ./api/model/gemini-make-agent/candidate_regeneration_app:/code/candidate_regeneration_app:ro
+      - ./gemini-make-agent/app:/code/app:ro
+      - ./gemini-make-agent/candidate_app:/code/candidate_app:ro
+      - ./gemini-make-agent/candidate_regeneration_app:/code/candidate_regeneration_app:ro
       - ./design_specs:/design_specs:ro
     networks:
       - ai4mde_traefik

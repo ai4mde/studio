@@ -257,9 +257,11 @@ const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
         'region.footer.bg_hex', 'region.footer.text_hex',
         'region.main.bg_hex', 'region.sidebar.bg_hex', 'region.border_hex',
         'component.card.bg_hex', 'component.card.border_hex',
+        'color.secondary.hex',
         'button.primary.bg_hex', 'button.primary.text_hex',
         'button.secondary.bg_hex', 'button.secondary.text_hex',
         'button.ghost.text_hex', 'button.danger.bg_hex', 'button.link.text_hex',
+        'input.bg_hex', 'input.border_hex', 'input.border_focus_hex', 'input.text_hex',
         'nav.bg_hex', 'nav.text_hex',
         'table.header.bg_hex', 'table.header.text_hex',
         'badge.info.bg_hex', 'text.muted.hex',
@@ -276,6 +278,9 @@ const normalizeDesignTokens = (raw: any = {}, styling: any = {}) => {
         : existingAccent;
     if (!accent) return tokens;
     tokens['accent.hex'] = accent;
+    if ((tokens['color.secondary.hex'] == null || tokens['color.secondary.hex'] === '') && styling?.accentSecondary) {
+        tokens['color.secondary.hex'] = styling.accentSecondary;
+    }
     ['region.header.bg_hex', 'region.footer.bg_hex', 'button.primary.bg_hex', 'button.primary.border_hex', 'input.border_focus_hex'].forEach((key) => {
         if (tokens[key] == null || defaultBlues.has(String(tokens[key]))) tokens[key] = accent;
     });

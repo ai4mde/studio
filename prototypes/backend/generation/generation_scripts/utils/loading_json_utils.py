@@ -382,6 +382,27 @@ def make_activity_action_section(application_name: str, page_name: str, label: s
     )
 
 
+def sanitize_page_targets(pages: List[Page]) -> None:
+    valid_page_names = {page.name for page in pages}
+
+    for page in pages:
+        for section_component in page.section_components:
+            if section_component.item_click_target_page and section_component.item_click_target_page not in valid_page_names:
+                section_component.item_click_target_page = None
+                if isinstance(section_component.behavior, dict):
+                    item_click = section_component.behavior.get("item_click")
+                    if isinstance(item_click, dict):
+                        item_click["type"] = "none"
+                        item_click.pop("target_page", None)
+                        item_click.pop("targetPage", None)
+
+            if section_component.workflow_target_page and section_component.workflow_target_page not in valid_page_names:
+                section_component.workflow_target_page = None
+                if isinstance(section_component.workflow, dict):
+                    section_component.workflow.pop("target_page", None)
+                    section_component.workflow.pop("targetPage", None)
+
+
 def make_activity_start_section(application_name: str, page_name: str, section: dict | None = None) -> SectionComponent:
     section = section or {}
     raw_style = section.get("style") or {}
@@ -788,6 +809,7 @@ def get_application_component(project_name: str, application_name: str, metadata
     '''Function that builds an ApplicationComponent object for application_name
     from metadata.'''
     pages = retrieve_pages(application_name=application_name, metadata=metadata)
+    sanitize_page_targets(pages)
     categories = retrieve_categories(application_name=application_name, metadata=metadata)
     settings = retrieve_settings(application_name=application_name, metadata=metadata)
     styling = retrieve_styling(application_name=application_name, metadata=metadata)

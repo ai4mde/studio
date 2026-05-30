@@ -3,7 +3,7 @@ import sys
 import json
 
 # Add the app directory to sys.path
-sys.path.append(os.path.abspath('api/model/gemini-make-agent'))
+sys.path.append(os.path.abspath('gemini-make-agent'))
 
 # Mock or set environment variables if needed
 os.environ['METADATA_API_BASE'] = 'http://localhost:8000/api/v1/metadata'
