@@ -335,6 +335,7 @@ def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
     muted = theme.get("muted", tokens.get("color.text.muted_hex", "#6b7280"))
     on_accent = _text_on_color(accent)
 
+    # Root palette tokens — always forced by the prompt theme
     tokens.update({
         "accent.hex": accent,
         "color.secondary.hex": secondary,
@@ -342,15 +343,19 @@ def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
         "page.bg.hex": page,
         "region.main.bg_hex": surface,
         "region.sidebar.bg_hex": surface,
-        "region.footer.bg_hex": accent,
-        "region.footer.text_hex": on_accent,
         "region.border_hex": border,
         "region.border_strong_hex": border,
         "page.body.text_hex": text,
         "color.text.muted_hex": muted,
+        "design.prompt_color": color_name or "",
+    })
+    # Derived region/component tokens — defer to LLM fine-grained overrides if already set
+    for _k, _v in {
         "region.header.bg_hex": accent,
         "region.header.text_hex": on_accent,
         "region.header.bg": f"bg-[{accent}]",
+        "region.footer.bg_hex": accent,
+        "region.footer.text_hex": on_accent,
         "nav.bg_hex": accent,
         "nav.text_hex": on_accent,
         "button.primary.bg_hex": accent,
@@ -361,8 +366,8 @@ def _apply_prompt_style_overrides(tokens: dict, prompt: str = "") -> dict:
         "input.border_focus_hex": accent,
         "badge.info.bg_hex": accent,
         "badge.info.text_hex": on_accent,
-        "design.prompt_color": color_name or "",
-    })
+    }.items():
+        tokens.setdefault(_k, _v)
     if variant_index in {"1", "2"}:
         if color_name in {"pink", "rose"}:
             accent = {"1": "#be185d", "2": "#ec4899"}[variant_index]
@@ -2970,13 +2975,26 @@ def _norm_candidate_styling(styling, prompt_for_style: str) -> dict:
     return {**styling, **overrides} if overrides else styling
 
 
-def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict) -> dict:
+_STYLING_TOKEN_KEYS = frozenset({
+    "region.header.bg_hex", "region.header.text_hex",
+    "region.footer.bg_hex", "region.footer.text_hex",
+    "region.main.bg_hex", "region.border_hex",
+    "component.card.bg_hex", "component.card.border_hex",
+    "button.primary.bg_hex",
+})
+
+def _norm_candidate_tokens(tokens, prompt_for_style: str, prompt_intent: dict, styling: dict | None = None) -> dict:
     if not tokens:
-        return {}
+        tokens = {}
     if isinstance(tokens, str):
         try: tokens = json.loads(tokens)
-        except Exception: return {}
+        except Exception: tokens = {}
     tokens = dict(tokens)
+    # Pre-populate fine-grained overrides from styling so setdefault in
+    # _apply_prompt_style_overrides can preserve the LLM's independent choices
+    for key in _STYLING_TOKEN_KEYS:
+        if key not in tokens and isinstance(styling, dict) and styling.get(key):
+            tokens[key] = styling[key]
     tokens = _apply_prompt_style_overrides(tokens, prompt_for_style)
     if prompt_intent.get("colorIntent"):
         tokens = {**tokens, **prompt_intent["colorIntent"]}
@@ -3023,13 +3041,13 @@ def validate_and_save_candidate(
         input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
         prompt_for_style = designer_requirements or prompt
         prompt_intent = compile_prompt_intent(prompt_for_style)
-        styling = _norm_candidate_styling(styling, prompt_for_style)
+        styling_dict = _norm_candidate_styling(styling, prompt_for_style)
 
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
         iface_resp.raise_for_status()
         iface = iface_resp.json()
         system_id = iface.get("system")
-        tokens = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent)
+        tokens_d: dict = _norm_candidate_tokens(tokens, prompt_for_style, prompt_intent, styling_dict)
 
         cls_resp = requests.get(f"{METADATA_API_BASE}/systems/{system_id}/classifiers/", headers=_AUTH_HEADERS)
         classifiers_data = cls_resp.json() if cls_resp.ok else {}
@@ -3185,7 +3203,7 @@ def validate_and_save_candidate(
         #     add_missing_content=False,
         # )
         fixed_sections = _apply_nav_methods(fixed_pages, fixed_sections, usecase_navigation)
-        fixed_pages, fixed_sections, tokens, styling = apply_hard_constraints(fixed_pages, fixed_sections, tokens or {}, styling or {}, prompt_intent)
+        fixed_pages, fixed_sections, tokens_d, styling_d = apply_hard_constraints(fixed_pages, fixed_sections, tokens_d or {}, styling_dict or {}, prompt_intent)
         # fixed_pages, fixed_sections = _apply_candidate_region_composition(
         #     fixed_pages, fixed_sections, int(candidate_index or 0), prompt_for_style,
         #     preserve_layout=(derived_from != "" and not _prompt_requests_layout_change(prompt_for_style)),
@@ -3236,7 +3254,7 @@ def validate_and_save_candidate(
             p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
-        canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens or {}, "styling": styling or {}, "prompt_intent": prompt_intent}
+        canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens_d or {}, "styling": styling_d or {}, "prompt_intent": prompt_intent}
         data = dict(iface.get("data") or {})
         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
         candidates = list(data.get("candidates") or [])
@@ -3245,8 +3263,8 @@ def validate_and_save_candidate(
             "pages": fixed_pages, "sections": fixed_sections,
             "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
             "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
-            **({"tokens": tokens} if tokens else {}),
-            **({"styling": styling} if styling else {}),
+            **({"tokens": tokens_d} if tokens_d else {}),
+            **({"styling": styling_d} if styling_d else {}),
         }
         if derived_from != "": candidate["derived_from"] = derived_from
         if designer_requirements: candidate["designer_requirements"] = designer_requirements
@@ -3632,10 +3650,10 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
 
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
-            "MANDATORY color assignment â€” each candidate MUST use a different color family unless user requires otherwise:\n"
-            # "  Candidate 0: DARK/NEUTRAL palette â€” accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
-            # "  Candidate 1: VIBRANT/COLORFUL palette â€” accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
-            # "  Candidate 2: WARM/EDITORIAL palette â€” accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
+            “MANDATORY color assignment â€” each candidate MUST use a different color family unless user requires otherwise:\n”
+            # “  Candidate 0: DARK/NEUTRAL palette â€” accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n”
+            # “  Candidate 1: VIBRANT/COLORFUL palette â€” accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n”
+            # “  Candidate 2: WARM/EDITORIAL palette â€” accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n”
             "Each candidate MUST also differ all of these axes unless user requires otherwise:\n"
             "  - data section layout (table vs card vs gallery vs list)\n"
             "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
@@ -3647,7 +3665,8 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             "Every page must have navigation unless user requires otherwise.\n"
             "Respect the designer prompt - if it specifies a color, apply it to all 3 but still vary backgroundColor/textColor/accentSecondary.\n"
             "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match color changes to their scope - use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region."
+            "COLOR SCOPING: Match color changes to their scope - use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region.\n"
+            "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct — do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
         user_prompt_text = (
@@ -3745,7 +3764,8 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "Preserve the base candidate's section roles and data bindings. "
             "You may change layout/component/position for collection sections (object_collection, child_collection) "
             "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match color changes to their scope — use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region."
+            "COLOR SCOPING: Match color changes to their scope — use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region.\n"
+            "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct — do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
         user_prompt_text = (
