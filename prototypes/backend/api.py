@@ -101,6 +101,15 @@ ROOT_DIR = "/usr/src/prototypes/generated_prototypes"
 RUNNING_PROTOTYPE_PROTO = os.environ.get('RUNNING_PROTOTYPE_PROTO', "http://")
 RUNNING_PROTOTYPE_HOST = os.environ.get('RUNNING_PROTOTYPE_HOST', "prototype.ai4mde.localhost")
 RUNNING_PROTOTYPE_PORT = os.environ.get('RUNNING_PROTOTYPE_PORT', 8020)
+RUNNING_PROTOTYPE_PUBLIC_PROTO = os.environ.get('RUNNING_PROTOTYPE_PUBLIC_PROTO', RUNNING_PROTOTYPE_PROTO)
+RUNNING_PROTOTYPE_PUBLIC_HOST = os.environ.get('RUNNING_PROTOTYPE_PUBLIC_HOST', RUNNING_PROTOTYPE_HOST)
+RUNNING_PROTOTYPE_PUBLIC_PORT = os.environ.get('RUNNING_PROTOTYPE_PUBLIC_PORT', "")
+
+
+def _running_prototype_public_url() -> str:
+    port = str(RUNNING_PROTOTYPE_PUBLIC_PORT or "").strip()
+    suffix = f":{port}" if port else ""
+    return f"{RUNNING_PROTOTYPE_PUBLIC_PROTO}{RUNNING_PROTOTYPE_PUBLIC_HOST}{suffix}"
 
 
 manager = Manager()
@@ -254,8 +263,7 @@ def run_prototype():
     system = data.get('system')
     result, error_code = start_prototype(id, name, system)
     if result:
-        _, port = result
-        return redirect(f"{RUNNING_PROTOTYPE_PROTO}{RUNNING_PROTOTYPE_HOST}:{RUNNING_PROTOTYPE_PORT}", code=307)
+        return redirect(_running_prototype_public_url(), code=307)
     else:
         if error_code == "prototype_dir_not_found":
             abort(404)
@@ -281,6 +289,7 @@ def get_active_prototype():
                 "pid": running_prototype["pid"],
                 "ip": socket.gethostbyname(socket.gethostname()),
                 "port": running_prototype["port"],
+                "url": _running_prototype_public_url(),
                 "system": running_prototype.get("system", ""),
                 "name": running_prototype.get("name", ""),
             }
