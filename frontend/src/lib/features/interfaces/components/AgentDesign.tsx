@@ -150,6 +150,46 @@ const PROMPT_GUIDE_EXAMPLES = [
         prompt: 'Use teal accent, right sidebar navigation, full width main content, table layout, sidebar width 4, make body text 18px.'
     },
     {
+        title: 'Exact Header and Button Colors',
+        prompt: 'Make the header green (#16a34a), primary buttons black (#000000), button text white (#ffffff), navigation teal (#0f766e), footer near-black (#111827), and table headers pale yellow (#fef3c7). Do not change the layout, pages, sections, data fields, actions, or navigation structure.'
+    },
+    {
+        title: 'Precise Region Color Targets',
+        prompt: 'Only change colors. Use a white page background, dark charcoal body text, emerald header background, white header text, black primary buttons, slate secondary buttons, light gray cards, and thin neutral table borders. Keep spacing, section placement, widths, typography scale, and all content the same.'
+    },
+    {
+        title: 'Header Only Color Change',
+        prompt: 'Only change the header styling. Make the header background forest green (#166534), header text white (#ffffff), and header navigation links light mint (#dcfce7). Keep buttons, cards, tables, footer, layout, widths, and content unchanged.'
+    },
+    {
+        title: 'Button Only Color Change',
+        prompt: 'Only change button colors. Make primary buttons black (#000000) with white text (#ffffff), secondary buttons white with black text and a light gray border, and link buttons dark teal. Do not change headers, tables, cards, spacing, layout, or page structure.'
+    },
+    {
+        title: 'Table Color Targets',
+        prompt: 'Only update table styling. Use pale yellow table headers (#fef3c7), dark slate table header text (#1f2937), neutral table borders (#d1d5db), and white table rows. Keep all columns, filters, actions, layout, and surrounding sections the same.'
+    },
+    {
+        title: 'Dark Header and Footer',
+        prompt: 'Make the header and footer near-black (#111827) with white text. Keep the main page background white, cards light gray, primary buttons black, and table headers neutral light gray. Do not change the page layout or remove any sections.'
+    },
+    {
+        title: 'Green Header, Black Buttons Smoke Test',
+        prompt: 'Test color rendering with a green header (#16a34a), black primary buttons (#000000), white button text (#ffffff), teal navigation (#0f766e), near-black footer (#111827), and pale yellow table headers (#fef3c7). Preserve the existing layout exactly.'
+    },
+    {
+        title: 'Named Colors Without Hex',
+        prompt: 'Use a green header, black primary buttons, white button text, teal navigation, light gray cards, and pale yellow table headers. Keep the layout and all page content unchanged.'
+    },
+    {
+        title: 'Brand Palette Across Regions',
+        prompt: 'Apply this brand palette without changing structure: emerald header, teal navigation, black primary buttons, slate secondary buttons, white content background, light gray cards, pale yellow table headers, and near-black footer. Preserve all pages, fields, actions, and section placement.'
+    },
+    {
+        title: 'Remove Purple and Green Defaults',
+        prompt: 'Do not use purple buttons or generic green accents. Use black primary buttons, neutral gray borders, white cards, a teal navigation bar, and a dark charcoal footer. Keep the current layout and content.'
+    },
+    {
         title: 'Amber Form with Larger Type',
         prompt: 'Change to amber accent, compact form layout, wide main content, larger font size, extra large titles.'
     },
