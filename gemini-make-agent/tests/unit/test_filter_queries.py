@@ -1,7 +1,9 @@
 """Unit tests for _resolve_filter_field and _apply_section_query from query_helpers."""
 import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../../../prototypes/backend/generation/templates/helpers'))
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "prototypes/backend/generation/templates/helpers"))
 from query_helpers import _resolve_filter_field, _apply_section_query
 
 

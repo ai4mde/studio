@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+import pytest
+
+if os.environ.get("ADK_STUBBED_FOR_TESTS") == "1":
+    pytest.skip("google-adk is not installed in this environment", allow_module_level=True)
+
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService

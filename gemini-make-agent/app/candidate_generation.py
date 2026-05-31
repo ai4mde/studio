@@ -33,7 +33,7 @@ from .section_utils import (
     _page_type_value,
     _ref_id,
 )
-from .token_normalizer import _expand_design_tokens, _prompt_scoped_color_overrides
+from .token_normalizer import _expand_design_tokens
 from .usecase_workflow import _build_usecase_navigation
 from .metadata_context import _actor_name_from_context, _fetch_system_context_data
 from .candidate_defaults import (
@@ -493,7 +493,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             "Every page must have navigation unless user requires otherwise.\n"
             "Respect the designer prompt. \n"
             "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match color changes to their scope - use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region.\n"
+            "COLOR SCOPING: Match color changes to their exact scope. If the prompt says 'green accent', set styling.accentColor and tokens['accent.hex'] to green. If the prompt separately says 'purple button/buttons', set tokens['button.primary.bg_hex'] and tokens['button.primary.border_hex'] to purple, even when accentColor is a different color. Do not make all tokens the same color unless the user explicitly asks for a monochrome theme. Use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background, and input.bg_hex/input.border_focus_hex for search or input fields.\n"
             # "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct Ã¢â‚¬â€ do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
@@ -588,7 +588,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "Preserve the base candidate's section roles and data bindings. "
             "You may change layout/component/position for collection sections (object_collection, child_collection) "
             "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match color changes to their scope Ã¢â‚¬â€ use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background. Only change accentColor when buttons/brand/primary color is explicitly the target. Never use accentColor to color a single region.\n"
+            "COLOR SCOPING: Match color changes to their exact scope. If the prompt says 'green accent', set styling.accentColor and tokens['accent.hex'] to green. If the prompt separately says 'purple button/buttons', set tokens['button.primary.bg_hex'] and tokens['button.primary.border_hex'] to purple, even when accentColor is a different color. Do not make all tokens the same color unless the user explicitly asks for a monochrome theme. Use region.header.bg_hex for header, region.footer.bg_hex for footer, backgroundColor for page background, and input.bg_hex/input.border_focus_hex for search or input fields.\n"
             "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct Ã¢â‚¬â€ do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
@@ -766,9 +766,6 @@ def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str,
             if value is not None and value != "":
                 tokens[str(key)] = value
 
-    # The LLM owns the candidate schema, but explicit scoped color requests
-    # such as "header blue, search bar green, button pink" are hard constraints.
-    tokens.update(_prompt_scoped_color_overrides(prompt))
     tokens["design.variant_index"] = str(index)
     _expand_design_tokens(tokens)
     return tokens
@@ -815,8 +812,6 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
-            for key, value in _prompt_scoped_color_overrides(prompt).items():
-                styling[key] = value
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(prompt, index)
             variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
@@ -884,8 +879,6 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
-            for key, value in _prompt_scoped_color_overrides(designer_requirements).items():
-                styling[key] = value
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
             variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"

@@ -456,15 +456,15 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
             "region.footer.text_hex": on_color,
             "nav.bg_hex": color_hex,
             "nav.text_hex": on_color,
-            "button.primary.bg_hex": color_hex,
-            "button.primary.border_hex": color_hex,
-            "button.primary.text_hex": on_color,
             "input.border_focus_hex": color_hex,
-            "button.ghost.text_hex": color_hex,
-            "button.link.text_hex": color_hex,
             "badge.info.bg_hex": color_hex,
             "badge.info.text_hex": on_color,
         })
+        overrides.setdefault("button.primary.bg_hex", color_hex)
+        overrides.setdefault("button.primary.border_hex", color_hex)
+        overrides.setdefault("button.primary.text_hex", on_color)
+        overrides.setdefault("button.ghost.text_hex", color_hex)
+        overrides.setdefault("button.link.text_hex", color_hex)
 
 def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
     text = str(prompt or "").lower()
@@ -506,16 +506,22 @@ def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
         ("link", ("link", "links")),
         ("badge", ("badge", "tag", "pill")),
     )
+    clauses = [c.strip() for c in re.split(r"[,.;\n]|(?:\s+\b(?:and|but|while|whereas)\b\s+)", text) if c.strip()]
     for scope, terms in direct_scopes:
         target_words = "|".join(re.escape(term) for term in terms)
-        for pattern in (
-            rf"\b(?:make|set|turn|use)?\s*(?:the\s+)?(?:{target_words})s?\s+(?:bar\s+)?(?:to\s+|as\s+)?(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
-            rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\s+(?:{target_words})s?\b",
-        ):
-            match = re.search(pattern, text)
-            if match:
-                color_name = match.group("color")
-                _apply_scoped_color(overrides, scope, color_name, _color_word_to_hex(color_name))
+        matched = False
+        for clause in clauses:
+            for pattern in (
+                rf"\b(?:make|set|turn|use)?\s*(?:the\s+)?(?:{target_words})s?\s+(?:bar\s+)?(?:to\s+|as\s+)?(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
+                rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\s+(?:{target_words})s?\b",
+            ):
+                match = re.search(pattern, clause)
+                if match:
+                    color_name = match.group("color")
+                    _apply_scoped_color(overrides, scope, color_name, _color_word_to_hex(color_name))
+                    matched = True
+                    break
+            if matched:
                 break
 
     for scope, terms in scopes:

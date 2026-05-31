@@ -52,9 +52,9 @@ def test_apply_interface_patch_with_attributes_and_query():
         # Verify the payload sent to PUT
         args, kwargs = mock_put.call_args
         payload = kwargs["json"]
-        # FK fields must use correct names (system / actor, not system_id / actor_id)
-        assert "system" in payload and "system_id" not in payload
-        assert "actor" in payload and "actor_id" not in payload
+        # Metadata API accepts FK ids in the update payload.
+        assert payload["system_id"] == "sys-uuid"
+        assert payload["actor_id"] == "actor-uuid"
 
         sent_data = payload["data"]
         section = sent_data["sections"][0]

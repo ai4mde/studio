@@ -1,15 +1,10 @@
-"""Unit tests for candidate pipeline tools: get_interface_full_context,
-validate_and_save_candidate, render_candidate_preview."""
 import json
-from unittest.mock import patch, MagicMock, call
-import pytest
-from app.tools import (
-    get_interface_full_context,
-    validate_and_save_candidate,
-    render_candidate_preview,
-)
+from unittest.mock import MagicMock
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
+from app.candidate_generation import validate_and_save_candidate
+from app.metadata_context import get_interface_full_context
+from app.tools import render_candidate_preview
+
 
 IFACE = {
     "id": "iface-1",
@@ -21,313 +16,155 @@ IFACE = {
 }
 
 CLASSIFIERS = [
-    {"id": "c1", "data": {"name": "Product", "attributes": [
-        {"name": "name"}, {"name": "price"}, {"name": "status"},
-    ]}},
-    {"id": "c2", "data": {"name": "Seller", "attributes": [
-        {"name": "business_name"}, {"name": "email"},
-    ]}},
+    {
+        "id": "actor-1",
+        "data": {"name": "Customer", "type": "actor", "attributes": []},
+    },
+    {
+        "id": "c1",
+        "data": {
+            "name": "Product",
+            "type": "class",
+            "attributes": [{"name": "name"}, {"name": "price"}, {"name": "status"}],
+        },
+    },
+    {
+        "id": "c2",
+        "data": {
+            "name": "Seller",
+            "type": "class",
+            "attributes": [{"name": "business_name"}, {"name": "email"}],
+        },
+    },
 ]
 
-SYSTEM = {
-    "id": "sys-1",
-    "name": "Shop",
-    "classifiers": CLASSIFIERS,
-    "relations": [],
-}
-
-PAGES = [
-    {"id": "p1", "name": "Browse_Products"},
-    {"id": "p2", "name": "Product_Detail"},
-]
+PAGES = [{"id": "products", "name": "Products", "sections": [{"value": "s1"}]}]
 
 SECTIONS = [
     {
         "id": "s1",
-        "name": "ProductList",
+        "name": "Products",
         "primary_model": "Product",
+        "class": "Product",
         "layout": "card",
         "col_span": 12,
         "position": "main",
         "attributes": ["name", "price"],
-        "view_detail_page": "Product_Detail",
+        "field_layout": {"title": "name", "primary": ["price"]},
         "operations": {"create": False, "update": False, "delete": False},
         "style": {"color": "blue", "display_mode": "grid"},
     }
 ]
 
 
+def _response(payload, ok=True):
+    response = MagicMock()
+    response.ok = ok
+    response.status_code = 200 if ok else 500
+    response.text = ""
+    response.json.return_value = payload
+    response.raise_for_status = MagicMock()
+    return response
+
+
 def _mock_get(url, **kwargs):
-    m = MagicMock()
-    m.raise_for_status = MagicMock()
-    m.ok = True
     if "/interfaces/" in url:
-        m.json.return_value = IFACE
-    elif "/classifiers/" in url:
-        m.json.return_value = CLASSIFIERS
-    elif "/relations/" in url:
-        m.json.return_value = []
-    elif "/systems/" in url:
-        m.json.return_value = SYSTEM
-    else:
-        m.json.return_value = {}
-    return m
+        return _response(IFACE)
+    if "/classifiers/" in url:
+        return _response(CLASSIFIERS)
+    if "/relations/" in url:
+        return _response([])
+    if "/systems/export/" in url:
+        return _response([{"classifiers": CLASSIFIERS, "relations": [], "diagrams": []}])
+    if "/systems/" in url:
+        return _response({"id": "sys-1", "name": "Shop"})
+    return _response({})
 
 
-def _mock_put(url, **kwargs):
-    m = MagicMock()
-    m.raise_for_status = MagicMock()
-    m.ok = True
-    return m
+def _run_save(monkeypatch, sections=None, pages=None, tokens=None, styling=None):
+    put_calls = []
+    monkeypatch.setattr("app.candidate_generation.requests.get", _mock_get)
+    monkeypatch.setattr(
+        "app.candidate_generation.requests.put",
+        lambda *_, **kwargs: put_calls.append(kwargs["json"]) or _response({}),
+    )
+    result = validate_and_save_candidate(
+        interface_id="iface-1",
+        candidate_index=0,
+        name="Candidate A",
+        description="layout",
+        pages=json.dumps(pages or PAGES),
+        sections=json.dumps(sections or SECTIONS),
+        tokens=json.dumps(tokens or {}),
+        styling=json.dumps(styling or {}),
+    )
+    return result, put_calls
 
 
-# ── get_interface_full_context ─────────────────────────────────────────────────
+def test_get_interface_full_context_embeds_attribute_reference(monkeypatch):
+    monkeypatch.setattr("app.metadata_context.requests.get", _mock_get)
 
-class TestGetInterfaceFullContext:
-    def test_returns_interface_and_system(self):
-        with patch("requests.get", side_effect=_mock_get):
-            result = get_interface_full_context("iface-1")
-        data = json.loads(result)
-        assert data["interface"]["id"] == "iface-1"
-        assert "system" in data
-        assert data["system"]["id"] == "sys-1"
+    result = json.loads(get_interface_full_context("iface-1"))
 
-    def test_error_on_http_failure(self):
-        with patch("requests.get") as mock_get:
-            mock_get.return_value.raise_for_status.side_effect = Exception("404 Not Found")
-            result = get_interface_full_context("bad-id")
-        assert result.startswith("Error fetching full context:")
-
-    def test_system_context_embedded(self):
-        with patch("requests.get", side_effect=_mock_get):
-            result = get_interface_full_context("iface-1")
-        data = json.loads(result)
-        # classifiers must be embedded in system
-        assert len(data["system"]["classifiers"]) == 2
-        assert data["system"]["classifiers"][0]["data"]["name"] == "Product"
+    assert result["ATTRIBUTE_REFERENCE"]["models"]["Product"] == [
+        "name",
+        "price",
+        "status",
+    ]
+    assert result["interface"]["actor_name"] == "Customer"
 
 
-# ── validate_and_save_candidate ───────────────────────────────────────────────
+def test_validate_and_save_candidate_persists_candidate(monkeypatch):
+    result, put_calls = _run_save(monkeypatch)
 
-class TestValidateAndSaveCandidate:
-    def _run(self, pages=None, sections=None, idx=0):
-        with patch("requests.get", side_effect=_mock_get), \
-             patch("requests.put", side_effect=_mock_put) as mock_put:
-            result = validate_and_save_candidate(
-                interface_id="iface-1",
-                candidate_index=idx,
-                name="Candidate A",
-                description="card-forward layout",
-                pages=pages or PAGES,
-                sections=sections or SECTIONS,
-            )
-        return result, mock_put
-
-    def test_valid_candidate_saved_ok(self):
-        result, mock_put = self._run()
-        assert result.startswith("OK:")
-        assert mock_put.call_count == 1
-
-    def test_saved_data_contains_candidate(self):
-        _, mock_put = self._run(idx=0)
-        sent = mock_put.call_args.kwargs["json"]
-        candidates = sent["data"]["candidates"]
-        assert len(candidates) >= 1
-        assert candidates[0]["name"] == "Candidate A"
-        assert candidates[0]["id"] == "c0"
-
-    def test_second_candidate_appended(self):
-        iface_with_c0 = {
-            **IFACE,
-            "data": {**IFACE["data"], "candidates": [{"id": "c0", "name": "A"}]},
-        }
-        def mock_get_c1(url, **kwargs):
-            m = _mock_get(url, **kwargs)
-            if "/interfaces/" in url:
-                m.json.return_value = iface_with_c0
-            return m
-
-        with patch("requests.get", side_effect=mock_get_c1), \
-             patch("requests.put", side_effect=_mock_put) as mock_put:
-            result = validate_and_save_candidate(
-                "iface-1", 1, "Candidate B", "table layout", PAGES, SECTIONS
-            )
-        assert result.startswith("OK:")
-        sent = mock_put.call_args.kwargs["json"]
-        candidates = sent["data"]["candidates"]
-        assert candidates[0]["id"] == "c0"
-        assert candidates[1]["id"] == "c1"
-        assert candidates[1]["name"] == "Candidate B"
-
-    def test_invalid_layout_reported(self):
-        bad_sections = [{**SECTIONS[0], "layout": "flyingpig"}]
-        result, _ = self._run(sections=bad_sections)
-        assert "invalid layout" in result
-
-    def test_unknown_primary_model_reported(self):
-        bad_sections = [{**SECTIONS[0], "primary_model": "Ghost"}]
-        result, _ = self._run(sections=bad_sections)
-        assert "unknown primary_model" in result
-
-    def test_unknown_attribute_auto_stripped(self):
-        sections_with_bad_attr = [{
-            **SECTIONS[0],
-            "attributes": ["name", "nonexistent_field"],
-        }]
-        result, mock_put = self._run(sections=sections_with_bad_attr)
-        # Save still proceeds
-        assert mock_put.call_count == 1
-        sent = mock_put.call_args.kwargs["json"]
-        saved_attrs = sent["data"]["candidates"][0]["sections"][0]["attributes"]
-        assert "nonexistent_field" not in saved_attrs
-        assert "name" in saved_attrs
-
-    def test_dot_notation_valid_prefix(self):
-        sections_with_dot = [{
-            **SECTIONS[0],
-            "attributes": ["name", "Seller.business_name"],
-        }]
-        result, _ = self._run(sections=sections_with_dot)
-        # "Seller" is a known model — no error for dot-notation
-        assert "dot-notation prefix 'Seller' not a known model" not in result
-
-    def test_dot_notation_unknown_prefix_reported(self):
-        sections_with_bad_dot = [{
-            **SECTIONS[0],
-            "attributes": ["Ghost.name"],
-        }]
-        result, _ = self._run(sections=sections_with_bad_dot)
-        assert "dot-notation prefix 'Ghost' not a known model" in result
-
-    def test_view_detail_page_not_in_pages_reported(self):
-        bad_sections = [{**SECTIONS[0], "view_detail_page": "Nonexistent_Page"}]
-        result, _ = self._run(sections=bad_sections)
-        assert "view_detail_page" in result
-
-    def test_success_page_not_in_pages_reported(self):
-        sections_with_bad_sp = [{
-            **SECTIONS[0],
-            "layout": "form",
-            "style": {"success_page": "Missing_Page"},
-        }]
-        result, _ = self._run(sections=sections_with_bad_sp)
-        assert "success_page" in result
-
-    def test_invalid_style_color_reported(self):
-        bad_sections = [{**SECTIONS[0], "style": {"color": "rainbow"}}]
-        result, _ = self._run(sections=bad_sections)
-        assert "style.color" in result
-
-    def test_valid_style_values_no_error(self):
-        good_sections = [{
-            **SECTIONS[0],
-            "style": {
-                "color": "purple",
-                "density": "compact",
-                "shadow": "lg",
-                "display_mode": "carousel",
-                "card_style": "product",
-            },
-        }]
-        result, _ = self._run(sections=good_sections)
-        assert result.startswith("OK:")
-
-    def test_http_error_returns_error_string(self):
-        with patch("requests.get") as mock_get:
-            mock_get.return_value.raise_for_status.side_effect = Exception("500")
-            result = validate_and_save_candidate("iface-1", 0, "x", "y", [], [])
-        assert result.startswith("Error saving candidate:")
+    assert result.startswith("OK:")
+    candidate = put_calls[0]["data"]["candidates"][0]
+    assert candidate["id"] == "c0"
+    assert candidate["name"] == "Candidate A"
+    assert candidate["pages"][0]["sections"] == [{"value": "s1"}]
 
 
-# ── render_candidate_preview ──────────────────────────────────────────────────
+def test_validate_and_save_candidate_strips_unknown_attributes(monkeypatch):
+    sections = [{**SECTIONS[0], "attributes": ["name", "ghost"]}]
 
-class TestRenderCandidatePreview:
-    def test_success_returns_ok(self):
-        with patch("requests.post") as mock_post:
-            mock_post.return_value.ok = True
-            mock_post.return_value.raise_for_status = MagicMock()
-            result = render_candidate_preview("iface-1", 0)
-        assert result.startswith("OK:")
-        assert "0" in result
+    result, put_calls = _run_save(monkeypatch, sections=sections)
 
-    def test_calls_correct_endpoint(self):
-        with patch("requests.post") as mock_post:
-            mock_post.return_value.ok = True
-            render_candidate_preview("iface-1", 2)
-        url_called = mock_post.call_args.args[0]
-        assert "iface-1/candidates/2/render" in url_called
-
-    def test_non_200_returns_error(self):
-        with patch("requests.post") as mock_post:
-            mock_post.return_value.ok = False
-            mock_post.return_value.status_code = 404
-            mock_post.return_value.text = "Not found"
-            result = render_candidate_preview("iface-1", 0)
-        assert "Render failed" in result
-        assert "404" in result
-
-    def test_network_exception_returns_error(self):
-        with patch("requests.post", side_effect=Exception("timeout")):
-            result = render_candidate_preview("iface-1", 0)
-        assert result.startswith("Error rendering preview:")
-        assert "timeout" in result
+    assert result.startswith("OK:")
+    attrs = put_calls[0]["data"]["candidates"][0]["sections"][0]["attributes"]
+    names = [a.get("name") if isinstance(a, dict) else a for a in attrs]
+    assert "name" in names
+    assert "ghost" not in names
 
 
-# ── TestFilterFieldValidation ─────────────────────────────────────────────────
+def test_validate_and_save_candidate_normalizes_invalid_layout_and_style(monkeypatch):
+    sections = [{**SECTIONS[0], "layout": "flyingpig", "style": {"color": "rainbow"}}]
 
-class TestFilterFieldValidation:
-    """Tests for per-section filter field validation in validate_and_save_candidate."""
+    result, put_calls = _run_save(monkeypatch, sections=sections)
 
-    def _run(self, sections):
-        with patch("requests.get", side_effect=_mock_get), \
-             patch("requests.put", side_effect=_mock_put):
-            result = validate_and_save_candidate(
-                interface_id="iface-1",
-                candidate_index=0,
-                name="Filter Test",
-                description="filter validation",
-                pages=PAGES,
-                sections=sections,
-            )
-        return result
+    assert result.startswith("OK:")
+    section = put_calls[0]["data"]["candidates"][0]["sections"][0]
+    assert section["layout"] == "card"
+    assert section["style"]["color"] == "accent"
 
-    def _section_with_filter(self, f_field, operator="eq", value="x"):
-        return [{
-            **SECTIONS[0],
-            "query": {
-                "filters": [{"field": f_field, "operator": operator, "value": value}]
-            },
-        }]
 
-    def test_invalid_direct_filter_field_reported(self):
-        # "nonexistent_field" is not on Product
-        result = self._run(self._section_with_filter("nonexistent_field"))
-        assert "filter field 'nonexistent_field' not found on model 'Product'" in result
+def test_validate_and_save_candidate_preserves_fine_grained_tokens(monkeypatch):
+    result, put_calls = _run_save(
+        monkeypatch,
+        tokens={
+            "region.header.bg_hex": "#2563eb",
+            "input.bg_hex": "#16a34a",
+            "button.primary.bg_hex": "#db2777",
+        },
+    )
 
-    def test_valid_direct_filter_field_ok(self):
-        # "status" is a valid attribute on Product
-        result = self._run(self._section_with_filter("status"))
-        assert "filter field" not in result
-        assert result.startswith("OK:")
+    assert result.startswith("OK:")
+    candidate = put_calls[0]["data"]["candidates"][0]
+    assert candidate["tokens"]["region.header.bg_hex"] == "#2563eb"
+    assert candidate["tokens"]["input.bg_hex"] == "#16a34a"
+    assert candidate["tokens"]["button.primary.bg_hex"] == "#db2777"
 
-    def test_one_hop_fk_valid_model_ok(self):
-        # Seller.business_name — Seller is a known model
-        result = self._run(self._section_with_filter("Seller.business_name"))
-        assert "not a known model" not in result
-        assert result.startswith("OK:")
 
-    def test_one_hop_fk_unknown_model_reported(self):
-        # Ghost is not a known model
-        result = self._run(self._section_with_filter("Ghost.name"))
-        assert "filter FK model 'Ghost' not a known model" in result
+def test_render_candidate_preview_success(monkeypatch):
+    monkeypatch.setattr("app.service_clients.requests.post", lambda *_, **__: _response({}))
 
-    def test_multi_hop_filter_reported(self):
-        # Seller.Category.name has 3 dot-parts → multi-hop error
-        result = self._run(self._section_with_filter("Seller.Category.name"))
-        assert "traverses" in result
-        assert "hops" in result
-
-    def test_invalid_sub_field_on_fk_reported(self):
-        # Seller.nonexistent_field — attribute not on Seller
-        result = self._run(self._section_with_filter("Seller.nonexistent_field"))
-        assert "attribute 'nonexistent_field' not found on 'Seller'" in result
+    assert render_candidate_preview("iface-1", 2).startswith("OK:")

@@ -1,10 +1,11 @@
 import os
 import sys
 import json
+from pathlib import Path
 from unittest.mock import MagicMock
 
 # Setup paths
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
+PROJECT_ROOT = str(Path(__file__).resolve().parents[3])
 GEN_SCRIPTS_PATH = os.path.join(PROJECT_ROOT, "prototypes/backend/generation/generation_scripts")
 sys.path.insert(0, GEN_SCRIPTS_PATH)
 
@@ -108,7 +109,7 @@ def test_view_generation_with_multi_class():
         content = f.read()
         
     # Assertions
-    assert "select_related('seller')" in content, "Should have optimized query with select_related"
+    assert "_safe_select_related(qs, 'seller')" in content, "Should optimize nested fields safely"
     assert "fields = ['name']" in content, "Create/UpdateView fields should NOT include dot-notation attributes"
     assert "getattr(self.object, 'seller.business_name'" not in content, "Should NOT attempt standard getattr on nested path in UpdateView post"
     

@@ -26,6 +26,9 @@ import pytest
 import requests
 from requests.exceptions import RequestException
 
+if os.environ.get("ADK_STUBBED_FOR_TESTS") == "1":
+    pytest.skip("google-adk is not installed in this environment", allow_module_level=True)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
