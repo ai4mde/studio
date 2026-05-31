@@ -33,8 +33,8 @@ position: "main"|"sidebar"|"header"|"hero"|"footer"
 col_span: 12|6|4|3
 
 style (include only relevant keys):
-  color: "accent"|"accent-secondary"|"blue"|"green"|"purple"|"orange"|"rose"|"slate"
-         (use "accent" for all data sections; use specific colors for chrome/decorative)
+  color: "accent"|"accent-secondary"|"neutral"
+         (semantic token alias only; exact colors belong in top-level tokens)
   density: "compact"|"normal"|"spacious"
   columns: "1"|"2"|"3"|"4"          (card/gallery only)
   display_mode: "grid"|"carousel"|"banner"  (card only)
@@ -99,7 +99,7 @@ divider: "none"|"line"|"shadow"|"wave"
 pageMaxWidth: "sm"|"md"|"lg"|"xl"|"2xl"|"full"
 
 Fine-grained color overrides (hex Ã¢â‚¬â€ set independently from accentColor/backgroundColor to establish visual hierarchy):
-  region.header.bg_hex: hex Ã¢â‚¬â€ header bar background (default = accentColor; MUST differ from accentColor per COLOR HIERARCHY rule)
+  region.header.bg_hex: hex Ã¢â‚¬â€ header bar background
   region.header.text_hex: hex Ã¢â‚¬â€ header text/icon color (default = auto contrast on header bg)
   region.footer.bg_hex: hex Ã¢â‚¬â€ footer background (default = backgroundColor)
   region.footer.text_hex: hex Ã¢â‚¬â€ footer text color
@@ -143,7 +143,7 @@ activity_action/activity_start/activity_tasks Ã¢â€ â€™ keep layout un
 - hero sections Ã¢â€ â€™ position="hero", col_span=12
 - sidebar sections Ã¢â€ â€™ must include style.sidebar_side and style.sidebar_width
 - Every page MUST have navigation (header nav OR sidebar NavBar)
-- Data sections: color="accent" unless the design direction specifies otherwise
+- Data sections: omit style.color or use a semantic token alias only; exact colors belong in top-level tokens.
 - Activity chrome (activity_action/activity_start/activity_tasks): keep layout as-is; content sections: infer layout from step name
 """
 
@@ -205,7 +205,7 @@ Static online image URLs:
 _CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
 
 {_LAYOUT_SCHEMA}
-- 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, accent color
+- 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, or component treatment
 - Every candidate MUST include a top-level tokens object. tokens is the source of truth for exact colors/typography used by rendering.
 - styling is a compact human-readable style summary; tokens must contain the complete concrete values for fine-grained rendering.
 """

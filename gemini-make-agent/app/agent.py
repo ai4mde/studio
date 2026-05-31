@@ -190,13 +190,11 @@ IMAGE URL RULE: If the user wants an online/static image or asks to display pict
 â”â”â” STEP 3 â€” EXECUTE â”â”â”
 1. Call get_interface_config(interface_id) to verify current section IDs and token state.
 2. Check design tokens (data.tokens):
-   - If tokens are EMPTY/NULL (first-time edit) OR user requested a theme/style change:
-     a. If the user names a color such as purple, violet, blue, green, orange, rose, pink, red, dark, black, or slate,
-        that color request is mandatory and must be reflected in tokens/accent/nav/button colors.
-     b. If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
+   - If tokens are EMPTY/NULL (first-time edit) OR user requested a theme/style change, let the model choose or update the design tokens needed for the requested style.
+   - If ONLY a style/theme change was requested and no layout changes are needed, STOP here.
 3. Call apply_interface_patch exactly once with the complete patch derived from <plan>.
    - Attribute names: use ONLY names from classifier_fields verified in STEP 1.
-   - style.color must be "accent" for all data sections (inherits brand color from spec).
+   - For data sections, keep style.color consistent with the chosen design tokens unless the user explicitly asks for section-level color differences.
    - ENSURE UI COMPLETENESS only for broad/full-page generation requests. For surgical edits/additive content requests, do not add Header/Nav/Footer.
    - To layout in the editor, patch sections[].position, sections[].layout, sections[].col_span, sections[].min_height,
      and pages[].sections order. Header/footer/sidebar are normal editable regions.

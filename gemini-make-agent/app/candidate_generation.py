@@ -46,6 +46,29 @@ from .mapping_sections import (
     _ensure_usecase_pages,
 )
 
+_PROMPT_COLOR_RE = re.compile(
+    r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b|"
+    r"\b(?:purple|violet|indigo|blue|sky|cyan|aqua|teal|turquoise|green|emerald|lime|"
+    r"yellow|amber|gold|orange|rose|pink|red|navy|brown|beige|tan|cream|dark|black|"
+    r"slate|zinc|neutral|gray|grey|white)\b|"
+    r"[紫蓝藍绿綠青靛橙粉红紅白黑灰棕米金黄黃]",
+    re.I,
+)
+
+
+def _prompt_mentions_color(prompt: str = "") -> bool:
+    return bool(_PROMPT_COLOR_RE.search(str(prompt or "")))
+
+
+def _neutral_candidate_label(label: str, prompt: str, fallback: str) -> str:
+    """Avoid color-led candidate labels unless the designer explicitly asked for color."""
+    text = str(label or "").strip()
+    if not text:
+        return fallback
+    if _prompt_mentions_color(prompt):
+        return text
+    return fallback if _PROMPT_COLOR_RE.search(text) else text
+
 
 def _norm_candidate_styling(styling) -> dict:
     if styling:
@@ -235,7 +258,7 @@ def validate_and_save_candidate(
         for s in fixed_sections:
             if s.get("layout") in _DATA_SECTION_LAYOUTS:
                 style = dict(s.get("style") or {})
-                if not style.get("color") or style["color"] in {"blue", "green", "purple"}:
+                if not style.get("color"):
                     style["color"] = "accent"; s["style"] = style
 
         # Normalize pages
@@ -310,6 +333,9 @@ def validate_and_save_candidate(
         data = dict(iface.get("data") or {})
         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
         candidates = list(data.get("candidates") or [])
+        label_prompt = prompt or designer_requirements
+        name = _neutral_candidate_label(name, label_prompt, _candidate_variant_name(label_prompt, candidate_index))
+        variation_strategy = _neutral_candidate_label(variation_strategy, label_prompt, name)
         candidate = {
             "id": f"c{candidate_index}", "name": name, "description": description,
             "pages": fixed_pages, "sections": fixed_sections,
@@ -479,9 +505,6 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         diversity_rules = (
             "Generate exactly 3 structurally and visually distinct candidates.\n"
             "Each candidate MUST follow user requirement:\n"
-            # "  Candidate 0: DARK/NEUTRAL palette - accentColor from #1e293b #0f172a #1d4ed8 #0369a1 #1e3a5f; backgroundColor #0f172a or #111827; textColor #f1f5f9\n"
-            # "  Candidate 1: VIBRANT/COLORFUL palette - accentColor from #7c3aed #0891b2 #059669 #dc2626 #d97706; backgroundColor #ffffff or #f8fafc; textColor #111827\n"
-            # "  Candidate 2: WARM/EDITORIAL palette - accentColor from #ea580c #d97706 #be185d #9333ea #b45309; backgroundColor #fffbeb or #fdf4ff or #fff7ed; textColor #1c1917\n"
             "Each candidate MUST also differ in axes that user did not specify:\n"
             # "  - data section layout (table vs card vs gallery vs list)\n"
             # "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
@@ -491,10 +514,9 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             # "  - border radius (0 vs 8 vs 16 vs 24)\n"
             # "  - button style (solid vs outline vs ghost vs gradient)\n"
             "Every page must have navigation unless user requires otherwise.\n"
-            "Respect the designer prompt. \n"
+            "Respect the designer prompt and choose colors as a UI designer. Do not use hard-coded color mappings unless the prompt provides exact hex values. \n"
+            "Candidate names/descriptions must describe layout, navigation, density, or workflow emphasis; do not mention color names unless the designer prompt explicitly asks for colors.\n"
             "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match each requested color to its exact UI scope for every candidate. If the prompt assigns a color to header/topbar, set tokens['region.header.bg_hex'] to that color. If it assigns a color to accent/brand/theme, set styling.accentColor and tokens['accent.hex'] to that color. If it assigns a color to buttons/CTA/actions, set tokens['button.primary.bg_hex'] and tokens['button.primary.border_hex'] to that color, even when accentColor is different. If it assigns a color to footer, page/background, cards, search/input fields, nav, table headers, badges, links, or muted text, use the matching fine-grained token keys. Do not make unrelated tokens the same color unless the user explicitly asks for a monochrome theme.\n"
-            # "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct Ã¢â‚¬â€ do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
         )
 
         user_prompt_text = (
@@ -575,8 +597,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
 
         diversity_rules = (
             "Generate exactly 3 meaningfully different refinements of the base candidate.\n"
-            "Each variant MUST differ from the others on axes that user:\n"
-            "  - color palette (accentColor, backgroundColor, textColor)\n"
+            "Each variant MUST differ from the others on structural or interaction axes that user did not lock:\n"
             "  - typography (fontFamily, textSize)\n"
             "  - density (compact vs normal vs spacious)\n"
             "  - border radius (0 vs 8 vs 16 vs 24)\n"
@@ -588,8 +609,8 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "Preserve the base candidate's section roles and data bindings. "
             "You may change layout/component/position for collection sections (object_collection, child_collection) "
             "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
-            "COLOR SCOPING: Match each requested color to its exact UI scope for every candidate. If the prompt assigns a color to header/topbar, set tokens['region.header.bg_hex'] to that color. If it assigns a color to accent/brand/theme, set styling.accentColor and tokens['accent.hex'] to that color. If it assigns a color to buttons/CTA/actions, set tokens['button.primary.bg_hex'] and tokens['button.primary.border_hex'] to that color, even when accentColor is different. If it assigns a color to footer, page/background, cards, search/input fields, nav, table headers, badges, links, or muted text, use the matching fine-grained token keys. Do not make unrelated tokens the same color unless the user explicitly asks for a monochrome theme.\n"
-            "COLOR HIERARCHY (mandatory for every candidate): region.header.bg_hex, accentColor, and backgroundColor must be visually distinct Ã¢â‚¬â€ do not assign the same hex to all three. accentColor is for interactive elements only (buttons, links, highlights), not for large background regions."
+            "Candidate names/descriptions must describe layout, navigation, density, or workflow emphasis; do not mention color names unless the designer requirements explicitly ask for colors.\n"
+            "Choose colors as a UI designer. Do not use hard-coded color mappings unless the requirements provide exact hex values."
         )
 
         user_prompt_text = (
@@ -698,16 +719,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     accent = llm_styling.get("accentColor") or ""
     secondary = llm_styling.get("accentSecondary") or ""
     if accent:
-        tokens.update({
-            "accent.hex": accent,
-            "region.header.bg_hex": accent,
-            "region.footer.bg_hex": accent,
-            "nav.bg_hex": accent,
-            "button.primary.bg_hex": accent,
-            "button.primary.border_hex": accent,
-            "button.ghost.text_hex": accent,
-            "input.border_focus_hex": accent,
-        })
+        tokens["accent.hex"] = accent
     if secondary:
         tokens["color.secondary.hex"] = secondary
     bg = llm_styling.get("backgroundColor") or ""
@@ -812,10 +824,11 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
+            fallback_name = _candidate_variant_name(prompt, index)
+            variant_name = _neutral_candidate_label(llm_cand.get("name"), prompt, fallback_name)
             styling["variantIndex"] = index
-            styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(prompt, index)
-            variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
-            variation_strategy = llm_cand.get("name") or _candidate_variant_name(prompt, index)
+            styling["variantName"] = variant_name
+            variation_strategy = variant_name
 
             result = validate_and_save_candidate(
                 interface_id=interface_id,
@@ -879,10 +892,12 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
+            fallback_name = _candidate_variant_name(designer_requirements, index)
+            base_variant_name = _neutral_candidate_label(llm_cand.get("name"), designer_requirements, fallback_name)
             styling["variantIndex"] = index
-            styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
-            variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"
-            variation_strategy = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
+            styling["variantName"] = base_variant_name
+            variant_name = f"{base_variant_name} Regen"
+            variation_strategy = base_variant_name
 
             result = validate_and_save_candidate(
                 interface_id=interface_id,

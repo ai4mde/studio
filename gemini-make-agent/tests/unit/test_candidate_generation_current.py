@@ -36,6 +36,53 @@ def test_tokens_from_llm_schema_prefers_llm_tokens_without_prompt_rewrite():
     assert tokens["typography.body.size"] == "18px"
 
 
+def test_tokens_from_llm_schema_preserves_green_header_and_black_button():
+    candidate = {
+        "styling": {"accentColor": "#8b5cf6", "textSize": "md"},
+        "tokens": {
+            "region.header.bg_hex": "#16a34a",
+            "region.header.text_hex": "#ffffff",
+            "button.primary.bg_hex": "#000000",
+            "button.primary.border_hex": "#000000",
+            "button.primary.text_hex": "#ffffff",
+        },
+    }
+
+    tokens = cg._tokens_from_llm_schema(
+        candidate,
+        {},
+        "make the header green and the primary button black",
+        0,
+    )
+
+    assert tokens["region.header.bg_hex"] == "#16a34a"
+    assert tokens["button.primary.bg_hex"] == "#000000"
+    assert tokens["button.primary.border_hex"] == "#000000"
+    assert tokens["button.primary.text_hex"] == "#ffffff"
+
+
+def test_neutral_candidate_label_removes_unrequested_color_labels():
+    assert (
+        cg._neutral_candidate_label(
+            "Compact table layout, Purple buttons, Green accent",
+            "make it compact",
+            "Agent Table",
+        )
+        == "Agent Table"
+    )
+
+
+def test_neutral_candidate_label_keeps_requested_color_labels():
+    assert (
+        cg._neutral_candidate_label(
+            "Compact table layout, Purple buttons, Green accent",
+            "use purple buttons and green accent",
+            "Agent Table",
+        )
+        == "Compact table layout, Purple buttons, Green accent"
+    )
+
+
 def test_merge_llm_candidate_preserves_data_bindings_and_role_locked_layouts():
     base_pages = [{"id": "p1", "layout": {"value": "vertical"}}]
     base_sections = [
