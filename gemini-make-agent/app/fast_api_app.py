@@ -166,7 +166,7 @@ def debug_uml_extract(interface_id: str) -> dict:
     KEY = os.getenv("METADATA_API_KEY")
     H = {"Authorization": f"Bearer {KEY}"} if KEY else {}
     try:
-        from app.tools import _fetch_system_context_data, _actor_name_from_context
+        from app.metadata_context import _actor_name_from_context, _fetch_system_context_data
         iface = _req.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=H, timeout=30).json()
         system_data = _fetch_system_context_data(iface.get("system"))
         actor_id = str(iface.get("actor") or "")
@@ -204,21 +204,17 @@ def map_uml_to_interface(payload: dict) -> dict:
     import requests as _req
     from app.uml_extractor import extract_uml_intelligence
     from app.interface_planner import generate_interface_plan
-    from app.tools import (
-        _fetch_system_context_data,
-        _actor_name_from_context,
-        _as_list,
-        _ref_id,
-        _build_usecase_navigation,
-        _apply_builtin_workflow_logic,
-        _ensure_mapping_content_sections,
-        _ensure_mapping_chrome_sections,
+    from app.mapping_sections import (
         _drop_unreferenced_non_global_sections,
-        _normalize_layout_alias,
-        _normalize_section_operations,
-        METADATA_API_BASE,
-        _AUTH_HEADERS,
+        _ensure_mapping_chrome_sections,
+        _ensure_mapping_content_sections,
     )
+    from app.metadata_context import _actor_name_from_context, _fetch_system_context_data
+    from app.section_utils import _normalize_layout_alias, _normalize_section_operations, _ref_id
+    from app.service_clients import METADATA_API_BASE, _AUTH_HEADERS
+    from app.token_normalizer import _as_list
+    from app.usecase_workflow import _build_usecase_navigation
+    from app.workflow_application import _apply_builtin_workflow_logic
 
     interface_id = str(payload.get("interface_id") or "")
     if not interface_id:
@@ -333,7 +329,7 @@ def map_uml_to_interface(payload: dict) -> dict:
 def map_uml_to_all_interfaces(payload: dict) -> dict:
     """Run UML→interface mapping for every interface in a system (one per actor)."""
     import requests as _req
-    from app.tools import METADATA_API_BASE, _AUTH_HEADERS
+    from app.service_clients import METADATA_API_BASE, _AUTH_HEADERS
 
     system_id = str(payload.get("system_id") or "")
     if not system_id:
@@ -399,3 +395,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

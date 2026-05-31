@@ -3,12 +3,12 @@
 import requests
 
 from .service_clients import METADATA_API_BASE, _AUTH_HEADERS
-from .tools import (
-    _apply_builtin_workflow_logic,
-    _build_known_attrs,
+from .metadata_context import _build_known_attrs
+from .section_utils import (
     _infer_section_component,
     _normalize_activity_action_sections,
 )
+from .workflow_application import _apply_builtin_workflow_logic
 
 
 def apply_interface_patch(interface_id: str, patch: dict) -> str:

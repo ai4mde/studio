@@ -13,26 +13,17 @@ from .interface_schemas import (
     _CANDIDATE_TOKENS_EXAMPLE,
 )
 from .service_clients import METADATA_API_BASE, _AUTH_HEADERS, render_candidate_preview_func
-from .styling_engine import _expand_design_tokens, _prompt_color_theme
-from .tools import (
+from .section_utils import (
     _DATA_SECTION_LAYOUTS,
     _FOOTER_TEMPLATE_LAYOUTS,
     _HEADER_NAV_LAYOUTS,
     _HEADER_TEMPLATE_LAYOUTS,
     _VALID_SECTION_LAYOUTS,
     _VALID_SECTION_STYLE,
-    _actor_name_from_context,
-    _apply_nav_methods,
-    _assign_default_page_categories,
-    _build_usecase_navigation,
     _canonical_page_type,
-    _dedupe_agent_header_shells,
-    _ensure_usecase_pages,
-    _fetch_system_context_data,
     _finalize_data_section_bindings,
     _infer_page_type_value,
     _infer_section_component,
-    _merge_page_categories,
     _model_field_names,
     _normalize_activity_action_sections,
     _normalize_chrome_sections,
@@ -42,9 +33,21 @@ from .tools import (
     _page_type_value,
     _ref_id,
 )
+from .token_normalizer import _expand_design_tokens, _prompt_scoped_color_overrides
+from .usecase_workflow import _build_usecase_navigation
+from .metadata_context import _actor_name_from_context, _fetch_system_context_data
+from .candidate_defaults import (
+    _assign_default_page_categories,
+    _merge_page_categories,
+)
+from .mapping_sections import (
+    _apply_nav_methods,
+    _dedupe_agent_header_shells,
+    _ensure_usecase_pages,
+)
 
 
-def _norm_candidate_styling(styling, prompt_for_style: str) -> dict:
+def _norm_candidate_styling(styling) -> dict:
     if styling:
         if isinstance(styling, str):
             try: styling = json.loads(styling)
@@ -127,9 +130,7 @@ def validate_and_save_candidate(
         if isinstance(pages, str): pages = json.loads(pages)
         if isinstance(sections, str): sections = json.loads(sections)
         input_section_ids = {str(s.get("id")) for s in (sections or []) if isinstance(s, dict) and s.get("id")}
-        prompt_for_style = designer_requirements or prompt
-        prompt_intent = {"version": 1, "source": prompt_for_style}
-        styling_dict = _norm_candidate_styling(styling, prompt_for_style)
+        styling_dict = _norm_candidate_styling(styling)
 
         iface_resp = requests.get(f"{METADATA_API_BASE}/interfaces/{interface_id}/", headers=_AUTH_HEADERS)
         iface_resp.raise_for_status()
@@ -306,7 +307,6 @@ def validate_and_save_candidate(
             p["sections"] = [ref for ref in (p.get("sections") or []) if _ref_id(ref) in section_ids]
         fixed_pages = _assign_default_page_categories(fixed_pages, fixed_sections, model_id_by_name)
 
-        canonical_schema = {"version": 1, "pages": fixed_pages, "sections": fixed_sections, "tokens": tokens_d or {}, "styling": styling_d or {}, "prompt_intent": prompt_intent}
         data = dict(iface.get("data") or {})
         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
         candidates = list(data.get("candidates") or [])
@@ -314,7 +314,6 @@ def validate_and_save_candidate(
             "id": f"c{candidate_index}", "name": name, "description": description,
             "pages": fixed_pages, "sections": fixed_sections,
             "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
-            "prompt_intent": prompt_intent, "canonical_schema": canonical_schema, "fallback": False,
             **({"tokens": tokens_d} if tokens_d else {}),
             **({"styling": styling_d} if styling_d else {}),
         }
@@ -398,10 +397,60 @@ def get_candidate_regeneration_context(interface_id: str, candidate_index: int, 
         return f"Error fetching candidate regeneration context: {e}"
 
 def _candidate_variant_name(prompt: str, index: int) -> str:
-    color_name, _ = _prompt_color_theme(prompt)
-    prefix = (color_name or "Agent").replace("_", " ").title()
-    suffixes = ("Card Gallery", "Data Table", "Showcase")
+    prefix = "Agent"
+    suffixes = ("Gallery", "Table", "Showcase")
     return f"{prefix} {suffixes[index % len(suffixes)]}"
+
+
+def _parse_llm_json(text: str):
+    raw = str(text or "").strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.I)
+        raw = re.sub(r"\s*```$", "", raw)
+    try:
+        return json.loads(raw)
+    except Exception:
+        pass
+
+    decoder = json.JSONDecoder()
+    candidates_pattern = re.search(r'"candidates"\s*:\s*\[', raw)
+    preferred_starts = []
+    if candidates_pattern:
+        container_start = raw.rfind("{", 0, candidates_pattern.start())
+        preferred_starts.append(container_start if container_start >= 0 else 0)
+    starts = [i for i, ch in enumerate(raw) if ch in "[{"]
+    fallback_obj = None
+    for start in [*preferred_starts, *starts]:
+        try:
+            obj, _end = decoder.raw_decode(raw[start:])
+            if isinstance(obj, dict) and isinstance(obj.get("candidates"), list):
+                return obj
+            if isinstance(obj, list):
+                return obj
+            if fallback_obj is None:
+                fallback_obj = obj
+        except Exception:
+            continue
+    if fallback_obj is not None:
+        return fallback_obj
+
+    repaired = raw
+    while repaired.endswith("}") and repaired.count("{") < repaired.count("}"):
+        repaired = repaired[:-1].rstrip()
+        try:
+            return json.loads(repaired)
+        except Exception:
+            continue
+    raise ValueError("LLM response was not valid JSON")
+
+
+def _candidate_list_from_llm_response(text: str) -> list:
+    result = _parse_llm_json(text)
+    if isinstance(result, list):
+        return result
+    if isinstance(result, dict) and isinstance(result.get("candidates"), list):
+        return result["candidates"]
+    return []
 
 
 
@@ -470,12 +519,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             },
         )
         print(f"[llm_generate_3_candidates] raw response:\n{response.text}", flush=True)
-        result = json.loads(response.text)
-        # LLM sometimes returns the array directly instead of {"candidates": [...]}
-        if isinstance(result, list):
-            candidates = result
-        else:
-            candidates = result.get("candidates") or []
+        candidates = _candidate_list_from_llm_response(response.text)
         if len(candidates) < 3:
             print(f"[llm_generate_3_candidates] only got {len(candidates)} candidates, falling back", flush=True)
             return None
@@ -570,11 +614,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
                 "max_output_tokens": 65536,
             },
         )
-        result = json.loads(response.text)
-        if isinstance(result, list):
-            candidates = result
-        else:
-            candidates = result.get("candidates") or []
+        candidates = _candidate_list_from_llm_response(response.text)
         if len(candidates) < 3:
             return None
         return candidates[:3]
@@ -726,6 +766,9 @@ def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str,
             if value is not None and value != "":
                 tokens[str(key)] = value
 
+    # The LLM owns the candidate schema, but explicit scoped color requests
+    # such as "header blue, search bar green, button pink" are hard constraints.
+    tokens.update(_prompt_scoped_color_overrides(prompt))
     tokens["design.variant_index"] = str(index)
     _expand_design_tokens(tokens)
     return tokens
@@ -772,6 +815,8 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
+            for key, value in _prompt_scoped_color_overrides(prompt).items():
+                styling[key] = value
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(prompt, index)
             variant_name = llm_cand.get("name") or _candidate_variant_name(prompt, index)
@@ -839,6 +884,8 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                     styling[key] = llm_styling[key]
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
+            for key, value in _prompt_scoped_color_overrides(designer_requirements).items():
+                styling[key] = value
             styling["variantIndex"] = index
             styling["variantName"] = llm_cand.get("name") or _candidate_variant_name(designer_requirements, index)
             variant_name = f"{llm_cand.get('name') or _candidate_variant_name(designer_requirements, index)} Regen"
@@ -865,3 +912,4 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
         return "OK: regenerated and saved 3 candidates. " + " | ".join(results)
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"
+

@@ -329,150 +329,6 @@ _ZH_COLOR_KEYWORDS = {
     "灰": "slate",
 }
 
-_TYPOGRAPHY_SIZE_PRESETS = {
-    "xs": {
-        "typography.hero.size": "44px",
-        "typography.display.size": "32px",
-        "typography.title-md.size": "17px",
-        "typography.lead.size": "15px",
-        "typography.body.size": "13px",
-        "typography.caption.size": "10px",
-        "typography.label.size": "12px",
-    },
-    "sm": {
-        "typography.hero.size": "48px",
-        "typography.display.size": "34px",
-        "typography.title-md.size": "18px",
-        "typography.lead.size": "16px",
-        "typography.body.size": "14px",
-        "typography.caption.size": "11px",
-        "typography.label.size": "13px",
-    },
-    "md": {
-        "typography.hero.size": "56px",
-        "typography.display.size": "40px",
-        "typography.title-md.size": "20px",
-        "typography.lead.size": "18px",
-        "typography.body.size": "16px",
-        "typography.caption.size": "12px",
-        "typography.label.size": "14px",
-    },
-    "lg": {
-        "typography.hero.size": "64px",
-        "typography.display.size": "46px",
-        "typography.title-md.size": "24px",
-        "typography.lead.size": "20px",
-        "typography.body.size": "18px",
-        "typography.caption.size": "13px",
-        "typography.label.size": "15px",
-    },
-    "xl": {
-        "typography.hero.size": "72px",
-        "typography.display.size": "52px",
-        "typography.title-md.size": "28px",
-        "typography.lead.size": "22px",
-        "typography.body.size": "20px",
-        "typography.caption.size": "14px",
-        "typography.label.size": "16px",
-    },
-}
-
-_TYPOGRAPHY_SCOPE_KEYS = {
-    "hero": ("typography.hero.size",),
-    "display": ("typography.display.size", "typography.display-lg.size"),
-    "title": ("typography.title-md.size",),
-    "heading": ("typography.title-md.size", "typography.display.size"),
-    "body": ("typography.body.size", "typography.body-md.size"),
-    "text": ("typography.body.size", "typography.body-md.size"),
-    "caption": ("typography.caption.size", "typography.caption-sm.size"),
-    "label": ("typography.label.size",),
-    "button": ("typography.label.size",),
-    "table": ("typography.caption.size", "typography.body.size"),
-}
-
-def _font_size_bucket(prompt: str = "") -> str | None:
-    text = str(prompt or "").lower()
-    original = str(prompt or "")
-    if any(term in text for term in ("extra large font", "xl font", "huge text", "huge font", "very large text", "very large font")) or any(term in original for term in ("\u8d85\u5927\u5b57", "\u5b57\u4f53\u8d85\u5927")):
-        return "xl"
-    if any(term in text for term in ("larger font", "bigger font", "large font", "larger text", "bigger text", "increase font", "increase text", "font size bigger")) or any(term in original for term in ("\u5b57\u4f53\u53d8\u5927", "\u5b57\u53f7\u53d8\u5927", "\u5927\u5b57\u4f53", "\u5b57\u5927")):
-        return "lg"
-    if any(term in text for term in ("smaller font", "small font", "smaller text", "small text", "decrease font", "reduce font", "tiny text")) or any(term in original for term in ("\u5b57\u4f53\u53d8\u5c0f", "\u5b57\u53f7\u53d8\u5c0f", "\u5c0f\u5b57\u4f53", "\u5b57\u5c0f")):
-        return "sm"
-    if any(term in text for term in ("tiny font", "extra small font", "xs font")):
-        return "xs"
-    if any(term in text for term in ("normal font", "default font", "medium font", "normal text")) or any(term in original for term in ("\u9ed8\u8ba4\u5b57\u4f53", "\u6b63\u5e38\u5b57\u53f7")):
-        return "md"
-    return None
-
-def _prompt_typography_overrides(prompt: str = "") -> dict:
-    text = str(prompt or "").lower()
-    original = str(prompt or "")
-    if not text and not original:
-        return {}
-    overrides: dict[str, str] = {}
-    bucket = _font_size_bucket(prompt)
-    if bucket:
-        overrides.update(_TYPOGRAPHY_SIZE_PRESETS[bucket])
-
-    size_words = {
-        "xs": "xs", "extra small": "xs", "tiny": "xs",
-        "sm": "sm", "small": "sm", "smaller": "sm",
-        "md": "md", "medium": "md", "normal": "md", "default": "md",
-        "lg": "lg", "large": "lg", "larger": "lg", "big": "lg", "bigger": "lg",
-        "xl": "xl", "extra large": "xl", "huge": "xl",
-    }
-    scope_words = "|".join(re.escape(scope) for scope in _TYPOGRAPHY_SCOPE_KEYS)
-    size_word_pattern = "|".join(re.escape(word) for word in sorted(size_words, key=len, reverse=True))
-    scoped_patterns = (
-        rf"\b(?P<scope>{scope_words})\b(?:\W+\w+){{0,5}}\W+\b(?P<size>{size_word_pattern})\b(?:\W+\b(?:font|text|size)\b)?",
-        rf"\b(?P<size>{size_word_pattern})\b(?:\W+\w+){{0,5}}\W+\b(?P<scope>{scope_words})\b(?:\W+\b(?:font|text|size)\b)?",
-    )
-    for pattern in scoped_patterns:
-        for match in re.finditer(pattern, text):
-            preset = _TYPOGRAPHY_SIZE_PRESETS[size_words[match.group("size")]]
-            for key in _TYPOGRAPHY_SCOPE_KEYS.get(match.group("scope"), ()):
-                source = "typography.body.size" if key.endswith("body-md.size") else key
-                overrides[key] = preset.get(source, preset.get(key, "16px"))
-
-    px_patterns = (
-        rf"\b(?P<scope>{scope_words})\b(?:\W+\w+){{0,5}}\W+(?P<size>\d{{2}})px\b",
-        rf"\b(?P<size>\d{{2}})px\b(?:\W+\w+){{0,5}}\W+\b(?P<scope>{scope_words})\b",
-        r"\b(?:font|text)\s*size\b(?:\W+\w+){0,4}\W+(?P<size>\d{2})px\b",
-    )
-    for pattern in px_patterns:
-        for match in re.finditer(pattern, text):
-            px = f"{max(10, min(72, int(match.group('size'))))}px"
-            scopes = _TYPOGRAPHY_SCOPE_KEYS.get(match.groupdict().get("scope") or "text", ("typography.body.size",))
-            for key in scopes:
-                overrides[key] = px
-
-    zh_size = None
-    if any(term in original for term in ("\u5927\u5b57", "\u5b57\u5927", "\u653e\u5927\u5b57", "\u5b57\u53f7\u5927")):
-        zh_size = "lg"
-    elif any(term in original for term in ("\u5c0f\u5b57", "\u5b57\u5c0f", "\u7f29\u5c0f\u5b57", "\u5b57\u53f7\u5c0f")):
-        zh_size = "sm"
-    if zh_size:
-        preset = _TYPOGRAPHY_SIZE_PRESETS[zh_size]
-        if any(term in original for term in ("\u6807\u9898", "\u6a19\u984c", "\u9875\u5934", "\u9801\u9996")):
-            for key in _TYPOGRAPHY_SCOPE_KEYS["heading"]:
-                overrides[key] = preset.get(key, preset["typography.title-md.size"])
-        else:
-            overrides.update(preset)
-    return {key: value for key, value in overrides.items() if value}
-
-def _prompt_color_theme(prompt: str = "") -> tuple[str | None, dict]:
-    text = str(prompt or "").lower()
-    if not text:
-        return None, {}
-    for name, theme in _PROMPT_COLOR_THEMES.items():
-        if re.search(rf"\b{re.escape(name)}\b", text):
-            return name, theme
-    hex_match = re.search(r"#[0-9a-fA-F]{6}\b", text)
-    if hex_match:
-        return "custom", {"accent": hex_match.group(0), "secondary": hex_match.group(0), "page": "#f9fafb", "surface": "#ffffff", "border": "#e5e7eb"}
-    return None, {}
-
 def _color_word_to_hex(word: str | None) -> str | None:
     if not word:
         return None
@@ -569,8 +425,10 @@ def _apply_scoped_color(overrides: dict, scope: str, color_name: str | None, col
         })
     elif scope == "input":
         overrides.update({
+            "input.bg_hex": color_hex,
             "input.border_focus_hex": color_hex,
             "input.border_hex": border,
+            "input.text_hex": on_color,
         })
     elif scope == "table":
         overrides.update({
@@ -627,13 +485,55 @@ def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
         ("border", ("border", "outline", "stroke")),
         ("text", ("text", "font", "copy")),
         ("muted", ("muted", "secondary text", "subtle text")),
-        ("input", ("input", "field", "form field")),
+        ("input", ("input", "field", "form field", "search", "searchbar", "search bar")),
         ("table", ("table", "grid")),
         ("link", ("link", "links")),
         ("badge", ("badge", "tag", "pill")),
         ("accent", ("accent", "primary color", "theme color")),
     )
+    color_words = "|".join(re.escape(name) for name in _COLOR_KEYWORDS)
+    direct_scopes = (
+        ("button", ("button", "buttons", "cta", "action")),
+        ("nav", ("nav", "navbar", "navigation", "menu")),
+        ("header", ("header", "topbar", "top bar")),
+        ("footer", ("footer",)),
+        ("sidebar", ("sidebar", "side nav", "side bar")),
+        ("background", ("background", "page background", "body")),
+        ("main", ("main", "content")),
+        ("card", ("card", "cards", "panel", "tile")),
+        ("input", ("input", "field", "form field", "search", "searchbar", "search bar")),
+        ("table", ("table", "grid")),
+        ("link", ("link", "links")),
+        ("badge", ("badge", "tag", "pill")),
+    )
+    for scope, terms in direct_scopes:
+        target_words = "|".join(re.escape(term) for term in terms)
+        for pattern in (
+            rf"\b(?:make|set|turn|use)?\s*(?:the\s+)?(?:{target_words})s?\s+(?:bar\s+)?(?:to\s+|as\s+)?(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
+            rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\s+(?:{target_words})s?\b",
+        ):
+            match = re.search(pattern, text)
+            if match:
+                color_name = match.group("color")
+                _apply_scoped_color(overrides, scope, color_name, _color_word_to_hex(color_name))
+                break
+
     for scope, terms in scopes:
+        if (
+            (scope == "button" and "button.primary.bg_hex" in overrides)
+            or (scope == "header" and "region.header.bg_hex" in overrides)
+            or (scope == "input" and "input.bg_hex" in overrides)
+            or (scope == "nav" and "nav.bg_hex" in overrides)
+            or (scope == "footer" and "region.footer.bg_hex" in overrides)
+            or (scope == "sidebar" and "region.sidebar.bg_hex" in overrides)
+            or (scope == "background" and "page.body.bg_hex" in overrides)
+            or (scope == "main" and "region.main.bg_hex" in overrides)
+            or (scope == "card" and "component.card.bg_hex" in overrides)
+            or (scope == "table" and "table.header.bg_hex" in overrides)
+            or (scope == "link" and "button.link.text_hex" in overrides)
+            or (scope == "badge" and "badge.info.bg_hex" in overrides)
+        ):
+            continue
         color_name, color_hex = _find_color_near(text, terms)
         _apply_scoped_color(overrides, scope, color_name, color_hex)
 
@@ -675,7 +575,6 @@ def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
 
     other_color_name = None
     other_hex = None
-    color_words = "|".join(re.escape(name) for name in _COLOR_KEYWORDS)
     other_patterns = (
         rf"\b(?:other|rest|everything else|non[-\s]?button|not buttons?)\b(?:\W+\w+){{0,6}}\W+\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b",
         rf"\b(?P<color>{color_words}|#[0-9a-fA-F]{{6}})\b(?:\W+\w+){{0,6}}\W+\b(?:other|rest|everything else|non[-\s]?button|not buttons?)\b",
@@ -721,76 +620,12 @@ def _prompt_scoped_color_overrides(prompt: str = "") -> dict:
             overrides.setdefault("region.border_strong_hex", border)
     return {key: value for key, value in overrides.items() if value}
 
-def _prompt_is_button_only_color(prompt: str = "") -> bool:
-    text = str(prompt or "").lower()
-    if not text:
-        return False
-    if _prompt_color_scope_lock(prompt) == "button":
-        return True
-    _, button_hex = _find_color_near(text, ("button", "cta", "action"))
-    if not button_hex:
-        return False
-    has_global_target = any(term in text for term in (
-        "theme", "page", "background", "header", "footer", "nav", "navbar",
-        "sidebar", "all colors", "whole", "entire", "everything", "other",
-        "rest", "non-button", "not button",
-    ))
-    return not has_global_target
-
-def _prompt_color_scope_lock(prompt: str = "") -> str | None:
-    """Detect prompts that intentionally constrain a color change to one scope.
-
-    This is intentionally conservative: when the user says "keep other colors the
-    same" and asks only for button color, variant planning must not recolor the
-    global accent/header/nav/footer tokens later in the pipeline.
-    """
-    text = str(prompt or "").lower()
-    original = str(prompt or "")
-    if not text and not original:
-        return None
-
-    _, button_hex = _find_color_near(text, ("button", "buttons", "cta", "action"))
-    has_button_term = any(term in text for term in ("button", "buttons", "cta", "action")) or ("\u6309\u94ae" in original)
-    if not button_hex or not has_button_term:
-        return None
-
-    preserve_other = any(phrase in text for phrase in (
-        "keep other color",
-        "keep other colors",
-        "keep the other color",
-        "keep the other colors",
-        "other color the same",
-        "other colors the same",
-        "other colours the same",
-        "rest color the same",
-        "rest colors the same",
-        "everything else the same",
-        "leave other colors",
-        "leave the other colors",
-        "do not change other",
-        "don't change other",
-        "dont change other",
-        "without changing other",
-    ))
-    only_button = bool(re.search(
-        r"\b(?:only|just)\b(?:\W+\w+){0,8}\W+\b(?:button|buttons|cta|action)s?\b"
-        r"|\b(?:button|buttons|cta|action)s?\b(?:\W+\w+){0,8}\W+\b(?:only|just)\b",
-        text,
-    ))
-    preserve_other = preserve_other or (
-        ("\u5176\u4ed6" in original or "\u5176\u5b83" in original)
-        and ("\u4e0d\u53d8" in original or "\u4fdd\u6301" in original or "\u4e00\u6837" in original)
-    )
-    only_button = only_button or ("\u53ea" in original and "\u6309\u94ae" in original)
-    return "button" if preserve_other or only_button else None
 
 
 
 __all__ = [
     '_COLOR_KEYWORDS',
     '_PROMPT_COLOR_THEMES',
-    '_TYPOGRAPHY_SIZE_PRESETS',
-    '_TYPOGRAPHY_SCOPE_KEYS',
     '_ZH_COLOR_KEYWORDS',
     '_apply_scoped_color',
     '_as_list',
@@ -805,11 +640,7 @@ __all__ = [
     '_name_id',
     '_needs_contrast_fix',
     '_page_name',
-    '_prompt_color_scope_lock',
-    '_prompt_color_theme',
-    '_prompt_is_button_only_color',
     '_prompt_scoped_color_overrides',
-    '_prompt_typography_overrides',
     '_relative_luminance',
     '_section_id',
     '_set_readable_token',

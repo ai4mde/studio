@@ -6,8 +6,8 @@ import os
 import requests
 
 from .service_clients import METADATA_API_BASE, _AUTH_HEADERS
-from .styling_engine import _as_list
-from .tools import _build_activity_diagrams, _build_usecase_navigation, _workflow_plan
+from .token_normalizer import _as_list
+from .usecase_workflow import _build_activity_diagrams, _build_usecase_navigation, _workflow_plan
 
 
 def _fetch_system_context_data(system_id: str) -> dict:
@@ -58,6 +58,12 @@ def _build_known_attrs(system_id: str) -> dict[str, set[str]]:
     except Exception:
         return {}
 
+
+def _actor_name_from_context(system_context: dict, actor_id: str | None) -> str | None:
+    for classifier in _as_list(system_context.get("classifiers"), "classifiers"):
+        if str(classifier.get("id")) == str(actor_id):
+            return (classifier.get("data") or {}).get("name")
+    return None
 
 
 def get_interface_full_context(interface_id: str) -> str:
@@ -123,4 +129,5 @@ def get_interface_full_context(interface_id: str) -> str:
             "system": system_ctx,
         }, indent=2)
     except Exception as e: return f"Error fetching full context: {e}"
+
 
