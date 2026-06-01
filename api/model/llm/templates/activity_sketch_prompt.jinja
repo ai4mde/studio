@@ -4,6 +4,25 @@ Given the following process description:
 
 {{ process_text }}
 
+{% if keyword_hints %}
+Use the following keyword-layer hints as soft planning guidance.
+They are advisory signals extracted from the process text.
+Use them to stabilize topology reasoning, but do not mechanically force a structure when the text clearly suggests otherwise.
+
+Keyword hints:
+{{ keyword_hints | tojson(indent=2) }}
+
+Keyword guidance:
+- Use decision hints to look for clear branch points and labeled alternatives
+- Use loop and retry hints to prefer loop planning with an exit path over unnecessary merge-based closures
+- Use parallelism hints only when the text suggests truly concurrent behavior
+- Use exit-condition hints to plan explicit reconnect or termination targets
+- For retry-validation language such as "again", "retry", "correct and submit again", or "until valid", prefer a simple backward retry loop:
+  validation action -> decision question -> retry branch back to validation -> success branch forward to exit action
+- For simple retry loops, do not plan an explicit merge unless multiple forward branches truly rejoin later
+
+{% endif %}
+
 Return ONLY a compact JSON sketch of the control-flow scaffold.
 
 The sketch must NOT include:
@@ -25,13 +44,21 @@ Return a JSON object with this structure:
 
 {
   "main_flow": [
-    "major action 1",
-    "major action 2"
+    {
+      "step_id": "S1",
+      "action": "major action 1"
+    },
+    {
+      "step_id": "S2",
+      "action": "major action 2"
+    }
   ],
   "control_blocks": [
     {
+      "block_id": "B1",
       "type": "decision | loop | parallel",
       "entry_after": "main flow action after which this block appears",
+      "entry_after_step_id": "S1",
       "branches": [
         {
           "label": "branch 1",
@@ -44,7 +71,9 @@ Return a JSON object with this structure:
       ],
       "requires_merge": true,
       "exit_to": "main flow action where this block should reconnect",
+      "exit_to_step_id": "S2",
       "loop_back_to": "earlier action that a retry branch returns to, only for loops",
+      "loop_back_to_step_id": "S1",
       "notes": "optional short topology note"
     }
   ]
@@ -53,10 +82,14 @@ Return a JSON object with this structure:
 Rules:
 - Keep the sketch lightweight and high-level
 - Use short action phrases
+- Use stable sequential identifiers such as `S1`, `S2`, ... for main-flow steps and `B1`, `B2`, ... for control blocks whenever possible
 - Include only major control-flow structures
+- Keep both the human-readable action text and the identifier-based references consistent with each other
 - Use `requires_merge=true` when a decision or parallel split should close before continuing
 - For retry or validation loops, use `type="loop"` and set `loop_back_to` to the earlier action the retry branch returns to
 - Retry loops should normally use `requires_merge=false`
+- For retry-validation loops, plan an explicit exit path to the next main-flow action
+- Branch labels for validation-style control should normally be simple opposites such as `yes` / `no` or semantically equivalent labels
 - Do not mark a loop as requiring merge just because one branch loops backward
 - Only use `requires_merge=true` for a loop if multiple forward branches truly rejoin into the same later continuation
 - Use `exit_to` when the block should reconnect to a specific later main-flow action

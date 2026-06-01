@@ -17,6 +17,8 @@ class Node(BaseModel):
     name: Optional[str] = None
     label: Optional[str] = None
     partition: Optional[str] = None
+    origin_step_id: Optional[str] = None
+    origin_block_id: Optional[str] = None
 
 
 class Edge(BaseModel):

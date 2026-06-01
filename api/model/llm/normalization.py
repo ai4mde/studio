@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+# Responsibility:
+# - conservative vocabulary normalization for ActivityGraph payloads only
+# - align legacy aliases onto the current clean-layer field and type vocabulary
+#
+# Must NOT:
+# - repair topology
+# - redesign graph semantics
+# - infer missing merges, joins, or loops
+# - convert semantic branch conditions into display labels
+
 from copy import deepcopy
 from typing import Any, Dict, Iterable, Optional
 
 
 NODE_TEXT_ALIASES: tuple[str, ...] = ("label", "title", "text")
 EDGE_LABEL_ALIASES: tuple[str, ...] = ("label", "branch", "text", "title")
+EDGE_SOURCE_ALIASES: tuple[str, ...] = ("source", "from", "src", "source_id")
+EDGE_TARGET_ALIASES: tuple[str, ...] = ("target", "to", "dst", "target_id")
 
 NODE_TYPE_NORMALIZATION: Dict[str, str] = {
     "initialnode": "initial",
@@ -13,6 +25,10 @@ NODE_TYPE_NORMALIZATION: Dict[str, str] = {
     "startnode": "initial",
     "activity": "action",
     "task": "action",
+    # LLMs sometimes emit semantic node types like "loop".
+    # Normalize them into valid UML Activity Diagram constructs
+    # before strict schema validation.
+    "loop": "decision",
     "decisionnode": "decision",
     "merge node": "merge",
     "mergenode": "merge",
@@ -63,6 +79,15 @@ def _first_text_value(payload: Dict[str, Any], aliases: Iterable[str]) -> Option
     return None
 
 
+def _ensure_question_text(value: Optional[str]) -> Optional[str]:
+    text = _normalized_token(value)
+    if not text:
+        return None
+    if text.endswith("?"):
+        return text
+    return text.rstrip(".!") + "?"
+
+
 def _normalize_node(node: Dict[str, Any]) -> Dict[str, Any]:
     normalized = dict(node)
 
@@ -85,14 +110,43 @@ def _normalize_node(node: Dict[str, Any]) -> Dict[str, Any]:
         )
         if action_name and not _normalized_token(normalized.get("name")):
             normalized["name"] = action_name
+    elif node_type == "decision":
+        decision_text = _first_text_value(
+            normalized,
+            ("label", "name", "title", "text"),
+        )
+        if decision_text:
+            normalized["label"] = _ensure_question_text(decision_text)
+
+    origin_step_id = _normalized_token(
+        normalized.get("origin_step_id", normalized.get("originStepId"))
+    )
+    if origin_step_id and not _normalized_token(normalized.get("origin_step_id")):
+        normalized["origin_step_id"] = origin_step_id
+
+    origin_block_id = _normalized_token(
+        normalized.get("origin_block_id", normalized.get("originBlockId"))
+    )
+    if origin_block_id and not _normalized_token(normalized.get("origin_block_id")):
+        normalized["origin_block_id"] = origin_block_id
 
     normalized.pop("title", None)
     normalized.pop("text", None)
+    normalized.pop("originStepId", None)
+    normalized.pop("originBlockId", None)
     return normalized
 
 
 def _normalize_edge(edge: Dict[str, Any]) -> Dict[str, Any]:
     normalized = dict(edge)
+
+    source_id = _first_text_value(normalized, EDGE_SOURCE_ALIASES)
+    if source_id and not _normalized_token(normalized.get("source")):
+        normalized["source"] = source_id
+
+    target_id = _first_text_value(normalized, EDGE_TARGET_ALIASES)
+    if target_id and not _normalized_token(normalized.get("target")):
+        normalized["target"] = target_id
 
     edge_type_key = _normalized_lookup_key(normalized.get("type"))
     if edge_type_key and edge_type_key in EDGE_TYPE_NORMALIZATION:
@@ -105,12 +159,18 @@ def _normalize_edge(edge: Dict[str, Any]) -> Dict[str, Any]:
     normalized.pop("branch", None)
     normalized.pop("text", None)
     normalized.pop("title", None)
+    normalized.pop("from", None)
+    normalized.pop("to", None)
+    normalized.pop("src", None)
+    normalized.pop("dst", None)
+    normalized.pop("source_id", None)
+    normalized.pop("target_id", None)
     return normalized
 
 
 def normalize_activity_graph(data: Any) -> Any:
     """
-    Return a lightly normalized clean-graph payload.
+    Return a lightly normalized ActivityGraph payload.
 
     This function is intentionally conservative:
     - normalize vocabulary/field aliases

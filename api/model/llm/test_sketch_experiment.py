@@ -9,6 +9,9 @@ if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
 from llm.activity_sketch_model import ActivitySketch
+from llm.keyword_hints import extract_keyword_hints
+from llm.prompt_builder import build_activity_sketch_prompt_with_hints
+from llm.semantic_analysis import analyze_semantic_graph
 from llm.sketch_experiment import compare_sketch_generation
 from llm.sketch_alignment import validate_graph_against_sketch
 from llm.topology_analysis import analyze_activity_graph
@@ -215,6 +218,358 @@ def test_activity_sketch_defaults_retry_loops_to_no_merge() -> None:
     )
 
     assert sketch.control_blocks[0].requires_merge is False
+
+
+def test_activity_sketch_accepts_stable_step_and_block_identifiers() -> None:
+    sketch = ActivitySketch.model_validate(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "validate form"},
+                {"step_id": "S2", "action": "store application"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "validate form",
+                    "branches": [
+                        {"label": "errors found", "returns_to_main_flow": False},
+                        {"label": "valid", "returns_to_main_flow": True},
+                    ],
+                    "exit_to_step_id": "S2",
+                    "exit_to": "store application",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "validate form",
+                }
+            ],
+        }
+    )
+
+    first_step = sketch.main_flow[0]
+    assert not isinstance(first_step, str)
+    assert first_step.step_id == "S1"
+    assert sketch.control_blocks[0].block_id == "B1"
+    assert sketch.control_blocks[0].entry_after_step_id == "S1"
+    assert sketch.control_blocks[0].exit_to_step_id == "S2"
+
+
+def test_extract_keyword_hints_detects_decision_loop_and_retry_guidance() -> None:
+    hints = extract_keyword_hints(
+        "If errors are found, the user corrects the form and submits it again. Otherwise, the system stores the application."
+    )
+
+    assert hints["flags"]["possible_decision"] is True
+    assert hints["flags"]["possible_loop"] is True
+    assert hints["flags"]["retry_semantics"] is True
+    assert hints["flags"]["exit_condition"] is True
+    assert any(hint["kind"] == "possible_loop" for hint in hints["hints"])
+    assert "again" in hints["evidence"]["loop_terms"]
+    assert "corrects" in hints["evidence"]["retry_terms"]
+
+
+def test_extract_keyword_hints_keeps_resubmission_as_retry_without_loop() -> None:
+    hints = extract_keyword_hints(
+        "If the documents are incomplete, the student is asked to resubmit the missing documents."
+    )
+
+    assert hints["flags"]["possible_decision"] is True
+    assert hints["flags"]["possible_loop"] is False
+    assert hints["flags"]["retry_semantics"] is True
+    assert "resubmit" in hints["evidence"]["retry_terms"]
+    assert hints["evidence"]["loop_terms"] == []
+
+
+def test_extract_keyword_hints_still_detects_explicit_retry_loops() -> None:
+    hints = extract_keyword_hints(
+        "If payment fails, the customer retries payment until it succeeds."
+    )
+
+    assert hints["flags"]["possible_loop"] is True
+    assert hints["flags"]["retry_semantics"] is True
+    assert "until" in hints["evidence"]["loop_terms"]
+
+
+def test_activity_sketch_prompt_can_include_keyword_guidance() -> None:
+    hints = extract_keyword_hints("If approved, process the request. Otherwise, reject it.")
+    prompt = build_activity_sketch_prompt_with_hints(
+        "If approved, process the request. Otherwise, reject it.",
+        keyword_hints=hints,
+    )
+
+    assert "Use the following keyword-layer hints as soft planning guidance." in prompt
+    assert '"possible_decision": true' in prompt.lower()
+    assert "Keyword guidance:" in prompt
+    assert "prefer a simple backward retry loop" in prompt
+
+
+def test_validate_graph_against_sketch_uses_step_identifiers_when_present() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "process payment"},
+            {"step_id": "S2", "action": "ship order"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "wrong label ignored by step id",
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": True},
+                    {"label": "success", "returns_to_main_flow": True},
+                ],
+                "requires_merge": False,
+                "exit_to_step_id": "S2",
+                "exit_to": "also ignored",
+                "loop_back_to_step_id": "S1",
+                "loop_back_to": "ignored too",
+                "notes": None,
+            }
+        ],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "process payment", "origin_step_id": "S1"},
+            {"id": "n3", "type": "decision", "label": "payment successful?", "origin_block_id": "B1"},
+            {"id": "n4", "type": "action", "name": "retry payment"},
+            {"id": "n5", "type": "action", "name": "ship order", "origin_step_id": "S2"},
+            {"id": "n6", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4", "label": "no"},
+            {"source": "n3", "target": "n5", "label": "yes"},
+            {"source": "n4", "target": "n2", "label": "retry"},
+            {"source": "n5", "target": "n6"},
+        ],
+    }
+
+    report = validate_graph_against_sketch(sketch, graph)
+
+    assert report["issues"] == []
+    assert report["metrics"]["resolved_main_flow_step_ids"] == 2
+    assert report["metrics"]["resolved_by_origin_step_id"] >= 4
+    assert report["metrics"]["resolved_by_name_fallback"] == 0
+    assert report["metrics"]["traceability_coverage"] == 2 / 3
+    assert report["metrics"]["planner_binding_strength"] == "strong"
+    assert report["metrics"]["expected_loop_backs"] == 1
+    assert report["metrics"]["realized_loop_backs"] == 1
+    assert report["metrics"]["unresolved_block_ids"] == []
+    assert report["details"]["step_lookup"] == {
+        "S1": "process payment",
+        "S2": "ship order",
+    }
+    assert report["details"]["main_flow_resolution_modes"] == {
+        "S1": "origin_step_id",
+        "S2": "origin_step_id",
+    }
+
+
+def test_validate_graph_against_sketch_falls_back_to_action_names_without_traceability() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "process payment"},
+            {"step_id": "S2", "action": "ship order"},
+        ],
+        "control_blocks": [],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "process payment"},
+            {"id": "n3", "type": "action", "name": "ship order"},
+            {"id": "n4", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4"},
+        ],
+    }
+
+    report = validate_graph_against_sketch(sketch, graph)
+
+    assert report["issues"] == []
+    assert report["metrics"]["resolved_by_origin_step_id"] == 0
+    assert report["metrics"]["resolved_by_name_fallback"] == 2
+    assert report["metrics"]["planner_binding_strength"] == "partial"
+    assert report["metrics"]["traceability_coverage"] == 0.0
+    assert report["metrics"]["unresolved_step_ids"] == []
+
+
+def test_validate_graph_against_sketch_reports_permuted_loop_back_reference() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "process payment"},
+            {"step_id": "S2", "action": "ship order"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "process payment",
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": True},
+                    {"label": "success", "returns_to_main_flow": True},
+                ],
+                "requires_merge": False,
+                "exit_to_step_id": "S2",
+                "exit_to": "ship order",
+                "loop_back_to_step_id": "S2",
+                "loop_back_to": "ship order",
+                "notes": None,
+            }
+        ],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "process payment", "origin_step_id": "S1"},
+            {"id": "n3", "type": "decision", "label": "payment successful?", "origin_block_id": "B1"},
+            {"id": "n4", "type": "action", "name": "retry payment"},
+            {"id": "n5", "type": "action", "name": "ship order", "origin_step_id": "S2"},
+            {"id": "n6", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4", "label": "no"},
+            {"source": "n3", "target": "n5", "label": "yes"},
+            {"source": "n4", "target": "n2", "label": "retry"},
+            {"source": "n5", "target": "n6"},
+        ],
+    }
+
+    report = validate_graph_against_sketch(sketch, graph)
+
+    assert "loop_back_edge_not_realized" in report["issues"]
+    assert report["metrics"]["expected_loop_backs"] == 1
+    assert report["metrics"]["realized_loop_backs"] == 0
+
+
+def test_semantic_analysis_flags_merge_and_loop_quality_issues() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "validate form"},
+            {"step_id": "S2", "action": "store application"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "validate form",
+                "branches": [
+                    {"label": "errors", "returns_to_main_flow": False},
+                    {"label": "valid", "returns_to_main_flow": True},
+                ],
+                "requires_merge": False,
+                "exit_to_step_id": "S2",
+                "exit_to": "store application",
+                "loop_back_to_step_id": "S1",
+                "loop_back_to": "validate form",
+                "notes": None,
+            }
+        ],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "validate form", "origin_step_id": "S1"},
+            {"id": "n3", "type": "decision", "label": "errors found?", "origin_block_id": "B1"},
+            {"id": "n4", "type": "action", "name": "correct form"},
+            {"id": "n5", "type": "merge"},
+            {"id": "n6", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4"},
+            {"source": "n3", "target": "n5", "label": "valid"},
+            {"source": "n5", "target": "n6"},
+        ],
+    }
+
+    report = analyze_semantic_graph(
+        graph,
+        sketch=sketch,
+        keyword_hints=extract_keyword_hints(
+            "If errors are found, the user corrects the form and submits it again. Otherwise, the system stores the application."
+        ),
+    )
+    issue_codes = {issue["code"] for issue in report["issues"]}
+
+    assert "decision_unlabeled_branch" in issue_codes
+    assert "merge_underconnected" in issue_codes
+    assert "invalid_loop_back_target" in issue_codes
+    assert "retry_loop_with_merge" in issue_codes
+    assert report["metrics"]["warning_count"] >= 2
+    assert report["metrics"]["error_count"] >= 1
+
+
+def test_semantic_analysis_flags_non_question_decision_text() -> None:
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "decision", "label": "Check for errors"},
+            {"id": "n3", "type": "action", "name": "Correct form"},
+            {"id": "n4", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3", "label": "Yes"},
+            {"source": "n2", "target": "n4", "label": "No"},
+        ],
+    }
+
+    report = analyze_semantic_graph(graph)
+    issue_codes = {issue["code"] for issue in report["issues"]}
+
+    assert "decision_not_question_like" in issue_codes
+
+
+def test_debug_model_activity_exposes_keyword_and_semantic_layers() -> None:
+    from llm.refinement_generator import debug_model_activity
+
+    sketch_json = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "store request"},
+            ],
+            "control_blocks": [],
+        }
+    )
+    graph_json = json.dumps(
+        {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "review request", "origin_step_id": "S1"},
+                {"id": "n3", "type": "action", "name": "store request", "origin_step_id": "S2"},
+                {"id": "n4", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2"},
+                {"source": "n2", "target": "n3"},
+                {"source": "n3", "target": "n4"},
+            ],
+        }
+    )
+
+    bundle = debug_model_activity(
+        "If approved, store the request. Otherwise, reject it.",
+        use_sketch=True,
+        llm_caller=lambda prompt: graph_json,
+        sketch_llm_caller=lambda prompt: sketch_json,
+    )
+
+    assert bundle["keyword_hints"]["flags"]["possible_decision"] is True
+    assert "semantic_analysis" in bundle
+    assert "issues" in bundle["semantic_analysis"]
 
 
 def test_validate_graph_against_sketch_flags_loop_merge_semantics() -> None:

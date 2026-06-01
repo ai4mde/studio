@@ -16,6 +16,28 @@ from openai import OpenAI
 from .prompts.diagram import DIAGRAM_GENERATE_ATTRIBUTE, DIAGRAM_GENERATE_METHOD
 from .prompts.prose import PROSE_GENERATE_METADATA
 
+# Responsibility:
+# - perform provider-specific LLM calls
+# - hold structured output schemas used at call time
+# - keep transport concerns separate from ActivityGraph orchestration
+#
+# Must NOT:
+# - own canonical architecture terminology
+# - own the source of truth for ActivityGraph or TopologyPlan contracts
+# - perform ActivityGraph normalization or AI4MDEExport conversion
+#
+# ARCHITECTURE NOTE:
+# This module is architecturally ambiguous because it mixes provider transport,
+# response-format schemas, prompt-name dispatch, and debug logging. The
+# structured schemas here also duplicate contracts that are represented
+# elsewhere as Pydantic models.
+#
+# Future stabilization may separate:
+# - provider transport
+# - structured output schema definitions
+# - prompt dispatch helpers
+# while preserving runtime behavior.
+
 logger = logging.getLogger(__name__)
 
 ACTIVITY_SCHEMA: Dict[str, Any] = {
@@ -43,6 +65,8 @@ ACTIVITY_SCHEMA: Dict[str, Any] = {
                     "name": {"type": ["string", "null"]},
                     "label": {"type": ["string", "null"]},
                     "partition": {"type": ["string", "null"]},
+                    "origin_step_id": {"type": ["string", "null"]},
+                    "origin_block_id": {"type": ["string", "null"]},
                 },
                 "required": ["id", "type", "name", "label", "partition"],
                 "additionalProperties": False,
@@ -77,18 +101,33 @@ ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
     "properties": {
         "main_flow": {
             "type": "array",
-            "items": {"type": "string"},
+            "items": {
+                "anyOf": [
+                    {"type": "string"},
+                    {
+                        "type": "object",
+                        "properties": {
+                            "step_id": {"type": "string"},
+                            "action": {"type": "string"},
+                        },
+                        "required": ["step_id", "action"],
+                        "additionalProperties": False,
+                    },
+                ],
+            },
         },
         "control_blocks": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
+                    "block_id": {"type": ["string", "null"]},
                     "type": {
                         "type": "string",
                         "enum": ["decision", "loop", "parallel"],
                     },
                     "entry_after": {"type": ["string", "null"]},
+                    "entry_after_step_id": {"type": ["string", "null"]},
                     "branches": {
                         "type": "array",
                         "items": {
@@ -103,14 +142,21 @@ ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
                     },
                     "requires_merge": {"type": "boolean"},
                     "exit_to": {"type": ["string", "null"]},
+                    "exit_to_step_id": {"type": ["string", "null"]},
+                    "loop_back_to": {"type": ["string", "null"]},
+                    "loop_back_to_step_id": {"type": ["string", "null"]},
                     "notes": {"type": ["string", "null"]},
                 },
                 "required": [
                     "type",
                     "entry_after",
+                    "entry_after_step_id",
                     "branches",
                     "requires_merge",
                     "exit_to",
+                    "exit_to_step_id",
+                    "loop_back_to",
+                    "loop_back_to_step_id",
                     "notes",
                 ],
                 "additionalProperties": False,
