@@ -1,5 +1,14 @@
 """
-Utilities for building activity modelling prompts.
+Utilities for building ActivityGraph modelling prompts.
+
+# Responsibility:
+# - render prompt text from ProcessText, ActivityGraph, and TopologyPlan inputs
+# - keep prompt assembly separate from LLM calls and payload parsing
+#
+# Must NOT:
+# - call the LLM
+# - validate ActivityGraph payloads
+# - perform AI4MDEExport translation
 
 Overview
 --------
@@ -41,7 +50,7 @@ def build_activity_prompt(
     activity_sketch: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
-    Build a prompt for activity modelling.
+    Build a prompt for ActivityGraph modelling.
 
     Overview
     --------
@@ -53,10 +62,10 @@ def build_activity_prompt(
     Behavior
     --------
     - If both `current_model` and `refinement_instruction` are None:
-        → Generation mode (create a new model)
+        → Generation mode (create a new ActivityGraph)
 
     - Otherwise:
-        → Refinement mode (update an existing model)
+        → Refinement mode (update an existing ActivityGraph)
 
     The template will receive:
     - process_text
@@ -69,7 +78,7 @@ def build_activity_prompt(
         Description of the process.
 
     current_model : dict, optional
-        Existing model to refine.
+        Existing ActivityGraph to refine.
 
     refinement_instruction : str, optional
         Extra instructions for refinement.
@@ -95,10 +104,28 @@ def build_activity_prompt(
 
 def build_activity_sketch_prompt(process_text: str) -> str:
     """
-    Build a lightweight topology-sketch prompt for initial generation.
+    Build a lightweight TopologyPlan prompt for initial generation.
 
-    This prompt is only used before baseline graph generation and does not
-    produce nodes/edges or AI4MDE JSON.
+    This prompt is only used before baseline ActivityGraph generation and does
+    not produce nodes/edges or AI4MDEExport payloads.
     """
     template = _env.get_template("activity_sketch_prompt.jinja")
     return template.render(process_text=process_text).rstrip() + "\n"
+
+
+def build_activity_sketch_prompt_with_hints(
+    process_text: str,
+    *,
+    keyword_hints: Optional[Dict[str, Any]] = None,
+) -> str:
+    """
+    Build a lightweight TopologyPlan prompt augmented with soft keyword hints.
+
+    Keyword hints are planner guidance only. They should influence the sketch
+    layer without becoming a hard rule engine or direct graph constructor.
+    """
+    template = _env.get_template("activity_sketch_prompt.jinja")
+    return template.render(
+        process_text=process_text,
+        keyword_hints=keyword_hints,
+    ).rstrip() + "\n"
