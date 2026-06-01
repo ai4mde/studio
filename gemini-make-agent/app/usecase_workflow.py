@@ -1,7 +1,7 @@
 import re
 
 from .navigation_planner import build_navigation_plan
-from .token_normalizer import _as_list, _page_name, _section_id
+from .token_normalizer import _as_list, _page_name, _section_id, _workflow_page_name
 
 
 def _build_activity_diagrams(system_data: dict) -> list:
