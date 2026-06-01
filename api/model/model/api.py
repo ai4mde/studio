@@ -28,6 +28,12 @@ class GenerateModelRequest(Schema):
     project_id: Optional[str] = None
 
 
+class RefineModelRequest(Schema):
+    process_text: str
+    selected_system_id: str
+    refinement_instruction: str
+
+
 class GetTokenSchema(Schema):
     username: str
     password: str
@@ -73,6 +79,31 @@ def generate_model(request, body: GenerateModelRequest):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse(
             {"error": "generation_or_import_failed", "detail": str(exc)},
+            status=502,
+        )
+
+
+@api.post("/refine-model", auth=None, tags=["experiments"])
+def refine_model(request, body: RefineModelRequest):
+    """
+    Research prototype: refine one previously imported candidate activity model
+    using the original process text plus a natural-language refinement instruction.
+    """
+    from model.experiment_pipeline import refine_selected_model
+
+    try:
+        return JsonResponse(
+            refine_selected_model(
+                body.process_text,
+                selected_system_id=body.selected_system_id,
+                refinement_instruction=body.refinement_instruction,
+            )
+        )
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"error": "refinement_or_import_failed", "detail": str(exc)},
             status=502,
         )
 

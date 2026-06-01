@@ -14,11 +14,12 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, List, Literal, Optional
 
-from metadata.models import Project
+from metadata.api.schemas import ExportSingleSystem
+from metadata.models import Project, System
 
 from llm.baseline_generator import generate_activity_model
 from llm.converter import convert_to_ai4mde, unwrap_ai4mde_systems_export, validate_ai4mde_json
-from llm.refinement_generator import generate_and_convert_candidates
+from llm.refinement_generator import generate_and_convert_candidates, refine_activity_model
 
 Mode = Literal["baseline", "refinement"]
 
@@ -145,4 +146,53 @@ def run_pipeline(
         "project_id": resolved_project_id,
         "mode": mode,
         "systems": results,
+    }
+
+
+def refine_selected_model(
+    process_text: str,
+    *,
+    selected_system_id: str,
+    refinement_instruction: str,
+) -> Dict[str, Any]:
+    """
+    Refine one existing imported candidate system in place.
+
+    The workflow is:
+    - load the selected system from the database
+    - export it into the AI4MDE shape expected by ``refine_activity_model``
+    - run refinement with the original process text and user instruction
+    - import the refined export back into the same project
+    - return the updated export payload and identifiers
+    """
+    if not process_text or not str(process_text).strip():
+        raise ValueError("process_text must be non-empty")
+    if not selected_system_id or not str(selected_system_id).strip():
+        raise ValueError("selected_system_id must be non-empty")
+    if not refinement_instruction or not str(refinement_instruction).strip():
+        raise ValueError("refinement_instruction must be non-empty")
+
+    try:
+        system = System.objects.select_related("project").prefetch_related("diagrams").get(
+            pk=selected_system_id
+        )
+    except System.DoesNotExist as exc:
+        raise ValueError(f"System {selected_system_id!r} does not exist.") from exc
+
+    exported_current_model = ExportSingleSystem.model_validate(system).model_dump(mode="json")
+    refined_export = refine_activity_model(
+        process_text=process_text,
+        current_model=exported_current_model,
+        refinement_instruction=refinement_instruction,
+    )
+
+    import_to_ai4mde(system.project, refined_export)
+
+    refined_system_json = unwrap_ai4mde_systems_export(refined_export)
+    return {
+        "project_id": str(system.project_id),
+        "system_id": refined_system_json["id"],
+        "name": refined_system_json["name"],
+        "refinement_instruction": refinement_instruction,
+        "ai4mde": refined_export,
     }
