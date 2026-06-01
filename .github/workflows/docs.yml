@@ -27,27 +27,35 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.10"
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install backend and docs dependencies
+        working-directory: api
+        run: poetry install --with docs --no-root
+
+      - name: Debug docs tools
+        run: |
+          export PATH="$(poetry -C api env info --path)/bin:$PATH"
+          which sphinx-build
+          which sphinx-apidoc
+          sphinx-build --version
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install backend docs dependencies
-        run: |
-          pip install -r docs/backend/requirements.txt
-
-      - name: Install guides docs dependencies
-        run: |
-          pip install -r docs/guides/requirements.txt
-
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
 
       - name: Build documentation
-        run: bash ci/build_docs.sh
+        run: |
+          export PATH="$(poetry -C api env info --path)/bin:$PATH"
+          bash ci/build_docs.sh
 
       - name: Upload GitHub Pages artifact
         if: github.event_name == 'push'
