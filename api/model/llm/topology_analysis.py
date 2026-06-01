@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+# Responsibility:
+# - provide lightweight diagnostic analysis over ActivityGraph topology
+# - report coarse structural issues for experiments and architecture audits
+#
+# Must NOT:
+# - mutate ActivityGraph payloads
+# - act as the canonical hard validator
+# - repair topology
+
 from collections import Counter, defaultdict, deque
 from typing import Any, Dict, Iterable, List, Set, Tuple
 
@@ -53,7 +62,7 @@ def _issue_summary(issues: List[str]) -> str:
 
 def analyze_activity_graph(graph: Dict[str, Any]) -> TopologyReport:
     """
-    Run lightweight topology checks on a clean activity graph.
+    Run lightweight topology checks on an ActivityGraph.
 
     These checks are heuristic and intentionally inexpensive. They are meant
     for experiment reporting, not as hard validation rules inside generation.

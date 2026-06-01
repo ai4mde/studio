@@ -3,6 +3,25 @@ import logging
 import uuid
 from typing import Any, Dict, List, Optional, Set, Union
 
+# Responsibility:
+# - translate ActivityGraph payloads into AI4MDEExport payloads
+# - validate the resulting AI4MDEExport shape against current Studio expectations
+#
+# Must NOT:
+# - repair ActivityGraph topology
+# - reinterpret planning intent
+# - become the canonical source of ActivityGraph semantics
+#
+# ARCHITECTURE NOTE:
+# This module currently mixes deterministic translation with native-shape
+# validation for AI4MDEExport payloads. It also contains some product-specific
+# mapping policy, such as how control-node text is mirrored into native fields.
+#
+# Future stabilization may separate:
+# - ActivityGraph -> AI4MDEExport translation
+# - AI4MDEExport structural validation
+# while preserving behavior.
+
 logger = logging.getLogger(__name__)
 
 REFERENCE_TOP_LEVEL_KEYS = {
@@ -101,13 +120,13 @@ def unwrap_ai4mde_systems_export(
             raise ValueError("AI4MDE export payload entry must be a dict")
         return system
     if not isinstance(model, dict):
-        raise ValueError("AI4MDE model must be a dict or single-item list")
+        raise ValueError("AI4MDEExport payload must be a dict or single-item list")
     return model
 
 
 def validate_ai4mde_json(model: Union[Dict[str, Any], List[Dict[str, Any]]]) -> None:
     """
-    Validate a single-system AI4MDE export payload against the native Studio shape.
+    Validate a single-system AI4MDEExport payload against the native Studio shape.
 
     Raises ``ValueError`` with a concrete message on structural problems so
     callers fail locally instead of with an opaque 422 from the API.
@@ -277,7 +296,7 @@ def convert_to_ai4mde(
     wrap_as_systems_array: bool = True,
 ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     """
-    Convert a clean activity JSON model into an AI4MDE export-compatible structure.
+    Convert an ActivityGraph into an AI4MDEExport-compatible structure.
 
     The Studio ``System.import_from_json`` path imports top-level ``classifiers``
     and ``relations`` before ``diagrams``. Embeddings under ``cls_data`` /
@@ -500,7 +519,7 @@ def convert_to_ai4mde(
     try:
         dumped = json.dumps(exported, ensure_ascii=False)
     except (TypeError, ValueError) as exc:
-        logger.warning("AI4MDE JSON not serializable: %s", exc)
+        logger.warning("AI4MDEExport payload not serializable: %s", exc)
     else:
         max_len = 16000
         if len(dumped) > max_len:
