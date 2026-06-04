@@ -25,6 +25,14 @@ Topology adherence rules:
 - If a control block references `entry_after_step_id`, `exit_to_step_id`, or `loop_back_to_step_id`, use those references to preserve the intended topology even if nearby action names are similar
 - If a block has `exit_to`, reconnect the block to that later main-flow action
 - If a loop block has `loop_back_to`, realize a backward edge to that earlier action
+- If a branch includes `steps`, realize those branch-local action nodes on that branch before it rejoins, exits, or chains forward
+- If a branch includes `next_block_id`, continue that branch into the referenced later control block instead of collapsing the chain into one decision
+- If a branch includes `child_block_ids`, realize those referenced top-level control blocks as downstream branch-owned control flow for that branch
+- Support only one level of branch-owned downstream control blocks; do not reinterpret them as recursive nesting
+- For a `parallel` block with branch-owned downstream control blocks, always realize:
+  incoming action -> fork -> branch-owned downstream structures -> join -> exit target
+- Do not emit a join for a parallel block unless a corresponding fork is also emitted for that same split
+- Do not replace a parallel split with success/failure decision branches when the sketch specifies a `parallel` block
 - Branches marked `returns_to_main_flow=true` should normally reconnect to the main flow instead of ending abruptly
 - Loop blocks should preserve a backward flow together with an exit path
 - For retry-validation loops, realize the structure as:
@@ -102,6 +110,7 @@ Node realization rules:
 - Use `action` nodes with `name`
 {% if activity_sketch %}
 - When a node directly realizes a planned main-flow step, include `origin_step_id`
+- When a node directly realizes a planned branch-local step, include its `origin_step_id` when one is provided
 - When a control node directly realizes a planned control block, include `origin_block_id`
 {% endif %}
 - Use `decision` nodes when the topology plan contains a decision block
@@ -118,6 +127,8 @@ Edge realization rules:
 - Use canonical edge endpoint keys: `source` and `target`
 - Never use legacy edge keys such as `from` and `to`
 - Every edge must connect valid node IDs
+- Edge `type` must remain `control` or `object` only
+- Branch words such as `Yes`, `No`, `retry`, `approved`, and `rejected` belong in `label`, never in `type`
 - Use edge labels such as `Yes`, `No`, `retry`, or short branch names when helpful
 - Decision branches should use meaningful outgoing labels; for binary validation or approval decisions, prefer `Yes` / `No`
 - Keep the graph connected whenever possible
@@ -129,6 +140,8 @@ Validation rules:
 - Decision branches should reconnect using merge nodes when the topology plan expects closure
 - Parallel branches should reconnect using join nodes when the topology plan expects closure
 - Loops must include an exit path
+- Distinct branch-local actions and chained decisions in the topology plan should be preserved instead of compressed into a single multi-way decision
+- Branch-owned downstream control blocks referenced by `child_block_ids` should be preserved instead of flattened into sequential or success/failure structures
 
 Do not include explanations.
 Do not include markdown.

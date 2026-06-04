@@ -193,6 +193,7 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
         for block in control_blocks
         if (block_id := block.get("block_id")) is not None and str(block_id).strip()
     ]
+    declared_block_id_set = set(declared_block_ids)
     realized_block_ids = {
         str(node.get("origin_block_id", "")).strip()
         for node in nodes
@@ -224,6 +225,7 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
     realized_loop_backs = 0
     expected_merges = 0
     realized_merges = 0
+    unresolved_child_block_ids: Set[str] = set()
     for entry in sketch.get("main_flow") or []:
         action_name = _main_flow_step_name(entry)
         step_id = _main_flow_step_id(entry)
@@ -267,6 +269,15 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
         )
         branches = block.get("branches") or []
         branch_count = len(branches)
+        child_block_ids = sorted(
+            {
+                str(child_block_id).strip()
+                for branch in branches
+                if isinstance(branch, dict)
+                for child_block_id in (branch.get("child_block_ids") or [])
+                if str(child_block_id).strip()
+            }
+        )
 
         block_issues: List[str] = []
         expected_closure = None
@@ -338,6 +349,13 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
             block_issues.append("loop_back_to_step_id_not_found")
         elif loop_back_to and loop_back_to_id is None:
             block_issues.append("loop_back_to_action_not_found")
+        for child_block_id in child_block_ids:
+            if child_block_id not in declared_block_id_set:
+                block_issues.append("child_block_id_not_found")
+                unresolved_child_block_ids.add(child_block_id)
+            elif child_block_id not in realized_block_ids:
+                block_issues.append("child_block_not_realized")
+                unresolved_child_block_ids.add(child_block_id)
 
         if entry_after_id and exit_to_id and exit_to_id not in reachable_map.get(entry_after_id, set()):
             block_issues.append("exit_to_not_reachable_from_entry")
@@ -387,6 +405,7 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
                 "exit_to_step_id": exit_to_step_id,
                 "loop_back_to": loop_back_to,
                 "loop_back_to_step_id": loop_back_to_step_id,
+                "child_block_ids": child_block_ids,
                 "entry_after_resolution_mode": entry_after_resolution_mode,
                 "exit_to_resolution_mode": exit_to_resolution_mode,
                 "loop_back_to_resolution_mode": loop_back_to_resolution_mode,
@@ -439,6 +458,7 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
             "resolved_by_name_fallback": resolution_counters["name_fallback"],
             "unresolved_step_ids": sorted(unresolved_step_ids),
             "unresolved_block_ids": unresolved_block_ids,
+            "unresolved_child_block_ids": sorted(unresolved_child_block_ids),
             "planner_binding_strength": planner_binding_strength,
             "expected_reconnects": expected_reconnects,
             "realized_reconnects": realized_reconnects,

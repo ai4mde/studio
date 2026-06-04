@@ -87,6 +87,7 @@ from .normalization import normalize_activity_graph
 from .prompt_builder import build_activity_prompt, build_activity_sketch_prompt_with_hints
 from .semantic_analysis import analyze_semantic_graph
 from .sketch_alignment import validate_graph_against_sketch
+from .sketch_repair import repair_activity_sketch, sketch_requires_retry
 
 ActivityDebugResult = Dict[str, Any]
 logger = logging.getLogger(__name__)
@@ -218,6 +219,64 @@ def _extract_first_json_region(text: str) -> Optional[str]:
     return None
 
 
+_ALLOWED_BRANCH_KEYS = {
+    "label",
+    "returns_to_main_flow",
+    "steps",
+    "next_block_id",
+    "child_block_ids",
+}
+_ALLOWED_BRANCH_STEP_KEYS = {
+    "step_id",
+    "action",
+}
+
+
+def _sanitize_branch_payload(branch: Any) -> Any:
+    if not isinstance(branch, dict):
+        return branch
+
+    sanitized = {
+        key: _sanitize_branch_payload(value)
+        for key, value in branch.items()
+        if key in _ALLOWED_BRANCH_KEYS
+    }
+
+    steps = sanitized.get("steps")
+    if isinstance(steps, list):
+        sanitized["steps"] = [_sanitize_branch_step_payload(step) for step in steps]
+
+    return sanitized
+
+
+def _sanitize_branch_step_payload(step: Any) -> Any:
+    if not isinstance(step, dict):
+        return step
+    return {
+        key: value
+        for key, value in step.items()
+        if key in _ALLOWED_BRANCH_STEP_KEYS
+    }
+
+
+def _sanitize_activity_sketch_payload(payload: Any) -> Any:
+    if isinstance(payload, list):
+        return [_sanitize_activity_sketch_payload(item) for item in payload]
+    if not isinstance(payload, dict):
+        return payload
+
+    sanitized = {
+        key: _sanitize_activity_sketch_payload(value)
+        for key, value in payload.items()
+    }
+
+    branches = sanitized.get("branches")
+    if isinstance(branches, list):
+        sanitized["branches"] = [_sanitize_branch_payload(branch) for branch in branches]
+
+    return sanitized
+
+
 def _prepare_json_payload(raw_output: str) -> str:
     cleaned = raw_output.strip()
     candidates = [cleaned]
@@ -276,8 +335,10 @@ def _parse_and_validate_activity_sketch_json(raw_output: str) -> dict:
     except json.JSONDecodeError as exc:
         raise ValueError("LLM activity sketch output is not valid JSON.") from exc
 
+    sanitized_payload = _sanitize_activity_sketch_payload(parsed_json)
+
     try:
-        parsed = ActivitySketch.model_validate(parsed_json)
+        parsed = ActivitySketch.model_validate(sanitized_payload)
     except ValidationError as exc:
         raise ValueError(
             f"LLM activity sketch output failed Pydantic validation: {exc}"
@@ -309,6 +370,7 @@ def _build_debug_result(
     *,
     keyword_hints: Optional[dict] = None,
     sketch: Optional[dict] = None,
+    sketch_repair: Optional[dict] = None,
     sketch_alignment: Optional[dict] = None,
     semantic_analysis: Optional[dict] = None,
 ) -> ActivityDebugResult:
@@ -322,6 +384,8 @@ def _build_debug_result(
         result["keyword_hints"] = keyword_hints
     if sketch is not None:
         result["sketch"] = sketch
+    if sketch_repair is not None:
+        result["sketch_repair"] = sketch_repair
     if sketch_alignment is not None:
         result["sketch_alignment"] = sketch_alignment
     if semantic_analysis is not None:
@@ -409,7 +473,7 @@ def _generate_activity_sketch(
     process_text: str,
     *,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
-) -> tuple[dict, str, str, dict]:
+) -> tuple[dict, str, str, dict, dict]:
     keyword_hints = extract_keyword_hints(process_text)
     prompt = build_activity_sketch_prompt_with_hints(
         process_text,
@@ -422,7 +486,24 @@ def _generate_activity_sketch(
     )
     raw_output = caller(prompt)
     parsed = _parse_and_validate_activity_sketch_json(raw_output)
-    return keyword_hints, prompt, raw_output, parsed
+    repaired_sketch, repair_report = repair_activity_sketch(parsed)
+
+    if sketch_requires_retry(repair_report):
+        retry_prompt = (
+            prompt.rstrip()
+            + "\n\nRepair the sketch and regenerate it once.\n"
+            + "Fix only the following critical defects while preserving business semantics:\n"
+            + "\n".join(f"- {issue}" for issue in repair_report.get("critical_defects", []))
+            + "\n- Remove invalid references instead of inventing uncertain targets.\n"
+            + "- Keep decision decomposition simple and valid.\n"
+        )
+        raw_output = caller(retry_prompt)
+        parsed = _parse_and_validate_activity_sketch_json(raw_output)
+        repaired_sketch, repair_report = repair_activity_sketch(parsed)
+        repair_report["used_retry"] = True
+        repair_report["metrics"]["planner_retry_triggered"] = True
+
+    return keyword_hints, prompt, raw_output, repaired_sketch, repair_report
 
 
 def _activity_llm_roundtrip(
@@ -433,10 +514,10 @@ def _activity_llm_roundtrip(
     llm_caller: Optional[Callable[[str], str]] = None,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch: Optional[bool] = None,
-) -> tuple[Optional[dict], Optional[dict], Optional[dict], dict, str, str, dict]:
+) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict], dict, str, str, dict]:
     
     # Build prompt, call the LLM, and validate the returned ActivityGraph.
-    # Returns (TopologyPlan-as-ActivitySketch, alignment report, prompt, raw_response, ActivityGraph).
+    # Returns (keyword_hints, sketch, sketch_repair, alignment report, prompt, raw_response, ActivityGraph).
     
     clean_current: Optional[dict] = None
     if current_model is not None:
@@ -444,13 +525,14 @@ def _activity_llm_roundtrip(
 
     keyword_hints: Optional[dict] = None
     sketch: Optional[dict] = None
+    sketch_repair: Optional[dict] = None
     if _should_use_sketch(
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
         use_sketch=use_sketch,
     ):
-        keyword_hints, _, _, sketch = _generate_activity_sketch(
+        keyword_hints, _, _, sketch, sketch_repair = _generate_activity_sketch(
             process_text,
             sketch_llm_caller=sketch_llm_caller,
         )
@@ -483,7 +565,7 @@ def _activity_llm_roundtrip(
             sketch_alignment,
             semantic_analysis,
         )
-    return keyword_hints, sketch, sketch_alignment, semantic_analysis, prompt, raw_output, parsed
+    return keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed
 
 
 def debug_model_activity(
@@ -507,7 +589,7 @@ def debug_model_activity(
         ``parsed`` / ``model`` — validated ActivityGraph ``{"nodes": [...], "edges": [...]}``
         ``sketch_alignment`` — diagnostic TopologyPlan-versus-ActivityGraph alignment report when planning is enabled
     """
-    keyword_hints, sketch, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
+    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
@@ -521,6 +603,7 @@ def debug_model_activity(
         parsed,
         keyword_hints=keyword_hints,
         sketch=sketch,
+        sketch_repair=sketch_repair,
         sketch_alignment=sketch_alignment,
         semantic_analysis=semantic_analysis,
     )
@@ -588,7 +671,7 @@ llm_caller : callable, optional
     ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
     offline debugging only.
 """
-    keyword_hints, sketch, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
+    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
@@ -603,6 +686,7 @@ llm_caller : callable, optional
             parsed,
             keyword_hints=keyword_hints,
             sketch=sketch,
+            sketch_repair=sketch_repair,
             sketch_alignment=sketch_alignment,
             semantic_analysis=semantic_analysis,
         )

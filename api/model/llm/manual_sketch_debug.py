@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import uuid
 from collections import Counter
 from statistics import mean
 from typing import Any, Dict, Iterable, List
@@ -148,6 +150,62 @@ def _print_json_section(title: str, payload: Any) -> None:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
 
 
+def _setup_django() -> None:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "model.settings")
+    import django
+    from django.apps import apps
+
+    if not apps.ready:
+        django.setup()
+
+
+def _import_graph_into_ai4mde(graph: Dict[str, Any]) -> Dict[str, str | None]:
+    _setup_django()
+
+    from metadata.models import System
+    from model.experiment_pipeline import (
+        generate_session_id,
+        import_to_ai4mde,
+        resolve_experiment_project,
+    )
+    from .converter import convert_to_ai4mde
+
+    session_id = generate_session_id()
+    project = resolve_experiment_project(mode="baseline", session_id=session_id)
+    system_id = str(uuid.uuid4())
+    diagram_id = str(uuid.uuid4())
+
+    systems_export = convert_to_ai4mde(
+        clean_model=graph,
+        system_id=system_id,
+        diagram_id=diagram_id,
+        name=f"{session_id}_Model_1",
+        description=f"Manual sketch debug import for {session_id}",
+        project_id=str(project.id),
+    )
+    import_to_ai4mde(project, systems_export)
+
+    imported = System.objects.prefetch_related("diagrams").get(pk=system_id)
+    imported_diagram = imported.diagrams.first()
+
+    return {
+        "project_id": str(project.id),
+        "session_id": session_id,
+        "system_id": str(imported.id),
+        "diagram_id": str(imported_diagram.id) if imported_diagram is not None else None,
+    }
+
+
+def _print_import_summary(import_result: Dict[str, str | None]) -> None:
+    print("\nIMPORT_RESULT:")
+    print(f"project_id: {import_result['project_id']}")
+    print(f"session_id: {import_result['session_id']}")
+    print(f"system_id: {import_result['system_id']}")
+    if import_result.get("diagram_id"):
+        print(f"diagram_id: {import_result['diagram_id']}")
+        print(f"ui_path: /diagram/{import_result['diagram_id']}")
+
+
 def _aggregate_results(results: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
     results = list(results)
     if not results:
@@ -207,9 +265,20 @@ def main() -> None:
     parser.add_argument("--show-alignment", action="store_true", help="Print the alignment report JSON.")
     parser.add_argument("--show-semantic", action="store_true", help="Print the semantic analysis JSON.")
     parser.add_argument("--show-prompt", action="store_true", help="Print the rendered prompt.")
+    parser.add_argument(
+        "--import",
+        dest="do_import",
+        action="store_true",
+        help="Import the exact generated graph from this run into AI4MDE.",
+    )
     args = parser.parse_args()
 
     process_text = _read_process_text(args)
+    if args.do_import and args.runs != 1:
+        raise ValueError("--import requires --runs 1 so the graph is generated exactly once.")
+    if args.do_import and args.mode == "both":
+        raise ValueError("--import does not support --mode both because it would generate twice.")
+
     use_sketch_values = (
         [True] if args.mode == "sketch"
         else [False] if args.mode == "no-sketch"
@@ -236,6 +305,8 @@ def main() -> None:
                 _print_json_section("ALIGNMENT", bundle["sketch_alignment"])
             if args.show_semantic and bundle.get("semantic_analysis") is not None:
                 _print_json_section("SEMANTIC_ANALYSIS", bundle["semantic_analysis"])
+            if args.do_import:
+                _print_import_summary(_import_graph_into_ai4mde(bundle["parsed"]))
 
         _print_aggregate_summary(condition_results, use_sketch=use_sketch)
 

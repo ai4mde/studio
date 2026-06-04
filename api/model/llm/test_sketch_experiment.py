@@ -11,7 +11,9 @@ if str(MODEL_ROOT) not in sys.path:
 from llm.activity_sketch_model import ActivitySketch
 from llm.keyword_hints import extract_keyword_hints
 from llm.prompt_builder import build_activity_sketch_prompt_with_hints
+from llm.refinement_generator import _parse_and_validate_activity_sketch_json
 from llm.semantic_analysis import analyze_semantic_graph
+from llm.sketch_repair import repair_activity_sketch, sketch_requires_retry
 from llm.sketch_experiment import compare_sketch_generation
 from llm.sketch_alignment import validate_graph_against_sketch
 from llm.topology_analysis import analyze_activity_graph
@@ -254,6 +256,192 @@ def test_activity_sketch_accepts_stable_step_and_block_identifiers() -> None:
     assert sketch.control_blocks[0].exit_to_step_id == "S2"
 
 
+def test_activity_sketch_accepts_branch_local_steps_and_next_block_id() -> None:
+    sketch = ActivitySketch.model_validate(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "verify claim"},
+                {"step_id": "S2", "action": "resolve claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "verify claim",
+                    "branches": [
+                        {
+                            "label": "documents required",
+                            "returns_to_main_flow": False,
+                            "steps": [
+                                {"step_id": "S1A", "action": "submit missing documents"}
+                            ],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "documents complete",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": "B2",
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "verify claim",
+                    "notes": None,
+                },
+                {
+                    "block_id": "B2",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "verify claim",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2A", "action": "issue payment"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2B", "action": "send rejection notice"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                },
+            ],
+        }
+    )
+
+    first_branch = sketch.control_blocks[0].branches[0]
+    second_branch = sketch.control_blocks[0].branches[1]
+    assert first_branch.steps[0].step_id == "S1A"
+    assert first_branch.steps[0].action == "submit missing documents"
+    assert second_branch.next_block_id == "B2"
+
+
+def test_activity_sketch_accepts_child_block_ids_for_one_level_composition() -> None:
+    sketch = ActivitySketch.model_validate(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "start deployment"},
+                {"step_id": "S2", "action": "synchronize results"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "parallel",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {
+                            "label": "provisioning",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["B2"],
+                        },
+                        {
+                            "label": "security validation",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["B3"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "synchronize results",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    assert sketch.control_blocks[0].branches[0].child_block_ids == ["B2"]
+    assert sketch.control_blocks[0].branches[1].child_block_ids == ["B3"]
+
+
+def test_parse_and_validate_activity_sketch_sanitizes_branch_notes_without_mutating_steps() -> None:
+    parsed = _parse_and_validate_activity_sketch_json(
+        json.dumps(
+            {
+                "main_flow": [
+                    {"step_id": "S1", "action": "review request"},
+                    {"step_id": "S2", "action": "finish request"},
+                ],
+                "control_blocks": [
+                    {
+                        "block_id": "B1",
+                        "type": "decision",
+                        "entry_after_step_id": "S1",
+                        "entry_after": "review request",
+                        "branches": [
+                            {
+                                "label": "approved",
+                                "returns_to_main_flow": True,
+                                "steps": [
+                                    {
+                                        "step_id": "S1A",
+                                        "action": "retry provisioning",
+                                    }
+                                ],
+                                "next_block_id": None,
+                                "child_block_ids": [],
+                            },
+                            {
+                                "label": "request rejected",
+                                "notes": "request rejected",
+                                "returns_to_main_flow": True,
+                                "steps": [],
+                                "next_block_id": None,
+                                "child_block_ids": [],
+                            },
+                        ],
+                        "requires_merge": True,
+                        "exit_to_step_id": "S2",
+                        "exit_to": "finish request",
+                        "loop_back_to_step_id": None,
+                        "loop_back_to": None,
+                        "notes": None,
+                    }
+                ],
+            }
+        )
+    )
+
+    approved_branch = parsed["control_blocks"][0]["branches"][0]
+    rejected_branch = parsed["control_blocks"][0]["branches"][1]
+    assert approved_branch["steps"] == [
+        {
+            "step_id": "S1A",
+            "action": "retry provisioning",
+        }
+    ]
+    assert "notes" not in rejected_branch
+    assert rejected_branch == {
+        "label": "request rejected",
+        "returns_to_main_flow": True,
+        "steps": [],
+        "child_block_ids": [],
+    }
+
+
 def test_extract_keyword_hints_detects_decision_loop_and_retry_guidance() -> None:
     hints = extract_keyword_hints(
         "If errors are found, the user corrects the form and submits it again. Otherwise, the system stores the application."
@@ -297,10 +485,99 @@ def test_activity_sketch_prompt_can_include_keyword_guidance() -> None:
         keyword_hints=hints,
     )
 
-    assert "Use the following keyword-layer hints as soft planning guidance." in prompt
+    assert "These are soft planning signals extracted from the process text." in prompt
     assert '"possible_decision": true' in prompt.lower()
     assert "Keyword guidance:" in prompt
-    assert "prefer a simple backward retry loop" in prompt
+    assert 'Use loop and retry hints to prefer `type="loop"`' in prompt
+    assert "next_block_id" in prompt
+    assert "child_block_ids" in prompt
+    assert "branch `steps`" in prompt
+    assert "A decision block must represent exactly one business question" in prompt
+    assert "Do not mix retry, correction, or rework outcomes with approval or rejection outcomes in the same decision block" in prompt
+    assert "Parallel -> Loop / Loop" in prompt
+    assert "## Branch Continuation Semantics" in prompt
+    assert "A branch must use exactly one continuation mechanism" in prompt
+    assert "`next_block_id` and `child_block_ids` are mutually exclusive" in prompt
+    assert "If `child_block_ids` is non-empty, `next_block_id` must be `null`" in prompt
+    assert "If the downstream control structure belongs inside the branch's own topology, use `child_block_ids` instead of `next_block_id`" in prompt
+    assert '"next_block_id": "B2",' in prompt
+    assert '"child_block_ids": []' in prompt
+    assert '"child_block_ids": ["B3"]' not in prompt.split("Return a JSON object with this structure:")[1].split("Rules:")[0]
+
+
+def test_repair_activity_sketch_removes_invalid_references_and_normalizes_loop_merge() -> None:
+    sketch, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "validate form"},
+                {"step_id": "S2", "action": "store application"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "loop",
+                    "entry_after_step_id": "S9",
+                    "entry_after": "unknown",
+                    "branches": [
+                        {
+                            "label": "retry",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": "B9",
+                            "child_block_ids": ["B8"],
+                        }
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S8",
+                    "exit_to": "missing target",
+                    "loop_back_to_step_id": "S7",
+                    "loop_back_to": "missing step",
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    block = sketch["control_blocks"][0]
+    assert "entry_after_step_id" not in block
+    assert block["requires_merge"] is False
+    assert "loop_back_to_step_id" not in block
+    assert "next_block_id" not in block["branches"][0]
+    assert block["branches"][0]["child_block_ids"] == []
+    assert report["metrics"]["invalid_reference_count"] >= 3
+    assert report["metrics"]["merge_normalization_count"] >= 1
+    assert report["metrics"]["child_block_repair_count"] >= 1
+    assert report["critical_defects"]
+
+
+def test_sketch_requires_retry_for_mixed_decision_semantics() -> None:
+    _, report = repair_activity_sketch(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review claim"},
+                {"step_id": "S2", "action": "resolve claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review claim",
+                    "branches": [
+                        {"label": "additional documents required", "returns_to_main_flow": True, "steps": []},
+                        {"label": "claim approved", "returns_to_main_flow": True, "steps": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "notes": None,
+                }
+            ],
+        }
+    )
+
+    assert sketch_requires_retry(report) is True
+    assert "B1:mixed_decision_semantics" in report["critical_defects"]
 
 
 def test_validate_graph_against_sketch_uses_step_identifiers_when_present() -> None:
@@ -366,6 +643,83 @@ def test_validate_graph_against_sketch_uses_step_identifiers_when_present() -> N
         "S1": "origin_step_id",
         "S2": "origin_step_id",
     }
+
+
+def test_validate_graph_against_sketch_reports_invalid_child_block_references() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "start deployment"},
+            {"step_id": "S2", "action": "synchronize results"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "parallel",
+                "entry_after_step_id": "S1",
+                "entry_after": "start deployment",
+                "branches": [
+                    {
+                        "label": "provisioning",
+                        "returns_to_main_flow": False,
+                        "steps": [],
+                        "next_block_id": None,
+                        "child_block_ids": ["B2"],
+                    },
+                    {
+                        "label": "security validation",
+                        "returns_to_main_flow": False,
+                        "steps": [],
+                        "next_block_id": None,
+                        "child_block_ids": ["B9"],
+                    },
+                ],
+                "requires_merge": True,
+                "exit_to_step_id": "S2",
+                "exit_to": "synchronize results",
+                "loop_back_to_step_id": None,
+                "loop_back_to": None,
+                "notes": None,
+            },
+            {
+                "block_id": "B2",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "start deployment",
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": False,
+                "exit_to_step_id": "S2",
+                "exit_to": "synchronize results",
+                "loop_back_to_step_id": "S1",
+                "loop_back_to": "start deployment",
+                "notes": None,
+            },
+        ],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "start deployment", "origin_step_id": "S1"},
+            {"id": "n3", "type": "fork", "origin_block_id": "B1"},
+            {"id": "n4", "type": "action", "name": "retry provisioning"},
+            {"id": "n5", "type": "join", "origin_block_id": "B1"},
+            {"id": "n6", "type": "action", "name": "synchronize results", "origin_step_id": "S2"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4"},
+            {"source": "n4", "target": "n5"},
+            {"source": "n5", "target": "n6"},
+        ],
+    }
+
+    report = validate_graph_against_sketch(sketch, graph)
+
+    assert "child_block_not_realized" in report["issues"] or "child_block_id_not_found" in report["issues"]
+    assert "B9" in report["metrics"]["unresolved_child_block_ids"]
 
 
 def test_validate_graph_against_sketch_falls_back_to_action_names_without_traceability() -> None:
@@ -568,6 +922,8 @@ def test_debug_model_activity_exposes_keyword_and_semantic_layers() -> None:
     )
 
     assert bundle["keyword_hints"]["flags"]["possible_decision"] is True
+    assert "sketch_repair" in bundle
+    assert bundle["sketch_repair"]["metrics"]["planner_retry_triggered"] is False
     assert "semantic_analysis" in bundle
     assert "issues" in bundle["semantic_analysis"]
 

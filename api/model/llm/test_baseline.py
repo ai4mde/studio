@@ -141,6 +141,291 @@ def test_model_activity_uses_sketch_for_baseline_when_enabled() -> None:
     assert bundle["sketch_alignment"]["metrics"]["control_block_count"] == 1
 
 
+def test_model_activity_exposes_branch_steps_and_next_block_id_to_graph_realizer() -> None:
+    sketch_json = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "verify claim"},
+                {"step_id": "S2", "action": "resolve claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "verify claim",
+                    "branches": [
+                        {
+                            "label": "documents required",
+                            "returns_to_main_flow": False,
+                            "steps": [
+                                {"step_id": "S1A", "action": "submit missing documents"}
+                            ],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "documents complete",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": "B2",
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "verify claim",
+                    "notes": None,
+                },
+                {
+                    "block_id": "B2",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "verify claim",
+                    "branches": [
+                        {
+                            "label": "approved",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2A", "action": "issue payment"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "rejected",
+                            "returns_to_main_flow": True,
+                            "steps": [{"step_id": "S2B", "action": "send rejection notice"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                },
+            ],
+        }
+    )
+
+    def fake_graph_llm(prompt: str) -> str:
+        assert "submit missing documents" in prompt
+        assert '"next_block_id": "B2"' in prompt
+        assert "If a branch includes `steps`" in prompt
+        assert "If a branch includes `next_block_id`" in prompt
+        return _MOCK_LLM_JSON
+
+    bundle = debug_model_activity(
+        "Verify claim, request documents if needed, then decide whether to approve it.",
+        llm_caller=fake_graph_llm,
+        sketch_llm_caller=lambda prompt: sketch_json,
+        use_sketch=True,
+    )
+
+    assert bundle["sketch"]["control_blocks"][0]["branches"][0]["steps"][0]["action"] == "submit missing documents"
+    assert bundle["sketch"]["control_blocks"][0]["branches"][1]["next_block_id"] == "B2"
+
+
+def test_model_activity_exposes_child_block_ids_to_graph_realizer() -> None:
+    sketch_json = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "start deployment"},
+                {"step_id": "S2", "action": "synchronize results"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "parallel",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {
+                            "label": "provisioning",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["B2"],
+                        },
+                        {
+                            "label": "security validation",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": None,
+                            "child_block_ids": ["B3"],
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "synchronize results",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                },
+                {
+                    "block_id": "B2",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "synchronize results",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start deployment",
+                    "notes": None,
+                },
+                {
+                    "block_id": "B3",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "start deployment",
+                    "branches": [
+                        {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "synchronize results",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "start deployment",
+                    "notes": None,
+                },
+            ],
+        }
+    )
+
+    def fake_graph_llm(prompt: str) -> str:
+        assert '"child_block_ids": [' in prompt
+        assert "If a branch includes `child_block_ids`" in prompt
+        assert "Support only one level of branch-owned downstream control blocks" in prompt
+        return _MOCK_LLM_JSON
+
+    bundle = debug_model_activity(
+        "Provision and validate in parallel, each with its own retry loop.",
+        llm_caller=fake_graph_llm,
+        sketch_llm_caller=lambda prompt: sketch_json,
+        use_sketch=True,
+    )
+
+    assert bundle["sketch"]["control_blocks"][0]["branches"][0]["child_block_ids"] == ["B2"]
+    assert bundle["sketch"]["control_blocks"][0]["branches"][1]["child_block_ids"] == ["B3"]
+
+
+def test_model_activity_retries_sketch_once_when_critical_defects_remain() -> None:
+    invalid_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review claim"},
+                {"step_id": "S2", "action": "resolve claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review claim",
+                    "branches": [
+                        {
+                            "label": "additional documents required",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                        },
+                        {
+                            "label": "claim approved",
+                            "returns_to_main_flow": True,
+                            "steps": [],
+                            "next_block_id": None,
+                        },
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+    repaired_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review claim"},
+                {"step_id": "S2", "action": "resolve claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review claim",
+                    "branches": [
+                        {
+                            "label": "documents required",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1A", "action": "submit missing documents"}],
+                            "next_block_id": None,
+                        },
+                        {
+                            "label": "documents complete",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": "B2",
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "review claim",
+                    "notes": None,
+                },
+                {
+                    "block_id": "B2",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review claim",
+                    "branches": [
+                        {"label": "approved", "returns_to_main_flow": True, "steps": [], "next_block_id": None},
+                        {"label": "rejected", "returns_to_main_flow": True, "steps": [], "next_block_id": None},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "resolve claim",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                },
+            ],
+        }
+    )
+
+    sketch_calls = []
+
+    def fake_sketch_llm(prompt: str) -> str:
+        sketch_calls.append(prompt)
+        return invalid_sketch if len(sketch_calls) == 1 else repaired_sketch
+
+    bundle = debug_model_activity(
+        "Review claim, request documents if needed, then decide approval.",
+        llm_caller=_fake_llm_returns_valid_graph,
+        sketch_llm_caller=fake_sketch_llm,
+        use_sketch=True,
+    )
+
+    assert len(sketch_calls) == 2
+    assert "Repair the sketch and regenerate it once." in sketch_calls[1]
+    assert bundle["sketch_repair"]["metrics"]["planner_retry_triggered"] is True
+
+
 def test_model_activity_skips_sketch_for_refinement_even_if_enabled() -> None:
     def fake_graph_llm(prompt: str) -> str:
         assert "Topology sketch" not in prompt
@@ -180,6 +465,11 @@ def test_baseline_prompt_is_positioned_as_graph_realizer() -> None:
     assert "Your task is to realize the topology into valid graph JSON" in prompt
     assert "Instantiate the declared topology instead of re-planning it" in prompt
     assert "origin_step_id" in prompt
+    assert "If a branch includes `steps`" in prompt
+    assert "If a branch includes `next_block_id`" in prompt
+    assert "If a branch includes `child_block_ids`" in prompt
+    assert "Do not emit a join for a parallel block unless a corresponding fork is also emitted" in prompt
+    assert "Branch words such as `Yes`, `No`, `retry`, `approved`, and `rejected` belong in `label`" in prompt
     assert "Decision nodes should use short question-style labels that end with `?`" in prompt
     assert "prefer `Yes` / `No`" in prompt
     assert "Modeling Procedure" not in prompt
@@ -279,6 +569,33 @@ def test_parse_normalizes_loop_node_type_to_decision() -> None:
 
     assert parsed["nodes"][1]["type"] == "decision"
     assert parsed["nodes"][1]["label"] == "retry?"
+
+
+def test_parse_normalizes_branch_words_from_edge_type_into_label() -> None:
+    from llm.refinement_generator import _parse_and_validate_activity_graph_json
+
+    parsed = _parse_and_validate_activity_graph_json(
+        json.dumps(
+            {
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "decision", "label": "Approved"},
+                    {"id": "n3", "type": "action", "name": "Proceed"},
+                    {"id": "n4", "type": "action", "name": "Retry step"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2", "type": "control"},
+                    {"source": "n2", "target": "n3", "type": "Yes"},
+                    {"source": "n2", "target": "n4", "type": "retry"},
+                ],
+            }
+        )
+    )
+
+    assert parsed["edges"][1]["type"] == "control"
+    assert parsed["edges"][1]["label"] == "Yes"
+    assert parsed["edges"][2]["type"] == "control"
+    assert parsed["edges"][2]["label"] == "retry"
 
 
 def test_parse_normalizes_decision_text_into_question_label() -> None:

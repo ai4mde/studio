@@ -135,8 +135,31 @@ ACTIVITY_SKETCH_SCHEMA: Dict[str, Any] = {
                             "properties": {
                                 "label": {"type": "string"},
                                 "returns_to_main_flow": {"type": "boolean"},
+                                "steps": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "step_id": {"type": ["string", "null"]},
+                                            "action": {"type": "string"},
+                                        },
+                                        "required": ["action"],
+                                        "additionalProperties": False,
+                                    },
+                                },
+                                "next_block_id": {"type": ["string", "null"]},
+                                "child_block_ids": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                },
                             },
-                            "required": ["label", "returns_to_main_flow"],
+                            "required": [
+                                "label",
+                                "returns_to_main_flow",
+                                "steps",
+                                "next_block_id",
+                                "child_block_ids",
+                            ],
                             "additionalProperties": False,
                         },
                     },

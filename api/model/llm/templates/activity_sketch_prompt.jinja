@@ -1,44 +1,40 @@
-You are helping plan the control-flow structure of a UML Activity Diagram.
+Purpose:
+Plan the control-flow structure of a UML Activity Diagram from the process description below.
 
-Given the following process description:
+Process description:
 
 {{ process_text }}
 
 {% if keyword_hints %}
-Use the following keyword-layer hints as soft planning guidance.
-They are advisory signals extracted from the process text.
-Use them to stabilize topology reasoning, but do not mechanically force a structure when the text clearly suggests otherwise.
-
 Keyword hints:
+These are soft planning signals extracted from the process text. Use them to stabilize topology reasoning, but do not force a structure that the text does not support.
+
 {{ keyword_hints | tojson(indent=2) }}
 
 Keyword guidance:
-- Use decision hints to look for clear branch points and labeled alternatives
-- Use loop and retry hints to prefer loop planning with an exit path over unnecessary merge-based closures
-- Use parallelism hints only when the text suggests truly concurrent behavior
-- Use exit-condition hints to plan explicit reconnect or termination targets
-- For retry-validation language such as "again", "retry", "correct and submit again", or "until valid", prefer a simple backward retry loop:
-  validation action -> decision question -> retry branch back to validation -> success branch forward to exit action
-- For simple retry loops, do not plan an explicit merge unless multiple forward branches truly rejoin later
+- Use decision hints to look for explicit branch points and labeled alternatives
+- Use loop and retry hints to prefer `type="loop"` when the text describes repetition with a clear exit path
+- Use parallelism hints only when the text suggests truly concurrent work
+- Use exit-condition hints to plan explicit `exit_to` targets or termination points
 
 {% endif %}
-
+Output schema:
 Return ONLY a compact JSON sketch of the control-flow scaffold.
 
-The sketch must NOT include:
+Do not include:
 - node ids
 - edge ids
 - full graph JSON
 - AI4MDE JSON
 
-The sketch should only describe:
+Describe only:
 - the main sequence of major actions
-- where important decision / loop / parallel blocks occur
-- rough branch structure
+- where major decision, loop, and parallel blocks occur
+- branch structure
 - whether branches return to main flow
-- whether a merge/rejoin is expected
+- whether a merge is required
 - whether a loop branch returns to an earlier action
-- where the block exits back to the main flow
+- where a block exits to the main flow
 
 Return a JSON object with this structure:
 
@@ -62,11 +58,22 @@ Return a JSON object with this structure:
       "branches": [
         {
           "label": "branch 1",
-          "returns_to_main_flow": true
+          "returns_to_main_flow": false,
+          "steps": [
+            {
+              "step_id": "S1A",
+              "action": "optional branch-local action"
+            }
+          ],
+          "next_block_id": "B2",
+          "child_block_ids": []
         },
         {
           "label": "branch 2",
-          "returns_to_main_flow": true
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
         }
       ],
       "requires_merge": true,
@@ -79,20 +86,195 @@ Return a JSON object with this structure:
   ]
 }
 
+## Branch Continuation Semantics
+
+- Use `next_block_id` for sequential continuation to a later sibling control block in the enclosing sequence
+- Use `child_block_ids` for branch-owned downstream control structures that belong to that branch's internal topology
+- A branch must use exactly one continuation mechanism
+- `next_block_id` and `child_block_ids` are mutually exclusive
+- If `next_block_id` is set, `child_block_ids` must be empty
+- If `child_block_ids` is non-empty, `next_block_id` must be `null`
+
 Rules:
-- Keep the sketch lightweight and high-level
-- Use short action phrases
-- Use stable sequential identifiers such as `S1`, `S2`, ... for main-flow steps and `B1`, `B2`, ... for control blocks whenever possible
-- Include only major control-flow structures
-- Keep both the human-readable action text and the identifier-based references consistent with each other
-- Use `requires_merge=true` when a decision or parallel split should close before continuing
-- For retry or validation loops, use `type="loop"` and set `loop_back_to` to the earlier action the retry branch returns to
-- Retry loops should normally use `requires_merge=false`
-- For retry-validation loops, plan an explicit exit path to the next main-flow action
-- Branch labels for validation-style control should normally be simple opposites such as `yes` / `no` or semantically equivalent labels
-- Do not mark a loop as requiring merge just because one branch loops backward
-- Only use `requires_merge=true` for a loop if multiple forward branches truly rejoin into the same later continuation
-- Use `exit_to` when the block should reconnect to a specific later main-flow action
-- If the process is linear, use an empty `control_blocks` list
+- Keep the sketch high-level and include only major control-flow structures
+- Use sequential identifiers such as `S1`, `S2`, `B1`, `B2`
+- Use an empty `control_blocks` list when the process is linear
+- Use branch `steps` only for actions that occur on that branch before it returns, exits, or continues into another block
+- Use `requires_merge=true` when a decision or parallel block must close before continuing
+- Use `exit_to` and `exit_to_step_id` when a block reconnects to a specific later main-flow action
+- Use `next_block_id` only for sequential continuation to a later sibling control block in the enclosing sequence
+- Use `child_block_ids` only when a branch owns downstream control blocks as part of that branch's internal topology
+- Keep branch-owned control blocks in the top-level `control_blocks` list
+- A decision block must represent exactly one business question, and its branch labels must be direct answers to that question
+- If a branch continues to a later sibling business question in the enclosing sequence, create a separate decision block and connect it with `next_block_id` instead of combining multiple questions into one decision
+- If the downstream control structure belongs inside the branch's own topology, use `child_block_ids` instead of `next_block_id`
+- Do not mix retry, correction, or rework outcomes with approval or rejection outcomes in the same decision block
+- For retry or validation behavior, use `type="loop"` with `loop_back_to` and `loop_back_to_step_id` pointing to the earlier action reached by the retry branch
+- Retry or validation loops should normally use `requires_merge=false`; use `requires_merge=true` only when multiple forward branches rejoin before the shared continuation
+- Keep corrective or retry actions in the retry branch `steps`
 - Do not explain the answer
 - Do not use markdown
+
+Reference schema illustrations:
+
+1. Parallel -> Loop / Loop
+
+{
+  "main_flow": [
+    {"step_id": "S1", "action": "start deployment"},
+    {"step_id": "S2", "action": "synchronize results"}
+  ],
+  "control_blocks": [
+    {
+      "block_id": "B1",
+      "type": "parallel",
+      "entry_after": "start deployment",
+      "entry_after_step_id": "S1",
+      "branches": [
+        {
+          "label": "provisioning",
+          "returns_to_main_flow": false,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": ["B2"]
+        },
+        {
+          "label": "security validation",
+          "returns_to_main_flow": false,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": ["B3"]
+        }
+      ],
+      "requires_merge": true,
+      "exit_to": "synchronize results",
+      "exit_to_step_id": "S2",
+      "loop_back_to": null,
+      "loop_back_to_step_id": null,
+      "notes": "parallel work streams"
+    },
+    {
+      "block_id": "B2",
+      "type": "loop",
+      "entry_after": "start deployment",
+      "entry_after_step_id": "S1",
+      "branches": [
+        {
+          "label": "retry",
+          "returns_to_main_flow": false,
+          "steps": [{"step_id": "S1A", "action": "retry provisioning"}],
+          "next_block_id": null,
+          "child_block_ids": []
+        },
+        {
+          "label": "success",
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
+        }
+      ],
+      "requires_merge": false,
+      "exit_to": "synchronize results",
+      "exit_to_step_id": "S2",
+      "loop_back_to": "start deployment",
+      "loop_back_to_step_id": "S1",
+      "notes": "provisioning loop"
+    },
+    {
+      "block_id": "B3",
+      "type": "loop",
+      "entry_after": "start deployment",
+      "entry_after_step_id": "S1",
+      "branches": [
+        {
+          "label": "retry",
+          "returns_to_main_flow": false,
+          "steps": [{"step_id": "S1B", "action": "fix security issues"}],
+          "next_block_id": null,
+          "child_block_ids": []
+        },
+        {
+          "label": "success",
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
+        }
+      ],
+      "requires_merge": false,
+      "exit_to": "synchronize results",
+      "exit_to_step_id": "S2",
+      "loop_back_to": "start deployment",
+      "loop_back_to_step_id": "S1",
+      "notes": "security validation loop"
+    }
+  ]
+}
+
+2. Decision -> Parallel
+
+{
+  "main_flow": [
+    {"step_id": "S1", "action": "review request"},
+    {"step_id": "S2", "action": "complete request"}
+  ],
+  "control_blocks": [
+    {
+      "block_id": "B1",
+      "type": "decision",
+      "entry_after": "review request",
+      "entry_after_step_id": "S1",
+      "branches": [
+        {
+          "label": "needs parallel work",
+          "returns_to_main_flow": false,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": ["B2"]
+        },
+        {
+          "label": "no",
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
+        }
+      ],
+      "requires_merge": true,
+      "exit_to": "complete request",
+      "exit_to_step_id": "S2",
+      "loop_back_to": null,
+      "loop_back_to_step_id": null,
+      "notes": "additional processing required?"
+    },
+    {
+      "block_id": "B2",
+      "type": "parallel",
+      "entry_after": "review request",
+      "entry_after_step_id": "S1",
+      "branches": [
+        {
+          "label": "track A",
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
+        },
+        {
+          "label": "track B",
+          "returns_to_main_flow": true,
+          "steps": [],
+          "next_block_id": null,
+          "child_block_ids": []
+        }
+      ],
+      "requires_merge": true,
+      "exit_to": "complete request",
+      "exit_to_step_id": "S2",
+      "loop_back_to": null,
+      "loop_back_to_step_id": null,
+      "notes": "parallel follow-up work"
+    }
+  ]
+}

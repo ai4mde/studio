@@ -8,18 +8,28 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 ControlBlockType = Literal["decision", "loop", "parallel"]
 
 
-class Branch(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    label: str
-    returns_to_main_flow: bool = True
-
-
 class MainFlowStep(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     step_id: str
     action: str
+
+
+class BranchStep(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    step_id: Optional[str] = None
+    action: str
+
+
+class Branch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    label: str
+    returns_to_main_flow: bool = True
+    steps: List[BranchStep] = Field(default_factory=list)
+    next_block_id: Optional[str] = None
+    child_block_ids: List[str] = Field(default_factory=list)
 
 
 class ControlBlock(BaseModel):
@@ -50,5 +60,11 @@ class ActivitySketch(BaseModel):
     main_flow: List[Union[str, MainFlowStep]]
     control_blocks: List[ControlBlock] = Field(default_factory=list)
 
-
-__all__ = ["ActivitySketch", "Branch", "ControlBlock", "MainFlowStep", "ValidationError"]
+__all__ = [
+    "ActivitySketch",
+    "Branch",
+    "BranchStep",
+    "ControlBlock",
+    "MainFlowStep",
+    "ValidationError",
+]

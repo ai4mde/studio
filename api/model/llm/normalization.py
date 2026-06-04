@@ -53,6 +53,15 @@ EDGE_TYPE_NORMALIZATION: Dict[str, str] = {
     "object_flow": "object",
     "object-flow": "object",
 }
+EDGE_TYPE_AS_LABEL_TOKENS: set[str] = {
+    "yes",
+    "no",
+    "retry",
+    "approved",
+    "rejected",
+    "success",
+    "failure",
+}
 
 
 def _normalized_token(value: Any) -> Optional[str]:
@@ -151,6 +160,10 @@ def _normalize_edge(edge: Dict[str, Any]) -> Dict[str, Any]:
     edge_type_key = _normalized_lookup_key(normalized.get("type"))
     if edge_type_key and edge_type_key in EDGE_TYPE_NORMALIZATION:
         normalized["type"] = EDGE_TYPE_NORMALIZATION[edge_type_key]
+    elif edge_type_key and edge_type_key in EDGE_TYPE_AS_LABEL_TOKENS:
+        if not _normalized_token(normalized.get("label")):
+            normalized["label"] = _normalized_token(normalized.get("type"))
+        normalized["type"] = "control"
 
     label_text = _first_text_value(normalized, EDGE_LABEL_ALIASES)
     if label_text and not _normalized_token(normalized.get("label")):
