@@ -32,6 +32,7 @@ def _format_ratio(realized: Any, expected: Any) -> str:
 def _summarize_run(bundle: Dict[str, Any], *, use_sketch: bool) -> Dict[str, Any]:
     graph = bundle["parsed"]
     sketch = bundle.get("sketch")
+    sketch_repair = bundle.get("sketch_repair") or {"metrics": {}, "critical_defects": []}
     keyword_hints = bundle.get("keyword_hints") or {"flags": {}, "hints": []}
     alignment = bundle.get("sketch_alignment") or {"metrics": {}, "details": {}, "issues": []}
     semantic_analysis = bundle.get("semantic_analysis") or {"issues": [], "metrics": {}}
@@ -61,6 +62,7 @@ def _summarize_run(bundle: Dict[str, Any], *, use_sketch: bool) -> Dict[str, Any
         "sketch": sketch,
         "keyword_hints": keyword_hints,
         "graph": graph,
+        "sketch_repair": sketch_repair,
         "alignment": alignment,
         "semantic_analysis": semantic_analysis,
         "topology": topology,
@@ -91,6 +93,8 @@ def _summarize_run(bundle: Dict[str, Any], *, use_sketch: bool) -> Dict[str, Any
         "semantic_issue_codes": [issue.get("code") for issue in semantic_analysis.get("issues", [])],
         "semantic_warning_count": int((semantic_analysis.get("metrics") or {}).get("warning_count", 0)),
         "semantic_error_count": int((semantic_analysis.get("metrics") or {}).get("error_count", 0)),
+        "sketch_repair_metrics": sketch_repair.get("metrics", {}),
+        "sketch_repair_critical_defects": sketch_repair.get("critical_defects", []),
     }
 
 
@@ -104,6 +108,14 @@ def _print_run_summary(result: Dict[str, Any], *, run_index: int, total_runs: in
         f" name_fallback={result['resolved_by_name_fallback']}"
     )
     print(f"keyword_flags: {result['keyword_flags']}")
+    print(
+        "repair:"
+        f" invalid_refs={result['sketch_repair_metrics'].get('invalid_reference_count', 0)}"
+        f" reconnects={result['sketch_repair_metrics'].get('reconnect_repair_count', 0)}"
+        f" merges={result['sketch_repair_metrics'].get('merge_normalization_count', 0)}"
+        f" dead_ends={result['sketch_repair_metrics'].get('dead_end_repair_count', 0)}"
+        f" retry={result['sketch_repair_metrics'].get('planner_retry_triggered', False)}"
+    )
     print(
         "topology:"
         f" nodes={result['node_count']}"
@@ -140,6 +152,8 @@ def _print_run_summary(result: Dict[str, Any], *, run_index: int, total_runs: in
         print(f"issues: {', '.join(result['topology_issues'])}")
     else:
         print("issues: none")
+    if result["sketch_repair_critical_defects"]:
+        print(f"repair_critical_defects: {result['sketch_repair_critical_defects']}")
 
 
 def _print_json_section(title: str, payload: Any) -> None:
@@ -246,6 +260,26 @@ def _print_aggregate_summary(results: List[Dict[str, Any]], *, use_sketch: bool)
     print(f"issue_counts: {summary['issue_counts']}")
 
 
+def _print_failure_summary(
+    failures: List[Dict[str, Any]],
+    *,
+    use_sketch: bool,
+    total_runs: int,
+) -> None:
+    if not failures:
+        print(f"\n=== {_condition_label(use_sketch)} failures ===")
+        print(f"failures: 0/{total_runs}")
+        return
+
+    print(f"\n=== {_condition_label(use_sketch)} failures ===")
+    print(f"failures: {len(failures)}/{total_runs}")
+    for failure in failures:
+        print(
+            f"run {failure['run_index']}: "
+            f"{failure['error_type']}: {failure['message']}"
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Lightweight manual sketch-generation debugger for planner influence inspection.",
@@ -287,8 +321,24 @@ def main() -> None:
 
     for use_sketch in use_sketch_values:
         condition_results: List[Dict[str, Any]] = []
+        failures: List[Dict[str, Any]] = []
         for run_index in range(1, args.runs + 1):
-            bundle = debug_model_activity(process_text, use_sketch=use_sketch)
+            try:
+                bundle = debug_model_activity(process_text, use_sketch=use_sketch)
+            except Exception as exc:
+                failures.append(
+                    {
+                        "run_index": run_index,
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    }
+                )
+                print(
+                    f"\n=== {_condition_label(use_sketch)} run {run_index}/{args.runs} ==="
+                )
+                print(f"run_failed: {type(exc).__name__}: {exc}")
+                continue
+
             result = _summarize_run(bundle, use_sketch=use_sketch)
             condition_results.append(result)
 
@@ -308,7 +358,14 @@ def main() -> None:
             if args.do_import:
                 _print_import_summary(_import_graph_into_ai4mde(bundle["parsed"]))
 
-        _print_aggregate_summary(condition_results, use_sketch=use_sketch)
+        if condition_results:
+            _print_aggregate_summary(condition_results, use_sketch=use_sketch)
+        else:
+            print(f"\n=== {_condition_label(use_sketch)} summary ===")
+            print(f"summary: runs=0/{args.runs} avg_traceability=0.00 avg_nodes=0.0 avg_edges=0.0 clean_topology_runs=0 runs_with_origin_step_ids=0")
+            print("binding_counts: {}")
+            print("issue_counts: {}")
+        _print_failure_summary(failures, use_sketch=use_sketch, total_runs=args.runs)
 
 
 if __name__ == "__main__":
