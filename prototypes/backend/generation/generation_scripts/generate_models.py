@@ -134,7 +134,10 @@ def main():
     TEMPLATE_PATH = "/usr/src/prototypes/backend/generation/templates/models.py.jinja2"
     OUTPUT_FILE_PATH = "/usr/src/prototypes/generated_prototypes/" + sys.argv[4] + "/" + project_name_sanitization(sys.argv[1]) + "/shared_models/models.py"
 
-    metadata = sys.argv[2]
+    metadata_path = sys.argv[2]
+    with open(metadata_path, 'r', encoding='utf-8') as f:
+        metadata = f.read()
+
     application_names = get_apps(metadata).split()
 
     data = {
