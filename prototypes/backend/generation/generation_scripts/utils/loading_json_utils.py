@@ -223,7 +223,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_delete_operation = section["operations"]["delete"],
                         has_update_operation = section["operations"]["update"],
                         custom_methods = retrieve_section_custom_methods(section),
-                        text = section["text"]
+                        text = section.get("text", "")
                     )
                     out.append(sec)
             return out
