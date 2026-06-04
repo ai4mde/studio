@@ -1,5 +1,7 @@
 from django.shortcuts import render
+from django.views.decorators.csrf import ensure_csrf_cookie
 
+@ensure_csrf_cookie
 def homerender(request):
     context = {}
     return render(request, 'noauth_home_index.html', context)

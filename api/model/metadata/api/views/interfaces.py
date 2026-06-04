@@ -1,20 +1,21 @@
 import json
-import os
 import re
-import uuid
 from typing import List, Optional
 
-import requests as _req
 from django.http import StreamingHttpResponse, HttpResponse
 from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface, ExportSingleSystem
 from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePrototypeResponse
 from metadata.api.views.defaulting import create_default_interface
 from metadata.models import System, Interface, Classifier
+from llm.gemini_make_agent.candidate_generation import (
+    generate_candidate_set,
+    regenerate_candidate_set,
+)
+from llm.gemini_make_agent.django_service import apply_prompt_to_interface
 from llm.template_renderer import render_layout
 from ninja import Router, Body
 from ninja.errors import HttpError
 
-ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
 
 interfaces = Router()
 
@@ -135,85 +136,19 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
 
         yield json.dumps({"status": "Connecting to agent... (连接 AI 中...)"}) + "\n"
 
-        # 1. Create ADK session
-        user_id = str(interface.id)
-        session_id = str(uuid.uuid4())
-        try:
-            resp = _req.post(
-                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
-                json={"state": {"interface_id": str(id), "system_id": str(system.id)}},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            session_id = resp.json().get("id", session_id)
-            yield json.dumps({"status": "Connecting to agent... (连接 AI 中...)", "debug_session_id": session_id, "debug_user_id": user_id}) + "\n"
-        except Exception as e:
-            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
-            return
+        if "generate_candidates" in (payload.prompt or ""):
+            yield json.dumps({"status": "Generating candidates..."}) + "\n"
+            result = generate_candidate_set(str(id), payload.prompt or "")
+            if not str(result).startswith("OK:"):
+                yield json.dumps({"status": f"Agent error: {result}"}) + "\n"
+                return
+        else:
+            yield json.dumps({"status": "Applying interface edit..."}) + "\n"
+            result = apply_prompt_to_interface(str(id), str(system.id), payload.prompt or "")
+            if result.get("status") != "ok":
+                yield json.dumps({"status": f"Agent error: {result.get('message', '')}"}) + "\n"
+                return
 
-        # 2. Stream SSE from gemini-make-agent
-        # Pre-load classifier attribute names so agent doesn't need a reactive tool call
-        classifiers_summary = []
-        for c in system.classifiers.all():
-            c_data = c.data or {}
-            name = c_data.get("name", "")
-            attrs = [a.get("name") for a in (c_data.get("attributes") or []) if a.get("name")]
-            if name:
-                classifiers_summary.append({"name": name, "attributes": attrs})
-        context_block = json.dumps(
-            {
-                "classifiers": classifiers_summary,
-                "current_interface": _compact_interface_data_for_agent(interface.data or {}),
-            },
-            separators=(",", ":"),
-        )
-        prompt = f"system_id={system.id} interface_id={id} user_request={payload.prompt}\nSYSTEM_CONTEXT={context_block}"
-
-        agent_status_map = {
-            "gemini_make_agent": "Analyzing request... (分析中...)",
-            "layout_agent":      "Adjusting layout... (调整布局...)",
-            "stylist_agent":     "Refining style... (调整视觉样式...)",
-        }
-        seen_authors = set()
-
-        try:
-            with _req.post(
-                f"{ADK_AGENT_URL}/run_sse",
-                json={
-                    "app_name": "app",
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
-                    "streaming": True,
-                },
-                stream=True,
-                timeout=300,
-            ) as r:
-                r.raise_for_status()
-                for line in r.iter_lines():
-                    if not line:
-                        continue
-                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                    if not line_str.startswith("data: "):
-                        continue
-                    try:
-                        event = json.loads(line_str[6:])
-                        event_error = _extract_adk_event_error(event)
-                        if event_error:
-                            yield json.dumps({"status": f"Agent error: {event_error}"}) + "\n"
-                            return
-                        author = event.get("author", "")
-                        if author and author not in seen_authors and author in agent_status_map:
-                            seen_authors.add(author)
-                            yield json.dumps({"status": agent_status_map[author]}) + "\n"
-                    except Exception:
-                        pass
-        except Exception as e:
-            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
-
-        # 3. Refresh and render the preview.
-        # For candidate generation runs, render from candidate 0 (which has design spec tokens).
-        # For direct edits, render from interface.data (agent updated it via patch tool).
         interface.refresh_from_db()
         data = interface.data or {}
         render_data = data
@@ -236,6 +171,8 @@ def generate_interface_prototype(request, id: str, payload: GeneratePrototypeReq
             relations=renderer_relations,
         )
         yield json.dumps({"status": "Done", "files": files, "message": "AI Generation Successful.", "interface_data": interface.data}) + "\n"
+        return
+
 
     resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
     resp['X-Accel-Buffering'] = 'no'
@@ -389,69 +326,12 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
     def stream_generator():
         yield json.dumps({"status": "Connecting to agent..."}) + "\n"
 
-        user_id = str(interface.id)
-        session_id = str(uuid.uuid4())
-        try:
-            resp = _req.post(
-                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
-                json={"state": {"interface_id": str(id), "system_id": str(system.id)}},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            session_id = resp.json().get("id", session_id)
-            yield json.dumps({"status": "Regenerating candidates from selected baseline...", "debug_session_id": session_id}) + "\n"
-        except Exception as e:
-            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+        yield json.dumps({"status": "Regenerating candidates..."}) + "\n"
+        result = regenerate_candidate_set(str(id), candidate_index, designer_requirements)
+        if not str(result).startswith("OK:"):
+            yield json.dumps({"status": f"Agent error: {result}"}) + "\n"
             return
 
-        prompt = (
-            f"system_id={system.id} interface_id={id} regenerate_candidates "
-            f"selected_candidate_index={candidate_index} "
-            f"designer_requirements={designer_requirements}"
-        )
-        seen_authors = set()
-        agent_status_map = {
-            "gemini_make_agent": "Routing regeneration request...",
-            "candidate_regeneration_agent": "Creating 3 derived candidates...",
-        }
-
-        try:
-            with _req.post(
-                f"{ADK_AGENT_URL}/run_sse",
-                json={
-                    "app_name": "app",
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
-                    "streaming": True,
-                },
-                stream=True,
-                timeout=300,
-            ) as r:
-                r.raise_for_status()
-                for line in r.iter_lines():
-                    if not line:
-                        continue
-                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                    if not line_str.startswith("data: "):
-                        continue
-                    try:
-                        event = json.loads(line_str[6:])
-                        event_error = _extract_adk_event_error(event)
-                        if event_error:
-                            yield json.dumps({"status": f"Agent error: {event_error}"}) + "\n"
-                            return
-                        author = event.get("author", "")
-                        if author and author not in seen_authors and author in agent_status_map:
-                            seen_authors.add(author)
-                            yield json.dumps({"status": agent_status_map[author]}) + "\n"
-                    except Exception:
-                        pass
-        except Exception as e:
-            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
-            return
-
-        # Best-effort render fallback in case the agent saved candidates but a render tool call failed.
         for idx in range(3):
             try:
                 render_candidate(request, id, idx)
@@ -473,6 +353,8 @@ def regenerate_candidates_from_selected(request, id: str, candidate_index: int, 
             for i, c in enumerate(refreshed_candidates[:3])
         ]
         yield json.dumps({"status": "Done", "message": "Candidate regeneration complete.", "candidates": summary}) + "\n"
+        return
+
 
     resp = StreamingHttpResponse(stream_generator(), content_type="application/x-ndjson")
     resp["X-Accel-Buffering"] = "no"

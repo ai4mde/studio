@@ -3,24 +3,31 @@ from . import views
 
 from workflow_engine.views import ActionLogView, ChangeUserAssignmentView, ChangeUserAssignmentUpdateView
 
-app_name="{{ application_name }}"
+app_name="{{ application_name|lower }}"
 urlpatterns = [
     path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
+    path("", views.HomeRenderView.as_view(), name="{{ application_name|lower }}-homerender"),
     {% if settings.manager_access -%}
     path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name }}_action_log"),
+    path('action-log/', ActionLogView.as_view(template_name='{{ application_name }}_action_log.html'), name="{{ application_name|lower }}_action_log"),
     path('render_change_user_assignment/', ChangeUserAssignmentView.as_view(template_name='{{ application_name }}_change_user_assignment.html'), name="{{ application_name }}_change_user_assignment"),
+    path('render_change_user_assignment/', ChangeUserAssignmentView.as_view(template_name='{{ application_name }}_change_user_assignment.html'), name="{{ application_name|lower }}_change_user_assignment"),
     {% endif -%}
     {% for page in pages -%}
     path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name }}_{{ page }}"),
+    path("render_{{ application_name }}_{{ page }}{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}", views.{{ application_name }}_{{ page }}_ListView.as_view(), name="render_{{ application_name|lower }}_{{ page|lower }}"),
     {% for section_component in page.section_components -%}
     {% if section_component.has_create_operation -%}
     path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page }}_{{ section_component }}_create'),
+    path('{{ page }}_{{ section_component }}_create{% if page.type == 'activity' %}/<int:active_process_node_id>/{% endif %}', views.{{ page }}_{{ section_component }}_CreateView.as_view(), name='{{ page|lower }}_{{ section_component|lower }}_create'),
     {% endif -%}
     {% if section_component.has_update_operation -%}
     path('{{ page }}_{{ section_component }}_update{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page }}_{{ section_component }}_update'),
+    path('{{ page }}_{{ section_component }}_update{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_UpdateView.as_view(), name='{{ page|lower }}_{{ section_component|lower }}_update'),
     {% endif -%}
     {% if section_component.has_delete_operation -%}
     path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page }}_{{ section_component }}_delete'),
+    path('{{ page }}_{{ section_component }}_delete{% if page.type == 'activity' %}/<int:active_process_node_id>{% endif %}/<int:pk>/', views.{{ page }}_{{ section_component }}_DeleteView.as_view(), name='{{ page|lower }}_{{ section_component|lower }}_delete'),
     {% endif -%}
     {% endfor -%}
     {% endfor -%}

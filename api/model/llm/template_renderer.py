@@ -660,7 +660,7 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
         layout.setdefault("main_width", "contained")
         layout.setdefault("header_width", "contained")
         layout.setdefault("hero_width", "contained")
-        layout.setdefault("footer_width", "full")
+        layout.setdefault("footer_width", "contained")
         page["layout"] = layout
 
         refs = []

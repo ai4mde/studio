@@ -45,7 +45,6 @@ services:
       - config/secrets.env
     environment:
       - INTERNAL_API_KEY=studio-internal-service-key
-      - ADK_AGENT_URL=http://gemini-make-agent:8080
     networks:
       - ai4mde_traefik
     volumes:
@@ -75,33 +74,6 @@ services:
       - "traefik.http.routers.django_prototype_router.rule=Host(`prototype.ai4mde.localhost`)"
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
-
-  gemini-make-agent:
-    restart: unless-stopped
-    build:
-      context: gemini-make-agent
-    ports:
-      - "8081:8080"
-    env_file:
-      - config/secrets.env
-    environment:
-      - METADATA_API_BASE=http://studio-api:8000/api/v1/metadata
-      - METADATA_API_KEY=studio-internal-service-key
-      - ALLOW_ORIGINS=http://ai4mde.localhost
-      - SESSION_SERVICE_URI=memory://
-    volumes:
-      - ./gemini-make-agent/app:/code/app:ro
-      - ./gemini-make-agent/candidate_app:/code/candidate_app:ro
-      - ./gemini-make-agent/candidate_regeneration_app:/code/candidate_regeneration_app:ro
-    networks:
-      - ai4mde_traefik
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.localhost`)"
-      - "traefik.http.routers.gemini-agent.entrypoints=web"
-      - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
-      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.path=/healthz"
-      - "traefik.http.services.gemini-agent.loadbalancer.healthcheck.interval=60s"
 
   studio:
     restart: unless-stopped

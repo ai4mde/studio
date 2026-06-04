@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from generator.api import generator_router
 from analytics.api import analytics_router
 from jwt import encode
+from llm.api import llm_router
 from metadata.api import metadata_router
 from ninja import NinjaAPI, Schema
 from prose.api import prose_router
@@ -27,6 +28,7 @@ api.add_router("/diagram/", diagram_router)
 api.add_router("/prose/", prose_router)
 api.add_router("/generator/", generator_router)
 api.add_router("/analytics/", analytics_router)
+api.add_router("/llm/", llm_router)
 
 
 class GetTokenSchema(Schema):

@@ -1002,6 +1002,9 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             const effectivePages = overridePages ?? pgs;
             const effectiveStyling = overrideStyling ?? stl;
             const effectiveTokens = normalizeDesignTokens(overrideTokens ?? tks ?? ((iface as any).data || {}).tokens, effectiveStyling);
+            const hasPreviewOverride = Boolean(
+                overrideSections || overridePages || overrideStyling || overrideTokens
+            );
             const syncedInterface = {
                 ...iface,
                 data: {
@@ -1040,6 +1043,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
                     useAuthentication: true,
                     layout_config: {
                         source: 'agent-design-sync',
+                        interface_data_source: hasPreviewOverride ? 'preview_override' : 'saved_interface',
                         synced_at: new Date().toISOString(),
                     },
                 },
@@ -1199,6 +1203,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     // Debounce: persist sections+pages to DB 800 ms after any change, skipping DB-load write-backs
     useEffect(() => {
         if (!interfaceId) return;
+        if (previewMode === 'live') return;
         if (Date.now() - dbLoadTimestamp.current < 500) return;
         if (saveTimer.current) clearTimeout(saveTimer.current);
         saveTimer.current = setTimeout(() => {
@@ -1208,7 +1213,7 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             }).catch((e: any) => console.error('Failed to persist sections/pages:', e));
         }, 800);
         return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-    }, [sections, pages, interfaceId]);
+    }, [sections, pages, interfaceId, previewMode]);
 
 const updateSection = useCallback((sectionId: string, field: string, value: any) => {
         setSections((prev: any[]) => prev.map((s: any) => {
@@ -1771,7 +1776,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const pageMainWidth = currentPage?.layout?.main_width || 'contained';
     const pageHeaderWidth = currentPage?.layout?.header_width || 'contained';
     const pageHeroWidth = currentPage?.layout?.hero_width || 'contained';
-    const pageFooterWidth = currentPage?.layout?.footer_width || 'full';
+    const pageFooterWidth = currentPage?.layout?.footer_width || 'contained';
     const pageSidebarBg: BgOption | 'transparent' = currentPage?.layout?.sidebar_bg || 'transparent';
     const pageSidebarShadow: ShadowOption = currentPage?.layout?.sidebar_shadow || 'none';
     const pageGap = currentPage?.gap?.value || 'normal';

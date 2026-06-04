@@ -40,16 +40,6 @@ services:
       - "traefik.http.routers.django_prototype_router.service=django_prototype_service"
       - "traefik.http.services.django_prototype_service.loadbalancer.server.port=8020"
 
-  gemini-make-agent:
-    mem_limit: 256m
-    environment:
-      - ALLOW_ORIGINS=http://ai4mde.${ORACLE_IP}.nip.io
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gemini-agent.rule=Host(`agent.ai4mde.${ORACLE_IP}.nip.io`)"
-      - "traefik.http.routers.gemini-agent.entrypoints=web"
-      - "traefik.http.services.gemini-agent.loadbalancer.server.port=8080"
-
   studio:
     build:
       context: frontend

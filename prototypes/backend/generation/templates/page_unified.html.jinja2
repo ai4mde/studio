@@ -44,7 +44,7 @@
       /* éˆ¹â‚¬éˆ¹â‚¬ Page & Region Colors éˆ¹â‚¬éˆ¹â‚¬ */
       --accent:               {{ tokens.get('accent.hex', '#2563eb') }};
       --accent-secondary:     {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
-      --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
+      --page-bg:              {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
       --page-text:            {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
       --text-muted:           {{ tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280')) }};
       --text-subtle:          {{ tokens.get('text.subtle.hex', tokens.get('color.text.subtle_hex', '#9ca3af')) }};
@@ -332,7 +332,7 @@
 {%- set _main_width = _raw_page_layout.main_width if _raw_page_layout.main_width is defined and _raw_page_layout.main_width else tokens.get('page.main_width', 'contained') %}
 {%- set _header_width = _raw_page_layout.header_width if _raw_page_layout.header_width is defined and _raw_page_layout.header_width else tokens.get('page.header_width', 'contained') %}
 {%- set _hero_width = _raw_page_layout.hero_width if _raw_page_layout.hero_width is defined and _raw_page_layout.hero_width else tokens.get('page.hero_width', 'contained') %}
-{%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'full') %}
+{%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'contained') %}
 {%- set _sidebar_bg = _raw_page_layout.sidebar_bg if _raw_page_layout.sidebar_bg is defined else '' %}
 {%- set _sidebar_shadow = _raw_page_layout.sidebar_shadow if _raw_page_layout.sidebar_shadow is defined else '' %}
 {%- set _layout_has_sidebar = [] %}
@@ -341,9 +341,9 @@
   {%- if _layout_sc.position == 'sidebar' %}{% set _ = _layout_has_sidebar.append(1) %}{%- endif %}
   {%- if _layout_sc.position == 'header' %}{% set _ = _layout_has_header.append(1) %}{%- endif %}
 {%- endfor %}
-{%- if not _main_width or _main_width not in ['contained', 'wide', 'full'] %}{% set _main_width = 'wide' if _layout_has_sidebar else 'contained' %}{%- elif _layout_has_sidebar and _main_width == 'contained' %}{% set _main_width = 'wide' %}{%- endif %}
-{%- if not _header_width or _header_width not in ['contained', 'full'] %}{% set _header_width = 'full' if _layout_has_header else 'contained' %}{%- endif %}
-{%- if not _footer_width or _footer_width not in ['contained', 'full'] %}{% set _footer_width = 'full' %}{%- endif %}
+{%- if not _main_width or _main_width not in ['contained', 'wide', 'full'] %}{% set _main_width = 'contained' %}{%- endif %}
+{%- if not _header_width or _header_width not in ['contained', 'full'] %}{% set _header_width = 'contained' %}{%- endif %}
+{%- if not _footer_width or _footer_width not in ['contained', 'full'] %}{% set _footer_width = 'contained' %}{%- endif %}
 {%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else _container_class) %}
 {%- set _header_shell_class = 'w-full px-6' if _header_width == 'full' else _container_class ~ ' mx-auto px-6' %}
 {%- set _btn_style = tokens.get('theme.button.style', 'solid') %}
@@ -362,11 +362,11 @@ href="#" data-nav-page="Task" onclick="window.parent.postMessage({type:'navigate
 {%- elif preview_mode -%}
 href="#" data-nav-page="{{ target_page }}" onclick="window.parent.postMessage({type:'navigate-page',page:'{{ target_page }}'},'*');return false;"
 {%- elif target_page == '__task_home__' -%}
-href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
 {%- elif not target_page or target_page|string not in _all_page_names -%}
 href="#"
 {%- else -%}
-href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
+href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
 {%- endmacro %}
 {%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
@@ -443,7 +443,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _aa_target_page and _aa_target_is_activity.value %}
   {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
 {%- elif _aa_target_page %}
-  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
 {%- else %}
   {%- set _aa_target_url = '' %}
 {%- endif %}
@@ -860,6 +860,22 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 <main class="py-6 {% if _main_width == 'full' %}w-full max-w-none px-0{% else %}px-6 {{ _main_container_class }} mx-auto{% endif %}" style="background-color:var(--page-bg);">
 {%- else -%}
+{%- set _container_class = tokens.get('page.container.class', 'max-w-6xl') %}
+{%- set _raw_page_layout = page.layout if page.layout is defined and page.layout else {} %}
+{%- set _main_width = _raw_page_layout.main_width if _raw_page_layout.main_width is defined and _raw_page_layout.main_width else tokens.get('page.main_width', 'contained') %}
+{%- set _header_width = _raw_page_layout.header_width if _raw_page_layout.header_width is defined and _raw_page_layout.header_width else tokens.get('page.header_width', 'contained') %}
+{%- set _hero_width = _raw_page_layout.hero_width if _raw_page_layout.hero_width is defined and _raw_page_layout.hero_width else tokens.get('page.hero_width', 'contained') %}
+{%- set _footer_width = _raw_page_layout.footer_width if _raw_page_layout.footer_width is defined and _raw_page_layout.footer_width else tokens.get('page.footer_width', 'contained') %}
+{%- set _sidebar_bg = _raw_page_layout.sidebar_bg if _raw_page_layout.sidebar_bg is defined else '' %}
+{%- set _sidebar_shadow = _raw_page_layout.sidebar_shadow if _raw_page_layout.sidebar_shadow is defined else '' %}
+{%- set _layout_has_sidebar = [] %}
+{%- for _layout_sc in page.section_components %}
+  {%- if _layout_sc.position == 'sidebar' %}{% set _ = _layout_has_sidebar.append(1) %}{%- endif %}
+{%- endfor %}
+{%- if not _main_width or _main_width not in ['contained', 'wide', 'full'] %}{% set _main_width = 'contained' %}{%- endif %}
+{%- if not _header_width or _header_width not in ['contained', 'full'] %}{% set _header_width = 'contained' %}{%- endif %}
+{%- if not _footer_width or _footer_width not in ['contained', 'full'] %}{% set _footer_width = 'contained' %}{%- endif %}
+{%- set _main_container_class = 'max-w-none w-full' if _main_width == 'full' else ('max-w-7xl' if _main_width == 'wide' else _container_class) %}
 {%- set _header_chrome = ['promo-bar','promo-strip','logo','search-bar','icon-actions','nav','nav-links','nav-bar','main-header','minimal-header','commerce-header','dashboard-header','split-header','app-header','compact-header','mega-header','hero-header','tabbed-header','glass-header','command-header','site-nav'] %}
 {%- set _footer_chrome = ['service-bar','service-strip','link-grid','footer-links','brand-strip','footer-brand','site-footer','compact-footer','legal-footer','newsletter-footer','social-footer','mega-footer','split-footer','app-footer','cta-footer','minimal-footer'] %}
 {%- set _page_header_chrome = [] %}
@@ -913,7 +929,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     --font-family: {{ tokens.get('page.font.family', 'Inter') }}, ui-sans-serif, system-ui, sans-serif;
     --accent: {{ tokens.get('accent.hex', '#2563eb') }};
     --accent-secondary: {{ tokens.get('color.secondary.hex', tokens.get('accent.hex', '#2563eb')) }};
-    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('region.main.bg_hex', tokens.get('page.body.bg_hex', '#f9fafb'))) }};
+    --page-bg: {{ tokens.get('page.bg.hex', tokens.get('page.body.bg_hex', '#f9fafb')) }};
     --page-text: {{ tokens.get('page.text.hex', tokens.get('page.body.text_hex', '#111827')) }};
     --text-muted: {{ tokens.get('text.muted.hex', tokens.get('color.text.muted_hex', '#6b7280')) }};
     --text-subtle: {{ tokens.get('text.subtle.hex', tokens.get('color.text.subtle_hex', '#9ca3af')) }};
@@ -978,17 +994,6 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   .si-accent-secondary-border { border-color: var(--accent-secondary); }
   .si-accent-secondary-bg-light { background-color: color-mix(in srgb, var(--accent-secondary) 10%, white); }
   .si-link, a.text-blue-600, a.text-green-600, .text-blue-600.si-link, .text-green-600.si-link { color: var(--button-link-text) !important; }
-  [data-position="header"] > header,
-  [data-layout$="-header"] > header,
-  header[data-position="header"] {
-    background-color: var(--region-header-bg) !important;
-    color: var(--region-header-text) !important;
-    border-color: var(--nav-border) !important;
-  }
-  [data-position="header"] > header.bg-white,
-  [data-layout$="-header"] > header.bg-white {
-    background-color: var(--region-header-bg) !important;
-  }
     .si-input { border-radius: calc(var(--radius) * 0.6); border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--input-text); }
     .si-input:focus { outline: none; border-color: var(--input-border-focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--input-border-focus) 20%, transparent); }
     .si-badge { border-radius: calc(var(--radius) * 2); background-color: var(--badge-bg); color: var(--badge-text); }
@@ -996,7 +1001,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     .border-gray-300, .border-gray-400 { border-color: var(--card-border) !important; }
     .bg-gray-50, .bg-gray-100 { background-color: var(--page-bg) !important; }
     .bg-gray-200 { background-color: var(--border-color) !important; }
-    .bg-white { background-color: var(--region-main-bg) !important; }
+    .si-card.bg-white,
+    [data-layout="table"] .bg-white,
+    [data-layout="list"] .bg-white,
+    [data-layout="detail"] .bg-white,
+    [data-layout="form"] .bg-white,
+    [data-layout="filter"] .bg-white {
+      background-color: var(--region-main-bg) !important;
+    }
     [data-layout="table"] .overflow-x-auto,
     [data-layout="table"] table,
     [data-layout="table"] tbody,
@@ -1015,34 +1027,6 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       color: var(--card-text);
       border-color: var(--card-border) !important;
     }
-    [data-position="sidebar"][data-layout="site-nav"] nav {
-      background-color: var(--nav-bg) !important;
-      color: var(--nav-text) !important;
-      border-color: var(--nav-border) !important;
-    }
-    [data-position="header"] > .bg-white,
-    [data-position="header"] header.bg-white {
-      background-color: var(--region-header-bg) !important;
-      color: var(--region-header-text) !important;
-      border-color: var(--nav-border) !important;
-    }
-    [data-position="header"] nav {
-      background-color: var(--nav-bg) !important;
-      color: var(--nav-text) !important;
-      border-color: var(--nav-border) !important;
-    }
-    [data-position="header"] > div.bg-white {
-      background-color: var(--region-header-bg) !important;
-      color: var(--region-header-text) !important;
-      border-color: var(--nav-border) !important;
-    }
-    [data-position="header"] a,
-    [data-position="header"] span,
-    [data-position="header"] button,
-    [data-position="sidebar"][data-layout="site-nav"] a,
-    [data-position="sidebar"][data-layout="site-nav"] span {
-      color: inherit;
-    }
     [data-nav-height="compact"] { --si-nav-row-y: .25rem; --si-nav-link-y: .25rem; --si-nav-min-height: 32px; }
     [data-nav-height="normal"] { --si-nav-row-y: .5rem; --si-nav-link-y: .375rem; --si-nav-min-height: 40px; }
     [data-nav-height="tall"] { --si-nav-row-y: .875rem; --si-nav-link-y: .625rem; --si-nav-min-height: 56px; }
@@ -1051,7 +1035,6 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     [data-nav-height] nav > div > span,
     [data-nav-height] nav > div > div > span,
     [data-nav-height] nav a.si-nav-link { padding-top: var(--si-nav-link-y) !important; padding-bottom: var(--si-nav-link-y) !important; }
-    [data-position="footer"] { background-color: var(--region-footer-bg); color: var(--region-footer-text); border-color: var(--border-color); }
   [data-layout="form"] .si-card { background-color: var(--component-form-bg); }
   [data-layout="table"] .si-card { background-color: var(--component-table-bg); }
   [data-layout="list"] .si-card { background-color: var(--component-list-bg); }
@@ -1086,7 +1069,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% set _bgm  = {"white":"bg-white","gray":"bg-gray-50","dark":"bg-gray-800"} %}
 {% set _hdsm = {"default":"text-xl font-semibold text-gray-800","large":"text-2xl font-bold text-gray-900","small":"text-xs font-medium text-gray-500 uppercase tracking-widest"} %}
 {% set _colm = {"1":"grid-cols-1","2":"grid-cols-1 sm:grid-cols-2","3":"grid-cols-1 sm:grid-cols-2 lg:grid-cols-3","4":"grid-cols-2 lg:grid-cols-4"} %}
-{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6", 12: "col-span-12"} %}
+{% set _spanm = {3: "col-span-12 sm:col-span-6 lg:col-span-3", 4: "col-span-12 sm:col-span-6 lg:col-span-4", 6: "col-span-12 sm:col-span-6 lg:col-span-6", 12: "col-span-12"} %}
 {% set _im = {"sm":"w-1/3","md":"w-2/5","lg":"w-1/2"} %}
 {% set _pm = {
   "vertical": "flex flex-col",
@@ -1102,11 +1085,11 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- endfor %}
 {%- macro nav_href_attrs(target_page) -%}
 {%- if target_page == '__task_home__' -%}
-href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
+href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}"
 {%- elif not target_page or target_page|string not in _all_page_names -%}
 href="#"
 {%- else -%}
-href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
+href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}"
 {%- endif -%}
 {%- endmacro %}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
@@ -1252,7 +1235,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- if _aa_target_page and _aa_target_is_activity.value %}
     {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
   {%- elif _aa_target_page %}
-    {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+    {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
   {%- else %}
     {%- set _aa_target_url = '' %}
   {%- endif %}
@@ -1518,12 +1501,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- endset -%}
   {%- if action_type == 'navigate' or ((render_as == 'link' or attribute.is_link) and allow_link) -%}
     {%- if target_page %}
-    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="si-field-value inline-flex">{{ value_html }}</a>
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={{ row_id }}" class="si-field-value inline-flex">{{ value_html }}</a>
     {%- else -%}
     <span class="si-field-value">{{ value_html }}</span>
     {%- endif -%}
   {%- elif action_type == 'operation' -%}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="inline-flex">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="inline-flex">
       <input type="hidden" name="instance_id_{{ operation_class }}" value="{{ row_id }}">
       <input type="hidden" name="custom_{{ operation_class }}_{{ operation_name }}" value="{{ row_id }}">
       <button type="submit" class="si-field-value inline-flex">{{ value_html }}</button>
@@ -1728,7 +1711,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {# ── PREVIEW: ACTION PANEL ── #}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
     {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -1744,7 +1727,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% else %}
   <div class="flex flex-wrap gap-2">
     {% for method in section_methods %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
       {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -2567,7 +2550,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
 {% elif eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
     {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -2588,7 +2571,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {% else %}
   <div class="flex flex-col gap-3">
     {% for method in section_methods %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
       {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -2645,13 +2628,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- endfor %}
         <div class="sm:col-span-2 flex gap-2 pt-3 border-t border-gray-100">
           {%- if section_component.has_update_operation %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
             <button type="submit" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>
           </form>
           {%- endif %}
           {%- if section_component.has_delete_operation %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
             {% raw %}{% csrf_token %}{% endraw %}
             <button type="submit" class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>
           </form>
@@ -2677,13 +2660,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       </div>
       <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
         {%- if section_component.has_update_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
           <button type="submit" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>
         </form>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           <button type="submit" class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>
         </form>
@@ -2706,7 +2689,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div class="flex-1 px-8 py-7">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{{ section_component.display_name }}</h2>
         {%- if section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
       </div>
       <div class="sm:w-1/2 bg-gray-50" style="min-height:{{ _banner_img_h }};aspect-ratio:{{ _image_ratio_css }};">
         <img src="{{ _static_image_url }}" alt="{{ _s.get('image_alt') or section_component.display_name }}" class="w-full h-full object-cover">
@@ -2732,7 +2715,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _gen_name  = '{{ ' + _m + '.' + (_title_attr|string if _title_attr else 'name') + ' }}' %}
 {%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
-{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
+{%- set _gen_vurl  = ('{% url "' + (application_name|lower) + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
 {%- set _gen_fav_url = '?favorite_' + _m + '={{ ' + _m + '.id }}' if _m else '' %}
 {%- if _disp == "carousel" %}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
@@ -2756,7 +2739,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- elif _cstyle == "person" %}
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, {{ _accent_hex }}, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
@@ -2789,13 +2772,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
           <button type="submit" class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>
         </form>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           <button type="submit" class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>
         </form>
@@ -2811,7 +2794,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div class="flex-1 px-8 py-7">
         <h2 class="text-3xl font-black text-gray-900 leading-tight">{% if _title_attr %}{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _title_attr }} {% raw %}}}{% endraw %}{% else %}{{ section_component.display_name }}{% endif %}</h2>
         {%- if _primary_attr %}<p class="text-base text-gray-600 mt-1">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ _primary_attr }} {% raw %}}}{% endraw %}</p>{%- elif section_component.text %}<p class="text-base text-gray-600 mt-1">{{ section_component.text }}</p>{%- endif %}
-        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
+        {%- if section_component.custom_methods %}<a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% raw %}%}{% endraw %}" class="inline-block mt-4 text-white text-sm font-semibold px-5 py-2.5 rounded-lg" style="background-color:{{ _accent_hex }};">{{ section_component.custom_methods[0] }}</a>{%- endif %}
       </div>
       <div class="sm:w-1/2 min-h-[180px] bg-gray-50">
         {%- if _image_attr %}
@@ -2829,12 +2812,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
         {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-1">
@@ -2848,7 +2831,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {% endif %}{% endfor %}
         <div class="flex gap-2 mt-2">
           <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
-          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-gray-100 text-gray-700 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-200">Cancel</a>
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-gray-100 text-gray-700 {{ d.text }} font-medium py-2 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
       {% raw %}{% else %}{% endraw %}
@@ -2869,18 +2852,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.item_click_target_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
           <button type="submit" class="w-full {{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>
         </form>
         {% raw %}{% endif %}{% endraw %}
         {%- endif %}
         {%- if section_component.has_delete_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1">
           {% raw %}{% csrf_token %}{% endraw %}
           <button type="submit" class="w-full {{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>
         </form>
@@ -2896,7 +2879,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
     <div class="{{ c.light }} {{ r }} border-2 border-dashed {{ c.border }} {{ d.p }} flex flex-col gap-2">
       <h4 class="{{ d.text }} font-semibold {{ c.label }} mb-1">New {{ section_component.display_name }}</h4>
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
         {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-1">
@@ -2921,7 +2904,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {% endfor %}
         <div class="flex gap-2 mt-2">
           <input type="submit" value="Save" class="flex-1 {{ c.solid }} text-white {{ d.text }} font-medium py-2 {{ r }} cursor-pointer">
-          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} py-2 {{ r }} border border-gray-200 text-center">Cancel</a>
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="flex-1 text-center bg-white text-gray-600 {{ d.text }} py-2 {{ r }} border border-gray-200 text-center">Cancel</a>
         </div>
       </form>
     </div>
@@ -2932,7 +2915,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
   {%- if section_component.has_create_operation %}
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
     <button type="submit" class="flex items-center gap-2 {{ d.text }} font-medium {{ c.text }} py-2 px-4 {{ r }} border {{ c.border }} hover:{{ c.light }} transition-colors">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
@@ -2956,7 +2939,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- set _gen_name  = '{{ ' + _m + '.' + (_title_attr|string if _title_attr else 'name') + ' }}' %}
 {%- set _gen_img   = ('{{ ' + _m + '.' + _image_attr|string + ' }}') if _image_attr else '' %}
 {%- set _gen_price = ('{{ ' + _m + '.' + _primary_attr|string + ' }}') if _primary_attr else '' %}
-{%- set _gen_vurl  = ('{% url "' + application_name + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
+{%- set _gen_vurl  = ('{% url "' + (application_name|lower) + ':render_' + application_name + '_' + section_component.item_click_target_page|string + '" %}?instance_id_' + _m + '={{ ' + _m + '.id }}') if section_component.item_click_target_page else '#' %}
 {%- if _lstyle == "product" %}
   <div class="flex flex-col gap-3">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
@@ -2980,7 +2963,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         </div>
         <div class="flex items-center gap-3 mt-2">
           {%- if section_component.has_update_operation %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
             {% raw %}{% csrf_token %}{% endraw %}
             <select name="{{ _intattrs[0] if _intattrs else 'quantity' }}" onchange="this.form.submit()" class="border border-gray-300 rounded px-2 py-1 text-sm">
               <option value="1">1</option><option value="2">2</option><option value="3">3</option>
@@ -2990,14 +2973,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           <select disabled class="border border-gray-300 rounded px-2 py-1 text-sm"><option>1</option><option>2</option><option>3</option></select>
           {%- endif %}
           {%- if section_component.has_delete_operation %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
             {% raw %}{% csrf_token %}{% endraw %}
             <button type="submit" class="text-gray-400 hover:text-red-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
           </form>
           {%- else %}
           <span class="text-gray-300"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></span>
           {%- endif %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="favorite_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}">
             <button type="submit" class="text-gray-400 hover:text-red-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
           </form>
@@ -3009,7 +2992,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {%- if section_component.has_create_operation %}
   {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
   <div class="bg-white border border-gray-200 rounded-lg p-4 mt-4">
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3">
       {% raw %}{% csrf_token %}{% endraw %}
       {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
       <div class="flex flex-col gap-1">
@@ -3034,13 +3017,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {% endfor %}
       <div class="flex gap-2 items-end">
         <input type="submit" value="Save" class="text-white text-sm font-medium py-1.5 px-4 rounded cursor-pointer" style="background-color:{{ _accent_hex }};">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 rounded border border-gray-200 hover:bg-gray-50">Cancel</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 rounded border border-gray-200 hover:bg-gray-50">Cancel</a>
       </div>
     </form>
   </div>
   {% raw %}{% endif %}{% endraw %}
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
     <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">éˆ?Add {{ section_component.display_name }}</button>
   </form>
@@ -3075,10 +3058,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         </div>
         <div class="flex gap-2 shrink-0">
           {%- if section_component.item_click_target_page %}
-          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>
           {%- endif %}
           {%- if section_component.has_update_operation %}
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
             <button type="submit" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>
           </form>
@@ -3093,12 +3076,12 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
         {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
         <div class="flex flex-col gap-0.5 min-w-24">
@@ -3112,7 +3095,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
           <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
-          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 text-sm py-1.5 px-4 {{ r }} hover:bg-gray-200">Cancel</a>
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 text-sm py-1.5 px-4 {{ r }} hover:bg-gray-200">Cancel</a>
         </div>
       </form>
       {% raw %}{% else %}{% endraw %}
@@ -3131,18 +3114,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
       <div class="flex gap-2 shrink-0">
         {%- if section_component.item_click_target_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
           <button type="submit" class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>
         </form>
         {% raw %}{% endif %}{% endraw %}
         {%- endif %}
         {%- if section_component.has_delete_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           <button type="submit" class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>
         </form>
@@ -3158,7 +3141,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
     {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
     <div class="{{ c.light }} {{ r }} border border-dashed {{ c.border }} {{ d.p }} flex flex-wrap gap-3">
       <h4 class="{{ d.text }} font-semibold {{ c.label }} w-full">New {{ section_component.display_name }}</h4>
-      <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3 w-full">
+      <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3 w-full">
         {% raw %}{% csrf_token %}{% endraw %}
         {% if section_component.primary_model -%}
         <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -3175,14 +3158,14 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {% endif %}{% endfor %}
         <div class="flex gap-2 items-end">
           <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
-          <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 {{ r }} border border-gray-200 hover:bg-gray-50">Cancel</a>
+          <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-white text-gray-600 text-sm py-1.5 px-4 {{ r }} border border-gray-200 hover:bg-gray-50">Cancel</a>
         </div>
       </form>
     </div>
     {% raw %}{% endif %}{% endraw %}
     {%- if not section_component.has_create_operation %}{% endif %}
     {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-2">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-2">
       <input type="hidden" name="create_{{ section_component }}" value="true">
       {% if section_component.primary_model -%}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -3227,7 +3210,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
         <tr class="{{ c.light }}">
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
           {% for attribute in _column_attrs %}
@@ -3255,13 +3238,13 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           {% endfor %}
           <td class="px-4 py-2 flex gap-2">
             <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
           </td>
           </form>
         </tr>
         {% raw %}{% else %}{% endraw %}
         {%- endif %}
-        <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+        <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
           {% if section_component.has_select_operation %}<td class="px-4 py-3"><span class="si-sel-cb"></span></td>{% endif %}
           {% for attribute in _column_attrs %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700" data-field-name="{{ attribute }}">
@@ -3276,16 +3259,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {%- if section_component.has_update_operation %}
-              <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+              <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
                 <button type="submit" class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>
               </form>
               {%- endif %}
               {%- if section_component.has_delete_operation %}
-              <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+              <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
                 {% raw %}{% csrf_token %}{% endraw %}
                 <button type="submit" class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>
               </form>
@@ -3300,7 +3283,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
         {%- if section_component.has_create_operation %}
         {% raw %}{%{% endraw %} if create_{{ section_component }} {% raw %}%}{% endraw %}
         <tr class="{{ c.light }}">
-          <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
+          <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
           {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
@@ -3324,7 +3307,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
           <td class="px-4 py-2">
             <div class="flex gap-2">
               <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
             </div>
           </td>
           </form>
@@ -3337,7 +3320,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
   {%- if section_component.has_create_operation and eff_lay != "action_panel" %}
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
     {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -3360,7 +3343,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
       {%- if media_attrs %}
       <div class="overflow-hidden">
@@ -3380,10 +3363,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {%- if section_component.item_click_target_page %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
         {%- if section_component.has_delete_operation %}
-        <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
+        <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           <button type="submit" class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 transition-colors text-xs">Delete</button>
         </form>
@@ -3397,7 +3380,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 
   {%- if section_component.has_create_operation %}
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
     {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
@@ -3417,7 +3400,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       <div class="absolute left-2 top-1 bottom-1 w-px" style="background-color:{{ _accent_hex }}33;"></div>
       <div class="space-y-4"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
           <span class="absolute -left-[1.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white" style="background-color:{{ _accent_hex }};"></span>
           {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
           <div class="{{ r }} border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
@@ -3438,10 +3421,10 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
             </div>
             <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
               {%- if section_component.item_click_target_page %}
-              <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>
+              <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ section_component.item_click_target_page }}' {% raw %}%}{% endraw %}?instance_id_{{ section_component.primary_model }}={% raw %}{{{% endraw %} {{ section_component.primary_model }}.id {% raw %}}}{% endraw %}" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>
               {%- endif %}
               {%- if section_component.has_update_operation %}
-              <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+              <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
                 <button type="submit" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>
               </form>
@@ -3481,7 +3464,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       </button>
     </form>
     {%- else %}
-    <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
+    <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
       {{ _s.get('cta_label') or section_component.text or 'Continue' }} éˆ?
     </a>
     {%- endif %}
@@ -3507,7 +3490,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
       </div>
       {%- if section_component.has_update_operation %}
       <div class="px-4 pb-3">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" class="{{ d.text }} border rounded-lg px-4 py-1.5 hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">Edit {{ section_component.display_name }}</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %} {% raw %}%}{% endraw %}" class="{{ d.text }} border rounded-lg px-4 py-1.5 hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">Edit {{ section_component.display_name }}</a>
       </div>
       {%- endif %}
     </div>
@@ -3516,17 +3499,17 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   {# Default / auth form: render attribute inputs #}
   <div class="{{ cs }} {{ r }} {{ d.p }}">
     {%- if section_component.has_create_operation %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
       {% for parent_model in section_component.parent_models %}
       <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
       {% endfor %}
     {%- elif section_component.has_update_operation %}
     {% raw %}{% if update_instance %}{% endraw %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id {% raw %}%}{% endraw %}" method="post" class="space-y-4">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} update_instance.id {% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
     {%- else %}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="space-y-4">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="space-y-4">
     {%- endif %}
       {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
       <div class="si-field" data-field-name="{{ attribute }}">
@@ -3693,21 +3676,18 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   </div>
 
 {%- elif lay in ('site-footer', 'mega-footer', 'legal-footer', 'newsletter-footer', 'compact-footer', 'split-footer', 'app-footer', 'cta-footer', 'minimal-footer') %}
-  <footer class="rounded-xl overflow-hidden border border-gray-100">
-    <div class="px-6 py-4 flex items-center gap-6" style="background-color:{{ _accent_hex }};">
-      <span class="text-white font-bold">{{ section_component.display_name }}</span>
+  <div>
+    <h4 class="font-bold mb-3">{{ section_component.display_name }}</h4>
+    <div class="flex flex-wrap gap-4 text-sm">
       {%- for m in section_component.custom_methods %}
-      <span class="text-sm text-white opacity-80">{{ m }}</span>
+      <span>{{ m }}</span>
       {%- endfor %}
     </div>
-    <div class="bg-white border-t border-gray-100 py-6 flex flex-col items-center gap-2">
-      <div class="text-3xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-2px;">{{ _brand_name }}</div>
-      {%- if section_component.text %}<p class="text-xs text-gray-400">{{ section_component.text }}</p>{%- endif %}
-    </div>
-  </footer>
+    {%- if section_component.text %}<p class="mt-3 text-sm opacity-75">{{ section_component.text }}</p>{%- endif %}
+  </div>
 
 {% elif eff_lay == "filter" or _glay == "filter" %}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex flex-wrap items-end gap-3">
+  <form action="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex flex-wrap items-end gap-3">
     {% if section_component.primary_model -%}
     <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {%- endif %}
@@ -3758,7 +3738,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   if (byPos.header.length) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full' || hasSidebarRegion) {
+    if ('{{ _header_width }}' === 'full') {
       headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
     }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });
@@ -3905,7 +3885,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
 {%- if _aa_target_page and _aa_target_is_activity.value %}
   {%- set _aa_target_url = '/' ~ application_name ~ '/render_' ~ application_name ~ '_' ~ _aa_target_page %}
 {%- elif _aa_target_page %}
-  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
+  {%- set _aa_target_url %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _aa_target_page }}' {% raw %}%}{% endraw %}{%- endset %}
 {%- else %}
   {%- set _aa_target_url = '' %}
 {%- endif %}
@@ -4917,7 +4897,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_name }}:render_{{ application_
   if (hasHeader) {
     var headerEl = document.createElement('div');
     headerEl.className = 'grid grid-cols-12 gap-4 pb-4 border-b border-gray-200';
-    if ('{{ _header_width }}' === 'full' || hasSidebar) {
+    if ('{{ _header_width }}' === 'full') {
       headerEl.style.cssText = 'width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;';
     }
     byPos.header.forEach(function(el) { headerEl.appendChild(el); });

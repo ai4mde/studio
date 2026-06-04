@@ -1,6 +1,16 @@
 from typing import Any, List, Optional, Dict
+import copy
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
+from llm.gemini_make_agent.django_service import (
+    generate_and_run_seed_data,
+    map_uml_to_all_interfaces as run_uml_mapping_for_system,
+    map_uml_to_interface as run_uml_mapping_for_interface,
+)
+from llm.gemini_make_agent.candidate_generation import (
+    generate_candidate_set,
+    regenerate_candidate_set,
+)
 from metadata.models import Interface
 from metadata.models import System
 from ninja import Router, Schema
@@ -8,10 +18,8 @@ from ninja.errors import HttpError
 from django.http import StreamingHttpResponse
 import json
 import os
-import queue
 import re
 import requests
-import threading
 import time
 
 prototypes = Router()
@@ -20,6 +28,45 @@ PROTOTYPE_API_PROTO = os.environ.get('PROTOTYPE_API_PROTO', "http://")
 PROTOTYPE_API_HOST = os.environ.get('PROTOTYPE_API_HOST', "studio-prototypes")
 PROTOTYPE_API_PORT = os.environ.get('PROTOTYPE_API_PORT', 8010)
 PROTOTYPE_API_URL = f"{PROTOTYPE_API_PROTO}{PROTOTYPE_API_HOST}:{PROTOTYPE_API_PORT}"
+
+
+def _metadata_with_latest_interface_data(system: System, metadata: Dict[str, Any]) -> Dict[str, Any]:
+    """Prefer saved Interface.data over stale frontend prototype metadata snapshots."""
+    if not isinstance(metadata, dict):
+        return {}
+
+    enriched = copy.deepcopy(metadata)
+    layout_config = enriched.get("layout_config") if isinstance(enriched.get("layout_config"), dict) else {}
+    if layout_config.get("interface_data_source") == "preview_override":
+        return enriched
+
+    entries = enriched.get("interfaces")
+    if not isinstance(entries, list):
+        return enriched
+
+    interfaces = list(Interface.objects.filter(system=system))
+    by_id = {str(iface.id): iface for iface in interfaces}
+    by_name = {str(iface.name or "").strip().lower(): iface for iface in interfaces}
+
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        value = entry.get("value")
+        if not isinstance(value, dict):
+            continue
+        interface_id = str(value.get("id") or "")
+        label = str(entry.get("label") or value.get("name") or "").strip().lower()
+        iface = by_id.get(interface_id) or by_name.get(label)
+        if not iface:
+            continue
+        value["id"] = str(iface.id)
+        value["name"] = iface.name
+        value["description"] = iface.description
+        value["system"] = str(iface.system_id)
+        value["actor"] = str(iface.actor_id) if iface.actor_id else None
+        value["data"] = iface.data or {}
+        entry["label"] = iface.name
+    return enriched
 
 
 @prototypes.get("/", response=List[ReadPrototype])
@@ -53,20 +100,21 @@ def read_prototype(request, id):
 @prototypes.post("/", response=ReadPrototype)
 def create_prototype(request, prototype: CreatePrototype, database_prototype_name: Optional[str]):
     system = System.objects.get(pk=prototype.system)
+    metadata = _metadata_with_latest_interface_data(system, prototype.metadata)
     new_prototype = Prototype.objects.create(
         name=prototype.name,
         description=prototype.description,
         system=system,
         database_hash=prototype.database_hash,
-        metadata=prototype.metadata # TODO: maybe we do not want to push all metadata to the DB?
+        metadata=metadata # TODO: maybe we do not want to push all metadata to the DB?
     )
     GENERATION_URL = f"{PROTOTYPE_API_URL}/generate"
-    layout_config = prototype.metadata.get('layout_config') if isinstance(prototype.metadata, dict) else None
+    layout_config = metadata.get('layout_config') if isinstance(metadata, dict) else None
 
     # Enrich metadata with system classifiers, diagrams, and relations so the
     # generator can resolve model names and workflows even when the initial
     # metadata payload is partial.
-    enriched_metadata = dict(prototype.metadata) if isinstance(prototype.metadata, dict) else {}
+    enriched_metadata = dict(metadata) if isinstance(metadata, dict) else {}
     
     if 'classifiers' not in enriched_metadata:
         enriched_metadata['classifiers'] = [
@@ -218,11 +266,6 @@ def seed_prototype_data(request, system_id: Optional[str] = None):
     return response.text
 
 
-ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
-ADK_CANDIDATE_TIMEOUT_SECONDS = int(os.environ.get("ADK_CANDIDATE_TIMEOUT_SECONDS", "180"))
-ADK_CANDIDATE_HEARTBEAT_SECONDS = int(os.environ.get("ADK_CANDIDATE_HEARTBEAT_SECONDS", "5"))
-
-
 def _clear_interface_candidates(interface_id: str, status: str, prompt: str = "", base_candidate_index: Optional[int] = None) -> None:
     iface = Interface.objects.get(pk=interface_id)
     data = dict(iface.data or {})
@@ -243,122 +286,6 @@ def _clear_interface_candidates(interface_id: str, status: str, prompt: str = ""
     Interface.objects.filter(pk=interface_id).update(data=data)
 
 
-def _extract_agent_event_error(event: Any) -> str:
-    """Best-effort extraction for ADK SSE events that carry model/tool errors inside a 200 stream."""
-    interesting = []
-
-    def walk(value: Any, key: str = "") -> None:
-        if isinstance(value, dict):
-            for child_key, child_value in value.items():
-                normalized = str(child_key).lower()
-                if normalized in {
-                    "error",
-                    "errormessage",
-                    "error_message",
-                    "errorcode",
-                    "error_code",
-                    "message",
-                }:
-                    if isinstance(child_value, (str, int, float)):
-                        text = str(child_value)
-                        if any(term in text.lower() for term in ("error", "unavailable", "failed", "invalid", "timeout", "503")):
-                            interesting.append(text)
-                walk(child_value, child_key)
-        elif isinstance(value, list):
-            for item in value:
-                walk(item, key)
-        elif isinstance(value, str):
-            text = value.strip()
-            lower = text.lower()
-            if any(term in lower for term in (
-                "503 unavailable",
-                "high demand",
-                "i can't generate",
-                "i cannot generate",
-                "can't generate interface",
-                "cannot generate interface",
-                "error saving candidate",
-                "failed to",
-                "incomplete:",
-                "invalid",
-                "timeout",
-            )):
-                interesting.append(text)
-
-    walk(event)
-    if not interesting:
-        return ""
-    return " | ".join(dict.fromkeys(interesting))[:1000]
-
-
-def _extract_agent_tool_events(event: Any) -> list[dict]:
-    """Return ADK function-call/function-response traces from an SSE event."""
-    traces: list[dict] = []
-
-    def walk(value: Any) -> None:
-        if isinstance(value, dict):
-            for key in ("functionCall", "function_call"):
-                call = value.get(key)
-                if isinstance(call, dict):
-                    name = call.get("name") or call.get("functionName") or call.get("function_name") or ""
-                    args = call.get("args") or call.get("arguments") or {}
-                    traces.append({"kind": "call", "name": str(name), "args": args})
-            for key in ("functionResponse", "function_response"):
-                response = value.get(key)
-                if isinstance(response, dict):
-                    name = response.get("name") or response.get("functionName") or response.get("function_name") or ""
-                    result = response.get("response") or response.get("result") or response.get("content") or response
-                    text = json.dumps(result, ensure_ascii=False, default=str)
-                    traces.append({"kind": "response", "name": str(name), "text": text[:1000]})
-            for child in value.values():
-                walk(child)
-        elif isinstance(value, list):
-            for child in value:
-                walk(child)
-
-    walk(event)
-    return traces
-
-
-def _fallback_candidate_variants(pages: list, sections: list, data: dict, agent_error: str = "") -> list:
-    variants = [
-        ("Compact Table", "compact", {"gallery": "table", "card": "table", "list": "table"}),
-        ("Balanced Cards", "normal", {"table": "card", "gallery": "card", "list": "card"}),
-        ("Spacious Gallery", "spacious", {"table": "gallery", "card": "gallery", "list": "gallery"}),
-    ]
-    candidates = []
-    for index, (name, density, layout_map) in enumerate(variants):
-        next_sections = []
-        for section in sections:
-            section_copy = dict(section)
-            layout = section_copy.get("layout")
-            if layout in layout_map and section_copy.get("primary_model"):
-                section_copy["layout"] = layout_map[layout]
-            style = dict(section_copy.get("style") or {})
-            style["density"] = density
-            style.setdefault("color", "accent")
-            if section_copy.get("layout") in {"card", "gallery"}:
-                style["columns"] = "2" if density == "spacious" else "3"
-            section_copy["style"] = style
-            next_sections.append(section_copy)
-
-        candidate = {
-            "id": f"c{index}",
-            "name": name,
-            "description": (
-                "Deterministic fallback variant generated from the current interface because the model did not save a candidate."
-                + (f" Agent error: {agent_error}" if agent_error else "")
-            ),
-            "pages": list(pages),
-            "sections": next_sections,
-        }
-        if data.get("styling"):
-            candidate["styling"] = data.get("styling")
-        if data.get("tokens"):
-            candidate["tokens"] = data.get("tokens")
-        candidates.append(candidate)
-    return candidates
-
 
 class GenerateCandidatesPayload(Schema):
     interface_id: str
@@ -375,161 +302,26 @@ class RegenerateCandidatesPayload(Schema):
 
 @prototypes.post("/generate_candidates/")
 def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
-    """Stream 3-candidate interface generation via the ADK candidate_pipeline_agent."""
-    import uuid as _uuid
-
-    _STATUS_MAP = {
-        "candidate_pipeline_agent": "Starting pipeline...",
-        "reason_agent":             "Analysing UML metadata and designer prompt...",
-        "generate_agent":           "Generating interface candidates...",
-        "render_agent":             "Rendering previews...",
-    }
+    """Stream 3-candidate interface generation through Django-hosted agent logic."""
 
     def stream():
-        yield json.dumps({"status": "Connecting to agent..."}) + "\n"
-
+        yield json.dumps({"status": "Starting candidate generation..."}) + "\n"
         try:
             _clear_interface_candidates(payload.interface_id, "generating", payload.prompt)
         except Exception as e:
             yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
             return
 
-        user_id = payload.interface_id
-        session_id = str(_uuid.uuid4())
-        try:
-            resp = requests.post(
-                f"{ADK_AGENT_URL}/apps/candidate_app/users/{user_id}/sessions",
-                json={"state": {"interface_id": payload.interface_id, "system_id": payload.system_id}},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            session_id = resp.json().get("id", session_id)
-        except Exception as e:
-            yield json.dumps({"status": "error", "message": f"Failed to create session: {e}"}) + "\n"
+        yield json.dumps({"status": "Generating and saving candidates..."}) + "\n"
+        result = generate_candidate_set(payload.interface_id, payload.prompt)
+        if not str(result).startswith("OK:"):
+            yield json.dumps({"status": "error", "message": result}) + "\n"
             return
 
-        message = (
-            f"interface_id={payload.interface_id} prompt={payload.prompt}\n"
-            "Instruction: Treat the prompt as a designer requirement. If it only names a color or style, "
-            "You must call generate_candidate_set exactly once and wait for it to save candidates. "
-            "do not refuse; preserve the interface metadata and generate 3 functional, data-driven candidates "
-            "using that visual theme. Vary chrome structure too: header, footer, sidebar, and navigation are "
-            "design regions. At least one candidate may use left sidebar navigation when there are multiple pages; "
-            "do not make all candidates the same header/footer/sidebar layout unless the user explicitly asks for it."
-        )
-        agent_error = ""
-        tool_call_seen = False
-        tool_response_seen = False
-        required_tool_call_seen = False
-        required_tool_response_seen = False
-        last_tool_trace = ""
-        started_at = time.monotonic()
-        event_queue: queue.Queue[dict] = queue.Queue()
-
-        def run_agent_stream():
-            seen_authors: set = set()
-            try:
-                with requests.post(
-                    f"{ADK_AGENT_URL}/run_sse",
-                    json={
-                        "app_name": "candidate_app",
-                        "user_id": user_id,
-                        "session_id": session_id,
-                        "new_message": {"role": "user", "parts": [{"text": message}]},
-                        "streaming": True,
-                    },
-                    stream=True,
-                    timeout=(10, ADK_CANDIDATE_TIMEOUT_SECONDS),
-                ) as r:
-                    r.raise_for_status()
-                    for line in r.iter_lines():
-                        if not line:
-                            continue
-                        line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                        if not line_str.startswith("data: "):
-                            continue
-                        try:
-                            event = json.loads(line_str[6:])
-                            event_error = _extract_agent_event_error(event)
-                            if event_error:
-                                event_queue.put({"error": event_error})
-                                continue
-                            for trace in _extract_agent_tool_events(event):
-                                event_queue.put({"tool": trace})
-                            author = event.get("author", "")
-                            if author and author not in seen_authors and author in _STATUS_MAP:
-                                seen_authors.add(author)
-                                event_queue.put({"status": _STATUS_MAP[author]})
-                        except Exception:
-                            pass
-            except Exception as e:
-                event_queue.put({"error": str(e)})
-            finally:
-                event_queue.put({"done": True})
-
-        worker = threading.Thread(target=run_agent_stream, daemon=True)
-        worker.start()
-
-        while True:
-            elapsed = int(time.monotonic() - started_at)
-            if elapsed > ADK_CANDIDATE_TIMEOUT_SECONDS:
-                agent_error = f"candidate agent timed out after {ADK_CANDIDATE_TIMEOUT_SECONDS}s"
-                yield json.dumps({"status": "error", "message": agent_error}) + "\n"
-                return
-            try:
-                item = event_queue.get(timeout=ADK_CANDIDATE_HEARTBEAT_SECONDS)
-            except queue.Empty:
-                yield json.dumps({"status": f"Still working... {elapsed}s"}) + "\n"
-                continue
-            if item.get("done"):
-                break
-            if item.get("error"):
-                agent_error = item["error"]
-                yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
-                return
-            if item.get("tool"):
-                trace = item["tool"]
-                name = trace.get("name") or "tool"
-                if trace.get("kind") == "call":
-                    tool_call_seen = True
-                    if name == "generate_candidate_set":
-                        required_tool_call_seen = True
-                    last_tool_trace = f"called {name}"
-                    yield json.dumps({"status": f"Calling {name}..."}) + "\n"
-                elif trace.get("kind") == "response":
-                    tool_response_seen = True
-                    if name == "generate_candidate_set":
-                        required_tool_response_seen = True
-                    last_tool_trace = f"{name} response: {trace.get('text', '')}"
-                    yield json.dumps({"status": f"{name} returned."}) + "\n"
-            if item.get("status"):
-                yield json.dumps({"status": item["status"]}) + "\n"
-
-        candidate_count = 0
         try:
             iface = Interface.objects.get(pk=payload.interface_id)
-            data = dict(iface.data or {})
-            candidates = data.get("candidates") or []
-            if not any(candidates):
-                if not required_tool_call_seen:
-                    message = "ADK finished without calling generate_candidate_set."
-                elif not required_tool_response_seen:
-                    message = "ADK called generate_candidate_set but no tool response was observed."
-                else:
-                    message = "generate_candidate_set returned but did not save candidates."
-                yield json.dumps({
-                    "status": "error",
-                    "message": message,
-                    "agent_error": agent_error,
-                    "tool_call_seen": tool_call_seen,
-                    "tool_response_seen": tool_response_seen,
-                    "required_tool_call_seen": required_tool_call_seen,
-                    "required_tool_response_seen": required_tool_response_seen,
-                    "last_tool_trace": last_tool_trace,
-                }) + "\n"
-                return
-            else:
-                candidate_count = len([candidate for candidate in candidates if candidate])
+            candidates = (iface.data or {}).get("candidates") or []
+            candidate_count = len([candidate for candidate in candidates if candidate])
         except Exception as e:
             yield json.dumps({"status": "error", "message": f"Failed to load candidates: {e}"}) + "\n"
             return
@@ -546,22 +338,17 @@ def generate_interface_candidates(request, payload: GenerateCandidatesPayload):
     return resp
 
 
+
+
 class MapUmlPayload(Schema):
     interface_id: str
 
 
 @prototypes.post("/map_uml_to_interface/")
 def map_uml_to_interface(request, payload: MapUmlPayload):
-    """Map UML diagrams to interface pages and sections through the agent service endpoint."""
-    ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
+    """Map UML diagrams to interface pages and sections through Django service logic."""
     try:
-        resp = requests.post(
-            f"{ADK_AGENT_URL}/map_uml_to_interface",
-            json={"interface_id": payload.interface_id},
-            timeout=180,
-        )
-        resp.raise_for_status()
-        data = resp.json()
+        data = run_uml_mapping_for_interface(payload.interface_id)
         return {"ok": data.get("status") == "ok", "message": data.get("message", "")}
     except Exception as e:
         return {"ok": False, "message": str(e)}
@@ -574,15 +361,8 @@ class MapUmlAllPayload(Schema):
 @prototypes.post("/map_uml_to_all_interfaces/")
 def map_uml_to_all_interfaces(request, payload: MapUmlAllPayload):
     """Map UML diagrams to interfaces for all actors in a system."""
-    ADK_AGENT_URL = os.environ.get("ADK_AGENT_URL", "http://gemini-make-agent:8080")
     try:
-        resp = requests.post(
-            f"{ADK_AGENT_URL}/map_uml_to_all_interfaces",
-            json={"system_id": payload.system_id},
-            timeout=600,
-        )
-        resp.raise_for_status()
-        data = resp.json()
+        data = run_uml_mapping_for_system(payload.system_id)
         return {"ok": data.get("status") == "ok", "message": data.get("message", ""), "results": data.get("results", [])}
     except Exception as e:
         return {"ok": False, "message": str(e)}
@@ -590,16 +370,10 @@ def map_uml_to_all_interfaces(request, payload: MapUmlAllPayload):
 
 @prototypes.post("/regenerate_candidates/")
 def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayload):
-    """Stream selected-candidate regeneration via the ADK candidate_regeneration_agent."""
-    import uuid as _uuid
-
-    _STATUS_MAP = {
-        "candidate_regeneration_agent": "Regenerating from selected candidate...",
-    }
+    """Stream selected-candidate regeneration through Django-hosted agent logic."""
 
     def stream():
-        yield json.dumps({"status": "Connecting to regeneration agent..."}) + "\n"
-
+        yield json.dumps({"status": "Starting candidate regeneration..."}) + "\n"
         try:
             _clear_interface_candidates(
                 payload.interface_id,
@@ -611,163 +385,24 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
             yield json.dumps({"status": "error", "message": f"Failed to reset old candidates: {e}"}) + "\n"
             return
 
-        user_id = payload.interface_id
-        session_id = str(_uuid.uuid4())
-        try:
-            resp = requests.post(
-                f"{ADK_AGENT_URL}/apps/candidate_regeneration_app/users/{user_id}/sessions",
-                json={
-                    "state": {
-                        "interface_id": payload.interface_id,
-                        "system_id": payload.system_id,
-                        "selected_candidate_index": payload.selected_candidate_index,
-                    }
-                },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            session_id = resp.json().get("id", session_id)
-        except Exception as e:
-            yield json.dumps({"status": f"Failed to create regeneration session: {e}"}) + "\n"
+        yield json.dumps({"status": "Regenerating and saving candidates..."}) + "\n"
+        result = regenerate_candidate_set(
+            payload.interface_id,
+            payload.selected_candidate_index,
+            payload.designer_requirements,
+        )
+        if not str(result).startswith("OK:"):
+            yield json.dumps({"status": "error", "message": result}) + "\n"
             return
 
-        _req = (payload.designer_requirements or "").lower()
-        _color_terms = ("color", "colour", "顔色", "颜色", "#", "red", "blue", "green", "purple", "orange", "yellow", "pink", "white", "black", "grey", "gray", "hex", "tint", "shade", "红", "蓝", "绿", "紫", "橙", "黄", "粉", "白", "黑", "灰")
-        _layout_terms = ("layout", "排版", "布局", "sidebar", "side bar", "left nav", "right nav", "split", "rail", "full width", "full-width", "compact", "spacious", "table", "gallery")
-        _color_only = any(t in _req for t in _color_terms) and not any(t in _req for t in _layout_terms)
-        _layout_only = any(t in _req for t in _layout_terms) and not any(t in _req for t in _color_terms)
-        if _color_only:
-            _constraint = (
-                "IMPORTANT: Preserve the selected candidate's page structure and region layout EXACTLY — "
-                "do not move or restructure any sections. Only apply the requested color/token changes. "
-                "All three regenerated variants must share the same layout as the selected candidate."
-            )
-        elif _layout_only:
-            _constraint = (
-                "IMPORTANT: Preserve the selected candidate's color scheme and design tokens EXACTLY — "
-                "do not alter any colors. Only apply the requested layout/structural changes."
-            )
-        else:
-            _constraint = (
-                "Preserve the selected candidate's functionality, data bindings, and workflow. "
-                "Apply the designer's requirements and create three structural alternatives."
-            )
-        message = (
-            f"interface_id={payload.interface_id} regenerate_candidates "
-            f"selected_candidate_index={payload.selected_candidate_index} "
-            f"designer_requirements={payload.designer_requirements}\n"
-            f"Instruction: You must call regenerate_candidate_set exactly once and wait for it to save candidates. {_constraint}"
-        )
-        agent_error = ""
-        tool_call_seen = False
-        tool_response_seen = False
-        required_tool_call_seen = False
-        required_tool_response_seen = False
-        last_tool_trace = ""
-        started_at = time.monotonic()
-        event_queue: queue.Queue[dict] = queue.Queue()
-
-        def run_agent_stream():
-            seen_authors: set = set()
-            try:
-                with requests.post(
-                    f"{ADK_AGENT_URL}/run_sse",
-                    json={
-                        "app_name": "candidate_regeneration_app",
-                        "user_id": user_id,
-                        "session_id": session_id,
-                        "new_message": {"role": "user", "parts": [{"text": message}]},
-                        "streaming": True,
-                    },
-                    stream=True,
-                    timeout=(10, ADK_CANDIDATE_TIMEOUT_SECONDS),
-                ) as r:
-                    r.raise_for_status()
-                    for line in r.iter_lines():
-                        if not line:
-                            continue
-                        line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                        if not line_str.startswith("data: "):
-                            continue
-                        try:
-                            event = json.loads(line_str[6:])
-                            event_error = _extract_agent_event_error(event)
-                            if event_error:
-                                event_queue.put({"error": event_error})
-                                continue
-                            for trace in _extract_agent_tool_events(event):
-                                event_queue.put({"tool": trace})
-                            author = event.get("author", "")
-                            if author and author not in seen_authors and author in _STATUS_MAP:
-                                seen_authors.add(author)
-                                event_queue.put({"status": _STATUS_MAP[author]})
-                        except Exception:
-                            pass
-            except Exception as e:
-                event_queue.put({"error": str(e)})
-            finally:
-                event_queue.put({"done": True})
-
-        worker = threading.Thread(target=run_agent_stream, daemon=True)
-        worker.start()
-
-        while True:
-            elapsed = int(time.monotonic() - started_at)
-            if elapsed > ADK_CANDIDATE_TIMEOUT_SECONDS:
-                agent_error = f"candidate regeneration agent timed out after {ADK_CANDIDATE_TIMEOUT_SECONDS}s"
-                yield json.dumps({"status": "error", "message": agent_error}) + "\n"
-                return
-            try:
-                item = event_queue.get(timeout=ADK_CANDIDATE_HEARTBEAT_SECONDS)
-            except queue.Empty:
-                yield json.dumps({"status": f"Still regenerating... {elapsed}s"}) + "\n"
-                continue
-            if item.get("done"):
-                break
-            if item.get("error"):
-                agent_error = item["error"]
-                yield json.dumps({"status": "error", "message": f"Agent error: {agent_error}"}) + "\n"
-                return
-            if item.get("tool"):
-                trace = item["tool"]
-                name = trace.get("name") or "tool"
-                if trace.get("kind") == "call":
-                    tool_call_seen = True
-                    if name == "regenerate_candidate_set":
-                        required_tool_call_seen = True
-                    last_tool_trace = f"called {name}"
-                    yield json.dumps({"status": f"Calling {name}..."}) + "\n"
-                elif trace.get("kind") == "response":
-                    tool_response_seen = True
-                    if name == "regenerate_candidate_set":
-                        required_tool_response_seen = True
-                    last_tool_trace = f"{name} response: {trace.get('text', '')}"
-                    yield json.dumps({"status": f"{name} returned."}) + "\n"
-            if item.get("status"):
-                yield json.dumps({"status": item["status"]}) + "\n"
-
-        candidate_count = 0
         try:
             iface = Interface.objects.get(pk=payload.interface_id)
-            data = dict(iface.data or {})
-            candidates = data.get("candidates") or []
+            candidates = (iface.data or {}).get("candidates") or []
             candidate_count = len([candidate for candidate in candidates if candidate])
             if candidate_count < 3:
-                if not required_tool_call_seen:
-                    message = "ADK finished without calling regenerate_candidate_set."
-                elif not required_tool_response_seen:
-                    message = "ADK called regenerate_candidate_set but no tool response was observed."
-                else:
-                    message = f"regenerate_candidate_set saved {candidate_count} candidates; expected 3."
                 yield json.dumps({
                     "status": "error",
-                    "message": message,
-                    "agent_error": agent_error,
-                    "tool_call_seen": tool_call_seen,
-                    "tool_response_seen": tool_response_seen,
-                    "required_tool_call_seen": required_tool_call_seen,
-                    "required_tool_response_seen": required_tool_response_seen,
-                    "last_tool_trace": last_tool_trace,
+                    "message": f"regenerate_candidate_set saved {candidate_count} candidates; expected 3.",
                 }) + "\n"
                 return
         except Exception as e:
@@ -786,11 +421,11 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
     return resp
 
 
+
+
 @prototypes.post("/seed_ai/")
 def seed_prototype_ai(request, system_id: str):
-    """Stream seed-data generation via the ADK seed_agent."""
-    import uuid as _uuid
-
+    """Stream seed-data generation through Django-hosted agent logic."""
     proto = Prototype.objects.filter(system__id=system_id).order_by('-id').first()
     if not proto:
         raise HttpError(404, "No prototype found for this system")
@@ -798,57 +433,19 @@ def seed_prototype_ai(request, system_id: str):
     project_name = proto.name
 
     def stream():
-        yield json.dumps({"status": "Connecting to seed agent..."}) + "\n"
-
-        user_id = system_id
-        session_id = str(_uuid.uuid4())
-        try:
-            resp = requests.post(
-                f"{ADK_AGENT_URL}/apps/app/users/{user_id}/sessions",
-                json={"state": {"system_id": system_id}},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            session_id = resp.json().get("id", session_id)
-        except Exception as e:
-            yield json.dumps({"status": f"Failed to create session: {e}"}) + "\n"
+        yield json.dumps({"status": "Starting seed generation..."}) + "\n"
+        result = generate_and_run_seed_data(system_id, project_name)
+        if result.get("status") != "ok":
+            yield json.dumps({"status": "error", "message": result.get("message", "")}) + "\n"
             return
-
-        prompt = f"system_id={system_id} project_name={project_name}"
-        yield json.dumps({"status": "Generating seed data..."}) + "\n"
-
-        try:
-            with requests.post(
-                f"{ADK_AGENT_URL}/run_sse",
-                json={
-                    "app_name": "app",
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "new_message": {"role": "user", "parts": [{"text": prompt}]},
-                    "streaming": True,
-                },
-                stream=True,
-                timeout=300,
-            ) as r:
-                r.raise_for_status()
-                for line in r.iter_lines():
-                    if not line:
-                        continue
-                    line_str = line.decode("utf-8") if isinstance(line, bytes) else line
-                    if line_str.startswith("data: "):
-                        try:
-                            event = json.loads(line_str[6:])
-                            if event.get("author") == "seed_agent":
-                                yield json.dumps({"status": "Seeding..."}) + "\n"
-                        except Exception:
-                            pass
-        except Exception as e:
-            yield json.dumps({"status": f"Agent error: {e}"}) + "\n"
-            return
-
-        yield json.dumps({"status": "done", "message": "Seed data generated successfully."}) + "\n"
+        yield json.dumps({
+            "status": "done",
+            "message": result.get("message", "Seed data generated successfully."),
+        }) + "\n"
 
     return StreamingHttpResponse(stream(), content_type="application/x-ndjson")
+
+
 
 
 class HotReloadPayload(Schema):
