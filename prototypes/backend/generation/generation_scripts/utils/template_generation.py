@@ -1,6 +1,6 @@
 from utils.definitions.application_component import ApplicationComponent
 from utils.definitions.page import Page
-from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization
+from utils.sanitization import project_name_sanitization, app_name_sanitization, page_name_sanitization, app_namespace_sanitization
 from utils.file_generation import generate_output_file, read_template_file, write_to_file
 from utils.definitions.model import AttributeType
 from utils.loading_json_utils import make_activity_start_section, make_activity_tasks_section
@@ -108,6 +108,7 @@ def generate_base_page(application_component: ApplicationComponent, OUTPUT_TEMPL
 
     data = {
         "application_name": application_name,
+        "application_namespace": app_namespace_sanitization(application_name),
         "logo": logo,
         "pages": application_component.pages,
         "categories": categories,
@@ -182,6 +183,7 @@ def _render_unified_page(page, all_pages, tokens, styling, application_name, pro
     return template.render(
         project_name=project_name,
         application_name=application_name,
+        application_namespace=app_namespace_sanitization(application_name),
         page=page,
         AttributeType=AttributeType,
         styling=styling,

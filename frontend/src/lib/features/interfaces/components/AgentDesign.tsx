@@ -461,7 +461,10 @@ const COLOR_HEX: Record<ColorOption, string> = {
 };
 
 const getPageTypeValue = (page: any) => typeof page?.type === 'string' ? page.type : page?.type?.value;
-const isActivityActionSection = (section: any) => section?.type === 'activity_action' || section?.layout === 'activity_action';
+const isActivityActionSection = (section: any) => {
+    const layout = typeof section?.layout === 'string' ? section.layout : section?.layout?.value;
+    return section?.type === 'activity_action' || layout === 'activity_action';
+};
 const makeActivityActionSection = (page: any) => {
     const label = page?.action?.label || page?.name || 'Complete step';
     return {
@@ -1569,8 +1572,9 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
     const secLogoVariant: LogoVariantOption = (secStyle.logo_variant as LogoVariantOption) || 'lockup';
     const secActionVariant: ActionVariantOption = (secStyle.action_variant as ActionVariantOption) || 'link';
     const secShowLogout = !(secStyle.show_logout === false || secStyle.show_logout === 'false' || secStyle.show_logout === '0' || secStyle.show_logout === 'hidden');
-    const isActivityAction = selectedSection?.type === 'activity_action' || selectedSection?.layout === 'activity_action';
-    const isMethodOnly = !isActivityAction && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
+    const isActivityAction = isActivityActionSection(selectedSection);
+    const isChromeLayout = CHROME_LAYOUTS.includes(secLayout);
+    const isMethodOnly = !isActivityAction && !isChromeLayout && !(selectedSection?.attributes?.length) && !!(selectedSection?.methods?.length);
     const attrNameOf = (attr: any) => typeof attr === 'string' ? attr : attr?.name || '';
     const selectedPrimaryModel = selectedSection?.primary_model || selectedSection?.class || '';
     const selectedModelClassifier = systemClassifiers.find((cls: any) =>
@@ -1601,14 +1605,15 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
         ...(secComponent ? [secComponent] : []),
     ]));
     const sectionKind = selectedSection?.component_type || selectedSection?.type || '';
-    const isChromeOrControlSection = isActivityAction
-        || isMethodOnly
-        || CHROME_LAYOUTS.includes(secLayout)
-        || ['chrome', 'control', 'activity_action'].includes(String(sectionKind))
+    const isChromeSection = isChromeLayout
         || [
             'HeaderTemplate', 'FooterTemplate', 'NavBar', 'SearchBar', 'IconActions',
             'Logo', 'BrandLockup', 'ImageLogo', 'SiteFooter', 'FooterLinkGrid',
         ].includes(String(secComponent));
+    const isChromeOrControlSection = isActivityAction
+        || isMethodOnly
+        || isChromeSection
+        || (!isChromeSection && ['chrome', 'control', 'activity_action'].includes(String(sectionKind)));
     const showComponentSelector = componentOptions.length > 1 && !isChromeOrControlSection;
     const showFieldComposer = !!selectedSection && !isChromeOrControlSection && !!selectedPrimaryModel;
     const fieldLayout = selectedSection?.field_layout && typeof selectedSection.field_layout === 'object'

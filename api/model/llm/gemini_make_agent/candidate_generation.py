@@ -543,6 +543,34 @@ def _candidate_list_from_llm_response(text: str) -> list:
     return []
 
 
+_FULL_WIDTH_PROMPT_RE = re.compile(
+    r"\b(full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|全宽|全屏|通栏|沉浸",
+    re.I,
+)
+
+
+def _guard_generated_page_widths(candidate: dict, prompt: str) -> dict:
+    """Keep generated candidates from making ordinary apps full-width by default."""
+    guarded = copy.deepcopy(candidate)
+    if _FULL_WIDTH_PROMPT_RE.search(prompt or ""):
+        return guarded
+
+    for page in guarded.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        layout = page.get("layout") or {}
+        if not isinstance(layout, dict):
+            continue
+        if layout.get("main_width") == "full":
+            layout["main_width"] = "wide"
+        if layout.get("header_width") == "full":
+            layout["header_width"] = "contained"
+        if layout.get("footer_width") == "full":
+            layout["footer_width"] = "contained"
+        page["layout"] = layout
+    return guarded
+
+
 
 def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
     """Call Gemini to generate 3 layout/style variants. Returns list of 3 candidate dicts or None on failure."""
@@ -578,6 +606,8 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             # "  - border radius (0 vs 8 vs 16 vs 24)\n"
             # "  - button style (solid vs outline vs ghost vs gradient)\n"
             "Every page must have navigation unless user requires otherwise.\n"
+            "Default ordinary application pages to contained or wide main/header/footer widths. "
+            "Use full width only when the user explicitly asks for full-width/fullscreen/edge-to-edge/immersive treatment.\n"
             "Respect the designer prompt and choose colors as a UI designer. Do not use hard-coded color mappings unless the prompt provides exact hex values. \n"
             "Candidate names/descriptions must describe layout, navigation, density, or workflow emphasis; do not mention color names unless the designer prompt explicitly asks for colors.\n"
             "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
@@ -609,7 +639,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         if len(candidates) < 3:
             print(f"[llm_generate_3_candidates] only got {len(candidates)} candidates, falling back", flush=True)
             return None
-        return candidates[:3]
+        return [_guard_generated_page_widths(candidate, prompt) for candidate in candidates[:3]]
     except Exception as e:
         import traceback
         print(f"[llm_generate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
@@ -667,9 +697,11 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             "  - border radius (0 vs 8 vs 16 vs 24)\n"
             "  - button style (solid vs outline vs ghost vs gradient)\n"
             "  - card hover effect (lift vs glow vs border vs none)\n"
-            "  - page width (contained vs wide vs full)\n"
+            "  - page width (contained vs wide; use full only when explicitly requested)\n"
             "  - nav placement (header vs sidebar)\n"
             "Apply the DESIGNER REQUIREMENTS to all 3 variants. "
+            "Default ordinary application pages to contained or wide main/header/footer widths. "
+            "Use full width only when the designer requirements explicitly ask for full-width/fullscreen/edge-to-edge/immersive treatment. "
             "Preserve the base candidate's section roles and data bindings. "
             "You may change layout/component/position for collection sections (object_collection, child_collection) "
             "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
@@ -702,7 +734,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
         candidates = _candidate_list_from_llm_response(response.text)
         if len(candidates) < 3:
             return None
-        return candidates[:3]
+        return [_guard_generated_page_widths(candidate, designer_requirements) for candidate in candidates[:3]]
     except Exception as e:
         import traceback
         print(f"[llm_regenerate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)

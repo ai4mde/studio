@@ -1,5 +1,5 @@
 from utils.file_generation import generate_output_file
-from utils.sanitization import project_name_sanitization, app_name_sanitization
+from utils.sanitization import project_name_sanitization, app_name_sanitization, app_namespace_sanitization
 from utils.definitions.application_component import ApplicationComponent
 from utils.loading_json_utils import retrieve_models_on_pages
 
@@ -19,6 +19,7 @@ def generate_views(application_component: ApplicationComponent, system_id: str) 
     data = {
         "project_name": project_name,
         "application_name": application_name,
+        "application_namespace": app_namespace_sanitization(application_name),
         "pages": pages_in_app,
         "models_on_pages": models_on_pages,
         "authentication_present": application_component.authentication_present

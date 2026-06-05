@@ -25,6 +25,13 @@ def app_name_sanitization(proposed_name: str) -> str:
     return general_name_sanitization(proposed_name)
 
 
+def app_namespace_sanitization(proposed_name: str) -> str:
+    name = app_name_sanitization(proposed_name).lower()
+    if name in {"admin"}:
+        return f"{name}_app"
+    return name
+
+
 def model_name_sanitization(proposed_name: str) -> str:
     if proposed_name.lower() == "user":
         proposed_name = "cls_user"

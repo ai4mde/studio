@@ -29,15 +29,15 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     {% if page.type == 'activity' -%}
 
     def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+        return reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
         })
     {% elif section_component.success_page -%}
-    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ section_component.success_page }}')
+    success_url = reverse_lazy('{{ application_namespace }}:render_{{ application_name }}_{{ section_component.success_page }}')
     {% else -%}
 
     def get_success_url(self):
-        base = reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+        base = reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}')
         params = {k: v for k, v in self.request.POST.items() if k.startswith('instance_id_') and v}
         if params:
             from urllib.parse import urlencode
@@ -97,11 +97,11 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     {% if page.type == 'activity' -%}
 
     def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+        return reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
         })
     {% else -%}
-    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+    success_url = reverse_lazy('{{ application_namespace }}:render_{{ application_name }}_{{ page }}')
     {% endif %}
 
     def post(self, request, *args, **kwargs):
@@ -147,11 +147,11 @@ class {{ page }}_{{ section_component }}_DeleteView(GenericDeleteView):
     {% if page.type == 'activity' -%}
 
     def get_success_url(self):
-        return reverse('{{ application_name }}:render_{{ application_name }}_{{ page }}', kwargs={
+        return reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}', kwargs={
             'active_process_node_id': self.kwargs.get('active_process_node_id'),
         })
     {% else -%}
-    success_url = reverse_lazy('{{ application_name }}:render_{{ application_name }}_{{ page }}')
+    success_url = reverse_lazy('{{ application_namespace }}:render_{{ application_name }}_{{ page }}')
     {% endif -%}
 
     {% if page.type == 'activity' %}

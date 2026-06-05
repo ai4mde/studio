@@ -205,7 +205,7 @@ Static online image URLs:
 _CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
 
 {_LAYOUT_SCHEMA}
-- 3 candidates must be structurally different: vary page main_width, nav placement, data section layouts, density, font, or component treatment
+- 3 candidates must be structurally different: vary nav placement, data section layouts, density, font, component treatment, or contained/wide page width. Use full width only when explicitly requested.
 - Every candidate MUST include a top-level tokens object. tokens is the source of truth for exact colors/typography used by rendering.
 - styling is a compact human-readable style summary; tokens must contain the complete concrete values for fine-grained rendering.
 """

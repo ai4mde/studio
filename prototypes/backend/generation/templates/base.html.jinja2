@@ -102,7 +102,7 @@
 {%- set _logo_variant = _sc_style.get('logo_variant', 'lockup') %}
 {%- set _tagline = _sc_style.get('tagline') or _sc_style.get('subtitle') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="logo">
-    <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="inline-flex items-center gap-3 leading-none min-w-0">
+    <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="inline-flex items-center gap-3 leading-none min-w-0">
         {%- if _logo_url %}
         <img src="{{ _logo_url }}" alt="{{ sc.text or _brand_name }}" class="shrink-0 object-cover {% if _logo_shape == 'circle' %}rounded-full{% elif _logo_shape == 'square' %}rounded-md{% else %}rounded-xl{% endif %}" style="width:{{ _logo_size_px }}px;height:{{ _logo_size_px }}px;">
         {%- endif %}
@@ -118,7 +118,7 @@
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
     {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
-    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
+    <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex items-center rounded-full border-2 overflow-hidden {% if _sc_style.get('header_variant') == 'split-dark' %}bg-white/95{% endif %}" style="border-color:{{ _accent_hex }};">
         <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
         <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
             <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -140,8 +140,8 @@
         {%- endfor %}
         {%- else %}
         {%- if _show_logout %}<a href="{% raw %}{% url 'logout' %}{% endraw %}" class="{{ _action_cls }}">{{ _logout_label }}</a>{%- endif %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 
         </a>
@@ -152,8 +152,8 @@
 {%- elif sc.layout in ('main-header','commerce-header','dashboard-header','split-header','app-header','mega-header','hero-header','tabbed-header','glass-header','command-header') %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
     <header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
             <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
             <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
                 <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -161,8 +161,8 @@
         </form>
         <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
             <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75 whitespace-nowrap">Logout</a>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
+            <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
 
             </a>
@@ -185,7 +185,7 @@
                 <span class="px-3 py-1.5 cursor-default rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700{% endif %}"
                    style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
                 {%- else %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
+                <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
                    class="{% if _sc_style.get('nav_variant') == 'pills' %}px-3 py-2 cursor-pointer rounded-full font-semibold transition-colors {% if page is defined and p.display_name == page.display_name %}text-white{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% else %}px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}{% endif %}"
                    style="{% if _sc_style.get('nav_variant') == 'pills' and page is defined and p.display_name == page.display_name %}background-color:{{ _accent_hex }};{% elif page is defined and p.display_name == page.display_name %}border-color:{{ _accent_hex }};color:{{ _accent_hex }}{% endif %}">{{ p.display_name }}</a>
                 {%- endif %}
@@ -207,7 +207,7 @@
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
     <header class="bg-white border-b border-gray-200 {{ _header_shell_class }} py-4 flex items-center justify-between">
         <div class="text-2xl font-black" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</div>
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="flex items-center gap-2 border-2 rounded-xl px-4 py-2 text-sm font-semibold hover:bg-gray-50" style="border-color:{{ _accent_hex }};color:{{ _accent_hex }};">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
             {{ sc.text or '0,00' }}
         </a>
@@ -225,8 +225,8 @@
         {%- if sc.text %}<span>{{ sc.text }}</span>{%- endif %}
     </div>
     <header class="bg-white {{ _header_shell_class }} py-3 flex items-center gap-4">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
-        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="text-3xl font-black shrink-0 leading-none" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}.</a>
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden" style="border-color:{{ _accent_hex }};">
             <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="{{ sc.text or sc.display_name }}" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
             <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
                 <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -234,8 +234,8 @@
         </form>
         <div class="flex items-center gap-5 text-sm text-gray-700 shrink-0">
             <a href="{% raw %}{% url 'logout' %}{% endraw %}" class="cursor-pointer hover:opacity-75">Logout</a>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
-            <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="cursor-pointer hover:opacity-75 text-xl leading-none">♡</a>
+            <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="relative cursor-pointer"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></a>
         </div>
     </header>
     <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
@@ -247,7 +247,7 @@
                 <span class="px-3 py-1.5 cursor-default rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700{% endif %}"
                    style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</span>
                 {%- else %}
-                <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
+                <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ p }}' {% raw %}%}{% endraw %}"
                    class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if page is defined and p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}"
                    style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if page is defined and p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>
                 {%- endif %}
@@ -272,11 +272,11 @@
 {%- endif %}
 <header class="bg-white border-b border-gray-200 shadow-sm">
     <div class="{{ _header_shell_class }} py-3 flex items-center gap-4">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="inline-flex items-center gap-3 shrink-0 min-w-0">
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="inline-flex items-center gap-3 shrink-0 min-w-0">
             {%- if _fallback_logo.url %}<img src="{{ _fallback_logo.url }}" class="h-9 w-9 rounded-xl object-cover" alt="{{ _brand_name }}">{%- endif %}
             <span class="text-2xl font-black truncate" style="color:{{ _accent_hex }};font-family:'Georgia',serif;">{{ application_name | capitalize }}.</span>
         </a>
-        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
+        <form action="{% if _search_page %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ _search_page }}' {% raw %}%}{% endraw %}{% else %}{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}{% endif %}" method="get" class="flex-1 flex items-center rounded-full border-2 overflow-hidden bg-white" style="border-color:{{ _accent_hex }};">
             <input name="q" class="flex-1 px-4 py-2.5 text-sm outline-none text-gray-700 bg-white" placeholder="Site Navigation" type="search" value="{% raw %}{{ request.GET.q }}{% endraw %}" />
             <button type="submit" class="px-4 py-3" style="background-color:{{ _accent_hex }};">
                 <svg class="w-4 h-4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -291,24 +291,24 @@
 </header>
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
     <div class="{{ _header_shell_class }} flex items-center gap-6 text-sm font-medium text-gray-700 overflow-x-auto whitespace-nowrap py-2.5">
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Home</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Home</a>
         {% if settings and settings.manager_access %}
         <span class="text-gray-300">|</span>
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Activity log</a>
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">User assignment</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}_action_log' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">Activity log</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}_change_user_assignment' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">User assignment</a>
         {% endif %}
         {% for category in categories %}
         <span class="text-gray-300">|</span>
         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{{ category }}</span>
         {% for page in pages %}
         {% if page.type == 'normal' and page.category == category.name %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
         {% endif %}
         {% endfor %}
         {% endfor %}
         {% for page in pages %}
         {% if page.category in ["", none] and page.type != 'activity' %}
-        <a href="{% raw %}{%{% endraw %} url '{{ application_name|lower }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
+        <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ page.application }}_{{ page }}' {% raw %}%}{% endraw %}" class="hover:text-gray-900 transition-colors">{{ page.display_name }}</a>
         {% endif %}
         {% endfor %}
     </div>

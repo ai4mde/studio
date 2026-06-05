@@ -3,7 +3,7 @@ from . import views
 
 from workflow_engine.views import ActionLogView, ChangeUserAssignmentView, ChangeUserAssignmentUpdateView
 
-app_name="{{ application_name|lower }}"
+app_name="{{ application_namespace }}"
 urlpatterns = [
     path("", views.HomeRenderView.as_view(), name="{{ application_name }}-homerender"),
     path("", views.HomeRenderView.as_view(), name="{{ application_name|lower }}-homerender"),
