@@ -17,13 +17,14 @@ DATA_SECTION_ROLES = {
 }
 
 _ACTIVITY_FORM_TERMS = re.compile(
-    r"\b(enter|fill|provide|submit|create|update|edit|write|upload|add|register|confirm|book|pay|record|input|select|choose)\b",
+    r"\b(enter|fill|provide|submit|create|update|edit|write|upload|add|register|confirm|book|pay|record|input)\b",
     re.I,
 )
 _ACTIVITY_LIST_TERMS = re.compile(
-    r"\b(list|browse|manage|track|monitor|search|review|approve|check|verify|pick|items)\b",
+    r"\b(list|browse|manage|track|monitor|search|select|choose|review|approve|check|verify|pick|items)\b",
     re.I,
 )
+_ACTIVITY_SELECT_TERMS = re.compile(r"\b(search|select|choose|pick|browse)\b", re.I)
 
 
 def _section_id(name: str) -> str:
@@ -102,6 +103,20 @@ def _operations_for_model(model: str, actor_permissions: dict) -> list[str]:
         if operation in permissions:
             operations.append(operation)
     return operations
+
+
+def _operations_for_page(model: str, actor_permissions: dict, page: dict) -> list[str]:
+    roles = set(page.get("roles") or [])
+    page_text = f"{page.get('id') or page.get('page_id') or ''} {page.get('name') or page.get('page_name') or ''}".lower()
+    operation_kind = str(page.get("operation_kind") or page.get("kind") or "").lower()
+    if "collection_workspace" in roles and (
+        operation_kind in {"view_collection", "select_existing"} or _ACTIVITY_SELECT_TERMS.search(page_text)
+    ):
+        operations = ["view"]
+        if operation_kind == "select_existing" or _ACTIVITY_SELECT_TERMS.search(page_text):
+            operations.append("select")
+        return operations
+    return _operations_for_model(model, actor_permissions)
 
 
 def _editable_fields_for_model(model_attrs: dict, model: str, role: str, operations: list[str]) -> list[str]:
@@ -198,7 +213,7 @@ def _section_for_page(page: dict, model_attrs: dict, actor_permissions: dict | N
     role = "object_detail" if layout == "detail" else "object_collection"
     if "workflow_entry" in roles:
         role = "object_summary"
-    operations = _operations_for_model(model, actor_permissions)
+    operations = _operations_for_page(model, actor_permissions, page)
     style = {
         "color": "accent",
         "density": "compact" if layout in {"list", "table"} else "normal",
@@ -276,10 +291,10 @@ def _child_section(page_id: str, model: str, model_attrs: dict, label: str = "",
 
 
 def _activity_layout(step_name: str) -> str:
-    if _ACTIVITY_FORM_TERMS.search(step_name):
-        return "form"
     if _ACTIVITY_LIST_TERMS.search(step_name):
         return "list"
+    if _ACTIVITY_FORM_TERMS.search(step_name):
+        return "form"
     return "detail"
 
 
@@ -300,7 +315,8 @@ def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries:
     result = []
     for model in models[:2]:
         layout = _activity_layout(step.get("activity_node_name", ""))
-        role = "object_form" if layout == "form" else ("object_collection" if layout in {"list", "table"} else "object_detail")
+        is_select_step = bool(_ACTIVITY_SELECT_TERMS.search(step.get("activity_node_name", "")))
+        role = "object_form" if layout == "form" else ("object_collection" if layout in {"list", "table", "card", "gallery"} else "object_detail")
         visible = _pick_fields(model_attrs, model, role)
         component = _component_for_section(role, layout, model, page_id)
         style: dict = {
@@ -323,9 +339,10 @@ def _sections_for_activity_step(step: dict, model_attrs: dict, workflow_entries:
             "related_visible_fields": [],
             "field_layout": _field_layout_for_component(component, visible),
             "operations": {
-                "create": layout == "form",
-                "update": layout in {"form", "list", "table", "detail"},
+                "create": layout == "form" and not is_select_step,
+                "update": layout in {"form", "list", "table", "detail"} and not is_select_step,
                 "delete": layout in {"list", "table"},
+                "select": is_select_step,
             },
             "style": style,
             "col_span": 12,
@@ -349,6 +366,7 @@ def build_navigation_plan(usecase_navigation: dict, model_attrs: dict | None = N
             "role": (page.get("roles") or ["object_workspace"])[0],
             "roles": page.get("roles") or [],
             "primary_model": page.get("primary_model", ""),
+            "operation_kind": page.get("operation_kind") or page.get("kind") or "",
             "usecases": page.get("usecases") or [],
             "nav": page.get("page_id") in set(usecase_navigation.get("nav_bar_pages") or []),
             "sections": [],

@@ -1,9 +1,5 @@
 {% for model in models %}
     @property
     def {{ model.lower() }}s(self) -> QuerySet["{{ model }}"]:
-        qs = self._associated_queryset({{ model }})
-        if qs.exists():
-            return qs
-        instance = self._get_or_create_process_instance({{ model }})
-        return {{ model }}.objects.filter(pk=instance.pk) if instance else {{ model }}.objects.none()
+        return self._associated_queryset({{ model }})
 {% endfor %}

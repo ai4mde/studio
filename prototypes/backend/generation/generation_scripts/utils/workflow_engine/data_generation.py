@@ -78,6 +78,78 @@ class ActivityDiagramParser:
             return rel["data"]
         return rel
 
+    @cached_property
+    def class_attributes(self) -> dict[str, list[dict[str, Any]]]:
+        result = {}
+        for diagram in self.metadata.get("diagrams", []):
+            if diagram.get("type") != "classes":
+                continue
+            for node in diagram.get("nodes", []):
+                cls = self._cls(node)
+                if cls.get("type") != "class":
+                    continue
+                name = cls.get("name")
+                if name:
+                    result[name] = cls.get("attributes") or []
+        return result
+
+    def _availability_condition_from_guard(self, guard: str) -> Condition | None:
+        text = re.sub(r"[\[\]{}()]+", " ", str(guard or "")).strip().lower()
+        if not text:
+            return None
+
+        unavailable_terms = ("unavailable", "not available", "out of stock", "no stock", "none available")
+        available_terms = ("available", "in stock", "has stock", "stock available")
+        if any(term in text for term in unavailable_terms):
+            return Condition(True, None, None, None, None, None, None)
+        if not any(term in text for term in available_terms):
+            return None
+
+        preferred_names = (
+            "copies_available",
+            "available_count",
+            "quantity_available",
+            "stock_quantity",
+            "stock",
+            "available",
+            "capacity",
+            "quantity",
+        )
+        for class_name, attrs in self.class_attributes.items():
+            numeric_candidates = []
+            for attr in attrs:
+                attr_name = str(attr.get("name") or "")
+                attr_type = str(attr.get("type") or "").lower()
+                if attr_type not in {"int", "integer", "float", "decimal"}:
+                    continue
+                lowered = attr_name.lower()
+                score = 0
+                if lowered in preferred_names:
+                    score += 4
+                if any(term in lowered for term in ("available", "stock", "capacity", "quantity")):
+                    score += 2
+                if score:
+                    numeric_candidates.append((score, attr_name, "int"))
+            if numeric_candidates:
+                numeric_candidates.sort(reverse=True)
+                _, attr_name, attr_type = numeric_candidates[0]
+                return Condition(False, ">", "0", None, attr_name, class_name, attr_type)
+        return None
+
+    def _edge_condition(self, edge_data: dict[str, Any]) -> Condition | None:
+        condition = edge_data.get("condition")
+        if condition:
+            return Condition(
+                isElse=condition.get('isElse'),
+                operator=condition.get('operator'),
+                threshold=condition.get('threshold'),
+                aggregator=condition.get('aggregator'),
+                target_attribute=condition.get('target_attribute'),
+                target_class_name=condition.get('target_class_name'),
+                target_attribute_type=condition.get('target_attribute_type'),
+            )
+        return self._availability_condition_from_guard(edge_data.get("guard") or "")
+
     def _edge_source(self, edge: dict[str, Any]) -> str | None:
         source = edge.get("source_ptr") or edge.get("source")
         if isinstance(source, dict):
@@ -163,15 +235,7 @@ class ActivityDiagramParser:
         return [
             Edge(
                 target_node=self._edge_target(edge),
-                condition=Condition(
-                    isElse=(self._edge_data(edge).get('condition') or {}).get('isElse'),
-                    operator=(self._edge_data(edge).get('condition') or {}).get('operator'),
-                    threshold=(self._edge_data(edge).get('condition') or {}).get('threshold'),
-                    aggregator=(self._edge_data(edge).get('condition') or {}).get('aggregator'),
-                    target_attribute=(self._edge_data(edge).get('condition') or {}).get('target_attribute'),
-                    target_class_name=(self._edge_data(edge).get('condition') or {}).get('target_class_name'),
-                    target_attribute_type=(self._edge_data(edge).get('condition') or {}).get('target_attribute_type'),
-                ) if self._edge_data(edge).get('condition') else None,
+                condition=self._edge_condition(self._edge_data(edge)),
             ) for edge in filter(lambda edge: self._edge_source(edge) == source_id and self._edge_target(edge), edges)
         ]
 

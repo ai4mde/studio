@@ -294,6 +294,16 @@ def _best_model_for_text(text: str, model_names: list[str], model_attr_names: di
     return ""
 
 
+def _model_name_explicit_in_text(text: str, model: str) -> bool:
+    if not text or not model:
+        return False
+    model_tokens = re.findall(r"[a-z0-9]+", str(model).lower())
+    if not model_tokens:
+        return False
+    text_tokens = set(re.findall(r"[a-z0-9]+", str(text).lower()))
+    return all(token in text_tokens for token in model_tokens)
+
+
 def extract_use_case_diagram(
     classifiers: dict,
     relations: dict,
@@ -464,6 +474,25 @@ def extract_activity_diagrams(
     workflows: list[dict] = []
     uc_ids_with_workflows: set[str] = set()
 
+    def _model_from_action_classes(cls: dict) -> str:
+        raw_classes = cls.get("classes") or {}
+        refs: list = []
+        if isinstance(raw_classes, dict):
+            for key in ("input", "output", "models", "classes"):
+                values = raw_classes.get(key) or []
+                refs.extend(values if isinstance(values, list) else [values])
+        elif isinstance(raw_classes, list):
+            refs.extend(raw_classes)
+        for ref in refs:
+            if isinstance(ref, dict):
+                ref = ref.get("id") or ref.get("value") or ref.get("name")
+            ref = str(ref or "")
+            data = classifiers.get(ref, {})
+            model_name = data.get("name") or ref
+            if model_name in model_names:
+                return model_name
+        return ""
+
     for diagram in system_data.get("activity_diagrams") or []:
         diagram_name = diagram.get("name") or "Workflow"
         nodes: dict[str, dict] = {str(n.get("id")): n for n in diagram.get("nodes") or []}
@@ -523,7 +552,13 @@ def extract_activity_diagrams(
             action_name = cls.get("name") or node.get("label") or node.get("name") or ""
 
             if cls_type == "action" and action_name:
-                model = _best_model_for_text(action_name, model_names_list, model_attr_names)
+                title_model = _best_model_for_text(action_name, model_names_list, model_attr_names)
+                class_model = _model_from_action_classes(cls)
+                model = (
+                    title_model
+                    if title_model and _model_name_explicit_in_text(action_name, title_model)
+                    else (class_model or title_model)
+                )
                 steps.append({
                     "action": action_name,
                     "model": model or None,

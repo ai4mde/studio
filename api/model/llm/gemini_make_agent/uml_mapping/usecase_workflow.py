@@ -152,7 +152,13 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
             "operation_kind": "start_workflow",
         }
 
-    inline_terms = ("add", "remove", "delete", "update", "select", "write", "review", "rate")
+    selection_terms = ("select", "choose", "pick")
+    if any(term in name_l for term in selection_terms):
+        page_model = best_model()
+        page_id = _plural_page_id(page_model) if page_model else _section_id(name)
+        return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "select_existing"}
+
+    inline_terms = ("add", "remove", "delete", "update", "write", "review", "rate")
     if any(term in name_l for term in inline_terms) and "manage" not in name_l:
         page_model = best_model()
         target_model = next((m for m in ranked_models + class_names if m and m != page_model), page_model)
@@ -171,7 +177,8 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     if any(term in name_l for term in ("browse", "search", "catalog", "list", "overview", "directory")):
         page_model = best_model()
         page_id = _plural_page_id(page_model) if page_model else _section_id(name)
-        return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": "view_collection"}
+        operation_kind = "select_existing" if "search" in name_l else "view_collection"
+        return {"role": "collection_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": page_model, "operation_kind": operation_kind}
 
     if "detail" in name_l or name_l.startswith("view "):
         page_model = best_model()
@@ -472,8 +479,10 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
     name_l = str(step.get("activity_node_name") or step.get("page_name") or "").lower()
     explicit_step_models = [m for m in step.get("classes") or [] if m in known_models]
     if explicit_step_models:
-        ranked = _rank_models_for_text(name_l, explicit_step_models, prefer_collections=True)
-        return (ranked + [m for m in explicit_step_models if m not in ranked])[:2]
+        # Activity classifier classes are structured UML input/output bindings.
+        # Keep their order here; extract_activity_diagrams already resolves cases
+        # where the action title explicitly names a different target model.
+        return list(dict.fromkeys(explicit_step_models))[:2]
     entries = [e for e in workflow_entries if not e.get("diagram_id") or e.get("diagram_id") == step.get("diagram_id")]
     related = []
     for entry in entries or workflow_entries:
@@ -485,19 +494,19 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
     if not related:
         return []
 
-    prefer_collections = any(term in _name_tokens(name_l) for term in ("add", "select", "choose", "list", "review", "manage"))
+    prefer_collections = any(term in _name_tokens(name_l) for term in ("add", "select", "choose", "pick", "search", "browse", "list", "review", "manage"))
     ranked = _rank_models_for_text(name_l, related, prefer_collections=prefer_collections)
     return ranked[:2] or related[:1]
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
     name_tokens = _name_tokens(step_name)
     # "select/choose" = pick from options ? card with select operation, not a form
-    if any(term in name_tokens for term in ("select", "choose", "pick")):
+    if any(term in name_tokens for term in ("select", "choose", "pick", "search", "browse")):
         return "card"
     if any(term in name_tokens for term in (
         "enter", "fill", "input", "provide", "submit",
         "create", "add", "update", "edit", "write", "upload", "register",
-        "book", "pay", "record",
+        "pay", "record",
     )):
         return "form"
     if _is_child_collection_model(model, step_name) or any(term in name_tokens for term in ("list", "browse", "review", "manage", "track", "history")):

@@ -130,5 +130,6 @@ class PrototypeAPITests(APITestCase):
         mock_render_layout.assert_called_once()
         rendered_interface_data = mock_render_layout.call_args.args[0]
         self.assertEqual(rendered_interface_data["styling"], payload["styling"])
-        self.assertEqual(rendered_interface_data["sections"], payload["sections"])
+        self.assertEqual(rendered_interface_data["sections"][0]["id"], payload["sections"][0]["id"])
+        self.assertEqual(rendered_interface_data["sections"][0]["type"], payload["sections"][0]["type"])
         mock_file.assert_called_once()

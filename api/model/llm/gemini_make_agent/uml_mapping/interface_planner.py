@@ -216,6 +216,8 @@ def _activity_layout_from_action(action: str, hint: str) -> tuple[str, str, str]
     text = str(action or "").lower()
     if any(w in text for w in ("review", "consult", "monitor", "analyze", "analyse", "assess", "verify", "inspect")):
         return "detail", "object_detail", "DetailPanel"
+    if any(w in text for w in ("notify", "notification", "unavailable", "alert", "message")):
+        return "detail", "object_detail", "SummaryPanel"
     if any(w in text for w in ("confirm", "summary", "check", "approve", "reject", "discharge")):
         return "detail", "object_detail", "SummaryPanel"
     if any(w in text for w in ("select", "choose", "pick", "browse", "compare")):
@@ -225,6 +227,53 @@ def _activity_layout_from_action(action: str, hint: str) -> tuple[str, str, str]
     if hint == "SelectionList":
         return "list", "object_collection", "ObjectList"
     return None
+
+
+def _activity_form_operations(action: str) -> list[str]:
+    text = str(action or "").lower()
+    create_terms = ("create", "add", "new", "record", "submit", "register", "enter")
+    update_terms = ("update", "edit", "change", "set", "mark", "renew", "return")
+    if any(term in text for term in update_terms) and not any(term in text for term in create_terms):
+        return ["update"]
+    return ["create"]
+
+
+def _merge_field_names(*groups: list[str]) -> list[str]:
+    out = []
+    for group in groups:
+        for field in group or []:
+            if field and field not in out:
+                out.append(field)
+    return out
+
+
+def _fields_from_updates(updates: list[dict]) -> list[str]:
+    return _merge_field_names([str(update.get("field") or "") for update in updates or []])
+
+
+def _semantic_section_attrs(step_attrs: list[dict], readonly: list[str], editable: list[str]) -> list[dict]:
+    attr_by_name = {attr.get("name"): dict(attr) for attr in step_attrs or [] if attr.get("name")}
+    out = []
+    for field in _merge_field_names(readonly, editable):
+        attr = dict(attr_by_name.get(field) or {"name": field})
+        attr["readonly"] = field not in set(editable or [])
+        out.append(attr)
+    return out
+
+
+def _workflow_semantics_payload(workflow_semantic: dict, readonly: list[str], editable: list[str]) -> dict:
+    payload = {
+        key: workflow_semantic.get(key)
+        for key in ("intent", "context_model", "target_model", "context_binding", "condition", "true_next", "false_next")
+        if workflow_semantic.get(key)
+    }
+    if readonly:
+        payload["readonly_fields"] = readonly
+    if editable:
+        payload["editable_fields"] = editable
+    if workflow_semantic.get("field_updates"):
+        payload["field_updates"] = workflow_semantic.get("field_updates")
+    return payload
 
 
 def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
@@ -690,6 +739,12 @@ def generate_interface_plan(
                 or (semantic_overrides.get("activity_steps") or {}).get(step_page_id)
                 or {}
             )
+            workflow_semantic = (
+                (semantic_overrides.get("workflow_steps") or {}).get(action)
+                or (semantic_overrides.get("workflow_steps") or {}).get(step_page_id)
+                or {}
+            )
+            step_intent = workflow_semantic.get("intent") or ""
 
             is_automatic_step = bool(step.get("is_automatic"))
 
@@ -700,6 +755,12 @@ def generate_interface_plan(
             if step_actor and current_actor_name and step_actor != current_actor_name:
                 continue
 
+            override_model = step_override.get("model")
+            if not override_model:
+                override_model = workflow_semantic.get("target_model") or workflow_semantic.get("context_model")
+            if override_model in model_graph and (actor_lane_assigned or override_model in accessible):
+                step_model = override_model
+
             # Per-step model filter: skip steps whose model is inaccessible to this actor.
             if step_model and not actor_lane_assigned and step_model not in accessible:
                 continue
@@ -709,6 +770,31 @@ def generate_interface_plan(
 
             step_model_info = model_graph.get(step_model) or {}
             step_attrs = step_model_info.get("attributes", [])
+            valid_step_fields = {
+                attr.get("name")
+                for attr in step_attrs
+                if attr.get("name")
+            }
+            override_editable = [
+                field
+                for field in (step_override.get("editable_fields") or [])
+                if field in valid_step_fields
+            ]
+            semantic_readonly = [
+                field
+                for field in (workflow_semantic.get("readonly_fields") or step_override.get("readonly_fields") or [])
+                if field in valid_step_fields
+            ]
+            semantic_editable = [
+                field
+                for field in (workflow_semantic.get("editable_fields") or override_editable or [])
+                if field in valid_step_fields
+            ]
+            semantic_update_fields = [
+                field
+                for field in _fields_from_updates(workflow_semantic.get("field_updates") or [])
+                if field in valid_step_fields
+            ]
 
             # Pick layout and component from LLM semantic override first; fall back
             # to rule-based component_hint when no valid override is provided.
@@ -716,7 +802,43 @@ def generate_interface_plan(
             override_component = step_override.get("component")
             override_role = step_override.get("role")
             rule_layout = _activity_layout_from_action(action, hint)
-            if override_layout in {"form", "list", "detail"} and override_component:
+            if step_intent == "check":
+                layout, role, component = "detail", "object_detail", "SummaryPanel"
+                condition = workflow_semantic.get("condition") or {}
+                condition_field = condition.get("field")
+                visible = semantic_readonly or ([condition_field] if condition_field in valid_step_fields else _pick_fields(step_model_info, "object_detail", 6))
+                editable = []
+                ops = ["read"]
+            elif step_intent == "notify":
+                layout, role, component = "detail", "object_detail", "SummaryPanel"
+                visible = semantic_readonly or _pick_fields(step_model_info, "object_detail", 6)
+                editable = []
+                ops = ["read"]
+            elif step_intent == "select_existing":
+                layout, role = "list", "object_collection"
+                component = _collection_component(step_model, "list") if step_model else "ObjectList"
+                visible = semantic_readonly or _pick_fields(step_model_info, "object_collection", 6)
+                editable = []
+                ops = ["read", "select"]
+            elif step_intent == "create_record":
+                layout, role, component = "form", "object_form", "ObjectForm"
+                editable = semantic_editable or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                readonly = semantic_readonly or [
+                    field for field in _pick_fields(step_model_info, "object_detail", 4)
+                    if field not in set(editable)
+                ]
+                visible = _merge_field_names(readonly, editable)
+                ops = ["create"]
+            elif step_intent == "update_record":
+                layout, role, component = "form", "object_form", "ObjectForm"
+                editable = semantic_editable or semantic_update_fields or _pick_fields(step_model_info, "object_form", 2)
+                readonly = semantic_readonly or [
+                    field for field in _pick_fields(step_model_info, "object_detail", 6)
+                    if field not in set(editable)
+                ]
+                visible = _merge_field_names(readonly, editable)
+                ops = ["update"]
+            elif override_layout in {"form", "list", "detail"} and override_component:
                 layout = override_layout
                 component = override_component
                 if override_role in {"object_form", "object_collection", "object_detail"}:
@@ -724,9 +846,13 @@ def generate_interface_plan(
                 else:
                     role = "object_form" if layout == "form" else ("object_collection" if layout == "list" else "object_detail")
                 if layout == "form":
-                    visible = _pick_fields(step_model_info, "object_form", 8)
-                    editable = visible
-                    ops = ["create", "update"]
+                    ops = _activity_form_operations(action)
+                    editable = semantic_editable or semantic_update_fields or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                    readonly = semantic_readonly or [
+                        field for field in _pick_fields(step_model_info, "object_detail", 6)
+                        if field not in set(editable)
+                    ]
+                    visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
                 elif layout == "list":
                     visible = _pick_fields(step_model_info, "object_collection", 6)
                     editable = []
@@ -748,9 +874,13 @@ def generate_interface_plan(
             elif hint in _FORM_HINTS:
                 layout, role = "form", "object_form"
                 component = hint if hint != "FileUpload" else "ObjectForm"
-                visible = _pick_fields(step_model_info, "object_form", 8)
-                editable = visible
-                ops = ["create", "update"]
+                ops = _activity_form_operations(action)
+                editable = semantic_editable or semantic_update_fields or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                readonly = semantic_readonly or [
+                    field for field in _pick_fields(step_model_info, "object_detail", 6)
+                    if field not in set(editable)
+                ]
+                visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
             elif hint in _LIST_HINTS:
                 layout, role = "list", "object_collection"
                 component = _collection_component(step_model, "list") if step_model else "ObjectList"
@@ -780,6 +910,28 @@ def generate_interface_plan(
             _is_confirm = any(w in action.lower() for w in ("confirm", "summary", "check", "complete", "finish", "approve", "submit", "review"))
             effective_ops = ["read"] if other_actor_step else ops
             effective_editable = [] if other_actor_step else editable
+            effective_readonly = [
+                field for field in visible or []
+                if field not in set(effective_editable or [])
+            ]
+            rendered_step_attrs = [
+                attr
+                for attr in step_attrs
+                if attr.get("name") in set(visible or effective_editable or [])
+            ] or step_attrs
+            semantic_attrs = _semantic_section_attrs(step_attrs, effective_readonly, effective_editable)
+            if semantic_attrs:
+                rendered_step_attrs = semantic_attrs
+            section_style = {
+                "color": "accent",
+                "density": "normal",
+                "shadow": "sm",
+                "border": "light",
+                "bg": "white",
+            }
+            semantic_payload = _workflow_semantics_payload(workflow_semantic, effective_readonly, effective_editable)
+            if semantic_payload:
+                section_style["workflow_semantics"] = semantic_payload
             if visible or step_model:
                 add_section(_section(
                     page_id=step_page_id,
@@ -792,7 +944,8 @@ def generate_interface_plan(
                     visible=visible,
                     editable=effective_editable,
                     operations=effective_ops,
-                    attributes=step_attrs,
+                    attributes=rendered_step_attrs,
+                    style=section_style,
                 ))
             elif _is_confirm or is_automatic_step:
                 add_section(_section(

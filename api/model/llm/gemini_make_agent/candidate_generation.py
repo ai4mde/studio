@@ -10,9 +10,11 @@ import requests
 from metadata.models import Interface
 from llm.template_renderer import render_layout
 
-from .interface_schemas import (
-    _CANDIDATE_FULL_SCHEMA,
-    _CANDIDATE_TOKENS_EXAMPLE,
+from llm.prompts.candidates import (
+    GENERATE_CANDIDATES_SYSTEM_PROMPT,
+    REGENERATE_CANDIDATES_SYSTEM_PROMPT,
+    build_generate_candidates_prompt,
+    build_regenerate_candidates_prompt,
 )
 from .section_utils import (
     _DATA_SECTION_LAYOUTS,
@@ -23,6 +25,7 @@ from .section_utils import (
     _VALID_SECTION_STYLE,
     _canonical_page_type,
     _finalize_data_section_bindings,
+    _normalize_select_existing_sections,
     _infer_page_type_value,
     _infer_section_component,
     _model_field_names,
@@ -34,7 +37,6 @@ from .section_utils import (
     _page_type_value,
     _ref_id,
 )
-# from .token_normalizer import _expand_design_tokens
 from .uml_mapping.usecase_workflow import _build_usecase_navigation
 from .uml_mapping.metadata_context import _actor_name_from_context, _fetch_system_context_data
 from .candidate_defaults import (
@@ -348,6 +350,7 @@ def validate_and_save_candidate(
                 fixed_sections[i]["name"] = fixed_sections[i]["id"]
 
         fixed_pages = _ensure_usecase_pages(fixed_pages, usecase_navigation)
+        fixed_sections = _normalize_select_existing_sections(fixed_pages, fixed_sections)
         for s in fixed_sections:
             s["operations"] = _normalize_section_operations(s.get("operations"))
             s["component"] = _infer_section_component(s)
@@ -544,32 +547,38 @@ def _candidate_list_from_llm_response(text: str) -> list:
 
 
 _FULL_WIDTH_PROMPT_RE = re.compile(
-    r"\b(full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|全宽|全屏|通栏|沉浸",
+    r"\b(full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|\u5168\u5bbd|\u5168\u5c4f|\u901a\u680f|\u6c89\u6d78",
     re.I,
+)
+_WIDTH_PROMPT_RE = re.compile(
+    r"\b(contained|wide|full[- ]?width|fullscreen|full[- ]?screen|edge[- ]?to[- ]?edge|immersive|kiosk)\b|\u5c45\u4e2d|\u5bbd\u7248|\u5168\u5bbd|\u5168\u5c4f|\u901a\u680f|\u6c89\u6d78",
+    re.I,
+)
+_DEFAULT_WIDTH_VARIANTS = (
+    {"main_width": "contained", "header_width": "contained", "footer_width": "contained"},
+    {"main_width": "wide", "header_width": "contained", "footer_width": "contained"},
+    {"main_width": "full", "header_width": "full", "footer_width": "full"},
 )
 
 
-def _guard_generated_page_widths(candidate: dict, prompt: str) -> dict:
-    """Keep generated candidates from making ordinary apps full-width by default."""
+def _guard_generated_page_widths(candidate: dict, prompt: str, candidate_index: int = 0) -> dict:
+    """Distribute candidate widths unless the prompt explicitly specifies width."""
     guarded = copy.deepcopy(candidate)
-    if _FULL_WIDTH_PROMPT_RE.search(prompt or ""):
+    if _WIDTH_PROMPT_RE.search(prompt or ""):
         return guarded
 
+    width_variant = _DEFAULT_WIDTH_VARIANTS[candidate_index % len(_DEFAULT_WIDTH_VARIANTS)]
     for page in guarded.get("pages") or []:
         if not isinstance(page, dict):
             continue
         layout = page.get("layout") or {}
         if not isinstance(layout, dict):
             continue
-        if layout.get("main_width") == "full":
-            layout["main_width"] = "wide"
-        if layout.get("header_width") == "full":
-            layout["header_width"] = "contained"
-        if layout.get("footer_width") == "full":
-            layout["footer_width"] = "contained"
+        layout["main_width"] = width_variant["main_width"]
+        layout["header_width"] = width_variant["header_width"]
+        layout["footer_width"] = width_variant["footer_width"]
         page["layout"] = layout
     return guarded
-
 
 
 def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list | None:
@@ -594,42 +603,17 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
             for p in pages if p.get("id")
         ]
 
-        diversity_rules = (
-            "Generate exactly 3 structurally and visually distinct candidates.\n"
-            "Each candidate MUST follow user requirement:\n"
-            "Each candidate MUST also differ in axes that user did not specify:\n"
-            # "  - data section layout (table vs card vs gallery vs list)\n"
-            # "  - nav placement (header top bar vs left sidebar vs right sidebar)\n"
-            # "  - page width (contained vs wide vs full)\n"
-            # "  - density (compact vs normal vs spacious)\n"
-            # "  - typography (fontFamily + textSize ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â inter/roboto/poppins/playfair/mono + xs/sm/md/lg/xl)\n"
-            # "  - border radius (0 vs 8 vs 16 vs 24)\n"
-            # "  - button style (solid vs outline vs ghost vs gradient)\n"
-            "Every page must have navigation unless user requires otherwise.\n"
-            "Default ordinary application pages to contained or wide main/header/footer widths. "
-            "Use full width only when the user explicitly asks for full-width/fullscreen/edge-to-edge/immersive treatment.\n"
-            "Respect the designer prompt and choose colors as a UI designer. Do not use hard-coded color mappings unless the prompt provides exact hex values. \n"
-            "Candidate names/descriptions must describe layout, navigation, density, or workflow emphasis; do not mention color names unless the designer prompt explicitly asks for colors.\n"
-            "Keep object_form -> form, object_detail -> detail, activity_* layouts unchanged.\n"
-        )
-
-        user_prompt_text = (
-            f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
-            f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"DESIGNER PROMPT: {prompt or '(no specific requirements ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â explore freely)'}\n\n"
-            f"{diversity_rules}\n\n"
-            "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
-            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
-            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}, '
-            f'{_CANDIDATE_TOKENS_EXAMPLE}' + '}]}'
+        user_prompt_text = build_generate_candidates_prompt(
+            page_skeleton=page_skeleton,
+            section_skeleton=section_skeleton,
+            designer_prompt=prompt,
         )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
             contents=user_prompt_text,
             config={
-                "system_instruction": f"You are a UI designer creating 3 structurally and visually distinct interface layout candidates. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "system_instruction": GENERATE_CANDIDATES_SYSTEM_PROMPT,
                 "response_mime_type": "application/json",
                 "max_output_tokens": 65536,
             },
@@ -639,7 +623,7 @@ def _llm_generate_3_candidates(pages: list, sections: list, prompt: str) -> list
         if len(candidates) < 3:
             print(f"[llm_generate_3_candidates] only got {len(candidates)} candidates, falling back", flush=True)
             return None
-        return [_guard_generated_page_widths(candidate, prompt) for candidate in candidates[:3]]
+        return [_guard_generated_page_widths(candidate, prompt, idx) for idx, candidate in enumerate(candidates[:3])]
     except Exception as e:
         import traceback
         print(f"[llm_generate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
@@ -676,57 +660,18 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
             for p in pages if p.get("id")
         ]
 
-        base_ctx = ", ".join(
-            f"{k}={v}" for k, v in {
-                "fontFamily": base_styling.get("fontFamily", "inter"),
-                "textSize": base_styling.get("textSize", "md"),
-                "accentColor": base_styling.get("accentColor", "#2563eb"),
-                "backgroundColor": base_styling.get("backgroundColor", "#f9fafb"),
-                "textColor": base_styling.get("textColor", "#111827"),
-                "radius": base_styling.get("radius", 8),
-                "buttonStyle": base_styling.get("buttonStyle", "solid"),
-                "cardHover": base_styling.get("cardHover", "none"),
-            }.items()
-        )
-
-        diversity_rules = (
-            "Generate exactly 3 meaningfully different refinements of the base candidate.\n"
-            "Each variant MUST differ from the others on structural or interaction axes that user did not lock:\n"
-            "  - typography (fontFamily, textSize)\n"
-            "  - density (compact vs normal vs spacious)\n"
-            "  - border radius (0 vs 8 vs 16 vs 24)\n"
-            "  - button style (solid vs outline vs ghost vs gradient)\n"
-            "  - card hover effect (lift vs glow vs border vs none)\n"
-            "  - page width (contained vs wide; use full only when explicitly requested)\n"
-            "  - nav placement (header vs sidebar)\n"
-            "Apply the DESIGNER REQUIREMENTS to all 3 variants. "
-            "Default ordinary application pages to contained or wide main/header/footer widths. "
-            "Use full width only when the designer requirements explicitly ask for full-width/fullscreen/edge-to-edge/immersive treatment. "
-            "Preserve the base candidate's section roles and data bindings. "
-            "You may change layout/component/position for collection sections (object_collection, child_collection) "
-            "but must keep object_form as form, object_detail as detail, activity_* layouts unchanged.\n"
-            "Candidate names/descriptions must describe layout, navigation, density, or workflow emphasis; do not mention color names unless the designer requirements explicitly ask for colors.\n"
-            "Choose colors as a UI designer. Do not use hard-coded color mappings unless the requirements provide exact hex values."
-        )
-
-        user_prompt_text = (
-            f"Pages: {json.dumps(page_skeleton, ensure_ascii=False)}\n"
-            f"Sections: {json.dumps(section_skeleton, ensure_ascii=False)}\n\n"
-            f"BASE CANDIDATE STYLING (starting point ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â inherit unless requirements override): {base_ctx}\n"
-            f"DESIGNER REQUIREMENTS: {designer_requirements or '(explore visual variations of the base candidate)'}\n\n"
-            f"{diversity_rules}\n\n"
-            "Output exactly 3 candidates as JSON. Use ONLY the section/page ids provided above.\n"
-            '{"candidates": [{"name": "...", "pages": [{"id": "...", "layout": {"value": "vertical", "main_width": "...", "header_width": "...", "footer_width": "..."}, "gap": {"value": "..."}}], '
-            '"sections": [{"id": "...", "layout": "...", "component": "...", "position": "...", "col_span": 12, "style": {"color": "accent", "density": "...", "columns": "...", "shadow": "...", "bg": "...", "nav_height": "...", "sidebar_side": "...", "sidebar_width": 3}}], '
-            '"styling": {"fontFamily": "...", "textSize": "xs|sm|md|lg|xl", "accentColor": "#hex", "accentSecondary": "#hex", "backgroundColor": "#hex", "textColor": "#hex", "radius": 8, "buttonStyle": "...", "cardHover": "...", "divider": "...", "pageMaxWidth": "..."}, '
-            f'{_CANDIDATE_TOKENS_EXAMPLE}' + '}]}'
+        user_prompt_text = build_regenerate_candidates_prompt(
+            page_skeleton=page_skeleton,
+            section_skeleton=section_skeleton,
+            designer_requirements=designer_requirements,
+            base_styling=base_styling,
         )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash-lite",
             contents=user_prompt_text,
             config={
-                "system_instruction": f"You are a UI designer creating visual refinements of a selected interface design. Follow the schema and role rules exactly.\n\n{_CANDIDATE_FULL_SCHEMA}",
+                "system_instruction": REGENERATE_CANDIDATES_SYSTEM_PROMPT,
                 "response_mime_type": "application/json",
                 "max_output_tokens": 65536,
             },
@@ -734,7 +679,7 @@ def _llm_regenerate_3_candidates(pages: list, sections: list, designer_requireme
         candidates = _candidate_list_from_llm_response(response.text)
         if len(candidates) < 3:
             return None
-        return [_guard_generated_page_widths(candidate, designer_requirements) for candidate in candidates[:3]]
+        return [_guard_generated_page_widths(candidate, designer_requirements, idx) for idx, candidate in enumerate(candidates[:3])]
     except Exception as e:
         import traceback
         print(f"[llm_regenerate_3_candidates] failed: {e}\n{traceback.format_exc()}", flush=True)
@@ -810,7 +755,7 @@ _TEXT_SIZE_TOKENS = {
 
 
 def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, index: int) -> dict:
-    """Build color + typography tokens seeded from LLM styling output, then expand."""
+    """Build color and typography tokens seeded from LLM styling output."""
     tokens = dict(base_tokens or {})
     accent = llm_styling.get("accentColor") or ""
     secondary = llm_styling.get("accentSecondary") or ""
@@ -826,7 +771,7 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     if text_color:
         tokens["page.body.text_hex"] = text_color
         tokens["text.primary.hex"] = text_color
-    # Fine-grained hex overrides ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â must be set before _expand_design_tokens (which uses setdefault)
+    # Preserve fine-grained color tokens when the LLM provides them.
     _FINE_GRAINED_HEX = (
         "region.header.bg_hex", "region.header.text_hex",
         "region.footer.bg_hex", "region.footer.text_hex",
@@ -848,7 +793,6 @@ def _tokens_from_llm_styling(llm_styling: dict, base_tokens: dict, prompt: str, 
     if text_size in _TEXT_SIZE_TOKENS:
         tokens.update(_TEXT_SIZE_TOKENS[text_size])
     tokens["design.variant_index"] = str(index)
-    # _expand_design_tokens(tokens)
     return tokens
 
 
@@ -875,7 +819,6 @@ def _tokens_from_llm_schema(llm_candidate: dict, base_tokens: dict, prompt: str,
                 tokens[str(key)] = value
 
     tokens["design.variant_index"] = str(index)
-    # _expand_design_tokens(tokens)
     return tokens
 
 

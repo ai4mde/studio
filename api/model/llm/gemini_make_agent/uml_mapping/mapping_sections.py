@@ -483,6 +483,8 @@ def _ensure_pre_workflow_content_sections(
         while sid in section_map:
             sid = f"{base_sid}_{suffix}"
             suffix += 1
+        page_text = f"{page_id} {page.get('name', '')} {entry.get('usecase_name', '')}".lower()
+        is_select_existing = any(term in page_text for term in ("search", "select", "choose", "pick", "browse"))
         layout = "list" if _is_child_collection_model(model, f"{entry.get('page_name', '')} {entry.get('usecase_name', '')}") else _infer_section_layout({"id": page_id, "name": page.get("name", "")}, candidate_index)
         style = {
             "color": "accent",
@@ -502,8 +504,9 @@ def _ensure_pre_workflow_content_sections(
             "attributes": _model_field_names(model_attrs, model, 8),
             "operations": {
                 "create": False,
-                "update": layout in {"list", "table", "detail", "form"},
-                "delete": layout in {"list", "table", "card", "gallery"},
+                "update": layout in {"list", "table", "detail", "form"} and not is_select_existing,
+                "delete": layout in {"list", "table", "card", "gallery"} and not is_select_existing,
+                "select": is_select_existing,
             },
             "query": {},
             "col_span": 12,

@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
+from llm.gemini_make_agent.section_utils import _normalize_select_existing_sections
+
 TEMPLATE_DIR = "/usr/src/templates"
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"
 
@@ -353,6 +355,13 @@ def _parse_operations(raw) -> Dict:
     return {"create": False, "update": False, "delete": False, "select": False}
 
 
+def _default_enum_literals_for_attr(attr_name: str) -> List[str]:
+    name = _sanitize(attr_name)
+    if name in {"status", "state", "phase", "stage"} or name.endswith("_status") or name.endswith("_state"):
+        return ["pending", "active", "completed", "cancelled"]
+    return []
+
+
 def _relation_data(relation: Dict) -> Dict:
     return relation.get("data", relation)
 
@@ -488,12 +497,22 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     inferred_type = "image"
                 if not inferred_type and any(token in attr_name.lower() for token in ("video", "trailer", "media_url")):
                     inferred_type = "video"
+                explicit_enum_literals = (
+                    attr_data.get("enum_values")
+                    or attr_data.get("options")
+                    or attr_data.get("choices")
+                    or []
+                )
                 type_str = attr_data.get("type") or inferred_type or "str"
+                if explicit_enum_literals and str(type_str).lower() in {"str", "string", "enum"}:
+                    type_str = "enum"
                 if type_str == "int":
                     attr_type = AttributeType.INTEGER
                 elif type_str == "bool":
                     attr_type = AttributeType.BOOLEAN
                 elif type_str == "enum":
+                    attr_type = AttributeType.ENUM
+                elif _default_enum_literals_for_attr(attr_name):
                     attr_type = AttributeType.ENUM
                 elif type_str == "image":
                     attr_type = AttributeType.IMAGE
@@ -503,9 +522,13 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     attr_type = AttributeType.STRING
 
                 enum_literals = []
-                if attr_type == AttributeType.ENUM and attr_data.get("enum"):
+                if attr_type == AttributeType.ENUM and explicit_enum_literals:
+                    enum_literals = [str(lit) for lit in explicit_enum_literals if str(lit)]
+                elif attr_type == AttributeType.ENUM and attr_data.get("enum"):
                     enum_cls = classifier_map.get(str(attr_data["enum"]), {})
                     enum_literals = [str(lit) for lit in enum_cls.get("literals", [])]
+                elif attr_type == AttributeType.ENUM:
+                    enum_literals = _default_enum_literals_for_attr(attr_name)
 
                 render_config = attr_data.get("render") or {}
                 render_as = render_config.get("as") or attr_data.get("render_as") or ("link" if attr_data.get("is_link") else "text")
@@ -690,6 +713,7 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
         sections.append(section)
 
     normalized = dict(raw)
+    sections = _normalize_select_existing_sections(pages, sections)
     normalized["pages"] = pages
     normalized["sections"] = sections
     normalized["tokens"] = dict(raw.get("tokens") or {})
@@ -792,7 +816,9 @@ def render_layout(
     for page in pages:
         rendered = template.render(
             application_name=app_name,
+            application_namespace=app_name,
             page=page,
+            pages=pages,
             all_pages=pages,
             AttributeType=AttributeType,
             preview_mode=preview_mode,
@@ -829,7 +855,9 @@ def render_preview(
     for page in pages:
         rendered = template.render(
             application_name=app_name,
+            application_namespace=app_name,
             page=page,
+            pages=pages,
             all_pages=pages,
             AttributeType=AttributeType,
             preview_mode=True,

@@ -7,6 +7,7 @@ import re as _re
 
 import requests as _req
 from diagram.models import Diagram
+from llm.prompts.semantics import build_resolve_interface_semantics_prompt
 from metadata.models import Interface, System
 
 from .interface_patch import apply_interface_patch
@@ -19,6 +20,7 @@ from .uml_mapping.mapping_sections import (
 )
 from .uml_mapping.metadata_context import _actor_name_from_context
 from .section_utils import (
+    _normalize_select_existing_sections,
     _normalize_layout_alias,
     _normalize_section_operations,
     _ref_id,
@@ -190,21 +192,24 @@ def resolve_interface_semantics_with_llm(
             "object_detail",
             "object_collection",
         ],
+        "workflow_intents": [
+            "select_existing",
+            "check",
+            "create_record",
+            "update_record",
+            "notify",
+            "confirm",
+        ],
+        "condition_operators": [">", ">=", "==", "!=", "<", "<="],
+        "field_update_operations": ["set", "increment", "decrement"],
+        "context_binding_modes": ["hidden", "readonly", "select"],
     }
-    prompt = (
-        "Resolve UI semantic decisions for a UML-derived interface. Output JSON only.\n"
-        "Do not invent models, fields, pages, or unsupported components.\n"
-        "Use forms only when the user must enter/create/update data. Use detail/summary "
-        "for review, consult, monitor, confirm, approve, discharge, analyze.\n\n"
-        f"Allowed values: {_json.dumps(allowed)}\n"
-        f"Actor permissions: {_json.dumps(uml_intel.get('actor_intel', {}).get('target_permissions', {}), ensure_ascii=False)}\n"
-        f"Decisions: {_json.dumps(decisions, ensure_ascii=False)}\n"
-        f"Initial plan summary: {_json.dumps({'pages': interface_plan.get('pages', []), 'sections': interface_plan.get('sections', [])}, ensure_ascii=False)[:12000]}\n\n"
-        "Schema:\n"
-        "{\n"
-        '  "models": {"ModelName": {"layout": "table|list|gallery|calendar|timeline|map", "component": "..." }},\n'
-        '  "activity_steps": {"Exact action name": {"layout": "form|detail|list", "component": "ObjectForm|DetailPanel|SummaryPanel|ObjectList", "role": "object_form|object_detail|object_collection"}}\n'
-        "}\n"
+    prompt = build_resolve_interface_semantics_prompt(
+        allowed=allowed,
+        actor_permissions=uml_intel.get("actor_intel", {}).get("target_permissions", {}),
+        model_graph=uml_intel.get("model_graph") or {},
+        decisions=decisions,
+        interface_plan=interface_plan,
     )
     try:
         resp = _req.post(
@@ -239,6 +244,40 @@ def resolve_interface_semantics_with_llm(
         for step in (wf.get("steps") or [])
         if step.get("action")
     }
+    model_graph = uml_intel.get("model_graph") or {}
+    def _valid_fields(model: str) -> set[str]:
+        return {
+            str(attr.get("name") or "")
+            for attr in ((model_graph.get(model) or {}).get("attributes") or [])
+            if attr.get("name")
+        }
+
+    def _clean_fields(model: str, values) -> list[str]:
+        valid = _valid_fields(model)
+        out = []
+        for field in values or []:
+            field = str(field)
+            if field in valid and field not in out:
+                out.append(field)
+        return out
+
+    def _clean_field_updates(model: str, values) -> list[dict]:
+        valid = _valid_fields(model)
+        out = []
+        for update in values or []:
+            if not isinstance(update, dict):
+                continue
+            field = str(update.get("field") or "")
+            operation = str(update.get("operation") or "")
+            if field not in valid or operation not in allowed["field_update_operations"]:
+                continue
+            out.append({
+                "field": field,
+                "operation": operation,
+                "value": str(update.get("value", "1")),
+            })
+        return out
+
     clean_steps = {}
     for action, cfg in (raw.get("activity_steps") or {}).items():
         if action not in valid_actions or not isinstance(cfg, dict):
@@ -247,13 +286,82 @@ def resolve_interface_semantics_with_llm(
         component = cfg.get("component")
         role = cfg.get("role")
         if layout in allowed["activity_layouts"] and component in allowed["activity_components"]:
+            model = cfg.get("model")
+            model = model if model in valid_models else ""
+            readonly_fields = _clean_fields(model, cfg.get("readonly_fields") or [])
+            editable_fields = _clean_fields(model, cfg.get("editable_fields") or cfg.get("fields") or [])
             clean_steps[action] = {
                 "layout": layout,
                 "component": component,
                 "role": role if role in allowed["activity_roles"] else "",
+                **({"model": model} if model else {}),
+                **({"readonly_fields": readonly_fields} if readonly_fields else {}),
+                **({"editable_fields": editable_fields} if editable_fields else {}),
             }
 
-    return {"models": clean_models, "activity_steps": clean_steps}
+    clean_workflow_steps = {}
+    for action, cfg in (raw.get("workflow_steps") or {}).items():
+        if action not in valid_actions or not isinstance(cfg, dict):
+            continue
+        intent = cfg.get("intent")
+        if intent not in allowed["workflow_intents"]:
+            continue
+        step = {"intent": intent}
+        for key in ("context_model", "target_model"):
+            model = cfg.get(key)
+            if model in model_graph:
+                step[key] = model
+        for key in ("input_models", "output_models"):
+            models = [
+                str(model)
+                for model in (cfg.get(key) or [])
+                if str(model) in model_graph
+            ]
+            if models:
+                step[key] = models
+        target_model = step.get("target_model") or step.get("context_model") or ""
+        readonly_fields = _clean_fields(target_model, cfg.get("readonly_fields") or [])
+        editable_fields = _clean_fields(target_model, cfg.get("editable_fields") or [])
+        field_updates = _clean_field_updates(target_model, cfg.get("field_updates") or [])
+        if readonly_fields:
+            step["readonly_fields"] = readonly_fields
+        if editable_fields:
+            step["editable_fields"] = editable_fields
+        if field_updates:
+            step["field_updates"] = field_updates
+        binding = cfg.get("context_binding")
+        if isinstance(binding, dict):
+            binding_model = binding.get("model")
+            binding_mode = binding.get("mode")
+            if binding_model in model_graph and binding_mode in allowed["context_binding_modes"]:
+                step["context_binding"] = {"model": binding_model, "mode": binding_mode}
+        condition = cfg.get("condition")
+        if isinstance(condition, dict):
+            condition_model = condition.get("model")
+            condition_field = condition.get("field")
+            operator = condition.get("operator")
+            if (
+                condition_model in model_graph
+                and condition_field in _valid_fields(condition_model)
+                and operator in allowed["condition_operators"]
+            ):
+                step["condition"] = {
+                    "model": condition_model,
+                    "field": condition_field,
+                    "operator": operator,
+                    "threshold": str(condition.get("threshold", "")),
+                }
+        for key in ("true_next", "false_next"):
+            target_action = cfg.get(key)
+            if target_action in valid_actions:
+                step[key] = target_action
+        clean_workflow_steps[action] = step
+
+    return {
+        "models": clean_models,
+        "activity_steps": clean_steps,
+        "workflow_steps": clean_workflow_steps,
+    }
 
 
 def debug_uml_extract(interface_id: str) -> dict:
@@ -453,6 +561,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
         )
         db_pages, db_sections = _ensure_mapping_chrome_sections(db_pages, db_sections)
         db_sections = _drop_unreferenced_non_global_sections(db_pages, db_sections)
+        db_sections = _normalize_select_existing_sections(db_pages, db_sections)
 
         data = dict(interface.data or {})
         data.update({"pages": db_pages, "sections": db_sections})

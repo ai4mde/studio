@@ -11,6 +11,7 @@ from llm.gemini_make_agent.candidate_generation import (
     generate_candidate_set,
     regenerate_candidate_set,
 )
+from llm.template_renderer import render_layout, normalize_interface_schema
 from metadata.models import Interface
 from metadata.models import System
 from ninja import Router, Schema
@@ -480,8 +481,6 @@ class VisualCheckPayload(Schema):
 
 @prototypes.post("/visual_check/")
 def visual_check(request, payload: VisualCheckPayload):
-    from llm.template_renderer import render_layout, normalize_interface_schema
-
     try:
         status = requests.get(f"{PROTOTYPE_API_URL}/active_prototype", timeout=10).json()
     except Exception as e:
@@ -562,7 +561,6 @@ def visual_check(request, payload: VisualCheckPayload):
 @prototypes.post("/hot_reload/")
 def hot_reload_templates(request, payload: HotReloadPayload):
     from metadata.models import Interface
-    from llm.template_renderer import render_layout, normalize_interface_schema
 
     # Fetch active prototype info
     try:

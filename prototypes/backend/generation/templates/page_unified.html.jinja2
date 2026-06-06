@@ -10,7 +10,8 @@
   <style>
     {% include "helpers/unified_page_styles.css.jinja2" %}
   </style>
-  <title>{{ page.display_name }}</title>
+  {%- set _page_title = page.display_name if page.display_name is defined and page.display_name else (page.name if page.name is defined and page.name else application_name) %}
+  <title>{{ _page_title }}</title>
 </head>
 <body class="min-h-screen">
 {%- set _accent_hex = tokens.get('accent.hex', '#0000a4') %}
@@ -633,6 +634,22 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 } %}
 {# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
 {%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
+{%- macro select_mock_button(section_component, classes) -%}
+{%- if section_component.has_select_operation -%}<button class="{{ classes }}">Select</button>{%- endif -%}
+{%- endmacro %}
+{%- macro select_record_action(section_component, classes, wrap_class='') -%}
+{%- if section_component.has_select_operation -%}
+  {%- if page.type == 'activity' -%}
+  <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post"{% if wrap_class %} class="{{ wrap_class }}"{% endif %}>
+    {% raw %}{% csrf_token %}{% endraw %}
+    <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
+    <button type="submit" class="{{ classes }}">Select</button>
+  </form>
+  {%- else -%}
+  <a href="?instance_id_{{ section_component.primary_model }}={{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" class="{{ classes }}">Select</a>
+  {%- endif -%}
+{%- endif -%}
+{%- endmacro %}
 {% set _rm = {"none":"rounded-none","sm":"rounded-sm","md":"rounded-md","lg":"rounded-lg","xl":"rounded-xl","2xl":"rounded-2xl"} %}
 {% set _dm = {
   "compact":  {"gap":"gap-2","p":"p-3","p_sm":"p-2","text":"text-xs","sec":"mb-8"},
@@ -790,7 +807,7 @@ href="#"
 {%- endmacro %}
 
 {% if page.type == 'activity' and not preview_mode %}
-<h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name }}</h2>
+<h2 class="text-2xl font-bold mb-6 text-gray-800">{{ page.activity_name if page.activity_name else _page_title }}</h2>
 {% endif %}
 {% if page.is_task_page is defined and page.is_task_page %}
 <div class="mb-6">
@@ -919,9 +936,9 @@ href="#"
   <p class="text-gray-400 text-sm italic">No activity pages defined.</p>
   {%- endif %}
 {%- else %}
-  {% raw %}{% if available_processes or all_processes %}{% endraw %}
+  {% raw %}{% if available_processes %}{% endraw %}
   <div class="grid {{ _as_col_class }} gap-4">
-    {% raw %}{% for process in available_processes|default:all_processes %}{% endraw %}
+    {% raw %}{% for process in available_processes %}{% endraw %}
     <div class="{{ _as_card_cls }}">
       <div class="font-medium text-gray-800 mb-3">{% raw %}{{ process.name }}{% endraw %}</div>
       <form method="post" action="{% raw %}{%{% endraw %} url 'workflow_engine:start_process' process.id {% raw %}%}{% endraw %}">
@@ -1494,6 +1511,7 @@ href="#"
       {%- endif %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>{%- endif %}
+        {{ select_mock_button(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline') }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>{%- endif %}
       </div>
@@ -1511,6 +1529,7 @@ href="#"
       </div>
       <div class="flex gap-1 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
+        {{ select_mock_button(section_component, 'text-xs ' ~ c.text ~ ' hover:underline') }}
         {%- if section_component.has_update_operation %}<button class="text-xs {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="text-xs text-red-400 hover:underline">Del</button>{%- endif %}
       </div>
@@ -1539,6 +1558,7 @@ href="#"
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
+        {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1604,6 +1624,7 @@ href="#"
         </div>
         <div class="flex gap-2 shrink-0">
           {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>{%- endif %}
+          {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
           {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
         </div>
       </div>
@@ -1633,6 +1654,7 @@ href="#"
       </div>
       <div class="flex gap-2 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
+        {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1654,7 +1676,7 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -1677,10 +1699,11 @@ href="#"
           {%- for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
           {%- endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
+              {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -1760,6 +1783,7 @@ href="#"
             </div>
             <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
               {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>{%- endif %}
+              {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
             </div>
           </div>
@@ -2372,6 +2396,7 @@ href="#"
         {%- if section_component.item_click_target_page %}
         <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
         {%- endif %}
+        {{ select_record_action(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline') }}
         {%- if section_component.has_update_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2420,7 +2445,7 @@ href="#"
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
       <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
         <div class="flex flex-col gap-1">
           <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ attribute }}</label>
           {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2455,6 +2480,7 @@ href="#"
         {%- if section_component.item_click_target_page %}
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
+        {{ select_record_action(section_component, 'w-full text-center ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), 'flex-1') }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
@@ -2482,7 +2508,7 @@ href="#"
       <h4 class="{{ d.text }} font-semibold {{ c.label }} mb-1">New {{ section_component.display_name }}</h4>
       <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-col gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
         <div class="flex flex-col gap-1">
           <label class="{{ d.text }} font-medium {{ c.label }} uppercase tracking-wide">{{ attribute }}</label>
           {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2601,7 +2627,7 @@ href="#"
   <div class="bg-white border border-gray-200 rounded-lg p-4 mt-4">
     <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="flex flex-wrap gap-3">
       {% raw %}{% csrf_token %}{% endraw %}
-      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
       <div class="flex flex-col gap-1">
         <label class="text-xs font-medium text-gray-600 uppercase">{{ attribute }}</label>
         {% if attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="border border-gray-300 rounded px-2 py-1 text-sm">
@@ -2611,6 +2637,17 @@ href="#"
         {%- endif %}
       </div>
       {% endif %}{% endfor %}
+      {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 uppercase">{% raw %}{{ relation_field.label }}{% endraw %}</label>
+        <select name="{% raw %}{{ relation_field.name }}{% endraw %}"{% raw %}{% if relation_field.required %} required{% endif %}{% endraw %} class="border border-gray-300 rounded px-2 py-1 text-sm">
+          <option value="">Select {% raw %}{{ relation_field.label }}{% endraw %}</option>
+          {% raw %}{% for item in relation_field.options %}{% endraw %}
+          <option value="{% raw %}{{ item.id }}{% endraw %}"{% raw %}{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{ item }}{% endraw %}</option>
+          {% raw %}{% endfor %}{% endraw %}
+        </select>
+      </div>
+      {% raw %}{% endfor %}{% endraw %}
       {% for parent_model in section_component.parent_models %}
       <div class="flex flex-col gap-1">
         <label class="text-xs font-medium text-gray-600 uppercase">{{ parent_model }}</label>
@@ -2690,7 +2727,7 @@ href="#"
       {% raw %}{%{% endraw %} if {{ section_component.primary_model }} == update_instance {% raw %}%}{% endraw %}
       <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_update' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post" class="flex-1 flex flex-wrap gap-2">
         {% raw %}{% csrf_token %}{% endraw %}
-        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
         <div class="flex flex-col gap-0.5 min-w-24">
           <label class="text-xs font-medium {{ c.label }} uppercase">{{ attribute }}</label>
           {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2700,6 +2737,17 @@ href="#"
           {%- endif %}
         </div>
         {% endif %}{% endfor %}
+        {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+        <div class="flex flex-col gap-0.5">
+          <label class="text-xs font-medium {{ c.label }} uppercase">{% raw %}{{ relation_field.label }}{% endraw %}</label>
+          <select name="{% raw %}{{ relation_field.name }}{% endraw %}"{% raw %}{% if relation_field.required %} required{% endif %}{% endraw %} class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
+            <option value="">Select {% raw %}{{ relation_field.label }}{% endraw %}</option>
+            {% raw %}{% for item in relation_field.options %}{% endraw %}
+            <option value="{% raw %}{{ item.id }}{% endraw %}"{% raw %}{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{ item }}{% endraw %}</option>
+            {% raw %}{% endfor %}{% endraw %}
+          </select>
+        </div>
+        {% raw %}{% endfor %}{% endraw %}
         <div class="flex gap-2 items-end">
           <input type="submit" value="Save" class="{{ c.solid }} text-white text-sm font-medium py-1.5 px-4 {{ r }} cursor-pointer">
           <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 text-sm py-1.5 px-4 {{ r }} hover:bg-gray-200">Cancel</a>
@@ -2723,6 +2771,7 @@ href="#"
         {%- if section_component.item_click_target_page %}
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
+        {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -2753,7 +2802,7 @@ href="#"
         {% if section_component.primary_model -%}
         <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
         {% endif -%}
-        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+        {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
         <div class="flex flex-col gap-0.5">
           <label class="text-xs font-medium {{ c.label }} uppercase">{{ attribute }}</label>
           {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-2 py-1 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2806,7 +2855,10 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
+          {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+          <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{% raw %}{{ relation_field.label }}{% endraw %}</th>
+          {% raw %}{% endfor %}{% endraw %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -2822,7 +2874,7 @@ href="#"
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
           {% for attribute in _column_attrs %}
           <td class="px-4 py-2" data-field-name="{{ attribute }}">
-            {% if attribute.updatable and not attribute.derived %}
+            {% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
               {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
               {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" value="{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}" class="border border-gray-300 rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
               {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" {% raw %}{%{% endraw %} if update_instance.{{ attribute }} {% raw %}%}checked{% endif %}{% endraw %} class="h-4 w-4 rounded">
@@ -2843,6 +2895,16 @@ href="#"
             </select>
           </td>
           {% endfor %}
+          {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+          <td class="px-4 py-2">
+            <select name="{% raw %}{{ relation_field.name }}{% endraw %}"{% raw %}{% if relation_field.required %} required{% endif %}{% endraw %} class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+              <option value="">Select {% raw %}{{ relation_field.label }}{% endraw %}</option>
+              {% raw %}{% for item in relation_field.options %}{% endraw %}
+              <option value="{% raw %}{{ item.id }}{% endraw %}"{% raw %}{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{ item }}{% endraw %}</option>
+              {% raw %}{% endfor %}{% endraw %}
+            </select>
+          </td>
+          {% raw %}{% endfor %}{% endraw %}
           <td class="px-4 py-2 flex gap-2">
             <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
             <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" class="bg-gray-100 text-gray-700 {{ d.text }} py-1 px-3 rounded hover:bg-gray-200">Cancel</a>
@@ -2862,12 +2924,13 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}
               <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
+              {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2893,7 +2956,7 @@ href="#"
           <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
           {% if section_component.has_select_operation %}<td class="px-4 py-2"></td>{% endif %}
-          {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+          {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
           <td class="px-4 py-2">
             {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
             {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} w-full {{ c.ring }} focus:outline-none focus:ring-2">
@@ -2911,6 +2974,16 @@ href="#"
             </select>
           </td>
           {% endfor %}
+          {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+          <td class="px-4 py-2">
+            <select name="{% raw %}{{ relation_field.name }}{% endraw %}"{% raw %}{% if relation_field.required %} required{% endif %}{% endraw %} class="{{ c.border }} border bg-white rounded px-2 py-1 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2">
+              <option value="">Select {% raw %}{{ relation_field.label }}{% endraw %}</option>
+              {% raw %}{% for item in relation_field.options %}{% endraw %}
+              <option value="{% raw %}{{ item.id }}{% endraw %}"{% raw %}{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{ item }}{% endraw %}</option>
+              {% raw %}{% endfor %}{% endraw %}
+            </select>
+          </td>
+          {% raw %}{% endfor %}{% endraw %}
           <td class="px-4 py-2">
             <div class="flex gap-2">
               <input type="submit" value="Save" class="{{ c.solid }} text-white {{ d.text }} font-medium py-1 px-3 rounded cursor-pointer">
@@ -3118,17 +3191,43 @@ href="#"
     {%- else %}
     <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="space-y-4">
     {%- endif %}
-      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived %}
+      {%- if page.type == 'activity' and section_component.has_update_operation and not section_component.has_create_operation %}
+      {% raw %}{% if update_instance %}{% endraw %}
+      <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Selected {{ section_component.primary_model }}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {% for attribute in _form_attrs %}{% if not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
+          <div class="si-field" data-field-name="{{ attribute }}_summary">
+            <div class="text-xs font-medium text-gray-400 uppercase">{{ attribute }}</div>
+            <div class="text-sm font-semibold text-gray-800">{% raw %}{{{% endraw %} update_instance.{{ attribute }} {% raw %}}}{% endraw %}</div>
+          </div>
+          {% endif %}{% endfor %}
+        </div>
+      </div>
+      {% raw %}{% endif %}{% endraw %}
+      {%- endif %}
+      {% for attribute in _form_attrs %}{% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.FOREIGN_MODEL %}
       <div class="si-field" data-field-name="{{ attribute }}">
         <label class="si-field-label block {{ d.text }} font-medium {{ c.label }} mb-1">{{ attribute }}</label>
-        {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
-        {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
-        {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}" class="h-4 w-4 rounded">
-        {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">{% for lit in attribute.enum_literals %}<option value="{{ lit }}">{{ lit }}</option>{% endfor %}</select>
-        {%- else %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+        {% if attribute.type in [AttributeType.STRING, AttributeType.VIDEO] %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}"{% if section_component.has_update_operation %} value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|default:'' {% raw %}}}{% endraw %}"{% endif %} class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+        {%- elif attribute.type == AttributeType.INTEGER %}<input type="number" name="{{ attribute }}" placeholder="{{ attribute }}"{% if section_component.has_update_operation %} value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|default:'' {% raw %}}}{% endraw %}"{% endif %} class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+        {%- elif attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" name="{{ attribute }}"{% if section_component.has_update_operation %} {% raw %}{% if update_instance.{% endraw %}{{ attribute }}{% raw %} %}checked{% endif %}{% endraw %}{% endif %} class="h-4 w-4 rounded">
+        {%- elif attribute.type == AttributeType.ENUM %}<select name="{{ attribute }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">{% for lit in attribute.enum_literals %}<option value="{{ lit }}"{% if section_component.has_update_operation %}{% raw %}{% if update_instance.{% endraw %}{{ attribute }}{% raw %} == "{% endraw %}{{ lit }}{% raw %}" %} selected{% endif %}{% endraw %}{% endif %}>{{ lit }}</option>{% endfor %}</select>
+        {%- else %}<input type="text" name="{{ attribute }}" placeholder="{{ attribute }}"{% if section_component.has_update_operation %} value="{% raw %}{{{% endraw %} update_instance.{{ attribute }}|default:'' {% raw %}}}{% endraw %}"{% endif %} class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
         {%- endif %}
       </div>
       {% endif %}{% endfor %}
+      {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
+      <div class="si-field">
+        <label class="si-field-label block {{ d.text }} font-medium {{ c.label }} mb-1">{% raw %}{{ relation_field.label }}{% endraw %}</label>
+        <select name="{% raw %}{{ relation_field.name }}{% endraw %}"{% raw %}{% if relation_field.required %} required{% endif %}{% endraw %} class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+          <option value="">Select {% raw %}{{ relation_field.label }}{% endraw %}</option>
+          {% raw %}{% for item in relation_field.options %}{% endraw %}
+          <option value="{% raw %}{{ item.id }}{% endraw %}"{% raw %}{% if relation_field.selected_id == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{ item }}{% endraw %}</option>
+          {% raw %}{% endfor %}{% endraw %}
+        </select>
+      </div>
+      {% raw %}{% endfor %}{% endraw %}
       <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 {{ r }}">
         {{ _s.get('cta_label') or ('Add ' + section_component.display_name if section_component.has_create_operation else ('Save ' + section_component.display_name if section_component.has_update_operation else 'Submit')) }}
       </button>
@@ -4630,3 +4729,4 @@ href="#"
 
 {% raw %}{% endblock %}{% endraw %}
 {% endif %}
+

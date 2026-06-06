@@ -76,6 +76,7 @@ _FOOTER_TEMPLATE_LAYOUTS = {
 _CHROME_TEMPLATE_LAYOUTS = _HEADER_TEMPLATE_LAYOUTS | _FOOTER_TEMPLATE_LAYOUTS
 _VALID_SECTION_LAYOUTS = {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks"} | _CHROME_TEMPLATE_LAYOUTS
 _DATA_SECTION_LAYOUTS = {"card", "list", "table", "detail", "gallery", "form"}
+_DATA_SECTION_ROLES = {"object_collection", "object_detail", "object_summary", "child_collection", "object_form"}
 _VALID_SECTION_STYLE = {
     "color": {
         "blue", "sky", "cyan", "aqua", "teal", "turquoise", "green", "emerald", "lime",
@@ -432,6 +433,56 @@ def _infer_section_component(section: dict) -> str:
     if layout == "filter": return "FilterPanel"
     
     return "SectionPanel"
+
+
+def _is_select_existing_text(text: str) -> bool:
+    tokens = _name_tokens(text)
+    if tokens & {"search", "select", "choose", "pick", "browse"}:
+        return True
+    text_l = str(text or "").lower()
+    return any(phrase in text_l for phrase in ("find existing", "select existing", "choose existing", "pick existing"))
+
+
+def _normalize_select_existing_sections(pages: list, sections: list) -> list:
+    """Search/select/browse pages choose existing records instead of creating new ones."""
+    section_page_text: dict[str, str] = {}
+    for page in pages or []:
+        if not isinstance(page, dict):
+            continue
+        page_text = f"{page.get('id', '')} {page.get('name', '')} {page.get('display_name', '')} {page.get('activity_name', '')}"
+        if not _is_select_existing_text(page_text):
+            continue
+        for ref in page.get("sections") or []:
+            sid = _ref_id(ref)
+            if sid:
+                section_page_text[sid] = f"{section_page_text.get(sid, '')} {page_text}"
+
+    fixed = []
+    for section in sections or []:
+        if not isinstance(section, dict):
+            fixed.append(section)
+            continue
+        section = dict(section)
+        sid = str(section.get("id") or "")
+        layout = _normalize_layout_alias(section.get("layout"))
+        role = str(section.get("role") or "")
+        position = str(section.get("position") or "main")
+        is_data_section = bool(section.get("primary_model")) or bool(section.get("attributes")) or role in _DATA_SECTION_ROLES
+        probe = f"{sid} {section.get('name', '')} {section.get('display_name', '')} {section_page_text.get(sid, '')}"
+        if position == "main" and layout != "activity_action" and is_data_section and _is_select_existing_text(probe):
+            if layout in {"form", "gallery"}:
+                layout = "card"
+                section["layout"] = layout
+            section["operations"] = {"create": False, "update": False, "delete": False, "select": True}
+            section["role"] = "object_collection" if role in {"", "object_form"} else role
+            section["component"] = {
+                "table": "DataTable",
+                "list": "ObjectList",
+                "gallery": "ObjectCardGrid",
+                "card": "ObjectCardGrid",
+            }.get(layout, "ObjectCardGrid")
+        fixed.append(section)
+    return fixed
 
 def _field_layout_field_refs(field_layout) -> set[str]:
     refs = set()
@@ -876,7 +927,9 @@ def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:
     tokens = _name_tokens(f"{page.get('name', '')} {page.get('id', '')}")
     if tokens & {"detail", "view", "profile", "summary"}:
         return "detail"
-    if tokens & {"form", "enter", "submit", "create", "edit", "update", "provide", "select", "choose"}:
+    if tokens & {"search", "select", "choose", "pick", "browse"}:
+        return "card" if candidate_index % 2 == 0 else "list"
+    if tokens & {"form", "enter", "submit", "create", "edit", "update", "provide"}:
         return "form"
     if tokens & {"list", "manage", "track", "history", "item", "line", "entry", "row"}:
         return "list"

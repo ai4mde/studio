@@ -88,7 +88,14 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
     page_id = _section_id(page.get("id") or page.get("name") or "page")
     sid = f"{page_id}_{_section_id(model or 'content')}_{layout}"
     attrs = _model_field_names(model_attrs, model, 8 if layout in {"table", "detail"} else 5)
-    operations = {"create": layout == "form", "update": layout in {"detail", "form"}, "delete": False}
+    page_text = f"{page.get('id', '')} {page.get('name', '')}".lower()
+    is_select_existing = any(term in page_text for term in ("search", "select", "choose", "pick", "browse"))
+    operations = {
+        "create": layout == "form" and not is_select_existing,
+        "update": layout in {"detail", "form"} and not is_select_existing,
+        "delete": False,
+        "select": is_select_existing,
+    }
     style = {
         "color": "accent",
         "density": ("normal", "compact", "spacious")[candidate_index % 3],

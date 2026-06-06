@@ -5,8 +5,51 @@ from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 {% include 'helpers/query_helpers.py' %}
+
+def _required_relation_field_options(model, exclude=(), request=None, instance=None, active_process=None):
+    excluded = {str(item) for item in (exclude or ())}
+    relation_fields = []
+    for field in model._meta.fields:
+        if field.name in excluded:
+            continue
+        if getattr(field, "primary_key", False) or not getattr(field, "editable", False):
+            continue
+        if not getattr(field, "is_relation", False):
+            continue
+        if not (getattr(field, "many_to_one", False) or getattr(field, "one_to_one", False)):
+            continue
+        related_model = getattr(getattr(field, "remote_field", None), "model", None)
+        if related_model is None:
+            continue
+        options = list(related_model.objects.all())
+        if getattr(field, "one_to_one", False):
+            accessor = field.remote_field.get_accessor_name()
+            options = [obj for obj in options if not accessor or not hasattr(obj, accessor)]
+        selected_id = ""
+        if instance is not None:
+            selected_id = getattr(instance, f"{field.name}_id", "") or ""
+        if not selected_id and request is not None:
+            selected_id = request.GET.get(f"instance_id_{field.name}") or ""
+        if not selected_id and active_process is not None:
+            _ct_related = ContentType.objects.get_for_model(related_model)
+            _ami_related = active_process.associated_model_instances.filter(content_type=_ct_related).order_by('-id').first()
+            if _ami_related:
+                selected_id = _ami_related.instance_id
+        if selected_id and not any(str(getattr(obj, "pk", "")) == str(selected_id) for obj in options):
+            selected_obj = related_model.objects.filter(pk=selected_id).first()
+            if selected_obj is not None:
+                options.insert(0, selected_obj)
+        relation_fields.append({
+            "name": field.name,
+            "label": field.verbose_name or field.name,
+            "options": options,
+            "required": not getattr(field, "null", False) and not getattr(field, "blank", False),
+            "selected_id": str(selected_id) if selected_id else "",
+        })
+    return relation_fields
 
 {# Create, Update, Delete views #}
 {% for page in pages -%}
@@ -20,13 +63,18 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
     model = {{ section_component.primary_model }}
     {% set _simple_attrs = [] -%}
     {%- for attr in section_component.attributes -%}
-        {%- if '.' not in attr.name -%}
+        {%- if '.' not in attr.name and attr.updatable and not attr.derived -%}
             {%- set _dummy = _simple_attrs.append(attr.name) -%}
         {%- endif -%}
     {%- endfor %}
     fields = [{% for attr_name in _simple_attrs %}'{{ attr_name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
+        return context
 
     def get_success_url(self):
         return reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}', kwargs={
@@ -47,6 +95,11 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
+        self._assign_posted_relation_fields(instance)
+        if self._missing_required_relation_fields(instance):
+            for label in self._missing_required_relation_fields(instance):
+                form.add_error(None, f"{label} is required.")
+            return self.form_invalid(form)
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
@@ -92,9 +145,20 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     required_roles = ['{{ application_name }}']
     {% endif -%}
     model = {{ section_component.primary_model }}
-    fields = [{% for attribute in section_component.attributes %}{% if '.' not in attribute.name %}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}]
+    {% set _simple_attrs = [] -%}
+    {%- for attr in section_component.attributes -%}
+        {%- if '.' not in attr.name and attr.updatable and not attr.derived -%}
+            {%- set _dummy = _simple_attrs.append(attr.name) -%}
+        {%- endif -%}
+    {%- endfor %}
+    fields = [{% for attr_name in _simple_attrs %}'{{ attr_name }}'{% if not loop.last %}, {% endif %}{% endfor %}]
     template_name = '{{ application_name }}_{{ page }}.html'
     {% if page.type == 'activity' -%}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_process_node_id'] = self.kwargs.get('active_process_node_id')
+        return context
 
     def get_success_url(self):
         return reverse('{{ application_namespace }}:render_{{ application_name }}_{{ page }}', kwargs={
@@ -118,6 +182,22 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
+        {% set _workflow_semantics = section_component.style.get('workflow_semantics', {}) if section_component.style else {} -%}
+        {% for update in _workflow_semantics.get('field_updates', []) -%}
+        if hasattr(instance, '{{ update.get("field") }}'):
+            _current_{{ loop.index }} = getattr(instance, '{{ update.get("field") }}') or 0
+            try:
+                _delta_{{ loop.index }} = int('{{ update.get("value", "1") }}')
+            except (TypeError, ValueError):
+                _delta_{{ loop.index }} = 1
+            {% if update.get("operation") == "decrement" -%}
+            setattr(instance, '{{ update.get("field") }}', _current_{{ loop.index }} - _delta_{{ loop.index }})
+            {% elif update.get("operation") == "increment" -%}
+            setattr(instance, '{{ update.get("field") }}', _current_{{ loop.index }} + _delta_{{ loop.index }})
+            {% elif update.get("operation") == "set" -%}
+            setattr(instance, '{{ update.get("field") }}', _delta_{{ loop.index }})
+            {% endif -%}
+        {% endfor -%}
         {% for attribute in section_component.attributes -%}
         {% if not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
@@ -234,11 +314,30 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         return _apply_search_query(_apply_section_query(qs, {{ page.section_components[0].query_literal if page.section_components else '{}' }}), self.request)
     {% endif -%}
 
-    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 or (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
+    {% if models_on_pages[page]['parent_models'] or page.type == 'activity' or page.section_components | selectattr('related_to_section_id') | list or models_on_pages[page]['primary_models'] | length > 1 or (page.section_components | selectattr('has_create_operation') | list) or (page.section_components | selectattr('has_update_operation') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
         context['parent_{{model}}_list'] = {{model}}.objects.all()
+        {% endfor -%}
+        {% if page.type == 'activity' -%}
+        {% for section in page.section_components -%}
+        {% if section.primary_model and section.has_update_operation and not section.has_create_operation -%}
+        if self.active_process_node and context.get('update_instance') is None:
+            _ct_update_{{ section }} = ContentType.objects.get_for_model({{ section.primary_model }})
+            _ami_update_{{ section }} = self.active_process_node.active_process.associated_model_instances.filter(content_type=_ct_update_{{ section }}).order_by('-id').first()
+            if _ami_update_{{ section }}:
+                context['update_instance'] = {{ section.primary_model }}.objects.filter(pk=_ami_update_{{ section }}.instance_id).first()
+            if context.get('update_instance') is None:
+                _associated_update_{{ section }}_qs = self.active_process_node.active_process.{{ section.primary_model.lower() }}s
+                context['update_instance'] = _associated_update_{{ section }}_qs.order_by('pk').first()
+        {% endif -%}
+        {% endfor -%}
+        {% endif -%}
+        {% for section in page.section_components -%}
+        {% if section.primary_model and (section.has_create_operation or section.has_update_operation) -%}
+        context['relation_fields_{{ section }}'] = _required_relation_field_options({{ section.primary_model }}, exclude={{ section.parent_models }}, request=self.request, instance=context.get('update_instance'), active_process=(self.active_process_node.active_process if self.active_process_node else None) if '{{ page.type }}' == 'activity' else None)
+        {% endif -%}
         {% endfor -%}
         {% if page.section_components and models_on_pages[page]['primary_models'] -%}
         {% set _main_img_model = models_on_pages[page]['primary_models'][0] -%}
@@ -350,11 +449,12 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {%- set _has_wf_sections = (page.section_components | selectattr('component_type', 'equalto', 'activity_start') | list) or (page.section_components | selectattr('component_type', 'equalto', 'activity_tasks') | list) %}
         {% if _has_wf_sections -%}
         context['available_processes'] = Process.get_available_processes(self.request.user)
-        context['all_processes'] = Process.objects.all()
+        _user_roles = getattr(self.request.user, 'roles', []) or []
         context['active_process_nodes'] = ActiveProcessNode.objects.filter(
-            user=self.request.user,
             active_process__completed=False,
-        )
+        ).filter(
+            Q(user=self.request.user) | Q(action_node__actor__in=_user_roles)
+        ).distinct()
         {% endif -%}
         return context
 
@@ -372,10 +472,11 @@ class HomeRenderView(GenericTemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['user'] = self.request.user
+        _user_roles = getattr(self.request.user, 'roles', []) or []
         context['active_process_nodes'] = ActiveProcessNode.objects.filter(
-            user=self.request.user,
             active_process__completed=False,
-        )
+        ).filter(
+            Q(user=self.request.user) | Q(action_node__actor__in=_user_roles)
+        ).distinct()
         context['available_processes'] = Process.get_available_processes(self.request.user)
-        context['all_processes'] = Process.objects.all()
         return context

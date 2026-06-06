@@ -12,6 +12,25 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+{% raw %}{% if request.GET.workflow_success %}{% endraw %}
+<div class="mx-auto mt-4 max-w-6xl px-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 shadow-sm">
+        <span>
+            Success. The workflow has moved to the next task{% raw %}{% if request.GET.workflow_next_actor %}{% endraw %}
+            for {% raw %}{{ request.GET.workflow_next_actor }}{% endraw %}{% raw %}{% endif %}{% endraw %}.
+        </span>
+        {% raw %}{% if request.GET.workflow_next_login %}{% endraw %}
+        <a href="{% raw %}{{ request.GET.workflow_next_login }}{% endraw %}" class="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+            Open next task
+        </a>
+        {% raw %}{% elif request.GET.workflow_next %}{% endraw %}
+        <a href="{% raw %}{{ request.GET.workflow_next }}{% endraw %}" class="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+            Open next task
+        </a>
+        {% raw %}{% endif %}{% endraw %}
+    </div>
+</div>
+{% raw %}{% endif %}{% endraw %}
 
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else (styling.accent_color if styling and styling.accent_color else '#0000a4') %}
 {%- set _brand_name = _brand_name if _brand_name is defined else application_name %}

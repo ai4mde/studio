@@ -2,6 +2,7 @@
 
 from metadata.models import Classifier, Interface
 from .section_utils import (
+    _normalize_select_existing_sections,
     _infer_section_component,
     _normalize_activity_action_sections,
 )
@@ -117,6 +118,7 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
             )
         except Exception:
             data["sections"] = _normalize_activity_action_sections(data.get("pages") or [], data.get("sections") or [])
+        data["sections"] = _normalize_select_existing_sections(data.get("pages") or [], data.get("sections") or [])
         Interface.objects.filter(id=interface_id).update(data=data)
         return f"Patched interface {interface_id} successfully."
     except Interface.DoesNotExist:
