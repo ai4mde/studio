@@ -111,6 +111,7 @@ const isCollectionSection = (section: any) => {
     return ['card', 'list', 'table', 'gallery'].includes(layout)
         || ['object_collection', 'child_collection', 'object_summary'].includes(role);
 };
+const dataScopeMode = (section: any) => section?.style?.data_scope?.mode || 'all';
 const sqlTableName = (name: string) => String(name || 'items')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .replace(/[\s.-]+/g, '_')
@@ -497,6 +498,23 @@ export const Sections: React.FC<Props> = () => {
         setData(newData);
     };
 
+    const handleDataScopeModeChange = (index: number, mode: string) => {
+        const newData = [...data];
+        const style = { ...(newData[index].style || {}) };
+        if (mode === 'actor_owned') {
+            style.data_scope = {
+                ...(style.data_scope || {}),
+                mode: 'actor_owned',
+                source: 'current_actor',
+                model: newData[index].primary_model || selectedClassName || '',
+            };
+        } else {
+            delete style.data_scope;
+        }
+        newData[index].style = style;
+        setData(newData);
+    };
+
     const handleAddJoin = (index: number) => {
         const newData = [...data];
         const fromModel = newData[index].data_source?.from?.model || newData[index].primary_model || selectedClassName || '';
@@ -565,6 +583,9 @@ export const Sections: React.FC<Props> = () => {
         const relatedClause = section.related_to
             ? ['  -- plus current-object filter from Related To shortcut']
             : [];
+        const scopeClause = dataScopeMode(section) === 'actor_owned'
+            ? [`  -- scoped to current actor's ${section.primary_model || fromModel} record`]
+            : [];
         const orderBy = (section.query?.order_by || [])
             .filter((order: any) => order.field)
             .map((order: any) => `${sqlFieldRef(order.field, fromModel)} ${String(order.direction || 'asc').toUpperCase()}`)
@@ -574,7 +595,7 @@ export const Sections: React.FC<Props> = () => {
             selectFields,
             `FROM ${fromTable}`,
             joins,
-            [...filters, ...relatedClause].length ? `WHERE\n${[...filters, ...relatedClause].join('\n  AND ')}` : '',
+            [...scopeClause, ...filters, ...relatedClause].length ? `WHERE\n${[...scopeClause, ...filters, ...relatedClause].join('\n  AND ')}` : '',
             orderBy ? `ORDER BY ${orderBy}` : '',
             section.query?.limit ? `LIMIT ${section.query.limit}` : '',
             section.query?.offset ? `OFFSET ${section.query.offset}` : '',
@@ -1291,6 +1312,23 @@ export const Sections: React.FC<Props> = () => {
                                                     className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
                                                 />
                                             </div>
+                                        )}
+                                    </FormControl>
+                                    <FormControl className="space-y-2">
+                                        <h3 className="text-xl font-bold">Data Scope</h3>
+                                        <p className="text-xs text-gray-500">Controls which records this section is allowed to read before query filters are applied.</p>
+                                        <select
+                                            value={dataScopeMode(data[index])}
+                                            onChange={(e) => handleDataScopeModeChange(index, e.target.value)}
+                                            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
+                                        >
+                                            <option value="all">All records</option>
+                                            <option value="actor_owned">Current actor only</option>
+                                        </select>
+                                        {dataScopeMode(data[index]) === 'actor_owned' && (
+                                            <p className="text-[11px] text-emerald-700">
+                                                Uses the logged-in actor to resolve this section's {data[index].primary_model || selectedClassName || 'model'} record. This is not stored as a query filter.
+                                            </p>
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-2">

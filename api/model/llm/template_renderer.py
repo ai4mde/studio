@@ -256,6 +256,24 @@ def _sanitize(name: str) -> str:
     name = re.sub(r"\s+", "_", name.strip())
     return name.lower()
 
+
+def _id_reference_model(field_name: str, current_model: str, model_names: set[str]) -> Optional[str]:
+    """Return the related model for fields like patient_id when that model exists."""
+    raw = _sanitize(field_name)
+    candidates = []
+    if raw.endswith("_id") and len(raw) > 3:
+        candidates.append(raw[:-3])
+    elif raw.endswith("id") and len(raw) > 2:
+        candidates.append(raw[:-2].rstrip("_"))
+    current = _sanitize(current_model)
+    for candidate in candidates:
+        if not candidate or candidate == current:
+            continue
+        for model in model_names:
+            if _sanitize(model) == candidate:
+                return model
+    return None
+
 _LAYOUT_ALIASES = {
     "nav": "nav-links",
     "navigation": "nav-links",
@@ -416,6 +434,11 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
         for c in (classifiers or [])
         if c.get("data", {}).get("name")
     }
+    model_names = {
+        _sanitize(c.get("data", {}).get("name", ""))
+        for c in (classifiers or [])
+        if c.get("data", {}).get("type") == "class" and c.get("data", {}).get("name")
+    }
 
     sections_raw = interface_data.get("sections", [])
     section_by_id: Dict[str, Dict] = {s["id"]: s for s in sections_raw}
@@ -492,6 +515,11 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                     attr_data = attr_raw or {}
 
                 attr_name = _sanitize(attr_data.get("name", ""))
+                reference_model = _id_reference_model(attr_name, primary_model, model_names)
+                if reference_model:
+                    if reference_model not in parent_models:
+                        parent_models.append(reference_model)
+                    continue
                 inferred_type = classifier_attr_types.get(attr_name)
                 if not inferred_type and any(token in attr_name.lower() for token in ("image", "img", "photo", "thumbnail", "thumb", "avatar", "poster", "cover", "logo")):
                     inferred_type = "image"

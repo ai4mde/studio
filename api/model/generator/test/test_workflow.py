@@ -70,7 +70,6 @@ class WorkflowSemanticTests(APITestCase):
                     "field_updates": [
                         {"field": "copies_available", "operation": "decrement", "value": "1"},
                         {"field": "made_up", "operation": "decrement", "value": "1"},
-                        {"field": "title", "operation": "formula", "value": "x"},
                     ],
                 },
                 "Fake Step": {
@@ -124,10 +123,6 @@ class WorkflowSemanticTests(APITestCase):
             clean["workflow_steps"]["Update Book Status"]["context_binding"],
             {"model": "Book", "mode": "readonly"},
         )
-        self.assertEqual(
-            clean["workflow_steps"]["Update Book Status"]["field_updates"],
-            [{"field": "copies_available", "operation": "decrement", "value": "1"}],
-        )
         self.assertNotIn("Fake Step", clean["workflow_steps"])
 
     def test_planner_materializes_workflow_semantics_for_update_record(self):
@@ -169,7 +164,6 @@ class WorkflowSemanticTests(APITestCase):
                         "context_model": "Book",
                         "readonly_fields": ["isbn", "title"],
                         "editable_fields": ["copies_available"],
-                        "field_updates": [{"field": "copies_available", "operation": "decrement", "value": "1"}],
                     }
                 }
             },
@@ -178,14 +172,10 @@ class WorkflowSemanticTests(APITestCase):
         section = next(s for s in plan["sections"] if s["name"] == "Update Book Status")
         self.assertEqual(section["operations"], ["update"])
         self.assertEqual(section["visible_fields"], ["isbn", "title", "copies_available"])
-        self.assertEqual(section["editable_fields"], [])
+        self.assertEqual(section["editable_fields"], ["copies_available"])
         self.assertEqual(
             [(attr["name"], attr.get("readonly")) for attr in section["attributes"]],
-            [("isbn", True), ("title", True), ("copies_available", True)],
-        )
-        self.assertEqual(
-            section["style"]["workflow_semantics"]["field_updates"],
-            [{"field": "copies_available", "operation": "decrement", "value": "1"}],
+            [("isbn", True), ("title", True), ("copies_available", False)],
         )
 
     def test_planner_materializes_workflow_semantics_for_create_record(self):

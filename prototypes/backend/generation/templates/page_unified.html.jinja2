@@ -1159,8 +1159,10 @@ href="#"
 {% set eff_lay = "action_panel" if (not _is_chrome_or_nav and not has_attrs and has_methods) else lay %}
 {% set list_var_name = 'related_' + section_component.name + '_list' if section_component.related_to_section_id else ((section_component.primary_model + '_list') if section_component.primary_model else '') %}
 {% set query_limit = section_component.query.get("limit") %}
+{% set _data_scope = _s.get("data_scope") if _s.get("data_scope") is mapping else {} %}
+{% set _actor_owned_preview = _data_scope.get("mode") == "actor_owned" %}
 {% set _base_mock = 3 %}
-{% set section_mock_rows = query_limit if query_limit else _base_mock %}
+{% set section_mock_rows = 1 if _actor_owned_preview else (query_limit if query_limit else _base_mock) %}
 {# ── IMAGE ATTRIBUTES ── #}
 {%- set _iattrs = [] %}
 {%- set _vattrs = [] %}
@@ -1427,11 +1429,11 @@ href="#"
   {# Scrollable card strip #}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
     {%- if _cstyle == "category" %}
-    {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
+    {%- for i in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 8) %}
     {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
     {%- endfor %}
     {%- else %}
-    {%- for _mock_row in range(section_mock_rows if section_mock_rows > 3 else 6) %}
+    {%- for _mock_row in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 6) %}
     {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75')) }}
     {%- endfor %}
     {%- endif %}
@@ -1464,7 +1466,7 @@ href="#"
 {%- elif _cstyle == "category" %}
   {# Category tile grid #}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for i in range(section_mock_rows if section_mock_rows > 3 else 8) %}
+    {%- for i in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 8) %}
     {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string if _title_attr else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
     {%- endfor %}
   </div>
@@ -1576,7 +1578,7 @@ href="#"
       <h2 class="text-2xl font-bold text-gray-900">{{ section_component.display_name }}</h2>
       {%- if _s.get('delivery_label') %}<span class="text-sm font-semibold" style="color:#388e3c;">{{ _s.get('delivery_label') }}</span>{%- endif %}
     </div>
-    {%- for _mock_row in range(section_mock_rows if section_mock_rows < 4 else 1) %}
+    {%- for _mock_row in range(section_mock_rows if _actor_owned_preview or section_mock_rows < 4 else 1) %}
     {{ _cart_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
     {%- endfor %}
     <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">éˆ?Verder winkelen</a>
@@ -1947,6 +1949,17 @@ href="#"
         {%- else %}
         <input type="text" placeholder="{{ attribute }}" class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2" />
         {%- endif %}
+      </div>
+      {%- endfor %}
+      {%- for parent_model in section_component.parent_models %}
+      <div class="si-field" data-field-name="{{ parent_model }}">
+        <label class="si-field-label block text-sm font-medium text-gray-700 mb-1">{{ parent_model }}</label>
+        <select class="w-full border border-gray-300 {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2">
+          <option>Select {{ parent_model }}</option>
+          <option>{{ parent_model }} 1</option>
+          <option>{{ parent_model }} 2</option>
+          <option>{{ parent_model }} 3</option>
+        </select>
       </div>
       {%- endfor %}
       {%- else %}
@@ -3158,10 +3171,34 @@ href="#"
     <div class="border {{ c.border }} rounded-xl overflow-hidden">
       <div class="border-l-4 m-3 pl-4 py-3 bg-white rounded-lg" style="border-color:{{ _accent_hex }};">
         {%- for attr in section_component.attributes %}
+        {%- set relation_attr = namespace(model='') %}
+        {%- for parent_model in section_component.parent_models %}
+          {%- if (attr|string|lower) == ((parent_model|string|lower) ~ '_id') %}
+            {%- set relation_attr.model = parent_model %}
+          {%- endif %}
+        {%- endfor %}
         <div class="flex flex-col gap-1 mb-2">
           <label class="text-xs font-medium text-gray-500 uppercase">{{ attr }}</label>
           {%- if page.type == 'activity' %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} request.session.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
+          {% raw %}{%{% endraw %} if workflow_instance_{{ section_component.primary_model }} {% raw %}%}{% endraw %}
+          {% raw %}{%{% endraw %} with detail_obj=workflow_instance_{{ section_component.primary_model }} {% raw %}%}{% endraw %}
+          {%- if relation_attr.model %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} detail_obj.{{ relation_attr.model }}|default:'' {% raw %}}}{% endraw %}</span>
+          {%- else %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} detail_obj.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
+          {%- endif %}
+          {% raw %}{% endwith %}{% endraw %}
+          {% raw %}{%{% endraw %} elif update_instance {% raw %}%}{% endraw %}
+          {% raw %}{%{% endraw %} with detail_obj=update_instance {% raw %}%}{% endraw %}
+          {%- if relation_attr.model %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} detail_obj.{{ relation_attr.model }}|default:'' {% raw %}}}{% endraw %}</span>
+          {%- else %}
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} detail_obj.{{ attr }}|default:'' {% raw %}}}{% endraw %}</span>
+          {%- endif %}
+          {% raw %}{% endwith %}{% endraw %}
+          {% raw %}{%{% endraw %} else {% raw %}%}{% endraw %}
+          <span class="text-sm font-medium text-gray-800"></span>
+          {% raw %}{% endif %}{% endraw %}
           {%- elif _m %}
           <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else 'éˆ? {% raw %}}}{% endraw %}</span>
           {%- endif %}
@@ -3182,7 +3219,15 @@ href="#"
     <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_create' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="post" class="space-y-4">
       {% raw %}{% csrf_token %}{% endraw %}
       {% for parent_model in section_component.parent_models %}
-      <input type="hidden" name="instance_id_{{ parent_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ parent_model }} {% raw %}}}{% endraw %}">
+      <div class="si-field" data-field-name="{{ parent_model }}">
+        <label class="si-field-label block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parent_model }}</label>
+        <select name="{{ parent_model }}" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 {{ d.text }} {{ c.ring }} focus:outline-none focus:ring-2 w-full">
+          <option value="">Select {{ parent_model }}</option>
+          {% raw %}{%{% endraw %} for item in parent_{{ parent_model }}_list {% raw %}%}{% endraw %}
+          <option value="{% raw %}{{{% endraw %} item.id {% raw %}}}{% endraw %}"{% raw %}{% if request.GET.instance_id_{% endraw %}{{ parent_model }}{% raw %} == item.id|stringformat:"s" %} selected{% endif %}{% endraw %}>{% raw %}{{{% endraw %} item {% raw %}}}{% endraw %}</option>
+          {% raw %}{% endfor %}{% endraw %}
+        </select>
+      </div>
       {% endfor %}
     {%- elif section_component.has_update_operation %}
     {% raw %}{% if update_instance %}{% endraw %}

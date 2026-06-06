@@ -31,7 +31,6 @@ from .uml_mapping.usecase_workflow import _build_activity_diagrams, _build_useca
 from .workflow_application import _apply_builtin_workflow_logic
 
 logger = logging.getLogger(__name__)
-PROTOTYPE_API_BASE = os.getenv("PROTOTYPE_API_BASE", "http://studio-prototypes:8010")
 
 
 def _interface_to_agent_dict(interface: Interface) -> dict:
@@ -201,13 +200,13 @@ def resolve_interface_semantics_with_llm(
             "confirm",
         ],
         "condition_operators": [">", ">=", "==", "!=", "<", "<="],
-        "field_update_operations": ["set", "increment", "decrement"],
         "context_binding_modes": ["hidden", "readonly", "select"],
     }
     prompt = build_resolve_interface_semantics_prompt(
         allowed=allowed,
         actor_permissions=uml_intel.get("actor_intel", {}).get("target_permissions", {}),
         model_graph=uml_intel.get("model_graph") or {},
+        workflow_intel=uml_intel.get("workflow_intel") or {},
         decisions=decisions,
         interface_plan=interface_plan,
     )
@@ -216,7 +215,7 @@ def resolve_interface_semantics_with_llm(
             f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}",
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0, "maxOutputTokens": 2048},
+                "generationConfig": {"temperature": 0, "maxOutputTokens": 8192},
             },
             timeout=12,
         )
@@ -261,21 +260,15 @@ def resolve_interface_semantics_with_llm(
                 out.append(field)
         return out
 
-    def _clean_field_updates(model: str, values) -> list[dict]:
+    def _fields_from_legacy_updates(model: str, values) -> list[str]:
         valid = _valid_fields(model)
         out = []
         for update in values or []:
             if not isinstance(update, dict):
                 continue
             field = str(update.get("field") or "")
-            operation = str(update.get("operation") or "")
-            if field not in valid or operation not in allowed["field_update_operations"]:
-                continue
-            out.append({
-                "field": field,
-                "operation": operation,
-                "value": str(update.get("value", "1")),
-            })
+            if field in valid and field not in out:
+                out.append(field)
         return out
 
     clean_steps = {}
@@ -322,13 +315,13 @@ def resolve_interface_semantics_with_llm(
         target_model = step.get("target_model") or step.get("context_model") or ""
         readonly_fields = _clean_fields(target_model, cfg.get("readonly_fields") or [])
         editable_fields = _clean_fields(target_model, cfg.get("editable_fields") or [])
-        field_updates = _clean_field_updates(target_model, cfg.get("field_updates") or [])
+        for field in _fields_from_legacy_updates(target_model, cfg.get("field_updates") or []):
+            if field not in editable_fields:
+                editable_fields.append(field)
         if readonly_fields:
             step["readonly_fields"] = readonly_fields
         if editable_fields:
             step["editable_fields"] = editable_fields
-        if field_updates:
-            step["field_updates"] = field_updates
         binding = cfg.get("context_binding")
         if isinstance(binding, dict):
             binding_model = binding.get("model")
@@ -701,67 +694,6 @@ def apply_prompt_to_interface(interface_id: str, system_id: str, user_request: s
         return {"status": "error", "message": result, "patch": patch}
     except Interface.DoesNotExist:
         return {"status": "error", "message": f"Interface {interface_id} not found."}
-    except Exception as exc:
-        import traceback
-
-        return {"status": "error", "message": str(exc), "detail": traceback.format_exc()}
-
-
-def generate_and_run_seed_data(system_id: str, project_name: str) -> dict:
-    """Generate realistic prototype seed data and run it through the prototype API."""
-    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        return {
-            "status": "error",
-            "message": "GEMINI_API_KEY or GOOGLE_API_KEY is required for seed generation.",
-        }
-    if not system_id or not project_name:
-        return {"status": "error", "message": "system_id and project_name are required."}
-
-    try:
-        import google.genai as _genai
-
-        system_context = _system_context_from_orm(system_id)
-        prompt = (
-            "Generate a complete Python seed script for a running Django prototype.\n"
-            "Output Python code only, no markdown.\n"
-            "The script must be self-contained and use this boilerplate, filling values exactly:\n"
-            "import sys, os\n"
-            f"proto_path = '/usr/src/prototypes/generated_prototypes/{system_id}/{project_name}'\n"
-            "if proto_path not in sys.path:\n"
-            "    sys.path.insert(0, proto_path)\n"
-            f"os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{project_name}.settings')\n"
-            "import django; django.setup()\n"
-            "from shared_models.models import *\n\n"
-            "For each model, check row count first and skip if count > 0. "
-            "Create 3-6 realistic related records per empty model. "
-            "Respect foreign-key relationships and enum constraints. "
-            "Use print() to report what was created.\n\n"
-            f"System context: {_json.dumps(system_context, ensure_ascii=False)[:60000]}\n"
-        )
-        client = _genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model=os.getenv("DJANGO_AGENT_MODEL", "gemini-2.5-flash-lite"),
-            contents=prompt,
-            config={"max_output_tokens": 65536},
-        )
-        script = str(getattr(response, "text", "") or "").strip()
-        script = _re.sub(r"^```(?:python)?\s*|\s*```$", "", script).strip()
-        if not script:
-            return {"status": "error", "message": "Model returned an empty seed script."}
-
-        resp = _req.post(
-            f"{PROTOTYPE_API_BASE}/seed_script",
-            json={"script": script},
-            timeout=120,
-        )
-        if not resp.ok:
-            return {
-                "status": "error",
-                "message": f"Seed failed ({resp.status_code}): {resp.text[:1000]}",
-                "script": script,
-            }
-        return {"status": "ok", "message": resp.text or "Seeded OK", "script": script}
     except Exception as exc:
         import traceback
 

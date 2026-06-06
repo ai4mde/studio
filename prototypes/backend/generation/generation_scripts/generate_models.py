@@ -1,6 +1,6 @@
 from typing import List
 import sys
-from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod, define_cardinality
+from utils.definitions.model import Model, Attribute, AttributeType, CustomMethod, Cardinality, define_cardinality
 from utils.file_generation import generate_output_file
 import json
 from utils.sanitization import model_name_sanitization, attribute_name_sanitization, project_name_sanitization, custom_method_name_sanitization
@@ -16,6 +16,36 @@ def retrieve_class_name_by_id(node_id: str, diagram: str) -> str:
         if node["cls"]["type"] == "class":
             return model_name_sanitization(node["cls"]["name"])
         return None
+
+
+def _id_reference_model(attribute_name: str, current_model: str, model_names: set[str]) -> str | None:
+    """Resolve patient_id-style fields to an existing related model name."""
+    raw = attribute_name_sanitization(attribute_name or "").lower()
+    candidates = []
+    if raw.endswith("_id") and len(raw) > 3:
+        candidates.append(raw[:-3])
+    elif raw.endswith("id") and len(raw) > 2:
+        candidates.append(raw[:-2].rstrip("_"))
+    current = model_name_sanitization(current_model or "").lower()
+    for candidate in candidates:
+        if not candidate or candidate == current:
+            continue
+        for model_name in model_names:
+            if model_name.lower() == candidate:
+                return model_name
+    return None
+
+
+def _dedupe_attributes(attributes: List[Attribute]) -> List[Attribute]:
+    out = []
+    seen = set()
+    for attribute in attributes:
+        key = str(attribute.name)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(attribute)
+    return out
 
 
 # TODO: implement different type of foreign models for differnt type of associations
@@ -55,11 +85,24 @@ def retrieve_foreign_models(node: str, diagram: str) -> List[Attribute]:
     return out
 
 
-def retrieve_model_attributes(metadata: str, node: str) -> List[Attribute]:
+def retrieve_model_attributes(metadata: str, node: str, model_names: set[str] | None = None) -> List[Attribute]:
     """Function that parses the attributes of a class node from JSON to a Python objects"""
     out = []
+    model_names = model_names or set()
+    current_model = model_name_sanitization(node["cls"].get("name", ""))
 
     for attribute in node["cls"]["attributes"]:
+        relation_model = _id_reference_model(attribute.get("name", ""), current_model, model_names)
+        if relation_model:
+            out.append(Attribute(
+                name=relation_model,
+                type=AttributeType.FOREIGN_MODEL,
+                enum_literals=None,
+                cardinality=Cardinality.ZERO_MANY_TO_ONE,
+                derived=False,
+                body=None,
+            ))
+            continue
         att_type = AttributeType.NONE
         enum_literals = None
         if attribute["type"] == "str":
@@ -165,8 +208,21 @@ def retrieve_models(metadata: str) -> List[Model]:
 
     out = []
     try:
+        data = json.loads(metadata)
+        model_names = {
+            model_name_sanitization(node.get("cls", {}).get("name", ""))
+            for diagram in data.get("diagrams", [])
+            if diagram.get("type") == "classes"
+            for node in diagram.get("nodes", [])
+            if node.get("cls", {}).get("type") == "class" and node.get("cls", {}).get("name")
+        }
+        model_names.update({
+            model_name_sanitization((classifier.get("data") or {}).get("name", ""))
+            for classifier in data.get("classifiers", [])
+            if (classifier.get("data") or {}).get("type") == "class" and (classifier.get("data") or {}).get("name")
+        })
         if metadata:
-            for diagram in json.loads(metadata)["diagrams"]:
+            for diagram in data["diagrams"]:
                 if diagram["type"] != "classes":
                     continue
                 for node in diagram["nodes"]:
@@ -186,7 +242,7 @@ def retrieve_models(metadata: str) -> List[Model]:
                         deduped_methods.append(custom_method)
                     cls = Model(
                         name = model_name_sanitization(node["cls"]["name"]),
-                        attributes = retrieve_model_attributes(metadata, node) + retrieve_foreign_models(node, diagram),
+                        attributes = _dedupe_attributes(retrieve_model_attributes(metadata, node, model_names) + retrieve_foreign_models(node, diagram)),
                         custom_methods = deduped_methods
                     )
                     out.append(cls)
@@ -198,6 +254,11 @@ def retrieve_models(metadata: str) -> List[Model]:
     try:
         data_parsed = json.loads(metadata)
         seen_names = {m.name for m in out}
+        all_model_names = {
+            model_name_sanitization((classifier.get("data") or {}).get("name", ""))
+            for classifier in data_parsed.get("classifiers", [])
+            if (classifier.get("data") or {}).get("type") == "class" and (classifier.get("data") or {}).get("name")
+        } | seen_names
         for flat_cls in data_parsed.get("classifiers", []):
             cls_data = flat_cls.get("data", {})
             if cls_data.get("type") != "class":
@@ -207,6 +268,17 @@ def retrieve_models(metadata: str) -> List[Model]:
                 continue
             attrs_out = []
             for attribute in cls_data.get("attributes", []):
+                relation_model = _id_reference_model(attribute.get("name", ""), name, all_model_names)
+                if relation_model:
+                    attrs_out.append(Attribute(
+                        name=relation_model,
+                        type=AttributeType.FOREIGN_MODEL,
+                        enum_literals=None,
+                        cardinality=Cardinality.ZERO_MANY_TO_ONE,
+                        derived=attribute.get("derived", False),
+                        body=attribute.get("body"),
+                    ))
+                    continue
                 att_type = AttributeType.NONE
                 if attribute.get("type") == "str":
                     att_type = AttributeType.STRING
@@ -249,7 +321,7 @@ def retrieve_models(metadata: str) -> List[Model]:
                     custom_methods.append(m)
             out.append(Model(
                 name=name,
-                attributes=attrs_out,
+                attributes=_dedupe_attributes(attrs_out),
                 custom_methods=custom_methods,
             ))
             seen_names.add(name)

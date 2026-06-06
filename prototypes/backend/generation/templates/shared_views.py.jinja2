@@ -36,6 +36,98 @@ class GenericViewMixin{% if authentication_present -%}(LoginRequiredMixin, RoleR
     template_name = None
     context_object_name = None
 
+    def _norm_role_name(self, value):
+        return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+    def _model_matches_current_actor(self, model):
+        user = getattr(self.request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+        model_name = self._norm_role_name(getattr(model, "__name__", ""))
+        return model_name in {self._norm_role_name(role) for role in getattr(user, "roles", []) or []}
+
+    def _actor_owned_queryset(self, model, create_missing=False):
+        qs = model.objects.all()
+        user = getattr(self.request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return qs
+        if not self._model_matches_current_actor(model):
+            return qs
+
+        user_field = next(
+            (
+                field.name for field in model._meta.fields
+                if getattr(field, "is_relation", False)
+                and getattr(getattr(field, "remote_field", None), "model", None) == user.__class__
+            ),
+            None,
+        )
+        if user_field:
+            return qs.filter(**{user_field: user})
+
+        fields = {
+            field.name: field
+            for field in model._meta.fields
+            if not getattr(field, "primary_key", False) and getattr(field, "editable", False)
+        }
+        model_token = self._norm_role_name(getattr(model, "__name__", ""))
+        user_label = user.get_full_name() or user.username
+        filters = []
+        if f"{model_token}_id" in fields:
+            filters.append({f"{model_token}_id": user.username})
+        if "username" in fields:
+            filters.append({"username": user.username})
+        if "email" in fields and getattr(user, "email", ""):
+            filters.append({"email": user.email})
+        for name_field in ("name", "full_name", "display_name"):
+            if name_field in fields:
+                filters.append({name_field: user.get_full_name() or user.username})
+
+        scoped = model.objects.none()
+        for lookup in filters:
+            scoped = scoped | qs.filter(**lookup)
+        scoped = scoped.distinct()
+        if scoped.exists() or not create_missing:
+            return scoped
+
+        values = {}
+        if f"{model_token}_id" in fields:
+            values[f"{model_token}_id"] = user.username
+        if "username" in fields:
+            values["username"] = user.username
+        if "email" in fields:
+            values["email"] = getattr(user, "email", "") or f"{user.username}@example.com"
+        for name_field in ("name", "full_name", "display_name"):
+            if name_field in fields:
+                values[name_field] = user_label
+                break
+        if "first_name" in fields and not values.get("first_name"):
+            values["first_name"] = getattr(user, "first_name", "") or user.username
+        if "last_name" in fields and not values.get("last_name"):
+            values["last_name"] = getattr(user, "last_name", "") or model_token.title()
+        for field_name, field in fields.items():
+            if field_name in values:
+                continue
+            if getattr(field, "null", False) or getattr(field, "blank", False):
+                continue
+            internal_type = field.get_internal_type()
+            if internal_type in {"CharField", "TextField", "SlugField", "EmailField", "URLField"}:
+                values[field_name] = ""
+            elif internal_type in {"IntegerField", "PositiveIntegerField", "PositiveSmallIntegerField", "SmallIntegerField", "BigIntegerField"}:
+                values[field_name] = 0
+            elif internal_type in {"BooleanField", "NullBooleanField"}:
+                values[field_name] = False
+        try:
+            obj = model.objects.create(**values)
+            return model.objects.filter(pk=obj.pk)
+        except Exception:
+            return model.objects.none()
+
+    def _actor_owned_object_or_none(self, model, pk):
+        if not pk:
+            return None
+        return self._actor_owned_queryset(model, create_missing=True).filter(pk=pk).first()
+
 
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 class GenericTemplateView({% if authentication_present -%}LoginRequiredMixin, RoleRequiredMixin, {% endif %}TemplateView):
@@ -246,10 +338,9 @@ class GenericCreateView(GenericViewMixin, CreateView):
             related_model = getattr(getattr(field, "remote_field", None), "model", None)
             if related_model is None:
                 continue
-            try:
-                setattr(instance, field.name, related_model.objects.get(pk=value))
-            except Exception:
-                pass
+            related_obj = self._actor_owned_object_or_none(related_model, value)
+            if related_obj is not None:
+                setattr(instance, field.name, related_obj)
 
     def _missing_required_relation_fields(self, instance):
         if self.model is None:
@@ -340,10 +431,9 @@ class GenericUpdateView(GenericViewMixin, UpdateView):
             related_model = getattr(getattr(field, "remote_field", None), "model", None)
             if related_model is None:
                 continue
-            try:
-                setattr(instance, field.name, related_model.objects.get(pk=value))
-            except Exception:
-                pass
+            related_obj = self._actor_owned_object_or_none(related_model, value)
+            if related_obj is not None:
+                setattr(instance, field.name, related_obj)
 
     def _missing_required_relation_fields(self, instance):
         if self.model is None:

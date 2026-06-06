@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from shared_models.models import *
 from shared_models.views import GenericListView, GenericCreateView, GenericUpdateView, GenericDeleteView, GenericTemplateView
 from workflow_engine.models import ActiveProcess, ActiveProcessNode, Process
+from workflow_engine.views import _redirect_home_success, _redirect_to_active_node_or_success
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
@@ -61,23 +62,21 @@ def _normalize_form_instance_fields(instance, request, boolean_fields=(), empty_
             setattr(instance, field, None)
 
 
-def _apply_workflow_field_updates(instance, updates):
-    for update in updates or ():
-        field = update.get("field")
-        if not field or not hasattr(instance, field):
-            continue
-        current = getattr(instance, field) or 0
-        try:
-            delta = int(update.get("value", "1"))
-        except (TypeError, ValueError):
-            delta = 1
-        operation = update.get("operation")
-        if operation == "decrement":
-            setattr(instance, field, current - delta)
-        elif operation == "increment":
-            setattr(instance, field, current + delta)
-        elif operation == "set":
-            setattr(instance, field, delta)
+def _complete_activity_form_step(request, active_process_node):
+    active_process = active_process_node.active_process
+    active_process_node.complete_node(request.user)
+    next_active_process_node = ActiveProcessNode.objects.filter(
+        active_process=active_process,
+        action_node__url__isnull=False,
+    ).select_related("action_node", "user").filter(user=request.user).first()
+    if not next_active_process_node:
+        next_active_process_node = ActiveProcessNode.objects.filter(
+            active_process=active_process,
+            action_node__url__isnull=False,
+        ).select_related("action_node", "user").first()
+    if next_active_process_node:
+        return _redirect_to_active_node_or_success(request, next_active_process_node)
+    return _redirect_home_success(request)
 
 {# Create, Update, Delete views #}
 {% for page in pages -%}
@@ -123,6 +122,12 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
+        {% if page.type == 'activity' %}
+        active_process_node = get_object_or_404(
+            ActiveProcessNode,
+            pk=self.kwargs.get('active_process_node_id'),
+        )
+        {% endif -%}
         self._assign_posted_relation_fields(instance)
         if self._missing_required_relation_fields(instance):
             for label in self._missing_required_relation_fields(instance):
@@ -143,29 +148,41 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
             ],
         )
         {% for parent_model in section_component.parent_models -%}
+        {% set _relation_scopes = section_component.style.get('relation_data_scopes', {}) if section_component.style else {} -%}
+        {% set _parent_scope = _relation_scopes.get(parent_model, {}) -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
         if not _pk_{{ parent_model }}:
             _pk_{{ parent_model }} = self.request.POST.get('instance_id_{{ parent_model }}')
         if _pk_{{ parent_model }}:
-            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=_pk_{{ parent_model }})
+            {% if _parent_scope.get('mode') == 'actor_owned' -%}
+            _obj_{{ parent_model }} = self._actor_owned_object_or_none({{ parent_model }}, _pk_{{ parent_model }})
+            {% else -%}
+            _obj_{{ parent_model }} = {{ parent_model }}.objects.filter(pk=_pk_{{ parent_model }}).first()
+            {% endif -%}
+            if _obj_{{ parent_model }} is None:
+                form.add_error(None, "{{ parent_model }} is not available for this user.")
+                return self.form_invalid(form)
+            instance.{{ parent_model }} = _obj_{{ parent_model }}
+        {% if _parent_scope.get('mode') == 'actor_owned' -%}
         elif not getattr(instance, '{{ parent_model }}_id', None):
-            instance.{{ parent_model }} = {{ parent_model }}.objects.first()
+            instance.{{ parent_model }} = self._actor_owned_queryset({{ parent_model }}, create_missing=True).first()
+        {% endif -%}
         {% endfor -%}
         {% if page.type == 'activity' %}
         {% for parent_model in section_component.parent_models -%}
         if not getattr(instance, '{{ parent_model }}_id', None):
-            _apn_{{ parent_model }} = get_object_or_404(ActiveProcessNode, pk=self.kwargs.get('active_process_node_id'))
             _ct_{{ parent_model }} = ContentType.objects.get_for_model({{ parent_model }})
-            _ami_{{ parent_model }} = _apn_{{ parent_model }}.active_process.associated_model_instances.filter(content_type=_ct_{{ parent_model }}).first()
+            _ami_{{ parent_model }} = active_process_node.active_process.associated_model_instances.filter(content_type=_ct_{{ parent_model }}).first()
             if _ami_{{ parent_model }}:
                 instance.{{ parent_model }}_id = _ami_{{ parent_model }}.instance_id
         {% endfor -%}
         instance.save()
-        active_process_node = get_object_or_404(
-            ActiveProcessNode,
-            pk=self.kwargs.get('active_process_node_id'),
-        )
         active_process_node.active_process.add_associated_instance(instance)
+        {% for parent_model in section_component.parent_models -%}
+        if getattr(instance, '{{ parent_model }}_id', None):
+            active_process_node.active_process.add_associated_instance(instance.{{ parent_model }})
+        {% endfor -%}
+        return _complete_activity_form_step(self.request, active_process_node)
         {% endif -%}
         return super().form_valid(form)
 {% endif %}
@@ -213,12 +230,12 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
 
     def form_valid(self, form):
         instance = form.save(commit=False)
-        {% set _workflow_semantics = section_component.style.get('workflow_semantics', {}) if section_component.style else {} -%}
-        _apply_workflow_field_updates(instance, [
-            {% for update in _workflow_semantics.get('field_updates', []) -%}
-            {"field": "{{ update.get("field", "") }}", "operation": "{{ update.get("operation", "") }}", "value": "{{ update.get("value", "1") }}"}{% if not loop.last %}, {% endif %}
-            {% endfor -%}
-        ])
+        {% if page.type == 'activity' %}
+        active_process_node = get_object_or_404(
+            ActiveProcessNode,
+            pk=self.kwargs.get('active_process_node_id'),
+        )
+        {% endif -%}
         _normalize_form_instance_fields(
             instance,
             self.request,
@@ -234,10 +251,29 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
             ],
         )
         {% for parent_model in section_component.parent_models -%}
+        {% set _relation_scopes = section_component.style.get('relation_data_scopes', {}) if section_component.style else {} -%}
+        {% set _parent_scope = _relation_scopes.get(parent_model, {}) -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
         if _pk_{{ parent_model }}:
-            instance.{{ parent_model }} = get_object_or_404({{ parent_model }}, pk=_pk_{{ parent_model }})
+            {% if _parent_scope.get('mode') == 'actor_owned' -%}
+            _obj_{{ parent_model }} = self._actor_owned_object_or_none({{ parent_model }}, _pk_{{ parent_model }})
+            {% else -%}
+            _obj_{{ parent_model }} = {{ parent_model }}.objects.filter(pk=_pk_{{ parent_model }}).first()
+            {% endif -%}
+            if _obj_{{ parent_model }} is None:
+                form.add_error(None, "{{ parent_model }} is not available for this user.")
+                return self.form_invalid(form)
+            instance.{{ parent_model }} = _obj_{{ parent_model }}
         {% endfor -%}
+        {% if page.type == 'activity' %}
+        instance.save()
+        active_process_node.active_process.add_associated_instance(instance)
+        {% for parent_model in section_component.parent_models -%}
+        if getattr(instance, '{{ parent_model }}_id', None):
+            active_process_node.active_process.add_associated_instance(instance.{{ parent_model }})
+        {% endfor -%}
+        return _complete_activity_form_step(self.request, active_process_node)
+        {% endif -%}
         return super().form_valid(form)
 {% endif -%}
 
@@ -289,9 +325,14 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% endif -%}
 
     {% if page.type == 'activity' and models_on_pages[page]['primary_models'] | length > 0 -%}
+    {% set _pm0_scope = page.section_components[0].style.get('data_scope', {}) if page.section_components and page.section_components[0].style else {} -%}
     def get_queryset(self):
         _associated_qs = self.active_process_node.active_process.{{ models_on_pages[page]['primary_models'][0].lower() }}s
+        {% if _pm0_scope.get('mode') == 'actor_owned' -%}
+        qs = _associated_qs if _associated_qs.exists() else self._actor_owned_queryset({{ models_on_pages[page]['primary_models'][0] }}, create_missing=True)
+        {% else -%}
         qs = _associated_qs if _associated_qs.exists() else {{ models_on_pages[page]['primary_models'][0] }}.objects.all()
+        {% endif -%}
         {%- set select_related_fields = [] %}
         {%- if page.section_components %}
             {%- for attr in page.section_components[0].attributes %}
@@ -308,6 +349,7 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     {% elif models_on_pages[page]['primary_models'] | length > 0 -%}
     {% set _pm0 = models_on_pages[page]['primary_models'][0] -%}
     {% set _pm0_parents = page.section_components[0].parent_models if page.section_components else [] -%}
+    {% set _pm0_scope = page.section_components[0].style.get('data_scope', {}) if page.section_components and page.section_components[0].style else {} -%}
     def get_queryset(self):
         _id = self.request.GET.get('instance_id_{{ _pm0 }}')
         if _id:
@@ -321,7 +363,11 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
                     qs = {{ _pm0 }}.objects.filter({{ parent_model }}_id=_pid_{{ parent_model }})
             {% endfor -%}
             if qs is None:
+                {% if _pm0_scope.get('mode') == 'actor_owned' -%}
+                qs = self._actor_owned_queryset({{ _pm0 }}, create_missing=True)
+                {% else -%}
                 qs = {{ _pm0 }}.objects.all()
+                {% endif -%}
         
         {%- set select_related_fields = [] %}
         {%- if page.section_components %}
@@ -342,10 +388,28 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         {% for model in models_on_pages[page]['parent_models'] -%}
+        {% set _parent_scope = namespace(actor_owned=False) -%}
+        {% for section in page.section_components -%}
+        {% set _relation_scopes = section.style.get('relation_data_scopes', {}) if section.style else {} -%}
+        {% if _relation_scopes.get(model, {}).get('mode') == 'actor_owned' -%}
+        {% set _parent_scope.actor_owned = True -%}
+        {% endif -%}
+        {% endfor -%}
+        {% if _parent_scope.actor_owned -%}
+        context['parent_{{model}}_list'] = self._actor_owned_queryset({{model}}, create_missing=True)
+        {% else -%}
         context['parent_{{model}}_list'] = {{model}}.objects.all()
+        {% endif -%}
         {% endfor -%}
         {% if page.type == 'activity' -%}
         {% for section in page.section_components -%}
+        {% if section.primary_model -%}
+        if self.active_process_node:
+            _ct_workflow_{{ section.primary_model }} = ContentType.objects.get_for_model({{ section.primary_model }})
+            _ami_workflow_{{ section.primary_model }} = self.active_process_node.active_process.associated_model_instances.filter(content_type=_ct_workflow_{{ section.primary_model }}).order_by('-id').first()
+            if _ami_workflow_{{ section.primary_model }}:
+                context['workflow_instance_{{ section.primary_model }}'] = {{ section.primary_model }}.objects.filter(pk=_ami_workflow_{{ section.primary_model }}.instance_id).first()
+        {% endif -%}
         {% if section.primary_model and section.has_update_operation and not section.has_create_operation -%}
         if self.active_process_node and context.get('update_instance') is None:
             _ct_update_{{ section }} = ContentType.objects.get_for_model({{ section.primary_model }})
@@ -361,6 +425,16 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% for section in page.section_components -%}
         {% if section.primary_model and (section.has_create_operation or section.has_update_operation) -%}
         context['relation_fields_{{ section }}'] = _required_relation_field_options({{ section.primary_model }}, exclude={{ section.parent_models }}, request=self.request, instance=context.get('update_instance'), active_process=(self.active_process_node.active_process if self.active_process_node else None) if '{{ page.type }}' == 'activity' else None)
+        {% set _relation_scopes = section.style.get('relation_data_scopes', {}) if section.style else {} -%}
+        {% for parent_model in section.parent_models -%}
+        {% if _relation_scopes.get(parent_model, {}).get('mode') == 'actor_owned' -%}
+        for _relation_field in context['relation_fields_{{ section }}']:
+            if _relation_field.get('name') == '{{ parent_model }}':
+                _relation_field['options'] = list(self._actor_owned_queryset({{ parent_model }}, create_missing=True))
+                if not _relation_field.get('selected_id') and _relation_field['options']:
+                    _relation_field['selected_id'] = str(_relation_field['options'][0].pk)
+        {% endif -%}
+        {% endfor -%}
         {% endif -%}
         {% endfor -%}
         {% if page.section_components and models_on_pages[page]['primary_models'] -%}

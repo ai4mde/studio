@@ -231,11 +231,16 @@ def _activity_layout_from_action(action: str, hint: str) -> tuple[str, str, str]
 
 def _activity_form_operations(action: str) -> list[str]:
     text = str(action or "").lower()
-    create_terms = ("create", "add", "new", "record", "submit", "register", "enter")
+    create_terms = ("create", "add", "new", "record", "submit", "register", "enter", "request", "apply", "book", "schedule", "reserve")
     update_terms = ("update", "edit", "change", "set", "mark", "renew", "return")
     if any(term in text for term in update_terms) and not any(term in text for term in create_terms):
         return ["update"]
     return ["create"]
+
+
+def _is_create_like_activity(action: str) -> bool:
+    text = str(action or "").lower()
+    return any(term in text for term in ("request", "apply", "submit", "book", "schedule", "reserve", "create", "register", "enter"))
 
 
 def _merge_field_names(*groups: list[str]) -> list[str]:
@@ -245,10 +250,6 @@ def _merge_field_names(*groups: list[str]) -> list[str]:
             if field and field not in out:
                 out.append(field)
     return out
-
-
-def _fields_from_updates(updates: list[dict]) -> list[str]:
-    return _merge_field_names([str(update.get("field") or "") for update in updates or []])
 
 
 def _semantic_section_attrs(step_attrs: list[dict], readonly: list[str], editable: list[str]) -> list[dict]:
@@ -271,9 +272,47 @@ def _workflow_semantics_payload(workflow_semantic: dict, readonly: list[str], ed
         payload["readonly_fields"] = readonly
     if editable:
         payload["editable_fields"] = editable
-    if workflow_semantic.get("field_updates"):
-        payload["field_updates"] = workflow_semantic.get("field_updates")
     return payload
+
+
+def _actor_owned_data_scope(actor_name: str, model: str) -> dict:
+    """Return an explicit section data scope when the section represents the current actor's own record."""
+    if not actor_name or not model:
+        return {}
+    if not _is_actor_self_model(actor_name, model):
+        return {}
+    return {
+        "mode": "actor_owned",
+        "source": "current_actor",
+        "model": model,
+    }
+
+
+def _is_actor_self_model(actor_name: str, model: str) -> bool:
+    """True when a model represents the current actor's own identity record."""
+    return bool(actor_name and model and _sid(actor_name) == _sid(model))
+
+
+def _relation_data_scopes(actor_name: str, parent_models: list[str]) -> dict:
+    """Mark parent relations that should be resolved from the current actor instead of the full table."""
+    scopes = {}
+    for parent_model in parent_models or []:
+        scope = _actor_owned_data_scope(actor_name, parent_model)
+        if scope:
+            scopes[parent_model] = scope
+    return scopes
+
+
+def _model_relation_data_scopes(actor_name: str, model_info: dict) -> dict:
+    """Infer relation scopes for foreign-key style fields on a section's model."""
+    parent_models = []
+    for attr in model_info.get("attributes") or []:
+        if isinstance(attr, dict) and attr.get("model"):
+            parent_models.append(attr["model"])
+    for assoc in model_info.get("associations") or []:
+        if isinstance(assoc, dict) and assoc.get("model"):
+            parent_models.append(assoc["model"])
+    return _relation_data_scopes(actor_name, parent_models)
 
 
 def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
@@ -299,6 +338,9 @@ def _section(
     attributes: list[dict] | None = None,
     **extra,
 ) -> dict:
+    style_override = extra.pop("style", None)
+    data_scope = extra.pop("data_scope", None)
+    relation_data_scopes = extra.pop("relation_data_scopes", None)
     sec = {
         "id": section_id,
         "page_id": page_id,
@@ -324,6 +366,12 @@ def _section(
         },
         "col_span": 12,
     }
+    if isinstance(style_override, dict):
+        sec["style"].update(style_override)
+    if isinstance(data_scope, dict) and data_scope:
+        sec["style"]["data_scope"] = data_scope
+    if isinstance(relation_data_scopes, dict) and relation_data_scopes:
+        sec["style"]["relation_data_scopes"] = relation_data_scopes
     sec.update(extra)
     return sec
 
@@ -478,6 +526,7 @@ def generate_interface_plan(
     model_graph: dict = uml_intelligence.get("model_graph") or {}
     actor_intel: dict = uml_intelligence.get("actor_intel") or {}
     workflow_intel: dict = uml_intelligence.get("workflow_intel") or {}
+    current_actor_name = (uml_intelligence.get("actor_name") or actor_intel.get("actor_name") or "").strip()
 
     target_permissions: dict[str, list] = actor_intel.get("target_permissions") or {}
     target_use_cases: list[dict] = actor_intel.get("target_use_cases") or []
@@ -521,6 +570,7 @@ def generate_interface_plan(
         original_role = role
         model = uc.get("primary_model") or ""
         perms = set(uc.get("permissions") or [])
+        is_actor_self = _is_actor_self_model(current_actor_name, model)
         if model and (original_role == "workflow_entry" or uc.get("has_workflow")):
             workflow_collection_models[model].update(perms or {"read"})
         if uc.get("has_workflow") and model and role == "workflow_entry":
@@ -528,6 +578,8 @@ def generate_interface_plan(
             # separate object workspace for the model so actors still get normal
             # browse/detail UI instead of only task forms.
             role = "object_workspace"
+        if is_actor_self and role in {"collection_workspace", "object_workspace"}:
+            role = "detail_workspace"
 
         if role == "workflow_entry":
             page_id = f"{_sid(model or uc['name'])}_workflow" if model else _sid(uc["name"])
@@ -560,8 +612,13 @@ def generate_interface_plan(
             continue  # will appear as a section on parent's detail page
         has_page = any(v["model"] == model for v in page_map.values())
         if not has_page:
-            page_id = _plural(model)
-            page_map[page_id] = {"id": page_id, "role": "collection_workspace", "model": model,
+            if _is_actor_self_model(current_actor_name, model):
+                page_id = f"{_sid(model)}_detail"
+                role = "detail_workspace"
+            else:
+                page_id = _plural(model)
+                role = "collection_workspace"
+            page_map[page_id] = {"id": page_id, "role": role, "model": model,
                                   "permissions": set(perms), "use_cases": [], "has_workflow": False}
         else:
             for v in page_map.values():
@@ -573,7 +630,7 @@ def generate_interface_plan(
     # workflow model only produced a detail/workflow page, add a collection page
     # for tracking without forcing unrelated subordinate models into navigation.
     for model, perms in workflow_collection_models.items():
-        if model in subordinate_models:
+        if model in subordinate_models or _is_actor_self_model(current_actor_name, model):
             continue
         page_id = _plural(model)
         if page_id in page_map:
@@ -606,7 +663,7 @@ def generate_interface_plan(
             "name": _title(page_id),
             "primary_model": model,
             "role": page_role,
-            "nav": page_role in {"collection_workspace", "object_workspace"},
+            "nav": page_role in {"collection_workspace", "object_workspace"} or _is_actor_self_model(current_actor_name, model),
             "sections": [],
         })
 
@@ -627,6 +684,8 @@ def generate_interface_plan(
                 visible=visible, editable=[],
                 operations=[p for p in ("create", "read", "update", "delete") if p in permissions or p == "read"],
                 attributes=model_info.get("attributes", []),
+                data_scope=_actor_owned_data_scope(current_actor_name, model),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
             ))
             filter_fields = _pick_fields(model_info, "filter", 5)
             if filter_fields and _should_add_filter(layout, model_info, page_role):
@@ -638,6 +697,8 @@ def generate_interface_plan(
                     model=model, visible=filter_fields, editable=filter_fields,
                     operations=["read"],
                     attributes=model_info.get("attributes", []),
+                    data_scope=_actor_owned_data_scope(current_actor_name, model),
+                    relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
                     style={"color": "neutral", "density": "compact", "shadow": "none",
                            "border": "none", "bg": "surface", "col_span": 12},
                 ))
@@ -652,6 +713,8 @@ def generate_interface_plan(
                 layout="detail", component=component, model=model,
                 visible=visible, editable=[], operations=["read"],
                 attributes=model_info.get("attributes", []),
+                data_scope=_actor_owned_data_scope(current_actor_name, model),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
             ))
             if can_create or can_update:
                 form_fields = _pick_fields(model_info, "object_form", 10)
@@ -664,6 +727,8 @@ def generate_interface_plan(
                         model=model, visible=form_fields, editable=form_fields,
                         operations=[p for p in ("create", "update") if p in permissions],
                         attributes=model_info.get("attributes", []),
+                        data_scope=_actor_owned_data_scope(current_actor_name, model),
+                        relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
                     ))
             # Add child sections from composition + subordinates + 1:many associations
             _add_association_sections(
@@ -699,6 +764,8 @@ def generate_interface_plan(
             layout="detail", component=override.get("detail_component") or _detail_component(model),
             model=model, visible=visible, editable=[], operations=["read"],
             attributes=model_info.get("attributes", []),
+            data_scope=_actor_owned_data_scope(current_actor_name, model),
+            relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
         ))
         form_fields = _pick_fields(model_info, "object_form", 10)
         if form_fields:
@@ -710,6 +777,8 @@ def generate_interface_plan(
                 model=model, visible=form_fields, editable=form_fields,
                 operations=[p for p in ("create", "update") if p in perms],
                 attributes=model_info.get("attributes", []),
+                data_scope=_actor_owned_data_scope(current_actor_name, model),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info),
             ))
         _add_association_sections(
             detail_id, model, model_info, model_graph,
@@ -722,7 +791,7 @@ def generate_interface_plan(
     _DETAIL_HINTS = {"DetailPanel"}
     _LIST_HINTS = {"SelectionList"}
 
-    current_actor_name = (uml_intelligence.get("actor_name") or "").strip().lower()
+    current_actor_name_l = current_actor_name.lower()
 
     for wf in workflow_intel.get("workflows") or []:
         if not wf.get("is_multi_step"):
@@ -745,14 +814,21 @@ def generate_interface_plan(
                 or {}
             )
             step_intent = workflow_semantic.get("intent") or ""
+            if not step_intent and _is_create_like_activity(action):
+                step_intent = "create_record"
+                workflow_semantic = {
+                    **workflow_semantic,
+                    "intent": step_intent,
+                    "target_model": workflow_semantic.get("target_model") or step_model,
+                }
 
             is_automatic_step = bool(step.get("is_automatic"))
 
             # Swim lane filter: only generate pages for steps in this actor's lane.
             step_actor = (step.get("actor_node_name") or "").strip().lower()
-            actor_lane_assigned = bool(step_actor and current_actor_name and step_actor == current_actor_name)
+            actor_lane_assigned = bool(step_actor and current_actor_name_l and step_actor == current_actor_name_l)
             other_actor_step = False
-            if step_actor and current_actor_name and step_actor != current_actor_name:
+            if step_actor and current_actor_name_l and step_actor != current_actor_name_l:
                 continue
 
             override_model = step_override.get("model")
@@ -780,12 +856,6 @@ def generate_interface_plan(
                 for field in (step_override.get("editable_fields") or [])
                 if field in valid_step_fields
             ]
-            semantic_update_fields = [
-                field
-                for field in _fields_from_updates(workflow_semantic.get("field_updates") or [])
-                if field in valid_step_fields
-            ]
-            auto_update_fields = set(semantic_update_fields)
             semantic_readonly = [
                 field
                 for field in (workflow_semantic.get("readonly_fields") or step_override.get("readonly_fields") or [])
@@ -794,7 +864,7 @@ def generate_interface_plan(
             semantic_editable = [
                 field
                 for field in (workflow_semantic.get("editable_fields") or override_editable or [])
-                if field in valid_step_fields and field not in auto_update_fields
+                if field in valid_step_fields
             ]
 
             # Pick layout and component from LLM semantic override first; fall back
@@ -832,12 +902,12 @@ def generate_interface_plan(
                 ops = ["create"]
             elif step_intent == "update_record":
                 layout, role, component = "form", "object_form", "ObjectForm"
-                editable = semantic_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 2))
+                editable = semantic_editable or _pick_fields(step_model_info, "object_form", 2)
                 readonly = semantic_readonly or [
                     field for field in _pick_fields(step_model_info, "object_detail", 6)
                     if field not in set(editable)
                 ]
-                visible = _merge_field_names(readonly, semantic_update_fields, editable)
+                visible = _merge_field_names(readonly, editable)
                 ops = ["update"]
             elif override_layout in {"form", "list", "detail"} and override_component:
                 layout = override_layout
@@ -848,12 +918,12 @@ def generate_interface_plan(
                     role = "object_form" if layout == "form" else ("object_collection" if layout == "list" else "object_detail")
                 if layout == "form":
                     ops = _activity_form_operations(action)
-                    editable = semantic_editable or override_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 8))
+                    editable = semantic_editable or override_editable or _pick_fields(step_model_info, "object_form", 8)
                     readonly = semantic_readonly or [
                         field for field in _pick_fields(step_model_info, "object_detail", 6)
                         if field not in set(editable)
                     ]
-                    visible = _merge_field_names(readonly, semantic_update_fields, editable) if ops == ["update"] else editable
+                    visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
                 elif layout == "list":
                     visible = _pick_fields(step_model_info, "object_collection", 6)
                     editable = []
@@ -876,12 +946,12 @@ def generate_interface_plan(
                 layout, role = "form", "object_form"
                 component = hint if hint != "FileUpload" else "ObjectForm"
                 ops = _activity_form_operations(action)
-                editable = semantic_editable or override_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 8))
+                editable = semantic_editable or override_editable or _pick_fields(step_model_info, "object_form", 8)
                 readonly = semantic_readonly or [
                     field for field in _pick_fields(step_model_info, "object_detail", 6)
                     if field not in set(editable)
                 ]
-                visible = _merge_field_names(readonly, semantic_update_fields, editable) if ops == ["update"] else editable
+                visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
             elif hint in _LIST_HINTS:
                 layout, role = "list", "object_collection"
                 component = _collection_component(step_model, "list") if step_model else "ObjectList"
@@ -933,6 +1003,12 @@ def generate_interface_plan(
             semantic_payload = _workflow_semantics_payload(workflow_semantic, effective_readonly, effective_editable)
             if semantic_payload:
                 section_style["workflow_semantics"] = semantic_payload
+            data_scope = _actor_owned_data_scope(current_actor_name, step_model)
+            if data_scope:
+                section_style["data_scope"] = data_scope
+            relation_scopes = _model_relation_data_scopes(current_actor_name, step_model_info)
+            if relation_scopes:
+                section_style["relation_data_scopes"] = relation_scopes
             if visible or step_model:
                 add_section(_section(
                     page_id=step_page_id,

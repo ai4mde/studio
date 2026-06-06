@@ -3,7 +3,6 @@ import copy
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
 from llm.gemini_make_agent.django_service import (
-    generate_and_run_seed_data,
     map_uml_to_all_interfaces as run_uml_mapping_for_system,
     map_uml_to_interface as run_uml_mapping_for_interface,
 )
@@ -420,31 +419,6 @@ def regenerate_interface_candidates(request, payload: RegenerateCandidatesPayloa
     resp['X-Accel-Buffering'] = 'no'
     resp['Cache-Control'] = 'no-cache'
     return resp
-
-
-
-
-@prototypes.post("/seed_ai/")
-def seed_prototype_ai(request, system_id: str):
-    """Stream seed-data generation through Django-hosted agent logic."""
-    proto = Prototype.objects.filter(system__id=system_id).order_by('-id').first()
-    if not proto:
-        raise HttpError(404, "No prototype found for this system")
-
-    project_name = proto.name
-
-    def stream():
-        yield json.dumps({"status": "Starting seed generation..."}) + "\n"
-        result = generate_and_run_seed_data(system_id, project_name)
-        if result.get("status") != "ok":
-            yield json.dumps({"status": "error", "message": result.get("message", "")}) + "\n"
-            return
-        yield json.dumps({
-            "status": "done",
-            "message": result.get("message", "Seed data generated successfully."),
-        }) + "\n"
-
-    return StreamingHttpResponse(stream(), content_type="application/x-ndjson")
 
 
 
