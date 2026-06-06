@@ -780,6 +780,12 @@ def generate_interface_plan(
                 for field in (step_override.get("editable_fields") or [])
                 if field in valid_step_fields
             ]
+            semantic_update_fields = [
+                field
+                for field in _fields_from_updates(workflow_semantic.get("field_updates") or [])
+                if field in valid_step_fields
+            ]
+            auto_update_fields = set(semantic_update_fields)
             semantic_readonly = [
                 field
                 for field in (workflow_semantic.get("readonly_fields") or step_override.get("readonly_fields") or [])
@@ -788,12 +794,7 @@ def generate_interface_plan(
             semantic_editable = [
                 field
                 for field in (workflow_semantic.get("editable_fields") or override_editable or [])
-                if field in valid_step_fields
-            ]
-            semantic_update_fields = [
-                field
-                for field in _fields_from_updates(workflow_semantic.get("field_updates") or [])
-                if field in valid_step_fields
+                if field in valid_step_fields and field not in auto_update_fields
             ]
 
             # Pick layout and component from LLM semantic override first; fall back
@@ -831,12 +832,12 @@ def generate_interface_plan(
                 ops = ["create"]
             elif step_intent == "update_record":
                 layout, role, component = "form", "object_form", "ObjectForm"
-                editable = semantic_editable or semantic_update_fields or _pick_fields(step_model_info, "object_form", 2)
+                editable = semantic_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 2))
                 readonly = semantic_readonly or [
                     field for field in _pick_fields(step_model_info, "object_detail", 6)
                     if field not in set(editable)
                 ]
-                visible = _merge_field_names(readonly, editable)
+                visible = _merge_field_names(readonly, semantic_update_fields, editable)
                 ops = ["update"]
             elif override_layout in {"form", "list", "detail"} and override_component:
                 layout = override_layout
@@ -847,12 +848,12 @@ def generate_interface_plan(
                     role = "object_form" if layout == "form" else ("object_collection" if layout == "list" else "object_detail")
                 if layout == "form":
                     ops = _activity_form_operations(action)
-                    editable = semantic_editable or semantic_update_fields or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                    editable = semantic_editable or override_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 8))
                     readonly = semantic_readonly or [
                         field for field in _pick_fields(step_model_info, "object_detail", 6)
                         if field not in set(editable)
                     ]
-                    visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
+                    visible = _merge_field_names(readonly, semantic_update_fields, editable) if ops == ["update"] else editable
                 elif layout == "list":
                     visible = _pick_fields(step_model_info, "object_collection", 6)
                     editable = []
@@ -875,12 +876,12 @@ def generate_interface_plan(
                 layout, role = "form", "object_form"
                 component = hint if hint != "FileUpload" else "ObjectForm"
                 ops = _activity_form_operations(action)
-                editable = semantic_editable or semantic_update_fields or override_editable or _pick_fields(step_model_info, "object_form", 8)
+                editable = semantic_editable or override_editable or ([] if semantic_update_fields else _pick_fields(step_model_info, "object_form", 8))
                 readonly = semantic_readonly or [
                     field for field in _pick_fields(step_model_info, "object_detail", 6)
                     if field not in set(editable)
                 ]
-                visible = _merge_field_names(readonly, editable) if ops == ["update"] else editable
+                visible = _merge_field_names(readonly, semantic_update_fields, editable) if ops == ["update"] else editable
             elif hint in _LIST_HINTS:
                 layout, role = "list", "object_collection"
                 component = _collection_component(step_model, "list") if step_model else "ObjectList"

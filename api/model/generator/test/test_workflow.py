@@ -178,10 +178,10 @@ class WorkflowSemanticTests(APITestCase):
         section = next(s for s in plan["sections"] if s["name"] == "Update Book Status")
         self.assertEqual(section["operations"], ["update"])
         self.assertEqual(section["visible_fields"], ["isbn", "title", "copies_available"])
-        self.assertEqual(section["editable_fields"], ["copies_available"])
+        self.assertEqual(section["editable_fields"], [])
         self.assertEqual(
             [(attr["name"], attr.get("readonly")) for attr in section["attributes"]],
-            [("isbn", True), ("title", True), ("copies_available", False)],
+            [("isbn", True), ("title", True), ("copies_available", True)],
         )
         self.assertEqual(
             section["style"]["workflow_semantics"]["field_updates"],

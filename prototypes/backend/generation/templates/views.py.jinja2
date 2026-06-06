@@ -51,6 +51,34 @@ def _required_relation_field_options(model, exclude=(), request=None, instance=N
         })
     return relation_fields
 
+
+def _normalize_form_instance_fields(instance, request, boolean_fields=(), empty_to_none_fields=()):
+    for field in boolean_fields or ():
+        if hasattr(instance, field):
+            setattr(instance, field, request.POST.get(field) == 'on')
+    for field in empty_to_none_fields or ():
+        if hasattr(instance, field) and not getattr(instance, field):
+            setattr(instance, field, None)
+
+
+def _apply_workflow_field_updates(instance, updates):
+    for update in updates or ():
+        field = update.get("field")
+        if not field or not hasattr(instance, field):
+            continue
+        current = getattr(instance, field) or 0
+        try:
+            delta = int(update.get("value", "1"))
+        except (TypeError, ValueError):
+            delta = 1
+        operation = update.get("operation")
+        if operation == "decrement":
+            setattr(instance, field, current - delta)
+        elif operation == "increment":
+            setattr(instance, field, current + delta)
+        elif operation == "set":
+            setattr(instance, field, delta)
+
 {# Create, Update, Delete views #}
 {% for page in pages -%}
 {% for section_component in page.section_components -%}
@@ -100,17 +128,20 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
             for label in self._missing_required_relation_fields(instance):
                 form.add_error(None, f"{label} is required.")
             return self.form_invalid(form)
-        {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived and '.' not in attribute.name -%}
-        {% if attribute.type == AttributeType.BOOLEAN -%}
-        if hasattr(instance, '{{ attribute }}'):
-            setattr(instance, '{{ attribute }}', self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
-        if hasattr(instance, '{{ attribute }}') and not getattr(instance, '{{ attribute }}'):
-            setattr(instance, '{{ attribute }}', None)
-        {% endif -%}
-        {% endif -%}
-        {% endfor -%}
+        _normalize_form_instance_fields(
+            instance,
+            self.request,
+            boolean_fields=[
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.updatable and not attribute.derived and '.' not in attribute.name and attribute.type == AttributeType.BOOLEAN -%}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif -%}
+                {% endfor -%}
+            ],
+            empty_to_none_fields=[
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.updatable and not attribute.derived and '.' not in attribute.name and attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif -%}
+                {% endfor -%}
+            ],
+        )
         {% for parent_model in section_component.parent_models -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
         if not _pk_{{ parent_model }}:
@@ -183,34 +214,25 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
     def form_valid(self, form):
         instance = form.save(commit=False)
         {% set _workflow_semantics = section_component.style.get('workflow_semantics', {}) if section_component.style else {} -%}
-        {% for update in _workflow_semantics.get('field_updates', []) -%}
-        if hasattr(instance, '{{ update.get("field") }}'):
-            _current_{{ loop.index }} = getattr(instance, '{{ update.get("field") }}') or 0
-            try:
-                _delta_{{ loop.index }} = int('{{ update.get("value", "1") }}')
-            except (TypeError, ValueError):
-                _delta_{{ loop.index }} = 1
-            {% if update.get("operation") == "decrement" -%}
-            setattr(instance, '{{ update.get("field") }}', _current_{{ loop.index }} - _delta_{{ loop.index }})
-            {% elif update.get("operation") == "increment" -%}
-            setattr(instance, '{{ update.get("field") }}', _current_{{ loop.index }} + _delta_{{ loop.index }})
-            {% elif update.get("operation") == "set" -%}
-            setattr(instance, '{{ update.get("field") }}', _delta_{{ loop.index }})
-            {% else -%}
-            pass
-            {% endif -%}
-        {% endfor -%}
-        {% for attribute in section_component.attributes -%}
-        {% if attribute.updatable and not attribute.derived and '.' not in attribute.name -%}
-        {% if attribute.type == AttributeType.BOOLEAN -%}
-        if hasattr(instance, '{{ attribute }}'):
-            setattr(instance, '{{ attribute }}', self.request.POST.get('{{ attribute }}') == 'on')
-        {% elif attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}
-        if hasattr(instance, '{{ attribute }}') and not getattr(instance, '{{ attribute }}'):
-            setattr(instance, '{{ attribute }}', None)
-        {% endif -%}
-        {% endif -%}
-        {% endfor -%}
+        _apply_workflow_field_updates(instance, [
+            {% for update in _workflow_semantics.get('field_updates', []) -%}
+            {"field": "{{ update.get("field", "") }}", "operation": "{{ update.get("operation", "") }}", "value": "{{ update.get("value", "1") }}"}{% if not loop.last %}, {% endif %}
+            {% endfor -%}
+        ])
+        _normalize_form_instance_fields(
+            instance,
+            self.request,
+            boolean_fields=[
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.updatable and not attribute.derived and '.' not in attribute.name and attribute.type == AttributeType.BOOLEAN -%}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif -%}
+                {% endfor -%}
+            ],
+            empty_to_none_fields=[
+                {% for attribute in section_component.attributes -%}
+                {% if attribute.updatable and not attribute.derived and '.' not in attribute.name and attribute.type in [AttributeType.STRING, AttributeType.ENUM, AttributeType.VIDEO] -%}'{{ attribute }}'{% if not loop.last %}, {% endif %}{% endif -%}
+                {% endfor -%}
+            ],
+        )
         {% for parent_model in section_component.parent_models -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
         if _pk_{{ parent_model }}:
