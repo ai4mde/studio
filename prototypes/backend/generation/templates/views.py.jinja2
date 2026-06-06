@@ -172,7 +172,7 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         self.object = self.get_object()
         data = request.POST.copy()
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived and attribute.type != AttributeType.BOOLEAN and '.' not in attribute.name -%}
+        {% if attribute.updatable and not attribute.derived and attribute.type != AttributeType.BOOLEAN and '.' not in attribute.name -%}
         if '{{ attribute }}' not in data and hasattr(self.object, '{{ attribute }}'):
             data['{{ attribute }}'] = getattr(self.object, '{{ attribute }}', '') or ''
         {% endif -%}
@@ -196,10 +196,12 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
             setattr(instance, '{{ update.get("field") }}', _current_{{ loop.index }} + _delta_{{ loop.index }})
             {% elif update.get("operation") == "set" -%}
             setattr(instance, '{{ update.get("field") }}', _delta_{{ loop.index }})
+            {% else -%}
+            pass
             {% endif -%}
         {% endfor -%}
         {% for attribute in section_component.attributes -%}
-        {% if not attribute.derived and '.' not in attribute.name -%}
+        {% if attribute.updatable and not attribute.derived and '.' not in attribute.name -%}
         {% if attribute.type == AttributeType.BOOLEAN -%}
         if hasattr(instance, '{{ attribute }}'):
             setattr(instance, '{{ attribute }}', self.request.POST.get('{{ attribute }}') == 'on')

@@ -49,6 +49,7 @@ create_shared_models_app() {
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}"
     python -m django startapp "shared_models"
     python "${WORKDIR}/generation_scripts/generate_models.py" "$PROJECT_NAME" "$METADATA" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
+    python "${WORKDIR}/generation_scripts/generate_shared_views.py" "$PROJECT_NAME" "$AUTH_PRESENT" "$PROJECT_SYSTEM"
     cd "${OUTDIR}/${PROJECT_SYSTEM}/${PROJECT_NAME}/${PROJECT_NAME}"
 	echo "INSTALLED_APPS += ['shared_models']" >> settings.py
 }

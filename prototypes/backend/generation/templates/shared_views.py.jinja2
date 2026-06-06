@@ -10,10 +10,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import CreateView, UpdateView, ListView, DeleteView, TemplateView
 from django.views import View
 import inspect
+from workflow_engine.models import ActionLog, ActiveProcessNode
 {% if authentication_present -%}
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
-
-from workflow_engine.models import ActionLog, ActiveProcessNode
 
 
 class RoleRequiredMixin(UserPassesTestMixin):
