@@ -112,29 +112,6 @@ def _render_candidate_preview_local(interface_id: str, candidate_index: int) -> 
     Interface.objects.filter(id=interface_id).update(data=data)
     return f"OK: preview rendered for candidate {candidate_index}."
 
-_PROMPT_COLOR_RE = re.compile(
-    r"#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b|"
-    r"\b(?:purple|violet|indigo|blue|sky|cyan|aqua|teal|turquoise|green|emerald|lime|"
-    r"yellow|amber|gold|orange|rose|pink|red|navy|brown|beige|tan|cream|dark|black|"
-    r"slate|zinc|neutral|gray|grey|white)\b|"
-    r"[紫蓝藍绿綠青靛橙粉红紅白黑灰棕米金黄黃]",
-    re.I,
-)
-
-
-def _prompt_mentions_color(prompt: str = "") -> bool:
-    return bool(_PROMPT_COLOR_RE.search(str(prompt or "")))
-
-
-def _neutral_candidate_label(label: str, prompt: str, fallback: str) -> str:
-    """Avoid color-led candidate labels unless the designer explicitly asked for color."""
-    text = str(label or "").strip()
-    if not text:
-        return fallback
-    if _prompt_mentions_color(prompt):
-        return text
-    return fallback if _PROMPT_COLOR_RE.search(text) else text
-
 
 def _norm_candidate_styling(styling) -> dict:
     if styling:
@@ -408,8 +385,8 @@ def validate_and_save_candidate(
         data["categories"] = _merge_page_categories(data.get("categories") or [], fixed_pages)
         candidates = list(data.get("candidates") or [])
         label_prompt = prompt or designer_requirements
-        name = _neutral_candidate_label(name, label_prompt, _candidate_variant_name(label_prompt, candidate_index))
-        variation_strategy = _neutral_candidate_label(variation_strategy, label_prompt, name)
+        name = name or _candidate_variant_name(label_prompt, candidate_index)
+        variation_strategy = variation_strategy or name
         candidate = {
             "id": f"c{candidate_index}", "name": name, "description": description,
             "pages": fixed_pages, "sections": fixed_sections,
@@ -862,7 +839,7 @@ def generate_candidate_set(interface_id: str, prompt: str = "") -> str:
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
             fallback_name = _candidate_variant_name(prompt, index)
-            variant_name = _neutral_candidate_label(llm_cand.get("name"), prompt, fallback_name)
+            variant_name = llm_cand.get("name") or fallback_name
             styling["variantIndex"] = index
             styling["variantName"] = variant_name
             variation_strategy = variant_name
@@ -932,7 +909,7 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
                 elif isinstance(llm_tokens, dict) and llm_tokens.get(key) is not None:
                     styling[key] = llm_tokens[key]
             fallback_name = _candidate_variant_name(designer_requirements, index)
-            base_variant_name = _neutral_candidate_label(llm_cand.get("name"), designer_requirements, fallback_name)
+            base_variant_name = llm_cand.get("name") or fallback_name
             styling["variantIndex"] = index
             styling["variantName"] = base_variant_name
             variant_name = f"{base_variant_name} Regen"
