@@ -27,8 +27,12 @@ def _build_activity_diagrams(system_data: dict) -> list:
 
     out = []
     for diagram in diagrams:
-        if diagram.get("type") != "activity": continue
-        raw_nodes = diagram.get("nodes") or []; raw_edges = diagram.get("edges") or []; nodes = []; node_by_cls = {}
+        if diagram.get("type") != "activity":
+            continue
+        raw_nodes = diagram.get("nodes") or []
+        raw_edges = diagram.get("edges") or []
+        nodes = []
+        node_by_cls = {}
         for node in raw_nodes:
             cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
             classifier = classifiers.get(cls_id, {})
@@ -38,14 +42,22 @@ def _build_activity_diagrams(system_data: dict) -> list:
                 if actor_name:
                     cls_data["actorNodeName"] = actor_name
             nodes.append({"id": str(node.get("id")), "cls_ptr": cls_id, "cls": cls_data, "data": node.get("data", {})})
-            if cls_id: node_by_cls[cls_id] = str(node.get("id"))
+            if cls_id:
+                node_by_cls[cls_id] = str(node.get("id"))
         edges = []
         for edge in raw_edges:
-            rel_id = str(edge.get("rel") or edge.get("rel_id") or edge.get("rel_ptr") or ""); relation = relations.get(rel_id, {}); source_cls = str(relation.get("source") or relation.get("source_id") or ""); target_cls = str(relation.get("target") or relation.get("target_id") or ""); source_ptr = node_by_cls.get(source_cls); target_ptr = node_by_cls.get(target_cls)
-            if not source_ptr or not target_ptr: continue
+            rel_id = str(edge.get("rel") or edge.get("rel_id") or edge.get("rel_ptr") or "")
+            relation = relations.get(rel_id, {})
+            source_cls = str(relation.get("source") or relation.get("source_id") or "")
+            target_cls = str(relation.get("target") or relation.get("target_id") or "")
+            source_ptr = node_by_cls.get(source_cls)
+            target_ptr = node_by_cls.get(target_cls)
+            if not source_ptr or not target_ptr:
+                continue
             edges.append({"id": str(edge.get("id")), "source_ptr": source_ptr, "target_ptr": target_ptr, "rel_ptr": rel_id, "rel": relation.get("data", {}), "data": edge.get("data", {})})
         out.append({"id": str(diagram.get("id")), "name": diagram.get("name", ""), "type": "activity", "nodes": nodes, "edges": edges})
     return out
+
 
 def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> set[str]:
     refs = {str(actor_id)} if actor_id else set()
@@ -68,6 +80,7 @@ def _actor_refs(system_data: dict, actor_id: str | None, actor_name: str | None 
                 refs.add(cls_id)
     return {ref for ref in refs if ref and ref != "None"}
 
+
 def _ref_values(values) -> set[str]:
     out = set()
     for value in values or []:
@@ -78,6 +91,7 @@ def _ref_values(values) -> set[str]:
         if ref:
             out.add(str(ref))
     return out
+
 
 def _ref_list(values) -> list[str]:
     out = []
@@ -92,6 +106,7 @@ def _ref_list(values) -> list[str]:
             seen.add(str(ref))
     return out
 
+
 def _name_tokens(value: str) -> set[str]:
     spaced = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", str(value or ""))
     tokens = {
@@ -101,6 +116,7 @@ def _name_tokens(value: str) -> set[str]:
     }
     singulars = {token[:-1] for token in tokens if len(token) > 3 and token.endswith("s")}
     return tokens | singulars
+
 
 def _rank_models_for_text(text: str, models: list[str], prefer_collections: bool = False) -> list[str]:
     text_tokens = _name_tokens(text)
@@ -118,6 +134,7 @@ def _rank_models_for_text(text: str, models: list[str], prefer_collections: bool
     ranked.sort(reverse=True)
     return [model for score, _index, model in ranked if score > 0]
 
+
 def _infer_usecase_model(name: str, explicit_classes: list[str], classifiers: dict[str, dict], model_names: set[str]) -> str:
     for ref in explicit_classes:
         cls = classifiers.get(ref, {})
@@ -126,6 +143,7 @@ def _infer_usecase_model(name: str, explicit_classes: list[str], classifiers: di
             return cname
     ranked = _rank_models_for_text(name, sorted(model_names, key=len, reverse=True))
     return ranked[0] if ranked else ""
+
 
 def _humanize_action_label(name: str, fallback: str = "Start") -> str:
     raw = re.sub(r"[_-]+", " ", str(name or "")).strip()
@@ -136,6 +154,7 @@ def _humanize_action_label(name: str, fallback: str = "Start") -> str:
         return "Start"
     return cleaned[:1].upper() + cleaned[1:] if cleaned else fallback
 
+
 def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
     name_l = str(model_name or "").lower()
     if not name_l:
@@ -144,6 +163,7 @@ def _is_child_collection_model(model_name: str, page_terms: str = "") -> bool:
         return True
     return False
 
+
 def _plural_page_id(model: str) -> str:
     base = _section_id(model or "items")
     if base.endswith("y"):
@@ -151,6 +171,7 @@ def _plural_page_id(model: str) -> str:
     if base.endswith("s"):
         return base
     return f"{base}s"
+
 
 def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dict:
     name = str(usecase.get("name") or "")
@@ -222,6 +243,7 @@ def _nav_mapping_for_usecase(usecase: dict, workflow_entry: bool = False) -> dic
     page_id = _section_id(primary or name)
     return {"role": "object_workspace", "page_id": page_id, "page_name": _page_name(page_id), "page_model": primary, "operation_kind": "manage_object"}
 
+
 def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[str], set[str]]:
     by_id = {}
     first_ids = set()
@@ -255,6 +277,7 @@ def _activity_action_indexes(system_data: dict) -> tuple[dict[str, dict], set[st
                     first_ids.add(cls_id)
     return by_id, first_ids, all_ids
 
+
 def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, activity_first_ids: set[str], activity_all_ids: set[str]) -> bool:
     if not has_activity_workflow:
         return False
@@ -274,6 +297,7 @@ def _usecase_has_workflow_entry(usecase: dict, has_activity_workflow: bool, acti
         return True
     return False
 
+
 def _infer_usecase_permissions(name: str) -> list[str]:
     name_l = str(name or "").lower()
     perms = {"view"}
@@ -287,6 +311,7 @@ def _infer_usecase_permissions(name: str) -> list[str]:
     if any(term in name_l for term in ("delete", "remove", "cancel")):
         perms.add("delete")
     return [p for p in ("view", "create", "update", "delete") if p in perms]
+
 
 def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> dict:
     refs = _actor_refs(system_data, actor_id, actor_name)
@@ -444,6 +469,7 @@ def _build_usecase_navigation(system_data: dict, actor_id: str | None, actor_nam
     nav["nav_plan"] = build_navigation_plan(nav, model_attrs, workflow_steps)
     return nav
 
+
 def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | None = None) -> list:
     refs = _actor_refs(system_data, actor_id, actor_name)
     classifiers = {
@@ -521,6 +547,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
             })
     return steps
 
+
 def _activity_models_for_step(step: dict, workflow_entries: list, known_models: set[str]) -> list[str]:
     name_l = str(step.get("activity_node_name") or step.get("page_name") or "").lower()
     explicit_step_models = [m for m in step.get("classes") or [] if m in known_models]
@@ -543,6 +570,7 @@ def _activity_models_for_step(step: dict, workflow_entries: list, known_models: 
     prefer_collections = any(term in _name_tokens(name_l) for term in ("add", "select", "choose", "pick", "search", "browse", "list", "review", "manage"))
     ranked = _rank_models_for_text(name_l, related, prefer_collections=prefer_collections)
     return ranked[:2] or related[:1]
+
 
 def _activity_layout_for_step(step_name: str, model: str) -> str:
     name_tokens = _name_tokens(step_name)

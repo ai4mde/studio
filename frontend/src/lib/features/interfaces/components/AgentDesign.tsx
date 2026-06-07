@@ -2,8 +2,9 @@ import { authAxios, useAuthStore } from '$auth/state/auth';
 import { trackEvent } from '$lib/features/analytics/trackEvent';
 import { Button, Modal, ModalClose, ModalDialog, Tooltip, Typography } from '@mui/joy';
 import Editor from '@monaco-editor/react';
-import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, Plus, RefreshCw, Table2, Wand2 } from 'lucide-react';
+import { AlignJustify, Code2, Database, Eye, GalleryHorizontal, GripVertical, HelpCircle, Info, LayoutGrid, Loader2, Maximize2, Minimize2, Monitor, PlayCircle, Plus, RefreshCw, Table2, User, Wand2 } from 'lucide-react';
 import { startInterfaceTour } from './useInterfaceTour';
+import { startWorkflowGuidance, resolveActorUsername } from './useWorkflowGuidance';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { prototypeURL } from '$shared/globals';
 import useLocalStorage from './useLocalStorage';
@@ -595,6 +596,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     };
     const [liveKey, setLiveKey] = useState(0);
     const [liveUser, setLiveUser] = useState('jan_devries');
+    const [isEditingLiveUser, setIsEditingLiveUser] = useState(false);
+    const [liveUserDraft, setLiveUserDraft] = useState('');
 
     const [currentPrompt, setCurrentPrompt] = useState('');
     const [isLoadingAgent, setIsLoadingAgent] = useState(false);
@@ -3628,6 +3631,47 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 <RefreshCw size={12} />Refresh
                             </button>
                         )}
+                        {previewMode === 'live' && (
+                            <div id="tour-live-user-btn" style={{ position: 'relative' }}>
+                                {isEditingLiveUser ? (
+                                    <form
+                                        onSubmit={e => {
+                                            e.preventDefault();
+                                            const val = liveUserDraft.trim();
+                                            if (val) { setLiveUser(val); setLiveKey(k => k + 1); }
+                                            setIsEditingLiveUser(false);
+                                        }}
+                                        style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                                    >
+                                        <input
+                                            autoFocus
+                                            value={liveUserDraft}
+                                            onChange={e => setLiveUserDraft(e.target.value)}
+                                            onBlur={() => setIsEditingLiveUser(false)}
+                                            placeholder="username"
+                                            style={{
+                                                width: 120, padding: '2px 7px', fontSize: 12,
+                                                border: '1px solid #93c5fd', borderRadius: 6,
+                                                outline: 'none',
+                                            }}
+                                        />
+                                    </form>
+                                ) : (
+                                    <button
+                                        onClick={() => { setLiveUserDraft(liveUser); setIsEditingLiveUser(true); }}
+                                        title="Change the logged-in prototype user"
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: 5,
+                                            padding: '2px 8px', borderRadius: 6, fontSize: 12,
+                                            border: '1px solid #bfdbfe', background: '#eff6ff',
+                                            color: '#1d4ed8', cursor: 'pointer',
+                                        }}>
+                                        <User size={12} />
+                                        {liveUser}
+                                    </button>
+                                )}
+                            </div>
+                        )}
                         <button id="tour-map-uml-btn" onClick={handleMapUml} disabled={isMapping || !interfaceId}
                             title="Map UML diagrams to interface pages and sections via AI"
                             style={{
@@ -3652,7 +3696,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                             {isSeedingData ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Database size={12} />}
                             {seedStatus === 'ok' ? 'Seeded!' : seedStatus === 'error' ? 'Failed' : 'Seed Data'}
                         </button>
-                        <button onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
+                        <button id="tour-sync-live-btn" onClick={handleSyncLivePrototype} disabled={isSyncingLive || !interfaceId || !systemId}
                             title="Regenerate a live prototype from the current preview"
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 12,
@@ -3687,6 +3731,43 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                 opacity: !interfaceId || !systemId || isLoadingMetadata ? 0.55 : 1,
                             }}>
                             {isLoadingMetadata ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Code2 size={13} />}
+                        </button>
+                        <button
+                            onClick={() => {
+                                const actor = systemClassifiers.find(
+                                    (cls: any) => String(cls?.id) === String(currentInterface?.actor)
+                                );
+                                const actorName = String(
+                                    actor?.data?.name || currentInterface?.name || 'Actor'
+                                );
+                                startWorkflowGuidance({
+                                    allPages: pages as any[],
+                                    allSections: sections as any[],
+                                    actorName,
+                                    switchToLive: () => {
+                                        setPreviewMode('live');
+                                        setLiveKey((k: number) => k + 1);
+                                    },
+                                    navigateToPage: (idx) => {
+                                        setPreviewPageIndex(idx);
+                                        setSelectedSectionId(null);
+                                        setLiveKey((k: number) => k + 1);
+                                    },
+                                    switchActor: (username) => {
+                                        setLiveUser(username);
+                                        setLiveKey((k: number) => k + 1);
+                                    },
+                                });
+                            }}
+                            title="Test workflow step-by-step"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 4,
+                                padding: '3px 8px', borderRadius: 6, fontSize: 12,
+                                border: '1px solid #a7f3d0', background: '#ecfdf5',
+                                color: '#065f46', cursor: 'pointer',
+                            }}>
+                            <PlayCircle size={13} />
+                            Test Workflow
                         </button>
                         <button
                             onClick={() => startInterfaceTour({ switchToExplore: () => setDesignMode('explore'), switchToRefine: () => setDesignMode('refine') })}

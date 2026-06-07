@@ -81,6 +81,7 @@ def _ensure_mapping_chrome_sections(pages: list, sections: list) -> tuple[list, 
 
     return pages, sections
 
+
 def _ensure_mapping_content_sections(
     pages: list,
     sections: list,
@@ -136,6 +137,7 @@ def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
             result.append(section)
     return result
 
+
 def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list]:
     """Agent output may compose many header elements, but only one header/nav shell."""
     section_map = {str(s.get("id")): s for s in sections if s.get("id")}
@@ -158,13 +160,17 @@ def _dedupe_agent_header_shells(pages: list, sections: list) -> tuple[list, list
         next_pages.append(page)
     return next_pages, next_sections
 
+
 def _inject_chrome_sections(new_sections: list, sections: list, section_map: dict, pages: list, prepend: bool) -> None:
     for s in new_sections:
-        sid = s["id"]; suffix = 2
+        sid = s["id"]
+        suffix = 2
         while sid in section_map:
-            sid = f"{s['id']}_{suffix}"; suffix += 1
+            sid = f"{s['id']}_{suffix}"
+            suffix += 1
         s["id"] = sid
-        sections.append(s); section_map[sid] = s
+        sections.append(s)
+        section_map[sid] = s
     for page in pages:
         refs = page.get("sections") or []
         ref_ids = {_ref_id(ref) for ref in refs}
@@ -360,6 +366,7 @@ def _ensure_candidate_content_structure(
     fixed_pages = normal_pages + activity_pages
     return fixed_pages, sections
 
+
 def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
     if not usecase_navigation:
         return pages
@@ -392,6 +399,7 @@ def _ensure_usecase_pages(pages: list, usecase_navigation: dict) -> list:
         })
         existing.add(page_id)
     return pages
+
 
 def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigation: dict) -> tuple[list, list]:
     entries = usecase_navigation.get("workflow_entry_points") or []
@@ -427,6 +435,7 @@ def _ensure_workflow_entry_sections(pages: list, sections: list, usecase_navigat
         if sid not in {_ref_id(ref) for ref in refs}:
             page["sections"] = refs + [{"value": sid}]
     return pages, sections
+
 
 def _ensure_pre_workflow_content_sections(
     pages: list,
@@ -520,6 +529,7 @@ def _ensure_pre_workflow_content_sections(
         page["sections"] = other_refs + [{"value": sid}] + activity_start_refs
     return pages, sections
 
+
 def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) -> list:
     nav_ids = {_section_id(pid) for pid in (usecase_navigation.get("nav_bar_pages") or []) if pid}
     page_by_id = {_section_id(p.get("id") or p.get("name")): p for p in pages}
@@ -545,6 +555,7 @@ def _apply_nav_methods(pages: list, sections: list, usecase_navigation: dict) ->
             section["style"] = style
         fixed.append(section)
     return fixed
+
 
 def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, model_attrs: dict) -> tuple[list, list]:
     if not nav_plan:
