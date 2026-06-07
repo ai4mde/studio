@@ -1,11 +1,9 @@
 import re
 
-from .token_normalizer import _section_id
+from .token_normalizer import _page_name, _section_id
 from .uml_mapping.usecase_workflow import (
     _activity_layout_for_step,
     _activity_models_for_step,
-    _humanize_action_label,
-    _is_child_collection_model,
     _name_tokens,
 )
 
@@ -122,7 +120,6 @@ def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
     page_id = _section_id(step.get("page_id") or step.get("page_name") or "workflow")
     model_id = _section_id(model)
     layout = _activity_layout_for_step(step.get("activity_node_name", ""), model)
-    name_l = f"{step.get('activity_node_name', '')} {model}".lower()
     style = {
         "color": "accent",
         "density": "compact" if layout in {"list", "table"} else "normal",
@@ -786,7 +783,7 @@ def _section_is_data(section: dict) -> bool:
         section.get("primary_model")
         and (
             layout in {"card", "list", "table", "detail", "gallery", "filter", "form", "timeline", "map"}
-            or role in DATA_SECTION_ROLES
+            or role in _DATA_SECTION_ROLES
             or section.get("attributes")
         )
     )
