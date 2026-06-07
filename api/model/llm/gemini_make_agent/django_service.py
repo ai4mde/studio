@@ -18,7 +18,7 @@ from .uml_mapping.mapping_sections import (
     _ensure_mapping_chrome_sections,
     _ensure_mapping_content_sections,
 )
-from .uml_mapping.metadata_context import _actor_name_from_context
+from .uml_mapping.metadata_context import _actor_name_from_context, _node_position
 from .section_utils import (
     _normalize_select_existing_sections,
     _normalize_layout_alias,
@@ -42,12 +42,6 @@ def _interface_to_agent_dict(interface: Interface) -> dict:
         "actor": str(interface.actor_id) if interface.actor_id else None,
         "data": interface.data or {},
     }
-
-
-def _node_position(node) -> tuple[object, object]:
-    data = node.data or {}
-    position = data.get("position") or {}
-    return position.get("x", data.get("x")), position.get("y", data.get("y"))
 
 
 def _system_context_from_orm(system_id: str) -> dict:

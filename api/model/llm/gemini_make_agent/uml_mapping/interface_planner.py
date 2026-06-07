@@ -9,12 +9,10 @@ Takes extracted UML intelligence and generates a concrete interface plan:
 import re
 from collections import defaultdict
 
+from ..token_normalizer import _sid
+
 
 # ─── helpers ─────────────────────────────────────────────────────────────────
-
-def _sid(name: str) -> str:
-    s = re.sub(r"[^a-zA-Z0-9]+", "_", str(name or "").strip()).strip("_").lower()
-    return s or "section"
 
 
 def _plural(model: str) -> str:

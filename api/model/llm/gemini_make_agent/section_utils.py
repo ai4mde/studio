@@ -487,28 +487,6 @@ def _normalize_select_existing_sections(pages: list, sections: list) -> list:
         fixed.append(section)
     return fixed
 
-def _field_layout_field_refs(field_layout) -> set[str]:
-    refs = set()
-    if not isinstance(field_layout, dict):
-        return refs
-    slot_keys = {"image", "video", "media", "avatar", "hero", "title", "subtitle", "primary", "price", "description", "count"}
-    list_keys = {"secondary", "badges", "meta", "facts", "fields", "hidden"}
-    for key, value in field_layout.items():
-        if key in slot_keys and isinstance(value, str) and value:
-            refs.add(value)
-        elif key in list_keys and isinstance(value, list):
-            refs.update(str(v) for v in value if isinstance(v, str) and v)
-        elif key == "columns" and isinstance(value, list):
-            for column in value:
-                if isinstance(column, dict) and column.get("field"):
-                    refs.add(str(column["field"]))
-        elif key == "groups" and isinstance(value, list):
-            for group in value:
-                if isinstance(group, dict) and isinstance(group.get("fields"), list):
-                    refs.update(str(v) for v in group["fields"] if isinstance(v, str) and v)
-        elif key == "field_styles" and isinstance(value, dict):
-            refs.update(str(field) for field in value.keys() if field)
-    return refs
 
 _FIELD_SLOT_MAP = {
     "card": {"image", "video", "media", "title", "subtitle", "primary", "secondary", "hidden"},
@@ -582,18 +560,6 @@ def _field_list(value) -> list[str]:
         elif isinstance(item, str) and item:
             result.append(item)
     return result
-
-def _component_for_layout(section: dict, layout: str) -> str:
-    if layout == "table":
-        return "DataTable"
-    if layout == "list":
-        return "ObjectList"
-    if layout == "form":
-        return "ObjectForm"
-    if layout == "filter":
-        return "FilterPanel"
-    section = {**section, "layout": layout}
-    return _infer_section_component(section)
 
 def _normalize_field_layout(section: dict) -> dict:
     attrs = section.get("attributes") or []

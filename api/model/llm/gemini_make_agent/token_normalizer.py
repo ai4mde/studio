@@ -19,6 +19,11 @@ def _workflow_page_name(value: str) -> str:
 def _section_id(value: str) -> str:
     return _name_id(value).lower()
 
+
+def _sid(name: str) -> str:
+    s = re.sub(r"[^a-zA-Z0-9]+", "_", str(name or "").strip()).strip("_").lower()
+    return s or "section"
+
 def _hex_to_rgb(value: object) -> tuple[int, int, int] | None:
     if not isinstance(value, str):
         return None

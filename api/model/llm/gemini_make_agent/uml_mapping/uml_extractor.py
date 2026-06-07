@@ -9,12 +9,10 @@ Extracts all structured information from 3 UML diagram types:
 import re
 from collections import defaultdict
 
+from ..token_normalizer import _sid
+
 
 # ─── utilities ───────────────────────────────────────────────────────────────
-
-def _sid(name: str) -> str:
-    s = re.sub(r"[^a-zA-Z0-9]+", "_", str(name or "").strip()).strip("_").lower()
-    return s or "section"
 
 
 def _cardinality(source_mult: str, target_mult: str) -> str:
