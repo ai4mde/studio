@@ -6,11 +6,11 @@ import os
 import re as _re
 
 import requests as _req
+from llm.prompts.interface_edit import build_interface_edit_prompt
 from llm.prompts.semantics import build_resolve_interface_semantics_prompt
 from metadata.models import Interface, System
 
 from .interface_patch import apply_interface_patch
-from .interface_schemas import _DATA_SCHEMA, _LAYOUT_SCHEMA
 from .uml_mapping.interface_planner import generate_interface_plan
 from .uml_mapping.mapping_sections import (
     _drop_unreferenced_non_global_sections,
@@ -561,20 +561,11 @@ def apply_prompt_to_interface(interface_id: str, system_id: str, user_request: s
             if isinstance(iface.get("data"), dict) and key in iface.get("data", {})
         }
 
-        prompt = (
-            "Convert the user's UI edit request into one JSON patch for the interface editor.\n"
-            "Output JSON only. Do not include markdown.\n"
-            "Patch schema: {\"pages\": [...], \"sections\": [...], \"styling\": {...}, \"tokens\": {...}}.\n"
-            "Only include fields that must change. Preserve existing human edits unless explicitly asked.\n"
-            "Every changed page/section must include its existing id. New page/section ids must be stable snake_case strings.\n"
-            "Data-bound section attributes must use only real classifier attributes listed below.\n"
-            "Do not invent model fields. For static/chrome/media sections use primary_model='', class='', attributes=[].\n\n"
-            f"Actor: {actor_name}\n"
-            f"Classifiers: {_json.dumps(classifiers, ensure_ascii=False)}\n"
-            f"Current interface: {_json.dumps(current_data, ensure_ascii=False)[:50000]}\n"
-            f"User request: {user_request}\n\n"
-            f"Editable layout fields:\n{_LAYOUT_SCHEMA}\n\n"
-            f"Editable data fields:\n{_DATA_SCHEMA}\n"
+        prompt = build_interface_edit_prompt(
+            actor_name=actor_name,
+            classifiers=classifiers,
+            current_data=current_data,
+            user_request=user_request,
         )
 
         client = _genai.Client(api_key=api_key)
