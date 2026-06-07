@@ -428,22 +428,25 @@ def map_uml_to_interface(interface_id: str) -> dict:
             for s in sections
         ]
 
-        model_attrs = {}
-        for classifier in _as_list(system_data.get("classifiers"), "classifiers"):
-            cdata = classifier.get("data", {}) if isinstance(classifier, dict) else {}
-            cname = cdata.get("name", "")
-            attrs = {
+        model_attrs = {
+            cdata.get("name"): {
                 a.get("name", "")
                 for a in cdata.get("attributes", [])
                 if isinstance(a, dict) and a.get("name")
             }
-            if cname:
-                model_attrs[cname] = attrs
+            for classifier in _as_list(system_data.get("classifiers"), "classifiers")
+            if isinstance(classifier, dict)
+            for cdata in [classifier.get("data", {})]
+            if cdata.get("name")
+        }
         usecase_navigation = _build_usecase_navigation(system_data, actor_id, actor_name)
         completed = _apply_builtin_workflow_logic(
             {"pages": db_pages, "sections": db_sections},
             iface.get("system"),
             iface.get("actor"),
+            system_context=system_data,
+            usecase_navigation=usecase_navigation,
+            model_attrs=model_attrs,
         )
         db_pages = completed.get("pages") or db_pages
         db_sections = completed.get("sections") or db_sections
