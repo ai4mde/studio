@@ -35,6 +35,11 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
     const [, setPages] = useLocalStorage('pages', []);
     const [, setSections] = useLocalStorage('sections', []);
     const [, setSettings] = useLocalStorage('settings', {});
+    const [, setScopedStyling] = useLocalStorage(`interface:${app_comp}:styling`, {});
+    const [, setScopedCategories] = useLocalStorage(`interface:${app_comp}:categories`, []);
+    const [, setScopedPages] = useLocalStorage(`interface:${app_comp}:pages`, []);
+    const [, setScopedSections] = useLocalStorage(`interface:${app_comp}:sections`, []);
+    const [, setScopedSettings] = useLocalStorage(`interface:${app_comp}:settings`, {});
     const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState<number | string>(0);
     const [autoSaveEnabled, setAutoSaveEnabled] = useState(() => {
@@ -56,11 +61,15 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
 
     const handleSave = useCallback(async () => {
         if (!data) return;
-        const styling = JSON.parse(localStorage.getItem('styling')) || {};
-        const categories = JSON.parse(localStorage.getItem('categories')) || [];
-        const pages = JSON.parse(localStorage.getItem('pages')) || [];
-        const sections = JSON.parse(localStorage.getItem('sections')) || [];
-        const settings = JSON.parse(localStorage.getItem('settings')) || {};
+        const scoped = (key: string, fallback: string) => {
+            const raw = localStorage.getItem(`interface:${app_comp}:${key}`) ?? localStorage.getItem(fallback);
+            return raw ? JSON.parse(raw) : (key === 'styling' || key === 'settings' ? {} : []);
+        };
+        const styling = scoped('styling', 'styling');
+        const categories = scoped('categories', 'categories');
+        const pages = scoped('pages', 'pages');
+        const sections = scoped('sections', 'sections');
+        const settings = scoped('settings', 'settings');
 
         setIsSaving(true);
         try {
@@ -110,12 +119,28 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
         setPages(interfaceData.pages || []);
         setSections(interfaceData.sections || []);
         setSettings(interfaceData.settings || {});
+        setScopedStyling(interfaceData.styling || {});
+        setScopedCategories(interfaceData.categories || []);
+        setScopedPages(interfaceData.pages || []);
+        setScopedSections(interfaceData.sections || []);
+        setScopedSettings(interfaceData.settings || {});
     }, [data?.data, isSuccess]);
 
     useEffect(() => {
         if (!autoSaveEnabled || !isSuccess) return;
 
-        const watchedKeys = new Set(['styling', 'categories', 'pages', 'sections', 'settings']);
+        const watchedKeys = new Set([
+            'styling',
+            'categories',
+            'pages',
+            'sections',
+            'settings',
+            `interface:${app_comp}:styling`,
+            `interface:${app_comp}:categories`,
+            `interface:${app_comp}:pages`,
+            `interface:${app_comp}:sections`,
+            `interface:${app_comp}:settings`,
+        ]);
         const scheduleSave = () => {
             if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
             autoSaveTimer.current = setTimeout(() => {
@@ -222,13 +247,13 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             {activeTab === 2 && <Categories />}
                         </TabPanel>
                         <TabPanel value={3}>
-                            {activeTab === 3 && <Pages actorName = {data?.name}/>}
+                            {activeTab === 3 && <Pages actorName={data?.name} interfaceId={app_comp} />}
                         </TabPanel>
                         <TabPanel value={4}>
                             {activeTab === 4 && <PageRegions />}
                         </TabPanel>
                         <TabPanel value={5}>
-                            {activeTab === 5 && <Sections />}
+                            {activeTab === 5 && <Sections interfaceId={app_comp} />}
                         </TabPanel>
                         <TabPanel value={6}>
                             {activeTab === 6 && <Styling />}

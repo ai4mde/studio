@@ -13,33 +13,52 @@ import useLocalStorage from './useLocalStorage';
 
 type Props = {
     actorName: string;
+    interfaceId?: string;
 };
 
-export const Pages: React.FC<Props> = ({ actorName }) => {
+export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
     const { systemId } = useParams();
-    const [data, setData, isSuccess] = useLocalStorage('pages', []);
+    const storagePrefix = interfaceId || 'new-interface';
+    const [data, setData, isSuccess] = useLocalStorage(`interface:${storagePrefix}:pages`, []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
-    const [categories, , isSuccessCategories] = useLocalStorage('categories', []);
+    const [categories, , isSuccessCategories] = useLocalStorage(`interface:${storagePrefix}:categories`, []);
     const [selectedCategory, setSelectedCategory] = useLocalStorage('selectedCategory', '');
     const [selectedPageType, setSelectedPageType] = useLocalStorage('selectedPageType', '');
     const [selectedLayout, setSelectedLayout] = useLocalStorage('selectedLayout', '');
     const [selectedGap, setSelectedGap] = useLocalStorage('selectedGap', '');
     const [selectedAction, setSelectedAction] = useLocalStorage('selectedAction', '');
-    const [sections, , isSuccessSections] = useLocalStorage('sections', []);
+    const [sections, , isSuccessSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
     const [selectedSections, setSelectedSections] = useLocalStorage('selectedSections', []);
     const [pencilClick, setPencilClick] = useState(false);
     const [actions, isSuccessActions] = useSystemActions(systemId, 'action');
 
     const filteredActions = actions.filter((action) => action.cls.actorNodeName === actorName);
+    const sectionOptions = React.useMemo(
+        () => (sections || []).map((section: any) => ({
+            label: section.name || section.id,
+            value: section.id,
+        })),
+        [sections],
+    );
+    const sectionOptionForRef = React.useCallback((ref: any) => {
+        const sectionId = typeof ref === 'string' ? ref : ref?.value;
+        if (!sectionId) return null;
+        return sectionOptions.find((option: any) => option.value === sectionId)
+            || { label: ref?.label || sectionId, value: sectionId };
+    }, [sectionOptions]);
 
     useEffect(() => {
         if (editIndex !== -1 && data[editIndex].sections) {
-            setSelectedSections(data[editIndex].sections);
+            setSelectedSections(
+                (data[editIndex].sections || [])
+                    .map(sectionOptionForRef)
+                    .filter(Boolean),
+            );
         } else {
             setSelectedSections([]);
         }
-    }, [editIndex, data, setSelectedSections]);
+    }, [editIndex, data, sectionOptionForRef, setSelectedSections]);
 
     useEffect(() => {
         if (editIndex !== -1 && data[editIndex].category) {
@@ -118,10 +137,12 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
     useEffect(() => {
         if (editIndex !== -1) {
             const newData = [...data];
-            newData[editIndex].sections = selectedSections;
+            newData[editIndex].sections = (selectedSections || [])
+                .map(sectionOptionForRef)
+                .filter(Boolean);
             setData(newData);
         }
-    }, [selectedSections]);
+    }, [selectedSections, sectionOptionForRef]);
 
     useEffect(() => {
         if (editIndex !== -1) {
@@ -304,7 +325,7 @@ export const Pages: React.FC<Props> = ({ actorName }) => {
                                             <Select
                                                 isMulti
                                                 name="sections"
-                                                options={sections.map((e) => ({ label: e.name, value: e.id }))}
+                                                options={sectionOptions}
                                                 value={selectedSections}
                                                 onChange={setSelectedSections}
                                             />

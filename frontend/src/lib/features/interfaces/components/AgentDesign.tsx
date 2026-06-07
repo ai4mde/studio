@@ -954,6 +954,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
         if (!interfaceId) return;
         setIsMapping(true);
         setMapStatus('idle');
+        if (saveTimer.current) {
+            clearTimeout(saveTimer.current);
+            saveTimer.current = null;
+        }
         try {
             const { data: mapResult } = await authAxios.post(`/v1/generator/prototypes/map_uml_to_interface/`, { interface_id: interfaceId });
             if (!mapResult?.ok) {
@@ -965,6 +969,10 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
             dbLoadTimestamp.current = Date.now();
             setSections(data.sections || []);
             setPages(data.pages || []);
+            if (saveTimer.current) {
+                clearTimeout(saveTimer.current);
+                saveTimer.current = null;
+            }
         } catch (error) {
             console.error('UML mapping failed:', error);
             setMapStatus('error');
@@ -1207,8 +1215,8 @@ export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId 
     useEffect(() => {
         if (!interfaceId) return;
         if (previewMode === 'live') return;
-        if (Date.now() - dbLoadTimestamp.current < 500) return;
         if (saveTimer.current) clearTimeout(saveTimer.current);
+        if (Date.now() - dbLoadTimestamp.current < 1000) return;
         saveTimer.current = setTimeout(() => {
             authAxios.patch(`/v1/metadata/interfaces/${interfaceId}/data/`, {
                 sections,
@@ -3068,7 +3076,7 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     placeholder="e.g. 4"
                                     style={{ width: '100%', padding: '4px 8px', borderRadius: 6, fontSize: 12, border: '1px solid #d1d5db', marginBottom: 8, boxSizing: 'border-box' }}
                                 />
-                                {(['card', 'list', 'table', 'gallery', 'calendar', 'timeline', 'map'].includes(secLayout) || ['object_collection', 'child_collection', 'related_collection'].includes(String(selectedSection.role || ''))) && (
+                                {(['card', 'list', 'table', 'gallery', 'timeline', 'map'].includes(secLayout) || ['object_collection', 'child_collection', 'related_collection'].includes(String(selectedSection.role || ''))) && (
                                     <>
                                         <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Item Click Action</p>
                                         <select

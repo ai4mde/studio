@@ -93,7 +93,6 @@ def score_layout(attr_names: set[str]) -> dict[str, float]:
         "list":      0.75 if (has_status and has_date and not has_image) else 0.35,
         "detail":    0.9 if (has_content or attr_count > 8) else 0.5,
         "form":      0.8 if (has_contact or hits["identity"] > 0) else 0.5,
-        "calendar":  0.9 if (has_time or (has_date and hits["time"] > 0)) else 0.0,
         "timeline":  0.8 if (has_date and has_status and not has_image) else 0.0,
         "map":       0.9 if has_geo else 0.0,
         "card":      0.6 if has_image else 0.25,
@@ -497,6 +496,26 @@ def extract_activity_diagrams(
         diagram_name = diagram.get("name") or "Workflow"
         nodes: dict[str, dict] = {str(n.get("id")): n for n in diagram.get("nodes") or []}
 
+        def _resolve_actor_node(cls: dict) -> tuple[str, str]:
+            raw_actor = str(cls.get("actorNode") or "")
+            explicit_name = str(cls.get("actorNodeName") or "").strip()
+            actor_cls = classifiers.get(raw_actor, {})
+            if actor_cls.get("type") == "actor":
+                return raw_actor, explicit_name or str(actor_cls.get("name") or "").strip()
+
+            lane_node = nodes.get(raw_actor) or {}
+            raw_lane_cls = lane_node.get("cls") or {}
+            if isinstance(raw_lane_cls, dict):
+                lane_cls = raw_lane_cls
+                lane_cls_id = str(raw_lane_cls.get("id") or lane_node.get("cls_ptr") or lane_node.get("cls_id") or "")
+            else:
+                lane_cls_id = str(lane_node.get("cls_ptr") or lane_node.get("cls_id") or raw_lane_cls or "")
+                lane_cls = classifiers.get(lane_cls_id, {})
+            if lane_cls.get("type") == "actor":
+                return lane_cls_id, explicit_name or str(lane_cls.get("name") or "").strip()
+
+            return raw_actor, explicit_name
+
         # Collect classifier IDs referenced by action nodes (for linking to use cases)
         for node in nodes.values():
             cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
@@ -523,7 +542,8 @@ def extract_activity_diagrams(
         start_candidates = []
         for nid, node in nodes.items():
             cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
-            cls = classifiers.get(cls_id, {})
+            node_cls = node.get("cls") if isinstance(node.get("cls"), dict) else {}
+            cls = {**(classifiers.get(cls_id, {}) or {}), **(node_cls or {})}
             cls_type = cls.get("type") or node.get("type") or ""
             if cls_type in {"initial", "start", "initial_pseudostate"}:
                 start_candidates = [nid]
@@ -547,11 +567,13 @@ def extract_activity_diagrams(
 
             node = nodes.get(nid, {})
             cls_id = str(node.get("cls_ptr") or node.get("cls") or "")
-            cls = classifiers.get(cls_id, {})
+            node_cls = node.get("cls") if isinstance(node.get("cls"), dict) else {}
+            cls = {**(classifiers.get(cls_id, {}) or {}), **(node_cls or {})}
             cls_type = cls.get("type") or node.get("type") or ""
             action_name = cls.get("name") or node.get("label") or node.get("name") or ""
 
             if cls_type == "action" and action_name:
+                actor_node, actor_node_name = _resolve_actor_node(cls)
                 title_model = _best_model_for_text(action_name, model_names_list, model_attr_names)
                 class_model = _model_from_action_classes(cls)
                 model = (
@@ -565,7 +587,8 @@ def extract_activity_diagrams(
                     "component_hint": _action_component(action_name),
                     "is_decision": False,
                     "is_automatic": bool(cls.get("isAutomatic", False)),
-                    "actor_node_name": (cls.get("actorNodeName") or "").strip(),
+                    "actor_node": actor_node,
+                    "actor_node_name": actor_node_name,
                 })
             elif cls_type in {"decision", "merge"}:
                 # Mark next steps with branch info
@@ -619,17 +642,15 @@ def detect_semantic_decisions(model_name: str, model_info: dict, page_role: str)
             "aspect": "collection_component",
             "question": f"How should a list of {model_name} be displayed?",
             "options": [
-                {"component": "CalendarView",  "layout": "calendar",
-                 "evidence": evidence or ["model name suggests calendar"]},
                 {"component": "DataTable",     "layout": "table",
-                 "evidence": ["fallback for schedulable entities without visual calendar"]},
+                 "evidence": evidence or ["schedulable entity fields"]},
                 {"component": "ObjectList",    "layout": "list",
                  "evidence": ["simple chronological list"]},
             ],
-            "default": "CalendarView" if evidence else "DataTable",
+            "default": "DataTable",
         }
 
-    is_timeline_like = any(kw in m for kw in _TIMELINE_MODELS) and score.get("calendar", 0) < 0.5
+    is_timeline_like = any(kw in m for kw in _TIMELINE_MODELS) and not is_calendar_like
     if is_timeline_like:
         return {
             "model": model_name,

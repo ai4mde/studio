@@ -403,13 +403,16 @@ def autologin(request):
         return str(value or '').strip().lower().replace('-', '_').replace(' ', '_')
 
     def _role_field_from(value):
-        wanted = _norm(value)
-        if not wanted and next_url and next_url.startswith('/'):
-            wanted = _norm(next_url.strip('/').split('/', 1)[0])
-        for field in role_fields:
-            role = field[3:]
-            if wanted in {_norm(role), _norm('demo_' + role)}:
-                return field
+        candidates = []
+        if value:
+            candidates.append(_norm(value))
+        if next_url and next_url.startswith('/'):
+            candidates.append(_norm(next_url.strip('/').split('/', 1)[0]))
+        for wanted in candidates:
+            for field in role_fields:
+                role = field[3:]
+                if wanted in {_norm(role), _norm('demo_' + role)}:
+                    return field
         return None
 
     role_field = _role_field_from(username)

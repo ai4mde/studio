@@ -449,7 +449,10 @@ class ActivityDiagramParser:
 
             # Only add the condition if there are multiple next nodes and these nodes have either a condtion or check
             condition = self.create_condition(node)
-            if len(condition) == 1 and len(condition[0].keys()) == 1:
+            if not condition:
+                # No reachable next nodes — treat as workflow end
+                rule['next'] = "END"
+            elif len(condition) == 1 and len(condition[0].keys()) == 1:
                 if isinstance(condition[0].get("next"), int) or condition[0].get("next") == "END":
                     rule['next'] = condition[0].get("next")
                 elif isinstance(condition[0].get("next"), list) and all(

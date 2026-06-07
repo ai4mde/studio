@@ -8,12 +8,36 @@ def _build_activity_diagrams(system_data: dict) -> list:
     diagrams = system_data.get("diagrams") or []
     classifiers = {str(c.get("id")): c for c in _as_list(system_data.get("classifiers"), "classifiers")}
     relations = {str(r.get("id")): r for r in _as_list(system_data.get("relations"), "relations")}
+    global_node_cls = {
+        str(node.get("id")): str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+        for node in (system_data.get("nodes") or [])
+        if node.get("id")
+    }
+
+    def actor_name_for_ref(ref: object) -> str:
+        ref = str(ref or "")
+        data = (classifiers.get(ref) or {}).get("data", {})
+        if data.get("type") == "actor":
+            return str(data.get("name") or "").strip()
+        node_cls = global_node_cls.get(ref)
+        data = (classifiers.get(node_cls) or {}).get("data", {}) if node_cls else {}
+        if data.get("type") == "actor":
+            return str(data.get("name") or "").strip()
+        return ""
+
     out = []
     for diagram in diagrams:
         if diagram.get("type") != "activity": continue
         raw_nodes = diagram.get("nodes") or []; raw_edges = diagram.get("edges") or []; nodes = []; node_by_cls = {}
         for node in raw_nodes:
-            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or ""); classifier = classifiers.get(cls_id, {}); nodes.append({"id": str(node.get("id")), "cls_ptr": cls_id, "cls": classifier.get("data", {}), "data": node.get("data", {})})
+            cls_id = str(node.get("cls") or node.get("cls_id") or node.get("cls_ptr") or "")
+            classifier = classifiers.get(cls_id, {})
+            cls_data = dict(classifier.get("data", {}) or {})
+            if cls_data.get("type") == "action" and cls_data.get("actorNode") and not cls_data.get("actorNodeName"):
+                actor_name = actor_name_for_ref(cls_data.get("actorNode"))
+                if actor_name:
+                    cls_data["actorNodeName"] = actor_name
+            nodes.append({"id": str(node.get("id")), "cls_ptr": cls_id, "cls": cls_data, "data": node.get("data", {})})
             if cls_id: node_by_cls[cls_id] = str(node.get("id"))
         edges = []
         for edge in raw_edges:
@@ -441,6 +465,27 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
             return refs
         return list(raw_classes or [])
 
+    def _node_classifier(node: dict) -> tuple[str, dict]:
+        raw = node.get("cls") or {}
+        if isinstance(raw, dict):
+            cls_id = str(raw.get("id") or node.get("cls_ptr") or node.get("cls_id") or "")
+            return cls_id, raw
+        cls_id = str(node.get("cls_ptr") or node.get("cls_id") or raw or "")
+        return cls_id, classifiers.get(cls_id, {})
+
+    def _resolve_actor_node(raw_actor_node: object, nodes: dict[str, dict]) -> tuple[str, str]:
+        raw_actor = str(raw_actor_node or "")
+        actor_data = classifiers.get(raw_actor, {})
+        if actor_data.get("type") == "actor":
+            return raw_actor, str(actor_data.get("name") or "").strip()
+
+        lane_node = nodes.get(raw_actor) or {}
+        lane_cls_id, lane_cls = _node_classifier(lane_node)
+        if lane_cls.get("type") == "actor":
+            return lane_cls_id, str(lane_cls.get("name") or "").strip()
+
+        return raw_actor, ""
+
     steps = []
     for diagram in system_data.get("activity_diagrams", []):
         nodes = {str(n.get("id")): n for n in diagram.get("nodes", [])}
@@ -451,7 +496,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
             cls = node.get("cls", {})
             if cls.get("type") != "action":
                 continue
-            actor_node = str(cls.get("actorNode") or "")
+            actor_node, actor_node_name = _resolve_actor_node(cls.get("actorNode"), nodes)
             if refs and actor_node not in refs:
                 continue
             name = cls.get("name") or "Workflow Step"
@@ -466,6 +511,7 @@ def _workflow_plan(system_data: dict, actor_id: str | None, actor_name: str | No
                 "activity_node_id": str(node.get("id")),
                 "activity_node_name": name,
                 "actor_node": actor_node,
+                "actor_node_name": actor_node_name,
                 "classes": [_class_name(ref) for ref in _class_refs(cls.get("classes")) if _class_name(ref)],
                 "diagram_id": diagram.get("id"),
                 "diagram_name": diagram.get("name"),

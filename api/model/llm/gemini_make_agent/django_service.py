@@ -168,14 +168,13 @@ def resolve_interface_semantics_with_llm(
         model_name = "gemini-2.0-flash-lite"
 
     allowed = {
-        "model_layouts": ["table", "list", "gallery", "calendar", "timeline", "map"],
+        "model_layouts": ["table", "list", "gallery", "timeline", "map"],
         "model_components": [
             "DataTable",
             "ObjectList",
             "CardGrid",
             "PersonCardGrid",
             "CategoryTileGrid",
-            "CalendarView",
             "TimelineList",
             "MapView",
         ],
@@ -201,6 +200,7 @@ def resolve_interface_semantics_with_llm(
         ],
         "condition_operators": [">", ">=", "==", "!=", "<", "<="],
         "context_binding_modes": ["hidden", "readonly", "select"],
+        "actor_model_scopes": ["self_profile", "collection", "assigned", "hidden"],
     }
     prompt = build_resolve_interface_semantics_prompt(
         allowed=allowed,
@@ -228,6 +228,10 @@ def resolve_interface_semantics_with_llm(
         return {}
 
     valid_models = set((uml_intel.get("actor_intel") or {}).get("target_permissions") or {})
+    clean_actor_model_scopes = {}
+    for model, scope in (raw.get("actor_model_scopes") or {}).items():
+        if model in valid_models and scope in allowed["actor_model_scopes"]:
+            clean_actor_model_scopes[model] = scope
     clean_models = {}
     for model, cfg in (raw.get("models") or {}).items():
         if model not in valid_models or not isinstance(cfg, dict):
@@ -351,6 +355,7 @@ def resolve_interface_semantics_with_llm(
         clean_workflow_steps[action] = step
 
     return {
+        "actor_model_scopes": clean_actor_model_scopes,
         "models": clean_models,
         "activity_steps": clean_steps,
         "workflow_steps": clean_workflow_steps,
@@ -467,7 +472,6 @@ def map_uml_to_interface(interface_id: str) -> dict:
             "gallery",
             "filter",
             "form",
-            "calendar",
             "timeline",
             "map",
         }

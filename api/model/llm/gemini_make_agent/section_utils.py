@@ -110,10 +110,13 @@ def _normalize_layout_alias(layout) -> str:
     values = [str(value or "").strip() for value in raw_values if str(value or "").strip()]
     for value in values:
         normalized = _LAYOUT_ALIASES.get(value, value)
+        if normalized == "calendar":
+            return "list"
         if normalized in _CHROME_TEMPLATE_LAYOUTS or normalized in {"card", "list", "table", "detail", "gallery", "filter", "form", "activity_action", "activity_start", "activity_tasks"}:
             return normalized
     value = values[0] if values else ""
-    return _LAYOUT_ALIASES.get(value, value)
+    normalized = _LAYOUT_ALIASES.get(value, value)
+    return "list" if normalized == "calendar" else normalized
 
 def _workflow_task_section(step: dict, model: str, model_attrs: dict) -> dict:
     page_id = _section_id(step.get("page_id") or step.get("page_name") or "workflow")
@@ -727,6 +730,10 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
         if component == "NavBar" and layout in {"", "nav", "navigation", "navbar"}:
             section["layout"] = "nav-links"
             layout = "nav-links"
+        elif component == "CalendarView":
+            section["component"] = "ObjectList"
+            section["layout"] = "list"
+            layout = "list"
 
         pm = canonical_model(str(section.get("primary_model") or section.get("class") or ""))
         if pm:
@@ -812,7 +819,7 @@ def _section_is_data(section: dict) -> bool:
     return bool(
         section.get("primary_model")
         and (
-            layout in {"card", "list", "table", "detail", "gallery", "filter", "form", "calendar", "timeline", "map"}
+            layout in {"card", "list", "table", "detail", "gallery", "filter", "form", "timeline", "map"}
             or role in DATA_SECTION_ROLES
             or section.get("attributes")
         )
@@ -821,7 +828,7 @@ def _section_is_data(section: dict) -> bool:
 def _section_is_collection(section: dict) -> bool:
     layout = _normalize_layout_alias(section.get("layout"))
     role = str(section.get("role") or "")
-    return layout in {"card", "list", "table", "gallery", "calendar", "timeline", "map"} or role in {"object_collection", "child_collection", "related_collection"}
+    return layout in {"card", "list", "table", "gallery", "timeline", "map"} or role in {"object_collection", "child_collection", "related_collection"}
 
 def _ensure_section_data_relationships(
     pages: list,

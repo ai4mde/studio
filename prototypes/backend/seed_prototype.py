@@ -27,12 +27,26 @@ django.setup()
 from django.apps import apps
 from django.conf import settings as _dj_settings
 from django.contrib.auth import get_user_model
+from django.db import connection
 
 print(f'Database: {_dj_settings.DATABASES["default"]["NAME"]}', flush=True)
 
 models_by_name = {model.__name__: model for model in apps.get_app_config('shared_models').get_models()}
 User = get_user_model()
 USER_FIELD_NAMES = {field.name for field in User._meta.get_fields()}
+
+
+def model_field_names(model):
+    names = set()
+    for field in model._meta.fields:
+        names.add(field.name)
+        names.add(getattr(field, 'attname', field.name))
+    return names
+
+
+def create_supported(model, **values):
+    fields = model_field_names(model)
+    return model.objects.create(**{key: value for key, value in values.items() if key in fields})
 
 
 def user_defaults(**defaults):
@@ -150,13 +164,13 @@ def seed_ecommerce_models():
     for pid, imgs in PRODUCT_IMAGES.items():
         prod = prod_map[pid]
         for image_id, url, alt, primary, order in imgs:
-            ProductImage.objects.create(image_id=image_id, product_id=pid, thumb_url=url, alt_text=alt, is_primary=primary, sort_order=order, Product=prod)
+            create_supported(ProductImage, image_id=image_id, product_id=pid, thumb_url=url, alt_text=alt, is_primary=primary, sort_order=order, Product=prod)
             total_images += 1
     print(f'Created {total_images} product images ({total_images // len(products):.1f} avg per product).')
 
     for prod in products:
-        DeliveryOption.objects.create(option_id=f'del-{prod.product_id}-1', product_id=prod.product_id, method='Standard Delivery', estimated_days=2, cost='EUR 0.00', is_free=True, cutoff_time='23:59', return_policy_days=30, Product=prod)
-        DeliveryOption.objects.create(option_id=f'del-{prod.product_id}-2', product_id=prod.product_id, method='Same Day Delivery', estimated_days=0, cost='EUR 6.95', is_free=False, cutoff_time='15:00', return_policy_days=30, Product=prod)
+        create_supported(DeliveryOption, option_id=f'del-{prod.product_id}-1', product_id=prod.product_id, method='Standard Delivery', estimated_days=2, cost='EUR 0.00', is_free=True, cutoff_time='23:59', return_policy_days=30, Product=prod)
+        create_supported(DeliveryOption, option_id=f'del-{prod.product_id}-2', product_id=prod.product_id, method='Same Day Delivery', estimated_days=0, cost='EUR 6.95', is_free=False, cutoff_time='15:00', return_policy_days=30, Product=prod)
     print(f'Created {len(products) * 2} delivery options.')
 
     RELATED_MAP = {
@@ -174,7 +188,7 @@ def seed_ecommerce_models():
         source = prod_map[source_pid]
         for rel_pid in related_pids:
             rel = prod_map[rel_pid]
-            RelatedProduct.objects.create(product_id=rel.product_id, name=rel.name, price=int(rel.price.replace('EUR ', '').replace(',', '')), Product=source)
+            create_supported(RelatedProduct, product_id=rel.product_id, name=rel.name, price=int(rel.price.replace('EUR ', '').replace(',', '')), Product=source)
     print(f'Created {sum(len(v) for v in RELATED_MAP.values())} related product links.')
 
     _u, _c = get_or_create_user('jan_devries', 'jan@example.com', first_name='Jan', last_name='de Vries', is_Customer=True)
@@ -183,33 +197,48 @@ def seed_ecommerce_models():
     cust2 = Customer.objects.create(customer_id='cust-002', email='emma@example.com', first_name='Emma', last_name='Bakker', phone='+31 6 9876 5432', is_active=True)
     print('Created 2 customers.')
 
-    Review.objects.create(review_id='rev-001', product_id='prod-001', customer_id='cust-001', rating=5, title='Incredible camera and AI features', body='The 200MP camera is stunning. Galaxy AI makes everything easier. Battery lasts all day.', is_verified_purchase=True, Customer=cust1, Product=p1)
-    Review.objects.create(review_id='rev-002', product_id='prod-001', customer_id='cust-002', rating=4, title='Great phone, pricey but worth it', body='Performance is top notch. S Pen is a bonus I did not expect to use so much.', is_verified_purchase=True, Customer=cust2, Product=p1)
-    Review.objects.create(review_id='rev-003', product_id='prod-002', customer_id='cust-001', rating=5, title='Best iPhone ever made', body='A17 Pro is lightning fast. Camera quality phenomenal. Titanium build feels premium.', is_verified_purchase=True, Customer=cust1, Product=p2)
-    Review.objects.create(review_id='rev-004', product_id='prod-003', customer_id='cust-002', rating=5, title='Perfect laptop for everyday use', body='M3 chip handles everything effortlessly. Battery 12+ hours easily. Silent and fast.', is_verified_purchase=True, Customer=cust2, Product=p3)
-    Review.objects.create(review_id='rev-005', product_id='prod-006', customer_id='cust-001', rating=5, title='Best noise-cancelling headphones', body='Noise cancelling is on another level. Comfortable for long sessions. Sound quality superb.', is_verified_purchase=True, Customer=cust1, Product=p6)
-    Review.objects.create(review_id='rev-006', product_id='prod-004', customer_id='cust-002', rating=4, title='Stunning OLED display', body='Colors are vivid and deep blacks make a real difference for creative work. A bit heavy though.', is_verified_purchase=True, Customer=cust2, Product=p4)
-    Review.objects.create(review_id='rev-007', product_id='prod-008', customer_id='cust-001', rating=5, title='Best business laptop I have owned', body='Ultra-light and the keyboard is class-leading. Battery easily gets me through a full work day.', is_verified_purchase=True, Customer=cust1, Product=p8)
+    create_supported(Review, review_id='rev-001', product_id='prod-001', customer_id='cust-001', rating=5, title='Incredible camera and AI features', body='The 200MP camera is stunning. Galaxy AI makes everything easier. Battery lasts all day.', is_verified_purchase=True, Customer=cust1, Product=p1)
+    create_supported(Review, review_id='rev-002', product_id='prod-001', customer_id='cust-002', rating=4, title='Great phone, pricey but worth it', body='Performance is top notch. S Pen is a bonus I did not expect to use so much.', is_verified_purchase=True, Customer=cust2, Product=p1)
+    create_supported(Review, review_id='rev-003', product_id='prod-002', customer_id='cust-001', rating=5, title='Best iPhone ever made', body='A17 Pro is lightning fast. Camera quality phenomenal. Titanium build feels premium.', is_verified_purchase=True, Customer=cust1, Product=p2)
+    create_supported(Review, review_id='rev-004', product_id='prod-003', customer_id='cust-002', rating=5, title='Perfect laptop for everyday use', body='M3 chip handles everything effortlessly. Battery 12+ hours easily. Silent and fast.', is_verified_purchase=True, Customer=cust2, Product=p3)
+    create_supported(Review, review_id='rev-005', product_id='prod-006', customer_id='cust-001', rating=5, title='Best noise-cancelling headphones', body='Noise cancelling is on another level. Comfortable for long sessions. Sound quality superb.', is_verified_purchase=True, Customer=cust1, Product=p6)
+    create_supported(Review, review_id='rev-006', product_id='prod-004', customer_id='cust-002', rating=4, title='Stunning OLED display', body='Colors are vivid and deep blacks make a real difference for creative work. A bit heavy though.', is_verified_purchase=True, Customer=cust2, Product=p4)
+    create_supported(Review, review_id='rev-007', product_id='prod-008', customer_id='cust-001', rating=5, title='Best business laptop I have owned', body='Ultra-light and the keyboard is class-leading. Battery easily gets me through a full work day.', is_verified_purchase=True, Customer=cust1, Product=p8)
     print('Created 7 reviews.')
 
-    addr1 = Address.objects.create(address_id='addr-001', customer_id='cust-001', street='Damrak', house_number='1', city='Amsterdam', postal_code='1012 LG', country='Netherlands', is_default=True, Customer=cust1)
-    addr2 = Address.objects.create(address_id='addr-002', customer_id='cust-002', street='Coolsingel', house_number='42', city='Rotterdam', postal_code='3011 AD', country='Netherlands', is_default=True, Customer=cust2)
+    addr1 = create_supported(Address, address_id='addr-001', customer_id='cust-001', street='Damrak', house_number='1', city='Amsterdam', postal_code='1012 LG', country='Netherlands', is_default=True, Customer=cust1)
+    addr2 = create_supported(Address, address_id='addr-002', customer_id='cust-002', street='Coolsingel', house_number='42', city='Rotterdam', postal_code='3011 AD', country='Netherlands', is_default=True, Customer=cust2)
     print('Created 2 addresses.')
 
-    cart1 = Cart.objects.create(cart_id='cart-001', customer_id=cust1.customer_id, total_price='EUR 1448', item_count=2, Customer=cust1)
-    cart2 = Cart.objects.create(cart_id='cart-002', customer_id=cust2.customer_id, total_price='EUR 379', item_count=1, Customer=cust2)
-    CartItem.objects.create(cart_item_id='ci-001', cart_id=cart1.cart_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Cart=cart1, Product=p1)
-    CartItem.objects.create(cart_item_id='ci-002', cart_id=cart1.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart1, Product=p6)
-    CartItem.objects.create(cart_item_id='ci-003', cart_id=cart2.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart2, Product=p6)
+    cart1 = create_supported(Cart, cart_id='cart-001', customer_id=cust1.customer_id, total_price='EUR 1448', item_count=2, Customer=cust1)
+    cart2 = create_supported(Cart, cart_id='cart-002', customer_id=cust2.customer_id, total_price='EUR 379', item_count=1, Customer=cust2)
+    create_supported(CartItem, cart_item_id='ci-001', cart_id=cart1.cart_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Cart=cart1, Product=p1)
+    create_supported(CartItem, cart_item_id='ci-002', cart_id=cart1.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart1, Product=p6)
+    create_supported(CartItem, cart_item_id='ci-003', cart_id=cart2.cart_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Cart=cart2, Product=p6)
     print('Created 2 carts and 3 cart items.')
 
-    pay1 = Payment.objects.create(payment_id='pay-001', order_id='ord-001', method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
-    pay2 = Payment.objects.create(payment_id='pay-002', order_id='ord-002', method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
-    order1 = Order.objects.create(order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
-    order2 = Order.objects.create(order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
-    OrderLine.objects.create(line_id='line-001', order_id=order1.order_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Product=p1, Order=order1)
-    OrderLine.objects.create(line_id='line-002', order_id=order1.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order1)
-    OrderLine.objects.create(line_id='line-003', order_id=order2.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order2)
+    if 'Order' in model_field_names(Payment) and 'Payment' in model_field_names(Order):
+        connection.disable_constraint_checking()
+        try:
+            pay1 = create_supported(Payment, payment_id='pay-001', Order_id=0, method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
+            pay2 = create_supported(Payment, payment_id='pay-002', Order_id=0, method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
+            order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
+            order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
+            pay1.Order = order1
+            pay1.save(update_fields=['Order'])
+            pay2.Order = order2
+            pay2.save(update_fields=['Order'])
+        finally:
+            connection.enable_constraint_checking()
+        connection.check_constraints()
+    else:
+        pay1 = create_supported(Payment, payment_id='pay-001', order_id='ord-001', method='ideal', amount='EUR 1448', currency='EUR', status='completed', transaction_id='txn-001')
+        pay2 = create_supported(Payment, payment_id='pay-002', order_id='ord-002', method='credit_card', amount='EUR 379', currency='EUR', status='completed', transaction_id='txn-002')
+        order1 = create_supported(Order, order_id='ord-001', customer_id=cust1.customer_id, status='confirmed', total_amount='EUR 1448', shipping_address_id=addr1.address_id, Payment=pay1, Address=addr1, Customer=cust1)
+        order2 = create_supported(Order, order_id='ord-002', customer_id=cust2.customer_id, status='shipped', total_amount='EUR 379', shipping_address_id=addr2.address_id, Payment=pay2, Address=addr2, Customer=cust2)
+    create_supported(OrderLine, line_id='line-001', order_id=order1.order_id, product_id=p1.product_id, quantity=1, unit_price=p1.price, subtotal=p1.price, Product=p1, Order=order1)
+    create_supported(OrderLine, line_id='line-002', order_id=order1.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order1)
+    create_supported(OrderLine, line_id='line-003', order_id=order2.order_id, product_id=p6.product_id, quantity=1, unit_price=p6.price, subtotal=p6.price, Product=p6, Order=order2)
     print('Created 2 payments, 2 orders, and 3 order lines.')
 
     get_or_create_user('system', 'system@bol.com', is_System=True)

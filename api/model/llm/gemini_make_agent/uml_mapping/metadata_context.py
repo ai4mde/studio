@@ -7,8 +7,56 @@ from ..token_normalizer import _as_list
 from .usecase_workflow import _build_activity_diagrams
 
 
+def _node_position(node) -> tuple[object, object]:
+    data = node.data or {}
+    position = data.get("position") or {}
+    return position.get("x", data.get("x")), position.get("y", data.get("y"))
+
+
 def _fetch_system_context_data(system_id: str) -> dict:
-    system = System.objects.get(id=system_id)
+    system = System.objects.prefetch_related(
+        "classifiers",
+        "relations",
+        "diagrams__nodes",
+        "diagrams__edges",
+    ).get(id=system_id)
+    diagrams = []
+    nodes = []
+    for diagram in Diagram.objects.filter(system=system).prefetch_related("nodes", "edges"):
+        diagram_nodes = []
+        diagram_edges = []
+        for node in diagram.nodes.all():
+            x, y = _node_position(node)
+            node_payload = {
+                "id": str(node.id),
+                "diagram": str(node.diagram_id),
+                "cls": str(node.cls_id) if node.cls_id else None,
+                "data": node.data or {},
+                "x": x,
+                "y": y,
+            }
+            diagram_nodes.append(node_payload)
+            nodes.append(node_payload)
+        for edge in diagram.edges.all():
+            diagram_edges.append(
+                {
+                    "id": str(edge.id),
+                    "diagram": str(edge.diagram_id),
+                    "rel": str(edge.rel_id) if edge.rel_id else None,
+                    "data": edge.data or {},
+                }
+            )
+        diagrams.append(
+            {
+                "id": str(diagram.id),
+                "name": diagram.name,
+                "description": diagram.description,
+                "type": diagram.type,
+                "system": str(diagram.system_id),
+                "nodes": diagram_nodes,
+                "edges": diagram_edges,
+            }
+        )
     system_data = {
         "id": str(system.id),
         "name": system.name,
@@ -38,16 +86,8 @@ def _fetch_system_context_data(system_id: str) -> dict:
             }
             for relation in system.relations.all()
         ],
-        "diagrams": [
-            {
-                "id": str(diagram.id),
-                "name": diagram.name,
-                "description": diagram.description,
-                "type": diagram.type,
-                "system": str(diagram.system_id),
-            }
-            for diagram in Diagram.objects.filter(system=system)
-        ],
+        "diagrams": diagrams,
+        "nodes": nodes,
     }
     system_data["activity_diagrams"] = _build_activity_diagrams(system_data)
     return system_data

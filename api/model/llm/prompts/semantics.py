@@ -13,8 +13,8 @@ def build_resolve_interface_semantics_prompt(
 ) -> str:
     """Build prompt that resolves UML semantics into safe UI overrides.
 
-    The LLM chooses layout/component plus the real activity target model
-    and readonly/editable fields.
+    The LLM chooses layout/component, actor-to-model scope, plus the real
+    activity target model and readonly/editable fields.
     django_service validates the returned JSON against the UML model graph
     before applying it.
     """
@@ -72,6 +72,11 @@ def build_resolve_interface_semantics_prompt(
         "create_record for the requested/application model. Schedule Appointment, Approve Application, "
         "Update Status usually update_record for an existing context object. Check Availability or Verify "
         "Eligibility usually check with a condition. Notify Applicant or Send Reminder usually notify.\n\n"
+        "Also classify actor-to-model scope in actor_model_scopes. Use self_profile only when the actor "
+        "is literally the person/entity represented by that model, such as Patient actor with Patient model "
+        "or Applicant actor with Applicant model. Role actors such as Document Analyst, Loan Officer, "
+        "Doctor, Admin, Reviewer, or Librarian should usually see collection or assigned records for their "
+        "work models, not self_profile. For example Document Analyst + Document = collection, not self_profile.\n\n"
         f"Allowed values: {json.dumps(allowed)}\n"
         f"Actor permissions: {json.dumps(actor_permissions, ensure_ascii=False)}\n"
         f"Model graph fields: {json.dumps(model_fields, ensure_ascii=False)[:8000]}\n"
@@ -80,7 +85,8 @@ def build_resolve_interface_semantics_prompt(
         f"Initial plan summary: {json.dumps(plan_summary, ensure_ascii=False)[:12000]}\n\n"
         "Schema:\n"
         "{\n"
-        '  "models": {"ModelName": {"layout": "table|list|gallery|calendar|timeline|map", "component": "..." }},\n'
+        '  "actor_model_scopes": {"ModelName": "self_profile|collection|assigned|hidden"},\n'
+        '  "models": {"ModelName": {"layout": "table|list|gallery|timeline|map", "component": "..." }},\n'
         '  "activity_steps": {"Exact action name": {"model": "ExistingModelName", "readonly_fields": ["existing_field"], "editable_fields": ["existing_field"], "layout": "form|detail|list", "component": "ObjectForm|DetailPanel|SummaryPanel|ObjectList", "role": "object_form|object_detail|object_collection"}},\n'
         '  "workflow_steps": {"Exact action name": {"intent": "select_existing|check|create_record|update_record|notify|confirm", "context_model": "ExistingModelName", "target_model": "ExistingModelName", "input_models": ["ExistingModelName"], "output_models": ["ExistingModelName"], "readonly_fields": ["existing_field"], "editable_fields": ["existing_field"], "context_binding": {"model": "ExistingModelName", "mode": "hidden|readonly|select"}, "condition": {"model": "ExistingModelName", "field": "existing_field", "operator": ">|>=|==|!=|<|<=", "threshold": "0"}, "true_next": "Exact next action name", "false_next": "Exact next action name"}}\n'
         "}\n"

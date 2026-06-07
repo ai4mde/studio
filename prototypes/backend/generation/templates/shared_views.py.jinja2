@@ -233,6 +233,23 @@ class GenericListView(GenericViewMixin, ListView):
         self._active_process_node_cache = node
         return node
 
+    def _workflow_instance_for_model(self, model):
+        active_process_node = self.active_process_node
+        if active_process_node is None or model is None:
+            return None
+        try:
+            content_type = ContentType.objects.get_for_model(model)
+            associations = active_process_node.active_process.associated_model_instances.filter(
+                content_type=content_type,
+            ).order_by('-id')
+        except Exception:
+            return None
+        for association in associations:
+            instance = model.objects.filter(pk=association.instance_id).first()
+            if instance is not None:
+                return instance
+        return None
+
     def get_context_data(self, **kwargs):
         self._handle_favorite_toggle()
         context = super().get_context_data(**kwargs)

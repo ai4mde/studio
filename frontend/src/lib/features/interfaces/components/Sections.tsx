@@ -14,6 +14,7 @@ import { useClassAttributes, useClassCustomMethods, useSystemClasses } from "../
 import useLocalStorage from './useLocalStorage';
 
 type Props = {
+    interfaceId?: string;
 };
 
 const CHROME_LAYOUTS = [
@@ -137,9 +138,10 @@ const sqlValue = (filter: any) => {
     return filter.value ? `'${filter.value}'` : ':value';
 };
 
-export const Sections: React.FC<Props> = () => {
+export const Sections: React.FC<Props> = ({ interfaceId }) => {
     const { systemId } = useParams();
-    const [data, setData, isSuccess] = useLocalStorage('sections', []);
+    const storagePrefix = interfaceId || 'new-interface';
+    const [data, setData, isSuccess] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
     const [editIndex, setEditIndex] = useState(-1);
     const [newName, setNewName] = useState('');
     const [newText, setNewText] = useState('');
@@ -167,7 +169,7 @@ export const Sections: React.FC<Props> = () => {
     //const [attributes, setAttributes] = useState([]);
     const [selectedAttributes, setSelectedAttributes] = useLocalStorage('selectedAttributes', []);
     const [selectedCustomMethods, setSelectedCustomMethods] = useLocalStorage('selectedCustomMethods', [])
-    const [pages, setPages, isSuccessPages] = useLocalStorage('pages', []);
+    const [pages, setPages, isSuccessPages] = useLocalStorage(`interface:${storagePrefix}:pages`, []);
     const [availablePaths, setAvailablePaths] = useState<string[]>([]);
     const selectedAttributeOptions = React.useMemo(
         () => (selectedAttributes || [])

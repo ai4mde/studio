@@ -403,22 +403,24 @@ class {{ application_name }}_{{ page }}_ListView(GenericListView):
         {% endfor -%}
         {% if page.type == 'activity' -%}
         {% for section in page.section_components -%}
-        {% if section.primary_model -%}
+        {% set _section_workflow_semantics = section.style.get('workflow_semantics', {}) if section.style else {} -%}
+        {% set _section_target_model = _section_workflow_semantics.get('target_model') or section.primary_model -%}
+        {% set _section_context_model = (_section_workflow_semantics.get('context_binding') or {}).get('model') or _section_workflow_semantics.get('context_model') -%}
+        {% if _section_target_model -%}
         if self.active_process_node:
-            _ct_workflow_{{ section.primary_model }} = ContentType.objects.get_for_model({{ section.primary_model }})
-            _ami_workflow_{{ section.primary_model }} = self.active_process_node.active_process.associated_model_instances.filter(content_type=_ct_workflow_{{ section.primary_model }}).order_by('-id').first()
-            if _ami_workflow_{{ section.primary_model }}:
-                context['workflow_instance_{{ section.primary_model }}'] = {{ section.primary_model }}.objects.filter(pk=_ami_workflow_{{ section.primary_model }}.instance_id).first()
+            _workflow_instance_{{ _section_target_model }} = self._workflow_instance_for_model({{ _section_target_model }})
+            if _workflow_instance_{{ _section_target_model }} is not None:
+                context['workflow_instance_{{ _section_target_model }}'] = _workflow_instance_{{ _section_target_model }}
+        {% endif -%}
+        {% if _section_context_model and _section_context_model != _section_target_model -%}
+        if self.active_process_node:
+            _workflow_context_instance_{{ _section_context_model }} = self._workflow_instance_for_model({{ _section_context_model }})
+            if _workflow_context_instance_{{ _section_context_model }} is not None:
+                context['workflow_instance_{{ _section_context_model }}'] = _workflow_context_instance_{{ _section_context_model }}
         {% endif -%}
         {% if section.primary_model and section.has_update_operation and not section.has_create_operation -%}
         if self.active_process_node and context.get('update_instance') is None:
-            _ct_update_{{ section }} = ContentType.objects.get_for_model({{ section.primary_model }})
-            _ami_update_{{ section }} = self.active_process_node.active_process.associated_model_instances.filter(content_type=_ct_update_{{ section }}).order_by('-id').first()
-            if _ami_update_{{ section }}:
-                context['update_instance'] = {{ section.primary_model }}.objects.filter(pk=_ami_update_{{ section }}.instance_id).first()
-            if context.get('update_instance') is None:
-                _associated_update_{{ section }}_qs = self.active_process_node.active_process.{{ section.primary_model.lower() }}s
-                context['update_instance'] = _associated_update_{{ section }}_qs.order_by('pk').first()
+            context['update_instance'] = self._workflow_instance_for_model({{ _section_target_model or section.primary_model }})
         {% endif -%}
         {% endfor -%}
         {% endif -%}
