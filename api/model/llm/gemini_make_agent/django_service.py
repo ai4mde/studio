@@ -6,7 +6,6 @@ import os
 import re as _re
 
 import requests as _req
-from diagram.models import Diagram
 from llm.prompts.semantics import build_resolve_interface_semantics_prompt
 from metadata.models import Interface, System
 
@@ -18,7 +17,7 @@ from .uml_mapping.mapping_sections import (
     _ensure_mapping_chrome_sections,
     _ensure_mapping_content_sections,
 )
-from .uml_mapping.metadata_context import _actor_name_from_context, _node_position
+from .uml_mapping.metadata_context import _actor_name_from_context, _fetch_system_context_data
 from .section_utils import (
     _normalize_select_existing_sections,
     _normalize_layout_alias,
@@ -42,102 +41,6 @@ def _interface_to_agent_dict(interface: Interface) -> dict:
         "actor": str(interface.actor_id) if interface.actor_id else None,
         "data": interface.data or {},
     }
-
-
-def _system_context_from_orm(system_id: str) -> dict:
-    system = System.objects.prefetch_related(
-        "classifiers",
-        "relations",
-        "interfaces",
-        "diagrams__nodes",
-        "diagrams__edges",
-    ).get(id=system_id)
-    classifiers = [
-        {
-            "id": str(classifier.id),
-            "project": str(classifier.project_id) if classifier.project_id else None,
-            "system": str(classifier.system_id) if classifier.system_id else None,
-            "original_system_id": (
-                str(classifier.original_system_id)
-                if classifier.original_system_id
-                else None
-            ),
-            "data": classifier.data or {},
-        }
-        for classifier in system.classifiers.all()
-    ]
-    relations = [
-        {
-            "id": str(relation.id),
-            "system": str(relation.system_id),
-            "source": str(relation.source_id),
-            "target": str(relation.target_id),
-            "data": relation.data or {},
-        }
-        for relation in system.relations.all()
-    ]
-    diagrams = []
-    nodes = []
-    for diagram in Diagram.objects.filter(system=system).prefetch_related("nodes", "edges"):
-        diagram_nodes = []
-        diagram_edges = []
-        for node in diagram.nodes.all():
-            x, y = _node_position(node)
-            node_payload = {
-                "id": str(node.id),
-                "diagram": str(node.diagram_id),
-                "cls": str(node.cls_id) if node.cls_id else None,
-                "data": node.data or {},
-                "x": x,
-                "y": y,
-            }
-            diagram_nodes.append(node_payload)
-            nodes.append(node_payload)
-        for edge in diagram.edges.all():
-            diagram_edges.append(
-                {
-                    "id": str(edge.id),
-                    "diagram": str(edge.diagram_id),
-                    "rel": str(edge.rel_id) if edge.rel_id else None,
-                    "data": edge.data or {},
-                }
-            )
-        diagrams.append(
-            {
-                "id": str(diagram.id),
-                "name": diagram.name,
-                "description": diagram.description,
-                "type": diagram.type,
-                "system": str(diagram.system_id),
-                "nodes": diagram_nodes,
-                "edges": diagram_edges,
-            }
-        )
-    interfaces = [
-        {
-            "id": str(interface.id),
-            "name": interface.name,
-            "description": interface.description,
-            "system": str(interface.system_id),
-            "actor": str(interface.actor_id) if interface.actor_id else None,
-            "data": interface.data or {},
-        }
-        for interface in system.interfaces.all()
-    ]
-    context = {
-        "id": str(system.id),
-        "name": system.name,
-        "description": system.description,
-        "project": str(system.project_id),
-        "classifiers": classifiers,
-        "relations": relations,
-        "diagrams": diagrams,
-        "nodes": nodes,
-        "interfaces": interfaces,
-        "imported_classifiers": [],
-    }
-    context["activity_diagrams"] = _build_activity_diagrams(context)
-    return context
 
 
 def resolve_interface_semantics_with_llm(
@@ -361,7 +264,7 @@ def debug_uml_extract(interface_id: str) -> dict:
     try:
         interface = Interface.objects.get(id=interface_id)
         iface = _interface_to_agent_dict(interface)
-        system_data = _system_context_from_orm(str(interface.system_id))
+        system_data = _fetch_system_context_data(str(interface.system_id))
         actor_id = str(iface.get("actor") or "")
         actor_name = _actor_name_from_context(system_data, actor_id)
 
@@ -437,7 +340,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
     try:
         interface = Interface.objects.get(id=interface_id)
         iface = _interface_to_agent_dict(interface)
-        system_data = _system_context_from_orm(str(interface.system_id))
+        system_data = _fetch_system_context_data(str(interface.system_id))
         actor_id = str(iface.get("actor") or "")
         actor_name = _actor_name_from_context(system_data, actor_id) or ""
 
@@ -634,7 +537,7 @@ def apply_prompt_to_interface(interface_id: str, system_id: str, user_request: s
         interface = Interface.objects.get(id=interface_id)
         iface = _interface_to_agent_dict(interface)
         system_id = system_id or str(iface.get("system") or "")
-        system_context = _system_context_from_orm(system_id) if system_id else {}
+        system_context = _fetch_system_context_data(system_id) if system_id else {}
         actor_name = _actor_name_from_context(system_context, iface.get("actor")) or ""
 
         classifiers = []
