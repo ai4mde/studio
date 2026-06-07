@@ -305,18 +305,49 @@ def _is_actor_self_model(actor_name: str, model: str) -> bool:
     return bool(actor_name and model and _sid(actor_name) == _sid(model))
 
 
-def _relation_data_scopes(actor_name: str, parent_models: list[str], semantic_overrides: dict | None = None) -> dict:
-    """Mark parent relations that should be resolved from the current actor instead of the full table."""
+def _parent_page_data_scope(page_primary_model: str, parent_model: str) -> dict:
+    """Return a parent_page_instance scope when a section FK points to the current page's primary model."""
+    if not page_primary_model or not parent_model:
+        return {}
+    if _sid(page_primary_model) == _sid(parent_model):
+        return {
+            "mode": "parent_page_instance",
+            "source": "page_context",
+            "model": parent_model,
+        }
+    return {}
+
+
+def _relation_data_scopes(
+    actor_name: str,
+    parent_models: list[str],
+    semantic_overrides: dict | None = None,
+    page_primary_model: str | None = None,
+) -> dict:
+    """Mark parent relations that should be resolved from the current actor or page context."""
     scopes = {}
     for parent_model in parent_models or []:
         scope = _actor_owned_data_scope(actor_name, parent_model, semantic_overrides)
+        if not scope and page_primary_model:
+            scope = _parent_page_data_scope(page_primary_model, parent_model)
         if scope:
             scopes[parent_model] = scope
     return scopes
 
 
-def _model_relation_data_scopes(actor_name: str, model_info: dict, semantic_overrides: dict | None = None) -> dict:
-    """Infer relation scopes for foreign-key style fields on a section's model."""
+def _model_relation_data_scopes(
+    actor_name: str,
+    model_info: dict,
+    semantic_overrides: dict | None = None,
+    page_primary_model: str | None = None,
+) -> dict:
+    """Infer relation scopes for foreign-key style fields on a section's model.
+
+    page_primary_model: the primary model of the page this section lives on.
+    FKs pointing to that model are marked parent_page_instance so the view
+    generator can auto-fill them from the URL's instance_id_ parameter instead
+    of showing a generic dropdown.
+    """
     parent_models = []
     for attr in model_info.get("attributes") or []:
         if isinstance(attr, dict) and attr.get("model"):
@@ -324,7 +355,7 @@ def _model_relation_data_scopes(actor_name: str, model_info: dict, semantic_over
     for assoc in model_info.get("associations") or []:
         if isinstance(assoc, dict) and assoc.get("model"):
             parent_models.append(assoc["model"])
-    return _relation_data_scopes(actor_name, parent_models, semantic_overrides)
+    return _relation_data_scopes(actor_name, parent_models, semantic_overrides, page_primary_model)
 
 
 def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
@@ -700,7 +731,7 @@ def generate_interface_plan(
                 operations=[p for p in ("create", "read", "update", "delete") if p in permissions or p == "read"],
                 attributes=model_info.get("attributes", []),
                 data_scope=_actor_owned_data_scope(current_actor_name, model, semantic_overrides),
-                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides, page_primary_model=model),
             ))
             filter_fields = _pick_fields(model_info, "filter", 5)
             if filter_fields and _should_add_filter(layout, model_info, page_role):
@@ -713,7 +744,7 @@ def generate_interface_plan(
                     operations=["read"],
                     attributes=model_info.get("attributes", []),
                     data_scope=_actor_owned_data_scope(current_actor_name, model, semantic_overrides),
-                    relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides),
+                    relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides, page_primary_model=model),
                     style={"color": "neutral", "density": "compact", "shadow": "none",
                            "border": "none", "bg": "surface", "col_span": 12},
                 ))
@@ -729,7 +760,7 @@ def generate_interface_plan(
                 visible=visible, editable=[], operations=["read"],
                 attributes=model_info.get("attributes", []),
                 data_scope=_actor_owned_data_scope(current_actor_name, model, semantic_overrides),
-                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides, page_primary_model=model),
             ))
             if can_create or can_update:
                 form_fields = _pick_fields(model_info, "object_form", 10)
@@ -743,7 +774,7 @@ def generate_interface_plan(
                         operations=[p for p in ("create", "update") if p in permissions],
                         attributes=model_info.get("attributes", []),
                         data_scope=_actor_owned_data_scope(current_actor_name, model, semantic_overrides),
-                        relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides),
+                        relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides, page_primary_model=model),
                     ))
             # Add child sections from composition + subordinates + 1:many associations
             _add_association_sections(
@@ -793,7 +824,7 @@ def generate_interface_plan(
                 operations=[p for p in ("create", "update") if p in perms],
                 attributes=model_info.get("attributes", []),
                 data_scope=_actor_owned_data_scope(current_actor_name, model, semantic_overrides),
-                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides),
+                relation_data_scopes=_model_relation_data_scopes(current_actor_name, model_info, semantic_overrides, page_primary_model=model),
             ))
         _add_association_sections(
             detail_id, model, model_info, model_graph,

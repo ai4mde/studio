@@ -153,6 +153,8 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
         if not _pk_{{ parent_model }}:
             _pk_{{ parent_model }} = self.request.POST.get('instance_id_{{ parent_model }}')
+        if not _pk_{{ parent_model }}:
+            _pk_{{ parent_model }} = self.request.GET.get('instance_id_{{ parent_model }}')
         if _pk_{{ parent_model }}:
             {% if _parent_scope.get('mode') == 'actor_owned' -%}
             _obj_{{ parent_model }} = self._actor_owned_object_or_none({{ parent_model }}, _pk_{{ parent_model }})
@@ -166,6 +168,13 @@ class {{ page }}_{{ section_component }}_CreateView(GenericCreateView):
         {% if _parent_scope.get('mode') == 'actor_owned' -%}
         elif not getattr(instance, '{{ parent_model }}_id', None):
             instance.{{ parent_model }} = self._actor_owned_queryset({{ parent_model }}, create_missing=True).first()
+        {% elif _parent_scope.get('mode') == 'parent_page_instance' -%}
+        elif not getattr(instance, '{{ parent_model }}_id', None):
+            _page_pk_{{ parent_model }} = self.request.GET.get('instance_id_{{ parent_model }}') or self.request.POST.get('instance_id_{{ parent_model }}')
+            if _page_pk_{{ parent_model }}:
+                _page_obj_{{ parent_model }} = {{ parent_model }}.objects.filter(pk=_page_pk_{{ parent_model }}).first()
+                if _page_obj_{{ parent_model }}:
+                    instance.{{ parent_model }} = _page_obj_{{ parent_model }}
         {% endif -%}
         {% endfor -%}
         {% if page.type == 'activity' %}
@@ -254,6 +263,10 @@ class {{ page }}_{{ section_component }}_UpdateView(GenericUpdateView):
         {% set _relation_scopes = section_component.style.get('relation_data_scopes', {}) if section_component.style else {} -%}
         {% set _parent_scope = _relation_scopes.get(parent_model, {}) -%}
         _pk_{{ parent_model }} = self.request.POST.get('{{ parent_model }}')
+        if not _pk_{{ parent_model }}:
+            _pk_{{ parent_model }} = self.request.POST.get('instance_id_{{ parent_model }}')
+        if not _pk_{{ parent_model }}:
+            _pk_{{ parent_model }} = self.request.GET.get('instance_id_{{ parent_model }}')
         if _pk_{{ parent_model }}:
             {% if _parent_scope.get('mode') == 'actor_owned' -%}
             _obj_{{ parent_model }} = self._actor_owned_object_or_none({{ parent_model }}, _pk_{{ parent_model }})
