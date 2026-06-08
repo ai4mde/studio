@@ -24,12 +24,14 @@ openai = "^1.47.0"
 networkx = "^3.4.2"
 numpy = "^2.2.1"
 groq = "^0.15.0"
+pydantic = "^2.0"
 
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.12.1"
 ruff = "^0.1.13"
 django-stubs = {extras = ["compatible-mypy"], version = "^4.2.7"}
+pytest = "^8.4"
 
 [build-system]
 requires = ["poetry-core"]
@@ -40,3 +42,6 @@ plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "model.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "model.settings"
