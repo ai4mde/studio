@@ -1,0 +1,579 @@
+(base) bemmgr@bemmgrdeMacBook-Pro ~ % ls
+allCodes        Desktop         Downloads       Movies          ntws            OneDrive        Public
+Applications    Documents       Library         Music           obsidian        Pictures
+(base) bemmgr@bemmgrdeMacBook-Pro ~ % cd allCodes
+(base) bemmgr@bemmgrdeMacBook-Pro allCodes % ls
+datagripProject         javaProjects            thesisProject           xiangyu-resume
+front-end-project       pythonProjects          trade
+(base) bemmgr@bemmgrdeMacBook-Pro allCodes % cd thesisProject
+(base) bemmgr@bemmgrdeMacBook-Pro thesisProject % ls
+structure       studio
+(base) bemmgr@bemmgrdeMacBook-Pro thesisProject % cd studio
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose up -d
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose ps
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+NAME                         IMAGE                      COMMAND                  SERVICE             CREATED       STATUS          PORTS
+studio-postgres-1            postgres                   "docker-entrypoint.s…"   postgres            5 weeks ago   Up 18 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+studio-studio-1              studio-studio              "npm run dev -- --ho…"   studio              5 weeks ago   Up 18 seconds
+studio-studio-api-1          studio-studio-api          "/entrypoint.sh /usr…"   studio-api          5 weeks ago   Up 18 seconds
+studio-studio-prototypes-1   studio-studio-prototypes   "/usr/src/prototypes…"   studio-prototypes   5 weeks ago   Up 18 seconds
+traefik                      traefik:v3.6.7             "/entrypoint.sh --ap…"   traefik             5 weeks ago   Up 18 seconds   0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+(base) bemmgr@bemmgrdeMacBook-Pro studio % ls docs/evidence
+scripts                         step0_smoke_tests.log           step1_library_model.json
+step0_pip_freeze.txt            step0_smoke_tests.md
+(base) bemmgr@bemmgrdeMacBook-Pro studio % ls docs/evidence/scripts
+step1_generate_prototype.py     step1_import_library.py         step1_verify_shell.py
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api python manage.py create_admin --username admin --password 1213aini.
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+python: can't open file '/usr/src/app/manage.py': [Errno 2] No such file or directory
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api pwd
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+/usr/src/app
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api ls /usr/src/app
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'find /usr/src -maxdepth 3 -name manage.py 2>/dev/null'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+/usr/src/model/manage.py
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'ls -la /usr/src && echo "--- model ---" && ls /usr/src/model 2>/dev/null | head'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+total 28
+drwxr-xr-x  1 root root 4096 Apr 28 19:56 .
+drwxr-xr-x  1 root root 4096 Jan 30  2024 ..
+drwxr-xr-x  1 root root 4096 Mar  2 10:30 .venv
+drwxr-xr-x  2 root root 4096 Mar  2 10:30 app
+drwxr-xr-x 13 root root  416 Jun  9 12:44 model
+--- model ---
+diagram
+generator
+llm
+manage.py
+metadata
+model
+prompt
+prose
+thesis_evidence
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cat /entrypoint.sh 2>/dev/null | head -40'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+#!/bin/bash
+set -e
+umask 002
+
+# shellcheck disable=SC1091
+source /usr/src/.venv/bin/activate
+
+if [ -t 0 ] ; then
+  echo "🐚 interactive terminal, not running boot scripts"
+else
+  # run boot scripts if not an interactive terminal (such as /bin/bash)
+  echo "🗄️ Waiting for the DB to come online"
+  /usr/src/model/manage.py wait_for_db
+  if ! /usr/src/model/manage.py migrate --check >/dev/null 2>&1; then
+    echo "💾 Applying database migrations"
+    /usr/src/model/manage.py migrate --no-input
+  fi
+  if [ "$DJANGO_SUPERUSER_USERNAME" ]; then
+    echo "👤 Ensuring admin user"
+    /usr/src/model/manage.py create_admin \
+      --noinput \
+      --username $DJANGO_SUPERUSER_USERNAME \
+      --email $DJANGO_SUPERUSER_EMAIL \
+      --password $DJANGO_SUPERUSER_PASSWORD
+  fi
+fi
+
+exec "$@"%                                                                                                                (base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && python manage.py create_admin --username admin --password 1213aini.'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Traceback (most recent call last):
+  File "/usr/src/model/manage.py", line 11, in main
+    from django.core.management import execute_from_command_line
+ModuleNotFoundError: No module named 'django'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/src/model/manage.py", line 22, in <module>
+    main()
+  File "/usr/src/model/manage.py", line 13, in main
+    raise ImportError(
+ImportError: Couldn't import Django. Are you sure it's installed and available on your PYTHONPATH environment variable? Did you forget to activate a virtual environment?
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc '/usr/src/.venv/bin/python -c "import django; print(django.get_version())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+5.0.2
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py help >/dev/null && echo "manage.py OK with venv python"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+manage.py OK with venv python
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/step1_library_model.json studio-api:/tmp/step1_library_model.json
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/step1_library_model.json to studio-studio-api-1:/tmp/step1_library_mod... 0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_import_library.py studio-api:/tmp/step1_import_library.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_import_library.py to studio-studio-api-1:/tmp/step1_impo... 0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_generate_prototype.py studio-api:/tmp/step1_generate_prototype.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_generate_prototype.py to studio-studio-api-1:/tmp/step1_... 0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py create_admin --username admin --password 1213aini.'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Error: That username is already taken.
+Username (leave blank to use 'root'): docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "from django.contr^C       Operation cancelled.
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "from django.contrib.auth import get_user_model; U=get_user_model(); print(\"superusers:\", list(U.objects.filter(is_superuser=True).values_list(\"username\", flat=True)))"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+superusers: ['admin']
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec -e STEP1_LIBRARY_JSON=/tmp/step1_library_model.json studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_import_library.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-import] loading /tmp/step1_library_model.json
+[step1-import] imported project: Library (8cb1ece6-71a0-4e7e-8c0f-7baeed02601e)
+
+[step1-import] ===== DB STATE =====
+  System         : Library (7d735a07-b6cd-409d-9cc7-f3a07cbec983)
+  Classifiers    : 6  (classes=5, enum=1)
+      - Author         type=class
+      - Book           type=class
+      - Customer       type=class
+      - Loan           type=class
+      - BookLoan       type=class
+      - BookCategory   type=enum
+  Relations      : 4
+      - Author -> Book  (association, mult={'source': '1', 'target': '*'})
+      - Customer -> Loan  (association, mult={'source': '1', 'target': '*'})
+      - Loan -> BookLoan  (association, mult={'source': '1', 'target': '*'})
+      - Book -> BookLoan  (association, mult={'source': '1', 'target': '*'})
+  Diagrams       : 1 (classes=1)
+      - Structure    type=classes nodes=6 edges=4
+  Interfaces     : 0 (expected 0 for Step 1 pure class-model generation)
+
+[step1-import] PHASE 1D GATE PASSED: 6 classifiers (5 class + 1 enum) + 4 relations
+[step1-import] SYSTEM_ID for Phase 1E = 7d735a07-b6cd-409d-9cc7-f3a07cbec983
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_generate_prototype.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-gen] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] wrote resolved metadata -> /usr/src/.venv/lib/python3.12/site-packages/django/core/management/step1_generator_metadata_sent.json
+[step1-gen] POST http://localhost:8000/api/v1/generator/prototypes/?database_prototype_name=
+[step1-gen] name=LibraryStep1 system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] HTTP 422
+{"detail": [{"type": "missing", "loc": ["body", "prototype", "system_id"], "msg": "Field required"}]}
+
+[step1-gen] GENERATION FAILED — see response above.
+    If models.py was already produced before a later (non-domain) stage failed,
+    preserve shared_models/models.py as model-layer evidence and STOP (do not edit generator).
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_generate_prototype.py studio-api:/tmp/step1_generate_prototype.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_generate_prototype.py to studio-studio-api-1:/tmp/step1_generate_prototype.py                               0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_generate_prototype.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-gen] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] wrote resolved metadata -> /tmp/step1_generator_metadata_sent.json
+[step1-gen] POST http://localhost:8000/api/v1/generator/prototypes/?database_prototype_name=
+[step1-gen] name=LibraryStep1 system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] HTTP 422
+{"detail": [{"type": "missing", "loc": ["body", "prototype", "name"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "prototype", "description"], "msg": "Field required"}, {"type": "missing", "loc": ["body", "prototype", "system_id"], "msg": "Field required"}]}
+
+[step1-gen] GENERATION FAILED — see response above.
+    If models.py was already produced before a later (non-domain) stage failed,
+    preserve shared_models/models.py as model-layer evidence and STOP (do not edit generator).
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_generate_prototype.py studio-api:/tmp/step1_generate_prototype.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_generate_prototype.py to studio-studio-api-1:/tmp/step1_generate_prototype.py                               0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_generate_prototype.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-gen] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] wrote resolved metadata -> /tmp/step1_generator_metadata_sent.json
+[step1-gen] POST http://localhost:8000/api/v1/generator/prototypes/?database_prototype_name=
+[step1-gen] name=LibraryStep1 system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] HTTP 500
+Traceback (most recent call last):
+  File "/usr/src/.venv/lib/python3.12/site-packages/ninja/operation.py", line 120, in run
+    result = self.view_func(request, **values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/src/model/generator/api/views/prototypes.py", line 68, in create_prototype
+    raise Exception("Failed to generate prototype " + prototype.name)
+Exception: Failed to generate prototype LibraryStep1
+
+
+[step1-gen] GENERATION FAILED — see response above.
+    If models.py was already produced before a later (non-domain) stage failed,
+    preserve shared_models/models.py as model-layer evidence and STOP (do not edit generator).
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc '
+find /usr/src/prototypes/generated_prototypes -maxdepth 5 -type f -path "*LibraryStep1*models.py" 2>/dev/null
+'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/noauth_home/models.py
+/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py
+/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/models.py
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc '
+sed -n "1,260p" /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py
+'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.shortcuts import get_object_or_404
+
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=255, default='', null=True, blank=True)
+    nationality = models.CharField(max_length=255, default='', null=True, blank=True)
+
+
+
+
+    def __str__(self):
+        return str(self.name)
+
+class Book(models.Model):
+    title = models.CharField(max_length=255, default='', null=True, blank=True)
+    isbn = models.CharField(max_length=255, default='', null=True, blank=True)
+    year = models.IntegerField(default=0, null=True, blank=True)
+
+    class Category(models.TextChoices):
+        FICTION = 'FICTION', 'FICTION'
+        NON_FICTION = 'NON_FICTION', 'NON_FICTION'
+        SCIENCE = 'SCIENCE', 'SCIENCE'
+        HISTORY = 'HISTORY', 'HISTORY'
+        CHILDREN = 'CHILDREN', 'CHILDREN'
+
+    category = models.CharField(
+        max_length=512,
+        choices=Category.choices,
+        default=Category.choices[0][0]
+    )
+
+    Author = models.ForeignKey("Author", on_delete=models.CASCADE)
+
+
+
+
+
+
+
+    def __str__(self):
+        return str(self.title)
+
+class Customer(models.Model):
+    name = models.CharField(max_length=255, default='', null=True, blank=True)
+    email = models.CharField(max_length=255, default='', null=True, blank=True)
+
+
+
+
+    def __str__(self):
+        return str(self.name)
+
+class Loan(models.Model):
+    loan_date = models.CharField(max_length=255, default='', null=True, blank=True)
+    due_date = models.CharField(max_length=255, default='', null=True, blank=True)
+    return_date = models.CharField(max_length=255, default='', null=True, blank=True)
+
+    Customer = models.ForeignKey("Customer", on_delete=models.CASCADE)
+
+
+
+
+
+
+
+    def __str__(self):
+        return str(self.loan_date)
+
+class BookLoan(models.Model):
+
+    Loan = models.ForeignKey("Loan", on_delete=models.CASCADE)
+
+
+
+
+    Book = models.ForeignKey("Book", on_delete=models.CASCADE)
+
+
+
+
+    def __str__(self):
+        return str(self.Loan)
+
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose logs --tail=200 studio-prototypes
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+studio-prototypes-1  | Starting periodic command scheduler: cron.
+studio-prototypes-1  |  * Serving Flask app 'api'
+studio-prototypes-1  |  * Debug mode: off
+studio-prototypes-1  | WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+studio-prototypes-1  |  * Running on all addresses (0.0.0.0)
+studio-prototypes-1  |  * Running on http://127.0.0.1:8010
+studio-prototypes-1  |  * Running on http://172.18.0.6:8010
+studio-prototypes-1  | Press CTRL+C to quit
+studio-prototypes-1  | Starting periodic command scheduler: cron.
+studio-prototypes-1  |  * Serving Flask app 'api'
+studio-prototypes-1  |  * Debug mode: off
+studio-prototypes-1  | WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+studio-prototypes-1  |  * Running on all addresses (0.0.0.0)
+studio-prototypes-1  |  * Running on http://127.0.0.1:8010
+studio-prototypes-1  |  * Running on http://172.18.0.5:8010
+studio-prototypes-1  | Press CTRL+C to quit
+studio-prototypes-1  | Starting periodic command scheduler: cron.
+studio-prototypes-1  |  * Serving Flask app 'api'
+studio-prototypes-1  |  * Debug mode: off
+studio-prototypes-1  | WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+studio-prototypes-1  |  * Running on all addresses (0.0.0.0)
+studio-prototypes-1  |  * Running on http://127.0.0.1:8010
+studio-prototypes-1  |  * Running on http://172.18.0.6:8010
+studio-prototypes-1  | Press CTRL+C to quit
+studio-prototypes-1  | Traceback (most recent call last):
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 22, in <module>
+studio-prototypes-1  |     main()
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 18, in main
+studio-prototypes-1  |     execute_from_command_line(sys.argv)
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+studio-prototypes-1  |     utility.execute()
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 416, in execute
+studio-prototypes-1  |     django.setup()
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/__init__.py", line 24, in setup
+studio-prototypes-1  |     apps.populate(settings.INSTALLED_APPS)
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/apps/registry.py", line 116, in populate
+studio-prototypes-1  |     app_config.import_models()
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/apps/config.py", line 269, in import_models
+studio-prototypes-1  |     self.models_module = import_module(models_module_name)
+studio-prototypes-1  |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+studio-prototypes-1  |     return _bootstrap._gcd_import(name[level:], package, level)
+studio-prototypes-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/models.py", line 15, in <module>
+studio-prototypes-1  |     from shared_models.models import User
+studio-prototypes-1  | ImportError: cannot import name 'User' from 'shared_models.models' (/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py)
+studio-prototypes-1  | 172.18.0.5 - - [09/Jun/2026 13:14:34] "POST /generate HTTP/1.1" 500 -
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc '
+cd /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1 && \
+/usr/src/.venv/bin/python manage.py makemigrations 2>&1 | head -40'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+Traceback (most recent call last):
+  File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 22, in <module>
+    main()
+  File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 416, in execute
+    django.setup()
+  File "/usr/src/.venv/lib/python3.12/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/usr/src/.venv/lib/python3.12/site-packages/django/apps/registry.py", line 116, in populate
+    app_config.import_models()
+  File "/usr/src/.venv/lib/python3.12/site-packages/django/apps/config.py", line 269, in import_models
+    self.models_module = import_module(models_module_name)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/models.py", line 15, in <module>
+    from shared_models.models import User
+ImportError: cannot import name 'User' from 'shared_models.models' (/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py)
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc \
+  'rm -rf /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1 && echo removed && ls /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+removed
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "
+from generator.models import Prototype
+qs = Prototype.objects.filter(name=\"LibraryStep1\")
+print(\"deleting prototypes:\", list(qs.values_list(\"id\", flat=True)))
+qs.delete()
+print(\"remaining LibraryStep1:\", Prototype.objects.filter(name=\"LibraryStep1\").count())
+"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+deleting prototypes: [UUID('c4db7fe7-3054-4330-ae20-8a019df17224')]
+remaining LibraryStep1: 0
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_generate_prototype.py studio-api:/tmp/step1_generate_prototype.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_generate_prototype.py to studio-studio-api-1:/tmp/step1_generate_prototype.py                               0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec -e STEP1_USE_AUTH=1 studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_generate_prototype.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-gen] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] useAuthentication=True
+[step1-gen] wrote resolved metadata -> /tmp/step1_generator_metadata_sent.json
+[step1-gen] POST http://localhost:8000/api/v1/generator/prototypes/?database_prototype_name=
+[step1-gen] name=LibraryStep1 system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] HTTP 500
+Traceback (most recent call last):
+  File "/usr/src/.venv/lib/python3.12/site-packages/ninja/operation.py", line 120, in run
+    result = self.view_func(request, **values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/src/model/generator/api/views/prototypes.py", line 68, in create_prototype
+    raise Exception("Failed to generate prototype " + prototype.name)
+Exception: Failed to generate prototype LibraryStep1
+
+
+[step1-gen] GENERATION FAILED — see response above.
+    If models.py was already produced before a later (non-domain) stage failed,
+    preserve shared_models/models.py as model-layer evidence and STOP (do not edit generator).
+(base) bemmgr@bemmgrdeMacBook-Pro studio %   docker compose logs --tail=80 studio-prototypes
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+studio-prototypes-1  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+studio-prototypes-1  |     return _bootstrap._gcd_import(name[level:], package, level)
+studio-prototypes-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/models.py", line 15, in <module>
+studio-prototypes-1  |     from shared_models.models import User
+studio-prototypes-1  | ImportError: cannot import name 'User' from 'shared_models.models' (/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py)
+studio-prototypes-1  | 172.18.0.5 - - [09/Jun/2026 13:14:34] "POST /generate HTTP/1.1" 500 -
+studio-prototypes-1  | Traceback (most recent call last):
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 22, in <module>
+studio-prototypes-1  |     main()
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/manage.py", line 18, in main
+studio-prototypes-1  |     execute_from_command_line(sys.argv)
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+studio-prototypes-1  |     utility.execute()
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/__init__.py", line 436, in execute
+studio-prototypes-1  |     self.fetch_command(subcommand).run_from_argv(self.argv)
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/base.py", line 413, in run_from_argv
+studio-prototypes-1  |     self.execute(*args, **cmd_options)
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/base.py", line 454, in execute
+studio-prototypes-1  |     self.check()
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/management/base.py", line 486, in check
+studio-prototypes-1  |     all_issues = checks.run_checks(
+studio-prototypes-1  |                  ^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/checks/registry.py", line 88, in run_checks
+studio-prototypes-1  |     new_errors = check(app_configs=app_configs, databases=databases)
+studio-prototypes-1  |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/checks/urls.py", line 42, in check_url_namespaces_unique
+studio-prototypes-1  |     all_namespaces = _load_all_namespaces(resolver)
+studio-prototypes-1  |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/core/checks/urls.py", line 61, in _load_all_namespaces
+studio-prototypes-1  |     url_patterns = getattr(resolver, "url_patterns", [])
+studio-prototypes-1  |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+studio-prototypes-1  |     res = instance.__dict__[self.name] = self.func(instance)
+studio-prototypes-1  |                                          ^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/urls/resolvers.py", line 738, in url_patterns
+studio-prototypes-1  |     patterns = getattr(self.urlconf_module, "urlpatterns", self.urlconf_module)
+studio-prototypes-1  |                        ^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+studio-prototypes-1  |     res = instance.__dict__[self.name] = self.func(instance)
+studio-prototypes-1  |                                          ^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/urls/resolvers.py", line 731, in urlconf_module
+studio-prototypes-1  |     return import_module(self.urlconf_name)
+studio-prototypes-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+studio-prototypes-1  |     return _bootstrap._gcd_import(name[level:], package, level)
+studio-prototypes-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/LibraryStep1/urls.py", line 24, in <module>
+studio-prototypes-1  |     urlpatterns += [path('workflow_engine', include('workflow_engine.urls', namespace='workflow_engine'))]
+studio-prototypes-1  |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/src/.venv/lib/python3.12/site-packages/django/urls/conf.py", line 39, in include
+studio-prototypes-1  |     urlconf_module = import_module(urlconf_module)
+studio-prototypes-1  |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "/usr/local/lib/python3.12/importlib/__init__.py", line 90, in import_module
+studio-prototypes-1  |     return _bootstrap._gcd_import(name[level:], package, level)
+studio-prototypes-1  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+studio-prototypes-1  |   File "<frozen importlib._bootstrap_external>", line 994, in exec_module
+studio-prototypes-1  |   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/urls.py", line 2, in <module>
+studio-prototypes-1  |     from workflow_engine import views
+studio-prototypes-1  |   File "/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/workflow_engine/views.py", line 7, in <module>
+studio-prototypes-1  |     from shared_models.views import GenericView, GenericTemplateView, GenericUpdateView
+studio-prototypes-1  | ImportError: cannot import name 'GenericView' from 'shared_models.views' (/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/views.py)
+studio-prototypes-1  | 172.18.0.5 - - [09/Jun/2026 13:50:52] "POST /generate HTTP/1.1" 500 -
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_model_layer_verify.py studio-api:/tmp/step1_model_layer_verify.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_model_layer_verify.py to studio-studio-api-1:/tmp/step1_model_layer_verify.py                               0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc \
+  'ls -la /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py 2>/dev/null && echo FOUND || echo MISSING'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+-rw-r--r-- 1 root root 2211 Jun  9 13:50 /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py
+FOUND
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-prototypes sh -lc \
+    'rm -rf /usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "from generator.models import Prototype; Prototype.objects.filter(name=\"LibraryStep1\").delete()"'
+
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp docs/evidence/scripts/step1_generate_prototype.py studio-api:/tmp/step1_generate_prototype.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied docs/evidence/scripts/step1_generate_prototype.py to studio-studio-api-1:/tmp/step1_generate_prototype.py                               0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec studio-api sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_generate_prototype.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[step1-gen] project=8cb1ece6-71a0-4e7e-8c0f-7baeed02601e system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] useAuthentication=False
+[step1-gen] wrote resolved metadata -> /tmp/step1_generator_metadata_sent.json
+[step1-gen] POST http://localhost:8000/api/v1/generator/prototypes/?database_prototype_name=
+[step1-gen] name=LibraryStep1 system=7d735a07-b6cd-409d-9cc7-f3a07cbec983
+[step1-gen] HTTP 500
+Traceback (most recent call last):
+  File "/usr/src/.venv/lib/python3.12/site-packages/ninja/operation.py", line 120, in run
+    result = self.view_func(request, **values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/src/model/generator/api/views/prototypes.py", line 68, in create_prototype
+    raise Exception("Failed to generate prototype " + prototype.name)
+Exception: Failed to generate prototype LibraryStep1
+
+
+[step1-gen] GENERATION FAILED — see response above.
+    If models.py was already produced before a later (non-domain) stage failed,
+    preserve shared_models/models.py as model-layer evidence and STOP (do not edit generator).
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp studio-prototypes:/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_models/models.py /tmp/generated_models.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-prototypes-1 Copied studio-studio-prototypes-1:/usr/src/prototypes/generated_prototypes/7d735a07-b6cd-409d-9cc7-f3a07cbec983/LibraryStep1/shared_... 0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp /tmp/generated_models.py studio-api:/tmp/generated_models.py
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied /tmp/generated_models.py to studio-studio-api-1:/tmp/generated_models.py                                                                0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose exec -e STEP1_GENERATED_MODELS=/tmp/generated_models.py studio-api \
+  sh -lc 'cd /usr/src/model && /usr/src/.venv/bin/python manage.py shell -c "exec(open(\"/tmp/step1_model_layer_verify.py\").read())"'
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+===== Phase 1G' Part A: Studio DB model-graph verification =====
+classes=5 enum=1 relations=4
+BookLoan incoming associations from: ['Book', 'Loan']
+BookCategory literals (DB): ['FICTION', 'NON_FICTION', 'SCIENCE', 'HISTORY', 'CHILDREN']
+Part A PASSED: Library class graph correct; BookLoan has two incoming associations.
+
+===== Phase 1G' Part B: generated models.py static verification =====
+BookLoan FK fields (generated): {'Loan': 'Loan', 'Book': 'Book'}
+Book.Category members (generated): ['FICTION', 'NON_FICTION', 'SCIENCE', 'HISTORY', 'CHILDREN']
+Part B PASSED: generated models.py has BookLoan two FKs, Book/Loan FKs, and 5-literal enum.
+
+===== Phase 1G' COMPLETE =====
+NOTE: this verifies the MODEL LAYER only. It does NOT claim the generated app
+runtime is operational; full generated-app migration requires auth + >=1 interface.
+(base) bemmgr@bemmgrdeMacBook-Pro studio % docker compose cp studio-api:/tmp/step1_generator_metadata_sent.json docs/evidence/step1_generator_metadata_sent.json
+WARN[0000] /Users/bemmgr/allCodes/thesisProject/studio/docker-compose.yaml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion
+[+] copy 1/1
+ ✔ studio-studio-api-1 Copied studio-studio-api-1:/tmp/step1_generator_metadata_sent.json to docs/evidence/step1_generator_metadata_sent.json                         0.0s
+(base) bemmgr@bemmgrdeMacBook-Pro studio % cp /tmp/generated_models.py docs/evidence/step1_generated_models.py
+(base) bemmgr@bemmgrdeMacBook-Pro studio %
