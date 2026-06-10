@@ -390,7 +390,7 @@ def validate_and_save_candidate(
         candidate = {
             "id": f"c{candidate_index}", "name": name, "description": description,
             "pages": fixed_pages, "sections": fixed_sections,
-            "generated_by": "gemini_make_agent", "prompt": prompt or designer_requirements,
+            "generated_by": "interface_generator", "prompt": prompt or designer_requirements,
             **({"tokens": tokens_d} if tokens_d else {}),
             **({"styling": styling_d} if styling_d else {}),
         }

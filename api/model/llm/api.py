@@ -1,6 +1,6 @@
 from ninja import Router, Schema
 
-from llm.gemini_make_agent.django_service import (
+from llm.interface_generator.django_service import (
     apply_prompt_to_interface,
     debug_uml_extract,
     map_uml_to_all_interfaces,

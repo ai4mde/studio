@@ -2,7 +2,7 @@
 
 import json
 
-from llm.gemini_make_agent.interface_schemas import (
+from llm.interface_generator.interface_schemas import (
     _CANDIDATE_FULL_SCHEMA,
     _CANDIDATE_TOKENS_EXAMPLE,
 )

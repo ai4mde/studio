@@ -7,11 +7,11 @@ from metadata.api.schemas import CreateInterface, ReadInterface, UpdateInterface
 from metadata.api.schemas.generator import GeneratePrototypeRequest, GeneratePrototypeResponse
 from metadata.api.views.defaulting import create_default_interface
 from metadata.models import System, Interface, Classifier
-from llm.gemini_make_agent.candidate_generation import (
+from llm.interface_generator.candidate_generation import (
     generate_candidate_set,
     regenerate_candidate_set,
 )
-from llm.gemini_make_agent.django_service import apply_prompt_to_interface
+from llm.interface_generator.django_service import apply_prompt_to_interface
 from llm.template_renderer import render_layout
 from ninja import Router, Body
 from ninja.errors import HttpError

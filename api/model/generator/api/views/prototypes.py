@@ -2,11 +2,11 @@ from typing import Any, List, Optional, Dict
 import copy
 from generator.api.schemas import ReadPrototype, CreatePrototype, UpdatePrototype
 from generator.models import Prototype
-from llm.gemini_make_agent.django_service import (
+from llm.interface_generator.django_service import (
     map_uml_to_all_interfaces as run_uml_mapping_for_system,
     map_uml_to_interface as run_uml_mapping_for_interface,
 )
-from llm.gemini_make_agent.candidate_generation import (
+from llm.interface_generator.candidate_generation import (
     generate_candidate_set,
     regenerate_candidate_set,
 )

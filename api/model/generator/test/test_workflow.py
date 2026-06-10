@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 class WorkflowSemanticTests(APITestCase):
     def test_semantic_resolver_keeps_only_valid_workflow_semantics(self):
-        from llm.gemini_make_agent.django_service import resolve_interface_semantics_with_llm
+        from llm.interface_generator.django_service import resolve_interface_semantics_with_llm
 
         uml_intel = {
             "semantic_decisions": [{"kind": "activity"}],
@@ -80,7 +80,7 @@ class WorkflowSemanticTests(APITestCase):
         }
 
         with patch.dict("os.environ", {"GEMINI_API_KEY": "test-key"}), \
-             patch("llm.gemini_make_agent.django_service._req.post") as mock_post:
+             patch("llm.interface_generator.django_service._req.post") as mock_post:
             mock_post.return_value.json.return_value = {
                 "candidates": [{
                     "content": {"parts": [{"text": json.dumps(raw_response)}]}
@@ -126,7 +126,7 @@ class WorkflowSemanticTests(APITestCase):
         self.assertNotIn("Fake Step", clean["workflow_steps"])
 
     def test_planner_materializes_workflow_semantics_for_update_record(self):
-        from llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         uml_intel = {
             "actor_name": "Librarian",
@@ -179,7 +179,7 @@ class WorkflowSemanticTests(APITestCase):
         )
 
     def test_planner_materializes_workflow_semantics_for_create_record(self):
-        from llm.gemini_make_agent.uml_mapping.interface_planner import generate_interface_plan
+        from llm.interface_generator.uml_mapping.interface_planner import generate_interface_plan
 
         uml_intel = {
             "actor_name": "Librarian",

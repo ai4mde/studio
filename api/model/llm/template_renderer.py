@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from llm.gemini_make_agent.section_utils import _normalize_select_existing_sections
+from llm.interface_generator.section_utils import _normalize_select_existing_sections
 
 TEMPLATE_DIR = "/usr/src/templates"
 UNIFIED_TEMPLATE = "page_unified.html.jinja2"

@@ -2,7 +2,7 @@
 
 import json
 
-from llm.gemini_make_agent.interface_schemas import _DATA_SCHEMA, _LAYOUT_SCHEMA
+from llm.interface_generator.interface_schemas import _DATA_SCHEMA, _LAYOUT_SCHEMA
 
 
 def build_interface_edit_prompt(
