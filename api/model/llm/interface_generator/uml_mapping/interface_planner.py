@@ -69,26 +69,23 @@ def _field_category(field_name: str) -> str | None:
     return None
 
 
-def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
-    attrs = model_info.get("attributes") or []
-    attr_names = [a["name"] for a in attrs if a.get("name")]
-
-    if role == "object_form":
-        attr_names = [f for f in attr_names if f.lower() not in _EXCLUDED_FORM]
-    else:
-        attr_names = [f for f in attr_names if f.lower() != "id"]
-
-    order = _ROLE_CATEGORY_ORDER.get(role, [])
+def _pick_fields_by_names(
+    attr_names: list[str],
+    role: str,
+    category_order: dict,
+    limit: int = 8,
+    fallback: list[str] | None = None,
+) -> list[str]:
+    """Shared field-selection algorithm used by both interface_planner and navigation_planner."""
+    order = category_order.get(role, [])
     buckets: dict[str, list[str]] = {cat: [] for cat in order}
     tail: list[str] = []
-
     for field in attr_names:
         cat = _field_category(field)
         if cat and cat in buckets:
             buckets[cat].append(field)
         else:
             tail.append(field)
-
     result: list[str] = []
     seen: set[str] = set()
     for cat in order:
@@ -100,8 +97,17 @@ def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
         if f not in seen:
             result.append(f)
             seen.add(f)
+    return result[:limit] or (fallback or [])[:limit]
 
-    return result[:limit]
+
+def _pick_fields(model_info: dict, role: str, limit: int = 8) -> list[str]:
+    attrs = model_info.get("attributes") or []
+    attr_names = [a["name"] for a in attrs if a.get("name")]
+    if role == "object_form":
+        attr_names = [f for f in attr_names if f.lower() not in _EXCLUDED_FORM]
+    else:
+        attr_names = [f for f in attr_names if f.lower() != "id"]
+    return _pick_fields_by_names(attr_names, role, _ROLE_CATEGORY_ORDER, limit)
 
 
 # ─── component selection ─────────────────────────────────────────────────────

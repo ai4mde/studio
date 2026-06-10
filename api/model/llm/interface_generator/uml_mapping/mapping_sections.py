@@ -101,7 +101,6 @@ def _ensure_mapping_content_sections(
         sections,
         model_attrs,
         0,
-        "",
         add_missing_content=True,
     )
     pages, sections = _ensure_pre_workflow_content_sections(
@@ -184,7 +183,6 @@ def _ensure_candidate_content_structure(
     sections: list,
     model_attrs: dict,
     candidate_index: int = 0,
-    prompt: str = "",
     add_missing_content: bool = True,
 ) -> tuple[list, list]:
     known_models = set(model_attrs.keys())
@@ -246,10 +244,9 @@ def _ensure_candidate_content_structure(
             page["sections"] = refs
             activity_pages.append(page)
 
-    normal_page_ids = {_section_id(p.get("id") or p.get("name")) for p in normal_pages}
     has_header_region = any(s.get("id") and s.get("position") == "header" for s in sections)
     if normal_pages and not has_header_region:
-        _inject_chrome_sections(_header_sections_for_candidate(normal_pages, candidate_index, model_attrs), sections, section_map, normal_pages, prepend=True)
+        _inject_chrome_sections(_header_sections_for_candidate(normal_pages, candidate_index), sections, section_map, normal_pages, prepend=True)
 
     has_footer_region = any(s.get("id") and s.get("position") == "footer" for s in sections)
     if normal_pages and not has_footer_region:

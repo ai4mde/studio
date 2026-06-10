@@ -126,7 +126,7 @@ def _default_section_for_page(page: dict, model: str, model_attrs: dict, candida
         "style": style,
     }
 
-def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0, model_attrs: dict | None = None) -> list[dict]:
+def _header_sections_for_candidate(normal_pages: list, candidate_index: int = 0) -> list[dict]:
     """Create a single editable header template section with deterministic variation."""
     nav_methods = _navigation_methods([p.get("name") for p in normal_pages if p.get("name")])
     variant = candidate_index % 3

@@ -4,7 +4,7 @@ from collections import defaultdict
 from .interface_planner import (
     _MODEL_PERSON, _MODEL_DOCUMENT, _MODEL_CATEGORY,
     _FORM_ADDRESS, _FORM_PAYMENT, _FORM_REVIEW,
-    _field_category, _ROLE_CATEGORY_ORDER, _EXCLUDED_FORM,
+    _field_category, _pick_fields_by_names, _ROLE_CATEGORY_ORDER, _EXCLUDED_FORM,
 )
 
 
@@ -48,35 +48,10 @@ _ROLE_CATEGORY_ORDER_OOUI = {
 
 
 def _pick_fields(model_attrs: dict, model: str, role: str, limit: int = 8) -> list[str]:
-    attrs = [f for f in (model_attrs.get(model) or []) if f]
-
+    all_attrs = [f for f in (model_attrs.get(model) or []) if f]
     excluded = _EXCLUDED_FORM if role == "object_form" else frozenset({"id"})
-    attrs = [f for f in attrs if f.lower() not in excluded]
-
-    order = _ROLE_CATEGORY_ORDER_OOUI.get(role, [])
-    buckets: dict[str, list[str]] = {cat: [] for cat in order}
-    tail: list[str] = []
-
-    for field in attrs:
-        cat = _field_category(field)
-        if cat and cat in buckets:
-            buckets[cat].append(field)
-        else:
-            tail.append(field)
-
-    result: list[str] = []
-    seen: set[str] = set()
-    for cat in order:
-        for f in buckets[cat]:
-            if f not in seen:
-                result.append(f)
-                seen.add(f)
-    for f in tail:
-        if f not in seen:
-            result.append(f)
-            seen.add(f)
-
-    return result[:limit] or attrs[:limit]
+    attr_names = [f for f in all_attrs if f.lower() not in excluded]
+    return _pick_fields_by_names(attr_names, role, _ROLE_CATEGORY_ORDER_OOUI, limit, fallback=all_attrs)
 
 
 def _layout_for_page_role(page: dict) -> str:
