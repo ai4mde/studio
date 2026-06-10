@@ -275,14 +275,17 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
         
         if isinstance(attribute, str):
             attr_name = attribute
+            if "." in attr_name:
+                source = "related"
+                readonly = True
             inferred_attribute_type = infer_attribute_type_from_name(attr_name)
             if inferred_attribute_type:
                 attribute_type = inferred_attribute_type
         else:
             attr_name = attribute["name"]
             derived = attribute.get("derived", False)
-            readonly = bool(attribute.get("readonly", False))
             source = attribute.get("source") or ("related" if "." in attr_name else "primary")
+            readonly = bool(attribute.get("readonly", False)) or source == "related"
             is_link = attribute.get("is_link", False)
             render_config = attribute.get("render") or {}
             render_as = render_config.get("as") or attribute.get("render_as") or ("link" if is_link else "text")
