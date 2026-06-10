@@ -11,7 +11,7 @@ import {
 import { CircleUserRound, Save, Trash } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { AgentDesign } from './AgentDesign';
+import { InterfaceDesigner } from './InterfaceDesigner';
 import { Categories } from './Categories';
 import { Pages } from './Pages';
 import { Sections } from './Sections';
@@ -228,7 +228,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                     </div>
                     <Tabs value={activeTab} onChange={(_, value) => setActiveTab(value ?? 0)}>
                         <TabList id="tour-tablist">
-                            <Tab id="tour-tab-agent-design">Agent Design</Tab>
+                            <Tab id="tour-tab-agent-design">Interface Designer</Tab>
                             <Tab>Fragment</Tab>
                             <Tab>Categories</Tab>
                             <Tab id="tour-tab-pages">Pages</Tab>
@@ -238,7 +238,7 @@ const ShowInterface: React.FC<Props> = ({ app_comp }) => {
                             <Tab>Settings</Tab>
                         </TabList>
                         <TabPanel value={0}>
-                            {activeTab === 0 && <AgentDesign interfaceId={app_comp} systemId={systemId} />}
+                            {activeTab === 0 && <InterfaceDesigner interfaceId={app_comp} systemId={systemId} />}
                         </TabPanel>
                         <TabPanel value={1}>
                             <p>Fragment</p>

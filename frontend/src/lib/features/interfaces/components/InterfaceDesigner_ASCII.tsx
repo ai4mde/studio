@@ -9,7 +9,7 @@ type LayoutOption = 'card' | 'list' | 'table' | 'detail';
 type ColorOption = 'blue' | 'green' | 'purple' | 'orange' | 'rose' | 'slate';
 type DensityOption = 'compact' | 'normal' | 'spacious';
 
-interface AgentDesignProps {
+interface InterfaceDesignerProps {
     interfaceId?: string | null;
 }
 
@@ -26,7 +26,7 @@ const COLOR_HEX: Record<ColorOption, string> = {
     orange: '#f97316', rose: '#f43f5e', slate: '#64748b',
 };
 
-export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId }) => {
+export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId }) => {
     const [sections, setSections] = useLocalStorage('sections', []);
     const [pages, setPages] = useLocalStorage('pages', []);
 

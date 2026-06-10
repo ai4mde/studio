@@ -25,9 +25,9 @@ export function startInterfaceTour(callbacks: TourCallbacks = {}) {
                 popover: {
                     title: '📑 Interface Tabs',
                     description:
-                        'The interface is split into tabs. <b>Agent Design</b> is your main workspace. ' +
+                        'The interface is split into tabs. <b>Interface Designer</b> is your main workspace. ' +
                         'The other tabs — <b>Pages</b>, <b>Section Components</b>, and <b>Styling</b> — ' +
-                        'let you manage the raw data that Agent Design works with.',
+                        'let you manage the raw data that Interface Designer works with.',
                     side: 'bottom',
                     align: 'start',
                 },
@@ -49,7 +49,7 @@ export function startInterfaceTour(callbacks: TourCallbacks = {}) {
                     title: '🧩 Section Components Tab',
                     description:
                         'Raw section definitions — layout, component, model, fields, operations, and style. ' +
-                        'Sections created here appear in the Refine panel. You can also add sections directly from Agent Design.',
+                        'Sections created here appear in the Refine panel. You can also add sections directly from Interface Designer.',
                     side: 'bottom',
                     align: 'start',
                 },

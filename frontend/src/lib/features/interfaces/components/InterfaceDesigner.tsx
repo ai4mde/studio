@@ -208,7 +208,7 @@ const POSITION_OPTIONS: { value: PositionOption; label: string; bg: string; colo
     { value: 'footer',  label: 'Footer',  bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
 ];
 
-interface AgentDesignProps {
+interface InterfaceDesignerProps {
     interfaceId?: string | null;
     systemId?: string | null;
 }
@@ -514,7 +514,7 @@ const makeChromeSection = (layout: LayoutOption, position: PositionOption) => {
     };
 };
 
-export const AgentDesign: React.FC<AgentDesignProps> = ({ interfaceId, systemId }) => {
+export const InterfaceDesigner: React.FC<InterfaceDesignerProps> = ({ interfaceId, systemId }) => {
     const storagePrefix = interfaceId || 'new-interface';
     const [sections, setSections] = useLocalStorage(`interface:${storagePrefix}:sections`, []);
     const [pages, setPages] = useLocalStorage(`interface:${storagePrefix}:pages`, []);
