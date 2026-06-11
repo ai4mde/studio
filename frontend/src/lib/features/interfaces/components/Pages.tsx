@@ -1,5 +1,4 @@
 import {
-    Chip,
     Divider,
     FormControl,
     Input,
@@ -10,6 +9,12 @@ import { useSystemActions } from "$lib/features/interfaces/queries";
 import { useParams } from "react-router";
 import Select from "react-select";
 import useLocalStorage from './useLocalStorage';
+
+type SectionRef = { value: string; label: string };
+type CardEntry = { type: 'card'; id: string; label: string; sections: SectionRef[] };
+type PageEntry = SectionRef | CardEntry;
+
+const isCard = (e: PageEntry): e is CardEntry => (e as any).type === 'card';
 
 type Props = {
     actorName: string;
@@ -52,7 +57,10 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
         if (editIndex !== -1 && data[editIndex].sections) {
             setSelectedSections(
                 (data[editIndex].sections || [])
-                    .map(sectionOptionForRef)
+                    .map((entry: any) => {
+                        if (typeof entry === 'object' && entry.type === 'card') return entry;
+                        return sectionOptionForRef(entry);
+                    })
                     .filter(Boolean),
             );
         } else {
@@ -138,7 +146,10 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
         if (editIndex !== -1) {
             const newData = [...data];
             newData[editIndex].sections = (selectedSections || [])
-                .map(sectionOptionForRef)
+                .map((entry: any) => {
+                    if (typeof entry === 'object' && entry.type === 'card') return entry;
+                    return sectionOptionForRef(entry);
+                })
                 .filter(Boolean);
             setData(newData);
         }
@@ -203,6 +214,51 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
 
     const handleNameCancel = () => {
         setPencilClick(false);
+    };
+
+    const handleAddCard = () => {
+        const cardCount = (selectedSections || []).filter(isCard).length;
+        const newCard: CardEntry = {
+            type: 'card',
+            id: window.crypto.randomUUID(),
+            label: `Card ${cardCount + 1}`,
+            sections: [],
+        };
+        setSelectedSections([...(selectedSections || []), newCard]);
+    };
+
+    const handleAddSectionToPage = (opt: SectionRef | null) => {
+        if (!opt) return;
+        setSelectedSections([...(selectedSections || []), opt]);
+    };
+
+    const handleAddSectionToCard = (cardIdx: number, opt: SectionRef | null) => {
+        if (!opt) return;
+        const updated = [...(selectedSections || [])] as PageEntry[];
+        const card = { ...(updated[cardIdx] as CardEntry), sections: [...(updated[cardIdx] as CardEntry).sections] };
+        card.sections.push(opt);
+        updated[cardIdx] = card;
+        setSelectedSections(updated);
+    };
+
+    const handleRemoveEntry = (idx: number) => {
+        const updated = [...(selectedSections || [])];
+        updated.splice(idx, 1);
+        setSelectedSections(updated);
+    };
+
+    const handleRemoveSectionFromCard = (cardIdx: number, sectionIdx: number) => {
+        const updated = [...(selectedSections || [])] as PageEntry[];
+        const card = { ...(updated[cardIdx] as CardEntry), sections: [...(updated[cardIdx] as CardEntry).sections] };
+        card.sections.splice(sectionIdx, 1);
+        updated[cardIdx] = card;
+        setSelectedSections(updated);
+    };
+
+    const handleRenameCard = (cardIdx: number, newLabel: string) => {
+        const updated = [...(selectedSections || [])] as PageEntry[];
+        updated[cardIdx] = { ...(updated[cardIdx] as CardEntry), label: newLabel };
+        setSelectedSections(updated);
     };
 
     return (
@@ -320,14 +376,73 @@ export const Pages: React.FC<Props> = ({ actorName, interfaceId }) => {
                                         </FormControl>
                                     )}
                                     {isSuccessSections && (
-                                        <div className='space-y-1'>
-                                            <h3 className="text-xl font-bold">Section Components</h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-xl font-bold">Section Components</h3>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddCard}
+                                                    className="text-xs border border-blue-300 text-blue-600 rounded-md px-2 py-1 hover:bg-blue-50"
+                                                >
+                                                    + Card
+                                                </button>
+                                            </div>
+                                            {(selectedSections || []).map((entry: any, entryIdx: number) => (
+                                                isCard(entry) ? (
+                                                    <div key={entry.id} className="rounded-lg border border-blue-200 bg-blue-50 p-2 space-y-1.5">
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={entry.label}
+                                                                onChange={(e) => handleRenameCard(entryIdx, e.target.value)}
+                                                                className="flex-1 text-xs font-semibold text-blue-700 bg-transparent border-b border-blue-200 focus:outline-none focus:border-blue-400 min-w-0"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveEntry(entryIdx)}
+                                                                className="shrink-0 text-blue-300 hover:text-red-500"
+                                                            >
+                                                                <Trash size={13} />
+                                                            </button>
+                                                        </div>
+                                                        {(entry.sections || []).map((sRef: SectionRef, sIdx: number) => (
+                                                            <div key={sRef.value} className="flex items-center gap-1 bg-white rounded border border-blue-100 px-2 py-1">
+                                                                <span className="flex-1 text-xs truncate">{sRef.label}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemoveSectionFromCard(entryIdx, sIdx)}
+                                                                    className="shrink-0 text-gray-300 hover:text-red-400"
+                                                                >
+                                                                    <Trash size={11} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <Select
+                                                            placeholder="Add section to card..."
+                                                            options={sectionOptions.filter((opt: any) => !(entry.sections || []).find((s: SectionRef) => s.value === opt.value))}
+                                                            onChange={(opt: any) => handleAddSectionToCard(entryIdx, opt)}
+                                                            value={null}
+                                                            styles={{ control: (base: any) => ({ ...base, minHeight: '28px', fontSize: '11px' }) }}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div key={entry.value} className="flex items-center gap-2 bg-white rounded border border-stone-200 px-2 py-1.5">
+                                                        <span className="flex-1 text-sm truncate">{entry.label}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveEntry(entryIdx)}
+                                                            className="shrink-0 text-gray-300 hover:text-red-400"
+                                                        >
+                                                            <Trash size={13} />
+                                                        </button>
+                                                    </div>
+                                                )
+                                            ))}
                                             <Select
-                                                isMulti
-                                                name="sections"
+                                                placeholder="Add section..."
                                                 options={sectionOptions}
-                                                value={selectedSections}
-                                                onChange={setSelectedSections}
+                                                onChange={(opt: any) => handleAddSectionToPage(opt)}
+                                                value={null}
                                             />
                                         </div>
                                     )}

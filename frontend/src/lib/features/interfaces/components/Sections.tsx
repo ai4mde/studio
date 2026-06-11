@@ -87,6 +87,83 @@ const ACTIVITY_ACTION_SIZES = [
     { value: 'lg', label: 'Large' },
 ];
 
+const SECTION_DATA_ROLE_OPTIONS = [
+    { value: 'display_records', label: 'Display records', hint: 'Show many records from a model.' },
+    { value: 'show_record', label: 'Show record', hint: 'Show one selected or contextual record.' },
+    { value: 'create_record', label: 'Create record', hint: 'Collect fields and create a new database row.' },
+    { value: 'update_record', label: 'Update record', hint: 'Edit selected fields on an existing row.' },
+    { value: 'select_existing', label: 'Select existing', hint: 'Choose an existing row for the next action or workflow step.' },
+    { value: 'decision_check', label: 'Decision check', hint: 'Show context and choose/resolve the next branch.' },
+    { value: 'notify_summary', label: 'Notify summary', hint: 'Show a notification or result summary.' },
+];
+
+const DATA_ROLE_CONFIG: Record<string, any> = {
+    display_records: {
+        layout: 'list',
+        role: 'object_collection',
+        component: 'ObjectList',
+        operations: { create: false, update: false, delete: false, select: false },
+    },
+    show_record: {
+        layout: 'detail',
+        role: 'object_detail',
+        component: 'DetailPanel',
+        operations: { create: false, update: false, delete: false, select: false },
+    },
+    create_record: {
+        layout: 'form',
+        role: 'object_form',
+        component: 'ObjectForm',
+        operations: { create: true, update: false, delete: false, select: false },
+    },
+    update_record: {
+        layout: 'form',
+        role: 'object_form',
+        component: 'ObjectForm',
+        operations: { create: false, update: true, delete: false, select: false },
+    },
+    select_existing: {
+        layout: 'list',
+        role: 'object_collection',
+        component: 'ObjectList',
+        operations: { create: false, update: false, delete: false, select: true },
+    },
+    decision_check: {
+        layout: 'detail',
+        role: 'object_detail',
+        component: 'SummaryPanel',
+        operations: { create: false, update: false, delete: false, select: false },
+        workflowIntent: 'check',
+    },
+    notify_summary: {
+        layout: 'detail',
+        role: 'object_detail',
+        component: 'SummaryPanel',
+        operations: { create: false, update: false, delete: false, select: false },
+        workflowIntent: 'notify',
+    },
+};
+
+const SectionEditorGroup = ({
+    title,
+    description,
+    defaultOpen = true,
+    children,
+}: {
+    title: string;
+    description?: string;
+    defaultOpen?: boolean;
+    children: React.ReactNode;
+}) => (
+    <details open={defaultOpen} className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+        <summary className="cursor-pointer select-none text-[12px] font-semibold uppercase tracking-wide text-gray-700">
+            {title}
+        </summary>
+        {description && <p className="mt-1 text-[11px] leading-snug text-gray-500">{description}</p>}
+        <div className="mt-3 space-y-3">{children}</div>
+    </details>
+);
+
 const getAttributeName = (attr: any) => typeof attr === 'string' ? attr : attr?.name;
 const toAttributeOption = (attr: any) => {
     if (typeof attr === 'string') return { name: attr };
@@ -101,6 +178,18 @@ const getAttributeAction = (attr: any) => {
     return attr?.action || { type: attr?.is_link ? 'navigate' : 'none' };
 };
 const normalizeAttribute = (attr: any) => typeof attr === 'string' ? { name: attr } : { ...(attr || {}) };
+const operationFlags = (operations: any) => {
+    if (Array.isArray(operations)) {
+        return {
+            create: operations.includes('create'),
+            update: operations.includes('update'),
+            delete: operations.includes('delete'),
+            select: operations.includes('select'),
+            read: operations.includes('read'),
+        };
+    }
+    return { ...(operations || {}) };
+};
 const isReadonlyAttribute = (attr: any) => {
     const normalized = normalizeAttribute(attr);
     return !!normalized.readonly || normalized.source === 'related' || String(normalized.name || '').includes('.');
@@ -113,6 +202,20 @@ const isCollectionSection = (section: any) => {
         || ['object_collection', 'child_collection', 'object_summary'].includes(role);
 };
 const dataScopeMode = (section: any) => section?.style?.data_scope?.mode || 'all';
+const inferSectionDataRole = (section: any) => {
+    if (section?.data_role) return section.data_role;
+    const ops = operationFlags(section?.operations);
+    const layout = String(section?.layout || '').toLowerCase();
+    const role = String(section?.role || '').toLowerCase();
+    const intent = String(section?.style?.workflow_semantics?.intent || '').toLowerCase();
+    if (intent.includes('notify')) return 'notify_summary';
+    if (intent.includes('check') || intent.includes('decision')) return 'decision_check';
+    if (ops.select && !ops.create && !ops.update && !ops.delete) return 'select_existing';
+    if (ops.create && layout === 'form') return 'create_record';
+    if (ops.update && layout === 'form') return 'update_record';
+    if (layout === 'detail' || role.includes('detail') || role.includes('summary')) return 'show_record';
+    return 'display_records';
+};
 const sqlTableName = (name: string) => String(name || 'items')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
     .replace(/[\s.-]+/g, '_')
@@ -249,7 +352,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         }
 
         if (data[index].operations) {
-            setSelectedOperations(data[index].operations);
+            setSelectedOperations(operationFlags(data[index].operations));
         } else {
             setSelectedOperations([]);
         }
@@ -676,7 +779,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
     };
 
     const toggleOperation = (sectionIndex: number, operation: 'create' | 'update' | 'delete' | 'select') => {
-        const sectionOperations = selectedOperations || {};
+        const sectionOperations = operationFlags(selectedOperations);
         const updatedOperations = {
             ...sectionOperations,
             [operation]: !sectionOperations[operation],
@@ -684,6 +787,33 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setSelectedOperations(updatedOperations);
         const newData = [...data];
         newData[sectionIndex].operations = updatedOperations;
+        setData(newData);
+    };
+
+    const handleDataRoleChange = (sectionIndex: number, dataRole: string) => {
+        const config = DATA_ROLE_CONFIG[dataRole] || DATA_ROLE_CONFIG.display_records;
+        const newData = [...data];
+        const current = newData[sectionIndex] || {};
+        const style = { ...(current.style || {}) };
+        if (config.workflowIntent) {
+            style.workflow_semantics = {
+                ...(style.workflow_semantics || {}),
+                intent: config.workflowIntent,
+            };
+        } else if (style.workflow_semantics?.intent && ['check', 'notify'].includes(String(style.workflow_semantics.intent))) {
+            style.workflow_semantics = { ...(style.workflow_semantics || {}) };
+            delete style.workflow_semantics.intent;
+        }
+        newData[sectionIndex] = {
+            ...current,
+            data_role: dataRole,
+            layout: config.layout,
+            role: config.role,
+            component: config.component,
+            operations: config.operations,
+            style,
+        };
+        setSelectedOperations(config.operations);
         setData(newData);
     };
 
@@ -894,8 +1024,24 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </select>
                                     </FormControl>
                                     ) : (<>
+                                    <SectionEditorGroup title="Basic" description="Choose the domain class this component reads or edits.">
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-bold">Primary Class</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Data Role</h3>
+                                        <select
+                                            value={inferSectionDataRole(data[index])}
+                                            onChange={(e) => handleDataRoleChange(index, e.target.value)}
+                                            className="border border-gray-300 rounded-md bg-white px-2 py-1.5 text-sm w-full"
+                                        >
+                                            {SECTION_DATA_ROLE_OPTIONS.map(option => (
+                                                <option key={option.value} value={option.value}>{option.label}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-[11px] leading-snug text-gray-500">
+                                            {SECTION_DATA_ROLE_OPTIONS.find(option => option.value === inferSectionDataRole(data[index]))?.hint}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-semibold text-gray-700">Primary Class</h3>
                                         <div className="flex max-w-full flex-wrap gap-2">
                                             {isSuccessClasses && (
                                                 classes.map((e) => (
@@ -911,8 +1057,10 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 ))}
                                         </div>
                                     </div>
+                                    </SectionEditorGroup>
+                                    <SectionEditorGroup title="Actions" description="Control what the user can do with records in this component.">
                                     <div className="space-y-1">
-                                        <h3 className="text-xl font-bold">Operations</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Record operations</h3>
                                         <div className="flex gap-2">
                                             <Chip
                                                 onClick={() => toggleOperation(index, 'create')}
@@ -953,8 +1101,10 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             Use only when users need to choose records or act on selected rows.
                                         </p>
                                     </div>
+                                    </SectionEditorGroup>
+                                    <SectionEditorGroup title="Fields" description="Choose display, editable, and read-only fields. Related fields are read-only context only.">
                                     <div className='space-y-1'>
-                                        <h3 className="text-xl font-bold">Attributes</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Editable / display attributes</h3>
                                         <Multiselect
                                             options={classAttributes}
                                             displayValue='name'
@@ -1024,92 +1174,11 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 );
                                             })}
                                         </div>
-                                        <h3 className="text-base font-bold pt-3">Read-only Attributes</h3>
-                                        <Multiselect
-                                            options={readonlyAttributeOptions}
-                                            displayValue='name'
-                                            placeholder="Select read-only attributes..."
-                                            showCheckbox={true}
-                                            style={{ chips: { background: 'rgb(254 215 170)', color: 'rgb(124 45 18)' } }}
-                                            selectedValues={[]}
-                                            onSelect={(selectedList, selectedItem) => handleReadonlyAttributeSelect(selectedList, selectedItem, index)}
-                                        />
-                                        <p className="text-[11px] text-gray-500 mt-1">
-                                            Read-only attributes are displayed from related or non-primary classes and are not generated as editable form fields.
-                                        </p>
-                                        <div className="mt-2 space-y-1">
-                                            {selectedAttributes.map((attr, attrIdx) => {
-                                                if (!isReadonlyAttribute(attr)) return null;
-                                                const action = getAttributeAction(attr);
-                                                return (
-                                                    <div key={attrIdx} className="bg-orange-50 px-2 py-1 rounded-md border border-orange-200 space-y-1">
-                                                        <div className="flex items-center gap-2 min-w-0">
-                                                            <span
-                                                                className="text-xs font-medium truncate flex-1 min-w-0"
-                                                                title={getAttributeName(attr)}
-                                                            >
-                                                                {getAttributeName(attr)}
-                                                            </span>
-                                                            <span className="text-[10px] rounded-full bg-orange-100 text-orange-700 px-1.5 py-0.5 shrink-0">read-only</span>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleAttributeRemove([], attr, index)}
-                                                                className="shrink-0 rounded-md border border-orange-200 bg-white p-1 text-orange-700 hover:bg-orange-100"
-                                                                title="Remove read-only attribute"
-                                                            >
-                                                                <Trash size={12} />
-                                                            </button>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {getAttributeRenderAs(attr) === 'link' && <LinkIcon size={13} className="text-blue-600 shrink-0" />}
-                                                            <select
-                                                                value={getAttributeRenderAs(attr)}
-                                                                onChange={(e) => handleAttributeRenderChange(index, attrIdx, e.target.value)}
-                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs flex-1 min-w-0"
-                                                                title="Field render mode"
-                                                            >
-                                                                {FIELD_RENDER_OPTIONS.map(option => (
-                                                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                                                ))}
-                                                            </select>
-                                                            <select
-                                                                value={action.type || 'none'}
-                                                                onChange={(e) => updateAttributeAction(index, attrIdx, { type: e.target.value })}
-                                                                className="border border-gray-300 rounded-md bg-white px-1 py-0.5 text-xs flex-1 min-w-0"
-                                                                title="Field action"
-                                                            >
-                                                                {FIELD_ACTION_OPTIONS.map(option => (
-                                                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        {action.type !== 'none' && (
-                                                            <input
-                                                                type="text"
-                                                                value={action.targetPageId || action.operation || action.field || action.tooltip || ''}
-                                                                onChange={(e) => {
-                                                                    const key = action.type === 'navigate' ? 'targetPageId'
-                                                                        : action.type === 'operation' ? 'operation'
-                                                                            : action.type === 'tooltip' ? 'tooltip'
-                                                                                : 'field';
-                                                                    updateAttributeAction(index, attrIdx, { [key]: e.target.value });
-                                                                }}
-                                                                placeholder={
-                                                                    action.type === 'navigate' ? 'target page id/name'
-                                                                        : action.type === 'operation' ? 'operation name'
-                                                                            : action.type === 'tooltip' ? 'tooltip text'
-                                                                                : 'field/value'
-                                                                }
-                                                                className="w-full border border-gray-300 rounded-md px-2 py-1 text-xs"
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
                                     </div>
+                                    </SectionEditorGroup>
+                                    <SectionEditorGroup title="Content" description="Optional copy, media, and custom methods shown by this component." defaultOpen={false}>
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">
+                                        <h3 className="text-sm font-semibold text-gray-700">
                                             {CHROME_LAYOUTS.includes(data[index].layout) ? 'Methods (one per line)' : 'Custom Operations'}
                                         </h3>
                                         {CHROME_LAYOUTS.includes(data[index].layout) ? (
@@ -1164,7 +1233,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Text</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Text</h3>
                                         {!pencelClickText && (
                                             <div className="flex flex-wrap gap-2">
                                                 <h2 className="text-l">
@@ -1209,7 +1278,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Image URL</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Image URL</h3>
                                         {!pencelClickImageUrl && (
                                             <div className="flex flex-wrap gap-2">
                                                 <h2 className="text-l break-all">
@@ -1264,10 +1333,12 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </>
                                         )}
                                     </FormControl>
+                                    </SectionEditorGroup>
                                     </>)}
                                     {!isActivityActionSection(data[index]) && !CHROME_LAYOUTS.includes(data[index].layout) && (<>
+                                    <SectionEditorGroup title="Data Binding" description="Define which records this component reads before advanced query filters.">
                                     <FormControl className="space-y-1">
-                                        <h3 className="text-xl font-bold">Related To</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Related To</h3>
                                         <p className="text-xs text-gray-500">Show items related to the selected section's object (e.g. same category).</p>
                                         <select
                                             value={data[index].related_to || ''}
@@ -1317,7 +1388,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         )}
                                     </FormControl>
                                     <FormControl className="space-y-2">
-                                        <h3 className="text-xl font-bold">Data Scope</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Data Scope</h3>
                                         <p className="text-xs text-gray-500">Controls which records this section is allowed to read before query filters are applied.</p>
                                         <select
                                             value={dataScopeMode(data[index])}
@@ -1333,8 +1404,10 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </p>
                                         )}
                                     </FormControl>
+                                    </SectionEditorGroup>
+                                    <SectionEditorGroup title="Advanced Query" description="Optional joins, select columns, sort, filters, and SQL preview." defaultOpen={false}>
                                     <FormControl className="space-y-2">
-                                        <h3 className="text-xl font-bold">Data Source / Query</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">Data Source / Query</h3>
                                         <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
                                         <div className="space-y-1">
                                             <label className="text-xs text-gray-500">From</label>
@@ -1569,9 +1642,11 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             </pre>
                                         </div>
                                     </FormControl>
+                                    </SectionEditorGroup>
                                     {isCollectionSection(data[index]) && (
+                                        <SectionEditorGroup title="Item Interaction" description="Component-level action when users click a card, row, or list item." defaultOpen={false}>
                                         <FormControl className="space-y-2">
-                                            <h3 className="text-xl font-bold">Item Click Action</h3>
+                                            <h3 className="text-sm font-semibold text-gray-700">Item Click Action</h3>
                                             <p className="text-xs text-gray-500">Component-level interaction for clicking a card, list item, or table row.</p>
                                             <select
                                                 value={data[index].behavior?.item_click?.type || 'none'}
@@ -1598,6 +1673,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                                 </div>
                                             )}
                                         </FormControl>
+                                        </SectionEditorGroup>
                                     )}
                                     </>)}
                                     <Divider />
@@ -1630,7 +1706,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                     ))}
                     <button
                         onClick={() => {
-                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", operations: { "create": false, "update": false, "delete": false }, attributes: [], layout: "table", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
+                            const newSection = { id: window.crypto.randomUUID(), name: `Section Component ${data.length + 1}`, class: "", primary_model: "", data_role: "display_records", operations: { "create": false, "update": false, "delete": false, "select": false }, attributes: [], fields: [], actions: [], layout: "table", role: "object_collection", component: "ObjectList", col_span: 12, style: { color: "blue", density: "normal", radius: "xl", columns: "3", card_style: "elevated" } };
 
                             // Automatically use first class for new section component
                             if (isSuccessClasses && classes[0].id) {
@@ -1651,6 +1727,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                 name,
                                 label: 'Complete step',
                                 type: 'activity_action',
+                                data_role: 'workflow_action',
                                 layout: 'activity_action',
                                 class: "",
                                 operations: { "create": false, "update": false, "delete": false },

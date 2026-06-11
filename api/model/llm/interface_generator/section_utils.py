@@ -712,14 +712,6 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
                 if not attr_name:
                     continue
                 if "." in attr_name:
-                    first, rest = attr_name.split(".", 1)
-                    related_model = canonical_model(first)
-                    if related_model and rest in set(model_attrs.get(related_model) or []):
-                        normalized = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
-                        normalized["name"] = f"{related_model}.{rest}"
-                        normalized.setdefault("source", "related")
-                        normalized.setdefault("readonly", True)
-                        normalized_attrs.append(normalized)
                     continue
                 if attr_name in valid_attrs:
                     normalized_attrs.append(attr)
@@ -730,6 +722,205 @@ def _finalize_data_section_bindings(sections: list, model_attrs: dict, limit: in
         section["field_layout"] = _normalize_field_layout(section)
         fixed.append(section)
     return fixed
+
+def _model_graph_attr_names(model_graph: dict, model: str) -> set[str]:
+    return {
+        str(attr.get("name") or "")
+        for attr in ((model_graph.get(model) or {}).get("attributes") or [])
+        if isinstance(attr, dict) and attr.get("name")
+    }
+
+def _canonical_model_name(name: str, model_graph: dict) -> str:
+    if name in model_graph:
+        return name
+    needle = re.sub(r"[\s_-]", "", str(name or "")).lower()
+    for model in model_graph:
+        if re.sub(r"[\s_-]", "", str(model or "")).lower() == needle:
+            return model
+    return ""
+
+def _relation_cardinality(model_graph: dict, source_model: str, target_model: str) -> str:
+    info = model_graph.get(source_model) or {}
+    for rel in (info.get("associations") or []) + (info.get("aggregations_owned") or []) + (info.get("compositions_owned") or []):
+        if rel.get("model") == target_model:
+            return str(rel.get("cardinality") or "")
+    if (model_graph.get(source_model) or {}).get("composition_parent") == target_model:
+        return "many-1"
+    return ""
+
+def _is_direct_single_relation(model_graph: dict, source_model: str, target_model: str) -> bool:
+    return _relation_cardinality(model_graph, source_model, target_model) in {"many-1", "1-1"}
+
+def _is_direct_child_relation(model_graph: dict, source_model: str, child_model: str) -> bool:
+    return _relation_cardinality(model_graph, source_model, child_model) == "1-many"
+
+def _bridge_child_model(model_graph: dict, primary_model: str, related_model: str) -> str:
+    for child_model in model_graph:
+        if child_model in {primary_model, related_model}:
+            continue
+        if _is_direct_single_relation(model_graph, child_model, primary_model) and _is_direct_single_relation(model_graph, child_model, related_model):
+            return child_model
+    return ""
+
+def _attr_name(attr) -> str:
+    return str(attr.get("name", "") if isinstance(attr, dict) else attr or "")
+
+def _readonly_related_attr(name: str) -> dict:
+    return {
+        "name": name,
+        "source": "related",
+        "readonly": True,
+        "render": {"as": "text"},
+        "action": {"type": "none"},
+    }
+
+def _merge_section_attrs(existing: list, additions: list) -> list:
+    result = []
+    seen = set()
+    for attr in list(existing or []) + list(additions or []):
+        name = _attr_name(attr)
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        result.append(attr)
+    return result
+
+def _ensure_logical_related_sections(pages: list, sections: list, model_graph: dict) -> tuple[list, list]:
+    """Move invalid multi-row related fields into child collection sections.
+
+    Detail/form sections may show fields on their primary model or direct single
+    relations only. If a field points through a one-to-many relation, such as
+    Member -> Loan -> Book, it belongs in a Loan collection on the same page.
+    """
+    if not model_graph:
+        return pages, sections
+
+    pages = [dict(page) for page in pages or []]
+    sections = [dict(section) for section in sections or []]
+    section_by_id = {str(section.get("id") or ""): section for section in sections if section.get("id")}
+    page_by_id = {_section_id(page.get("id") or page.get("name") or ""): page for page in pages}
+    additions: dict[tuple[str, str], list] = {}
+    source_section_for_addition: dict[tuple[str, str], str] = {}
+
+    for section in sections:
+        layout = _normalize_layout_alias(section.get("layout"))
+        if layout not in {"detail", "form"} and section.get("role") not in {"object_detail", "object_form", "object_summary"}:
+            continue
+        primary_model = _canonical_model_name(section.get("primary_model") or section.get("class") or "", model_graph)
+        if not primary_model:
+            continue
+        page_id = _section_id(section.get("page_id") or "")
+        if not page_id:
+            continue
+
+        kept_attrs = []
+        moved = []
+        for attr in section.get("attributes") or []:
+            name = _attr_name(attr)
+            if "." not in name:
+                kept_attrs.append(attr)
+                continue
+            prefix, field = name.split(".", 1)
+            related_model = _canonical_model_name(prefix, model_graph)
+            if not related_model or field not in _model_graph_attr_names(model_graph, related_model):
+                continue
+            canonical_attr = dict(attr) if isinstance(attr, dict) else {"name": name}
+            canonical_attr["name"] = f"{related_model}.{field}"
+            canonical_attr.setdefault("source", "related")
+            canonical_attr.setdefault("readonly", True)
+
+            if _is_direct_single_relation(model_graph, primary_model, related_model):
+                continue
+
+            child_model = related_model if _is_direct_child_relation(model_graph, primary_model, related_model) else _bridge_child_model(model_graph, primary_model, related_model)
+            if child_model:
+                key = (page_id, child_model)
+                additions.setdefault(key, [])
+                source_section_for_addition.setdefault(key, str(section.get("id") or ""))
+                if child_model == related_model:
+                    additions[key].append(field)
+                moved.append(name)
+                continue
+
+            # Invalid multi-hop fields are intentionally dropped from detail/form
+            # sections so they do not render empty labels.
+            moved.append(name)
+        if moved:
+            section["attributes"] = kept_attrs
+            related_visible = [
+                value for value in (section.get("related_visible_fields") or [])
+                if value not in set(moved)
+            ]
+            section["related_visible_fields"] = related_visible
+
+    for (page_id, child_model), related_attrs in additions.items():
+        page = page_by_id.get(page_id)
+        if not page:
+            continue
+        refs = page.get("sections") or []
+        ref_ids = [_ref_id(ref) for ref in refs if _ref_id(ref)]
+        existing = next(
+            (
+                section_by_id.get(sid)
+                for sid in ref_ids
+                if (section_by_id.get(sid) or {}).get("primary_model") == child_model
+            ),
+            None,
+        )
+        child_info = model_graph.get(child_model) or {}
+        child_attrs = _model_field_names(
+            {
+                child_model: _model_graph_attr_names(model_graph, child_model)
+            },
+            child_model,
+            5,
+        )
+        attrs = _merge_section_attrs(child_attrs, related_attrs)
+        if existing:
+            existing["attributes"] = _merge_section_attrs(existing.get("attributes") or [], attrs)
+            existing["role"] = existing.get("role") or "child_collection"
+            existing["layout"] = _normalize_layout_alias(existing.get("layout") or "table")
+            existing["component"] = _infer_section_component(existing)
+            ops = _normalize_section_operations(existing.get("operations"))
+            ops["create"] = False
+            ops["update"] = False
+            existing["operations"] = ops
+            continue
+
+        sid_base = f"{page_id}_{_section_id(child_model)}_child_collection"
+        sid = sid_base
+        suffix = 2
+        while sid in section_by_id:
+            sid = f"{sid_base}_{suffix}"
+            suffix += 1
+        section = {
+            "id": sid,
+            "name": f"{child_model} List",
+            "role": "child_collection",
+            "layout": "table",
+            "component": "DataTable",
+            "primary_model": child_model,
+            "class": child_model,
+            "page_id": page_id,
+            "attributes": attrs,
+            "operations": {"create": False, "update": False, "delete": False, "select": False},
+            "query": {},
+            "data_source": {"from": {"model": child_model}, "mode": "query", "joins": []},
+            "field_layout": {},
+            "style": {"color": "accent", "density": "compact", "shadow": "sm", "border": "light", "bg": "white"},
+            "col_span": 12,
+            "position": "main",
+        }
+        sections.append(section)
+        section_by_id[sid] = section
+        insert_after = source_section_for_addition.get((page_id, child_model))
+        if insert_after and insert_after in ref_ids:
+            idx = ref_ids.index(insert_after) + 1
+            page["sections"] = refs[:idx] + [{"value": sid}] + refs[idx:]
+        else:
+            page["sections"] = refs + [{"value": sid}]
+
+    return pages, sections
 
 def _snake_name(value: str) -> str:
     value = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value or ""))

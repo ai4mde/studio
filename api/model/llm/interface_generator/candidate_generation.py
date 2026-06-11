@@ -25,6 +25,7 @@ from .section_utils import (
     _VALID_SECTION_STYLE,
     _canonical_page_type,
     _finalize_data_section_bindings,
+    _ensure_logical_related_sections,
     _normalize_select_existing_sections,
     _infer_page_type_value,
     _infer_section_component,
@@ -38,6 +39,7 @@ from .section_utils import (
     _ref_id,
 )
 from .uml_mapping.usecase_workflow import _build_usecase_navigation
+from .uml_mapping.uml_extractor import extract_uml_intelligence
 from .uml_mapping.metadata_context import _actor_name_from_context, _fetch_system_context_data
 from .candidate_defaults import (
     _assign_default_page_categories,
@@ -224,13 +226,20 @@ def validate_and_save_candidate(
         known_models = set(model_attrs.keys())
 
         usecase_navigation: dict = {}
+        model_graph: dict = {}
         try:
             system_context = _fetch_system_context_data(system_id)
             actor_name = _actor_name_from_context(system_context, iface.get("actor"))
+            model_graph = extract_uml_intelligence(
+                system_context,
+                str(iface.get("actor") or ""),
+                actor_name or "",
+            ).get("model_graph") or {}
             usecase_navigation = _build_usecase_navigation(system_context, str(iface.get("actor") or ""), actor_name)
             pages = _ensure_usecase_pages(pages, usecase_navigation)
         except Exception:
             usecase_navigation = {}
+            model_graph = {}
         sections = _normalize_activity_action_sections(pages, sections)
         sections = _normalize_chrome_sections(sections)
 
@@ -261,31 +270,14 @@ def validate_and_save_candidate(
                 s["layout"] = "card" if pm else "main-header"
                 s["component"] = _infer_section_component(s)
             if pm and pm in model_attrs:
-                new_attrs: list = []; attr_renames: dict = {}
+                new_attrs: list = []
                 for attr in s.get("attributes", []):
                     attr_name = attr.get("name", attr) if isinstance(attr, dict) else attr
-                    if "." in attr_name:
-                        first, rest = attr_name.split(".", 1)
-                        canon = _canonical_model_name(first)
-                        if canon and rest in model_attrs.get(canon, set()):
-                            norm = dict(attr) if isinstance(attr, dict) else {"name": attr_name}
-                            canon_attr = f"{canon}.{rest}"
-                            norm["name"] = canon_attr
-                            norm.setdefault("source", "related"); norm.setdefault("readonly", True)
-                            if canon_attr != attr_name: attr_renames[attr_name] = canon_attr
-                            new_attrs.append(norm)
-                    elif not pm or attr_name in model_attrs.get(pm, set()):
+                    if "." not in attr_name and (not pm or attr_name in model_attrs.get(pm, set())):
                         new_attrs.append(attr)
                 if not new_attrs and s.get("layout") in _DATA_SECTION_LAYOUTS:
                     new_attrs = list(_model_field_names(model_attrs, pm, 6))
                 s["attributes"] = new_attrs
-                if attr_renames and isinstance(s.get("field_layout"), dict):
-                    def _rename_fl(v):
-                        if isinstance(v, str): return attr_renames.get(v, v)
-                        if isinstance(v, list): return [_rename_fl(i) for i in v]
-                        if isinstance(v, dict): return {k: _rename_fl(i) for k, i in v.items()}
-                        return v
-                    s["field_layout"] = {k: _rename_fl(v) for k, v in (s.get("field_layout") or {}).items()}
             workflow = dict(s.get("workflow") or {})
             workflow_action = workflow.get("action") or s.get("workflow_action", "")
             if workflow_action and workflow_action not in {"complete", "complete_then_page", "complete_then_target", "navigate", "none"}:
@@ -351,6 +343,10 @@ def validate_and_save_candidate(
             or _normalize_layout_alias(s.get("layout")) in auto_allowed_layouts
             or s.get("position") in {"header", "footer"}
         ]
+        fixed_pages, fixed_sections = _ensure_logical_related_sections(fixed_pages, fixed_sections, model_graph)
+        for s in fixed_sections:
+            s["component"] = _infer_section_component(s)
+            s["field_layout"] = _normalize_field_layout(s)
 
         # Normalize section refs and assign sections to pages that have none
         for i, p in enumerate(fixed_pages):
@@ -936,4 +932,3 @@ def regenerate_candidate_set(interface_id: str, selected_candidate_index: int, d
         return "OK: regenerated and saved 3 candidates. " + " | ".join(results)
     except Exception as e:
         return f"ERROR: regenerate_candidate_set failed: {e}"
-

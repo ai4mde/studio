@@ -456,16 +456,50 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
     pages = []
     for p_raw in interface_data.get("pages", []):
         section_components = []
-        page_section_refs = list(p_raw.get("sections", []))
+        # Pre-expand card containers into card_start / nested-section-ref / card_end sentinels
+        page_section_refs = []
+        for _ref in p_raw.get("sections") or []:
+            if isinstance(_ref, dict) and _ref.get("type") == "card":
+                page_section_refs.append({**_ref, "_card_signal": "start"})
+                page_section_refs.extend(_ref.get("sections") or [])
+                page_section_refs.append({"_card_signal": "end"})
+            else:
+                page_section_refs.append(_ref)
         page_section_ids = {
             str(ref.get("value") if isinstance(ref, dict) else ref)
             for ref in page_section_refs
+            if isinstance(ref, dict) and ref.get("value") and not ref.get("_card_signal")
         }
         for region_section_id in layout_region_section_ids:
             if region_section_id not in page_section_ids:
                 page_section_refs.append({"value": region_section_id})
 
         for ref in page_section_refs:
+            # Card container sentinels
+            if isinstance(ref, dict) and ref.get("_card_signal") == "start":
+                section_components.append(_SectionComponent(
+                    id=ref.get("id", "card"),
+                    name="card_start",
+                    display_name=ref.get("label", ""),
+                    primary_model="", parent_models=[], attributes=[],
+                    has_create_operation=False, has_update_operation=False,
+                    has_delete_operation=False, has_select_operation=False,
+                    text="", col_span=12, position="main",
+                    component_type="card_start",
+                    label=ref.get("label", ""),
+                ))
+                continue
+            if isinstance(ref, dict) and ref.get("_card_signal") == "end":
+                section_components.append(_SectionComponent(
+                    id="card_end", name="card_end", display_name="",
+                    primary_model="", parent_models=[], attributes=[],
+                    has_create_operation=False, has_update_operation=False,
+                    has_delete_operation=False, has_select_operation=False,
+                    text="", col_span=12, position="main",
+                    component_type="card_end",
+                ))
+                continue
+
             sec_id = ref.get("value") if isinstance(ref, dict) else str(ref)
             s_raw = section_by_id.get(sec_id)
             if not s_raw:
@@ -716,7 +750,17 @@ def normalize_interface_schema(interface_data: Dict) -> Dict:
 
         refs = []
         for ref in page.get("sections") or []:
-            if isinstance(ref, dict):
+            if isinstance(ref, dict) and ref.get("type") == "card":
+                card_sections = []
+                for nested in ref.get("sections") or []:
+                    if isinstance(nested, dict):
+                        v = nested.get("value") or nested.get("id")
+                        if v:
+                            card_sections.append({**nested, "value": v})
+                    elif isinstance(nested, str):
+                        card_sections.append({"value": nested})
+                refs.append({**ref, "sections": card_sections})
+            elif isinstance(ref, dict):
                 value = ref.get("value") or ref.get("id")
                 if value:
                     refs.append({**ref, "value": value})

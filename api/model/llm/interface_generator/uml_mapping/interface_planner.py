@@ -371,6 +371,74 @@ def _should_add_filter(layout: str, model_info: dict, page_role: str) -> bool:
 
 # ─── Plan builder ─────────────────────────────────────────────────────────────
 
+def _section_data_role(role: str, layout: str, operations: list[str], style: dict | None = None) -> str:
+    """Classify what a section does with data; rendering and workflow logic consume this."""
+    ops = set(operations or [])
+    workflow_intent = str(((style or {}).get("workflow_semantics") or {}).get("intent") or "").lower()
+    if "notify" in workflow_intent:
+        return "notify_summary"
+    if "check" in workflow_intent or "decision" in workflow_intent:
+        return "decision_check"
+    if "select" in ops and not ops.intersection({"create", "update", "delete"}):
+        return "select_existing"
+    if "create" in ops and layout == "form":
+        return "create_record"
+    if "update" in ops and layout == "form":
+        return "update_record"
+    if layout == "detail" or role in {"object_detail", "object_summary"}:
+        return "show_record"
+    return "display_records"
+
+
+def _section_fields(model: str, visible: list[str], editable: list[str], attributes: list[dict] | None, data_role: str) -> list[dict]:
+    """Return explicit field semantics without replacing legacy attributes."""
+    editable_set = set(editable or [])
+    attr_names = [
+        attr.get("name")
+        for attr in (attributes or [])
+        if isinstance(attr, dict) and attr.get("name")
+    ]
+    names = _merge_field_names(visible or [], editable or []) or attr_names
+    fields = []
+    for name in names:
+        if not name:
+            continue
+        field_model = model
+        field_name = name
+        source = "primary"
+        if "." in str(name):
+            field_model, field_name = str(name).split(".", 1)
+            source = "related"
+        mode = "editable" if name in editable_set else "display"
+        if source == "related" or (data_role in {"show_record", "decision_check", "notify_summary"} and name not in editable_set):
+            mode = "readonly"
+        elif data_role == "display_records" and name not in editable_set:
+            mode = "display"
+        fields.append({
+            "model": field_model,
+            "name": field_name,
+            "mode": mode,
+            "source": source,
+        })
+    return fields
+
+
+def _section_actions(model: str, data_role: str, operations: list[str]) -> list[dict]:
+    """Expose user-facing actions separately from CRUD permissions."""
+    if data_role == "display_records":
+        return [{"type": "navigate", "label": "View", "target_page": f"{model} Detail"}] if model else []
+    if data_role == "select_existing":
+        return [{"type": "select", "label": "Select", "target_model": model}] if model else []
+    if data_role in {"create_record", "update_record"}:
+        label = "Create" if data_role == "create_record" else "Save"
+        return [{"type": "submit", "label": label, "operations": operations or []}]
+    if data_role == "decision_check":
+        return [{"type": "complete_step", "label": "Continue"}]
+    if data_role == "notify_summary":
+        return [{"type": "complete_step", "label": "Mark done"}]
+    return []
+
+
 def _section(
     page_id: str,
     section_id: str,
@@ -419,6 +487,10 @@ def _section(
         sec["style"]["data_scope"] = data_scope
     if isinstance(relation_data_scopes, dict) and relation_data_scopes:
         sec["style"]["relation_data_scopes"] = relation_data_scopes
+    data_role = extra.pop("data_role", None) or _section_data_role(role, layout, operations, sec.get("style") or {})
+    sec["data_role"] = data_role
+    sec["fields"] = extra.pop("fields", None) or _section_fields(model, visible, editable, sec["attributes"], data_role)
+    sec["actions"] = extra.pop("actions", None) or _section_actions(model, data_role, operations)
     sec.update(extra)
     return sec
 

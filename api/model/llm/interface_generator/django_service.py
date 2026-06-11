@@ -455,6 +455,7 @@ def map_uml_to_interface(interface_id: str) -> dict:
             db_sections,
             usecase_navigation,
             model_attrs,
+            uml_intel.get("model_graph") or {},
         )
         db_pages, db_sections = _ensure_mapping_chrome_sections(db_pages, db_sections)
         db_sections = _drop_unreferenced_non_global_sections(db_pages, db_sections)

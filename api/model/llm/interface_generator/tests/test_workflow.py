@@ -236,3 +236,62 @@ class WorkflowSemanticTests(APITestCase):
             section["style"]["workflow_semantics"]["context_binding"],
             {"model": "Book", "mode": "hidden"},
         )
+
+    def test_invalid_related_readonly_fields_become_child_collection(self):
+        from llm.interface_generator.section_utils import _ensure_logical_related_sections, _ref_id
+
+        pages = [{
+            "id": "member_detail",
+            "name": "Member Detail",
+            "primary_model": "Member",
+            "sections": [{"value": "member_detail_member_object_detail"}],
+        }]
+        sections = [{
+            "id": "member_detail_member_object_detail",
+            "name": "Member Detail",
+            "page_id": "member_detail",
+            "role": "object_detail",
+            "layout": "detail",
+            "primary_model": "Member",
+            "class": "Member",
+            "attributes": [
+                {"name": "member_id"},
+                {"name": "name"},
+                {"name": "book.title", "readonly": True, "source": "related"},
+                {"name": "loan.status", "readonly": True, "source": "related"},
+            ],
+            "operations": {"create": False, "update": False, "delete": False},
+        }]
+        model_graph = {
+            "Member": {
+                "attributes": [{"name": "member_id"}, {"name": "name"}],
+                "associations": [{"model": "Loan", "cardinality": "1-many"}],
+            },
+            "Book": {
+                "attributes": [{"name": "title"}, {"name": "publisher"}],
+                "associations": [{"model": "Loan", "cardinality": "1-many"}],
+            },
+            "Loan": {
+                "attributes": [{"name": "loan_date"}, {"name": "status"}],
+                "associations": [
+                    {"model": "Member", "cardinality": "many-1"},
+                    {"model": "Book", "cardinality": "many-1"},
+                ],
+            },
+        }
+
+        fixed_pages, fixed_sections = _ensure_logical_related_sections(pages, sections, model_graph)
+
+        member_section = next(s for s in fixed_sections if s["id"] == "member_detail_member_object_detail")
+        self.assertEqual([a["name"] for a in member_section["attributes"]], ["member_id", "name"])
+
+        loan_section = next(s for s in fixed_sections if s.get("primary_model") == "Loan")
+        self.assertEqual(loan_section["role"], "child_collection")
+        self.assertEqual(
+            set(a["name"] if isinstance(a, dict) else a for a in loan_section["attributes"]),
+            {"loan_date", "status"},
+        )
+        self.assertIn(
+            loan_section["id"],
+            [_ref_id(ref) for ref in fixed_pages[0]["sections"]],
+        )

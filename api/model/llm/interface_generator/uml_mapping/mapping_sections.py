@@ -15,6 +15,7 @@ from ..section_utils import (
     _page_type_value,
     _ref_id,
     _ensure_section_data_relationships,
+    _ensure_logical_related_sections,
     _navigation_methods,
     _workflow_icon_links,
 )
@@ -87,6 +88,7 @@ def _ensure_mapping_content_sections(
     sections: list,
     usecase_navigation: dict,
     model_attrs: dict,
+    model_graph: dict | None = None,
 ) -> tuple[list, list]:
     """Materialize OOUI/data support sections once during UML mapping, not during candidate generation."""
     pages, sections = _materialize_nav_plan_sections(
@@ -113,6 +115,7 @@ def _ensure_mapping_content_sections(
     )
     sections = _apply_nav_methods(pages, sections, usecase_navigation or {})
     pages, sections = _ensure_section_data_relationships(pages, sections, model_attrs)
+    pages, sections = _ensure_logical_related_sections(pages, sections, model_graph or {})
     return pages, sections
 
 def _drop_unreferenced_non_global_sections(pages: list, sections: list) -> list:
@@ -576,10 +579,6 @@ def _materialize_nav_plan_sections(pages: list, sections: list, nav_plan: dict, 
         operations = _normalize_section_operations(section_plan.get("operations"))
         operations["update"] = bool(operations.get("update") or editable)
         attrs = list(section_plan.get("visible_fields") or [])
-        attrs.extend([
-            {"name": name, "source": "related", "readonly": True}
-            for name in section_plan.get("related_visible_fields") or []
-        ])
         if not attrs:
             attrs = _model_field_names(model_attrs, model, 8)
         section = {
