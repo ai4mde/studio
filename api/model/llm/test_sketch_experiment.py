@@ -722,6 +722,102 @@ def test_validate_graph_against_sketch_reports_invalid_child_block_references() 
     assert "B9" in report["metrics"]["unresolved_child_block_ids"]
 
 
+def test_validate_graph_against_sketch_does_not_emit_missing_decision_node_for_late_decision_block() -> None:
+    sketch = {
+        "main_flow": [
+            {"step_id": "S1", "action": "start deployment"},
+            {"step_id": "S2", "action": "synchronize results"},
+        ],
+        "control_blocks": [
+            {
+                "block_id": "B1",
+                "type": "parallel",
+                "entry_after_step_id": "S1",
+                "entry_after": "start deployment",
+                "branches": [
+                    {"label": "provisioning", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": ["B2"]},
+                    {"label": "compliance", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": ["B3"]},
+                ],
+                "requires_merge": True,
+                "exit_to_step_id": "S2",
+                "exit_to": "synchronize results",
+                "loop_back_to_step_id": None,
+                "loop_back_to": None,
+                "notes": None,
+            },
+            {
+                "block_id": "B2",
+                "type": "loop",
+                "entry_after_step_id": "S1",
+                "entry_after": "start deployment",
+                "branches": [
+                    {"label": "retry", "returns_to_main_flow": False, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    {"label": "success", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": False,
+                "exit_to_step_id": "S2",
+                "exit_to": "synchronize results",
+                "loop_back_to_step_id": "S1",
+                "loop_back_to": "start deployment",
+                "notes": None,
+            },
+            {
+                "block_id": "B3",
+                "type": "decision",
+                "entry_after_step_id": "S1",
+                "entry_after": "start deployment",
+                "branches": [
+                    {"label": "passed", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    {"label": "rework", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                ],
+                "requires_merge": True,
+                "exit_to_step_id": "S2",
+                "exit_to": "synchronize results",
+                "loop_back_to_step_id": None,
+                "loop_back_to": None,
+                "notes": None,
+            },
+        ],
+    }
+    graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "start deployment", "origin_step_id": "S1"},
+            {"id": "n3", "type": "fork", "origin_block_id": "B1"},
+            {"id": "n4", "type": "decision", "label": "retry?", "origin_block_id": "B2"},
+            {"id": "n5", "type": "action", "name": "repair provisioning"},
+            {"id": "n6", "type": "decision", "label": "compliance passed?", "origin_block_id": "B3"},
+            {"id": "n7", "type": "merge", "origin_block_id": "B3"},
+            {"id": "n8", "type": "join", "origin_block_id": "B1"},
+            {"id": "n9", "type": "action", "name": "synchronize results", "origin_step_id": "S2"},
+            {"id": "n10", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2"},
+            {"source": "n2", "target": "n3"},
+            {"source": "n3", "target": "n4", "label": "provisioning"},
+            {"source": "n4", "target": "n5", "label": "retry"},
+            {"source": "n5", "target": "n2"},
+            {"source": "n4", "target": "n8", "label": "success"},
+            {"source": "n3", "target": "n6", "label": "compliance"},
+            {"source": "n6", "target": "n7", "label": "passed"},
+            {"source": "n6", "target": "n7", "label": "rework"},
+            {"source": "n7", "target": "n8"},
+            {"source": "n8", "target": "n9"},
+            {"source": "n9", "target": "n10"},
+        ],
+    }
+
+    report = validate_graph_against_sketch(sketch, graph)
+
+    decision_block = next(
+        block for block in report["details"]["block_reports"] if block["block_id"] == "B3"
+    )
+    assert "missing_decision_node" not in report["issues"]
+    assert decision_block["matched_decision_node_ids"] == ["n6"]
+    assert decision_block["decision_resolution_mode"] == "origin_block_id"
+
+
 def test_validate_graph_against_sketch_falls_back_to_action_names_without_traceability() -> None:
     sketch = {
         "main_flow": [

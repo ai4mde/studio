@@ -8,7 +8,9 @@ from collections import Counter
 from statistics import mean
 from typing import Any, Dict, Iterable, List
 
-from .refinement_generator import debug_model_activity
+from .baseline_generator import generate_activity_model
+from .pipeline_profiles import PipelineProfile
+from .refinement_generator import debug_model_activity_with_experimental_compiler
 from .topology_analysis import analyze_activity_graph
 
 
@@ -164,6 +166,44 @@ def _print_json_section(title: str, payload: Any) -> None:
         print(json.dumps(payload, indent=2, ensure_ascii=False))
 
 
+def _print_stage_execution(bundle: Dict[str, Any]) -> None:
+    for stage_name in bundle.get("executed_stages") or []:
+        print(f"[{stage_name}]")
+
+
+def _print_requested_artifacts(args: argparse.Namespace, bundle: Dict[str, Any]) -> None:
+    stage_artifacts = bundle.get("stage_artifacts") or {}
+    topology = analyze_activity_graph(bundle["parsed"])
+    if args.show_prompt:
+        _print_json_section("PROMPT", bundle["prompt"])
+    if args.show_keywords and bundle.get("keyword_hints") is not None:
+        _print_json_section("KEYWORD_HINTS", bundle["keyword_hints"])
+    if args.show_sketch and stage_artifacts.get("original_sketch") is not None:
+        _print_json_section("SKETCH_PLANNER_OUTPUT", stage_artifacts["original_sketch"])
+    if args.show_sketch_review and stage_artifacts.get("reviewed_sketch") is not None:
+        _print_json_section("SKETCH_AFTER_REVIEW_AGENT", stage_artifacts["reviewed_sketch"])
+    if args.show_deterministic_sketch_repair and stage_artifacts.get("deterministically_repaired_sketch") is not None:
+        _print_json_section("SKETCH_AFTER_DETERMINISTIC_REPAIR", stage_artifacts["deterministically_repaired_sketch"])
+    if args.show_prompted_sketch_repair and stage_artifacts.get("prompted_repaired_sketch") is not None:
+        _print_json_section("SKETCH_AFTER_PROMPTED_REPAIR", stage_artifacts["prompted_repaired_sketch"])
+    if args.show_sketch_repair and stage_artifacts.get("repaired_sketch") is not None:
+        _print_json_section("SKETCH_AFTER_REPAIR", stage_artifacts["repaired_sketch"])
+    if args.show_graph and stage_artifacts.get("initial_graph") is not None:
+        _print_json_section("INITIAL_GRAPH", stage_artifacts["initial_graph"])
+    if args.show_graph_repair and stage_artifacts.get("repaired_graph") is not None:
+        _print_json_section("GRAPH_AFTER_REPAIR_AGENT", stage_artifacts["repaired_graph"])
+    if args.show_final_graph:
+        _print_json_section("FINAL_GRAPH", stage_artifacts.get("final_graph", bundle["parsed"]))
+    if args.show_alignment and bundle.get("sketch_alignment") is not None:
+        _print_json_section("ALIGNMENT", bundle["sketch_alignment"])
+    if args.show_semantic and bundle.get("semantic_analysis") is not None:
+        _print_json_section("SEMANTIC_ANALYSIS", bundle["semantic_analysis"])
+    if args.show_topology:
+        _print_json_section("TOPOLOGY", topology)
+    if args.show_diagnostics and stage_artifacts.get("validation") is not None:
+        _print_json_section("VALIDATION_DIAGNOSTICS", stage_artifacts["validation"])
+
+
 def _setup_django() -> None:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "model.settings")
     import django
@@ -281,50 +321,99 @@ def _print_failure_summary(
 
 
 def main() -> None:
+    pipeline_profile_choices: tuple[PipelineProfile, ...] = (
+        "stable",
+        "sketch_review_only",
+        "graph_repair_only",
+        "both_agents",
+    )
     parser = argparse.ArgumentParser(
-        description="Lightweight manual sketch-generation debugger for planner influence inspection.",
+        description="Manual debugger for the production baseline activity pipeline.",
     )
     parser.add_argument("--text", help="Process text to model.")
     parser.add_argument("--text-file", help="Path to a file containing the process text.")
     parser.add_argument("--runs", type=int, default=1, help="Number of runs per condition.")
-    parser.add_argument(
-        "--mode",
-        choices=("sketch", "no-sketch", "both"),
-        default="sketch",
-        help="Whether to run with sketch, without sketch, or both.",
-    )
-    parser.add_argument("--show-sketch", action="store_true", help="Print the planner output JSON.")
+    parser.add_argument("--pipeline-profile", choices=pipeline_profile_choices, default="both_agents")
+    parser.add_argument("--show-sketch", action="store_true", help="Print the original Sketch Planner output JSON.")
+    parser.add_argument("--show-sketch-review", action="store_true", help="Print the sketch after Sketch Review Agent.")
+    parser.add_argument("--show-review", dest="show_sketch_review", action="store_true", help="Alias for --show-sketch-review.")
+    parser.add_argument("--show-deterministic-sketch-repair", action="store_true", help="Print the sketch after deterministic Sketch Repair.")
+    parser.add_argument("--show-prompted-sketch-repair", action="store_true", help="Print the sketch after Prompted Sketch Repair.")
+    parser.add_argument("--show-sketch-repair", action="store_true", help="Print the sketch after Sketch Repair.")
     parser.add_argument("--show-keywords", action="store_true", help="Print extracted keyword hints JSON.")
-    parser.add_argument("--show-graph", action="store_true", help="Print the realized graph JSON.")
+    parser.add_argument("--show-graph", action="store_true", help="Print the initial graph from Graph Realizer.")
+    parser.add_argument("--show-graph-repair", action="store_true", help="Print the graph after Graph Repair Agent.")
+    parser.add_argument("--show-final-graph", action="store_true", help="Print the final graph JSON.")
     parser.add_argument("--show-alignment", action="store_true", help="Print the alignment report JSON.")
     parser.add_argument("--show-semantic", action="store_true", help="Print the semantic analysis JSON.")
+    parser.add_argument("--show-topology", action="store_true", help="Print the topology analysis JSON.")
+    parser.add_argument("--show-diagnostics", action="store_true", help="Print final validation and diagnostics JSON.")
     parser.add_argument("--show-prompt", action="store_true", help="Print the rendered prompt.")
+    parser.add_argument("--show-all-stages", action="store_true", help="Print all intermediate stage artifacts.")
+    parser.add_argument(
+        "--use-experimental-compiler",
+        action="store_true",
+        help="Bypass the Graph Realizer and compile the repaired ActivitySketch deterministically.",
+    )
+    parser.add_argument("--enable-sketch-review-agent", dest="enable_sketch_review_agent", action="store_true")
+    parser.add_argument("--disable-sketch-review-agent", dest="enable_sketch_review_agent", action="store_false")
+    parser.add_argument("--enable-prompted-sketch-repair-agent", dest="enable_prompted_sketch_repair_agent", action="store_true")
+    parser.add_argument("--disable-prompted-sketch-repair-agent", dest="enable_prompted_sketch_repair_agent", action="store_false")
+    parser.add_argument("--enable-graph-repair-agent", dest="enable_graph_repair_agent", action="store_true")
+    parser.add_argument("--disable-graph-repair-agent", dest="enable_graph_repair_agent", action="store_false")
     parser.add_argument(
         "--import",
         dest="do_import",
         action="store_true",
         help="Import the exact generated graph from this run into AI4MDE.",
     )
+    parser.set_defaults(
+        enable_sketch_review_agent=None,
+        enable_prompted_sketch_repair_agent=None,
+        enable_graph_repair_agent=None,
+    )
     args = parser.parse_args()
 
     process_text = _read_process_text(args)
     if args.do_import and args.runs != 1:
         raise ValueError("--import requires --runs 1 so the graph is generated exactly once.")
-    if args.do_import and args.mode == "both":
-        raise ValueError("--import does not support --mode both because it would generate twice.")
+    if args.show_all_stages:
+        args.show_sketch = True
+        args.show_sketch_review = True
+        args.show_deterministic_sketch_repair = True
+        args.show_prompted_sketch_repair = True
+        args.show_sketch_repair = True
+        args.show_graph = True
+        args.show_graph_repair = True
+        args.show_final_graph = True
+        args.show_alignment = True
+        args.show_semantic = True
+        args.show_topology = True
+        args.show_diagnostics = True
 
-    use_sketch_values = (
-        [True] if args.mode == "sketch"
-        else [False] if args.mode == "no-sketch"
-        else [False, True]
-    )
+    use_sketch_values = [True]
 
     for use_sketch in use_sketch_values:
         condition_results: List[Dict[str, Any]] = []
         failures: List[Dict[str, Any]] = []
         for run_index in range(1, args.runs + 1):
             try:
-                bundle = debug_model_activity(process_text, use_sketch=use_sketch)
+                if args.use_experimental_compiler:
+                    bundle = debug_model_activity_with_experimental_compiler(
+                        process_text,
+                        use_sketch_review_agent=bool(args.enable_sketch_review_agent),
+                        use_prompted_sketch_repair_agent=bool(args.enable_prompted_sketch_repair_agent),
+                    )
+                else:
+                    bundle = generate_activity_model(
+                        process_text,
+                        debug=True,
+                        use_sketch=use_sketch,
+                        pipeline_profile=args.pipeline_profile,
+                        enable_sketch_review_agent=args.enable_sketch_review_agent,
+                        enable_prompted_sketch_repair_agent=args.enable_prompted_sketch_repair_agent,
+                        enable_graph_repair_agent=args.enable_graph_repair_agent,
+                    )
             except Exception as exc:
                 failures.append(
                     {
@@ -343,18 +432,8 @@ def main() -> None:
             condition_results.append(result)
 
             _print_run_summary(result, run_index=run_index, total_runs=args.runs)
-            if args.show_prompt:
-                _print_json_section("PROMPT", bundle["prompt"])
-            if args.show_keywords and bundle.get("keyword_hints") is not None:
-                _print_json_section("KEYWORD_HINTS", bundle["keyword_hints"])
-            if args.show_sketch and bundle.get("sketch") is not None:
-                _print_json_section("SKETCH", bundle["sketch"])
-            if args.show_graph:
-                _print_json_section("GRAPH", bundle["parsed"])
-            if args.show_alignment and bundle.get("sketch_alignment") is not None:
-                _print_json_section("ALIGNMENT", bundle["sketch_alignment"])
-            if args.show_semantic and bundle.get("semantic_analysis") is not None:
-                _print_json_section("SEMANTIC_ANALYSIS", bundle["semantic_analysis"])
+            _print_stage_execution(bundle)
+            _print_requested_artifacts(args, bundle)
             if args.do_import:
                 _print_import_summary(_import_graph_into_ai4mde(bundle["parsed"]))
 
