@@ -129,3 +129,51 @@ def build_activity_sketch_prompt_with_hints(
         process_text=process_text,
         keyword_hints=keyword_hints,
     ).rstrip() + "\n"
+
+
+def build_activity_sketch_review_prompt(
+    process_text: str,
+    *,
+    activity_sketch: Dict[str, Any],
+) -> str:
+    template = _env.get_template("activity_sketch_review_prompt.jinja")
+    return template.render(
+        process_text=process_text,
+        activity_sketch=activity_sketch,
+    ).rstrip() + "\n"
+
+
+def build_activity_sketch_repair_prompt(
+    process_text: str,
+    *,
+    activity_sketch: Dict[str, Any],
+    repair_report: Optional[Dict[str, Any]] = None,
+    probe_diagnostics: Optional[Dict[str, Any]] = None,
+) -> str:
+    template = _env.get_template("activity_sketch_repair_prompt.jinja")
+    return template.render(
+        process_text=process_text,
+        activity_sketch=activity_sketch,
+        repair_report=repair_report,
+        probe_diagnostics=probe_diagnostics,
+    ).rstrip() + "\n"
+
+
+def build_activity_graph_repair_prompt(
+    process_text: str,
+    *,
+    activity_graph: Dict[str, Any],
+    topology_report: Dict[str, Any],
+    sketch_alignment: Optional[Dict[str, Any]] = None,
+    semantic_analysis: Optional[Dict[str, Any]] = None,
+    activity_sketch: Optional[Dict[str, Any]] = None,
+) -> str:
+    template = _env.get_template("activity_graph_repair_prompt.jinja")
+    return template.render(
+        process_text=process_text,
+        activity_graph=activity_graph,
+        topology_report=topology_report,
+        sketch_alignment=sketch_alignment,
+        semantic_analysis=semantic_analysis,
+        activity_sketch=activity_sketch,
+    ).rstrip() + "\n"

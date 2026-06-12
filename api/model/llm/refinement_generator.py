@@ -82,12 +82,21 @@ from .activity_model import ActivityModel
 from .activity_sketch_model import ActivitySketch
 from .handler import call_openai, _activity_response_format, _activity_sketch_response_format
 from .converter import convert_to_ai4mde, unwrap_ai4mde_systems_export
+from .experimental_compiler import compile_activity_sketch
 from .keyword_hints import extract_keyword_hints
 from .normalization import normalize_activity_graph
-from .prompt_builder import build_activity_prompt, build_activity_sketch_prompt_with_hints
+from .pipeline_profiles import PipelineProfile, resolve_pipeline_config
+from .prompt_builder import (
+    build_activity_graph_repair_prompt,
+    build_activity_prompt,
+    build_activity_sketch_repair_prompt,
+    build_activity_sketch_prompt_with_hints,
+    build_activity_sketch_review_prompt,
+)
 from .semantic_analysis import analyze_semantic_graph
 from .sketch_alignment import validate_graph_against_sketch
 from .sketch_repair import repair_activity_sketch, sketch_requires_retry
+from .topology_analysis import analyze_activity_graph
 
 ActivityDebugResult = Dict[str, Any]
 logger = logging.getLogger(__name__)
@@ -469,11 +478,160 @@ def _should_use_sketch(
     return llm_caller is None
 
 
+_PROBE_TOPOLOGY_RETRY_ISSUES = {
+    "disconnected_nodes",
+    "dead_end_nodes",
+    "possible_missing_merge",
+    "possible_missing_join",
+}
+_PROBE_SEMANTIC_RETRY_ISSUES = {
+    "missing_loop_exit",
+    "invalid_loop_back_target",
+    "dead_end_path",
+    "unreachable_nodes",
+}
+_ALIGNMENT_RETRY_MESSAGES = {
+    "exit_to_not_reachable_from_entry": "planned continuation is not reachable from its block entry",
+    "loop_back_edge_not_realized": "loop closure is missing its backward path",
+    "missing_merge_for_decision": "decision closure is missing a merge",
+    "missing_join_for_parallel": "parallel closure is missing a join",
+    "child_block_not_realized": "a referenced child block is not realized",
+    "missing_decision_node": "a planned decision block is not realized",
+}
+_TOPOLOGY_RETRY_MESSAGES = {
+    "disconnected_nodes": "disconnected topology detected",
+    "dead_end_nodes": "a control path ends without a valid continuation",
+    "possible_missing_merge": "a decision closure appears to be missing a merge",
+    "possible_missing_join": "a parallel closure appears to be missing a join",
+}
+_SEMANTIC_RETRY_MESSAGES = {
+    "missing_loop_exit": "loop exit path missing",
+    "invalid_loop_back_target": "loop back target is missing or not reached by a backward edge",
+    "dead_end_path": "a non-final path terminates unexpectedly",
+    "unreachable_nodes": "some realized nodes are unreachable from the initial node",
+}
+
+
+def _probe_activity_sketch(
+    sketch: Optional[dict],
+    *,
+    keyword_hints: Optional[dict] = None,
+) -> dict:
+    probe_graph = compile_activity_sketch(sketch)
+    sketch_alignment = validate_graph_against_sketch(sketch, probe_graph) if sketch is not None else None
+    topology_report = analyze_activity_graph(probe_graph)
+    semantic_analysis = analyze_semantic_graph(
+        probe_graph,
+        sketch=sketch,
+        keyword_hints=keyword_hints,
+    )
+    return {
+        "graph": probe_graph,
+        "sketch_alignment": sketch_alignment,
+        "topology_report": topology_report,
+        "semantic_analysis": semantic_analysis,
+    }
+
+
+def _should_retry_after_probe(
+    repair_report: Optional[dict],
+    *,
+    probe_report: Optional[dict] = None,
+) -> bool:
+    if sketch_requires_retry(repair_report):
+        return True
+    if not probe_report:
+        return False
+
+    alignment = probe_report.get("sketch_alignment") or {}
+    topology = probe_report.get("topology_report") or {}
+    semantic = probe_report.get("semantic_analysis") or {}
+
+    topology_issues = set(topology.get("issues") or [])
+    if topology_issues & _PROBE_TOPOLOGY_RETRY_ISSUES:
+        return True
+
+    semantic_issue_codes = {
+        str(issue.get("code") or "").strip()
+        for issue in semantic.get("issues") or []
+        if isinstance(issue, dict)
+    }
+    if semantic_issue_codes & _PROBE_SEMANTIC_RETRY_ISSUES:
+        return True
+
+    alignment_metrics = alignment.get("metrics") or {}
+    if int(alignment_metrics.get("realized_reconnects", 0)) < int(alignment_metrics.get("expected_reconnects", 0)):
+        return True
+    if int(alignment_metrics.get("realized_loop_backs", 0)) < int(alignment_metrics.get("expected_loop_backs", 0)):
+        return True
+    if int(alignment_metrics.get("realized_merges", 0)) < int(alignment_metrics.get("expected_merges", 0)):
+        return True
+
+    return False
+
+
+def _build_sketch_retry_feedback(
+    repair_report: Optional[dict],
+    *,
+    probe_report: Optional[dict] = None,
+) -> List[str]:
+    feedback: List[str] = []
+
+    for defect in (repair_report or {}).get("critical_defects") or []:
+        normalized = str(defect).replace("_", " ")
+        feedback.append(normalized)
+
+    alignment = (probe_report or {}).get("sketch_alignment") or {}
+    topology = (probe_report or {}).get("topology_report") or {}
+    semantic = (probe_report or {}).get("semantic_analysis") or {}
+
+    alignment_issues = alignment.get("issues") or []
+    for issue in alignment_issues:
+        message = _ALIGNMENT_RETRY_MESSAGES.get(str(issue), str(issue).replace("_", " "))
+        feedback.append(message)
+
+    for issue in topology.get("issues") or []:
+        if issue in _PROBE_TOPOLOGY_RETRY_ISSUES:
+            feedback.append(_TOPOLOGY_RETRY_MESSAGES.get(str(issue), str(issue).replace("_", " ")))
+
+    for issue in semantic.get("issues") or []:
+        if not isinstance(issue, dict):
+            continue
+        code = str(issue.get("code") or "").strip()
+        if code in _PROBE_SEMANTIC_RETRY_ISSUES:
+            feedback.append(_SEMANTIC_RETRY_MESSAGES.get(code, code.replace("_", " ")))
+
+    alignment_metrics = alignment.get("metrics") or {}
+    unresolved_block_ids = alignment_metrics.get("unresolved_block_ids") or []
+    if unresolved_block_ids:
+        feedback.append(
+            "unrealized or disconnected blocks: " + ", ".join(str(block_id) for block_id in unresolved_block_ids)
+        )
+    if int(alignment_metrics.get("realized_reconnects", 0)) < int(alignment_metrics.get("expected_reconnects", 0)):
+        feedback.append("missing continuation between planned control blocks")
+    if int(alignment_metrics.get("realized_loop_backs", 0)) < int(alignment_metrics.get("expected_loop_backs", 0)):
+        feedback.append("loop backward continuation is incomplete")
+    if int(alignment_metrics.get("realized_merges", 0)) < int(alignment_metrics.get("expected_merges", 0)):
+        feedback.append("planned block closure is incomplete")
+
+    deduped_feedback: List[str] = []
+    seen = set()
+    for item in feedback:
+        normalized = " ".join(str(item).strip().split())
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped_feedback.append(normalized)
+    return deduped_feedback
+
+
 def _generate_activity_sketch(
     process_text: str,
     *,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
-) -> tuple[dict, str, str, dict, dict]:
+    use_sketch_review_agent: bool = False,
+    use_prompted_sketch_repair_agent: bool = False,
+) -> tuple[dict, str, str, dict, dict, dict]:
     keyword_hints = extract_keyword_hints(process_text)
     prompt = build_activity_sketch_prompt_with_hints(
         process_text,
@@ -486,24 +644,96 @@ def _generate_activity_sketch(
     )
     raw_output = caller(prompt)
     parsed = _parse_and_validate_activity_sketch_json(raw_output)
+    original_sketch = parsed
+    reviewed_sketch: Optional[dict] = None
+    if use_sketch_review_agent:
+        review_prompt = build_activity_sketch_review_prompt(
+            process_text,
+            activity_sketch=parsed,
+        )
+        reviewed_raw_output = caller(review_prompt)
+        parsed = _parse_and_validate_activity_sketch_json(reviewed_raw_output)
+        reviewed_sketch = parsed
     repaired_sketch, repair_report = repair_activity_sketch(parsed)
+    deterministically_repaired_sketch = repaired_sketch
+    prompted_repaired_sketch: Optional[dict] = None
+    probe_report = _probe_activity_sketch(
+        repaired_sketch,
+        keyword_hints=keyword_hints,
+    )
+    if use_prompted_sketch_repair_agent and repaired_sketch is not None:
+        sketch_repair_prompt = build_activity_sketch_repair_prompt(
+            process_text,
+            activity_sketch=repaired_sketch,
+            repair_report=repair_report,
+            probe_diagnostics={
+                "sketch_alignment": probe_report.get("sketch_alignment"),
+                "topology_report": probe_report.get("topology_report"),
+                "semantic_analysis": probe_report.get("semantic_analysis"),
+            },
+        )
+        prompted_raw_output = caller(sketch_repair_prompt)
+        parsed = _parse_and_validate_activity_sketch_json(prompted_raw_output)
+        repaired_sketch, repair_report = repair_activity_sketch(parsed)
+        raw_output = prompted_raw_output
+        prompted_repaired_sketch = repaired_sketch
+        probe_report = _probe_activity_sketch(
+            repaired_sketch,
+            keyword_hints=keyword_hints,
+        )
+    repair_report["probe_diagnostics"] = {
+        "sketch_alignment": probe_report.get("sketch_alignment"),
+        "topology_report": probe_report.get("topology_report"),
+        "semantic_analysis": probe_report.get("semantic_analysis"),
+    }
+    retry_feedback = _build_sketch_retry_feedback(
+        repair_report,
+        probe_report=probe_report,
+    )
+    repair_report["retry_feedback"] = retry_feedback
 
-    if sketch_requires_retry(repair_report):
+    if _should_retry_after_probe(repair_report, probe_report=probe_report):
         retry_prompt = (
             prompt.rstrip()
             + "\n\nRepair the sketch and regenerate it once.\n"
-            + "Fix only the following critical defects while preserving business semantics:\n"
-            + "\n".join(f"- {issue}" for issue in repair_report.get("critical_defects", []))
+            + "Fix the following topology problems while preserving business semantics:\n"
+            + "\n".join(f"- {issue}" for issue in retry_feedback)
             + "\n- Remove invalid references instead of inventing uncertain targets.\n"
+            + "- Restore block sequencing and continuation before adding new control structure.\n"
             + "- Keep decision decomposition simple and valid.\n"
         )
         raw_output = caller(retry_prompt)
         parsed = _parse_and_validate_activity_sketch_json(raw_output)
         repaired_sketch, repair_report = repair_activity_sketch(parsed)
+        probe_report = _probe_activity_sketch(
+            repaired_sketch,
+            keyword_hints=keyword_hints,
+        )
         repair_report["used_retry"] = True
         repair_report["metrics"]["planner_retry_triggered"] = True
+        repair_report["probe_diagnostics"] = {
+            "sketch_alignment": probe_report.get("sketch_alignment"),
+            "topology_report": probe_report.get("topology_report"),
+            "semantic_analysis": probe_report.get("semantic_analysis"),
+        }
+        repair_report["retry_feedback"] = _build_sketch_retry_feedback(
+            repair_report,
+            probe_report=probe_report,
+        )
 
-    return keyword_hints, prompt, raw_output, repaired_sketch, repair_report
+    return keyword_hints, prompt, raw_output, repaired_sketch, repair_report, {
+        "original_sketch": original_sketch,
+        "reviewed_sketch": reviewed_sketch,
+        "deterministically_repaired_sketch": deterministically_repaired_sketch,
+        "prompted_repaired_sketch": prompted_repaired_sketch,
+        "repaired_sketch": repaired_sketch,
+        "probe_graph": probe_report.get("graph"),
+        "probe_validation": {
+            "sketch_alignment": probe_report.get("sketch_alignment"),
+            "topology_report": probe_report.get("topology_report"),
+            "semantic_analysis": probe_report.get("semantic_analysis"),
+        },
+    }
 
 
 def _activity_llm_roundtrip(
@@ -514,7 +744,10 @@ def _activity_llm_roundtrip(
     llm_caller: Optional[Callable[[str], str]] = None,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch: Optional[bool] = None,
-) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict], dict, str, str, dict]:
+    use_sketch_review_agent: bool = False,
+    use_prompted_sketch_repair_agent: bool = False,
+    use_graph_repair_agent: bool = False,
+) -> tuple[Optional[dict], Optional[dict], Optional[dict], Optional[dict], dict, str, str, dict, dict]:
     
     # Build prompt, call the LLM, and validate the returned ActivityGraph.
     # Returns (keyword_hints, sketch, sketch_repair, alignment report, prompt, raw_response, ActivityGraph).
@@ -526,16 +759,39 @@ def _activity_llm_roundtrip(
     keyword_hints: Optional[dict] = None
     sketch: Optional[dict] = None
     sketch_repair: Optional[dict] = None
+    stage_artifacts: dict = {
+        "original_sketch": None,
+        "reviewed_sketch": None,
+        "deterministically_repaired_sketch": None,
+        "prompted_repaired_sketch": None,
+        "repaired_sketch": None,
+        "probe_graph": None,
+        "probe_validation": None,
+        "initial_graph": None,
+        "repaired_graph": None,
+        "final_graph": None,
+        "validation": None,
+    }
+    executed_stages: list[str] = []
     if _should_use_sketch(
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
         use_sketch=use_sketch,
     ):
-        keyword_hints, _, _, sketch, sketch_repair = _generate_activity_sketch(
+        executed_stages.append("Sketch Planner")
+        keyword_hints, _, _, sketch, sketch_repair, sketch_artifacts = _generate_activity_sketch(
             process_text,
             sketch_llm_caller=sketch_llm_caller,
+            use_sketch_review_agent=use_sketch_review_agent,
+            use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
         )
+        stage_artifacts.update(sketch_artifacts)
+        if use_sketch_review_agent:
+            executed_stages.append("Sketch Review Agent")
+        executed_stages.append("Sketch Repair")
+        if use_prompted_sketch_repair_agent:
+            executed_stages.append("Prompted Sketch Repair")
 
     prompt = build_activity_prompt(
         process_text=process_text,
@@ -545,18 +801,46 @@ def _activity_llm_roundtrip(
     )
 
     caller = llm_caller if llm_caller is not None else _default_activity_llm_caller
+    executed_stages.append("Graph Realizer")
     raw_output = caller(prompt)
     parsed = _parse_and_validate_activity_graph_json(raw_output)
-    sketch_alignment = (
-        validate_graph_against_sketch(sketch, parsed)
-        if sketch is not None
-        else None
-    )
-    semantic_analysis = analyze_semantic_graph(
-        parsed,
-        sketch=sketch,
-        keyword_hints=keyword_hints,
-    )
+    stage_artifacts["initial_graph"] = parsed
+    sketch_alignment = validate_graph_against_sketch(sketch, parsed) if sketch is not None else None
+    semantic_analysis = analyze_semantic_graph(parsed, sketch=sketch, keyword_hints=keyword_hints)
+
+    if use_graph_repair_agent:
+        topology_report = analyze_activity_graph(parsed)
+        should_repair = bool(
+            topology_report.get("issues")
+            or (sketch_alignment or {}).get("issues")
+            or (semantic_analysis or {}).get("issues")
+        )
+        if should_repair:
+            repair_prompt = build_activity_graph_repair_prompt(
+                process_text,
+                activity_graph=parsed,
+                topology_report=topology_report,
+                sketch_alignment=sketch_alignment,
+                semantic_analysis=semantic_analysis,
+                activity_sketch=sketch,
+            )
+            repaired_raw_output = caller(repair_prompt)
+            parsed = _parse_and_validate_activity_graph_json(repaired_raw_output)
+            raw_output = repaired_raw_output
+            prompt = repair_prompt
+            executed_stages.append("Graph Repair Agent")
+            stage_artifacts["repaired_graph"] = parsed
+            sketch_alignment = validate_graph_against_sketch(sketch, parsed) if sketch is not None else None
+            semantic_analysis = analyze_semantic_graph(parsed, sketch=sketch, keyword_hints=keyword_hints)
+
+    executed_stages.append("Validation")
+    stage_artifacts["final_graph"] = parsed
+    stage_artifacts["validation"] = {
+        "sketch_alignment": sketch_alignment,
+        "semantic_analysis": semantic_analysis,
+        "topology_report": analyze_activity_graph(parsed),
+    }
+
     if sketch is not None:
         _log_sketch_realization_debug(
             keyword_hints or {},
@@ -565,7 +849,8 @@ def _activity_llm_roundtrip(
             sketch_alignment,
             semantic_analysis,
         )
-    return keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed
+    stage_artifacts["executed_stages"] = executed_stages
+    return keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed, stage_artifacts
 
 
 def debug_model_activity(
@@ -576,6 +861,10 @@ def debug_model_activity(
     llm_caller: Optional[Callable[[str], str]] = None,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> ActivityDebugResult:
     """
     Same pipeline as ``model_activity``, but returns intermediates for debugging
@@ -589,15 +878,24 @@ def debug_model_activity(
         ``parsed`` / ``model`` — validated ActivityGraph ``{"nodes": [...], "edges": [...]}``
         ``sketch_alignment`` — diagnostic TopologyPlan-versus-ActivityGraph alignment report when planning is enabled
     """
-    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
+    pipeline_config = resolve_pipeline_config(
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
+    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed, stage_artifacts = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
         sketch_llm_caller=sketch_llm_caller,
         use_sketch=use_sketch,
+        use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+        use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+        use_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
     )
-    return _build_debug_result(
+    result = _build_debug_result(
         prompt,
         raw_output,
         parsed,
@@ -607,6 +905,109 @@ def debug_model_activity(
         sketch_alignment=sketch_alignment,
         semantic_analysis=semantic_analysis,
     )
+    result["stage_artifacts"] = stage_artifacts
+    result["executed_stages"] = stage_artifacts.get("executed_stages", [])
+    result["pipeline_config"] = pipeline_config
+    return result
+
+
+def debug_model_activity_with_experimental_compiler(
+    process_text: str,
+    *,
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+    use_sketch_review_agent: bool = False,
+    use_prompted_sketch_repair_agent: bool = False,
+) -> ActivityDebugResult:
+    """
+    Experimental path:
+    ProcessText -> Sketch Planner -> optional Sketch Review -> Sketch Repair
+    -> Deterministic Compiler -> ActivityGraph.
+
+    This path intentionally bypasses the Graph Realizer and Graph Repair Agent
+    so experiments can isolate whether topology failures originate from
+    sketch insufficiency or from LLM-based realization drift.
+    """
+    keyword_hints, sketch_prompt, sketch_raw_output, sketch, sketch_repair, sketch_artifacts = _generate_activity_sketch(
+        process_text,
+        sketch_llm_caller=sketch_llm_caller,
+        use_sketch_review_agent=use_sketch_review_agent,
+        use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
+    )
+    parsed = compile_activity_sketch(sketch)
+    sketch_alignment = validate_graph_against_sketch(sketch, parsed)
+    semantic_analysis = analyze_semantic_graph(parsed, sketch=sketch, keyword_hints=keyword_hints)
+    stage_artifacts = {
+        "original_sketch": sketch_artifacts.get("original_sketch"),
+        "reviewed_sketch": sketch_artifacts.get("reviewed_sketch"),
+        "deterministically_repaired_sketch": sketch_artifacts.get("deterministically_repaired_sketch"),
+        "prompted_repaired_sketch": sketch_artifacts.get("prompted_repaired_sketch"),
+        "repaired_sketch": sketch_artifacts.get("repaired_sketch"),
+        "probe_graph": sketch_artifacts.get("probe_graph"),
+        "probe_validation": sketch_artifacts.get("probe_validation"),
+        "initial_graph": parsed,
+        "repaired_graph": None,
+        "final_graph": parsed,
+        "validation": {
+            "sketch_alignment": sketch_alignment,
+            "semantic_analysis": semantic_analysis,
+            "topology_report": analyze_activity_graph(parsed),
+        },
+        "executed_stages": [
+            "Sketch Planner",
+            *(
+                ["Sketch Review Agent"]
+                if use_sketch_review_agent
+                else []
+            ),
+            "Sketch Repair",
+            *(
+                ["Prompted Sketch Repair"]
+                if use_prompted_sketch_repair_agent
+                else []
+            ),
+            "Deterministic Compiler",
+            "Validation",
+        ],
+    }
+    result = _build_debug_result(
+        sketch_prompt,
+        json.dumps(parsed, ensure_ascii=False),
+        parsed,
+        keyword_hints=keyword_hints,
+        sketch=sketch,
+        sketch_repair=sketch_repair,
+        sketch_alignment=sketch_alignment,
+        semantic_analysis=semantic_analysis,
+    )
+    result["sketch_raw_response"] = sketch_raw_output
+    result["stage_artifacts"] = stage_artifacts
+    result["executed_stages"] = stage_artifacts["executed_stages"]
+    result["pipeline_config"] = {
+        "pipeline_profile": "experimental_compiler",
+        "enable_sketch_review_agent": use_sketch_review_agent,
+        "enable_prompted_sketch_repair_agent": use_prompted_sketch_repair_agent,
+        "enable_graph_repair_agent": False,
+    }
+    return result
+
+
+def model_activity_with_experimental_compiler(
+    process_text: str,
+    *,
+    debug: bool = False,
+    sketch_llm_caller: Optional[Callable[[str], str]] = None,
+    use_sketch_review_agent: bool = False,
+    use_prompted_sketch_repair_agent: bool = False,
+) -> Union[dict, ActivityDebugResult]:
+    result = debug_model_activity_with_experimental_compiler(
+        process_text,
+        sketch_llm_caller=sketch_llm_caller,
+        use_sketch_review_agent=use_sketch_review_agent,
+        use_prompted_sketch_repair_agent=use_prompted_sketch_repair_agent,
+    )
+    if debug:
+        return result
+    return result["parsed"]
 
 
 def model_activity(
@@ -618,6 +1019,10 @@ def model_activity(
     llm_caller: Optional[Callable[[str], str]] = None,
     sketch_llm_caller: Optional[Callable[[str], str]] = None,
     use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> Union[dict, ActivityDebugResult]:
     """
 Core function for ActivityGraph LLM modelling.
@@ -671,16 +1076,25 @@ llm_caller : callable, optional
     ``(prompt: str) -> str`` replacing the default OpenAI call. For tests and
     offline debugging only.
 """
-    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed = _activity_llm_roundtrip(
+    pipeline_config = resolve_pipeline_config(
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
+    keyword_hints, sketch, sketch_repair, sketch_alignment, semantic_analysis, prompt, raw_output, parsed, stage_artifacts = _activity_llm_roundtrip(
         process_text,
         current_model=current_model,
         instruction=instruction,
         llm_caller=llm_caller,
         sketch_llm_caller=sketch_llm_caller,
         use_sketch=use_sketch,
+        use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+        use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+        use_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
     )
     if debug:
-        return _build_debug_result(
+        result = _build_debug_result(
             prompt,
             raw_output,
             parsed,
@@ -690,6 +1104,10 @@ llm_caller : callable, optional
             sketch_alignment=sketch_alignment,
             semantic_analysis=semantic_analysis,
         )
+        result["stage_artifacts"] = stage_artifacts
+        result["executed_stages"] = stage_artifacts.get("executed_stages", [])
+        result["pipeline_config"] = pipeline_config
+        return result
     return parsed
 
 
@@ -698,6 +1116,10 @@ def generate_initial_candidates(
     n: int = 3,
     *,
     use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> List[dict]:
     """
     Return N independent ActivityGraph candidates for the same ``process_text``.
@@ -726,7 +1148,16 @@ def generate_initial_candidates(
 
     models: List[dict] = []
     for _ in range(n):
-        models.append(model_activity(process_text=process_text, use_sketch=use_sketch))
+        models.append(
+            model_activity(
+                process_text=process_text,
+                use_sketch=use_sketch,
+                pipeline_profile=pipeline_profile,
+                enable_sketch_review_agent=enable_sketch_review_agent,
+                enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+                enable_graph_repair_agent=enable_graph_repair_agent,
+            )
+        )
     return models
 
 
@@ -736,6 +1167,10 @@ def generate_and_convert_candidates(
     *,
     project_id: str,
     use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -765,7 +1200,15 @@ def generate_and_convert_candidates(
         Each element is ``{"clean": <ActivityGraph>, "ai4mde": <AI4MDEExport list>}``.
         Each candidate uses a new ``system_id`` and ``diagram_id`` but the same project id.
     """
-    cleans = generate_initial_candidates(process_text, n=n, use_sketch=use_sketch)
+    cleans = generate_initial_candidates(
+        process_text,
+        n=n,
+        use_sketch=use_sketch,
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
     results: List[Dict[str, Any]] = []
     for i, clean in enumerate(cleans, start=1):
         system_id = str(uuid.uuid4())
@@ -788,6 +1231,10 @@ def generate_candidates_with_conversion(
     *,
     project_id: str,
     use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
     name_prefix: str = "Activity candidate",
     description_template: str = "Generated candidate {index} for interactive selection",
 ) -> List[Dict[str, Any]]:
@@ -796,6 +1243,10 @@ def generate_candidates_with_conversion(
         n=n,
         project_id=project_id,
         use_sketch=use_sketch,
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
         name_prefix=name_prefix,
         description_template=description_template,
     )
@@ -807,6 +1258,10 @@ def refine_activity_model(
     refinement_instruction: str,
     *,
     project_id: Optional[str] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> dict:
     """
 Refine **one** ActivityGraph per call (after human selection of a single candidate).
@@ -851,6 +1306,10 @@ dict
         process_text=process_text,
         current_model=current_model,
         instruction=refinement_instruction,
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
     )
 
     # Preserve metadata from the existing AI4MDEExport when available.

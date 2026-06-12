@@ -16,6 +16,7 @@ import os
 import sys
 import uuid
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -24,7 +25,7 @@ if str(MODEL_ROOT) not in sys.path:
     sys.path.insert(0, str(MODEL_ROOT))
 
 from llm._test_helpers import create_test_project, import_and_validate_system, setup_django
-from llm.prompt_builder import build_activity_prompt
+from llm.prompt_builder import build_activity_prompt, build_activity_sketch_repair_prompt
 from llm.refinement_generator import debug_model_activity, model_activity
 
 # Minimal valid graph the validator accepts (what a mocked LLM might return).
@@ -318,6 +319,156 @@ def test_model_activity_exposes_child_block_ids_to_graph_realizer() -> None:
     assert bundle["sketch"]["control_blocks"][0]["branches"][1]["child_block_ids"] == ["B3"]
 
 
+def test_sketch_review_agent_can_replace_initial_sketch() -> None:
+    initial_sketch = json.dumps(
+        {
+            "main_flow": ["review request", "finish request"],
+            "control_blocks": [
+                {
+                    "type": "decision",
+                    "entry_after": "review request",
+                    "branches": [
+                        {"label": "documents required", "returns_to_main_flow": True},
+                        {"label": "approved", "returns_to_main_flow": True},
+                    ],
+                    "requires_merge": True,
+                    "exit_to": "finish request",
+                }
+            ],
+        }
+    )
+    reviewed_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "finish request"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "loop",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {
+                            "label": "documents required",
+                            "returns_to_main_flow": False,
+                            "steps": [{"step_id": "S1A", "action": "submit missing documents"}],
+                            "next_block_id": None,
+                            "child_block_ids": [],
+                        },
+                        {
+                            "label": "documents complete",
+                            "returns_to_main_flow": False,
+                            "steps": [],
+                            "next_block_id": "B2",
+                            "child_block_ids": [],
+                        },
+                    ],
+                    "requires_merge": False,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "finish request",
+                    "loop_back_to_step_id": "S1",
+                    "loop_back_to": "review request",
+                },
+                {
+                    "block_id": "B2",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review request",
+                    "branches": [
+                        {"label": "approved", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "rejected", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "finish request",
+                },
+            ],
+        }
+    )
+    calls: list[str] = []
+
+    def fake_sketch_llm(prompt: str) -> str:
+        calls.append(prompt)
+        if "Review this Activity Sketch" in prompt:
+            return reviewed_sketch
+        if "Repair the sketch and regenerate it once." in prompt:
+            return reviewed_sketch
+        return initial_sketch
+
+    bundle = debug_model_activity(
+        "Review request, request documents if needed, then decide approval.",
+        llm_caller=_fake_llm_returns_valid_graph,
+        sketch_llm_caller=fake_sketch_llm,
+        use_sketch=True,
+        enable_sketch_review_agent=True,
+    )
+
+    assert len(calls) in {2, 3}
+    assert bundle["sketch"]["control_blocks"][0]["type"] == "loop"
+    assert bundle["sketch"]["control_blocks"][1]["block_id"] == "B2"
+
+
+def test_graph_repair_agent_runs_when_topology_is_unstable() -> None:
+    unstable_graph = json.dumps(
+        {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "decision", "label": "approved?"},
+                {"id": "n3", "type": "action", "name": "process order"},
+                {"id": "n4", "type": "action", "name": "reject order"},
+                {"id": "n5", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2"},
+                {"source": "n2", "target": "n3"},
+                {"source": "n2", "target": "n4"},
+                {"source": "n3", "target": "n5"},
+                {"source": "n4", "target": "n5"},
+            ],
+        }
+    )
+    repaired_graph = json.dumps(
+        {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "decision", "label": "approved?"},
+                {"id": "n3", "type": "action", "name": "process order"},
+                {"id": "n4", "type": "action", "name": "reject order"},
+                {"id": "n5", "type": "merge"},
+                {"id": "n6", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2"},
+                {"source": "n2", "target": "n3", "label": "yes"},
+                {"source": "n2", "target": "n4", "label": "no"},
+                {"source": "n3", "target": "n5"},
+                {"source": "n4", "target": "n5"},
+                {"source": "n5", "target": "n6"},
+            ],
+        }
+    )
+    graph_calls: list[str] = []
+
+    def fake_graph_llm(prompt: str) -> str:
+        graph_calls.append(prompt)
+        if "Topology diagnostics:" in prompt:
+            return repaired_graph
+        return unstable_graph
+
+    bundle = debug_model_activity(
+        "If approved, process the order, otherwise reject it.",
+        llm_caller=fake_graph_llm,
+        use_sketch=False,
+        enable_graph_repair_agent=True,
+    )
+
+    assert len(graph_calls) == 2
+    assert bundle["parsed"]["nodes"][-1]["type"] == "final"
+    assert any(node.get("type") == "merge" for node in bundle["parsed"]["nodes"])
+
+
 def test_model_activity_retries_sketch_once_when_critical_defects_remain() -> None:
     invalid_sketch = json.dumps(
         {
@@ -448,6 +599,262 @@ def test_model_activity_skips_sketch_for_refinement_even_if_enabled() -> None:
     assert "sketch" not in bundle
 
 
+def test_sketch_probe_failures_trigger_retry_with_topology_feedback() -> None:
+    initial_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review claim"},
+                {"step_id": "S2", "action": "finalize claim"},
+            ],
+            "control_blocks": [
+                {
+                    "block_id": "B1",
+                    "type": "decision",
+                    "entry_after_step_id": "S1",
+                    "entry_after": "review claim",
+                    "branches": [
+                        {"label": "documents required", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                        {"label": "ready", "returns_to_main_flow": True, "steps": [], "next_block_id": None, "child_block_ids": []},
+                    ],
+                    "requires_merge": True,
+                    "exit_to_step_id": "S2",
+                    "exit_to": "finalize claim",
+                    "loop_back_to_step_id": None,
+                    "loop_back_to": None,
+                    "notes": None,
+                }
+            ],
+        }
+    )
+    retried_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review claim"},
+                {"step_id": "S2", "action": "finalize claim"},
+            ],
+            "control_blocks": [],
+        }
+    )
+
+    sketch_calls = []
+
+    def fake_sketch_llm(prompt: str) -> str:
+        sketch_calls.append(prompt)
+        return initial_sketch if len(sketch_calls) == 1 else retried_sketch
+
+    probe_graph = {
+        "nodes": [
+            {"id": "n1", "type": "initial"},
+            {"id": "n2", "type": "action", "name": "review claim", "origin_step_id": "S1"},
+            {"id": "n3", "type": "decision", "label": "claim ready?", "origin_block_id": "B1"},
+            {"id": "n4", "type": "action", "name": "finalize claim", "origin_step_id": "S2"},
+            {"id": "n5", "type": "final"},
+        ],
+        "edges": [
+            {"source": "n1", "target": "n2", "type": "control"},
+            {"source": "n2", "target": "n3", "type": "control"},
+            {"source": "n3", "target": "n4", "type": "control", "label": "ready"},
+            {"source": "n4", "target": "n5", "type": "control"},
+        ],
+    }
+
+    with patch("llm.refinement_generator.compile_activity_sketch", return_value=probe_graph), patch(
+        "llm.refinement_generator.validate_graph_against_sketch",
+        side_effect=[
+            {
+                "issues": ["exit_to_not_reachable_from_entry"],
+                "metrics": {
+                    "realized_reconnects": 0,
+                    "expected_reconnects": 1,
+                    "realized_loop_backs": 0,
+                    "expected_loop_backs": 0,
+                    "realized_merges": 0,
+                    "expected_merges": 1,
+                    "unresolved_block_ids": ["B3"],
+                },
+            },
+            {
+                "issues": [],
+                "metrics": {
+                    "realized_reconnects": 0,
+                    "expected_reconnects": 0,
+                    "realized_loop_backs": 0,
+                    "expected_loop_backs": 0,
+                    "realized_merges": 0,
+                    "expected_merges": 0,
+                    "unresolved_block_ids": [],
+                },
+            },
+            {
+                "issues": [],
+                "metrics": {
+                    "realized_reconnects": 0,
+                    "expected_reconnects": 0,
+                    "realized_loop_backs": 0,
+                    "expected_loop_backs": 0,
+                    "realized_merges": 0,
+                    "expected_merges": 0,
+                    "unresolved_block_ids": [],
+                },
+            },
+        ],
+    ), patch(
+        "llm.refinement_generator.analyze_activity_graph",
+        side_effect=[
+            {"issues": ["disconnected_nodes", "possible_missing_merge"], "summary": "", "metrics": {}, "details": {}},
+            {"issues": [], "summary": "", "metrics": {}, "details": {}},
+            {"issues": [], "summary": "", "metrics": {}, "details": {}},
+        ],
+    ), patch(
+        "llm.refinement_generator.analyze_semantic_graph",
+        side_effect=[
+            {"issues": [{"code": "missing_loop_exit"}], "summary": "", "metrics": {}},
+            {"issues": [], "summary": "", "metrics": {}},
+            {"issues": [], "summary": "", "metrics": {}},
+        ],
+    ):
+        bundle = debug_model_activity(
+            "Review claim and continue when the topology is complete.",
+            use_sketch=True,
+            llm_caller=_fake_llm_returns_valid_graph,
+            sketch_llm_caller=fake_sketch_llm,
+        )
+
+    assert len(sketch_calls) == 2
+    assert "Fix the following topology problems while preserving business semantics:" in sketch_calls[1]
+    assert "- disconnected topology detected" in sketch_calls[1]
+    assert "- loop exit path missing" in sketch_calls[1]
+    assert "- missing continuation between planned control blocks" in sketch_calls[1]
+    assert bundle["sketch_repair"]["metrics"]["planner_retry_triggered"] is True
+
+
+def test_debug_model_activity_exposes_probe_diagnostics_from_sketch_stage() -> None:
+    sketch_json = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "store request"},
+            ],
+            "control_blocks": [],
+        }
+    )
+    graph_json = json.dumps(
+        {
+            "nodes": [
+                {"id": "n1", "type": "initial"},
+                {"id": "n2", "type": "action", "name": "review request", "origin_step_id": "S1"},
+                {"id": "n3", "type": "action", "name": "store request", "origin_step_id": "S2"},
+                {"id": "n4", "type": "final"},
+            ],
+            "edges": [
+                {"source": "n1", "target": "n2"},
+                {"source": "n2", "target": "n3"},
+                {"source": "n3", "target": "n4"},
+            ],
+        }
+    )
+
+    bundle = debug_model_activity(
+        "Review the request and store it.",
+        use_sketch=True,
+        llm_caller=lambda prompt: graph_json,
+        sketch_llm_caller=lambda prompt: sketch_json,
+    )
+
+    assert bundle["stage_artifacts"]["probe_graph"] is not None
+    assert bundle["stage_artifacts"]["probe_validation"]["topology_report"]["issues"] == []
+    assert "probe_diagnostics" in bundle["sketch_repair"]
+
+
+def test_build_activity_sketch_repair_prompt_is_topology_focused() -> None:
+    prompt = build_activity_sketch_repair_prompt(
+        process_text="Review the request, retry if documents are missing, then finalize it.",
+        activity_sketch={
+            "main_flow": [{"step_id": "S1", "action": "review request"}],
+            "control_blocks": [],
+        },
+        repair_report={"critical_defects": [], "repairs": ["B1:removed_invalid_next_block"]},
+        probe_diagnostics={
+            "topology_report": {"issues": ["disconnected_nodes"]},
+            "semantic_analysis": {"issues": [{"code": "dead_end_path"}]},
+        },
+    )
+
+    assert "Probe compilation diagnostics:" in prompt
+    assert "Focus on topology repair only:" in prompt
+    assert "fix missing or inconsistent `next_block_id`" in prompt
+    assert "use the probe diagnostics as criticism evidence" in prompt
+    assert "do not invent new business steps" in prompt
+    assert "do not redesign the whole process" in prompt
+    assert "do not merge multiple business questions into one decision" in prompt
+
+
+def test_prompted_sketch_repair_stage_is_optional_and_runs_when_enabled() -> None:
+    initial_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "finalize request"},
+            ],
+            "control_blocks": [],
+        }
+    )
+    prompted_repaired_sketch = json.dumps(
+        {
+            "main_flow": [
+                {"step_id": "S1", "action": "review request"},
+                {"step_id": "S2", "action": "finalize request"},
+            ],
+            "control_blocks": [],
+        }
+    )
+    sketch_calls: list[str] = []
+    probe_calls = []
+
+    def fake_sketch_llm(prompt: str) -> str:
+        sketch_calls.append(prompt)
+        if "You are repairing a UML Activity Diagram sketch after deterministic checks detected topology weaknesses." in prompt:
+            return prompted_repaired_sketch
+        return initial_sketch
+
+    def fake_probe(sketch, *, keyword_hints=None):
+        probe_calls.append(sketch)
+        return {
+            "graph": {"nodes": [], "edges": []},
+            "sketch_alignment": {"issues": ["loop_back_edge_not_realized"], "metrics": {}},
+            "topology_report": {"issues": ["disconnected_nodes"], "summary": "", "metrics": {}, "details": {}},
+            "semantic_analysis": {"issues": [{"code": "dead_end_path"}], "summary": "", "metrics": {}},
+        }
+
+    with patch("llm.refinement_generator._probe_activity_sketch", side_effect=fake_probe):
+        bundle = debug_model_activity(
+            "Review the request and finalize it.",
+            use_sketch=True,
+            llm_caller=_fake_llm_returns_valid_graph,
+            sketch_llm_caller=fake_sketch_llm,
+            enable_prompted_sketch_repair_agent=True,
+        )
+
+    assert len(sketch_calls) >= 2
+    prompted_repair_calls = [
+        prompt
+        for prompt in sketch_calls
+        if "You are repairing a UML Activity Diagram sketch after deterministic checks detected topology weaknesses." in prompt
+    ]
+    assert prompted_repair_calls
+    prompted_repair_prompt = prompted_repair_calls[0]
+    assert "Current Activity Sketch:" in prompted_repair_prompt
+    assert "Probe compilation diagnostics:" in prompted_repair_prompt
+    assert "disconnected_nodes" in prompted_repair_prompt
+    assert "loop_back_edge_not_realized" in prompted_repair_prompt
+    assert "Focus on topology repair only:" in prompted_repair_prompt
+    assert len(probe_calls) >= 2
+    assert bundle["pipeline_config"]["enable_prompted_sketch_repair_agent"] is True
+    assert "Prompted Sketch Repair" in bundle["executed_stages"]
+    assert bundle["stage_artifacts"]["deterministically_repaired_sketch"] is not None
+    assert bundle["stage_artifacts"]["prompted_repaired_sketch"] is not None
+
+
 def test_baseline_prompt_is_positioned_as_graph_realizer() -> None:
     prompt = build_activity_prompt(
         process_text="Submit order then process it",
@@ -510,6 +917,90 @@ def test_model_activity_debug_true_matches_debug_model_activity() -> None:
     assert a["prompt"] == b["prompt"]
     assert a["raw_response"] == b["raw_response"]
     assert a["parsed"] == b["parsed"]
+
+
+def test_model_activity_stable_profile_disables_agents_by_default() -> None:
+    graph_calls: list[str] = []
+    sketch_calls: list[str] = []
+
+    def fake_graph_llm(prompt: str) -> str:
+        graph_calls.append(prompt)
+        return _MOCK_LLM_JSON
+
+    bundle = debug_model_activity(
+        "Submit order then process it.",
+        llm_caller=fake_graph_llm,
+        sketch_llm_caller=lambda prompt: sketch_calls.append(prompt) or json.dumps(
+            {"main_flow": ["submit order", "process order"], "control_blocks": []}
+        ),
+        use_sketch=True,
+        pipeline_profile="stable",
+    )
+
+    assert len(graph_calls) == 1
+    assert len(sketch_calls) == 1
+    assert bundle["pipeline_config"]["pipeline_profile"] == "stable"
+    assert bundle["pipeline_config"]["enable_sketch_review_agent"] is False
+    assert bundle["pipeline_config"]["enable_prompted_sketch_repair_agent"] is False
+    assert bundle["pipeline_config"]["enable_graph_repair_agent"] is False
+
+
+def test_model_activity_both_agents_profile_enables_both_agents() -> None:
+    sketch_calls: list[str] = []
+    graph_calls: list[str] = []
+
+    def fake_sketch_llm(prompt: str) -> str:
+        sketch_calls.append(prompt)
+        return json.dumps({"main_flow": ["review request", "finish request"], "control_blocks": []})
+
+    def fake_graph_llm(prompt: str) -> str:
+        graph_calls.append(prompt)
+        if "Topology diagnostics:" in prompt:
+            return _MOCK_LLM_JSON
+        return json.dumps(
+            {
+                "nodes": [
+                    {"id": "n1", "type": "initial"},
+                    {"id": "n2", "type": "decision", "label": "approved?"},
+                    {"id": "n3", "type": "action", "name": "process order"},
+                    {"id": "n4", "type": "final"},
+                ],
+                "edges": [
+                    {"source": "n1", "target": "n2"},
+                    {"source": "n2", "target": "n3"},
+                    {"source": "n3", "target": "n4"},
+                ],
+            }
+        )
+
+    bundle = debug_model_activity(
+        "Review request, then process it if approved.",
+        llm_caller=fake_graph_llm,
+        sketch_llm_caller=fake_sketch_llm,
+        use_sketch=True,
+        pipeline_profile="both_agents",
+    )
+
+    assert len(sketch_calls) == 2
+    assert len(graph_calls) == 2
+    assert bundle["pipeline_config"]["enable_sketch_review_agent"] is True
+    assert bundle["pipeline_config"]["enable_prompted_sketch_repair_agent"] is False
+    assert bundle["pipeline_config"]["enable_graph_repair_agent"] is True
+
+
+def test_model_activity_explicit_overrides_win_over_pipeline_profile() -> None:
+    bundle = debug_model_activity(
+        "Short process",
+        llm_caller=_fake_llm_returns_valid_graph,
+        pipeline_profile="both_agents",
+        enable_sketch_review_agent=False,
+        enable_graph_repair_agent=False,
+    )
+
+    assert bundle["pipeline_config"]["pipeline_profile"] == "both_agents"
+    assert bundle["pipeline_config"]["enable_sketch_review_agent"] is False
+    assert bundle["pipeline_config"]["enable_prompted_sketch_repair_agent"] is False
+    assert bundle["pipeline_config"]["enable_graph_repair_agent"] is False
 
 
 def test_parse_rejects_invalid_json() -> None:

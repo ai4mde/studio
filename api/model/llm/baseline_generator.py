@@ -15,12 +15,22 @@ For multiple options before selection, call
 ``model_activity`` calls — not a separate generator module).
 """
 import json
-from typing import Optional
+from typing import Optional, Union
 
-from .refinement_generator import model_activity
+from .pipeline_profiles import PipelineProfile
+from .refinement_generator import ActivityDebugResult, model_activity
 
 
-def generate_activity_model(process_text: str, *, use_sketch: Optional[bool] = None) -> dict:
+def generate_activity_model(
+    process_text: str,
+    *,
+    debug: bool = False,
+    use_sketch: Optional[bool] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
+) -> Union[dict, ActivityDebugResult]:
     """
     Generate one clean activity diagram from natural-language process text.
 
@@ -35,7 +45,15 @@ def generate_activity_model(process_text: str, *, use_sketch: Optional[bool] = N
         A validated activity diagram with nodes and edges.
         ``model_activity`` (prompt → LLM → validate).
     """
-    return model_activity(process_text=process_text, use_sketch=use_sketch)
+    return model_activity(
+        process_text=process_text,
+        debug=debug,
+        use_sketch=use_sketch,
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
 
 
 def export_activity_model(model: dict) -> None:
