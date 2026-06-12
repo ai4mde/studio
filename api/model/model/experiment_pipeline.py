@@ -19,7 +19,12 @@ from metadata.models import Project, System
 
 from llm.baseline_generator import generate_activity_model
 from llm.converter import convert_to_ai4mde, unwrap_ai4mde_systems_export, validate_ai4mde_json
-from llm.refinement_generator import generate_and_convert_candidates, refine_activity_model
+from llm.pipeline_profiles import PipelineProfile, resolve_pipeline_config
+from llm.refinement_generator import (
+    generate_and_convert_candidates,
+    model_activity_with_experimental_compiler,
+    refine_activity_model,
+)
 
 Mode = Literal["baseline", "refinement"]
 
@@ -73,6 +78,11 @@ def run_pipeline(
     mode: Mode,
     *,
     project_id: Optional[str] = None,
+    pipeline_profile: PipelineProfile = "stable",
+    use_experimental_compiler: bool = False,
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Generate experiment models, convert them to native AI4MDE export JSON, and import them.
@@ -93,10 +103,29 @@ def run_pipeline(
     session_id = generate_session_id()
     project = resolve_experiment_project(mode=mode, session_id=session_id, project_id=project_id)
     resolved_project_id = str(project.id)
+    pipeline_config = resolve_pipeline_config(
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
     results: List[Dict[str, Any]] = []
 
     if mode == "baseline":
-        clean_model = generate_activity_model(process_text)
+        if use_experimental_compiler:
+            clean_model = model_activity_with_experimental_compiler(
+                process_text,
+                use_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+                use_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+            )
+        else:
+            clean_model = generate_activity_model(
+                process_text,
+                pipeline_profile=pipeline_config["pipeline_profile"],
+                enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+                enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+                enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
+            )
         candidate_exports = [
             {
                 "clean": clean_model,
@@ -111,10 +140,16 @@ def run_pipeline(
             }
         ]
     elif mode == "refinement":
+        if use_experimental_compiler:
+            raise ValueError("experimental compiler is currently supported only for baseline mode")
         candidate_exports = generate_and_convert_candidates(
             process_text,
             n=3,
             project_id=resolved_project_id,
+            pipeline_profile=pipeline_config["pipeline_profile"],
+            enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+            enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+            enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
             name_prefix=f"{session_id}_Model",
             description_template=f"Experiment session {session_id}",
         )
@@ -145,6 +180,11 @@ def run_pipeline(
         "session_id": session_id,
         "project_id": resolved_project_id,
         "mode": mode,
+        "pipeline_profile": pipeline_config["pipeline_profile"],
+        "use_experimental_compiler": use_experimental_compiler,
+        "enable_sketch_review_agent": pipeline_config["enable_sketch_review_agent"],
+        "enable_prompted_sketch_repair_agent": pipeline_config["enable_prompted_sketch_repair_agent"],
+        "enable_graph_repair_agent": pipeline_config["enable_graph_repair_agent"],
         "systems": results,
     }
 
@@ -154,6 +194,10 @@ def refine_selected_model(
     *,
     selected_system_id: str,
     refinement_instruction: str,
+    pipeline_profile: PipelineProfile = "stable",
+    enable_sketch_review_agent: Optional[bool] = None,
+    enable_prompted_sketch_repair_agent: Optional[bool] = None,
+    enable_graph_repair_agent: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Refine one existing imported candidate system in place.
@@ -180,10 +224,20 @@ def refine_selected_model(
         raise ValueError(f"System {selected_system_id!r} does not exist.") from exc
 
     exported_current_model = ExportSingleSystem.model_validate(system).model_dump(mode="json")
+    pipeline_config = resolve_pipeline_config(
+        pipeline_profile=pipeline_profile,
+        enable_sketch_review_agent=enable_sketch_review_agent,
+        enable_prompted_sketch_repair_agent=enable_prompted_sketch_repair_agent,
+        enable_graph_repair_agent=enable_graph_repair_agent,
+    )
     refined_export = refine_activity_model(
         process_text=process_text,
         current_model=exported_current_model,
         refinement_instruction=refinement_instruction,
+        pipeline_profile=pipeline_config["pipeline_profile"],
+        enable_sketch_review_agent=pipeline_config["enable_sketch_review_agent"],
+        enable_prompted_sketch_repair_agent=pipeline_config["enable_prompted_sketch_repair_agent"],
+        enable_graph_repair_agent=pipeline_config["enable_graph_repair_agent"],
     )
 
     import_to_ai4mde(system.project, refined_export)
@@ -194,5 +248,9 @@ def refine_selected_model(
         "system_id": refined_system_json["id"],
         "name": refined_system_json["name"],
         "refinement_instruction": refinement_instruction,
+        "pipeline_profile": pipeline_config["pipeline_profile"],
+        "enable_sketch_review_agent": pipeline_config["enable_sketch_review_agent"],
+        "enable_prompted_sketch_repair_agent": pipeline_config["enable_prompted_sketch_repair_agent"],
+        "enable_graph_repair_agent": pipeline_config["enable_graph_repair_agent"],
         "ai4mde": refined_export,
     }

@@ -26,12 +26,21 @@ class GenerateModelRequest(Schema):
     process_text: str
     mode: Literal["baseline", "refinement"] = "baseline"
     project_id: Optional[str] = None
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents"] = "stable"
+    use_experimental_compiler: bool = False
+    enable_sketch_review_agent: Optional[bool] = None
+    enable_prompted_sketch_repair_agent: Optional[bool] = None
+    enable_graph_repair_agent: Optional[bool] = None
 
 
 class RefineModelRequest(Schema):
     process_text: str
     selected_system_id: str
     refinement_instruction: str
+    pipeline_profile: Literal["stable", "sketch_review_only", "graph_repair_only", "both_agents"] = "stable"
+    enable_sketch_review_agent: Optional[bool] = None
+    enable_prompted_sketch_repair_agent: Optional[bool] = None
+    enable_graph_repair_agent: Optional[bool] = None
 
 
 class GetTokenSchema(Schema):
@@ -55,7 +64,7 @@ def get_token(request, body: GetTokenSchema, response: HttpResponse):
             "email": user.email or "",
             "username": user.username,
         }
-    return 403, {"message": "User not found."}
+    return JsonResponse({"message": "User not found."}, status=403)
 
 
 @api.post("/generate-model", auth=None, tags=["experiments"])
@@ -72,6 +81,11 @@ def generate_model(request, body: GenerateModelRequest):
                 body.process_text,
                 body.mode,
                 project_id=body.project_id,
+                pipeline_profile=body.pipeline_profile,
+                use_experimental_compiler=body.use_experimental_compiler,
+                enable_sketch_review_agent=body.enable_sketch_review_agent,
+                enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
+                enable_graph_repair_agent=body.enable_graph_repair_agent,
             )
         )
     except ValueError as exc:
@@ -97,6 +111,10 @@ def refine_model(request, body: RefineModelRequest):
                 body.process_text,
                 selected_system_id=body.selected_system_id,
                 refinement_instruction=body.refinement_instruction,
+                pipeline_profile=body.pipeline_profile,
+                enable_sketch_review_agent=body.enable_sketch_review_agent,
+                enable_prompted_sketch_repair_agent=body.enable_prompted_sketch_repair_agent,
+                enable_graph_repair_agent=body.enable_graph_repair_agent,
             )
         )
     except ValueError as exc:
