@@ -199,6 +199,18 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
         for node in nodes
         if isinstance(node, dict) and str(node.get("origin_block_id", "")).strip()
     }
+    decision_node_ids_by_block: Dict[str, List[str]] = {}
+    unbound_decision_node_ids: List[str] = []
+    for node in nodes:
+        if not isinstance(node, dict) or str(node.get("type", "")) != "decision":
+            continue
+        node_id = str(node.get("id", "")).strip()
+        origin_block_id = str(node.get("origin_block_id", "")).strip()
+        if origin_block_id:
+            decision_node_ids_by_block.setdefault(origin_block_id, []).append(node_id)
+        elif node_id:
+            unbound_decision_node_ids.append(node_id)
+    consumed_unbound_decision_count = 0
 
     node_types = {
         str(node.get("id", "")): str(node.get("type", ""))
@@ -281,9 +293,20 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
 
         block_issues: List[str] = []
         expected_closure = None
+        matched_decision_node_ids: List[str] = []
+        decision_resolution_mode = "not_applicable"
 
         if block_type == "decision":
-            if type_counts.get("decision", 0) < index:
+            normalized_block_id = str(block_id or "").strip()
+            matched_decision_node_ids = decision_node_ids_by_block.get(normalized_block_id, [])
+            if matched_decision_node_ids:
+                decision_resolution_mode = "origin_block_id"
+            elif consumed_unbound_decision_count < len(unbound_decision_node_ids):
+                matched_decision_node_ids = [unbound_decision_node_ids[consumed_unbound_decision_count]]
+                consumed_unbound_decision_count += 1
+                decision_resolution_mode = "unbound_decision_fallback"
+            else:
+                decision_resolution_mode = "unresolved"
                 block_issues.append("missing_decision_node")
             if branch_count >= 2 and type_counts.get("decision", 0) == 0:
                 block_issues.append("decision_branching_not_realized")
@@ -414,6 +437,8 @@ def validate_graph_against_sketch(sketch: Optional[Dict[str, Any]], graph: Dict[
                 "closure_realized": closure_realized,
                 "expected_branch_count": branch_count,
                 "expected_closure": expected_closure,
+                "matched_decision_node_ids": matched_decision_node_ids,
+                "decision_resolution_mode": decision_resolution_mode,
                 "issues": block_issues,
             }
         )
