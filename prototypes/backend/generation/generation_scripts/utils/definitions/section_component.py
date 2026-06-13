@@ -90,7 +90,7 @@ class SectionCustomMethod():
             self.body_is_valid = False
 
     def __str__(self):
-        return self.name
+        return self.label or self.name
 
 
 DEFAULT_SECTION_STYLE = {
@@ -121,6 +121,7 @@ class SectionComponent():
             has_update_operation: bool = False,
             has_select_operation: bool = False,
             custom_methods = List[SectionCustomMethod],
+            item_actions = None,
             layout: str = "table",
             style: Optional[dict] = None,
             related_to_section_id: Optional[str] = None,
@@ -150,6 +151,7 @@ class SectionComponent():
         self.has_update_operation = has_update_operation
         self.has_select_operation = has_select_operation
         self.custom_methods = custom_methods
+        self.item_actions = item_actions or []
         self.text = parse_section_text(text)
         self.layout = layout or "table"
         self.component = component or ""

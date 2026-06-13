@@ -1026,21 +1026,6 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                     ) : (<>
                                     <SectionEditorGroup title="Basic" description="Choose the domain class this component reads or edits.">
                                     <div className="space-y-1">
-                                        <h3 className="text-sm font-semibold text-gray-700">Data Role</h3>
-                                        <select
-                                            value={inferSectionDataRole(data[index])}
-                                            onChange={(e) => handleDataRoleChange(index, e.target.value)}
-                                            className="border border-gray-300 rounded-md bg-white px-2 py-1.5 text-sm w-full"
-                                        >
-                                            {SECTION_DATA_ROLE_OPTIONS.map(option => (
-                                                <option key={option.value} value={option.value}>{option.label}</option>
-                                            ))}
-                                        </select>
-                                        <p className="text-[11px] leading-snug text-gray-500">
-                                            {SECTION_DATA_ROLE_OPTIONS.find(option => option.value === inferSectionDataRole(data[index]))?.hint}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
                                         <h3 className="text-sm font-semibold text-gray-700">Primary Class</h3>
                                         <div className="flex max-w-full flex-wrap gap-2">
                                             {isSuccessClasses && (

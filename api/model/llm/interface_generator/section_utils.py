@@ -1070,18 +1070,6 @@ def _ensure_section_data_relationships(
                     query.setdefault("limit", 4)
             section["query"] = query
 
-            if _section_is_collection(section):
-                target_page = detail_page_by_model.get(model)
-                if target_page and target_page != page.get("name"):
-                    behavior = dict(section.get("behavior") or {})
-                    item_click = dict(behavior.get("item_click") or {})
-                    if not item_click.get("type") or item_click.get("type") == "none":
-                        item_click.update({"type": "navigate", "target_page": target_page})
-                    elif item_click.get("type") == "navigate" and not item_click.get("target_page"):
-                        item_click["target_page"] = target_page
-                    behavior["item_click"] = item_click
-                    section["behavior"] = behavior
-
     return pages, list(section_map.values())
 
 def _infer_section_layout(page: dict, candidate_index: int = 0) -> str:

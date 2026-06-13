@@ -79,6 +79,13 @@ layout.hero_width: "contained"|"full"
 layout.footer_width: "contained"|"full"
 gap.value: "compact"|"normal"|"spacious"
 
+page.sections entries are normally {"value": "section_id"}.
+To group 2-3 related sections (e.g. a detail panel + a stats table) inside one
+visual card frame, use a card container object instead of a bare ref:
+  {"type": "card", "id": "unique_card_id", "label": "Card Title", "sections": [{"value": "section_id"}, ...]}
+Only use card containers for main-position data sections that logically belong
+together. Chrome sections (header, footer, nav) must remain bare refs.
+
 === GLOBAL STYLING (one set per candidate) ===
 fontFamily: "inter"|"roboto"|"poppins"|"playfair"|"mono"|"geist"
 textSize: "xs"|"sm"|"md"|"lg"|"xl"
@@ -179,6 +186,15 @@ sections[].behavior:
   Render modes: text, link, button, badge.
   Action types: none, navigate, operation, copy, filter, expand, tooltip.
 
+sections[].methods and sections[].item_actions:
+  Use "methods" only for section-level actions that apply to the whole section.
+    Examples: refresh products, generate summary, export section, batch validate.
+  Use "item_actions" for per-record actions inside list/card/gallery/table sections.
+    Examples: add this product to cart, view this order, approve this request, remove this item.
+  Each item_action targets the current record of the section primary_model.
+  Do not place per-record actions in methods. Do not place section-level actions in item_actions.
+  Action objects may use {name, label, body?, parameters?, call_name?, target_model?}.
+
 sections[].data_source:
   data_source.mode = "query"
   data_source.from.model = primary source model name
@@ -202,7 +218,7 @@ Static online image URLs:
   Put URLs in style.image_url or style.logo_url, never in attributes.
 """
 
-_CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout.
+_CANDIDATE_FULL_SCHEMA = f"""\nYou output layout + style decisions for an interface. DO NOT change: id, name, primary_model, class, attributes, operations, role, behavior, data_source, query, field_layout, methods, item_actions.
 
 {_LAYOUT_SCHEMA}
 - 3 candidates must be structurally different: vary nav placement, data section layouts, density, font, component treatment, or contained/wide page width. Use full width only when explicitly requested.

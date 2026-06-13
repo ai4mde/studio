@@ -31,9 +31,18 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
         def _norm_refs(refs: list) -> list:
             out = []
             for ref in refs or []:
-                sid = ref.get("value") if isinstance(ref, dict) else ref
-                if sid:
-                    out.append({"value": str(sid)})
+                if isinstance(ref, dict) and ref.get("type") == "card":
+                    card = {k: v for k, v in ref.items() if k != "sections"}
+                    card["sections"] = [
+                        {"value": str(s.get("value") or s)} if isinstance(s, dict) else {"value": str(s)}
+                        for s in (ref.get("sections") or [])
+                        if (s.get("value") if isinstance(s, dict) else s)
+                    ]
+                    out.append(card)
+                else:
+                    sid = ref.get("value") if isinstance(ref, dict) else ref
+                    if sid:
+                        out.append({"value": str(sid)})
             return out
 
         if "sections" in patch:
@@ -61,11 +70,12 @@ def apply_interface_patch(interface_id: str, patch: dict) -> str:
                         "relationship": ps.get("relationship", {}),
                         "relation_field": ps.get("relation_field"),
                         "operations": ps.get("operations", {"create": False, "update": False, "delete": False, "select": False}),
+                        "item_actions": ps.get("item_actions", []),
                         "data_source": ps.get("data_source", {}),
                         "query": ps.get("query", {}),
                         "style": ps.get("style", {}),
                     }
-                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "min_height"):
+                for field in ("role", "layout", "component", "col_span", "position", "attributes", "field_layout", "behavior", "related_to", "relationship", "relation_field", "data_source", "query", "workflow", "label", "target_page", "workflow_action", "primary_model", "class", "text", "methods", "item_actions", "min_height"):
                     if field in ps:
                         section_map[sid][field] = ps[field]
                 if "style" in ps:

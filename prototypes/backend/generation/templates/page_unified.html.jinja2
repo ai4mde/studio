@@ -650,6 +650,42 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   {%- endif -%}
 {%- endif -%}
 {%- endmacro %}
+{%- macro item_action_buttons(section_component, classes, model_name, wrap_class='') -%}
+{%- for action in section_component.item_actions -%}
+  {%- set action_model = action.target_model or model_name -%}
+  {%- if preview_mode -%}
+  <button type="button"{% if wrap_class %} class="{{ wrap_class }} {{ classes }}"{% else %} class="{{ classes }}"{% endif %} data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</button>
+  {%- else -%}
+  <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get"{% if wrap_class %} class="{{ wrap_class }}"{% endif %}>
+    <input type="hidden" name="instance_id_{{ action_model }}" value="{{ '{{' }}{{ model_name }}.id{{ '}}' }}">
+    <input type="hidden" name="custom_{{ action_model }}_{{ action.call_name }}" value="{{ '{{' }}{{ model_name }}.id{{ '}}' }}">
+    <button type="submit" class="{{ classes }}" data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</button>
+  </form>
+  {%- endif -%}
+{%- endfor -%}
+{%- endmacro %}
+{%- macro section_method_buttons(section_component, section_methods, classes) -%}
+{%- if section_methods and section_component.attributes and not _is_chrome_or_nav and eff_lay != 'action_panel' -%}
+<div class="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+  {%- for method in section_methods -%}
+    {%- if preview_mode -%}
+    <button type="button" class="{{ classes }} opacity-80 cursor-default" data-section-action="{{ method.call_name }}">{{ method }}</button>
+    {%- else -%}
+    <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+      {%- if section_component.primary_model %}
+      <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+      <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+      {%- endif %}
+      {%- for parameter in method.parameters %}
+      <input type="hidden" name="{{ parameter.name }}" value="1">
+      {%- endfor %}
+      <button type="submit" class="{{ classes }}" data-section-action="{{ method.call_name }}">{{ method }}</button>
+    </form>
+    {%- endif -%}
+  {%- endfor -%}
+</div>
+{%- endif -%}
+{%- endmacro %}
 {% set _rm = {"none":"rounded-none","sm":"rounded-sm","md":"rounded-md","lg":"rounded-lg","xl":"rounded-xl","2xl":"rounded-2xl"} %}
 {% set _dm = {
   "compact":  {"gap":"gap-2","p":"p-3","p_sm":"p-2","text":"text-xs","sec":"mb-8"},
@@ -994,17 +1030,6 @@ href="#"
   <p class="text-gray-400 text-sm italic">You have no ongoing tasks.</p>
   {% raw %}{% endif %}{% endraw %}
 {%- endif %}
-</div>
-{%- elif section_component.component_type == 'card_start' %}
-<div class="col-span-12 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-{%- if section_component.label %}
-  <div class="px-4 py-2 border-b border-gray-100 bg-gray-50">
-    <h3 class="text-sm font-semibold text-gray-700">{{ section_component.label }}</h3>
-  </div>
-{%- endif %}
-  <div class="grid grid-cols-12 gap-4 p-3">
-{%- elif section_component.component_type == 'card_end' %}
-  </div>
 </div>
 {%- else %}
 {# ── FIELD VALUE MACROS ── #}
@@ -1525,6 +1550,7 @@ href="#"
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>{%- endif %}
         {{ select_mock_button(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline') }}
+        {{ item_action_buttons(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline', section_component.primary_model) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>{%- endif %}
       </div>
@@ -1543,6 +1569,7 @@ href="#"
       <div class="flex gap-1 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
         {{ select_mock_button(section_component, 'text-xs ' ~ c.text ~ ' hover:underline') }}
+        {{ item_action_buttons(section_component, 'text-xs ' ~ c.text ~ ' hover:underline', section_component.primary_model) }}
         {%- if section_component.has_update_operation %}<button class="text-xs {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="text-xs text-red-400 hover:underline">Del</button>{%- endif %}
       </div>
@@ -1572,6 +1599,7 @@ href="#"
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1638,6 +1666,7 @@ href="#"
         <div class="flex gap-2 shrink-0">
           {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>{%- endif %}
           {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
+          {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
           {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
         </div>
       </div>
@@ -1668,6 +1697,7 @@ href="#"
       <div class="flex gap-2 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
         {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1689,7 +1719,7 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -1712,11 +1742,12 @@ href="#"
           {%- for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
           {%- endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
               {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+              {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -1760,6 +1791,7 @@ href="#"
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {%- if section_component.item_click_target_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
+        {{ item_action_buttons(section_component, 'bg-white/90 ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')) ~ ' text-xs', section_component.primary_model) }}
         {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
       </div>
     </div>
@@ -1797,6 +1829,7 @@ href="#"
             <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
               {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>{%- endif %}
               {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
+              {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
             </div>
           </div>
@@ -2270,6 +2303,7 @@ href="#"
         {%- endif %}
         {%- endfor %}
         <div class="sm:col-span-2 flex gap-2 pt-3 border-t border-gray-100">
+          {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
           {%- if section_component.has_update_operation %}
           <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2302,6 +2336,7 @@ href="#"
         {%- endfor %}
       </div>
       <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2421,6 +2456,7 @@ href="#"
         <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
         {%- endif %}
         {{ select_record_action(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline') }}
+        {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline', section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2505,6 +2541,7 @@ href="#"
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {{ select_record_action(section_component, 'w-full text-center ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), 'flex-1') }}
+        {{ item_action_buttons(section_component, 'w-full text-center ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model, 'flex-1') }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
@@ -2796,6 +2833,7 @@ href="#"
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -2882,7 +2920,7 @@ href="#"
           {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{% raw %}{{ relation_field.label }}{% endraw %}</th>
           {% raw %}{% endfor %}{% endraw %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -2948,13 +2986,14 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}
               <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
+              {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -3069,6 +3108,7 @@ href="#"
         {%- if section_component.item_click_target_page %}
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
+        {{ item_action_buttons(section_component, 'bg-white/90 ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')) ~ ' text-xs', section_component.primary_model) }}
         {%- if section_component.has_delete_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
@@ -3127,6 +3167,7 @@ href="#"
               {%- if section_component.item_click_target_page %}
               <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>
               {%- endif %}
+              {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -3470,6 +3511,8 @@ href="#"
 {# ── END GENERATION LAYOUTS ── #}
 
 {% endif %}{# end preview_mode branch #}
+
+{{ section_method_buttons(section_component, section_methods, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
 
 </div>
 {%- endif %}{# end activity_action else branch #}

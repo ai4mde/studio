@@ -330,14 +330,14 @@ def retrieve_section_attributes(metadata: str, section: str, application_name: s
     return out
 
 
-def retrieve_section_custom_methods(section: str) -> List[str]:
+def retrieve_section_custom_methods(section: str, field: str = "methods") -> List[str]:
     if not section:
         return []
-    if "methods" not in section:
+    if field not in section:
         return []
     
     out = []
-    for custom_method in section["methods"]:
+    for custom_method in section[field]:
         if isinstance(custom_method, str):
             custom_method = {"name": custom_method, "label": custom_method.replace("_", " ")}
         if not isinstance(custom_method, dict):
@@ -590,6 +590,7 @@ def retrieve_section_components(application_name: str, page_name: str, metadata:
                         has_update_operation = bool(operations.get("update", False)),
                         has_select_operation = bool(operations.get("select", False)),
                         custom_methods = retrieve_section_custom_methods(section),
+                        item_actions = retrieve_section_custom_methods(section, "item_actions"),
                         text = section.get("text", ""),
                         layout = section_layout,
                         style = section.get("style", None),

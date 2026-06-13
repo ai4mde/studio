@@ -79,7 +79,7 @@ ACTIVITY_ACTION_VARIANTS = {"button", "link", "fab", "row_action", "wizard_next"
 class _SectionComponent:
     def __init__(self, id, name, display_name, primary_model, parent_models, attributes,
                  has_create_operation, has_update_operation, has_delete_operation, has_select_operation, text,
-                 layout="table", style=None, custom_methods=None, col_span=12,
+                 layout="table", style=None, custom_methods=None, item_actions=None, col_span=12,
                  related_to_section_id=None, relation_field=None, query=None, position="main",
                  component_type="data", label=None, workflow=None, min_height=None,
                  component=None, role=None, field_layout=None, behavior=None):
@@ -102,6 +102,7 @@ class _SectionComponent:
         self.style = {**DEFAULT_SECTION_STYLE, **(style or {})}
         self.style["columns"] = str(self.style.get("columns", "3"))
         self.custom_methods = custom_methods or []
+        self.item_actions = item_actions or []
         self.col_span = col_span if col_span in (3, 4, 6, 12) else 12
         self.related_to_section_id = related_to_section_id
         self.relation_field = relation_field
@@ -290,9 +291,11 @@ def _normalize_layout_alias(layout) -> str:
     return _LAYOUT_ALIASES.get(value, value)
 
 def _attrs_for_section_render(section_raw: Dict, cls_data: Dict, layout: str) -> List:
-    raw_attrs = section_raw.get("attributes") or []
+    raw_attrs = section_raw.get("attributes")
     if raw_attrs:
         return raw_attrs
+    if raw_attrs is not None:  # explicitly set to [] — honour the intent (no attributes / action_panel)
+        return []
     if not cls_data or layout not in {"card", "list", "table", "detail", "gallery", "filter", "form"}:
         return []
     attrs = [
@@ -322,15 +325,43 @@ def _parse_text(text: str) -> str:
     return text
 
 
-def _parse_custom_methods(section_raw: Dict) -> List[str]:
+class _SectionMethod:
+    """Minimal method object for template rendering — mirrors SectionCustomMethod from the prototype generator."""
+    def __init__(self, name: str, body: str = None, parameters=None, call_name: str = None, label: str = None, target_model: str = None):
+        import ast as _ast
+        self.name = name
+        self.label = label or name
+        self.call_name = call_name or name
+        self.parameters = parameters or []
+        self.target_model = target_model
+        self.body = body
+        try:
+            _ast.parse(body or "")
+            self.body_is_valid = bool(body)
+        except SyntaxError:
+            self.body_is_valid = False
+
+    def __str__(self):
+        return self.label or self.name
+
+
+def _parse_custom_methods(section_raw: Dict, field: str = "methods") -> List[_SectionMethod]:
     methods = []
-    for method_raw in section_raw.get("methods", []) or []:
+    for method_raw in section_raw.get(field, []) or []:
         if isinstance(method_raw, dict):
             method_name = method_raw.get("name") or method_raw.get("label") or method_raw.get("value")
-            if method_name:
-                methods.append(str(method_name))
+            if not method_name:
+                continue
+            methods.append(_SectionMethod(
+                name=method_name,
+                body=method_raw.get("body"),
+                parameters=method_raw.get("parameters") or [],
+                call_name=method_raw.get("call_name") or method_name,
+                label=method_raw.get("label") or method_name,
+                target_model=method_raw.get("target_model"),
+            ))
         elif method_raw:
-            methods.append(str(method_raw))
+            methods.append(_SectionMethod(name=str(method_raw)))
     return methods
 
 
@@ -632,6 +663,7 @@ def _parse_pages(interface_data: Dict, classifiers: List[Dict], interface_name: 
                 layout=sec_layout,
                 style=sec_style,
                 custom_methods=_parse_custom_methods(s_raw),
+                item_actions=_parse_custom_methods(s_raw, "item_actions"),
                 col_span=int(s_raw.get("col_span", 12)),
                 min_height=s_raw.get("min_height"),
                 related_to_section_id=s_raw.get("related_to"),
