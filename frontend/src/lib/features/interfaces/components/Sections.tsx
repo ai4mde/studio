@@ -81,6 +81,12 @@ const ACTIVITY_ACTION_ALIGNS = [
     { value: 'right', label: 'Right' },
 ];
 
+const actionNameFromLabel = (label: string) => label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'custom_action';
+
 const ACTIVITY_ACTION_SIZES = [
     { value: 'sm', label: 'Small' },
     { value: 'md', label: 'Medium' },
@@ -593,15 +599,15 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         setData(newData);
     };
 
-    const handleDataSourceFromChange = (index: number, model: string) => {
-        const newData = [...data];
-        newData[index].data_source = {
-            ...(newData[index].data_source || {}),
-            mode: 'query',
-            from: { model },
-        };
-        setData(newData);
-    };
+    const sectionPrimaryModel = (section: any) =>
+        section?.primary_model || selectedClassName || '';
+
+    const normalizedDataSource = (section: any) => ({
+        ...(section.data_source || {}),
+        mode: 'query',
+        from: { model: sectionPrimaryModel(section) },
+        joins: section.data_source?.joins || [],
+    });
 
     const handleDataScopeModeChange = (index: number, mode: string) => {
         const newData = [...data];
@@ -622,7 +628,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
 
     const handleAddJoin = (index: number) => {
         const newData = [...data];
-        const fromModel = newData[index].data_source?.from?.model || newData[index].primary_model || selectedClassName || '';
+        const fromModel = sectionPrimaryModel(newData[index]);
         const model = classNameOptions.find((name: string) => name !== fromModel) || '';
         const joins = [...(newData[index].data_source?.joins || [])];
         joins.push({
@@ -631,9 +637,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
             on: model && fromModel ? `${fromModel}.${sqlTableName(model)}_id = ${model}.id` : '',
         });
         newData[index].data_source = {
-            ...(newData[index].data_source || {}),
-            mode: 'query',
-            from: { model: fromModel },
+            ...normalizedDataSource(newData[index]),
             joins,
         };
         setData(newData);
@@ -644,8 +648,7 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const joins = [...(newData[index].data_source?.joins || [])];
         joins[joinIndex] = { ...(joins[joinIndex] || {}), [key]: value };
         newData[index].data_source = {
-            ...(newData[index].data_source || {}),
-            mode: 'query',
+            ...normalizedDataSource(newData[index]),
             joins,
         };
         setData(newData);
@@ -656,15 +659,14 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
         const joins = [...(newData[index].data_source?.joins || [])];
         joins.splice(joinIndex, 1);
         newData[index].data_source = {
-            ...(newData[index].data_source || {}),
-            mode: 'query',
+            ...normalizedDataSource(newData[index]),
             joins,
         };
         setData(newData);
     };
 
     const buildSqlPreview = (section: any) => {
-        const fromModel = section.data_source?.from?.model || section.primary_model || selectedClassName || 'Item';
+        const fromModel = sectionPrimaryModel(section) || 'Item';
         const fromTable = sqlTableName(fromModel);
         const selectedFields = (section.query?.select || []).filter(Boolean);
         const selectFields = selectedFields.length
@@ -1086,6 +1088,34 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                             Use only when users need to choose records or act on selected rows.
                                         </p>
                                     </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-semibold text-gray-700">Item actions</h3>
+                                        <p className="text-xs text-gray-500">
+                                            Rendered once for every record in card, list, gallery, and table sections.
+                                        </p>
+                                        <Textarea
+                                            minRows={2}
+                                            maxRows={5}
+                                            placeholder={"View Details\nAdd to Cart\nCompare"}
+                                            value={(data[index].item_actions || []).map((m: any) =>
+                                                typeof m === 'string' ? m : (m?.label || m?.name || '')
+                                            ).join('\n')}
+                                            onChange={(e) => {
+                                                const itemActions = e.target.value
+                                                    .split('\n')
+                                                    .map((line: string) => line.trim())
+                                                    .filter(Boolean)
+                                                    .map((label: string) => ({
+                                                        name: actionNameFromLabel(label),
+                                                        label,
+                                                        target_model: data[index].primary_model || selectedClassName,
+                                                    }));
+                                                const newData = [...data];
+                                                newData[index].item_actions = itemActions;
+                                                setData(newData);
+                                            }}
+                                        />
+                                    </div>
                                     </SectionEditorGroup>
                                     <SectionEditorGroup title="Fields" description="Choose display, editable, and read-only fields. Related fields are read-only context only.">
                                     <div className='space-y-1'>
@@ -1161,10 +1191,10 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         </div>
                                     </div>
                                     </SectionEditorGroup>
-                                    <SectionEditorGroup title="Content" description="Optional copy, media, and custom methods shown by this component." defaultOpen={false}>
+                                    <SectionEditorGroup title="Content" description="Optional copy, media, and section-level actions shown once for this component." defaultOpen={false}>
                                     <FormControl className="space-y-1">
                                         <h3 className="text-sm font-semibold text-gray-700">
-                                            {CHROME_LAYOUTS.includes(data[index].layout) ? 'Methods (one per line)' : 'Custom Operations'}
+                                            {CHROME_LAYOUTS.includes(data[index].layout) ? 'Methods (one per line)' : 'Section Actions'}
                                         </h3>
                                         {CHROME_LAYOUTS.includes(data[index].layout) ? (
                                             <>
@@ -1396,16 +1426,12 @@ export const Sections: React.FC<Props> = ({ interfaceId }) => {
                                         <p className="text-xs text-gray-500">Configure how this section reads data. Display attributes are edited above; query columns are separate.</p>
                                         <div className="space-y-1">
                                             <label className="text-xs text-gray-500">From</label>
-                                            <select
-                                                value={data[index].data_source?.from?.model || data[index].primary_model || selectedClassName || ''}
-                                                onChange={(e) => handleDataSourceFromChange(index, e.target.value)}
-                                                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm w-full"
-                                            >
-                                                <option value="">Auto from primary class</option>
-                                                {classNameOptions.map((name: string) => (
-                                                    <option key={name} value={name}>{name}</option>
-                                                ))}
-                                            </select>
+                                            <div className="border border-gray-200 rounded-md px-2 py-1.5 text-sm w-full bg-stone-50 text-gray-700">
+                                                {sectionPrimaryModel(data[index]) || 'Select a primary class first'}
+                                            </div>
+                                            <p className="text-[11px] text-gray-400">
+                                                Query returns records of this section's primary class. Join other classes only for filtering, sorting, or read-only context.
+                                            </p>
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center justify-between gap-2">

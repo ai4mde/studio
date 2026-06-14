@@ -1037,9 +1037,7 @@ def _ensure_section_data_relationships(
 
             data_source = dict(section.get("data_source") or {})
             data_source["mode"] = "query"
-            data_source.setdefault("from", {"model": model})
-            if not isinstance(data_source.get("from"), dict) or not data_source["from"].get("model"):
-                data_source["from"] = {"model": model}
+            data_source["from"] = {"model": model}
             joins = list(data_source.get("joins") or [])
             joined_models = {str(join.get("model") or "") for join in joins if isinstance(join, dict)}
             for related_model in _related_models_from_attrs(section, model_attrs):

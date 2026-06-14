@@ -301,7 +301,9 @@ class GenericListView(GenericViewMixin, ListView):
             _, model, method = key.split("_", 2)
             if model_instance := apps.get_model('shared_models', model):
                 instance = get_object_or_404(model_instance, pk=value)
-                custom_method = getattr(instance, method)
+                custom_method = getattr(instance, method, None)
+                if custom_method is None:
+                    continue
                 signature = inspect.signature(custom_method)
                 kwargs = {
                     name: self.request.GET[name]

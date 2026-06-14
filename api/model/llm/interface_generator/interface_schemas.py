@@ -197,11 +197,13 @@ sections[].methods and sections[].item_actions:
 
 sections[].data_source:
   data_source.mode = "query"
-  data_source.from.model = primary source model name
+  data_source.from.model must equal the section primary_model. It controls which
+  records are returned and rendered.
   data_source.joins = optional list of joins:
     {type: "left|inner|right", model: "ModelName", on: "ModelA.field_id = ModelB.id"}
-  Do not emit data_source for ordinary sections unless joins or a non-default source
-  are needed. It defines where rows come from, not what fields are displayed.
+  Use joins to reference other classes for filters, sorting, or read-only context.
+  Joins must not change the rendered result class. Do not emit data_source for
+  ordinary sections unless joins are needed.
 
 sections[].query:
   Optional retrieval constraints only. It is separate from attributes.

@@ -1262,12 +1262,13 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
             }
             if (field === 'relation_field') return { ...s, relation_field: value || null };
             if (field === 'data_source_from') {
+                const model = s.primary_model || value || '';
                 return {
                     ...s,
                     data_source: {
                         ...(s.data_source || {}),
                         mode: 'query',
-                        from: { model: value || '' },
+                        from: { model },
                         joins: (s.data_source || {}).joins || [],
                     },
                 };
@@ -3064,18 +3065,10 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
                                     </>
                                 )}
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Data Source From</p>
-                                <select
-                                    value={(selectedSection.data_source || {}).from?.model || selectedPrimaryModel || ''}
-                                    onChange={e => updateSection(selectedSection.id, 'data_source_from', e.target.value)}
-                                    style={{ width: '100%', height: 30, borderRadius: 6, border: '1px solid #d1d5db', padding: '0 8px', fontSize: 12, marginBottom: 8 }}
-                                >
-                                    <option value="">Auto</option>
-                                    {systemClassifiers
-                                        .filter((cls: any) => cls?.data?.type === 'class' || !cls?.data?.type)
-                                        .map((cls: any) => cls?.data?.name)
-                                        .filter(Boolean)
-                                        .map((name: string) => <option key={name} value={name}>{name}</option>)}
-                                </select>
+                                <div style={{ width: '100%', minHeight: 30, borderRadius: 6, border: '1px solid #e5e7eb', padding: '6px 8px', fontSize: 12, marginBottom: 4, boxSizing: 'border-box', background: '#f9fafb', color: '#374151' }}>
+                                    {selectedPrimaryModel || 'Select a primary class first'}
+                                </div>
+                                <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 8px' }}>Query returns this primary class. Joins can reference other classes, but the rendered records stay on this class.</p>
                                 <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 4px' }}>Limit</p>
                                 <input
                                     type="number"
@@ -3473,7 +3466,8 @@ const updateSection = useCallback((sectionId: string, field: string, value: any)
 
                             {hasControl('methods') && (
                                 <>
-                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Methods (one per line)</p>
+                                    <p style={{ fontSize: 11, color: '#6b7280', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Section Actions (one per line)</p>
+                                    <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>Rendered once for the whole section, not once per record.</p>
                                     {!hasControl('text') && METHODS_HINTS[secLayout] && (
                                         <p style={{ fontSize: 10, color: '#9ca3af', margin: '0 0 4px' }}>{METHODS_HINTS[secLayout]}</p>
                                     )}
