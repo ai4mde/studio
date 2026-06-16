@@ -1,0 +1,124 @@
+<script>
+/* Multi-select (si-selectable sections) */
+(function() {
+  var bars = {};
+  document.querySelectorAll('[data-selectable]').forEach(function(grid) {
+    var sid = grid.dataset.selectable;
+    var bar = document.createElement('div');
+    var actionButtons = '';
+    document.querySelectorAll('form[data-bulk-section="' + sid + '"]').forEach(function(form, index) {
+      var button = form.querySelector('button[type="submit"], input[type="submit"]');
+      var label = button ? (button.textContent || button.value || 'Apply') : 'Apply';
+      actionButtons += '<button type="button" data-bulk-action-index="' + index + '">' + label.trim() + '</button>';
+    });
+    bar.className = 'si-sel-bar';
+    bar.id = 'sel-bar-' + sid;
+    bar.innerHTML = '<span class="sel-count">0 selected</span>'
+      + '<button onclick="siSelClear(\'' + sid + '\')">Clear</button>'
+      + actionButtons
+      + '<button class="danger" onclick="siSelDelete(\'' + sid + '\')">Delete selected</button>';
+    document.body.appendChild(bar);
+    bar.querySelectorAll('[data-bulk-action-index]').forEach(function(button) {
+      button.addEventListener('click', function() {
+        siSelSubmitAction(sid, Number(button.dataset.bulkActionIndex || 0));
+      });
+    });
+    bars[sid] = bar;
+  });
+
+  window.siSelUpdate = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (!grid) return;
+    var selected = grid.querySelectorAll('.si-selected');
+    var bar = bars[sid];
+    if (!bar) return;
+    bar.querySelector('.sel-count').textContent = selected.length + ' selected';
+    bar.classList.toggle('active', selected.length > 0);
+  };
+
+  window.siSelClear = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (grid) grid.querySelectorAll('.si-selected').forEach(function(el) { el.classList.remove('si-selected'); });
+    siSelUpdate(sid);
+  };
+
+  function siGetCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  window.siSelDelete = function(sid) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (!grid) return;
+    var selected = Array.from(grid.querySelectorAll('.si-selected[data-item-id], .si-selected[data-item-idx]'));
+    var ids = selected.map(function(el) { return el.dataset.itemId || el.dataset.itemIdx; });
+    var urls = selected.map(function(el) { return el.dataset.deleteUrl; }).filter(Boolean);
+    if (!urls.length) {
+      window.parent.postMessage({ type: 'si-select-delete', sectionId: sid, indices: ids }, '*');
+      selected.forEach(function(el) { el.classList.add('opacity-30'); el.classList.remove('si-selected'); });
+      siSelUpdate(sid);
+      return;
+    }
+    if (!window.confirm('Delete ' + urls.length + ' selected item' + (urls.length === 1 ? '' : 's') + '?')) return;
+    var csrf = siGetCsrfToken();
+    Promise.all(urls.map(function(url) {
+      return fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: csrf ? { 'X-CSRFToken': csrf } : {}
+      });
+    })).then(function(responses) {
+      var failed = responses.filter(function(response) { return !response.ok; });
+      if (failed.length) window.alert('Some selected items could not be deleted.');
+      window.location.reload();
+    }).catch(function() {
+      window.alert('Could not delete selected items.');
+    });
+  };
+
+  window.siSelSubmitAction = function(sid, actionIndex) {
+    var grid = document.querySelector('[data-selectable="' + sid + '"]');
+    if (!grid) return;
+    var selected = Array.from(grid.querySelectorAll('.si-selected[data-item-id], .si-selected[data-item-idx]'));
+    var ids = selected.map(function(el) { return el.dataset.itemId || el.dataset.itemIdx; }).filter(Boolean);
+    if (!ids.length) return;
+    var forms = Array.from(document.querySelectorAll('form[data-bulk-section="' + sid + '"]'));
+    var form = forms[actionIndex || 0];
+    if (!form) return;
+    var model = form.dataset.bulkModel;
+    var selectedInput = model ? form.querySelector('input[name="selected_' + model + '"]') : null;
+    if (selectedInput) selectedInput.value = ids.join(',');
+    if (model) {
+      var instanceInput = form.querySelector('input[name="instance_id_' + model + '"]');
+      if (instanceInput) instanceInput.value = ids[0];
+      var customInput = form.querySelector('input[name^="custom_' + model + '_"]');
+      if (customInput) customInput.value = ids[0];
+    }
+    form.submit();
+  };
+
+  document.addEventListener('click', function(e) {
+    var item = e.target.closest('.si-sel-item[data-selectable-sid]');
+    if (!item) return;
+    var sid = item.dataset.selectableSid;
+    var grid = item.closest('[data-selectable]');
+    if (e.shiftKey && grid) {
+      var items = Array.from(grid.querySelectorAll('.si-sel-item'));
+      var lastSel = grid.querySelector('.si-last-sel');
+      var start = lastSel ? items.indexOf(lastSel) : 0;
+      var end = items.indexOf(item);
+      if (start > end) { var tmp = start; start = end; end = tmp; }
+      items.slice(start, end + 1).forEach(function(el) { el.classList.add('si-selected'); });
+    } else {
+      item.classList.toggle('si-selected');
+      if (item.classList.contains('si-selected') && grid) {
+        grid.querySelectorAll('.si-last-sel').forEach(function(el) { el.classList.remove('si-last-sel'); });
+        item.classList.add('si-last-sel');
+      }
+    }
+    siSelUpdate(sid);
+  }, true);
+})();
+</script>

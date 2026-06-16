@@ -1,4 +1,4 @@
-﻿{% if preview_mode -%}
+{% if preview_mode -%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,7 +109,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   {%- set _footer_secs = [] %}
 {%- endif %}
 
-{# 鈹€鈹€ HEADER CHROME ROWS 鈹€鈹€ #}
+{# HEADER CHROME ROWS #}
 {%- set _main_row_open = [] %}
 {%- for sc in _header_secs %}
 {%- set _inline_lay = sc.layout in ('logo', 'search-bar', 'icon-actions') %}
@@ -123,7 +123,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 {%- endif %}
 
-{# 鈹€鈹€ ACTIVITY ACTION 鈹€鈹€ #}
+{# ACTIVITY ACTION #}
 {%- if sc.component_type == 'activity_action' %}
 {%- set _aa_action = sc.workflow_action or 'complete' %}
 {%- set _aa_target_page = sc.workflow_target_page %}
@@ -163,7 +163,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   </div>
 </div>
 
-{# 鈹€鈹€ PROMO BAR 鈹€鈹€ #}
+{# PROMO BAR #}
 {%- elif sc.layout in ('promo-bar', 'promo-strip') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -177,7 +177,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </div>
 </div>
 
-{# 鈹€鈹€ LOGO 鈹€鈹€ #}
+{# LOGO #}
 {%- elif sc.layout == 'logo' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _logo_url = _sc_style.get('logo_url') or _sc_style.get('image_url') or tokens.get('brand.logo_url', '') %}
@@ -199,7 +199,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   </a>
 </div>
 
-{# 鈹€鈹€ SEARCH BAR 鈹€鈹€ #}
+{# SEARCH BAR #}
 {%- elif sc.layout == 'search-bar' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="search-bar" class="flex-1">
   {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
@@ -211,7 +211,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   </form>
 </div>
 
-{# 鈹€鈹€ ICON ACTIONS 鈹€鈹€ #}
+{# ICON ACTIONS #}
 {%- elif sc.layout == 'icon-actions' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 {%- set _action_variant = _sc_style.get('action_variant', 'link') %}
@@ -234,7 +234,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   </div>
 </div>
 
-{# 鈹€鈹€ MAIN HEADER 鈹€鈹€ #}
+{# MAIN HEADER #}
 {%- elif sc.layout == 'main-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="main-header">
 <div style="background-color:var(--region-header-bg);color:var(--region-header-text);" class="px-6 py-1 flex items-center justify-between text-xs select-none">
@@ -254,7 +254,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ COMMERCE HEADER 鈹€鈹€ #}
+{# COMMERCE HEADER #}
 {%- elif sc.layout == 'commerce-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="commerce-header">
 <div class="text-center text-xs py-1.5 font-medium text-white select-none" style="background-color:{{ _accent_hex }};">{{ sc.text or 'Free shipping on orders over $50' }}</div>
@@ -277,7 +277,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </nav>
 </div>
 
-{# 鈹€鈹€ DASHBOARD HEADER 鈹€鈹€ #}
+{# DASHBOARD HEADER #}
 {%- elif sc.layout == 'dashboard-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="dashboard-header">
 <header class="flex items-center justify-between px-5 py-2.5 shadow-md" style="background-color:var(--region-header-bg,#1e293b);color:var(--region-header-text,#f1f5f9);">
@@ -299,7 +299,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ SPLIT HEADER 鈹€鈹€ #}
+{# SPLIT HEADER #}
 {%- elif sc.layout == 'split-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="split-header">
 <header class="flex items-stretch" style="min-height:52px;">
@@ -318,7 +318,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ APP HEADER 鈹€鈹€ #}
+{# APP HEADER #}
 {%- elif sc.layout == 'app-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="app-header">
 <header class="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between gap-4">
@@ -339,7 +339,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ COMPACT HEADER 鈹€鈹€ #}
+{# COMPACT HEADER #}
 {%- elif sc.layout == 'compact-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="compact-header">
 <header class="bg-white border-b border-gray-200 px-5 py-1.5 flex items-center gap-4">
@@ -354,7 +354,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ MEGA HEADER 鈹€鈹€ #}
+{# MEGA HEADER #}
 {%- elif sc.layout == 'mega-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="mega-header">
 <header class="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-6">
@@ -369,7 +369,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ HERO HEADER 鈹€鈹€ #}
+{# HERO HEADER #}
 {%- elif sc.layout == 'hero-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="hero-header">
 <header class="px-6 py-5 flex flex-col gap-3 border-b border-gray-200" style="background:linear-gradient(135deg,{{ _accent_hex }}18 0%,transparent 60%);">
@@ -386,7 +386,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ TABBED HEADER 鈹€鈹€ #}
+{# TABBED HEADER #}
 {%- elif sc.layout == 'tabbed-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="tabbed-header">
 <div class="bg-white border-b border-gray-200">
@@ -403,7 +403,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </div>
 </div>
 
-{# 鈹€鈹€ GLASS HEADER 鈹€鈹€ #}
+{# GLASS HEADER #}
 {%- elif sc.layout == 'glass-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="glass-header">
 <header class="px-6 py-3 flex items-center gap-4 shadow-sm" style="background:rgba(255,255,255,0.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,0.08);">
@@ -418,7 +418,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ COMMAND HEADER 鈹€鈹€ #}
+{# COMMAND HEADER #}
 {%- elif sc.layout == 'command-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="command-header">
 <header class="px-5 py-2 flex items-center gap-4" style="background-color:#0f172a;">
@@ -426,7 +426,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   <div class="flex-1 flex items-center rounded-lg px-3 py-1.5 gap-2 cursor-pointer" style="background-color:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);">
     <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <span class="text-sm flex-1" style="color:rgba(255,255,255,0.4);">{{ sc.text or 'Search or run a command' }}</span>
-    <kbd class="text-xs px-1.5 py-0.5 rounded font-mono" style="background-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);">鈱楰</kbd>
+    <kbd class="text-xs px-1.5 py-0.5 rounded font-mono" style="background-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);">Ctrl K</kbd>
   </div>
   <div class="flex items-center gap-2 shrink-0">
     {%- for p in _nav_pages[:4] %}{%- if p.type != 'activity' %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-2.5 py-1 rounded text-xs font-medium cursor-pointer transition-colors {% if p.display_name == page.display_name %}text-white{% else %}hover:bg-white/10{% endif %}" style="color:{{ _accent_hex if p.display_name == page.display_name else 'rgba(255,255,255,0.6)' }};">{{ p.display_name }}</a>{%- endif %}{%- endfor %}
@@ -435,7 +435,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ NAV BAR 鈹€鈹€ #}
+{# NAV BAR #}
 {%- elif sc.layout in ('nav', 'nav-links', 'nav-bar') %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="{{ sc.layout }}" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -444,7 +444,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
     <div class="flex items-center gap-0">
       <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 茅藛?
+        {{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }}
       </span>
       {%- for p in _nav_pages %}
       {%- if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}
@@ -466,7 +466,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </nav>
 </div>
 
-{# 鈹€鈹€ MINIMAL HEADER 鈹€鈹€ #}
+{# MINIMAL HEADER #}
 {%- elif sc.layout == 'minimal-header' %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="minimal-header">
 <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
@@ -478,7 +478,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 </header>
 </div>
 
-{# 鈹€鈹€ SITE NAV 鈹€鈹€ #}
+{# SITE NAV #}
 {%- elif sc.layout == 'site-nav' %}
 {%- set _sc_style = sc.style if sc.style is defined and sc.style else {} %}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="header" data-layout="site-nav" data-nav-height="{{ _sc_style.get('nav_height', _sc_style.get('density', 'normal')) }}">
@@ -505,7 +505,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
   <div class="px-6 flex items-center justify-between text-sm whitespace-nowrap py-2 overflow-x-auto">
     <div class="flex items-center gap-0">
-      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }} 茅藛?/span>
+      <span class="flex items-center gap-1.5 px-3 py-1.5 font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded mr-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>{{ sc.custom_methods[0] if sc.custom_methods else sc.display_name }}</span>
       {%- for p in _nav_pages %}{% if p.type != 'activity' and not (p.is_task_page is defined and p.is_task_page) %}{%- set _p_name = p.name if p.name is defined else p %}<a {{ nav_href_attrs(_p_name) }} class="px-3 py-1.5 cursor-pointer rounded font-medium transition-colors {% if p.display_name == page.display_name %}border-b-2 font-bold{% else %}text-gray-700 hover:bg-gray-100{% endif %}" style="{{ ('border-color:'+_accent_hex+';color:'+_accent_hex) if p.display_name == page.display_name else '' }}">{{ p.display_name }}</a>{% endif %}{%- endfor %}
     </div>
     <div class="flex items-center gap-4 text-gray-500 text-xs">{%- for m in sc.custom_methods[4:] %}<span class="cursor-pointer hover:text-gray-800">{{ m }}</span>{%- endfor %}</div>
@@ -621,7 +621,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   </style>
 {%- endif %}
 
-{# 鈹€鈹€ COMPONENT STYLE MAPS 鈹€鈹€ #}
+{# COMPONENT STYLE MAPS #}
 {% set _cm = {
   "blue":   {"solid":"bg-blue-600 hover:bg-blue-700 text-white","outline":"border-2 border-blue-600 text-blue-600 hover:bg-blue-50","ghost":"text-blue-600 hover:bg-blue-50","gradient":"bg-gradient-to-r from-blue-500 to-blue-700 text-white","light":"bg-blue-50","text":"text-blue-600","border":"border-blue-200","label":"text-blue-700","ring":"focus:ring-blue-500","th":"bg-blue-600 text-white"},
   "green":  {"solid":"bg-green-600 hover:bg-green-700 text-white","outline":"border-2 border-green-600 text-green-600 hover:bg-green-50","ghost":"text-green-600 hover:bg-green-50","gradient":"bg-gradient-to-r from-green-400 to-green-600 text-white","light":"bg-green-50","text":"text-green-600","border":"border-green-200","label":"text-green-700","ring":"focus:ring-green-500","th":"bg-green-600 text-white"},
@@ -634,7 +634,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
 } %}
 {# btn_class helper: picks solid/outline/ghost/gradient key from _cm based on global _btn_style #}
 {%- macro btn_cls(color) -%}{{ (_cm.get(color, _cm['blue'])).get(_btn_style, (_cm.get(color, _cm['blue']))['solid']) }} si-btn font-semibold px-4 py-2 transition-all{%- endmacro %}
-{%- macro select_mock_button(section_component, classes) -%}
+{%- macro select_preview_button(section_component, classes) -%}
 {%- if section_component.has_select_operation -%}<button class="{{ classes }}">Select</button>{%- endif -%}
 {%- endmacro %}
 {%- macro select_record_action(section_component, classes, wrap_class='') -%}
@@ -650,26 +650,6 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   {%- endif -%}
 {%- endif -%}
 {%- endmacro %}
-{%- macro item_action_buttons(section_component, classes, model_name, wrap_class='') -%}
-{%- for action in section_component.item_actions -%}
-  {%- set action_model = action.target_model or model_name -%}
-  {%- if preview_mode -%}
-  <button type="button"{% if wrap_class %} class="{{ wrap_class }} {{ classes }}"{% else %} class="{{ classes }}"{% endif %} data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</button>
-  {%- else -%}
-  {%- if action.body_is_valid -%}
-  <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get"{% if wrap_class %} class="{{ wrap_class }}"{% endif %}>
-    <input type="hidden" name="instance_id_{{ action_model }}" value="{{ '{{' }}{{ model_name }}.id{{ '}}' }}">
-    <input type="hidden" name="custom_{{ action_model }}_{{ action.call_name }}" value="{{ '{{' }}{{ model_name }}.id{{ '}}' }}">
-    <button type="submit" class="{{ classes }}" data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</button>
-  </form>
-  {%- elif action.call_name in ['view', 'view_detail', 'viewdetail', 'open', 'open_detail', 'details', 'detail'] -%}
-  <a href="?instance_id_{{ action_model }}={{ '{{' }}{{ model_name }}.id{{ '}}' }}" {% if wrap_class %}class="{{ wrap_class }} {{ classes }}"{% else %}class="{{ classes }}"{% endif %} data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</a>
-  {%- else -%}
-  <button type="button"{% if wrap_class %} class="{{ wrap_class }} {{ classes }}"{% else %} class="{{ classes }}"{% endif %} data-item-action="{{ action.call_name }}" data-target-model="{{ action_model }}">{{ action }}</button>
-  {%- endif -%}
-  {%- endif -%}
-{%- endfor -%}
-{%- endmacro %}
 {%- macro section_method_buttons(section_component, section_methods, classes) -%}
 {%- if section_methods and section_component.attributes and not _is_chrome_or_nav and eff_lay != 'action_panel' -%}
 <div class="mt-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
@@ -677,13 +657,16 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
     {%- if preview_mode -%}
     <button type="button" class="{{ classes }} opacity-80 cursor-default" data-section-action="{{ method.call_name }}">{{ method }}</button>
     {%- else -%}
-    <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
+    <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get"{% if section_component.has_select_operation %} data-bulk-section="{{ section_component.id }}" data-bulk-model="{{ section_component.primary_model }}"{% endif %}>
       {%- if section_component.primary_model %}
       <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
+      {%- if section_component.has_select_operation %}
+      <input type="hidden" name="selected_{{ section_component.primary_model }}" value="">
+      {%- endif %}
       {%- endif %}
       {%- for parameter in method.parameters %}
-      <input type="hidden" name="{{ parameter.name }}" value="1">
+      <input type="hidden" name="{{ parameter.name }}" value="{{ parameter.default or parameter.value or '1' }}">
       {%- endfor %}
       <button type="submit" class="{{ classes }}" data-section-action="{{ method.call_name }}">{{ method }}</button>
     </form>
@@ -712,7 +695,7 @@ href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ applica
   "vertical-reverse": "flex flex-col-reverse",
   "horizontal-reverse": "flex flex-row-reverse flex-wrap items-start",
 } %}
-{# 鈹€鈹€ NAVIGATION MACROS 鈹€鈹€ #}
+{# NAVIGATION MACROS #}
 {%- set _all_page_names = [] %}
 {%- set _activity_page_names = [] %}
 {%- for _known_page in (all_pages or []) %}
@@ -748,19 +731,9 @@ href="#"
 {%- endmacro %}
 {%- set _accent_hex = _accent_hex if _accent_hex is defined else '#0000a4' %}
 {%- set _brand_name = _brand_name if _brand_name is defined else 'App' %}
-{%- set _mock_rows = 3 %}
-{%- set _mock_opacities = ["1", "0.8", "0.6"] %}
-{%- set _mock_imgs = [
-  'https://images.unsplash.com/photo-1511707171634-5f897ff02aa?w=800&fit=crop',
-  'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&fit=crop',
-  'https://images.unsplash.com/photo-1611186871525-e07b873d4fc2?w=800&fit=crop',
-  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&fit=crop',
-  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&fit=crop',
-  'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=800&fit=crop'
-] %}
 
-{# 鈹€鈹€ CARD MACROS 鈹€鈹€ #}
-{%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='', item_actions_html='') -%}
+{# CARD MACROS #}
+{%- macro _mini_card(img, name, price, accent, discount='', rating_count='', view_url='#', opacity_style='', favorite_url='') -%}
 <div class="flex-shrink-0 w-44 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"{% if opacity_style %} style="{{ opacity_style }}"{% endif %}>
   <div class="relative">
     {%- if img %}
@@ -784,12 +757,7 @@ href="#"
       <span class="text-sm font-bold" style="color:#e53935;">{{ price }}</span>
       {%- if discount %}<span class="text-xs text-white font-bold px-1 rounded" style="background:#e53935;">{{ discount }}</span>{%- endif %}
     </div>
-    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">+ 茅娄茠忙麓鈥?/a>
-    {%- if item_actions_html %}
-    <div class="mt-2 flex flex-col gap-1">
-      {{ item_actions_html }}
-    </div>
-    {%- endif %}
+    <a href="{{ view_url }}" class="mt-2 block w-full py-1.5 rounded-lg text-xs font-bold text-gray-900 text-center" style="background:#ffd700;">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -813,7 +781,7 @@ href="#"
   </div>
   <div class="text-right shrink-0 flex flex-col items-end gap-2 w-36">
     <div class="text-2xl font-bold" style="color:#e53935;">{{ price }}</div>
-    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">+ 茅娄茠忙麓鈥?/a>
+    <a href="{{ view_url }}" class="w-full text-center py-2 rounded-lg text-xs font-bold text-gray-900" style="background:#ffd700;">View</a>
   </div>
 </div>
 {%- endmacro %}
@@ -923,16 +891,16 @@ href="#"
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }} 茅藛?/button>
+      <button type="submit" class="si-link text-blue-600 hover:underline font-medium {{ _aa_py }}">{{ section_component.label }}</button>
     </form>
   </div>
   {%- elif _aa_variant == 'wizard_next' %}
   <div class="flex items-center justify-between border-t border-gray-200 pt-4 mt-4">
-    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">茅藛?Back</a>
+    <a href="javascript:history.back()" class="text-sm text-gray-500 hover:text-gray-700">&larr; Back</a>
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
-      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }} 茅藛?/button>
+      <button type="submit" class="si-btn si-btn-primary bg-blue-600 hover:bg-blue-700 text-white font-semibold {{ _aa_py }} rounded-xl transition-colors">{{ section_component.label }}</button>
     </form>
   </div>
   {%- elif _aa_variant == 'auto' %}
@@ -942,7 +910,7 @@ href="#"
       {%- if _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url and _aa_target_is_activity.value %}<input type="hidden" name="next_url" value="{{ _aa_target_url }}">{%- elif _aa_action in ('complete_then_page', 'complete_then_target') and _aa_target_url %}<input type="hidden" name="next" value="{{ _aa_target_url }}">{%- endif %}
     </form>
   </div>
-  <script>setTimeout(function(){ document.getElementById('auto-complete-form').submit(); }, 1500);</script>
+  {% include "helpers/unified_page_auto_complete_script.html.jinja2" %}
   {%- else %}{# default: button #}
   <div class="flex {{ _aa_justify }} mt-6">
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
@@ -1043,61 +1011,12 @@ href="#"
 {%- endif %}
 </div>
 {%- else %}
-{# 鈹€鈹€ FIELD VALUE MACROS 鈹€鈹€ #}
-{%- macro _field_value(attribute, mock_row, c, d, r, allow_link=False) -%}
+{# FIELD VALUE MACROS #}
+{%- macro _field_value(attribute, preview_row, c, d, r, allow_link=False) -%}
   {%- set render_as = attribute.render_as if attribute.render_as is defined else ('link' if attribute.is_link else 'text') -%}
   {%- set action = attribute.action if attribute.action is defined else {} -%}
   {%- set action_type = action.get('type', 'none') -%}
-  {%- set _aname = (attribute ~ '')|lower -%}
-  {%- set _section_context = ((section_component.display_name if section_component is defined else '') ~ ' ' ~ (section_component.primary_model if section_component is defined else ''))|lower -%}
-  {%- set _is_product_context = 'product' in _section_context or 'catalog' in _section_context or 'cart' in _section_context -%}
-  {%- set _is_person_context = 'customer' in _section_context or 'user' in _section_context or 'applicant' in _section_context or 'employee' in _section_context or 'person' in _section_context -%}
-  {%- set _is_document_context = 'document' in _section_context or 'file' in _section_context or 'attachment' in _section_context -%}
-  {%- set _is_finance_context = 'loan' in _section_context or 'payment' in _section_context or 'invoice' in _section_context or 'account' in _section_context -%}
-  {%- set _generic_names = ['Alpha Record','Beta Record','Gamma Record','Delta Record','Epsilon Record','Zeta Record'] -%}
-  {%- set _person_names = ['Amina Khan','Luca Ferrari','Jan de Vries','Emma Bakker','Maya Chen','Noah Smith'] -%}
-  {%- set _document_names = ['Proof of income','Bank statement','Identity document','Contract draft','Approval letter','Monthly report'] -%}
-  {%- set _finance_names = ['Standard Review','Priority Check','Approved Account','Pending Payment','Low Risk Loan','Manual Review'] -%}
-  {%- set _mock_prices = ['茅藛?.99','茅藛?4.99','茅藛?9.99','茅藛?4.99','茅藛?9.00','茅藛?.50'] -%}
-  {%- set _mock_names  = ['Sample Item','Classic Product','Premium Option','Basic Model','Deluxe Edition','Standard Pack'] -%}
-  {%- set _mock_dates  = ['Jan 12, 2024','Mar 5, 2024','Nov 28, 2023','Feb 19, 2024','Apr 1, 2024','Dec 3, 2023'] -%}
-  {%- set _mock_status = ['Active','Pending','Completed','Draft','Published','Archived'] -%}
-  {%- set _mock_emails = ['alice@example.com','bob@example.com','carol@example.com','dave@example.com','eve@example.com','frank@example.com'] -%}
-  {%- set _mock_nums   = ['12','47','8','253','31','19'] -%}
-  {%- set _mock_prices = ['EUR 1499','EUR 1349','EUR 799','EUR 1149','EUR 1029','EUR 299'] -%}
-  {%- set _product_names  = ['MacBook Air M3 15-inch','Dell XPS 15 OLED','Google Pixel 8 Pro','Samsung Galaxy S24 Ultra','Apple iPhone 15 Pro','Sony WH-1000XM5'] -%}
-  {%- set _mock_brands = ['Apple','Dell','Google','Samsung','Apple','Sony'] -%}
-  {%- set _mock_product_ids = ['prod-003','prod-004','prod-005','prod-001','prod-002','prod-006'] -%}
-  {%- set _mock_descriptions = ['M3 chip, 15-inch Liquid Retina display, 8GB RAM, 256GB SSD. All-day battery life.','15.6-inch OLED laptop, Intel Core i7, 16GB RAM, 512GB SSD. InfinityEdge display.','Google AI phone with Tensor G3, 50MP camera, Magic Eraser and 7 years of OS updates.','Flagship smartphone with 200MP camera and Galaxy AI. 6.8-inch QHD+ AMOLED, S Pen included.','Titanium design with A17 Pro chip, 48MP main camera, and Action Button. 128GB storage.','Industry-leading noise cancelling headphones. 30-hour battery, multipoint connection.'] -%}
-  {%- set _mock_ratings = ['4.9','4.6','4.5','4.7','4.8','4.8'] -%}
-  {%- set _mock_weights = ['1.51','1.86','0.21','0.23','0.19','0.25'] -%}
-  {%- set _mock_stock = ['15','8','33','42','28','67'] -%}
-  {%- set _row = mock_row % 6 -%}
-  {%- if 'product_id' in _aname or _aname == 'productid' -%}
-    {%- set label = _mock_product_ids[_row] -%}
-  {%- elif 'brand' in _aname -%}
-    {%- set label = _mock_brands[_row] -%}
-  {%- elif ('description' in _aname or 'summary' in _aname or 'body' in _aname) and _is_product_context -%}
-    {%- set label = _mock_descriptions[_row] -%}
-  {%- elif 'rating' in _aname -%}
-    {%- set label = _mock_ratings[_row] -%}
-  {%- elif 'weight' in _aname -%}
-    {%- set label = _mock_weights[_row] -%}
-  {%- elif 'price' in _aname or 'cost' in _aname or 'amount' in _aname or 'total' in _aname or 'fee' in _aname -%}
-    {%- set label = _mock_prices[_row] -%}
-  {%- elif 'name' in _aname or 'title' in _aname or 'label' in _aname or 'product' in _aname -%}
-    {%- set label = _product_names[_row] if _is_product_context else (_person_names[_row] if _is_person_context else (_document_names[_row] if _is_document_context else (_finance_names[_row] if _is_finance_context else _generic_names[_row]))) -%}
-  {%- elif 'date' in _aname or 'time' in _aname -%}
-    {%- set label = _mock_dates[_row] -%}
-  {%- elif 'status' in _aname or 'state' in _aname or 'phase' in _aname -%}
-    {%- set label = _mock_status[_row] -%}
-  {%- elif 'email' in _aname or 'mail' in _aname -%}
-    {%- set label = _mock_emails[_row] -%}
-  {%- elif 'count' in _aname or 'qty' in _aname or 'stock' in _aname or 'quantity' in _aname -%}
-    {%- set label = _mock_stock[_row] if 'stock' in _aname else _mock_nums[_row] -%}
-  {%- else -%}
-    {%- set label = attribute ~ ' ' ~ (mock_row + 1) -%}
-  {%- endif -%}
+  {%- set label = '' -%}
   {%- set tooltip = action.get('tooltip', '') if action_type == 'tooltip' else '' -%}
   {%- set nav_target = action.get('targetPageId') or action.get('targetPage') or '#' -%}
   {%- set operation_name = action.get('operation') or action.get('operationId') or attribute -%}
@@ -1208,9 +1127,8 @@ href="#"
 {% set query_limit = section_component.query.get("limit") %}
 {% set _data_scope = _s.get("data_scope") if _s.get("data_scope") is mapping else {} %}
 {% set _actor_owned_preview = _data_scope.get("mode") == "actor_owned" %}
-{% set _base_mock = 3 %}
-{% set section_mock_rows = 1 if _actor_owned_preview else (query_limit if query_limit else _base_mock) %}
-{# 鈹€鈹€ IMAGE ATTRIBUTES 鈹€鈹€ #}
+{% set preview_row_count = 0 %}
+{# IMAGE ATTRIBUTES #}
 {%- set _iattrs = [] %}
 {%- set _vattrs = [] %}
 {%- set _tattrs = [] %}
@@ -1284,7 +1202,7 @@ href="#"
   {%- if _attr and _attr not in _card_ns.attrs %}{%- set _ = _card_ns.attrs.append(_attr) %}{%- endif %}
 {%- endfor %}
 {%- set _card_attrs = _card_ns.attrs if _card_ns.attrs else section_component.attributes %}
-{# 鈹€鈹€ CARD DISPLAY SETUP 鈹€鈹€ #}
+{# CARD DISPLAY SETUP #}
 {%- set _disp   = _s.get('display_mode', 'carousel' if eff_lay == 'product-carousel' else ('banner' if eff_lay == 'hero-banner' else 'grid')) %}
 {%- set _cstyle = _s.get('card_style',  'product'  if eff_lay in ('product-carousel','hero-banner') else ('category' if eff_lay == 'category-grid' else 'default')) %}
 {%- set _lstyle = _s.get('list_style',  'product'  if eff_lay == 'product-list' else ('cart-item' if eff_lay == 'item-list' else 'default')) %}
@@ -1306,10 +1224,6 @@ href="#"
 {%- if _component == 'RelatedObjectList' %}{%- set _lstyle = 'related' %}{%- endif %}
 {%- if _component == 'DataTable' and eff_lay == 'gallery' %}{%- set _glay = 'table' %}{%- endif %}
 {%- if _component in ('ObjectForm', 'AddressForm', 'PaymentMethodForm', 'ReviewForm') %}{%- set _glay = 'form' %}{%- endif %}
-{# 鈹€鈹€ MOCK DATA 鈹€鈹€ #}
-{%- set _mock_old_pl    = ["49,99","119,00","199,00","59,99","319,00"] %}
-{%- set _mock_cats      = [] %}
-
 <div class="{{ _spanm.get(section_component.col_span, 'col-span-12') }}" data-section-id="{{ section_component.id }}" data-section-name="{{ section_component.display_name }}" data-position="{{ section_component.position or 'main' }}" data-layout="{{ lay }}" data-col-span="{{ section_component.col_span or 12 }}" data-sidebar-side="{{ _s.get('sidebar_side', _s.get('side', '')) }}" data-sidebar-width="{{ _s.get('sidebar_width', '') }}" data-nav-height="{{ _s.get('nav_height', _s.get('density', 'normal')) }}"{% if section_component.min_height %} style="min-height: {{ section_component.min_height }}px;"{% endif %}>
   {%- set _field_cfgs = _fl.get('field_styles') or {} %}
   {%- if _field_cfgs %}
@@ -1366,10 +1280,10 @@ href="#"
   <p class="text-gray-500 {{ d.text }} mb-4">{{ section_component.text }}</p>
   {% endif %}
 
-{# 鈹€鈹€ PREVIEW MODE 鈹€鈹€ #}
+{# PREVIEW MODE #}
 {% if preview_mode %}
 
-{# 鈹€鈹€ PREVIEW: ACTION PANEL 鈹€鈹€ #}
+{# PREVIEW: ACTION PANEL #}
 {% if eff_lay == "action_panel" %}
 {% if section_methods|length == 1 %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -1378,8 +1292,7 @@ href="#"
     <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ section_methods[0].call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
     {% endif -%}
     {% for parameter in section_methods[0].parameters %}
-    <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
-    <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
+    <input type="hidden" name="{{ parameter.name }}" value="{{ parameter.default or parameter.value or '1' }}">
     {% endfor %}
     <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
       {{ section_component.custom_methods[0] }}
@@ -1394,8 +1307,7 @@ href="#"
       <input type="hidden" name="custom_{{ section_component.primary_model }}_{{ method.call_name }}" value="{% raw %}{{{% endraw %} request.GET.instance_id_{{ section_component.primary_model }} {% raw %}}}{% endraw %}">
       {% endif -%}
       {% for parameter in method.parameters %}
-      <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
-      <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
+      <input type="hidden" name="{{ parameter.name }}" value="{{ parameter.default or parameter.value or '1' }}">
       {% endfor %}
       <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
@@ -1405,12 +1317,12 @@ href="#"
   </div>
 {% endif %}
 
-{# 鈹€鈹€ PREVIEW: DETAIL 鈹€鈹€ #}
+{# PREVIEW: DETAIL #}
 {%- elif eff_lay == "detail" %}
 {%- set img_pos = _s.get("image_position", "top") %}
 {%- set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
   <div class="flex flex-col {{ d.gap }}">
-    {%- for _mock_row in range(1) %}
+    {%- for _preview_row in range(preview_row_count) %}
     {%- if img_pos in ["left", "right"] %}
     <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100 flex {{ 'flex-row' if img_pos == 'left' else 'flex-row-reverse' }} gap-6 items-start">
       {%- if _media_attr %}
@@ -1418,7 +1330,7 @@ href="#"
         {%- if _video_attr %}
         <div class="w-full h-56 {{ r }} bg-black flex items-center justify-center text-white/70">&#9658;</div>
         {%- else %}
-        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-56 object-cover {{ r }}" />
+        <div class="w-full h-56 bg-gray-50 {{ r }}"></div>
         {%- endif %}
       </div>
       {%- endif %}
@@ -1427,11 +1339,11 @@ href="#"
         {%- if not (_media_attr and attribute|string == _media_attr|string) and attribute.type not in [AttributeType.IMAGE, AttributeType.VIDEO] %}
         <div class="si-field flex flex-col gap-1" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+            {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endif %}
@@ -1448,15 +1360,15 @@ href="#"
         {%- for attribute in _detail_attrs %}
         <div class="si-field flex flex-col gap-1{% if attribute.type in [AttributeType.IMAGE, AttributeType.VIDEO] %} sm:col-span-2{% endif %}" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-          {%- elif _image_attr and attribute|string == _image_attr|string %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+          {%- elif _image_attr and attribute|string == _image_attr|string %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
           {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
-          {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+          {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
           {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media w-full h-48 rounded mt-1 bg-black flex items-center justify-center text-white/70">&#9658;</div>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+            {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
@@ -1470,21 +1382,21 @@ href="#"
     {%- endfor %}
   </div>
 
-{# 鈹€鈹€ PREVIEW: CARD 鈹€鈹€ #}
+{# PREVIEW: CARD #}
 {%- elif _glay == "card" %}
 {%- if _disp == "carousel" %}
   {# Scrollable card strip #}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
     {%- if _cstyle == "category" %}
-    {%- for i in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 8) %}
-    {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {%- for i in range(preview_row_count) %}
+    {{ _category_tile('', (_tattrs[i]|string if i < _tattrs|length else section_component.display_name), '#') }}
     {%- endfor %}
     {%- else %}
-    {%- for _mock_row in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 6) %}
-    {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75'), item_actions_html=item_action_buttons(section_component, 'w-full text-center text-xs ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model)) }}
+    {%- for _preview_row in range(preview_row_count) %}
+    {{ _mini_card('', (_title_attr|string) if _title_attr else section_component.display_name, (_primary_attr|string if _primary_attr else ''), _accent_hex) }}
     {%- endfor %}
     {%- endif %}
-    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">茅藛?/button></div>
+    <div class="flex-shrink-0 flex items-center"><button class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600 hover:bg-gray-50">&rarr;</button></div>
   </div>
 {%- elif _disp == "banner" %}
   {# Hero banner #}
@@ -1498,7 +1410,7 @@ href="#"
         {%- if _static_image_url %}
         <img src="{{ _static_image_url }}" alt="{{ _s.get('image_alt') or section_component.display_name }}" class="w-full h-full object-cover" />
         {%- elif _image_attr %}
-        <img src="{{ _mock_imgs[0] }}" alt="{{ section_component.display_name }}" class="w-full h-full object-cover" />
+        <div class="w-full h-full flex items-center justify-center text-sm text-gray-400">{{ section_component.display_name }}</div>
         {%- else %}
         <div class="w-full h-full flex items-center justify-center text-sm text-gray-400">{{ section_component.display_name }}</div>
         {%- endif %}
@@ -1508,27 +1420,27 @@ href="#"
 {%- elif _cstyle == "category" %}
   {# Category tile grid #}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for i in range(section_mock_rows if _actor_owned_preview or section_mock_rows > 3 else 8) %}
-    {{ _category_tile((_mock_imgs[i % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string if _title_attr else section_component.display_name), '#', opacity_style='opacity:' + (_mock_opacities[i] if i < 3 else '0.75')) }}
+    {%- for i in range(preview_row_count) %}
+    {{ _category_tile('', (_title_attr|string if _title_attr else section_component.display_name), '#') }}
     {%- endfor %}
   </div>
 {%- elif _cstyle == "product" %}
   {# Product card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for _mock_row in range(section_mock_rows) %}
-    {{ _mini_card((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.75'), item_actions_html=item_action_buttons(section_component, 'w-full text-center text-xs ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model)) }}
+    {%- for _preview_row in range(preview_row_count) %}
+    {{ _mini_card('', (_title_attr|string if _title_attr else section_component.display_name), (_primary_attr|string if _primary_attr else ''), _accent_hex) }}
     {%- endfor %}
   </div>
 {%- elif _cstyle == "person" %}
   {# Person card grid: avatar-led profile cards, visually distinct from generic cards #}
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
-    {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }};">
+    {%- for _preview_row in range(preview_row_count) %}
+    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, {{ _accent_hex }}, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
         {%- if _image_attr %}
-        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover" alt="{{ section_component.display_name }}" />
+        <div class="w-full h-full bg-gray-100"></div>
         {%- else %}
         <span class="text-xl font-black" style="color: {{ _accent_hex }};">{{ ((_title_attr|string)[0] if _title_attr else section_component.display_name[0])|upper }}</span>
         {%- endif %}
@@ -1536,7 +1448,7 @@ href="#"
       <div class="relative min-w-0 w-full">
         <div class="si-field" data-field-name="{{ _title_attr }}">
           <div class="si-field-value font-bold text-gray-900 truncate">
-            {%- if _title_attr %}{{ _title_attr }} {{ _mock_row + 1 }}{%- else %}{{ section_component.display_name }} {{ _mock_row + 1 }}{%- endif %}
+            {%- if _title_attr %}{{ _title_attr }}{%- else %}{{ section_component.display_name }}{%- endif %}
           </div>
         </div>
         {%- if _slot.subtitle or _primary_attr %}
@@ -1555,8 +1467,7 @@ href="#"
       {%- endif %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100 w-full justify-center">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>{%- endif %}
-        {{ select_mock_button(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline') }}
-        {{ item_action_buttons(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline', section_component.primary_model) }}
+        {{ select_preview_button(section_component, d.text ~ ' font-medium ' ~ c.text ~ ' hover:underline') }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 hover:underline">Delete</button>{%- endif %}
       </div>
@@ -1566,16 +1477,15 @@ href="#"
 {%- elif _cstyle == "compact" %}
   {# Compact card grid #}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} p-3 flex items-center gap-3" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
-      {%- if _media_attr %}<div class="w-12 h-12 {{ 'bg-black text-white/70' if _video_attr else 'bg-gray-50' }} rounded flex-shrink-0 flex items-center justify-center overflow-hidden">{% if _video_attr %}&#9658;{% elif _image_attr %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-full h-full object-cover" />{% endif %}</div>{%- endif %}
+    {%- for _preview_row in range(preview_row_count) %}
+    <div class="{{ cs }} {{ r }} p-3 flex items-center gap-3">
+      {%- if _media_attr %}<div class="w-12 h-12 {{ 'bg-black text-white/70' if _video_attr else 'bg-gray-50' }} rounded flex-shrink-0 flex items-center justify-center overflow-hidden">{% if _video_attr %}&#9658;{% endif %}</div>{%- endif %}
       <div class="flex-1 min-w-0">
-        {%- for attribute in _card_attrs[:2] %}<div class="block">{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endfor %}
+        {%- for attribute in _card_attrs[:2] %}<div class="block">{{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endfor %}
       </div>
       <div class="flex gap-1 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="text-xs {{ c.text }} hover:underline">View</a>{%- endif %}
-        {{ select_mock_button(section_component, 'text-xs ' ~ c.text ~ ' hover:underline') }}
-        {{ item_action_buttons(section_component, 'text-xs ' ~ c.text ~ ' hover:underline', section_component.primary_model) }}
+        {{ select_preview_button(section_component, 'text-xs ' ~ c.text ~ ' hover:underline') }}
         {%- if section_component.has_update_operation %}<button class="text-xs {{ c.text }} hover:underline">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="text-xs text-red-400 hover:underline">Del</button>{%- endif %}
       </div>
@@ -1585,27 +1495,26 @@ href="#"
 {%- else %}
   {# Default card grid #}
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
-    {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    {%- for _preview_row in range(preview_row_count) %}
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       {%- for attribute in _card_attrs %}
       <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
         <span class="si-field-label text-xs font-medium text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-        {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
+        {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
         {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-        {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
-        {%- elif _image_attr and attribute|string == _image_attr|string %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+        {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
+        {%- elif _image_attr and attribute|string == _image_attr|string %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
         {%- elif _video_attr and attribute|string == _video_attr|string %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
-        {%- elif attribute.type == AttributeType.IMAGE %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-field-media si-img rounded mt-1" />
+        {%- elif attribute.type == AttributeType.IMAGE %}<div class="si-field-media si-img rounded mt-1 bg-gray-50"></div>
         {%- elif attribute.type == AttributeType.VIDEO %}<div class="si-field-media si-video rounded mt-1 flex items-center justify-center text-white/70">&#9658;</div>
-        {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+        {%- else %}{{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
         {%- endif %}
       </div>
       {%- endfor %}
       <div class="flex gap-2 mt-auto pt-3 border-t border-gray-100">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
-        {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
-        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
+        {{ select_preview_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} font-medium {{ c.text }} py-1.5 px-3 {{ r }} hover:{{ c.light }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} font-medium text-red-500 py-1.5 px-3 {{ r }} hover:bg-red-50 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1614,7 +1523,7 @@ href="#"
   </div>
 {%- endif %}
 
-{# 鈹€鈹€ PREVIEW: LIST 鈹€鈹€ #}
+{# PREVIEW: LIST #}
 {%- elif _glay == "list" %}
 {%- if _lstyle == "cart-item" %}
   {# Cart item list #}
@@ -1623,23 +1532,23 @@ href="#"
       <h2 class="text-2xl font-bold text-gray-900">{{ section_component.display_name }}</h2>
       {%- if _s.get('delivery_label') %}<span class="text-sm font-semibold" style="color:#388e3c;">{{ _s.get('delivery_label') }}</span>{%- endif %}
     </div>
-    {%- for _mock_row in range(section_mock_rows if _actor_owned_preview or section_mock_rows < 4 else 1) %}
-    {{ _cart_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
+    {%- for _preview_row in range(preview_row_count) %}
+    {{ _cart_row('', (_title_attr|string if _title_attr else section_component.display_name), (_primary_attr|string if _primary_attr else ''), '', _accent_hex) }}
     {%- endfor %}
-    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">茅藛?Verder winkelen</a>
+    <a href="#" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">&larr; Continue shopping</a>
   </div>
 {%- elif _lstyle == "product" %}
   {# Product list with image + price + rating #}
   <div class="flex flex-col gap-3">
-    {%- for _mock_row in range(section_mock_rows) %}
-    {{ _product_row((_mock_imgs[_mock_row % (_mock_imgs|length)] if _image_attr else ''), (_title_attr|string + ' ' + (_mock_row + 1)|string) if _title_attr else (section_component.display_name + ' ' + (_mock_row + 1)|string), (_primary_attr|string if _primary_attr else ''), _accent_hex, view_url='#', opacity_style='opacity:' + (_mock_opacities[_mock_row] if _mock_row < 3 else '0.6')) }}
+    {%- for _preview_row in range(preview_row_count) %}
+    {{ _product_row('', (_title_attr|string if _title_attr else section_component.display_name), (_primary_attr|string if _primary_attr else ''), _accent_hex, view_url='#') }}
     {%- endfor %}
     <div class="flex items-center justify-center gap-1 mt-4">
       {%- for p in range(1, 6) %}
       <button class="w-8 h-8 rounded text-sm {{ 'text-white font-bold' if p == 1 else 'text-gray-600 hover:bg-gray-100 border border-gray-200' }}" {% if p == 1 %}style="background-color:{{ _accent_hex }};"{% endif %}>{{ p }}</button>
       {%- endfor %}
       <span class="px-1 text-gray-400">...</span>
-      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">茅藛?/button>
+      <button class="w-8 h-8 rounded text-sm text-gray-600 hover:bg-gray-100 border border-gray-200">&rarr;</button>
     </div>
   </div>
 {%- elif _lstyle == "related" %}
@@ -1650,11 +1559,11 @@ href="#"
         <h3 class="text-sm font-bold text-gray-900">{{ section_component.display_name }}</h3>
         <p class="text-xs text-gray-400">Related records and dependencies</p>
       </div>
-      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: {{ _accent_hex }}1a; color: {{ _accent_hex }};">{{ section_mock_rows }} linked</span>
+      <span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: {{ _accent_hex }}1a; color: {{ _accent_hex }};">{{ preview_row_count }} linked</span>
     </div>
     <div class="divide-y divide-gray-100">
-      {%- for _mock_row in range(section_mock_rows) %}
-      <div class="px-4 py-3 flex items-start gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.55' }};">
+      {%- for _preview_row in range(preview_row_count) %}
+      <div class="px-4 py-3 flex items-start gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
         {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
         <div class="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" style="background-color: {{ _accent_hex }};"></div>
         <div class="flex-1 min-w-0">
@@ -1663,7 +1572,7 @@ href="#"
             <div class="si-field min-w-0" data-field-name="{{ attribute }}">
               <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
               <div class="si-field-value {{ d.text }} font-medium text-gray-700 truncate">
-                {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+                {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
               </div>
             </div>
             {%- endfor %}
@@ -1671,8 +1580,7 @@ href="#"
         </div>
         <div class="flex gap-2 shrink-0">
           {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Open</a>{%- endif %}
-          {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
-          {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
+          {{ select_preview_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
           {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
         </div>
       </div>
@@ -1682,28 +1590,27 @@ href="#"
 {%- else %}
   {# Default list #}
   <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
-    {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    {%- for _preview_row in range(preview_row_count) %}
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="flex flex-1 flex-wrap gap-x-6 gap-y-1">
         {%- for attribute in _column_attrs %}
         <div class="si-field flex flex-col gap-0.5" data-field-name="{{ attribute }}">
           <span class="si-field-label text-xs text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
-          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
+          {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded mt-0.5">
           {%- elif attribute.type == AttributeType.ENUM %}<span class="{{ d.text }} font-medium text-gray-700">{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}</span>
-          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _mock_row * 7 + 12 }}</span>
+          {%- elif attribute.type == AttributeType.INTEGER %}<span class="{{ d.text }} font-medium text-gray-700">{{ _preview_row * 7 + 12 }}</span>
           {%- elif attribute.type == AttributeType.IMAGE %}<div class="w-10 h-10 bg-gray-50 rounded mt-0.5"></div>
           {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-14 h-10 bg-black rounded mt-0.5 flex items-center justify-center text-white/70 text-xs">&#9658;</div>
           {%- else -%}
-            {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+            {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
           {%- endif %}
         </div>
         {%- endfor %}
       </div>
       <div class="flex gap-2 shrink-0">
         {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>{%- endif %}
-        {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
-        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
+        {{ select_preview_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
         {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 {{ r }} hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
         {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 {{ r }} hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
       </div>
@@ -1712,7 +1619,7 @@ href="#"
   </div>
 {%- endif %}
 
-{# 鈹€鈹€ PREVIEW: TABLE 鈹€鈹€ #}
+{# PREVIEW: TABLE #}
 {%- elif eff_lay == "table" %}
   <div class="overflow-x-auto {{ r }} border border-gray-200">
     <table class="min-w-full text-left">
@@ -1725,35 +1632,34 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{{ parent_model }}</th>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <th class="si-table-header {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
       </thead>
       <tbody class="divide-y"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %} style="border-color:var(--table-border); background-color:var(--region-main-bg)">
-        {%- for _mock_row in range(section_mock_rows) %}
-        <tr class="si-table-row transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+        {%- for _preview_row in range(preview_row_count) %}
+        <tr class="si-table-row transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
           {%- if section_component.has_select_operation %}<td class="px-4 py-3 w-10"><span class="si-sel-cb" style="position:static;display:inline-flex;width:16px;height:16px;border-radius:3px;border:2px solid var(--border-strong);background:white;flex-shrink:0;"></span></td>{%- endif %}
           {%- for attribute in _column_attrs %}
           <td class="si-field px-4 py-3 {{ d.text }}" data-field-name="{{ attribute }}" style="color:var(--page-text)">
-            {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+            {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
             {%- elif attribute.type == AttributeType.ENUM %}{{ attribute.enum_literals[0] if attribute.enum_literals else attribute }}
-            {%- elif attribute.type == AttributeType.INTEGER %}{{ _mock_row * 7 + 12 }}
-            {%- elif attribute.type == AttributeType.IMAGE or 'image' in (attribute|string)|lower or 'img' in (attribute|string)|lower or 'photo' in (attribute|string)|lower or 'avatar' in (attribute|string)|lower or 'thumbnail' in (attribute|string)|lower or 'thumb' in (attribute|string)|lower or 'poster' in (attribute|string)|lower or 'cover' in (attribute|string)|lower or 'logo' in (attribute|string)|lower %}<img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="w-10 h-10 rounded object-cover bg-gray-50" alt="{{ attribute }}" />
+            {%- elif attribute.type == AttributeType.INTEGER %}{{ _preview_row * 7 + 12 }}
+            {%- elif attribute.type == AttributeType.IMAGE or 'image' in (attribute|string)|lower or 'img' in (attribute|string)|lower or 'photo' in (attribute|string)|lower or 'avatar' in (attribute|string)|lower or 'thumbnail' in (attribute|string)|lower or 'thumb' in (attribute|string)|lower or 'poster' in (attribute|string)|lower or 'cover' in (attribute|string)|lower or 'logo' in (attribute|string)|lower %}<div class="w-10 h-10 rounded bg-gray-50"></div>
             {%- elif attribute.type == AttributeType.VIDEO %}<div class="w-10 h-8 bg-black rounded flex items-center justify-center text-white/70 text-xs">&#9658;</div>
-            {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+            {%- else %}{{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
             {%- endif %}
           </td>
           {%- endfor %}
           {%- for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-500 italic">{{ parent_model }} ref</td>
           {%- endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}<button class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</button>{%- endif %}
-              {{ select_mock_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
-              {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
+              {{ select_preview_button(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} py-1 px-3 rounded hover:{{ c.light }} border {{ c.border }} transition-colors">Edit</button>{%- endif %}
               {%- if section_component.has_delete_operation %}<button class="{{ d.text }} text-red-500 py-1 px-3 rounded hover:bg-red-50 border border-red-200 transition-colors">Delete</button>{%- endif %}
             </div>
@@ -1765,7 +1671,7 @@ href="#"
     </table>
   </div>
 
-{# 鈹€鈹€ PREVIEW: GALLERY 鈹€鈹€ #}
+{# PREVIEW: GALLERY #}
 {%- elif eff_lay == "gallery" %}
 {%- set img_attrs = [_image_attr] if _image_attr else [] %}
 {%- set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -1777,27 +1683,26 @@ href="#"
   {%- endif %}
 {%- endfor %}
   <div class="grid {{ col }} {{ d.gap }}">
-    {%- for _mock_row in range(section_mock_rows) %}
-    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative" style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.4' }}">
+    {%- for _preview_row in range(preview_row_count) %}
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative">
       {%- if media_attrs %}
       <div class="overflow-hidden">
         {%- if video_attrs %}
         <div class="si-video transition-transform group-hover:scale-105 flex items-center justify-center text-white/70">&#9658;</div>
         {%- else %}
-        <img src="{{ _mock_imgs[_mock_row % (_mock_imgs|length)] }}" class="si-img transition-transform group-hover:scale-105" />
+        <div class="si-img bg-gray-50"></div>
         {%- endif %}
       </div>
       {%- endif %}
       {%- if text_attrs %}
       <div class="{{ d.p_sm }} flex flex-col gap-0.5">
         {%- for attribute in text_attrs %}
-        {{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}
+        {{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}
         {%- endfor %}
       </div>
       {%- endif %}
       <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {%- if section_component.item_click_target_page %}<a href="#" class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>{%- endif %}
-        {{ item_action_buttons(section_component, 'bg-white/90 ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')) ~ ' text-xs', section_component.primary_model) }}
         {%- if section_component.has_delete_operation %}<button class="bg-white/90 {{ d.text }} text-red-500 py-1 px-2 {{ r }} hover:bg-red-50 border border-red-200 text-xs">Delete</button>{%- endif %}
       </div>
     </div>
@@ -1805,37 +1710,36 @@ href="#"
   </div>
 
 
-{# 鈹€鈹€ PREVIEW: FILTER 鈹€鈹€ #}
+{# PREVIEW: FILTER #}
 {# PREVIEW: TIMELINE #}
 {%- elif eff_lay == "timeline" or _glay == "timeline" %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
     <div class="relative pl-6">
       <div class="absolute left-2 top-1 bottom-1 w-px" style="background-color:{{ _accent_hex }}33;"></div>
       <div class="space-y-4"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
-        {%- for _mock_row in range(section_mock_rows) %}
-        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _mock_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %} style="opacity: {{ _mock_opacities[_mock_row] if _mock_row < 3 else '0.45' }};">
+        {%- for _preview_row in range(preview_row_count) %}
+        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}" data-item-idx="{{ _preview_row }}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}"{% endif %}>
           <span class="absolute -left-[1.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white" style="background-color:{{ _accent_hex }};"></span>
           {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
           <div class="{{ r }} border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
             <div class="flex items-start justify-between gap-3">
-              <div class="font-semibold text-gray-900">{{ section_component.display_name }} {{ _mock_row + 1 }}</div>
-              {%- if _column_attrs %}<div class="text-xs font-medium text-gray-500">{{ _field_value(_column_attrs[0], _mock_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endif %}
+              <div class="font-semibold text-gray-900">{{ section_component.display_name }} {{ _preview_row + 1 }}</div>
+              {%- if _column_attrs %}<div class="text-xs font-medium text-gray-500">{{ _field_value(_column_attrs[0], _preview_row, c, d, r, section_component.item_click_target_page) }}</div>{%- endif %}
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1 mt-2">
               {%- for attribute in _column_attrs[1:6] %}
               <div class="si-field min-w-0" data-field-name="{{ attribute }}">
                 <span class="si-field-label text-[10px] text-gray-400 uppercase tracking-wide">{{ attribute }}</span>
                 <div class="si-field-value {{ d.text }} text-gray-700 truncate">
-                  {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _mock_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
-                  {%- else %}{{ _field_value(attribute, _mock_row, c, d, r, section_component.item_click_target_page) }}{%- endif %}
+                  {%- if attribute.type == AttributeType.BOOLEAN %}<input type="checkbox" {% if _preview_row == 0 %}checked{% endif %} disabled class="h-4 w-4 rounded">
+                  {%- else %}{{ _field_value(attribute, _preview_row, c, d, r, section_component.item_click_target_page) }}{%- endif %}
                 </div>
               </div>
               {%- endfor %}
             </div>
             <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
               {%- if section_component.item_click_target_page %}<a href="#" class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>{%- endif %}
-              {{ select_mock_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
-              {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
+              {{ select_preview_button(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline') }}
               {%- if section_component.has_update_operation %}<button class="{{ d.text }} {{ c.text }} font-semibold hover:underline">Edit</button>{%- endif %}
             </div>
           </div>
@@ -1856,8 +1760,6 @@ href="#"
     {%- for attribute in _column_attrs[1:3] %}
     <select name="{{ attribute }}" class="si-input border border-gray-200 rounded-full px-3 py-2 text-sm min-w-28">
       <option value="">{{ attribute }}</option>
-      <option>Option A</option>
-      <option>Option B</option>
     </select>
     {%- endfor %}
     <button type="submit" class="shrink-0 px-5 py-2 rounded-full text-sm font-semibold text-white" style="background-color:var(--input-border-focus);">Search</button>
@@ -1873,7 +1775,7 @@ href="#"
       {%- if attribute.type == AttributeType.INTEGER %}
       <div class="flex items-center gap-2 text-xs text-gray-600">
         <input type="number" placeholder="Min" class="w-16 border border-gray-300 rounded px-2 py-1" />
-        <span>鈥?/span>
+        <span>&ndash;</span>
         <input type="number" placeholder="Max" class="w-16 border border-gray-300 rounded px-2 py-1" />
       </div>
       {%- elif attribute.type == AttributeType.ENUM %}
@@ -1901,10 +1803,10 @@ href="#"
   </div>
 {%- endif %}
 
-{# 鈹€鈹€ PREVIEW: FORM 鈹€鈹€ #}
+{# PREVIEW: FORM #}
 {%- elif _glay == "form" %}
 {%- if _fstyle == "auth" %}
-  {# Auth form 茅藛?login / register #}
+  {# Auth form: login / register #}
   <div class="flex items-center justify-center py-16">
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-10 w-full max-w-md">
       <div class="text-3xl font-black mb-1" style="color:{{ _accent_hex }};font-family:'Georgia',serif;letter-spacing:-1px;">{{ _brand_name }}</div>
@@ -1963,14 +1865,14 @@ href="#"
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label', 'Total:') }}</span><span>茅藛?/span>
+      <span>{{ _s.get('total_label', 'Total:') }}</span><span>$0.00</span>
     </div>
     <button class="w-full py-3 rounded-xl text-white font-bold text-sm" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 茅藛?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }}
     </button>
   </div>
 {%- else %}
-  {# Default form 茅藛?generic input fields #}
+  {# Default form: generic input fields #}
   <div class="bg-white rounded-xl border border-gray-200 p-6">
     {%- if section_component.has_update_operation and not section_component.has_create_operation %}
     <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
@@ -2141,7 +2043,7 @@ href="#"
   {%- endif %}
 
 {%- elif lay in ('nav-bar', 'main-header', 'minimal-header', 'commerce-header', 'dashboard-header', 'split-header', 'app-header', 'compact-header', 'mega-header', 'hero-header', 'tabbed-header', 'glass-header', 'command-header', 'site-nav', 'nav-links') %}
-{# Chrome section landed in main content area 茅藛?render a compact placeholder #}
+{# Chrome section landed in main content area: render a compact placeholder #}
   <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-gray-500">
     {%- if lay == 'search-bar' %}
     <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2219,10 +2121,10 @@ href="#"
   </button>
   {%- endif %}
 
-{# 鈹€鈹€ GENERATION MODE 鈹€鈹€ #}
+{# GENERATION MODE #}
 {% else %}
 
-{# 鈹€鈹€ ACTION PANEL 鈹€鈹€ #}
+{# ACTION PANEL #}
 {% if eff_lay != "action_panel" and _glay in ["card", "table", "list", "detail", "gallery", "form", "filter"] and (not section_component.primary_model or not list_var_name) and not (_glay == "card" and _static_image_url) %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-dashed border-gray-300 text-gray-500 {{ d.text }}">
     {{ section_component.display_name }} has no primary model bound, so it is shown as a static section.
@@ -2241,8 +2143,7 @@ href="#"
     <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
     {% endif -%}
     {% for parameter in section_methods[0].parameters %}
-    <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
-    <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
+    <input type="hidden" name="{{ parameter.name }}" value="{{ parameter.default or parameter.value or '1' }}">
     {% endfor %}
     <button type="submit" class="w-full {{ c.solid }} text-white {{ d.text }} font-semibold py-3 px-6 {{ r }} transition-opacity">
       {{ section_component.custom_methods[0] }}
@@ -2262,8 +2163,7 @@ href="#"
       <input type="hidden" name="active_process_node_id" value="{% raw %}{{{% endraw %} active_process_node_id {% raw %}}}{% endraw %}">
       {% endif -%}
       {% for parameter in method.parameters %}
-      <label class="block {{ d.text }} font-medium {{ c.label }} mb-1">{{ parameter.name }}</label>
-      <input type="{% if parameter.type == 'int' %}number{% else %}text{% endif %}" name="{{ parameter.name }}" value="1" min="1" class="{{ c.border }} border bg-white {{ r }} px-3 py-2 text-sm {{ c.ring }} focus:outline-none focus:ring-2 mb-3">
+      <input type="hidden" name="{{ parameter.name }}" value="{{ parameter.default or parameter.value or '1' }}">
       {% endfor %}
       <button type="submit" class="{{ c.solid }} text-white {{ d.text }} font-medium py-2 px-4 {{ r }}">
         {{ method }}
@@ -2273,7 +2173,7 @@ href="#"
   </div>
 {% endif %}
 
-{# 鈹€鈹€ DETAIL 鈹€鈹€ #}
+{# DETAIL #}
 {% elif eff_lay == "detail" %}
 {% set img_pos = _s.get("image_position", "top") %}
 {% set img_w = _im.get(_s.get("image_size", "md"), "w-2/5") %}
@@ -2307,7 +2207,6 @@ href="#"
         {%- endif %}
         {%- endfor %}
         <div class="sm:col-span-2 flex gap-2 pt-3 border-t border-gray-100">
-          {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
           {%- if section_component.has_update_operation %}
           <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
             <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2340,7 +2239,6 @@ href="#"
         {%- endfor %}
       </div>
       <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2361,7 +2259,7 @@ href="#"
 
   </div>
 
-{# 鈹€鈹€ CARD 鈹€鈹€ #}
+{# CARD #}
 {% elif _glay == "card" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if (not _m or not list_var_name) and _static_image_url %}
@@ -2407,9 +2305,9 @@ href="#"
 {%- if _disp == "carousel" %}
   <div class="flex gap-3 overflow-x-auto pb-2" style="scrollbar-width:thin;">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
-    {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url, item_actions_html=item_action_buttons(section_component, 'w-full text-center text-xs ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model)) }}{%- endif %}
+    {%- if _cstyle == "category" %}{{ _category_tile('', _gen_name, _gen_vurl) }}{%- else %}{{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}{%- endif %}
     {{ '{% empty %}{% endfor %}' }}
-    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">茅藛?/a></div>
+    <div class="flex-shrink-0 flex items-center"><a href="?page=2{% raw %}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% endraw %}" class="w-8 h-8 bg-white border border-gray-300 rounded-full shadow flex items-center justify-center text-gray-600">&rarr;</a></div>
   </div>
 {%- elif _cstyle == "category" %}
   <div class="grid {{ col }} {{ d.gap }}">
@@ -2420,13 +2318,13 @@ href="#"
 {%- elif _cstyle == "product" %}
   <div class="grid {{ col }} {{ d.gap }}">
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
-    {{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url, item_actions_html=item_action_buttons(section_component, 'w-full text-center text-xs ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model)) }}
+    {{ _mini_card(_gen_img, _gen_name, _gen_price, _accent_hex, view_url=_gen_vurl, favorite_url=_gen_fav_url) }}
     {{ '{% empty %}{% endfor %}' }}
   </div>
 {%- elif _cstyle == "person" %}
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
     {{ '{% for ' + _m + ' in ' + list_var_name + ' %}' }}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card si-card-hover {{ r }} p-5 relative overflow-hidden flex flex-col items-center text-center gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
       <div class="absolute inset-x-0 top-0 h-16 opacity-15" style="background: linear-gradient(135deg, {{ _accent_hex }}, transparent);"></div>
       <div class="relative w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-md bg-gray-100 flex items-center justify-center">
@@ -2459,7 +2357,6 @@ href="#"
         <a href="{{ _gen_vurl }}" class="{{ d.text }} {{ c.text }} font-medium hover:underline">View profile</a>
         {%- endif %}
         {{ select_record_action(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline') }}
-        {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-medium hover:underline', section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
           <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -2500,7 +2397,7 @@ href="#"
 
     {# Item cards #}
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card si-card-hover {{ r }} {{ d.p }} flex flex-col gap-3{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
@@ -2543,7 +2440,6 @@ href="#"
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="flex-1 text-center {{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">{{ _s.get('cta_label') or 'View' }}</a>
         {%- endif %}
         {{ select_record_action(section_component, 'w-full text-center ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), 'flex-1') }}
-        {{ item_action_buttons(section_component, 'w-full text-center ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model, 'flex-1') }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="flex-1">
@@ -2618,7 +2514,7 @@ href="#"
 {%- endif %}{# end card sub-dispatch #}
 {%- endif %}
 
-{# 鈹€鈹€ LIST 鈹€鈹€ #}
+{# LIST #}
 {% elif _glay == "list" %}
 {%- set _m = section_component.primary_model or '' %}
 {%- if not _m or not list_var_name %}
@@ -2732,7 +2628,7 @@ href="#"
   {% raw %}{%{% endraw %} if not create_{{ section_component }} {% raw %}%}{% endraw %}
   <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get" class="mt-4">
     <input type="hidden" name="create_{{ section_component }}" value="true">
-    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">茅藛?Add {{ section_component.display_name }}</button>
+    <button type="submit" class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-50">Add {{ section_component.display_name }}</button>
   </form>
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
@@ -2783,7 +2679,7 @@ href="#"
   <div class="flex flex-col {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} {{ r }} {{ d.p }} flex items-center justify-between gap-4{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {%- if section_component.has_select_operation %}<span class="si-sel-cb"></span>{%- endif %}
 
       {%- if section_component.has_update_operation %}
@@ -2835,7 +2731,6 @@ href="#"
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
         {%- endif %}
         {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
-        {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
         {%- if section_component.has_update_operation %}
         {% raw %}{%{% endraw %} if {{ section_component.primary_model }} != update_instance {% raw %}%}{% endraw %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
@@ -2903,7 +2798,7 @@ href="#"
 {%- endif %}
 {%- endif %}{# end list sub-dispatch #}
 
-{# 鈹€鈹€ TABLE 鈹€鈹€ #}
+{# TABLE #}
 {% elif eff_lay == "table" %}
 
   <div class="overflow-x-auto {{ r }} border border-gray-200">
@@ -2922,7 +2817,7 @@ href="#"
           {% raw %}{%{% endraw %} for relation_field in relation_fields_{{ section_component }} {% raw %}%}{% endraw %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3 uppercase tracking-wider">{% raw %}{{ relation_field.label }}{% endraw %}</th>
           {% raw %}{% endfor %}{% endraw %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <th class="{{ c.th }} {{ d.text }} font-semibold px-4 py-3"></th>
           {% endif %}
         </tr>
@@ -2977,7 +2872,7 @@ href="#"
         </tr>
         {% raw %}{% else %}{% endraw %}
         {%- endif %}
-        <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+        <tr class="hover:bg-gray-50 transition-colors{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
           {% if section_component.has_select_operation %}<td class="px-4 py-3"><span class="si-sel-cb"></span></td>{% endif %}
           {% for attribute in _column_attrs %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700" data-field-name="{{ attribute }}">
@@ -2988,14 +2883,13 @@ href="#"
           {% for parent_model in section_component.parent_models %}
           <td class="px-4 py-3 {{ d.text }} text-gray-700">{% raw %}{{{% endraw %} {{ section_component.primary_model }}.{{ parent_model }} {% raw %}}}{% endraw %}</td>
           {% endfor %}
-          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation or section_component.item_actions %}
+          {% if section_component.has_update_operation or section_component.has_delete_operation or section_component.item_click_target_page or section_component.has_select_operation %}
           <td class="px-4 py-3">
             <div class="flex gap-2">
               {%- if section_component.item_click_target_page %}
               <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ btn_cls(_s.get('color','blue')) }}">View</a>
               {%- endif %}
               {{ select_record_action(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue'))) }}
-              {{ item_action_buttons(section_component, d.text ~ ' ' ~ btn_cls(_s.get('color','blue')), section_component.primary_model) }}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -3078,7 +2972,7 @@ href="#"
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 鈹€鈹€ GALLERY 鈹€鈹€ #}
+{# GALLERY #}
 {% elif eff_lay == "gallery" %}
 {% set img_attrs = [_image_attr] if _image_attr else [] %}
 {% set video_attrs = [_video_attr] if _video_attr else [] %}
@@ -3088,7 +2982,7 @@ href="#"
   <div class="grid {{ col }} {{ d.gap }}"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
 
     {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+    <div class="{{ cs }} si-card {{ r }} overflow-hidden group relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
       {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
       {%- if media_attrs %}
       <div class="overflow-hidden">
@@ -3110,7 +3004,6 @@ href="#"
         {%- if section_component.item_click_target_page %}
         <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="bg-white/90 {{ d.text }} {{ btn_cls(_s.get('color','blue')) }} text-xs">View</a>
         {%- endif %}
-        {{ item_action_buttons(section_component, 'bg-white/90 ' ~ d.text ~ ' ' ~ btn_cls(_s.get('color','blue')) ~ ' text-xs', section_component.primary_model) }}
         {%- if section_component.has_delete_operation %}
         <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}" method="post">
           {% raw %}{% csrf_token %}{% endraw %}
@@ -3139,14 +3032,14 @@ href="#"
   {% raw %}{% endif %}{% endraw %}
   {%- endif %}
 
-{# 鈹€鈹€ FORM 鈹€鈹€ #}
+{# FORM #}
 {% elif eff_lay == "timeline" or _glay == "timeline" %}
   <div class="{{ cs }} {{ r }} {{ d.p }} border border-gray-100">
     <div class="relative pl-6">
       <div class="absolute left-2 top-1 bottom-1 w-px" style="background-color:{{ _accent_hex }}33;"></div>
       <div class="space-y-4"{% if section_component.has_select_operation %} data-selectable="{{ section_component.id }}"{% endif %}>
         {% raw %}{%{% endraw %} for {{ section_component.primary_model }} in {{ list_var_name }} {% raw %}%}{% endraw %}
-        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
+        <div class="relative{% if section_component.has_select_operation %} si-sel-item{% endif %}"{% if section_component.has_select_operation %} data-selectable-sid="{{ section_component.id }}" data-item-id="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}" data-item-idx="{% raw %}{{ forloop.counter0 }}{% endraw %}"{% if section_component.has_delete_operation %} data-delete-url="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ page }}_{{ section_component }}_delete' {% if page.type == 'activity' %}active_process_node_id{% endif %} {{ section_component.primary_model }}.id {% raw %}%}{% endraw %}"{% endif %}{% endif %}>
           <span class="absolute -left-[1.15rem] top-1.5 h-3 w-3 rounded-full border-2 border-white" style="background-color:{{ _accent_hex }};"></span>
           {% if section_component.has_select_operation %}<span class="si-sel-cb"></span>{% endif %}
           <div class="{{ r }} border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
@@ -3169,7 +3062,6 @@ href="#"
               {%- if section_component.item_click_target_page %}
               <a {{ item_target_href_attrs(section_component.item_click_target_page, section_component.primary_model) }} class="{{ d.text }} {{ c.text }} font-semibold hover:underline">View</a>
               {%- endif %}
-              {{ item_action_buttons(section_component, d.text ~ ' ' ~ c.text ~ ' font-semibold hover:underline', section_component.primary_model) }}
               {%- if section_component.has_update_operation %}
               <form action="{% raw %}{%{% endraw %} url '{{ application_namespace }}:render_{{ application_name }}_{{ page }}' {% if page.type == 'activity' %}active_process_node_id{% endif %}{% raw %}%}{% endraw %}" method="get">
                 <input type="hidden" name="instance_id_{{ section_component.primary_model }}" value="{{ '{{' }}{{ section_component.primary_model }}.id{{ '}}' }}">
@@ -3201,18 +3093,18 @@ href="#"
       {%- endif %}
     </div>
     <div class="border-t border-gray-200 pt-3 flex justify-between font-bold text-base">
-      <span>{{ _s.get('total_label','Total:') }}</span><span>茅藛?/span>
+      <span>{{ _s.get('total_label','Total:') }}</span><span>$0.00</span>
     </div>
     {%- if page.type == 'activity' %}
     <form action="{% raw %}{%{% endraw %} url 'workflow_engine:complete_process_step' active_process_node_id {% raw %}%}{% endraw %}" method="post">
       {% raw %}{% csrf_token %}{% endraw %}
       <button type="submit" class="w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-        {{ _s.get('cta_label') or section_component.text or 'Confirm' }} 茅藛?
+        {{ _s.get('cta_label') or section_component.text or 'Confirm' }}
       </button>
     </form>
     {%- else %}
     <a href="{% raw %}{%{% endraw %} url '{{ application_namespace }}:{{ application_name }}-homerender' {% raw %}%}{% endraw %}" class="block text-center w-full py-3 rounded-xl text-white font-bold {{ d.text }}" style="background-color:{{ _accent_hex }};">
-      {{ _s.get('cta_label') or section_component.text or 'Continue' }} 茅藛?
+      {{ _s.get('cta_label') or section_component.text or 'Continue' }}
     </a>
     {%- endif %}
   </div>
@@ -3254,7 +3146,7 @@ href="#"
           <span class="text-sm font-medium text-gray-800"></span>
           {% raw %}{% endif %}{% endraw %}
           {%- elif _m %}
-          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '茅藛? {% raw %}}}{% endraw %}</span>
+          <span class="text-sm font-medium text-gray-800">{% raw %}{{{% endraw %} {{ _m }}.{{ attr }} if {{ _m }} else '' {% raw %}}}{% endraw %}</span>
           {%- endif %}
         </div>
         {%- endfor %}
@@ -3510,7 +3402,7 @@ href="#"
     Unsupported section layout: {{ lay }}
   </div>
 {% endif %}
-{# 鈹€鈹€ END GENERATION LAYOUTS 鈹€鈹€ #}
+{# END GENERATION LAYOUTS #}
 
 {% endif %}{# end preview_mode branch #}
 
@@ -3665,7 +3557,7 @@ href="#"
 </script>
 </main>
 
-{# 鈹€鈹€ FOOTER CHROME ROWS 鈹€鈹€ #}
+{# FOOTER CHROME ROWS #}
 {%- set _link_row_open = [] %}
 {%- for sc in _footer_secs %}
 {# Normalise comma-joined layout strings left by older data (e.g. "minimal-footer, newsletter-footer") #}
@@ -3720,7 +3612,7 @@ href="#"
 </div>
 
 {%- elif _flay in ('service-strip', 'service-bar') %}
-{# Screenshot match: blue bar 茅藛?"Service & contact" + icon/text links #}
+{# Screenshot match: blue bar "Service & contact" + icon/text links #}
 <div data-section-id="{{ sc.id }}" data-section-name="{{ sc.display_name }}" data-position="footer" data-layout="service-strip">
 <div class="px-8 py-4 flex items-center gap-8" style="background-color:{{ _accent_hex }};">
   <span class="text-white font-bold text-base shrink-0">{{ sc.display_name }}</span>
@@ -3785,899 +3677,19 @@ href="#"
 {%- endfor %}
 {%- if _link_row_open %}</div>{%- endif %}
 
-<script>
-(function() {
-  var style = document.createElement('style');
-  style.textContent = '[data-section-id]{cursor:pointer;transition:outline 0.15s}[data-section-id]:hover{outline:2px dashed #93c5fd;outline-offset:6px}[data-section-id].si-selected{outline:2px solid #3b82f6;outline-offset:6px}aside[data-region-side]{transition:outline 0.15s}aside[data-region-side]:hover{outline:2px dashed #f59e0b;outline-offset:6px}aside[data-region-side].si-region-selected{outline:2px solid #f59e0b;outline-offset:6px}';
-  document.head.appendChild(style);
-  document.addEventListener('click', function(e) {
-    var link = e.target.closest && e.target.closest('a[href]');
-    if (link) { e.preventDefault(); }
-    var el = e.target.closest && e.target.closest('[data-section-id]');
-    if (!el) {
-      var region = e.target.closest && e.target.closest('aside[data-region-side]');
-      if (!region) return;
-      e.stopPropagation();
-      document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-      document.querySelectorAll('aside[data-region-side]').forEach(function(x){x.classList.remove('si-region-selected')});
-      region.classList.add('si-region-selected');
-      window.parent.postMessage({type:'region-selected',region:'sidebar',side:region.dataset.regionSide || ''},'*');
-      return;
-    }
-    e.stopPropagation();
-    document.querySelectorAll('[data-section-id]').forEach(function(x){x.classList.remove('si-selected')});
-    document.querySelectorAll('aside[data-region-side]').forEach(function(x){x.classList.remove('si-region-selected')});
-    el.classList.add('si-selected');
-    window.parent.postMessage({type:'section-selected',id:el.dataset.sectionId,name:el.dataset.sectionName},'*');
-  }, true);
-})();
-</script>
+{% include "helpers/unified_page_section_selection_script.html.jinja2" %}
 
-<script>
-(function() {
-  var kw = {
-    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
-    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
-    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
-  };
-  document.querySelectorAll('.si-badge').forEach(function(el) {
-    var t = el.textContent.trim();
-    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
-    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
-    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
-    else                         { el.className = 'si-badge si-badge-neutral'; }
-  });
-})();
-</script>
+{% include "helpers/unified_page_badge_script.html.jinja2" %}
 
-<script>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Multi-select (si-selectable sections) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-(function() {
-  var bars = {};
-  document.querySelectorAll('[data-selectable]').forEach(function(grid) {
-    var sid = grid.dataset.selectable;
-    var bar = document.createElement('div');
-    bar.className = 'si-sel-bar';
-    bar.id = 'sel-bar-' + sid;
-    bar.innerHTML = '<span class="sel-count">0 selected</span>'
-      + '<button onclick="siSelClear(\'' + sid + '\')">Clear</button>'
-      + '<button class="danger" onclick="siSelDelete(\'' + sid + '\')">Delete selected</button>';
-    document.body.appendChild(bar);
-    bars[sid] = bar;
-  });
+{% include "helpers/unified_page_multiselect_script.html.jinja2" %}
 
-  window.siSelUpdate = function(sid) {
-    var grid = document.querySelector('[data-selectable="' + sid + '"]');
-    if (!grid) return;
-    var selected = grid.querySelectorAll('.si-selected');
-    var bar = bars[sid];
-    if (!bar) return;
-    bar.querySelector('.sel-count').textContent = selected.length + ' selected';
-    bar.classList.toggle('active', selected.length > 0);
-  };
+{% include "helpers/unified_page_interaction_styles.html.jinja2" %}
 
-  window.siSelClear = function(sid) {
-    var grid = document.querySelector('[data-selectable="' + sid + '"]');
-    if (grid) grid.querySelectorAll('.si-selected').forEach(function(el) { el.classList.remove('si-selected'); });
-    siSelUpdate(sid);
-  };
+{% include "helpers/unified_page_context_menu_script.html.jinja2" %}
 
-  function siGetCsrfToken() {
-    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
-    if (input && input.value) return input.value;
-    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
-  }
+{% include "helpers/unified_page_drag_drop_script.html.jinja2" %}
 
-  window.siSelDelete = function(sid) {
-    var grid = document.querySelector('[data-selectable="' + sid + '"]');
-    if (!grid) return;
-    var selected = Array.from(grid.querySelectorAll('.si-selected[data-item-idx]'));
-    var ids = selected.map(function(el) { return el.dataset.itemIdx; });
-    var urls = selected.map(function(el) { return el.dataset.deleteUrl; }).filter(Boolean);
-    if (!urls.length) {
-      window.parent.postMessage({ type: 'si-select-delete', sectionId: sid, indices: ids }, '*');
-      selected.forEach(function(el) { el.classList.add('opacity-30'); el.classList.remove('si-selected'); });
-      siSelUpdate(sid);
-      return;
-    }
-    if (!window.confirm('Delete ' + urls.length + ' selected item' + (urls.length === 1 ? '' : 's') + '?')) return;
-    var csrf = siGetCsrfToken();
-    Promise.all(urls.map(function(url) {
-      return fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: csrf ? { 'X-CSRFToken': csrf } : {}
-      });
-    })).then(function(responses) {
-      var failed = responses.filter(function(response) { return !response.ok; });
-      if (failed.length) window.alert('Some selected items could not be deleted.');
-      window.location.reload();
-    }).catch(function() {
-      window.alert('Could not delete selected items.');
-    });
-  };
-
-  document.addEventListener('click', function(e) {
-    var item = e.target.closest('.si-sel-item[data-selectable-sid]');
-    if (!item) return;
-    var sid = item.dataset.selectableSid;
-    var grid = item.closest('[data-selectable]');
-    if (e.shiftKey && grid) {
-      var items = Array.from(grid.querySelectorAll('.si-sel-item'));
-      var lastSel = grid.querySelector('.si-last-sel');
-      var start = lastSel ? items.indexOf(lastSel) : 0;
-      var end = items.indexOf(item);
-      if (start > end) { var tmp = start; start = end; end = tmp; }
-      items.slice(start, end + 1).forEach(function(el) { el.classList.add('si-selected'); });
-    } else {
-      item.classList.toggle('si-selected');
-      if (item.classList.contains('si-selected') && grid) {
-        grid.querySelectorAll('.si-last-sel').forEach(function(el) { el.classList.remove('si-last-sel'); });
-        item.classList.add('si-last-sel');
-      }
-    }
-    siSelUpdate(sid);
-  }, true);
-})();
-</script>
-
-<style>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Drag-and-drop sections 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-[data-section-id] { position: relative; }
-/* Full-width drag bar at top of section (starts below the top-resize handle) */
-.si-move-bar {
-  position: absolute; top: 6px; right: 6px;
-  width: 24px; height: 24px;
-  cursor: grab; z-index: 40;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.15s, background 0.1s;
-  user-select: none;
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(100,116,139,0.25);
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-}
-.si-move-bar::after {
-  content: '';
-  display: block;
-  width: 12px; height: 10px;
-  background-image: radial-gradient(circle, rgba(100,116,139,0.7) 1.5px, transparent 1.5px);
-  background-size: 4px 4px;
-  background-repeat: repeat;
-}
-.si-move-bar:hover { background: rgba(241,245,249,0.98); }
-.si-move-bar:active { cursor: grabbing; }
-[data-section-id]:hover .si-move-bar { opacity: 1; pointer-events: auto; }
-[data-section-id].si-dragging { opacity: 0.4; outline: 2px dashed #93c5fd; outline-offset: 4px; }
-[data-section-id].si-drag-over { outline: 2px solid var(--accent, #3b82f6); outline-offset: 4px; background: color-mix(in srgb, var(--accent, #3b82f6) 5%, transparent); }
-.si-drop-layer {
-  position: fixed; inset: 0; z-index: 35;
-  pointer-events: none;
-}
-.si-drop-zone {
-  position: fixed; pointer-events: auto;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--accent, #2563eb);
-  background: color-mix(in srgb, var(--accent, #2563eb) 8%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--accent, #2563eb) 55%, transparent);
-  border-radius: 10px;
-  font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
-  opacity: .25; transition: opacity .12s, background .12s, transform .12s;
-}
-.si-drop-zone.active {
-  opacity: .95;
-  background: color-mix(in srgb, var(--accent, #2563eb) 16%, white);
-  transform: scale(1.01);
-}
-.si-drop-zone-header { top: 8px; left: 16px; right: 16px; height: 52px; }
-.si-drop-zone-hero { top: 68px; left: 16px; right: 16px; height: 58px; }
-.si-drop-zone-left-sidebar { top: 136px; left: 16px; bottom: 84px; width: 132px; }
-.si-drop-zone-right-sidebar { top: 136px; right: 16px; bottom: 84px; width: 132px; }
-.si-drop-zone-main { top: 136px; left: 160px; right: 160px; bottom: 84px; }
-.si-drop-zone-footer { left: 16px; right: 16px; bottom: 16px; height: 56px; }
-
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section resize (left + right handles) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-.si-resize-handle, .si-lresize-handle {
-  position: absolute; top: 0;
-  width: 10px; height: 100%; min-height: 40px;
-  cursor: col-resize; z-index: 30;
-  opacity: 0; transition: opacity 0.15s;
-}
-.si-resize-handle  { right: 0; }
-.si-lresize-handle { left: 0; }
-[data-section-id]:hover .si-resize-handle,
-[data-section-id]:hover .si-lresize-handle,
-[data-section-id].si-resizing .si-resize-handle,
-[data-section-id].si-resizing .si-lresize-handle { opacity: 1; }
-.si-resize-handle::after {
-  content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 40px; background: var(--accent, #3b82f6);
-  border-radius: 3px; box-shadow: 0 0 0 1px white;
-}
-.si-lresize-handle::after {
-  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-  width: 3px; height: 40px; background: var(--accent, #3b82f6);
-  border-radius: 3px; box-shadow: 0 0 0 1px white;
-}
-.si-resize-snap-line {
-  position: fixed; top: 0; bottom: 0; width: 2px;
-  background: var(--accent, #3b82f6); opacity: 0.45;
-  pointer-events: none; z-index: 9998;
-}
-.si-resize-tooltip {
-  position: fixed; background: var(--accent, #3b82f6); color: white;
-  font-size: 11px; font-weight: 600; padding: 2px 7px;
-  border-radius: 4px; pointer-events: none; z-index: 9999;
-  transform: translateX(-50%);
-}
-
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section vertical resize (top + bottom handles) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-.si-vresize-handle, .si-tresize-handle {
-  position: absolute; left: 0; right: 0;
-  height: 10px; cursor: row-resize; z-index: 30;
-  opacity: 0; transition: opacity 0.15s;
-}
-.si-vresize-handle { bottom: 0; }
-.si-tresize-handle { top: 0; }
-[data-section-id]:hover .si-vresize-handle,
-[data-section-id]:hover .si-tresize-handle,
-[data-section-id].si-vresizing .si-vresize-handle,
-[data-section-id].si-vresizing .si-tresize-handle { opacity: 1; }
-.si-vresize-handle::after {
-  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 40px; height: 3px; background: var(--accent, #3b82f6);
-  border-radius: 3px; box-shadow: 0 0 0 1px white;
-}
-.si-tresize-handle::after {
-  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 40px; height: 3px; background: var(--accent, #3b82f6);
-  border-radius: 3px; box-shadow: 0 0 0 1px white;
-}
-.si-vresize-hline {
-  position: fixed; left: 0; right: 0; height: 2px;
-  background: var(--accent, #3b82f6); opacity: 0.4;
-  pointer-events: none; z-index: 9998;
-}
-.si-vresize-tip {
-  position: fixed; background: var(--accent, #3b82f6); color: white;
-  font-size: 11px; font-weight: 600; padding: 2px 7px;
-  border-radius: 4px; pointer-events: none; z-index: 9999;
-}
-/* Lift hovered/active section above adjacent content so handles are always on top */
-[data-section-id]:hover { z-index: 5; }
-[data-section-id].si-resizing, [data-section-id].si-vresizing { z-index: 10; }
-/* Left/right insert indicators during drag-over */
-[data-section-id].si-drag-before { box-shadow: inset 4px 0 0 0 var(--accent, #3b82f6); }
-[data-section-id].si-drag-after  { box-shadow: inset -4px 0 0 0 var(--accent, #3b82f6); }
-/* Right-click context menu */
-.si-ctx-menu {
-  position: fixed; z-index: 99999;
-  background: #fff; border: 1px solid #e2e8f0;
-  border-radius: 8px; padding: 4px 0;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08);
-  min-width: 140px; font-size: 13px;
-}
-.si-ctx-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 14px; cursor: pointer; color: #1e293b;
-  user-select: none; transition: background 0.1s;
-}
-.si-ctx-item:hover { background: #f1f5f9; }
-.si-ctx-item svg { flex-shrink: 0; opacity: 0.7; }
-.si-ctx-sep { height: 1px; background: #e2e8f0; margin: 4px 0; }
-.si-ctx-item.danger { color: #dc2626; }
-.si-ctx-item.danger:hover { background: #fef2f2; }
-/* Drop row indicator 茅藛?shown above/below a row during cross-row drag */
-[data-section-id].si-drag-row-before { box-shadow: inset 0 4px 0 0 var(--accent, #3b82f6); }
-[data-section-id].si-drag-row-after  { box-shadow: inset 0 -4px 0 0 var(--accent, #3b82f6); }
-</style>
-
-<script>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section right-click context menu 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-(function() {
-  var menu = null;
-
-  function hideMenu() {
-    if (menu) { menu.remove(); menu = null; }
-  }
-
-  function showMenu(x, y, sectionId) {
-    hideMenu();
-
-    menu = document.createElement('div');
-    menu.className = 'si-ctx-menu';
-    menu.style.left = x + 'px';
-    menu.style.top  = y + 'px';
-
-    // sectionId is captured here in the closure 茅藛?safe from hideMenu clearing it
-    function item(icon, label, cls, action) {
-      var el = document.createElement('div');
-      el.className = 'si-ctx-item' + (cls ? ' ' + cls : '');
-      el.innerHTML = icon + '<span>' + label + '</span>';
-      el.addEventListener('mousedown', function(e) { e.stopPropagation(); });
-      el.addEventListener('click', function() {
-        hideMenu();
-        action(sectionId);   // sectionId from outer closure, already captured
-      });
-      return el;
-    }
-
-    menu.appendChild(item(
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-      'Duplicate', '', function(id) {
-        window.parent.postMessage({ type: 'section-duplicate', id: id }, '*');
-      }
-    ));
-
-    menu.appendChild(item(
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>',
-      'Delete', 'danger', function(id) {
-        window.parent.postMessage({ type: 'section-delete', id: id }, '*');
-      }
-    ));
-
-    document.body.appendChild(menu);
-
-    // Flip if menu overflows viewport
-    var rect = menu.getBoundingClientRect();
-    if (rect.right  > window.innerWidth)  menu.style.left = (x - rect.width)  + 'px';
-    if (rect.bottom > window.innerHeight) menu.style.top  = (y - rect.height) + 'px';
-  }
-
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    el.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      showMenu(e.clientX, e.clientY, el.dataset.sectionId);
-    });
-  });
-
-  document.addEventListener('mousedown', function(e) {
-    if (menu && !menu.contains(e.target)) hideMenu();
-  });
-  document.addEventListener('scroll', hideMenu, true);
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') hideMenu();
-  });
-})();
-</script>
-
-<script>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section drag-and-drop (pure mouse events, tracks drop target during mousemove) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-(function() {
-  var dragging = false;
-  var draggingId = null;
-  var draggingEl = null;
-  var currentDrop = null; // updated every mousemove
-  var dropLayer = null;
-
-  function allSections() {
-    return Array.from(document.querySelectorAll('[data-section-id]'));
-  }
-
-  function sectionRegion(el) {
-    var pos = el.dataset.position || 'main';
-    return ['header', 'hero', 'main', 'sidebar', 'footer'].indexOf(pos) >= 0 ? pos : 'main';
-  }
-
-  function regionBounds(region) {
-    var secs = allSections().filter(function(el) { return sectionRegion(el) === region; });
-    if (!secs.length) return null;
-    var tops = secs.map(function(el) { return el.getBoundingClientRect().top; });
-    var bots = secs.map(function(el) { return el.getBoundingClientRect().bottom; });
-    return { top: Math.min.apply(null, tops), bottom: Math.max.apply(null, bots) };
-  }
-
-  function showDropZones() {
-    if (dropLayer) return;
-    dropLayer = document.createElement('div');
-    dropLayer.className = 'si-drop-layer';
-    [
-      ['header', '', 'Header'],
-      ['hero', '', 'Hero'],
-      ['sidebar', 'left', 'Left Sidebar'],
-      ['main', '', 'Main'],
-      ['sidebar', 'right', 'Right Sidebar'],
-      ['footer', '', 'Footer']
-    ].forEach(function(spec) {
-      var region = spec[0], side = spec[1], label = spec[2];
-      var zone = document.createElement('div');
-      zone.className = 'si-drop-zone si-drop-zone-' + (side ? side + '-' : '') + region;
-      zone.dataset.dropRegion = region;
-      if (side) zone.dataset.dropSidebarSide = side;
-      zone.textContent = 'Drop in ' + label;
-      dropLayer.appendChild(zone);
-    });
-    document.body.appendChild(dropLayer);
-  }
-
-  function hideDropZones() {
-    if (dropLayer) { dropLayer.remove(); dropLayer = null; }
-  }
-
-  function setActiveDropZone(drop) {
-    if (!dropLayer) return;
-    dropLayer.querySelectorAll('.si-drop-zone').forEach(function(zone) {
-      var sameRegion = zone.dataset.dropRegion === (drop && drop.position);
-      var sameSide = (zone.dataset.dropSidebarSide || '') === (drop && drop.sidebarSide || '');
-      zone.classList.toggle('active', sameRegion && sameSide);
-    });
-  }
-
-  function pointContext(x, y) {
-    var stack = document.elementsFromPoint ? document.elementsFromPoint(x, y) : [];
-    var hitSec = null, hitZone = null;
-    for (var i = 0; i < stack.length; i++) {
-      if (!hitSec && stack[i].closest) {
-        var sec = stack[i].closest('[data-section-id]');
-        if (sec && sec.dataset.sectionId !== draggingId) hitSec = sec;
-      }
-      if (!hitZone && stack[i].closest) {
-        hitZone = stack[i].closest('[data-drop-region]');
-      }
-    }
-    if (hitSec) return { region: sectionRegion(hitSec), sidebarSide: hitSec.dataset.sidebarSide || '', hitSection: hitSec };
-    if (hitZone) return { region: hitZone.dataset.dropRegion || 'main', sidebarSide: hitZone.dataset.dropSidebarSide || '', hitSection: null };
-
-    var hb = regionBounds('header');
-    var heroB = regionBounds('hero');
-    var mb = regionBounds('main');
-    var sb = regionBounds('sidebar');
-    var fb = regionBounds('footer');
-
-    if (hb && y <= hb.bottom + 48) return { region: 'header', sidebarSide: '' };
-    if (fb && y >= fb.top - 48) return { region: 'footer', sidebarSide: '' };
-    if (!fb && y >= window.innerHeight * 0.82) return { region: 'footer', sidebarSide: '' };
-
-    if (sb && y >= sb.top - 24 && y <= sb.bottom + 24) {
-      var sidebarSecs = siblingsIn('sidebar');
-      if (sidebarSecs.length) {
-        var left = Math.min.apply(null, sidebarSecs.map(function(el) { return el.getBoundingClientRect().left; }));
-        var right = Math.max.apply(null, sidebarSecs.map(function(el) { return el.getBoundingClientRect().right; }));
-        if (x >= left - 48 && x <= right + 48) return { region: 'sidebar', sidebarSide: '' };
-      }
-    }
-
-    if (hb && mb) {
-      var headerMainSplit = hb.bottom + (mb.top - hb.bottom) / 2;
-      if (y < headerMainSplit) return { region: 'header', sidebarSide: '' };
-    } else if (!hb && mb && y < mb.top - 24) {
-      return { region: 'header', sidebarSide: '' };
-    }
-
-    if (heroB && y >= heroB.top - 24 && y <= heroB.bottom + 24) return { region: 'hero', sidebarSide: '' };
-
-    if (mb && fb) {
-      var mainFooterSplit = mb.bottom + (fb.top - mb.bottom) / 2;
-      if (y > mainFooterSplit) return { region: 'footer', sidebarSide: '' };
-    } else if (!fb && mb && y > mb.bottom + 24) {
-      return { region: 'footer', sidebarSide: '' };
-    }
-
-    return { region: 'main', sidebarSide: '' };
-  }
-
-  // Sections in a given region, excluding the section being dragged
-  function siblingsIn(region) {
-    return allSections().filter(function(el) {
-      if (el.dataset.sectionId === draggingId) return false;
-      return sectionRegion(el) === region;
-    });
-  }
-
-  // Group flat list of sections into visual rows (sections with similar .top within 20px)
-  function toRows(secs) {
-    var rows = [];
-    secs.forEach(function(sec) {
-      var r = sec.getBoundingClientRect();
-      for (var i = 0; i < rows.length; i++) {
-        if (Math.abs(r.top - rows[i].top) < 20) {
-          rows[i].secs.push(sec);
-          rows[i].bottom = Math.max(rows[i].bottom, r.bottom);
-          return;
-        }
-      }
-      rows.push({ top: r.top, bottom: r.bottom, secs: [sec] });
-    });
-    rows.sort(function(a, b) { return a.top - b.top; });
-    return rows;
-  }
-
-  function findDrop(mx, my) {
-    var ctx = pointContext(mx, my);
-    var region = ctx.region || 'main';
-    var sidebarSide = ctx.sidebarSide || '';
-    var secs = siblingsIn(region);
-    if (region === 'sidebar' && sidebarSide) {
-      secs = secs.filter(function(el) { return (el.dataset.sidebarSide || '') === sidebarSide; });
-    }
-
-    if (secs.length === 0) {
-      return { beforeId: '__end__', position: region, sidebarSide: sidebarSide, indicEl: null, indicSide: null };
-    }
-
-    var rows = toRows(secs);
-
-    // Above all rows
-    if (my < rows[0].top) {
-      var s0 = rows[0].secs[0];
-      return { beforeId: s0.dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: s0, indicSide: 'row-before' };
-    }
-    // Below all rows
-    var last = rows[rows.length - 1];
-    if (my > last.bottom) {
-      var sLast = last.secs[last.secs.length - 1];
-      return { beforeId: '__end__', position: region, sidebarSide: sidebarSide, indicEl: sLast, indicSide: 'row-after' };
-    }
-
-    // Find the row containing cursor Y (or the nearest one)
-    var ri = 0;
-    for (var r = 0; r < rows.length; r++) {
-      if (my <= rows[r].bottom) { ri = r; break; }
-    }
-    var row = rows[ri];
-
-    // Sort row sections left茅藛芦忙艩庐ight
-    var rowSecs = row.secs.slice().sort(function(a, b) {
-      return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
-    });
-
-    if (my < row.top + (row.bottom - row.top) * 0.25) {
-      return { beforeId: rowSecs[0].dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[0], indicSide: 'row-before' };
-    }
-    if (my > row.top + (row.bottom - row.top) * 0.75) {
-      var belowId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
-      return { beforeId: belowId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[rowSecs.length - 1], indicSide: 'row-after' };
-    }
-
-    // Scan left茅藛芦忙艩庐ight to find insert position within the row
-    for (var s = 0; s < rowSecs.length; s++) {
-      var sr = rowSecs[s].getBoundingClientRect();
-      var midX = sr.left + sr.width / 2;
-      if (mx <= midX) {
-        return { beforeId: rowSecs[s].dataset.sectionId, position: region, sidebarSide: sidebarSide, indicEl: rowSecs[s], indicSide: 'before' };
-      }
-    }
-
-    // Mouse is past the last section in the row 茅藛?insert at start of next row (or end)
-    var lastInRow = rowSecs[rowSecs.length - 1];
-    var nextId = (ri + 1 < rows.length) ? rows[ri + 1].secs[0].dataset.sectionId : '__end__';
-    return { beforeId: nextId, position: region, sidebarSide: sidebarSide, indicEl: lastInRow, indicSide: 'after' };
-  }
-
-  function clearIndicators() {
-    allSections().forEach(function(el) {
-      el.classList.remove('si-drag-before', 'si-drag-after', 'si-drag-row-before', 'si-drag-row-after');
-    });
-  }
-
-  // Attach move bars to ALL sections including header/footer
-  allSections().forEach(function(el) {
-    var bar = document.createElement('div');
-    bar.className = 'si-move-bar';
-    bar.title = 'Drag to move';
-    el.appendChild(bar);
-
-    bar.addEventListener('mousedown', function(e) {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      e.stopPropagation();
-      dragging = true;
-      draggingId = el.dataset.sectionId;
-      draggingEl = el;
-      el.classList.add('si-dragging');
-      el.style.pointerEvents = 'none';
-      document.body.style.cursor = 'grabbing';
-      showDropZones();
-    });
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    clearIndicators();
-    currentDrop = findDrop(e.clientX, e.clientY);
-    setActiveDropZone(currentDrop);
-    if (currentDrop.indicEl) {
-      var cls = currentDrop.indicSide === 'before'     ? 'si-drag-before'
-              : currentDrop.indicSide === 'after'      ? 'si-drag-after'
-              : currentDrop.indicSide === 'row-before' ? 'si-drag-row-before'
-              :                                          'si-drag-row-after';
-      currentDrop.indicEl.classList.add(cls);
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseup', function(e) {
-    if (!dragging) return;
-    var fromId = draggingId;
-    var drop = currentDrop;
-
-    if (draggingEl) {
-      draggingEl.classList.remove('si-dragging');
-      draggingEl.style.pointerEvents = '';
-    }
-    dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
-    document.body.style.cursor = '';
-    clearIndicators();
-    hideDropZones();
-
-    if (fromId && drop && drop.beforeId) {
-      window.parent.postMessage({
-        type: 'section-move',
-        fromId: fromId,
-        beforeId: drop.beforeId,
-        newPosition: drop.position,
-        sidebarSide: drop.sidebarSide || ''
-      }, '*');
-    }
-  });
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && dragging) {
-      if (draggingEl) {
-        draggingEl.classList.remove('si-dragging');
-        draggingEl.style.pointerEvents = '';
-      }
-      dragging = false; draggingId = null; draggingEl = null; currentDrop = null;
-      document.body.style.cursor = '';
-      clearIndicators();
-      hideDropZones();
-    }
-  });
-})();
-</script>
-
-<script>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section column-span resize (left + right handles) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-(function() {
-  var resizing = false;
-  var resizingEl = null;
-  var resizingId = null;
-  var startColSpan = 1;
-  var startLeft = 0;   // element's left edge at drag start (fixed anchor for right handle)
-  var startRight = 0;  // element's right edge at drag start (fixed anchor for left handle)
-  var snapLine = null;
-  var tooltip = null;
-  var currentColSpan = 1;
-  var resizeDir = 'right';
-  var resizeMode = 'section';
-
-  function getColSpan(el) {
-    // Prefer the largest-breakpoint class: lg > sm > bare (handles "_spanm" responsive strings)
-    var classes = Array.from(el.classList);
-    var lg = classes.find(function(c) { return /^lg:col-span-\d+$/.test(c); });
-    if (lg) return parseInt(lg.replace('lg:col-span-', ''), 10);
-    var sm = classes.find(function(c) { return /^sm:col-span-\d+$/.test(c); });
-    if (sm) return parseInt(sm.replace('sm:col-span-', ''), 10);
-    var bare = classes.find(function(c) { return /^col-span-\d+$/.test(c); });
-    return bare ? parseInt(bare.replace('col-span-', ''), 10) : 12;
-  }
-
-  function setColSpan(el, n) {
-    // Remove all responsive col-span variants before adding the new one
-    Array.from(el.classList)
-      .filter(function(c) { return /^(?:(?:sm|md|lg|xl|2xl):)?col-span-\d+$/.test(c); })
-      .forEach(function(c) { el.classList.remove(c); });
-    el.classList.add('col-span-' + n);
-  }
-
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var rHandle = document.createElement('div');
-    rHandle.className = 'si-resize-handle';
-    rHandle.title = 'Drag to resize width';
-    el.appendChild(rHandle);
-
-    var lHandle = document.createElement('div');
-    lHandle.className = 'si-lresize-handle';
-    lHandle.title = 'Drag to resize width';
-    el.appendChild(lHandle);
-
-    function startResize(e, dir) {
-      e.preventDefault();
-      e.stopPropagation();
-      var rect = el.getBoundingClientRect();
-      resizing = true;
-      resizingEl = el;
-      resizingId = el.dataset.sectionId;
-      resizeMode = (el.dataset.position || '') === 'sidebar' ? 'sidebar' : 'section';
-      startColSpan = resizeMode === 'sidebar'
-        ? parseInt(el.dataset.sidebarWidth || (el.closest('aside') && el.closest('aside').dataset.sidebarSpan) || '3', 10)
-        : getColSpan(el);
-      currentColSpan = startColSpan;
-      startLeft = rect.left;
-      startRight = rect.right;
-      resizeDir = dir;
-      el.classList.add('si-resizing');
-
-      snapLine = document.createElement('div');
-      snapLine.className = 'si-resize-snap-line';
-      document.body.appendChild(snapLine);
-
-      tooltip = document.createElement('div');
-      tooltip.className = 'si-resize-tooltip';
-      tooltip.textContent = startColSpan + '/12';
-      document.body.appendChild(tooltip);
-    }
-
-    rHandle.addEventListener('mousedown', function(e) { startResize(e, 'right'); });
-    lHandle.addEventListener('mousedown', function(e) { startResize(e, 'left'); });
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    if (!resizing || !resizingEl) return;
-    var grid = resizeMode === 'sidebar'
-      ? (resizingEl.closest('[data-region-row]') || resizingEl.closest('main') || resizingEl.parentElement)
-      : (resizingEl.closest('.grid-cols-12') || document.getElementById('page-sections-grid') || resizingEl.parentElement);
-    if (!grid) return;
-    var colW = grid.getBoundingClientRect().width / 12;
-    // Right: distance from element's fixed left edge to cursor
-    // Left:  distance from cursor to element's initial right edge
-    var newW = resizeDir === 'right'
-      ? e.clientX - startLeft
-      : startRight - e.clientX;
-    var n = resizeMode === 'sidebar'
-      ? Math.max(2, Math.min(6, Math.round(newW / colW)))
-      : Math.max(1, Math.min(12, Math.round(newW / colW)));
-    if (n !== currentColSpan) {
-      currentColSpan = n;
-      if (resizeMode === 'sidebar') {
-        var aside = resizingEl.closest('aside');
-        if (aside) {
-          aside.dataset.sidebarSpan = String(n);
-          aside.style.flexBasis = 'calc((100% - 1.5rem) * ' + n + ' / 12)';
-          aside.style.maxWidth = aside.style.flexBasis;
-        }
-        resizingEl.dataset.sidebarWidth = String(n);
-      } else {
-        setColSpan(resizingEl, n);
-      }
-    }
-    if (resizeDir === 'left') {
-      // Shift element right so its right edge stays fixed 茅藛?left edge appears to move
-      var tx = (startColSpan - n) * colW;
-      resizingEl.style.transform = 'translateX(' + tx + 'px)';
-      // Snap line and tooltip at the apparent left edge
-      var snapX = startRight - n * colW;
-      if (snapLine) { snapLine.style.left = snapX + 'px'; }
-      if (tooltip) {
-        tooltip.textContent = n + '/12';
-        tooltip.style.left = snapX + 'px';
-        tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
-      }
-    } else {
-      resizingEl.style.transform = '';
-      var snapX = startLeft + n * colW;
-      if (snapLine) { snapLine.style.left = snapX + 'px'; }
-      if (tooltip) {
-        tooltip.textContent = n + '/12';
-        tooltip.style.left = snapX + 'px';
-        tooltip.style.top = (resizingEl.getBoundingClientRect().top - 24) + 'px';
-      }
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseup', function() {
-    if (!resizing) return;
-    if (snapLine) { snapLine.remove(); snapLine = null; }
-    if (tooltip)  { tooltip.remove();  tooltip = null; }
-    if (resizingEl) {
-      resizingEl.classList.remove('si-resizing');
-      resizingEl.style.transform = '';
-    }
-    if (resizingId && currentColSpan !== startColSpan && resizeMode === 'sidebar') {
-      window.parent.postMessage({ type: 'section-sidebar-width', id: resizingId, sidebar_width: currentColSpan }, '*');
-    } else if (resizingId && currentColSpan !== startColSpan) {
-      window.parent.postMessage({ type: 'section-resize', id: resizingId, col_span: currentColSpan }, '*');
-    }
-    resizing = false;
-    resizingEl = null;
-    resizingId = null;
-    resizeMode = 'section';
-  });
-})();
-</script>
-
-<script>
-/* 茅藛鹿芒鈥毬┧喡姑⑩€毬?Section vertical height resize (top + bottom handles) 茅藛鹿芒鈥毬┧喡姑⑩€毬?*/
-(function() {
-  var vresizing = false;
-  var vresizingEl = null;
-  var vresizingId = null;
-  var startY = 0;
-  var startH = 0;
-  var hline = null;
-  var vtip = null;
-  var currentH = 0;
-  var vresizeDir = 'bottom';
-
-  document.querySelectorAll('[data-section-id]').forEach(function(el) {
-    var bHandle = document.createElement('div');
-    bHandle.className = 'si-vresize-handle';
-    bHandle.title = 'Drag to resize height';
-    el.appendChild(bHandle);
-
-    var tHandle = document.createElement('div');
-    tHandle.className = 'si-tresize-handle';
-    tHandle.title = 'Drag to resize height';
-    el.appendChild(tHandle);
-
-    function startVResize(e, dir) {
-      e.preventDefault();
-      e.stopPropagation();
-      vresizing = true;
-      vresizingEl = el;
-      vresizingId = el.dataset.sectionId;
-      startY = e.clientY;
-      startH = el.getBoundingClientRect().height;
-      currentH = startH;
-      vresizeDir = dir;
-      el.classList.add('si-vresizing');
-
-      hline = document.createElement('div');
-      hline.className = 'si-vresize-hline';
-      hline.style.top = e.clientY + 'px';
-      document.body.appendChild(hline);
-
-      vtip = document.createElement('div');
-      vtip.className = 'si-vresize-tip';
-      vtip.textContent = Math.round(startH) + 'px';
-      vtip.style.top = (e.clientY + 6) + 'px';
-      vtip.style.left = (e.clientX + 12) + 'px';
-      document.body.appendChild(vtip);
-    }
-
-    bHandle.addEventListener('mousedown', function(e) { startVResize(e, 'bottom'); });
-    tHandle.addEventListener('mousedown', function(e) { startVResize(e, 'top'); });
-  });
-
-  document.addEventListener('mousemove', function(e) {
-    if (!vresizing || !vresizingEl) return;
-    var delta = vresizeDir === 'bottom'
-      ? e.clientY - startY        // bottom: drag down = taller
-      : startY - e.clientY;       // top:    drag up   = taller
-    var newH = Math.max(40, startH + delta);
-    currentH = newH;
-    vresizingEl.style.height = newH + 'px';
-    vresizingEl.style.minHeight = newH + 'px';
-    vresizingEl.style.overflow = 'hidden';
-    if (vresizeDir === 'top') {
-      // Shift element down so its bottom edge stays fixed 茅藛?top edge appears to move
-      var ty = startH - newH;
-      vresizingEl.style.transform = 'translateY(' + ty + 'px)';
-      // Guide line follows the apparent top edge (getBoundingClientRect accounts for transform)
-      if (hline) hline.style.top = vresizingEl.getBoundingClientRect().top + 'px';
-    } else {
-      vresizingEl.style.transform = '';
-      if (hline) hline.style.top = e.clientY + 'px';
-    }
-    if (vtip) {
-      vtip.textContent = Math.round(newH) + 'px';
-      vtip.style.top = (e.clientY + 6) + 'px';
-      vtip.style.left = (e.clientX + 12) + 'px';
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseup', function() {
-    if (!vresizing) return;
-    if (hline) { hline.remove(); hline = null; }
-    if (vtip)  { vtip.remove();  vtip = null; }
-    if (vresizingEl) {
-      vresizingEl.classList.remove('si-vresizing');
-      vresizingEl.style.height = '';
-      vresizingEl.style.minHeight = Math.round(currentH) + 'px';
-      vresizingEl.style.overflow = '';
-      vresizingEl.style.transform = '';
-    }
-    if (vresizingId && Math.abs(currentH - startH) > 4) {
-      window.parent.postMessage({ type: 'section-height', id: vresizingId, min_height: Math.round(currentH) }, '*');
-    }
-    vresizing = false;
-    vresizingEl = null;
-    vresizingId = null;
-  });
-})();
-</script>
+{% include "helpers/unified_page_resize_script.html.jinja2" %}
 
 </body>
 </html>
@@ -4811,23 +3823,7 @@ href="#"
 })();
 </script>
 
-<script>
-(function() {
-  var kw = {
-    success: /\b(active|approved|success|paid|completed|confirmed|verified|enabled|done|shipped)\b/i,
-    error:   /\b(rejected|failed|error|cancelled|canceled|declined|inactive|disabled|expired|denied)\b/i,
-    warning: /\b(pending|processing|draft|review|waiting|hold|queued)\b/i,
-  };
-  document.querySelectorAll('.si-badge').forEach(function(el) {
-    var t = el.textContent.trim();
-    if (kw.success.test(t))      { el.className = 'si-badge si-badge-success'; }
-    else if (kw.error.test(t))   { el.className = 'si-badge si-badge-error'; }
-    else if (kw.warning.test(t)) { el.className = 'si-badge si-badge-warning'; }
-    else                         { el.className = 'si-badge si-badge-neutral'; }
-  });
-})();
-</script>
+{% include "helpers/unified_page_badge_script.html.jinja2" %}
 
 {% raw %}{% endblock %}{% endraw %}
 {% endif %}
-
